@@ -1,0 +1,31 @@
+Series ID,Description
+GDP,Gross Domestic Product
+UNRATE,Unemployment Rate
+CPIAUCSL,Consumer Price Index for All Urban Consumers: All Items
+SP500,S&P 500 Index
+T10Y3M,10-Year Treasury Constant Maturity Minus 3-Month Treasury Constant Maturity
+A191RL1Q225SBEA,Real Gross Domestic Product 1 Decimal
+FF,Effective Federal Funds Rate
+DGS10,10-Year Treasury Constant Maturity Rate
+INDPRO,Industrial Production Index
+M2SL,M2 Money Stock
+WTISPLC,Crude Oil Prices: West Texas Intermediate (WTI) - Cushing Oklahoma
+PCE,Personal Consumption Expenditures
+WTI,Crude Oil Prices: West Texas Intermediate (WTI) - Cushing Oklahoma
+VIXCLS,CBOE Volatility Index: VIX
+PAYEMS,All Employees: Total Nonfarm Payrolls
+M1SL,M1 Money Stock
+CPILFESL,Consumer Price Index for All Urban Consumers: All Items Less Food & Energy
+DTWEXB,Trade Weighted U.S. Dollar Index: Broad
+DCOILWTICO,Crude Oil Prices: West Texas Intermediate (WTI) - Cushing Oklahoma Dollars per Barrel
+GDPC1,Real Gross Domestic Product Chained 2012 Dollars
+DTWEXBPA,Trade Weighted U.S. Dollar Index: Major Currencies Goods
+DSPIC96,Personal Consumption Expenditures: Chain-type Price Index
+DTWEXEMEGS,Trade Weighted U.S. Dollar Index: Emerging Markets Other Important Trading Partners
+BAMLH0A0HYM2,BofA Merrill Lynch US High Yield Option-Adjusted Spread
+PCETRIM12M159SFRBDAL,Personal Consumption Expenditures Excluding Food and Energy: Chain-type Price Index
+MORTGAGE30US,30-Year Fixed Rate Mortgage Average in the United States
+SP500DIV,S&P 500 Dividend Yield
+DGS30,30-Year Treasury Constant Maturity Rate
+CPILTT01USM657N,Inflation Consumer Prices for the United States
+DSPIC96T,Personal Consumption Expenditures: Chain-type Price Index Trimmed Mean

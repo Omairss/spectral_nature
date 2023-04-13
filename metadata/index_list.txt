@@ -1,0 +1,44 @@
+S&P 500,^GSPC
+Dow Jones Industrial Average,^DJI
+NASDAQ Composite,^IXIC
+Russell 2000,^RUT
+Vanguard Total Stock Market ETF,VTI
+SPDR S&P 500 ETF Trust,SPY
+Invesco QQQ Trust,QQQ
+iShares Russell 2000 ETF,IWM
+iShares Core S&P 500 ETF,IVV
+Fidelity 500 Index Fund,FXAIX
+Schwab U.S. Large-Cap ETF,SCHX
+Schwab U.S. Small-Cap ETF,SCHA
+Vanguard Growth ETF,VUG
+Vanguard S&P 500 ETF,VOO
+Vanguard FTSE Developed Markets ETF,VEA
+Vanguard FTSE Emerging Markets ETF,VWO
+Vanguard Value ETF,VTV
+Vanguard Mid-Cap Growth ETF,VOT
+Vanguard Health Care ETF,VHT
+Vanguard Small-Cap Growth ETF,VBK
+Vanguard Extended Market ETF,VXF
+Vanguard Information Technology ETF,VGT
+Vanguard Consumer Discretionary ETF,VCR
+Vanguard Consumer Staples ETF,VDC
+Vanguard Energy ETF,VDE
+Vanguard Communication Services ETF,VOX
+Vanguard Utilities ETF,VPU
+Vanguard Small-Cap ETF,VB
+Vanguard Short-Term Inflation-Protected Securities ETF,VTIP
+Vanguard Total Bond Market ETF,BND
+Vanguard Total International Bond ETF,BNDX
+Vanguard Intermediate-Term Corporate Bond ETF,VCIT
+Vanguard Long-Term Corporate Bond ETF,VCLT
+Vanguard Short-Term Corporate Bond ETF,VCSH
+Vanguard FTSE All-World ex-US ETF,VEU
+Vanguard FTSE All-World ex-US Small-Cap ETF,VSS
+Vanguard Real Estate ETF,VNQ
+Vanguard Small-Cap Value ETF,VBR
+Vanguard Small-Cap Value ETF,VBV
+Vanguard Small-Cap ETF,VBK
+Vanguard Russell 2000 ETF,VTWO
+Vanguard Russell 3000 ETF,VTHR
+Vanguard S&P Small-Cap 600 ETF,VIOV
+Vanguard S&P Mid-Cap 400 ETF,VIOO

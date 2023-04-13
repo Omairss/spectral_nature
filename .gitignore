@@ -1,0 +1,45 @@
+# .gitignore
+
+# Python related files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pycachefile
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+*.egg-info/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+*.egg-info/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.egg
+*.egg-info/
+
+# Jupyter Notebook related files
+*.ipynb_checkpoints/
+*.ipynb_meta/
+
+# Exclude .ipynb_checkpoints/ directory
+*.ipynb_checkpoints/
+.ipynb_checkpoints/
+
+# Exclude Azure ML artifacts
+*.aml/
+*.aml
+*.amlignore
+*.amltmp
+
+# Excluded directories
+/data/
+/secrets/

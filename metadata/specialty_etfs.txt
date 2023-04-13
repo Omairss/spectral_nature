@@ -1,0 +1,49 @@
+ARKK,ARK Innovation ETF
+ARKQ,ARK Autonomous Technology & Robotics ETF
+ARKW,ARK Next Generation Internet ETF
+ARKG,ARK Genomic Revolution ETF
+ARKF,ARK Fintech Innovation ETF
+PRNT,The 3D Printing ETF
+IZRL,ARK Israel Innovative Technology ETF
+ESPO,VanEck Vectors Video Gaming and eSports ETF
+HERO,Global X Video Games & Esports ETF
+IBUY,Amplify Online Retail ETF
+ONLN,ProShares Online Retail ETF
+XITK,SPDR FactSet Innovative Technology ETF
+FNGS,MicroSectors FANG+ ETN
+XWEB,SPDR S&P Internet ETF
+IBB,iShares Nasdaq Biotechnology ETF
+PBE,Invesco Dynamic Biotechnology & Genome ETF
+GNOM,Global X Genomics & Biotechnology ETF
+BBH,VanEck Vectors Biotech ETF
+ARKX,ARK Space Exploration & Innovation ETF
+LIT,Global X Lithium & Battery Tech ETF
+COPX,Global X Copper Miners ETF
+GOAT,VanEck Vectors Morningstar Global Wide Moat ETF
+MOAT,VanEck Vectors Morningstar Wide Moat ETF
+PBSM,Invesco PureBeta MSCI USA Small Cap Momentum ETF
+PSJ,Invesco Dynamic Software ETF
+XSD,SPDR S&P Semiconductor ETF
+SMH,VanEck Vectors Semiconductor ETF
+SOXX,iShares PHLX Semiconductor ETF
+XHE,SPDR S&P Health Care Equipment ETF
+GNOM,Global X Genomics & Biotechnology ETF
+FLQH,Fidelity Long-Term Healthcare ETF
+IBBJ,iShares NASDAQ Biotechnology Index Fund
+PXQ,Invesco Dynamic Networking ETF
+XNTK,SPDR NYSE Technology ETF
+TAN,Invesco Solar ETF
+WCLD,WisdomTree Cloud Computing Fund
+XITG,SPDR FactSet Innovative Technology ETF
+XITL,SPDR FactSet Innovative Technology ETF
+SMOG,VanEck Vectors Low Carbon Energy ETF
+NLR,VanEck Vectors Uranium+Nuclear Energy ETF
+HACK,ETFMG Prime Cyber Security ETF
+XWEB,SPDR S&P Internet ETF
+FINX,Global X FinTech ETF
+BLOK,Amplify Transformational Data Sharing ETF
+GXTG,Global X Thematic Growth ETF
+BOTZ,Global X Robotics & Artificial Intelligence ETF
+ROBT,First Trust Nasdaq Artificial Intelligence and Robotics ETF
+XBUY,Amplify International Online Retail ETF
+XT,iShares Exponential Technologies ETF
