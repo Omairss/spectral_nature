@@ -42,4 +42,6 @@ build/
 
 # Excluded directories
 /data/
+/log/
+/notebooks/.ipynb_aml_checkpoints/
 /secrets/

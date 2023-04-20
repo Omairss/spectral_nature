@@ -4,7 +4,7 @@ import requests
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
-from tqdm.notebook import tqdm_notebook as tqdm
+#from tqdm.notebook import tqdm_notebook as tqdm
 from datetime import datetime
 import argparse
 import json
@@ -12,11 +12,33 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import xml.etree.ElementTree as ET
 from fredapi import Fred
+from tqdm import tqdm
+import logging
 
 
 SECRET_PATH = '../secrets'
 DATA_PATH = '../data'
+LOG_PATH = '../log'
 STOCK_DATA_PATH = os.path.join(DATA_PATH, 'stock_data')
+
+def log_init():
+    
+    # Set up the logger
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+
+    # Set up the file handler
+    log_file = f"{datetime.now().strftime('%Y-%m-%d-%H')}.log"
+    file_handler = logging.FileHandler(os.path.join(LOG_PATH,log_file))
+
+    # Set up the formatter
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+
+    # Add the file handler to the logger
+    logger.addHandler(file_handler)
+    
+    return logger
 
 def get_fred_series_list():
     
@@ -52,7 +74,7 @@ def get_fred_series_list():
         
     print("Scraping complete.")
 
-def get_fred_data(api_key, series_ids):
+def get_fred_data(api_key, series_ids, logger):
     csv_filename = 'fred_data.csv'
     csv_filename_path = os.path.join(DATA_PATH, csv_filename)
 
@@ -71,7 +93,8 @@ def get_fred_data(api_key, series_ids):
         time.sleep(0.5)
         try:
             data = fred.get_series(series_id)
-            print(data[:5])
+            logger.info(series_id)
+            logger.info((data[:5]))
             df = df.append(pd.DataFrame({'series_id': [series_id] * len(data), 'date': data.index, 'value': data.values}))
         except Exception as e:
             print(series_id + str(e))
@@ -115,66 +138,94 @@ def get_ticker_list_2():
     return us_companies[['symbol', 'name']]
 
 
-def get_stock_data(api_key, symbol, outputsize='full'):
-    csv_filename = f'{symbol}.csv'
-    csv_filename_path = os.path.join(STOCK_DATA_PATH, csv_filename)
+def get_batch_stock_data(api_keys, symbol_list, logger, outputsize='full',):
+    
+    SKIP_CACHED = True
+    
 
-    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={symbol}&outputsize={outputsize}&apikey={api_key}&datatype=csv'
+    # Define rate limits (requests per minute and requests per day)
+    requests_per_minute = 4
+    requests_per_day = 490
 
-    # Check if cached data exists and is less than a day old
-    if os.path.exists(csv_filename):
-        file_age = datetime.now() - datetime.fromtimestamp(os.path.getmtime(csv_filename))
-        if file_age < timedelta(days=1):
-            # Read data from CSV file
-            df = pd.read_csv(csv_filename)
-            return df
+    # Initialize counters for requests per minute and requests per day
+    requests_count_minute = 0
+    requests_count_day = 0
 
-    try:
-        df = pd.read_csv(url)
-        df.index = pd.to_datetime(df.index)
-        df.sort_index(inplace=True)
-        df.to_csv(csv_filename_path)  # Cache data to CSV file
-        return df
-    except Exception as e:
-        print(f'Error fetching data for {symbol}')
-        return None
+    api_key = api_keys.pop()
 
-    if False:
-        # Fetch data from API
-        response = requests.get(url)
-        if response.status_code == 200:
-            data = response.json()['Time Series (Daily)']
-            df = pd.DataFrame.from_dict(data, orient='index')
+    for symbol in tqdm(symbol_list, desc='Processing items', unit='item'):
+
+        # Check if requests per minute limit has been exceeded
+        if requests_count_minute >= requests_per_minute:
+            # Sleep for 60 seconds (1 minute)
+            #print('Requests per minute limit exceeded. Sleeping for 60 seconds...')
+            logger.info('Requests per minute limit exceeded. Sleeping for 60 seconds...')
+            time.sleep(60)
+            requests_count_minute = 0
+
+        # Check if requests per day limit has been exceeded
+        if requests_count_day >= requests_per_day:
+            # Try a new API token from the list
+            if api_keys:
+                api_key = api_keys.pop()
+                requests_count_day = 0
+                #print(f'Requests per day limit exceeded. Trying a new API token: {api_token}')
+                logger.info(f'Requests per day limit exceeded. Trying a new API token: {api_token}')
+            else:
+                #print('No API tokens available. Exiting...')
+                logger.info(f'No API tokens available. Exiting...')
+                return False
+
+        csv_filename = f'{symbol}.csv'
+        csv_filename_path = os.path.join(STOCK_DATA_PATH, csv_filename)
+        url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={symbol}&outputsize={outputsize}&apikey={api_key}&datatype=csv'
+
+        if SKIP_CACHED == True:
+            if os.path.exists(csv_filename_path):
+                file_age = datetime.now() - datetime.fromtimestamp(os.path.getmtime(csv_filename_path))
+                if file_age < timedelta(days=1):
+                    continue
+
+        try:
+            df = pd.read_csv(url)
             df.index = pd.to_datetime(df.index)
             df.sort_index(inplace=True)
+            #print(df.head(2))
+            logger.info(symbol)
+            logger.info(df.head(2))
+            logger.info(len(df))
             df.to_csv(csv_filename_path)  # Cache data to CSV file
-            return df
-        else:
+        except Exception as e:
             print(f'Error fetching data for {symbol}')
-            return None
+            logger.error(f'Error fetching data for {symbol}')
+        
+        # Update the request counters
+        requests_count_minute += 1
+        requests_count_day += 1
+
+    return True
 
 
-def pull_data(mode):
+
+def pull_data(mode, logger):
 
     with open(os.path.join(SECRET_PATH,'fred_api_key.txt')) as f:
         fred_api_key = f.read()
 
     with open(os.path.join(SECRET_PATH,'alpha_vantage_api_key.txt')) as f:
-        av_api_key = f.read()
+        av_api_keys = f.read().splitlines()
 
     ##Read Config/Meta
     series_ids = list(pd.read_csv('../data/fred_series_id_large.csv', header = None)[0])   
     nasdaq_tickers = pd.read_csv('../data/nasdaq_ticker_list.csv') 
     
     if mode == 'stock':
-        for ticker in tqdm(list(nasdaq_tickers['Symbol'])):  
-            print(ticker)
-            stock_df = get_stock_data(av_api_key, ticker, outputsize='full')
-        return stock_df
+        status = get_batch_stock_data(av_api_keys, list(nasdaq_tickers['Symbol']), logger, outputsize='full')
+        return status
 
     if mode == 'fred':
         #series_ids = get_fred_series_list()
-        fred_df = get_fred_data(fred_api_key, series_ids)
+        fred_df = get_fred_data(fred_api_key, series_ids, logger)
         return fred_df
     
 if __name__ == '__main__':
@@ -191,4 +242,6 @@ if __name__ == '__main__':
     # Access the named arguments
     mode = args.mode
 
-    data_df = main(mode)
+    logger = log_init()
+
+    data_df = pull_data(mode, logger)
