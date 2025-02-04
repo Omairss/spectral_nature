@@ -3,13 +3,23 @@ from dash import dcc, html, Input, Output
 import dash_bootstrap_components as dbc
 from flask import Flask, redirect, url_for, request, render_template_string
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+import plotly.graph_objects as go  
+
+
+# ----------------------------------------------------------------
+# Set Plotly theme to dark
+# ----------------------------------------------------------------
+from dash_bootstrap_templates import load_figure_template
+
+# loads the "darkly" template and sets it as the default
+load_figure_template("darkly")
 
 # ----------------------------------------------------------------
 # Flask app setup
 # ----------------------------------------------------------------
 
 app = Flask(__name__)
-app.secret_key = "des"  # for demonstration
+app.secret_key = "das"  # for demonstration
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -93,8 +103,8 @@ dash_app.layout = dbc.Container([
     html.Div([
         html.H1("Protected Dash Section", className="text-white mt-4"),
         dcc.Tabs(id="tabs", value='tab1', children=[
-            dcc.Tab(label='Demo Chart', value='tab1', className="text-black"),
-            dcc.Tab(label='Another Page', value='tab2', className="text-black"),
+            dcc.Tab(label='Demo Chart', value='tab1', className="bg-dark text-white"),
+            dcc.Tab(label='Another Page', value='tab2', className="bg-dark text-white"),
         ]),
         html.Div(id='tabs-content', className="text-white mt-3")
     ])
@@ -105,7 +115,7 @@ dash_app.layout = dbc.Container([
 def render_content(tab):
     if tab == 'tab1':
         return html.Div([
-            dbc.Button("Update Chart", id="update-button", color="primary"),
+            dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
             dcc.Graph(id="sample-graph")
         ], className="mt-3")
     else:
@@ -115,10 +125,17 @@ def render_content(tab):
 def update_chart(n):
     x_vals = [1, 2, 3]
     y_vals = [i * (n or 1) for i in [4, 1, 2]]
-    return {
-        "data": [{"x": x_vals, "y": y_vals, "type": "bar", "name": "Sample"}],
-        "layout": {"title": "Demo Chart"}
-    }
+    
+    fig = go.Figure(data=[
+        go.Bar(x=x_vals, y=y_vals, name="Sample")
+    ])
+    
+    fig.update_layout(
+        title="Demo Chart",
+        template="darkly"  # Enables dark mode for the chart
+    )
+    
+    return fig
 
 # Protect the Dash app with Flask-Login
 @dash_app.server.before_request
