@@ -1,7 +1,8 @@
 from flask import Flask, redirect, url_for, request, render_template_string
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import dash
-from dash import dcc, html
+from dash import dcc, html, Input, Output
+import dash_bootstrap_components as dbc
 
 app = Flask(__name__)
 app.secret_key = "super_secret_key"
@@ -9,7 +10,6 @@ app.secret_key = "super_secret_key"
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-# Dummy user
 class User(UserMixin):
     def __init__(self, id):
         self.id = id
@@ -28,12 +28,31 @@ def login():
             return redirect(url_for("index"))
         else:
             return "Invalid password."
-    return render_template_string('''
-        <form method="post">
-            Password: <input type="password" name="password">
-            <input type="submit" value="Login">
-        </form>
-    ''')
+    page = '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    </head>
+    <body class="bg-light">
+      <div class="container mt-5">
+        <div class="row justify-content-center">
+          <div class="col-md-4">
+            <h3 class="text-center">Login</h3>
+            <form method="post">
+              <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" class="form-control" required>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Login</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+    '''
+    return page
 
 @app.route("/logout")
 def logout():
@@ -44,20 +63,38 @@ def logout():
 def index():
     return "Go to /login to authenticate, then /dash/ to view the Dash app."
 
-# Create Dash app, embed it on Flask's server
-dash_app = dash.Dash(__name__, server=app, url_base_pathname="/dash/")
+dash_app = dash.Dash(__name__, server=app, url_base_pathname="/dash/", external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-dash_app.layout = html.Div([
-    html.H1("Protected Dash Section"),
-    dcc.Graph(
-        figure=dict(
-            data=[
-                dict(x=[1, 2, 3], y=[4, 1, 2], type='bar', name='Sample')
-            ],
-            layout=dict(title='Demo Chart')
-        )
-    )
-])
+dash_app.layout = dbc.Container([
+    dcc.Location(id="url"),
+    html.Div([
+        html.H1("Protected Dash Section"),
+        dcc.Tabs(id="tabs", value='tab1', children=[
+            dcc.Tab(label='Demo Chart', value='tab1'),
+            dcc.Tab(label='Another Page', value='tab2'),
+        ]),
+        html.Div(id='tabs-content')
+    ])
+], fluid=True)
+
+@dash_app.callback(Output('tabs-content', 'children'), [Input('tabs', 'value')])
+def render_content(tab):
+    if tab == 'tab1':
+        return html.Div([
+            dbc.Button("Update Chart", id="update-button", color="primary"),
+            dcc.Graph(id="sample-graph")
+        ])
+    else:
+        return html.Div("Another Page Content")
+
+@dash_app.callback(Output("sample-graph", "figure"), [Input("update-button", "n_clicks")])
+def update_chart(n):
+    x_vals = [1, 2, 3]
+    y_vals = [i*(n or 1) for i in [4, 1, 2]]
+    return {
+        "data": [{"x": x_vals, "y": y_vals, "type": "bar", "name": "Sample"}],
+        "layout": {"title": "Demo Chart"}
+    }
 
 @dash_app.server.before_request
 def protect_dash():
