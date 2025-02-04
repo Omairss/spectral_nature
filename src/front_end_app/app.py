@@ -5,7 +5,7 @@ from dash import dcc, html, Input, Output
 import dash_bootstrap_components as dbc
 
 app = Flask(__name__)
-app.secret_key = "super_secret_key"
+app.secret_key = "a"
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -25,10 +25,9 @@ def login():
         if password == app.secret_key:
             user = User("testuser")
             login_user(user)
-            return redirect(url_for("index"))
-        else:
-            return "Invalid password."
-    page = '''
+            return redirect(url_for("home"))
+        return "Invalid password."
+    return '''
     <!DOCTYPE html>
     <html>
     <head>
@@ -52,18 +51,40 @@ def login():
     </body>
     </html>
     '''
-    return page
 
 @app.route("/logout")
 def logout():
     logout_user()
-    return "Logged out."
+    return redirect(url_for("login"))
 
 @app.route("/")
-def index():
-    return "Go to /login to authenticate, then /dash/ to view the Dash app."
+@login_required
+def home():
+    return redirect("/dash/")
 
-dash_app = dash.Dash(__name__, server=app, url_base_pathname="/dash/", external_stylesheets=[dbc.themes.BOOTSTRAP])
+@app.route("/routes")
+def list_routes():
+    import urllib
+    output = []
+    for rule in app.url_map.iter_rules():
+        options = {}
+        for arg in rule.arguments:
+            options[arg] = "[{0}]".format(arg)
+
+        methods = ','.join(rule.methods)
+        url = url_for(rule.endpoint, **options)
+        line = urllib.parse.unquote("{:50s} {:20s} {}".format(rule.endpoint, methods, url))
+        output.append(line)
+
+    return "<br>".join(sorted(output))
+
+# Initialize Dash app
+dash_app = dash.Dash(
+    __name__,
+    server=app,
+    routes_pathname_prefix="/dash/",
+    external_stylesheets=[dbc.themes.BOOTSTRAP]
+)
 
 dash_app.layout = dbc.Container([
     dcc.Location(id="url"),
@@ -90,7 +111,7 @@ def render_content(tab):
 @dash_app.callback(Output("sample-graph", "figure"), [Input("update-button", "n_clicks")])
 def update_chart(n):
     x_vals = [1, 2, 3]
-    y_vals = [i*(n or 1) for i in [4, 1, 2]]
+    y_vals = [i * (n or 1) for i in [4, 1, 2]]
     return {
         "data": [{"x": x_vals, "y": y_vals, "type": "bar", "name": "Sample"}],
         "layout": {"title": "Demo Chart"}
