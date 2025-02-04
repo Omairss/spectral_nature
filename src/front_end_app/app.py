@@ -43,7 +43,7 @@ def get_flask_navbar(active="Home"):
 
     navbar_html = f"""
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <a class="navbar-brand ms-2" href="/">My Dark Themed App</a>
+      <a class="navbar-brand ms-2" href="/">Torres Capital</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" 
               data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" 
               aria-expanded="false" aria-label="Toggle navigation">
@@ -83,7 +83,10 @@ dash_app = dash.Dash(
 def get_dash_navbar():
     return dbc.Navbar(
         dbc.Container([
-            dbc.NavbarBrand("My Dark Themed App", className="ms-2"),
+            dbc.NavbarBrand([
+                html.Img(src="assets/logo/rectangle/Color logo - no background.svg", height="80px"),
+                ""
+            ], className="ms-2 text-white"),
             dbc.Nav([
                 dbc.NavItem(dbc.NavLink("Home", href="/", className="text-white")),
                 dbc.NavItem(dbc.NavLink("Dash", href="/dash/", active=True, className="text-white")),
@@ -101,10 +104,12 @@ dash_app.layout = dbc.Container([
     # Use the Dash version of the navbar
     get_dash_navbar(),
     html.Div([
-        html.H1("Protected Dash Section", className="text-white mt-4"),
+        #html.H1("", className="text-white mt-4"),
         dcc.Tabs(id="tabs", value='tab1', children=[
-            dcc.Tab(label='Demo Chart', value='tab1', className="bg-dark text-white"),
-            dcc.Tab(label='Another Page', value='tab2', className="bg-dark text-white"),
+            dcc.Tab(label='Benchmarker', value='tab1', className="bg-dark text-white"),
+            dcc.Tab(label='Performance', value='tab2', className="bg-dark text-white"),
+            dcc.Tab(label='Option Booster', value='tab3', className="bg-dark text-white"),
+
         ]),
         html.Div(id='tabs-content', className="text-white mt-3")
     ])
@@ -118,8 +123,13 @@ def render_content(tab):
             dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
             dcc.Graph(id="sample-graph")
         ], className="mt-3")
+    if tab == 'tab2':
+        return html.Div([
+                dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
+                dcc.Graph(id="sample-graph")
+                ], className="mt-3")
     else:
-        return html.Div("Another Page Content", className="mt-3")
+        return html.Div("Coming soon", className="mt-3")
 
 @dash_app.callback(Output("sample-graph", "figure"), [Input("update-button", "n_clicks")])
 def update_chart(n):
@@ -162,9 +172,13 @@ def login():
     <!DOCTYPE html>
     <html>
     <head>
-      <!-- Use a dark Bootstrap theme -->
-      <link rel="stylesheet" 
-            href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+      <link href="https://fonts.googleapis.com/css2?family=Mokoto&display=swap" rel="stylesheet">
+      <style>
+        body {
+          font-family: 'Mokoto', sans-serif;
+        }
+      </style>
     </head>
     <body class="bg-dark text-white">
       {{ navbar|safe }}  <!-- Render the navbar (HTML string) -->
