@@ -5,6 +5,9 @@ from flask import Flask, redirect, url_for, request, render_template_string
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import plotly.graph_objects as go  
 
+import sys
+sys.path.append("..")
+import OptionFinder
 
 # ----------------------------------------------------------------
 # Set Plotly theme to dark
@@ -84,7 +87,7 @@ def get_dash_navbar():
     return dbc.Navbar(
         dbc.Container([
             dbc.NavbarBrand([
-                html.Img(src="assets/logo/rectangle/Color logo - no background.svg", height="80px"),
+                html.Img(src="assets/logo/rectangle/Color logo - no background 2.svg", height="80px"),
                 ""
             ], className="ms-2 text-white"),
             dbc.Nav([
@@ -128,8 +131,32 @@ def render_content(tab):
                 dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
                 dcc.Graph(id="sample-graph")
                 ], className="mt-3")
+    if tab == 'tab3':
+
+        return html.Div([
+                dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
+                dbc.Input(id="input-box", placeholder="Enter TICKER", type="text", className="mb-3"),
+                dcc.Graph(id="option-graph")
+                ], className="mt-3")
     else:
         return html.Div("Coming soon", className="mt-3")
+
+@dash_app.callback(Output("option-graph", "figure"), [Input("update-button", "n_clicks"), Input("input-box", "value")])
+def update_option_chart(n, ticker):
+  if not ticker:
+    return go.Figure()
+
+  option_bundle = OptionFinder.main('', '', 'NVDA', 130.0, 'local')
+  (df, fig) = option_bundle['df'], option_bundle['fig']
+
+  fig.update_layout(
+    autosize = True,
+    title=f"Option Booster for {ticker}",
+    template="darkly",
+    width=1200,  # Set the width of the figure
+    height=1200
+  )
+  return fig
 
 @dash_app.callback(Output("sample-graph", "figure"), [Input("update-button", "n_clicks")])
 def update_chart(n):
@@ -141,8 +168,9 @@ def update_chart(n):
     ])
     
     fig.update_layout(
+        autosize = True,
         title="Demo Chart",
-        template="darkly"  # Enables dark mode for the chart
+        template="darkly"
     )
     
     return fig
@@ -227,6 +255,11 @@ def home():
           from {opacity: 0;}
           to {opacity: 1;}
         }
+        body {
+          background: url('assets/logo/background/Colorlogowithbackground.svg') no-repeat center center fixed;
+          background-size: cover;
+          font-family: 'Mokoto', sans-serif;
+        }
       </style>
     </head>
     <body class="bg-dark text-white fade-in">
@@ -260,4 +293,4 @@ def list_routes():
 # Main entry
 # ----------------------------------------------------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=8080, debug=True)
