@@ -1,5 +1,5 @@
 import dash
-from dash import dcc, html, Input, Output
+from dash import dcc, html, Input, Output, State
 import dash_bootstrap_components as dbc
 from flask import Flask, redirect, url_for, request, render_template_string
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 
 import sys
 sys.path.append("..")
-import OptionFinder
+import OptionFinder, LinkedAuth
 
 # ----------------------------------------------------------------
 # Set Plotly theme to dark
@@ -21,11 +21,13 @@ load_figure_template("darkly")
 # Flask app setup
 # ----------------------------------------------------------------
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='assets')
 app.secret_key = "das"  # for demonstration
 
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+us, ps = LinkedAuth.get_creds('test')
 
 class User(UserMixin):
     def __init__(self, id):
@@ -134,19 +136,24 @@ def render_content(tab):
     if tab == 'tab3':
 
         return html.Div([
-                dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
-                dbc.Input(id="input-box", placeholder="Enter TICKER", type="text", className="mb-3"),
-                dcc.Graph(id="option-graph")
-                ], className="mt-3")
+            dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
+            dbc.Row([
+          dbc.Col(dbc.Input(id="ticker-input", placeholder="Enter TICKER", type="text", className="mb-3"), width=6),
+          dbc.Col(dbc.Input(id="strike-price", placeholder="Enter Strike Price", type="number", className="mb-3"), width=6)
+            ]),
+            dcc.Graph(id="option-graph")
+        ], className="mt-3")
     else:
         return html.Div("Coming soon", className="mt-3")
 
-@dash_app.callback(Output("option-graph", "figure"), [Input("update-button", "n_clicks"), Input("input-box", "value")])
-def update_option_chart(n, ticker):
+@dash_app.callback(Output("option-graph", "figure"), [Input("update-button", "n_clicks")],
+                                                       [State("ticker-input", "value"),
+                                                       State("strike-price", "value")])
+def update_option_chart(n, ticker, strike_price):
   if not ticker:
     return go.Figure()
 
-  option_bundle = OptionFinder.main('', '', 'NVDA', 130.0, 'local')
+  option_bundle = OptionFinder.main(us, ps, ticker, float(strike_price), 'local')
   (df, fig) = option_bundle['df'], option_bundle['fig']
 
   fig.update_layout(
@@ -265,8 +272,8 @@ def home():
     <body class="bg-dark text-white fade-in">
       {{ navbar|safe }}  <!-- Render the navbar (HTML string) -->
       <div class="container mt-5">
-        <h1 class="text-center mb-4">Welcome to the Dark Themed App</h1>
-        <p class="text-center">Enjoy a unified dark experience across all pages.</p>
+        <h1 class="text-center mb-4"></h1>
+        <p class="text-center"></p>
       </div>
 
       <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

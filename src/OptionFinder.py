@@ -186,6 +186,7 @@ def get_option_data(ticker, expiration_date, strike_price, option_type):
     dict: A dictionary with option data.
     """
     percentages = [0.05, 0.10, 0.20]
+    query_counter = 6
     option_data = {}
     
     for pct in percentages:
@@ -221,9 +222,13 @@ def get_option_data(ticker, expiration_date, strike_price, option_type):
                     option_data[f'{int(pct*100)}%_{option_type}'] = options
                     break
             else:
-                print("No options found, adjusting expiration date")
-                expiration_date = (datetime.datetime.strptime(expiration_date, '%Y-%m-%d') + datetime.timedelta(days=7)).strftime('%Y-%m-%d')
-        
+
+                if query_counter != 0:
+                    print("No options found, adjusting expiration date")
+                    expiration_date = (datetime.datetime.strptime(expiration_date, '%Y-%m-%d') + datetime.timedelta(days=7)).strftime('%Y-%m-%d')
+                else:
+                    return option_data
+
     return option_data
 
 def create_option_plotly(all_option_data):
