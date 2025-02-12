@@ -224,6 +224,7 @@ def get_option_data(ticker, expiration_date, strike_price, option_type):
             else:
 
                 if query_counter != 0:
+                    query_counter -= 1                   
                     print("No options found, adjusting expiration date")
                     expiration_date = (datetime.datetime.strptime(expiration_date, '%Y-%m-%d') + datetime.timedelta(days=7)).strftime('%Y-%m-%d')
                 else:
