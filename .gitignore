@@ -1,6 +1,6 @@
 # .gitignore
 
-
+.ssh/*
 data/*
 secrets/*
 #
