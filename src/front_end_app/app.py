@@ -153,7 +153,7 @@ def update_option_chart(n, ticker, strike_price):
   if not ticker:
     return go.Figure()
 
-  option_bundle = OptionFinder.main(us, ps, ticker, float(strike_price), 'local')
+  option_bundle = OptionFinder.main(us, ps, ticker, float(strike_price), 'refresh')
   (df, fig) = option_bundle['df'], option_bundle['fig']
 
   fig.update_layout(

@@ -19,7 +19,7 @@ print(f"Current Working Directory: {current_directory}")
 
 
 
-DATA_STORE_CORE = '/mnt/batch/tasks/shared/LS_root/mounts/clusters/spectral-nature/code/Users/omai.r/spectral_nature/data/'
+DATA_STORE_CORE = '/mnt/batch/tasks/shared/LS_root/mounts/clusters/spectral-nature3/code/Users/omai.r/spectral_nature/data/'
 
 OPTION_HISTORY_STORE = os.path.join(DATA_STORE_CORE, 'common', 'option_history')
 print(os.listdir(DATA_STORE_CORE))
@@ -401,6 +401,7 @@ def main(rh_username: str, rh_password: str, ticker: str, current_strike_price: 
     portfolio_data = r.profiles.load_portfolio_profile()
     print(portfolio_data)
 
+    print(f'Getting closest dates for {ticker}')
     closest_dates = get_closest_dates(ticker)
 
     all_option_data = {}

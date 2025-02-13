@@ -13,9 +13,34 @@ from plotly.graph_objs import Figure
 import robin_stocks.robinhood as r
 
 
+import sys
+sys.path.append("./analysis_modules")
+import markets
+
 # Get the current working directory
 current_directory = os.getcwd()
 print(f"Current Working Directory: {current_directory}")
+
+def get_market_data():
+
+    print("Fetching top movers in S&P 500 (up)...")
+    top_movers_sp500_up = markets.get_top_movers_sp500('up')
+    print("Fetching top movers in S&P 500 (down)...")
+    top_movers_sp500_down = markets.get_top_movers_sp500('down')
+    print("Fetching top 100 stocks...")
+    top_100 = markets.get_top_100()
+    print("Fetching top movers...")
+    top_movers = markets.get_top_movers()
+    print("Fetching stocks with upcoming earnings...")
+    upcoming_earnings = markets.get_all_stocks_from_market_tag('upcoming-earnings')
+
+    return {
+        "top_movers_sp500_up": top_movers_sp500_up,
+        "top_movers_sp500_down": top_movers_sp500_down,
+        "top_100": top_100,
+        "top_movers": top_movers,
+        "upcoming_earnings": upcoming_earnings
+    }
 
 def get_open_stock_positions():
     """
@@ -64,33 +89,32 @@ def get_open_stock_positions():
     return performance_df
 
 
-def account_refresh(mode):
+def get_data(mode):
 
-    if mode == 'holdings':
-        holdings_df = r.account.build_holdings(with_dividends=True)
-        return holdings_df
+    if mode == 'market':
+        return get_market_data()
     
-    if mode == 'profile':
-        user_profile = r.account.build_user_profile()
-        return user_profile
-    
-    if mode == 'historical':
-        historical_df = r.account.get_historical_portfolio(interval='week', span='5year')
-        return historical_df
-    
-    if mode == 'positions':
-        positions_df = get_open_stock_positions()
-        return positions_df
-    
-    if mode == 'all':
+    elif mode == 'profile':
         holdings_df = r.account.build_holdings(with_dividends=True)
         user_profile = r.account.build_user_profile()
         historical_df = r.account.get_historical_portfolio(interval='week', span='5year')
         positions_df = get_open_stock_positions()
         return holdings_df, user_profile, historical_df, positions_df
-   
+    
+    elif mode == 'all':
 
-def create_account_plotly(mode, data):
+        holdings_df = r.account.build_holdings(with_dividends=True)
+        user_profile = r.account.build_user_profile()
+        historical_df = r.account.get_historical_portfolio(interval='week', span='5year')
+        positions_df = get_open_stock_positions()
+        market_data = get_market_data()      
+        return holdings_df, user_profile, historical_df, positions_df, market_data
+
+    else:
+        print("Invalid mode selected.")
+        return None
+
+def NOT_create_account_plotly(mode, data):
     if mode == 'holdings':
         fig = px.pie(data, values='quantity', names='ticker', title='Portfolio Holdings')
         return fig
@@ -118,7 +142,7 @@ def main(rh_username: str, rh_password: str, mode: str, cache_mode: str):
         dict: A dictionary containing the option data plotly figure and DataFrame.
     """
 
-    DATA_STORE_CORE = '/mnt/batch/tasks/shared/LS_root/mounts/clusters/spectral-nature/code/Users/omai.r/spectral_nature/data/'
+    DATA_STORE_CORE = '/mnt/batch/tasks/shared/LS_root/mounts/clusters/spectral-nature3/code/Users/omai.r/spectral_nature/data/'
     PORTFOLIO_HISTORY_STORE = os.path.join(DATA_STORE_CORE, 'user_specific',  rh_username, 'portfolio_history')
     print(os.listdir(DATA_STORE_CORE))
 
@@ -143,7 +167,7 @@ def main(rh_username: str, rh_password: str, mode: str, cache_mode: str):
 
     r.login(rh_username, rh_password)
 
-    status_data = account_refresh(mode)
+    status_data = get_data(mode)
 
     # Function to check if the cache file is older than 3 hours
     def is_cache_stale(file_path):
@@ -155,7 +179,7 @@ def main(rh_username: str, rh_password: str, mode: str, cache_mode: str):
 
     # Check cache mode
     if cache_mode == 'refresh' or is_cache_stale(cache_file_path):
-        print("Refreshing option data...")
+        print("Refreshing data...")
         # Save the DataFrame to the cache file
         with open(cache_file_path, 'wb') as f:
             pickle.dump(status_data, f)
@@ -175,10 +199,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Robinhood Portfolio Performance')
     parser.add_argument('--username', required=True, help='Robinhood account username')
     parser.add_argument('--password', required=True, help='Robinhood account password')
-    parser.add_argument('--holdings', action='store_true', help='Force refresh the option data')
     parser.add_argument('--profile', action='store_true', help='Force refresh the option data')
-    parser.add_argument('--historical', action='store_true', help='Force refresh the option data')
-    parser.add_argument('--positions', action='store_true', help='Force refresh the option data')
+    parser.add_argument('--market', action='store_true', help='Force refresh the option data')
     parser.add_argument('--all', action='store_true', help='Force refresh the option data')
     parser.add_argument('--force_refresh', action='store_true', help='Force refresh the option data')
     parser.add_argument('--force_local', action='store_true', help='Force use local cache')
@@ -190,20 +212,14 @@ if __name__ == "__main__":
     rh_password = args.password
     force_refresh = args.force_refresh
     force_local = args.force_local
-    historical = args.historical
     profile = args.profile
-    holdings = args.holdings
-    positions = args.positions
+    market = args.market
     all = args.all
 
-    if holdings:
-        mode = 'holdings'
+    if market:
+        mode = 'markets'
     elif profile:
         mode = 'profile'
-    elif historical:
-        mode = 'historical'
-    elif positions:
-        mode = 'positions'
     elif all:
         mode = 'all'
     else:
