@@ -15,6 +15,7 @@ import robin_stocks.robinhood as r
 
 import sys
 sys.path.append("./analysis_modules")
+sys.path.append("../analysis_modules")
 import markets
 
 # Get the current working directory
@@ -92,15 +93,21 @@ def get_open_stock_positions():
 def get_data(mode):
 
     if mode == 'market':
-        return get_market_data()
+        return {
+            "market_data": get_market_data()
+        }
     
     elif mode == 'profile':
         holdings_df = r.account.build_holdings(with_dividends=True)
         user_profile = r.account.build_user_profile()
         historical_df = r.account.get_historical_portfolio(interval='week', span='5year')
         positions_df = get_open_stock_positions()
-        return holdings_df, user_profile, historical_df, positions_df
-    
+        return {
+            "holdings_df": holdings_df,
+            "user_profile": user_profile,
+            "historical_df": historical_df,
+            "positions_df": positions_df
+        }    
     elif mode == 'all':
 
         holdings_df = r.account.build_holdings(with_dividends=True)
@@ -108,7 +115,13 @@ def get_data(mode):
         historical_df = r.account.get_historical_portfolio(interval='week', span='5year')
         positions_df = get_open_stock_positions()
         market_data = get_market_data()      
-        return holdings_df, user_profile, historical_df, positions_df, market_data
+        return {
+            "holdings_df": holdings_df,
+            "user_profile": user_profile,
+            "historical_df": historical_df,
+            "positions_df": positions_df,
+            "market_data": market_data
+        }
 
     else:
         print("Invalid mode selected.")

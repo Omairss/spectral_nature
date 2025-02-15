@@ -1,13 +1,15 @@
 import dash
+import pandas as pd
 from dash import dcc, html, Input, Output, State
 import dash_bootstrap_components as dbc
 from flask import Flask, redirect, url_for, request, render_template_string
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import plotly.graph_objects as go  
+import plotly.express as px
 
 import sys
 sys.path.append("..")
-import OptionFinder, LinkedAuth
+import OptionFinder, CurrentStatus, LinkedAuth
 
 # ----------------------------------------------------------------
 # Set Plotly theme to dark
@@ -111,8 +113,8 @@ dash_app.layout = dbc.Container([
     html.Div([
         #html.H1("", className="text-white mt-4"),
         dcc.Tabs(id="tabs", value='tab1', children=[
-            dcc.Tab(label='Benchmarker', value='tab1', className="bg-dark text-white"),
-            dcc.Tab(label='Performance', value='tab2', className="bg-dark text-white"),
+            dcc.Tab(label='Portfolio', value='tab1', className="bg-dark text-white"),
+            dcc.Tab(label='Market Opportunity', value='tab2', className="bg-dark text-white"),
             dcc.Tab(label='Option Booster', value='tab3', className="bg-dark text-white"),
 
         ]),
@@ -126,7 +128,8 @@ def render_content(tab):
     if tab == 'tab1':
         return html.Div([
             dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
-            dcc.Graph(id="sample-graph")
+            dcc.Graph(id="portfolio-timechart"),
+            dcc.Graph(id="earnings-barchart"),
         ], className="mt-3")
     if tab == 'tab2':
         return html.Div([
@@ -164,6 +167,49 @@ def update_option_chart(n, ticker, strike_price):
     height=1200
   )
   return fig
+
+@dash_app.callback(Output("portfolio-timechart", "figure"), [Input("update-button", "n_clicks")])
+def update_portfolio_chart(n):
+    
+  print("Fetching portfolio data...")
+
+  current_status = CurrentStatus.main(us, ps, 'all', 'local')
+
+  # Convert the 'equity_historicals' list of dicts to a pandas DataFrame
+  historical_df = pd.DataFrame(current_status['historical_df']['equity_historicals'])
+
+  # Convert 'begins_at' to datetime
+  historical_df['begins_at'] = pd.to_datetime(historical_df['begins_at'])
+
+  # Convert 'close_equity' field to numeric
+  historical_df['adjusted_close_equity'] = pd.to_numeric(historical_df['adjusted_close_equity'], errors='coerce')
+
+  # Sort by date
+  historical_df.sort_values(by='begins_at', inplace=True)
+
+  # Plot the data using Plotly
+  fig = px.line(historical_df, x='begins_at', y='adjusted_close_equity', title='Robinhood Portfolio Value Over Time', labels={'begins_at': 'Date', 'adjusted_close_equity': 'Equity ($)'})
+  fig.update_layout(template='plotly_dark')
+  return fig
+
+@dash_app.callback(Output("earnings-barchart", "figure"), [Input("update-button", "n_clicks")])
+def normalized_earnings_chart(n):
+    
+    current_status = CurrentStatus.main(us, ps, 'all', 'local')
+    holdings_df = pd.DataFrame(current_status['holdings_df']).T
+    holdings_df['pe_ratio_abs'] = holdings_df['pe_ratio'].apply(lambda x: max(float(x), 1))
+    holdings_df['equity_normalized_pe_ratio'] = holdings_df['equity'].astype(float) / holdings_df['pe_ratio'].astype(float)
+    holdings_df[['name', 'equity', 'equity_normalized_pe_ratio']].sort_values(by = 'equity_normalized_pe_ratio', ascending = False)
+    # Select the columns to plot
+    columns_to_plot = ['equity', 'equity_normalized_pe_ratio']
+
+    # Melt the dataframe to long format
+    holdings_melted = holdings_df[['name'] + columns_to_plot].melt(id_vars='name', value_vars=columns_to_plot, var_name='Metric', value_name='Value')
+    holdings_melted['Value'] = holdings_melted['Value'].astype(float)
+    
+    # Create the grouped bar chart
+    fig = px.bar(holdings_melted, x='name', y='Value', color='Metric', barmode='group', title='Holdings Equity and Equity Normalized PE Ratio', log_y=True)
+    return fig
 
 @dash_app.callback(Output("sample-graph", "figure"), [Input("update-button", "n_clicks")])
 def update_chart(n):
