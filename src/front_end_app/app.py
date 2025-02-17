@@ -113,9 +113,10 @@ dash_app.layout = dbc.Container([
     html.Div([
         #html.H1("", className="text-white mt-4"),
         dcc.Tabs(id="tabs", value='tab1', children=[
-            dcc.Tab(label='Portfolio', value='tab1', className="bg-dark text-white"),
+            dcc.Tab(label='Past Performance', value='tab0', className="bg-dark text-white"),
+            dcc.Tab(label='Current Portfolio', value='tab1', className="bg-dark text-white"),
             dcc.Tab(label='Market Opportunity', value='tab2', className="bg-dark text-white"),
-            dcc.Tab(label='Option Booster', value='tab3', className="bg-dark text-white"),
+            dcc.Tab(label='Strategizer', value='tab3', className="bg-dark text-white"),
 
         ]),
         html.Div(id='tabs-content', className="text-white mt-3")
@@ -125,6 +126,11 @@ dash_app.layout = dbc.Container([
 # Callbacks for the Dash app
 @dash_app.callback(Output('tabs-content', 'children'), [Input('tabs', 'value')])
 def render_content(tab):
+    if tab == 'tab0':
+        return html.Div([
+                dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
+                dcc.Graph(id="sample-graph")
+                ], className="mt-3")
     if tab == 'tab1':
         return html.Div([
             dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
@@ -137,7 +143,6 @@ def render_content(tab):
                 dcc.Graph(id="sample-graph")
                 ], className="mt-3")
     if tab == 'tab3':
-
         return html.Div([
             dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
             dbc.Row([
