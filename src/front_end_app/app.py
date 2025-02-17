@@ -9,7 +9,7 @@ import plotly.express as px
 
 import sys
 sys.path.append("..")
-import OptionFinder, CurrentStatus, LinkedAuth
+import TechnicalAnalyzer, OptionFinder, CurrentStatus, LinkedAuth
 
 # ----------------------------------------------------------------
 # Set Plotly theme to dark
@@ -116,8 +116,9 @@ dash_app.layout = dbc.Container([
             dcc.Tab(label='Past Performance', value='tab0', className="bg-dark text-white"),
             dcc.Tab(label='Current Portfolio', value='tab1', className="bg-dark text-white"),
             dcc.Tab(label='Market Opportunity', value='tab2', className="bg-dark text-white"),
-            dcc.Tab(label='Strategizer', value='tab3', className="bg-dark text-white"),
-
+            dcc.Tab(label='Strategizer - Option', value='tab3', className="bg-dark text-white"),
+            dcc.Tab(label='Strategizer - Technical', value='tab4', className="bg-dark text-white"),
+            dcc.Tab(label='Strategizer - Fundamental', value='tab5', className="bg-dark text-white")
         ]),
         html.Div(id='tabs-content', className="text-white mt-3")
     ])
@@ -126,22 +127,26 @@ dash_app.layout = dbc.Container([
 # Callbacks for the Dash app
 @dash_app.callback(Output('tabs-content', 'children'), [Input('tabs', 'value')])
 def render_content(tab):
+    # Past Performance
     if tab == 'tab0':
         return html.Div([
                 dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
                 dcc.Graph(id="sample-graph")
                 ], className="mt-3")
+    # Current Portfolio
     if tab == 'tab1':
         return html.Div([
             dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
             dcc.Graph(id="portfolio-timechart"),
             dcc.Graph(id="earnings-barchart"),
         ], className="mt-3")
+    # Market Opportunity
     if tab == 'tab2':
         return html.Div([
                 dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
                 dcc.Graph(id="sample-graph")
                 ], className="mt-3")
+    # Strategizer - Option
     if tab == 'tab3':
         return html.Div([
             dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
@@ -151,6 +156,21 @@ def render_content(tab):
             ]),
             dcc.Graph(id="option-graph")
         ], className="mt-3")
+    # Strategizer - Technical
+    if tab == 'tab4':
+        return html.Div([
+            dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
+            dbc.Row([
+          dbc.Col(dbc.Input(id="ticker-input", placeholder="Enter TICKER", type="text", className="mb-3"), width=6),
+            ]),
+            dcc.Graph(id="technical-charts")
+        ], className="mt-3")
+    # Strategizer - Fundamental
+    if tab == 'tab5':
+        return html.Div([
+                dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
+                dcc.Graph(id="sample-graph")
+                ], className="mt-3")
     else:
         return html.Div("Coming soon", className="mt-3")
 
@@ -200,21 +220,37 @@ def update_portfolio_chart(n):
 @dash_app.callback(Output("earnings-barchart", "figure"), [Input("update-button", "n_clicks")])
 def normalized_earnings_chart(n):
     
-    current_status = CurrentStatus.main(us, ps, 'all', 'local')
-    holdings_df = pd.DataFrame(current_status['holdings_df']).T
-    holdings_df['pe_ratio_abs'] = holdings_df['pe_ratio'].apply(lambda x: max(float(x), 1))
-    holdings_df['equity_normalized_pe_ratio'] = holdings_df['equity'].astype(float) / holdings_df['pe_ratio'].astype(float)
-    holdings_df[['name', 'equity', 'equity_normalized_pe_ratio']].sort_values(by = 'equity_normalized_pe_ratio', ascending = False)
-    # Select the columns to plot
-    columns_to_plot = ['equity', 'equity_normalized_pe_ratio']
+  current_status = CurrentStatus.main(us, ps, 'all', 'local')
+  holdings_df = pd.DataFrame(current_status['holdings_df']).T
+  holdings_df['pe_ratio_abs'] = holdings_df['pe_ratio'].apply(lambda x: max(float(x), 1))
+  holdings_df['equity_normalized_pe_ratio'] = holdings_df['equity'].astype(float) / holdings_df['pe_ratio'].astype(float)
+  holdings_df[['name', 'equity', 'equity_normalized_pe_ratio']].sort_values(by = 'equity_normalized_pe_ratio', ascending = False)
+  # Select the columns to plot
+  columns_to_plot = ['equity', 'equity_normalized_pe_ratio']
 
-    # Melt the dataframe to long format
-    holdings_melted = holdings_df[['name'] + columns_to_plot].melt(id_vars='name', value_vars=columns_to_plot, var_name='Metric', value_name='Value')
-    holdings_melted['Value'] = holdings_melted['Value'].astype(float)
+  # Melt the dataframe to long format
+  holdings_melted = holdings_df[['name'] + columns_to_plot].melt(id_vars='name', value_vars=columns_to_plot, var_name='Metric', value_name='Value')
+  holdings_melted['Value'] = holdings_melted['Value'].astype(float)
+  
+  # Create the grouped bar chart
+  fig = px.bar(holdings_melted, x='name', y='Value', color='Metric', barmode='group', title='Holdings Equity and Equity Normalized PE Ratio', log_y=True)
+  return fig
+
+@dash_app.callback(Output("technical-charts", "figure"), [Input("update-button", "n_clicks")], [State("ticker-input", "value")])
+def update_technicals_charts(n, ticker):  
+    print("Fetching technical data...")
+    techical_bundle = TechnicalAnalyzer.main(us, ps, ticker, 'normal')
     
-    # Create the grouped bar chart
-    fig = px.bar(holdings_melted, x='name', y='Value', color='Metric', barmode='group', title='Holdings Equity and Equity Normalized PE Ratio', log_y=True)
+    fig = techical_bundle['figs']
+
+    fig.update_layout(
+        autosize = True,
+        title="Technical Charts",
+        template="darkly"
+    )   
+    
     return fig
+
 
 @dash_app.callback(Output("sample-graph", "figure"), [Input("update-button", "n_clicks")])
 def update_chart(n):
@@ -229,8 +265,7 @@ def update_chart(n):
         autosize = True,
         title="Demo Chart",
         template="darkly"
-    )
-    
+    )   
     return fig
 
 # Protect the Dash app with Flask-Login
