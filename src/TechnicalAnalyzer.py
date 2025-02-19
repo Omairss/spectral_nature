@@ -34,15 +34,19 @@ class Technicals():
         self.data_path = TECHNICAL_HISTORY_STORE
         self.historicals = data['historicals'] if data and 'historicals' in data else None
         self.fundamentals = data['fundamentals'] if data and 'fundamentals' in data else None
+        self.cooldown_s = 3  # Set the cooldown period in seconds
+
 
     def get_historicals(self, interval='day', span='5year'):
         print(f"Getting historicals for {self.ticker}")
+        time.sleep(self.cooldown_s)
         self.historicals = r.stocks.get_stock_historicals(self.ticker, interval=interval, span=span)
         print(f"Got historicals for {self.ticker} with {len(self.historicals)} records")
         return self.historicals
 
     def get_fundamentals(self):
         print(f"Getting fundamentals for {self.ticker}")
+        time.sleep(self.cooldown_s)
         self.fundamentals = r.stocks.get_fundamentals(self.ticker)
         return self.fundamentals
     
@@ -148,31 +152,6 @@ def main(rh_username: str, rh_password: str, ticker: str, cache_mode: str):
     current_date_str = datetime.datetime.now().strftime('%Y%m%d')
     cache_file_path = os.path.join(TECHNICAL_HISTORY_STORE, f"{ticker}_technical_data_{current_date_str}.pkl")
     
-    if cache_mode == 'local':
-        if os.path.exists(cache_file_path):
-            print("Loading technical data from local cache...")
-            with open(cache_file_path, 'rb') as f:
-                option_bundle = pickle.load(f)
-            return option_bundle
-        else:
-            print("No local cache found but local cache mode is on. Exiting...")
-            print('Looked in directory ', cache_file_path)
-            #exit(1)
-
-    r.login(rh_username, rh_password)
-
-    technicals = Technicals(ticker)
-    technicals.get_historicals()
-    technicals.get_fundamentals()
-    dates, closes, closes_stationarized = technicals.preprocess_close(technicals.historicals)
-    figs = technicals.generate_plots(dates, closes, closes_stationarized)
-
-    technical_bundle = {
-        'closes': closes,
-        'closes_stationarized': closes_stationarized,
-        'figs': figs
-    }
-
     # Function to check if the cache file is older than 3 hours
     def is_cache_stale(file_path):
         if not os.path.exists(file_path):
@@ -180,17 +159,33 @@ def main(rh_username: str, rh_password: str, ticker: str, cache_mode: str):
         file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
         return (datetime.datetime.now() - file_mod_time).total_seconds() > 3 * 3600
 
-
-    # Check cache mode
-    if cache_mode == 'refresh' or is_cache_stale(cache_file_path):
-        print("Refreshing technical data...")
-        # Save the DataFrame to the cache file
-        with open(cache_file_path, 'wb') as f:
-            pickle.dump(technical_bundle, f)
-    else:
-        print("Loading technical data from cache...")
+    # Check cache mode and load from cache if applicable
+    if cache_mode == 'local' and os.path.exists(cache_file_path) and not is_cache_stale(cache_file_path):
+        print("Loading technical data from local cache...")
         with open(cache_file_path, 'rb') as f:
             technical_bundle = pickle.load(f)
+        return technical_bundle
+
+    # Fetch new data
+    r.login(rh_username, rh_password)
+    technicals = Technicals(ticker)
+    technicals.get_historicals()
+    technicals.get_fundamentals()
+    dates, closes, closes_stationarized = technicals.preprocess_close(technicals.historicals)
+    figs = technicals.generate_plots(dates, closes, closes_stationarized)
+
+    technical_bundle = {
+        'dates': dates,
+        'closes': closes,
+        'closes_stationarized': closes_stationarized,
+        'figs': figs
+    }
+
+    # Save the new data to the cache file if needed
+    if cache_mode == 'refresh' or is_cache_stale(cache_file_path):
+        print("Refreshing technical data...")
+        with open(cache_file_path, 'wb') as f:
+            pickle.dump(technical_bundle, f)
 
     return technical_bundle
 
