@@ -168,9 +168,10 @@ def render_content(tab):
     # Market Opportunity
     if tab == 'tab2':
         return html.Div([
-                dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
-                dcc.Graph(id="market-graph")
-                ], className="mt-3")
+          dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
+          dcc.Graph(id="market-graph"),
+          html.Div(id="news-feed", children=create_news_cards())
+          ], className="mt-3")
     # Strategizer - Option
     if tab == 'tab3':
         return html.Div([
@@ -276,8 +277,8 @@ def update_technicals_charts(n, ticker):
     
     return fig
 
-@dash_app.callback(Output("market-graph1", "figure"), [Input("update-button", "n_clicks")])
-def update_market_charts1(n):  
+@dash_app.callback(Output("market-graph-old", "figure"), [Input("update-button", "n_clicks")])
+def update_market_charts_old(n):  
     
     print("Fetching Market data...")
     market_bundle = MarketExplorer.main(us, ps, 'local',  True)
@@ -309,6 +310,79 @@ def update_market_charts(n):
     
     return combined_fig
 
+
+def create_news_cards_():
+    
+    print('Creating news cards...')
+
+    news_data = [
+    {"title": "Title 1", "content": "News content 1", "image": "https://via.placeholder.com/150", "link": "#"},
+    {"title": "Title 2", "content": "News content 2", "image": "https://via.placeholder.com/150", "link": "#"},
+    {"title": "Title 3", "content": "News content 3", "image": "https://via.placeholder.com/150", "link": "#"},
+    ]
+    cards = []
+    for news in news_data:
+        card = dbc.Card(
+            [
+                dbc.CardImg(src=news["image"], top=True),
+                dbc.CardBody([
+                    dbc.CardHeader(news["title"]),
+                    html.P(news["content"]),
+                    dbc.Button("Read more", href=news["link"], color="primary")
+                ])
+            ],
+            className="mb-3"
+        )
+        cards.append(card)
+    return cards
+
+    
+# Function to create news cards with images and links
+def create_news_cards():
+
+    market_data = MarketExplorer.main(us, ps, 'local', True)
+    
+    print('Creating news cards...')
+
+    # Initialize an empty list to store all news items
+    all_news_list = []
+
+    # Merge news data from different sources
+    all_news = {}
+    all_news.update(market_data['top_movers_sp500_up']['news'])
+    all_news.update(market_data['top_movers_sp500_down']['news'])
+
+    print(all_news)
+
+    selected_fields = ['symbol', 'title', 'summary', 'sentimentRating', 'priceImpactReasoning', 'stockImpactRating', 'impactHorizonReasoning', 'sentimentScore']
+
+    for ticker, data in all_news.items():
+        for item in data['data']['target']:
+            news = {}
+            news['title'] = f"{item['symbol']} : {item['title']}"
+            print(news['title'])
+            news['content'] = " | ".join([f"{field}: {item.get(field, 'N/A')}" for field in selected_fields])
+            news['link'] = item['url']
+            all_news_list.append(news)
+
+    print('All news')
+    print(all_news_list)
+
+    cards = []
+    for news in all_news_list:
+        card = dbc.Card(
+            [
+                # dbc.CardImg(src=news["image"], top=True),
+                dbc.CardBody([
+                    dbc.CardHeader(news["title"]),
+                    html.P(news["content"]),
+                    dbc.Button("Read more", href=news["link"], color="primary")
+                ])
+            ],
+            className="mb-3"
+        )
+        cards.append(card)
+    return cards
 
 @dash_app.callback(Output("sample-graph", "figure"), [Input("update-button", "n_clicks")])
 def update_chart(n):

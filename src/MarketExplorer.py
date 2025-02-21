@@ -167,7 +167,7 @@ class MarketExplorer():
 
             print(f"Getting news for {ticker_dict['symbol']}")
 
-            if not ticker_dict['symbol'] in self.technical_bundle_cache:
+            if not ticker_dict['symbol'] in self.news_bundle_cache:
                 
                 url = "https://stocknews.ai/api/news/ai-search"
                 params = {
@@ -181,6 +181,7 @@ class MarketExplorer():
                 response = requests.get(url, params=params, headers=headers)
                 response.raise_for_status()   
                 news_bundle = response.json()
+                #print(news_bundle)
                 self.news_bundle_cache[ticker_dict['symbol']] = news_bundle
         
         return self.news_bundle_cache
@@ -239,7 +240,7 @@ def main(rh_username: str, rh_password: str, cache_mode: str, TEST: bool = False
     print ("cache file path exists: ", os.path.exists(cache_file_path))
     print ("cache mode: ", cache_mode)
 
-    if cache_mode == 'local' and os.path.exists(cache_file_path):
+    if (cache_mode == 'local' or cache_mode == 'normal') and os.path.exists(cache_file_path):
         print("Loading data from local cache...")
         with open(cache_file_path, 'rb') as f:
             market_group_data = pickle.load(f)
@@ -263,7 +264,7 @@ def main(rh_username: str, rh_password: str, cache_mode: str, TEST: bool = False
             'news': m.stocknews_api_endpoint(group_data)
         }
 
-    if cache_mode == 'refresh' or is_cache_stale(cache_file_path):
+    if (cache_mode == 'refresh' or cache_mode == 'normal') or is_cache_stale(cache_file_path):
         print("Refreshing data...")
         with open(cache_file_path, 'wb') as f:
             pickle.dump(market_group_data, f)
