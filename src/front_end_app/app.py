@@ -6,10 +6,11 @@ from flask import Flask, redirect, url_for, request, render_template_string
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import plotly.graph_objects as go  
 import plotly.express as px
+from plotly.subplots import make_subplots
 
 import sys
 sys.path.append("..")
-import TechnicalAnalyzer, OptionFinder, CurrentStatus, LinkedAuth
+import MarketExplorer, TechnicalAnalyzer, OptionFinder, CurrentStatus, LinkedAuth
 
 # ----------------------------------------------------------------
 # Set Plotly theme to dark
@@ -30,6 +31,29 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 us, ps = LinkedAuth.get_creds('test')
+
+# Example function to combine multiple figures into subplots
+def combine_figures_into_subplots(figures, titles):
+    # Create a subplot grid with the appropriate number of rows and columns
+    rows = len(figures)
+    cols = 1  # Assuming one column for simplicity, adjust as needed
+
+    # Create the subplot figure
+    combined_fig = make_subplots(rows=rows, cols=cols, subplot_titles=titles)
+
+    # Add traces from each figure to the appropriate subplot
+    for i, fig in enumerate(figures):
+        for trace in fig['data']:
+            combined_fig.add_trace(trace, row=i+1, col=1)
+
+    # Update layout
+    combined_fig.update_layout(
+        autosize=True,
+        title="Combined Market Charts",
+        template="darkly"
+    )
+
+    return combined_fig
 
 class User(UserMixin):
     def __init__(self, id):
@@ -85,6 +109,7 @@ dash_app = dash.Dash(
     routes_pathname_prefix="/dash/",
     external_stylesheets=[dbc.themes.DARKLY]  # Darkly theme
 )
+
 
 # This is the Dash/dbc-based version of the navbar
 def get_dash_navbar():
@@ -144,7 +169,7 @@ def render_content(tab):
     if tab == 'tab2':
         return html.Div([
                 dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
-                dcc.Graph(id="sample-graph")
+                dcc.Graph(id="market-graph")
                 ], className="mt-3")
     # Strategizer - Option
     if tab == 'tab3':
@@ -250,6 +275,39 @@ def update_technicals_charts(n, ticker):
     )   
     
     return fig
+
+@dash_app.callback(Output("market-graph1", "figure"), [Input("update-button", "n_clicks")])
+def update_market_charts1(n):  
+    
+    print("Fetching Market data...")
+    market_bundle = MarketExplorer.main(us, ps, 'local',  True)
+    
+    fig = market_bundle['top_movers_sp500_up']['fig']
+
+    fig.update_layout(
+        autosize = True,
+        title="Technical Charts",
+        template="darkly"
+    )   
+    
+    return fig
+
+@dash_app.callback(Output("market-graph", "figure"), [Input("update-button", "n_clicks")])
+def update_market_charts(n):  
+    
+    print("Fetching Market data...")
+    market_data = MarketExplorer.main(us, ps, 'local', True)
+    
+    # Assuming market_data contains multiple figures
+    figures = [
+        market_data['top_movers_sp500_up']['fig'],
+        market_data['top_movers_sp500_down']['fig'],
+        #market_data['top_100']['fig']
+    ]
+    
+    combined_fig = combine_figures_into_subplots(figures, list(market_data.keys()))
+    
+    return combined_fig
 
 
 @dash_app.callback(Output("sample-graph", "figure"), [Input("update-button", "n_clicks")])

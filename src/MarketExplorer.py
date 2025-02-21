@@ -116,7 +116,7 @@ class MarketExplorer():
                 technical_bundle = self.technical_bundle_cache[ticker_dict['symbol']]
             
             else:
-                technical_bundle = TechnicalAnalyzer.main(rh_username, rh_password, ticker_dict['symbol'], 'normal')
+                technical_bundle = TechnicalAnalyzer.main(self.rh_username, self.rh_password, ticker_dict['symbol'], 'normal')
                 self.technical_bundle_cache[ticker_dict['symbol']] = technical_bundle
             
             historical_data = pd.DataFrame({
@@ -233,6 +233,11 @@ def main(rh_username: str, rh_password: str, cache_mode: str, TEST: bool = False
     current_date_str = datetime.now().strftime('%Y%m%d')
     cache_file_path = os.path.join(NEWS_HISTORY_STORE, f"{rh_username}_news_data_{current_date_str}.pkl")
 
+    print("cache file path: ", cache_file_path)
+    os.listdir(NEWS_HISTORY_STORE)
+
+    print ("cache file path exists: ", os.path.exists(cache_file_path))
+    print ("cache mode: ", cache_mode)
 
     if cache_mode == 'local' and os.path.exists(cache_file_path):
         print("Loading data from local cache...")
