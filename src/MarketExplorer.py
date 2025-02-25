@@ -21,7 +21,7 @@ sys.path.append("../analysis_modules")
 
 import markets
 import TechnicalAnalyzer
-from datetime import timedelta
+from datetime import timedelta, timezone
 
 # Get the current working directory
 current_directory = os.getcwd()
@@ -105,6 +105,9 @@ class MarketExplorer():
             start_date = now - timedelta(days=30 * months)
         else:
             raise ValueError("Invalid start date format. Use '5yr', '1yr', '1mo', etc.")
+        
+        # Convert start_date to UTC
+        start_date = start_date.replace(tzinfo=timezone.utc)
 
         fig = go.Figure()
 
@@ -116,20 +119,18 @@ class MarketExplorer():
                 technical_bundle = self.technical_bundle_cache[ticker_dict['symbol']]
             
             else:
-                technical_bundle = TechnicalAnalyzer.main(self.rh_username, self.rh_password, ticker_dict['symbol'], 'normal')
+                technical_bundle = TechnicalAnalyzer.main(self.rh_username, self.rh_password, ticker_dict['symbol'], 'normal', 'hybrid')
                 self.technical_bundle_cache[ticker_dict['symbol']] = technical_bundle
             
-            historical_data = pd.DataFrame({
-                'begins_at': technical_bundle['dates'],
-                'close_price': technical_bundle['closes']
-            })
+            historical_data = technical_bundle['dataframe'][['close_price']]
+            historical_data['begins_at'] = historical_data.index
 
             historical_data['begins_at'] = pd.to_datetime(historical_data['begins_at'])
             filtered_data = historical_data[historical_data['begins_at'] >= start_date]
             if filtered_data.empty:
                 continue
 
-            dates = filtered_data['begins_at'].dt.strftime('%Y-%m-%d').tolist()
+            dates = filtered_data['begins_at'].dt.strftime('%Y-%m-%d %H:%M').tolist()
             prices = filtered_data['close_price'].astype(float).tolist()
 
             # Plot the actual prices instead of percentage returns
@@ -209,7 +210,7 @@ class MarketExplorer():
                 technical_bundle = self.technical_bundle_cache[ticker_dict['symbol']]
             
             else:
-                technical_bundle = TechnicalAnalyzer.main(rh_username, rh_password, ticker_dict['symbol'], 'normal')
+                technical_bundle = TechnicalAnalyzer.main(rh_username, rh_password, ticker_dict['symbol'], 'normal', 'hybrid')
                 self.technical_bundle_cache[ticker_dict['symbol']] = technical_bundle
 
 def is_cache_stale(file_path):

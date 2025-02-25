@@ -37,62 +37,63 @@ class Technicals():
         self.cooldown_s = 3  # Set the cooldown period in seconds
 
 
-    def get_historicals(self, interval='day', span='5year'):
-        print(f"Getting historicals for {self.ticker}")
-        time.sleep(self.cooldown_s)
-        self.historicals = r.stocks.get_stock_historicals(self.ticker, interval=interval, span=span)
-        print(f"Got historicals for {self.ticker} with {len(self.historicals)} records")
-        return self.historicals
-
     def get_fundamentals(self):
         print(f"Getting fundamentals for {self.ticker}")
         time.sleep(self.cooldown_s)
         self.fundamentals = r.stocks.get_fundamentals(self.ticker)
         return self.fundamentals
     
-    def preprocess_close(self, historicals):
+    def get_historicals_hybrid(self, intervals=['day', 'hour'], spans=['5year', '3month']) -> pd.DataFrame:
 
-        # Convert historical data to DataFrame
-        historicals_df = pd.DataFrame(historicals)
+        historicals = []
+        for interval, span in zip(intervals, spans):
+            historicals.append(r.stocks.get_stock_historicals(self.ticker, interval=interval, span=span))
+        
+        df_list = [pd.DataFrame(h) for h in historicals]
+        self.historicals_df = pd.concat(df_list, ignore_index=True).drop_duplicates(subset='begins_at')
 
-        # Convert 'begins_at' to datetime
-        historicals_df['begins_at'] = pd.to_datetime(historicals_df['begins_at'])
+        self.historicals_df['close_price'] = self.historicals_df['close_price'].astype(float)
+        self.historicals_df['stationary_close'] = np.nan
+        self.historicals_df = self.historicals_df.set_index('begins_at')
+        self.historicals_df = self.historicals_df.sort_index()
+        return 
 
-        # Convert 'close_price' to numeric
-        historicals_df['close_price'] = pd.to_numeric(historicals_df['close_price'], errors='coerce')
+    
+    def get_historicals(self, interval='day', span='5year'):
 
-        historicals_df['stationary_close'] = np.log(historicals_df['close_price']) - np.log(historicals_df['close_price'].shift(1))
-        #historicals_df['stationary_close'].fillna(0, inplace=True)
+        print(f"Getting historicals for {self.ticker}")
+        time.sleep(self.cooldown_s)
+        self.historicals = r.stocks.get_stock_historicals(self.ticker, interval=interval, span=span)
+        print(f"Got historicals for {self.ticker} with {len(self.historicals)} records")
 
-        # Handle missing values (e.g., forward fill)
-        historicals_df.fillna(method='ffill', inplace=True)
+        self.historicals_df = pd.DataFrame(self.historicals)
+        self.historicals_df = self.historicals_df.set_index('begins_at')
+        self.historicals_df = self.historicals_df.sort_index()
 
-        # Extract the closing prices
-        closes = historicals_df['close_price'].values
-        closes_stationarized = historicals_df['stationary_close'].values
+        self.historicals_df.index = pd.to_datetime(self.historicals_df.index)
 
-        # Extract the dates
-        dates = historicals_df['begins_at'].values
-        # Convert dates to datetime objects
-        dates = pd.to_datetime(dates)
-        # Convert dates to a format suitable for Plotly
-        dates = [date.strftime('%Y-%m-%d') for date in dates]
+        self.historicals_df['close_price'] = pd.to_numeric(self.historicals_df['close_price'], errors='coerce')
 
-        return dates, closes, closes_stationarized
+        self.historicals_df['stationary_close'] = np.log(self.historicals_df['close_price']) - np.log(self.historicals_df['close_price'].shift(1))
 
-    def generate_plots(self, dates, closes, closes_stationarized):
+        self.historicals_df = self.historicals_df.fillna(method='ffill')
 
-        # Spectrogram of seasonality (time vs. amplitude)
-        nperseg = min(256, len(closes_stationarized))  # Set nperseg to a value less than or equal to the length of the input data
+        return
+
+    def generate_plots(self):
+
+        dates = self.historicals_df.index
+        closes = self.historicals_df['close_price']
+        closes_stationarized = self.historicals_df['stationary_close']
+
+        nperseg = min(256, len(closes_stationarized))
         f, t, Zxx = stft(closes_stationarized, fs=1)
 
-        # Simple line chart with upper/lower price channels
         closes_ser = pd.Series(closes)
         roll_window = 20
         upper_channel = closes_ser.rolling(roll_window).max()
         lower_channel = closes_ser.rolling(roll_window).min()
 
-        # Scatter plot of % change over past 3 days (X) vs. next 2 days (Y)
         pct_past_3 = []
         pct_future_2 = []
         for i in range(len(closes)):
@@ -103,36 +104,64 @@ class Technicals():
         valid_x = [x for x in pct_past_3 if x is not None]
         valid_y = [y for y in pct_future_2 if y is not None]
 
-        # Combine all figures into one subplot
-        fig_combined = make_subplots(
+        self.figs = make_subplots(
             rows=4, cols=1,
             subplot_titles=("Histogram of Stock Prices", "Spectrogram (STFT)", "Price with Channels", "Scatter of 3-Day vs. 2-Day % Changes")
         )
 
-        # Add histogram to subplot
-        fig_combined.add_trace(go.Histogram(x=closes, xbins=dict(size=1)), row=1, col=1)
+        self.figs.add_trace(go.Histogram(x=closes, xbins=dict(size=1)), row=1, col=1)
 
-        # Add spectrogram to subplot
-        fig_combined.add_trace(go.Heatmap(x=t, y=f, z=abs(Zxx), colorscale="Viridis"), row=2, col=1)
+        # Add vertical line for the latest price on the histogram
+        latest_price = closes.iloc[-1]
+        self.figs.add_vline(x=latest_price, line_color='red', row=1, col=1)
 
-        # Add line chart with channels to subplot
-        fig_combined.add_trace(go.Scatter(x=dates, y=closes, mode='lines', name='Close'), row=3, col=1)
-        fig_combined.add_trace(go.Scatter(x=dates, y=upper_channel, mode='lines', name='Upper Channel'), row=3, col=1)
-        fig_combined.add_trace(go.Scatter(x=dates, y=lower_channel, mode='lines', name='Lower Channel'), row=3, col=1)
+        self.figs.add_trace(go.Heatmap(x=t, y=f, z=abs(Zxx), colorscale="Viridis"), row=2, col=1)
 
-        # Add scatter plot to subplot
-        fig_combined.add_trace(go.Scatter(x=valid_x, y=valid_y, mode='markers'), row=4, col=1)
+        self.figs.add_trace(go.Scatter(x=dates, y=closes, mode='lines', name='Close'), row=3, col=1)
+        self.figs.add_trace(go.Scatter(x=dates, y=upper_channel, mode='lines', name='Upper Channel'), row=3, col=1)
+        self.figs.add_trace(go.Scatter(x=dates, y=lower_channel, mode='lines', name='Lower Channel'), row=3, col=1)
 
-        # Update layout
-        fig_combined.update_layout(
+        ## Add the scatter plot for the 3-day vs. 2-day % changes
+        self.figs.add_trace(go.Scatter(x=valid_x, y=valid_y, mode='markers'), row=4, col=1)
+
+        # Add the current point to the scatter plot
+        current_i = len(closes) - 2
+        print(f"current_i: {current_i}")
+        print(f"pct_past_3 length: {len(pct_past_3)}")
+        print(f"pct_future_2 length: {len(pct_future_2)}")
+
+        # Plot the last valid point (current-1, 5-day period)
+        i_current = len(closes) - 3  # last index for which future 2 days exist
+        x_current = pct_past_3[i_current]
+        y_current = pct_future_2[i_current]
+        self.figs.add_trace(go.Scatter(
+            x=[x_current],
+            y=[y_current],
+            mode='markers',
+            marker=dict(color='red', size=10),
+            name='Current-1 (5-day period)'
+        ), row=4, col=1)
+
+        # Add vertical red line for the current past 3 days %
+        self.figs.add_shape(
+            type='line',
+            x0=x_current,
+            x1=x_current,
+            y0=min(valid_y),
+            y1=max(valid_y),
+            line=dict(color='red', width=2),
+            row=4, col=1
+        )
+
+        self.figs.update_layout(
             title_text="Combined Stock Analysis Plots",
             height=2000,
             showlegend=False
         )
 
-        return fig_combined
+        return
 
-def main(rh_username: str, rh_password: str, ticker: str, cache_mode: str):
+def main(rh_username: str, rh_password: str, ticker: str, cache_mode: str, mode: str = 'normal'):
     """
     Main function to retrieve and cache technical data for a given ticker.
     Args:
@@ -169,16 +198,17 @@ def main(rh_username: str, rh_password: str, ticker: str, cache_mode: str):
     # Fetch new data
     r.login(rh_username, rh_password)
     technicals = Technicals(ticker)
-    technicals.get_historicals()
-    technicals.get_fundamentals()
-    dates, closes, closes_stationarized = technicals.preprocess_close(technicals.historicals)
-    figs = technicals.generate_plots(dates, closes, closes_stationarized)
+    
+    if mode == 'normal':
+        technicals.get_historicals()
+    elif mode == 'hybrid':
+        technicals.get_historicals_hybrid()
+    #technicals.get_fundamentals()
+    technicals.generate_plots()
 
     technical_bundle = {
-        'dates': dates,
-        'closes': closes,
-        'closes_stationarized': closes_stationarized,
-        'figs': figs
+        'dataframe': technicals.historicals_df,
+        'figs': technicals.figs
     }
 
     # Save the new data to the cache file if needed
@@ -197,6 +227,7 @@ if __name__ == "__main__":
     parser.add_argument('--username', required=True, help='Robinhood account username')
     parser.add_argument('--password', required=True, help='Robinhood account password')
     parser.add_argument('--ticker', required=True, help='Robinhood account password')
+    parser.add_argument('--mode', default='normal', help='Mode for fetching data. Hybrid mode fetches data at multiple intervals and spans.')
     parser.add_argument('--force_refresh', action='store_true', help='Force refresh the technical data')
     parser.add_argument('--force_local', action='store_true', help='Force use local cache')
 
@@ -207,6 +238,7 @@ if __name__ == "__main__":
     ticker = args.ticker
     force_refresh = args.force_refresh
     force_local = args.force_local
+    mode = args.mode
 
     if force_refresh:
         cache_mode = "refresh"
@@ -219,5 +251,5 @@ if __name__ == "__main__":
         print("Error: Cannot force refresh and use local cache at the same time.")
         exit(1)
 
-    main(rh_username, rh_password, ticker, cache_mode)
+    main(rh_username, rh_password, ticker, cache_mode, mode)
 

@@ -358,6 +358,7 @@ def create_news_cards():
 
     for ticker, data in all_news.items():
         for item in data['data']['target']:
+          if ticker.lower() == item['symbol'].lower(): ## Filter mismatches
             news = {}
             news['title'] = f"{item['symbol']} : {item['title']}"
             print(news['title'])
