@@ -101,8 +101,9 @@ class Technicals():
             y_val = ((closes[i+2] - closes[i]) / closes[i] * 100) if i+2 < len(closes) else None
             pct_past_3.append(x_val)
             pct_future_2.append(y_val)
-        valid_x = [x for x in pct_past_3 if x is not None]
-        valid_y = [y for y in pct_future_2 if y is not None]
+        
+        valid_data = [(x, y) for x, y in zip(pct_past_3, pct_future_2) if x is not None and y is not None]
+        valid_x, valid_y = zip(*valid_data) if valid_data else ([], [])
 
         self.figs = make_subplots(
             rows=4, cols=1,
@@ -122,13 +123,10 @@ class Technicals():
         self.figs.add_trace(go.Scatter(x=dates, y=lower_channel, mode='lines', name='Lower Channel'), row=3, col=1)
 
         ## Add the scatter plot for the 3-day vs. 2-day % changes
-        self.figs.add_trace(go.Scatter(x=valid_x, y=valid_y, mode='markers'), row=4, col=1)
+        self.figs.add_trace(go.Scatter(x=valid_x, y=valid_y, mode='markers', marker=dict(opacity=0.3, color='lightblue')), row=4, col=1)
 
         # Add the current point to the scatter plot
         current_i = len(closes) - 2
-        print(f"current_i: {current_i}")
-        print(f"pct_past_3 length: {len(pct_past_3)}")
-        print(f"pct_future_2 length: {len(pct_future_2)}")
 
         # Plot the last valid point (current-1, 5-day period)
         i_current = len(closes) - 3  # last index for which future 2 days exist
@@ -145,8 +143,8 @@ class Technicals():
         # Add vertical red line for the current past 3 days %
         self.figs.add_shape(
             type='line',
-            x0=x_current,
-            x1=x_current,
+            x0=pct_past_3[-1],
+            x1=pct_past_3[-1],
             y0=min(valid_y),
             y1=max(valid_y),
             line=dict(color='red', width=2),
