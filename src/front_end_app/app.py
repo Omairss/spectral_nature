@@ -10,7 +10,8 @@ from plotly.subplots import make_subplots
 
 import sys
 sys.path.append("..")
-import MarketExplorer, TechnicalAnalyzer, OptionFinder, CurrentStatus, LinkedAuth
+import yfinance as yf
+import FundamentalAnalyzer, MarketExplorer, TechnicalAnalyzer, OptionFinder, CurrentStatus, LinkedAuth
 
 # ----------------------------------------------------------------
 # Set Plotly theme to dark
@@ -194,9 +195,12 @@ def render_content(tab):
     # Strategizer - Fundamental
     if tab == 'tab5':
         return html.Div([
-                dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
-                dcc.Graph(id="sample-graph")
-                ], className="mt-3")
+          dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
+          dbc.Row([
+          dbc.Col(dbc.Input(id="ticker-input", placeholder="Enter TICKER", type="text", className="mb-3"), width=6),
+            ]),
+            dcc.Graph(id="fundamental-timechart")
+        ], className="mt-3")
     else:
         return html.Div("Coming soon", className="mt-3")
 
@@ -268,22 +272,6 @@ def update_technicals_charts(n, ticker):
     techical_bundle = TechnicalAnalyzer.main(us, ps, ticker, 'normal')
     
     fig = techical_bundle['figs']
-
-    fig.update_layout(
-        autosize = True,
-        title="Technical Charts",
-        template="darkly"
-    )   
-    
-    return fig
-
-@dash_app.callback(Output("market-graph-old", "figure"), [Input("update-button", "n_clicks")])
-def update_market_charts_old(n):  
-    
-    print("Fetching Market data...")
-    market_bundle = MarketExplorer.main(us, ps, 'local',  True)
-    
-    fig = market_bundle['top_movers_sp500_up']['fig']
 
     fig.update_layout(
         autosize = True,
@@ -384,6 +372,55 @@ def create_news_cards():
         )
         cards.append(card)
     return cards
+
+@dash_app.callback(Output("fundamental-timechart", "figure"), [Input("update-button", "n_clicks")], [State("ticker-input", "value")])
+def update_fundamental_charts(n, ticker):  
+    
+
+  f = FundamentalAnalyzer
+  fundamental_bundle = f.main(ticker, 'local')
+  fig = fundamental_bundle['figs']
+
+  return fig
+
+
+@dash_app.callback(Output("fundamental-timechart-old", "figure"), [Input("update-button", "n_clicks")])
+def update_market_charts_old(n):  
+    
+    # Fetch financial statements for a ticker
+    ticker = yf.Ticker("NVDA")
+
+    # Income Statement
+    income_statement = ticker.financials
+    print(income_statement)
+
+    # Balance Sheet
+    balance_sheet = ticker.balance_sheet
+    print(balance_sheet)
+
+    # Cash Flow Statement
+    cash_flow = ticker.cashflow
+    
+    # Transpose the income statement for better visualization
+    income_statement_transposed = income_statement.T
+
+    # Reset the index to have dates as a column
+    income_statement_transposed.reset_index(inplace=True)
+
+    # Melt the dataframe to have a long format suitable for plotly express
+    income_statement_melted = income_statement_transposed.melt(id_vars="index", var_name="Account", value_name="Amount")
+
+    # Create a line chart for the income statement
+    fig_income_statement = px.line(income_statement_melted, 
+                                  x="index", 
+                                  y="Amount", 
+                                  color="Account", 
+                                  title="Income Statement",
+                                  labels={"index": "Date", "Amount": "Amount"})
+
+    fig_income_statement.update_layout(xaxis_title="Date", yaxis_title="Amount")
+
+    return fig_income_statement
 
 @dash_app.callback(Output("sample-graph", "figure"), [Input("update-button", "n_clicks")])
 def update_chart(n):
