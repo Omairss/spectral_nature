@@ -199,7 +199,8 @@ def render_content(tab):
           dbc.Row([
           dbc.Col(dbc.Input(id="ticker-input", placeholder="Enter TICKER", type="text", className="mb-3"), width=6),
             ]),
-            dcc.Graph(id="fundamental-timechart")
+            dcc.Graph(id="fundamental-timechart"),
+            dcc.Graph(id="fundamental-sankey")
         ], className="mt-3")
     else:
         return html.Div("Coming soon", className="mt-3")
@@ -373,7 +374,7 @@ def create_news_cards():
         cards.append(card)
     return cards
 
-@dash_app.callback(Output("fundamental-timechart", "figure"), [Input("update-button", "n_clicks")], [State("ticker-input", "value")])
+@dash_app.callback(Output("fundamental-timechart-old", "figure"), [Input("update-button", "n_clicks")], [State("ticker-input", "value")])
 def update_fundamental_charts(n, ticker):  
     
 
@@ -383,44 +384,21 @@ def update_fundamental_charts(n, ticker):
 
   return fig
 
-
-@dash_app.callback(Output("fundamental-timechart-old", "figure"), [Input("update-button", "n_clicks")])
-def update_market_charts_old(n):  
+@dash_app.callback(
+    [Output("fundamental-timechart", "figure"), Output("fundamental-sankey", "figure")],
+    [Input("update-button", "n_clicks")],
+    [State("ticker-input", "value")])
+def update_fundamental_charts(n, ticker):  
     
-    # Fetch financial statements for a ticker
-    ticker = yf.Ticker("NVDA")
 
-    # Income Statement
-    income_statement = ticker.financials
-    print(income_statement)
+  f = FundamentalAnalyzer
+  fundamental_bundle = f.main(ticker, 'local')
 
-    # Balance Sheet
-    balance_sheet = ticker.balance_sheet
-    print(balance_sheet)
+  print(len(fundamental_bundle['figs']))
 
-    # Cash Flow Statement
-    cash_flow = ticker.cashflow
-    
-    # Transpose the income statement for better visualization
-    income_statement_transposed = income_statement.T
+  return fundamental_bundle['figs'][0], fundamental_bundle['figs'][1]
 
-    # Reset the index to have dates as a column
-    income_statement_transposed.reset_index(inplace=True)
 
-    # Melt the dataframe to have a long format suitable for plotly express
-    income_statement_melted = income_statement_transposed.melt(id_vars="index", var_name="Account", value_name="Amount")
-
-    # Create a line chart for the income statement
-    fig_income_statement = px.line(income_statement_melted, 
-                                  x="index", 
-                                  y="Amount", 
-                                  color="Account", 
-                                  title="Income Statement",
-                                  labels={"index": "Date", "Amount": "Amount"})
-
-    fig_income_statement.update_layout(xaxis_title="Date", yaxis_title="Amount")
-
-    return fig_income_statement
 
 @dash_app.callback(Output("sample-graph", "figure"), [Input("update-button", "n_clicks")])
 def update_chart(n):

@@ -66,7 +66,9 @@ class Technicals():
         self.historicals = r.stocks.get_stock_historicals(self.ticker, interval=interval, span=span)
         print(f"Got historicals for {self.ticker} with {len(self.historicals)} records")
 
+        
         self.historicals_df = pd.DataFrame(self.historicals)
+        print(self.historicals_df)
         self.historicals_df = self.historicals_df.set_index('begins_at')
         self.historicals_df = self.historicals_df.sort_index()
 
