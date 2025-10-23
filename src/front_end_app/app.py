@@ -227,6 +227,30 @@ def update_option_chart(n, ticker, strike_price):
 @dash_app.callback(Output("portfolio-timechart", "figure"), [Input("update-button", "n_clicks")])
 def update_portfolio_chart(n):
     
+    current_status = CurrentStatus.main(us, ps, 'all', 'local')
+    
+    fig = px.line(
+      current_status['historical_df'],
+      x='date',
+      y=['current_value', 'rate_of_return'],
+      title='Historical Portfolio Data',
+      labels={'value': 'Metrics', 'date': 'Date'},
+    )
+
+    # Update layout to add a secondary y-axis for rate_of_return
+    fig.update_layout(
+      yaxis=dict(title='Current Value'),
+      yaxis2=dict(title='Rate of Return', overlaying='y', side='right'),
+    )
+
+    # Update traces to use the secondary y-axis for rate_of_return
+    fig.for_each_trace(lambda trace: trace.update(yaxis='y2') if trace.name == 'rate_of_return' else None)
+    fig.update_layout(template='plotly_dark')
+    return fig
+
+
+def update_portfolio_chart_old(n):
+    
   print("Fetching portfolio data...")
 
   current_status = CurrentStatus.main(us, ps, 'all', 'local')
@@ -253,7 +277,7 @@ def normalized_earnings_chart(n):
     
   current_status = CurrentStatus.main(us, ps, 'all', 'local')
   holdings_df = pd.DataFrame(current_status['holdings_df']).T
-  holdings_df['pe_ratio_abs'] = holdings_df['pe_ratio'].apply(lambda x: max(float(x), 1))
+  holdings_df['pe_ratio_abs'] = holdings_df['pe_ratio'].apply(lambda x: max(float(x), 1) if x is not None else 1)
   holdings_df['equity_normalized_pe_ratio'] = holdings_df['equity'].astype(float) / holdings_df['pe_ratio'].astype(float)
   holdings_df[['name', 'equity', 'equity_normalized_pe_ratio']].sort_values(by = 'equity_normalized_pe_ratio', ascending = False)
   # Select the columns to plot

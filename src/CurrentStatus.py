@@ -18,6 +18,8 @@ sys.path.append("./analysis_modules")
 sys.path.append("../analysis_modules")
 import markets
 
+from utils.rh_fixes import get_historical_portfolio
+
 # Get the current working directory
 current_directory = os.getcwd()
 print(f"Current Working Directory: {current_directory}")
@@ -90,7 +92,7 @@ def get_open_stock_positions():
     return performance_df
 
 
-def get_data(mode):
+def get_data(mode, login_result):
 
     if mode == 'market':
         return {
@@ -100,7 +102,8 @@ def get_data(mode):
     elif mode == 'profile':
         holdings_df = r.account.build_holdings(with_dividends=True)
         user_profile = r.account.build_user_profile()
-        historical_df = r.account.get_historical_portfolio(interval='week', span='5year')
+        #historical_df = r.account.get_historical_portfolio(interval='week', span='5year')
+        historical_df = get_historical_portfolio(r, login_result=login_result, span='all')
         positions_df = get_open_stock_positions()
         return {
             "holdings_df": holdings_df,
@@ -112,7 +115,8 @@ def get_data(mode):
 
         holdings_df = r.account.build_holdings(with_dividends=True)
         user_profile = r.account.build_user_profile()
-        historical_df = r.account.get_historical_portfolio(interval='week', span='5year')
+        #historical_df = r.account.get_historical_portfolio(interval='week', span='5year')
+        historical_df = get_historical_portfolio(r, login_result=login_result, span='all')
         positions_df = get_open_stock_positions()
         market_data = get_market_data()      
         return {
@@ -178,9 +182,8 @@ def main(rh_username: str, rh_password: str, mode: str, cache_mode: str):
             print('Looked in directory ', cache_file_path)
             #exit(1)
 
-    r.login(rh_username, rh_password)
-
-    status_data = get_data(mode)
+    login_result = r.login(rh_username, rh_password)
+    status_data = get_data(mode, login_result)
 
     # Function to check if the cache file is older than 3 hours
     def is_cache_stale(file_path):
