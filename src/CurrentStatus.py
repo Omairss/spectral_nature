@@ -19,6 +19,7 @@ sys.path.append("../analysis_modules")
 import markets
 
 from utils.rh_fixes import get_historical_portfolio
+from utils.analyze_portfolio import analyze_portfolio_performance
 
 # Get the current working directory
 current_directory = os.getcwd()
@@ -26,23 +27,12 @@ print(f"Current Working Directory: {current_directory}")
 
 def get_market_data():
 
-    print("Fetching top movers in S&P 500 (up)...")
-    top_movers_sp500_up = markets.get_top_movers_sp500('up')
-    print("Fetching top movers in S&P 500 (down)...")
-    top_movers_sp500_down = markets.get_top_movers_sp500('down')
-    print("Fetching top 100 stocks...")
-    top_100 = markets.get_top_100()
-    print("Fetching top movers...")
-    top_movers = markets.get_top_movers()
-    print("Fetching stocks with upcoming earnings...")
-    upcoming_earnings = markets.get_all_stocks_from_market_tag('upcoming-earnings')
-
     return {
-        "top_movers_sp500_up": top_movers_sp500_up,
-        "top_movers_sp500_down": top_movers_sp500_down,
-        "top_100": top_100,
-        "top_movers": top_movers,
-        "upcoming_earnings": upcoming_earnings
+        #"top_movers_sp500_up": markets.get_top_movers_sp500('up'),
+        #"top_movers_sp500_down": markets.get_top_movers_sp500('down'),
+        #"top_100": markets.get_top_100(),
+        "top_movers": markets.get_top_movers(),
+        #"upcoming_earnings": markets.get_all_stocks_from_market_tag('upcoming-earnings')
     }
 
 def get_open_stock_positions():
@@ -110,7 +100,50 @@ def get_data(mode, login_result):
             "user_profile": user_profile,
             "historical_df": historical_df,
             "positions_df": positions_df
-        }    
+        }
+
+    elif mode == 'performance':
+        
+        indices = ['SPY', 'DIA', 'QQQ', 'VOO', 'IWM', 'BRK.B', 'VUG', 'VGT', 'ARKK']
+
+        results = {}
+
+        for index in indices:
+            results[index] = analyze_portfolio_performance(r, login_result,
+                entity=index,
+                start_year=2020,
+                end_year=2025,     # future-dated if you want the script to keep going
+                interval='day',
+                span='5year',
+                risk_free_rate=0.02
+            )
+
+        results['portfolio']  = analyze_portfolio_performance(r, login_result,
+            entity='portfolio',
+            start_year=2020,
+            end_year=2025,     # future-dated if you want the script to keep going
+            interval='day',
+            span='5year',
+            risk_free_rate=0.02
+        )
+
+
+        # Flatten the nested results dictionary
+        flattened_results = []
+        for entity, yearly_data in results.items():
+            for year, metrics in yearly_data.items():
+                metrics['Year'] = year
+                metrics['Entity'] = entity
+                flattened_results.append(metrics)
+
+        # Convert the flattened list of dictionaries into a DataFrame
+        results_df = pd.DataFrame(flattened_results)
+
+        return {
+            "performance_df": results_df
+        }
+
+
     elif mode == 'all':
 
         holdings_df = r.account.build_holdings(with_dividends=True)
@@ -169,17 +202,17 @@ def main(rh_username: str, rh_password: str, mode: str, cache_mode: str):
 
     # Define the file path for caching
     current_date_str = datetime.datetime.now().strftime('%Y%m%d')
-    cache_file_path = os.path.join(PORTFOLIO_HISTORY_STORE, f"{rh_username}_portfolio_data_{current_date_str}.pkl")
+    cache_key_file_path = os.path.join(PORTFOLIO_HISTORY_STORE, f"{rh_username}_portfolio_data_{mode}_{current_date_str}.pkl")
     
     if cache_mode == 'local':
-        if os.path.exists(cache_file_path):
+        if os.path.exists(cache_key_file_path):
             print("Loading option data from local cache...")
-            with open(cache_file_path, 'rb') as f:
+            with open(cache_key_file_path, 'rb') as f:
                 status_data = pickle.load(f)
             return status_data
         else:
             print("No local cache found but local cache mode is on. Exiting...")
-            print('Looked in directory ', cache_file_path)
+            print('Looked in directory ', cache_key_file_path)
             #exit(1)
 
     login_result = r.login(rh_username, rh_password)
@@ -194,14 +227,14 @@ def main(rh_username: str, rh_password: str, mode: str, cache_mode: str):
 
 
     # Check cache mode
-    if cache_mode == 'refresh' or is_cache_stale(cache_file_path):
+    if cache_mode == 'refresh' or is_cache_stale(cache_key_file_path):
         print("Refreshing data...")
         # Save the DataFrame to the cache file
-        with open(cache_file_path, 'wb') as f:
+        with open(cache_key_file_path, 'wb') as f:
             pickle.dump(status_data, f)
     else:
         print("Loading option data from cache...")
-        with open(cache_file_path, 'rb') as f:
+        with open(cache_key_file_path, 'rb') as f:
             status_data = pickle.load(f)
 
     return status_data

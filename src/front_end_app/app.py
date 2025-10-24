@@ -165,6 +165,7 @@ def render_content(tab):
             dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
             dcc.Graph(id="portfolio-timechart"),
             dcc.Graph(id="earnings-barchart"),
+            dcc.Graph(id="performance-chart")
         ], className="mt-3")
     # Market Opportunity
     if tab == 'tab2':
@@ -289,6 +290,69 @@ def normalized_earnings_chart(n):
   
   # Create the grouped bar chart
   fig = px.bar(holdings_melted, x='name', y='Value', color='Metric', barmode='group', title='Holdings Equity and Equity Normalized PE Ratio', log_y=True)
+  return fig
+
+@dash_app.callback(Output("performance-chart", "figure"), [Input("update-button", "n_clicks")])
+def normalized_earnings_chart(n):
+
+  results = CurrentStatus.main(us, ps, 'performance', 'local')
+  performance_df = results['performance_df']
+
+  print('performance_df: {}', performance_df)
+  # Filter ranges
+  performance_cum = performance_df[performance_df['Year'] == 'Cumulative']
+  performance_df = performance_df[performance_df['Year'] != 2020]
+  performance_df = performance_df[performance_df['Year'] != 'Cumulative']
+
+  selected_entities = ['portfolio', 'SPY', 'DIA', 'QQQ', 'VOO', 'BRK.B', 'ARKK']
+
+  # Define a color map for entities
+  color_map = {
+      'portfolio': 'blue',
+      'SPY': 'red',
+      'DIA': 'green',
+      'QQQ': 'purple',
+      'VOO': 'orange',
+      'BRK.B': 'brown',
+      'ARKK': 'pink'
+  }
+
+  # Create a subplot figure with 5 rows and 1 column
+  fig = make_subplots(rows=5, cols=1, subplot_titles=(
+      'Annual Return Over Time',
+      'Sharpe Ratio Over Time',
+      'Beta (vs SPY) Over Time',
+      'Alpha (vs SPY) Over Time',
+      'Max Drawdown Over Time'
+  ))
+
+  # Annual Return plot
+  for entity in selected_entities:
+      entity_data = performance_df[performance_df['Entity'] == entity]
+      fig.add_trace(go.Bar(x=entity_data['Year'], y=entity_data['Annual Return'], name=f'{entity} Annual Return', marker_color=color_map[entity], text=entity_data['Entity'], textposition='auto'), row=1, col=1)
+
+  # Sharpe Ratio plot
+  for entity in selected_entities:
+      entity_data = performance_df[performance_df['Entity'] == entity]
+      fig.add_trace(go.Bar(x=entity_data['Year'], y=entity_data['Sharpe Ratio'], name=f'{entity} Sharpe Ratio', marker_color=color_map[entity], text=entity_data['Entity'], textposition='auto'), row=2, col=1)
+
+  # Beta (vs SPY) plot
+  for entity in selected_entities:
+      entity_data = performance_df[performance_df['Entity'] == entity]
+      fig.add_trace(go.Bar(x=entity_data['Year'], y=entity_data['Beta (vs SPY)'], name=f'{entity} Beta (vs SPY)', marker_color=color_map[entity], text=entity_data['Entity'], textposition='auto'), row=3, col=1)
+
+  # Alpha (vs SPY) plot
+  for entity in selected_entities:
+      entity_data = performance_df[performance_df['Entity'] == entity]
+      fig.add_trace(go.Bar(x=entity_data['Year'], y=entity_data['Alpha (vs SPY)'], name=f'{entity} Alpha (vs SPY)', marker_color=color_map[entity], text=entity_data['Entity'], textposition='auto'), row=4, col=1)
+
+  # Max Drawdown plot
+  for entity in selected_entities:
+      entity_data = performance_df[performance_df['Entity'] == entity]
+      fig.add_trace(go.Bar(x=entity_data['Year'], y=entity_data['Max Drawdown'], name=f'{entity} Max Drawdown', marker_color=color_map[entity], text=entity_data['Entity'], textposition='auto'), row=5, col=1)
+
+  # Update layout
+  fig.update_layout(height=1500, width=1000, title_text="Omair's Portfolio Performance Metrics Over Time", barmode='group')
   return fig
 
 @dash_app.callback(Output("technical-charts", "figure"), [Input("update-button", "n_clicks")], [State("ticker-input", "value")])
