@@ -18,8 +18,9 @@ sys.path.append("./analysis_modules")
 sys.path.append("../analysis_modules")
 import markets
 
+from utils.helpers import to_daily
 from utils.rh_fixes import get_historical_portfolio
-from utils.analyze_portfolio import analyze_portfolio_performance
+from utils.analyze_portfolio import analyze_portfolio_performance, get_ticker_history
 
 # Get the current working directory
 current_directory = os.getcwd()
@@ -100,6 +101,26 @@ def get_data(mode, login_result):
         return {
             "historical_df": historical_df
         }
+    
+    elif mode == 'historical_w_benchmarks':
+
+        print('MODE: historical_w_benchmarks')
+
+        # Portfolio -> 'timestamp','portfolio'
+        port_raw = get_historical_portfolio(r, login_result=login_result, span='all')
+        port_daily = to_daily(port_raw).rename(columns={'value':'portfolio'})
+
+        # Benchmarks -> merge as columns by symbol
+        symbols = ['SPY', 'DIA', 'QQQ', 'VOO', 'BRK.B', 'ARKK']
+        combined = port_daily
+        for sym in symbols:
+            b_raw = get_ticker_history(r, sym, interval='day', span='5year')
+            b_daily = to_daily(b_raw).rename(columns={'value': sym})
+            if not b_daily.empty:
+                combined = combined.merge(b_daily, on='timestamp', how='outer')
+
+        combined = combined.sort_values('timestamp').reset_index(drop=True)
+        return {"historical_df": combined}
     
     elif mode == 'profile':
         holdings_df = r.account.build_holdings(with_dividends=True)

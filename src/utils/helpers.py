@@ -129,3 +129,37 @@ def parse_portfolio_points(data: dict, line_index: int = 0, base_date=None, tz: 
         points = points.sort_values('date').reset_index(drop=True)
 
     return points
+
+def to_daily(df, time_cols=('date','begins_at','timestamp'),
+              value_cols=('current_value','adjusted_close_equity','close_price','close','equity','value'),
+              tz='US/Eastern'):
+    """Return a 2-col DataFrame: ['timestamp','value'] with one value per day (last)."""
+    if df is None or len(df) == 0:
+        return pd.DataFrame(columns=['timestamp','value'])
+
+    df = pd.DataFrame(df).copy()
+
+    # pick first present time/price cols
+    tcol = next((c for c in time_cols if c in df.columns), None)
+    vcol = next((c for c in value_cols if c in df.columns), None)
+    if tcol is None or vcol is None:
+        return pd.DataFrame(columns=['timestamp','value'])
+
+    ts = pd.to_datetime(df[tcol], errors='coerce')
+
+    # normalize tz if tz-aware, then drop tz for merging
+    try:
+        if getattr(ts.dt, 'tz', None) is not None:
+            ts = ts.dt.tz_convert(tz).dt.tz_localize(None)
+    except Exception:
+        # if naive or conversion fails, keep as-is
+        pass
+
+    df['timestamp'] = ts.dt.floor('D')
+    df['value'] = pd.to_numeric(df[vcol], errors='coerce')
+
+    daily = (df.dropna(subset=['timestamp'])
+               .sort_values('timestamp')
+               .groupby('timestamp', as_index=False)['value']
+               .last())
+    return daily

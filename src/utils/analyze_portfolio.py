@@ -96,11 +96,6 @@ def filter_by_year(df, year):
     start = pd.Timestamp(f'{year}-01-01')
     end = pd.Timestamp(f'{year}-12-31 23:59:59')
 
-    print('in filtering')
-    print(df)
-    print('post filtering')
-    print(df[(df['timestamp'] >= start) & (df['timestamp'] <= end)])
-
     return df[(df['timestamp'] >= start) & (df['timestamp'] <= end)].copy()
 
 
@@ -299,10 +294,6 @@ def analyze_portfolio_performance(r, login_result,
         # Calculate daily returns
         # Use 'equity' if it's the portfolio, else 'close_price'
         entity_col = 'equity' if entity == 'portfolio' else 'close_price'
-
-        print('====================')
-        print(f"Entity Column: {entity_col}")
-        print(f"Entity Data: {df_entity_yr}")
 
         
         entity_ret_yr = calculate_daily_returns(df_entity_yr, entity_col)

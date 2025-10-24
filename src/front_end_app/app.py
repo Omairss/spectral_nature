@@ -30,8 +30,10 @@ app.secret_key = "das"  # for demonstration
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-
 us, ps = LinkedAuth.get_creds('test')
+
+global BENCHMARK_ENTITIES
+BENCHMARK_ENTITIES = ['portfolio', 'SPY', 'DIA', 'QQQ', 'VOO', 'BRK.B', 'ARKK']
 
 # Example function to combine multiple figures into subplots
 def combine_figures_into_subplots(figures, titles):
@@ -227,26 +229,63 @@ def update_option_chart(n, ticker, strike_price):
 
 @dash_app.callback(Output("portfolio-timechart", "figure"), [Input("update-button", "n_clicks")])
 def update_portfolio_chart(n):
-    
-    current_status = CurrentStatus.main(us, ps, 'historical', 'local')
-    
+    current_status = CurrentStatus.main(us, ps, 'historical_w_benchmarks', 'refresh')
+    df = pd.DataFrame(current_status['historical_df']).copy()
+
+    print('PORTFOLIO TIMECHART')
+    print(df)
+
+    if 'timestamp' not in df.columns:
+        return go.Figure(layout=dict(title="historical_df missing 'timestamp'", template="plotly_dark"))
+
+    # Ensure proper datetime and sort
+    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+    df = df.dropna(subset=['timestamp']).sort_values('timestamp')
+
+    # Plot portfolio + available benchmarks
+    y_cols = [c for c in ['portfolio', 'SPY', 'DIA', 'QQQ', 'VOO', 'BRK.B', 'ARKK'] if c in df.columns]
+    if not y_cols:
+        return go.Figure(layout=dict(title="No portfolio/benchmark columns to plot", template="plotly_dark"))
+
+    for c in y_cols:
+        df[c] = pd.to_numeric(df[c], errors='coerce')
+
+    # Color map: portfolio bright green, benchmarks dull grays
+    dull_palette = ['#8c8c8c', '#7a7a7a', '#707070', '#686868', '#606060', '#585858', '#505050']
+    color_discrete_map = {}
+    if 'portfolio' in y_cols:
+        color_discrete_map['portfolio'] = '#00e676'  # bright green
+    bench_names = [c for c in y_cols if c != 'portfolio']
+    for i, name in enumerate(bench_names):
+        color_discrete_map[name] = dull_palette[i % len(dull_palette)]
     fig = px.line(
-      current_status['historical_df'],
-      x='date',
-      y=['current_value', 'rate_of_return'],
-      title='Historical Portfolio Data',
-      labels={'value': 'Metrics', 'date': 'Date'},
+        df,
+        x='timestamp',
+        y=y_cols,
+        title='Portfolio vs Benchmarks',
+        labels={'timestamp': 'Date', 'value': 'Value ($)'},
+        color_discrete_map=color_discrete_map
     )
 
-    # Update layout to add a secondary y-axis for rate_of_return
+    # Secondary y-axis for portfolio only
     fig.update_layout(
-      yaxis=dict(title='Current Value'),
-      yaxis2=dict(title='Rate of Return', overlaying='y', side='right'),
+        template='plotly_dark',
+        yaxis=dict(title='Benchmarks ($)'),
+        yaxis2=dict(title='Portfolio ($)', overlaying='y', side='right', showgrid=False),
+        legend_title_text='Series'
     )
 
-    # Update traces to use the secondary y-axis for rate_of_return
-    fig.for_each_trace(lambda trace: trace.update(yaxis='y2') if trace.name == 'rate_of_return' else None)
-    fig.update_layout(template='plotly_dark')
+    # Style traces: portfolio -> y2, bright/thicker; benchmarks -> dull, thinner, semi-transparent
+    def _style_trace(tr):
+        if tr.name == 'portfolio':
+            tr.update(yaxis='y2', line=dict(width=3), opacity=1.0, marker=dict(size=4))
+        else:
+            tr.update(line=dict(width=1.2), opacity=0.55, marker=dict(size=2))
+        return tr
+
+    fig.for_each_trace(_style_trace)
+    fig.update_traces(mode='lines+markers', connectgaps=True)
+    
     return fig
 
 
@@ -301,13 +340,11 @@ def performance_chart(n):
   results = CurrentStatus.main(us, ps, 'performance', 'local')
   performance_df = results['performance_df']
 
-  print('performance_df: {}', performance_df)
   # Filter ranges
   performance_cum = performance_df[performance_df['Year'] == 'Cumulative']
   performance_df = performance_df[performance_df['Year'] != 2020]
   performance_df = performance_df[performance_df['Year'] != 'Cumulative']
 
-  selected_entities = ['portfolio', 'SPY', 'DIA', 'QQQ', 'VOO', 'BRK.B', 'ARKK']
 
   # Define a color map for entities
   color_map = {
@@ -330,27 +367,27 @@ def performance_chart(n):
   ))
 
   # Annual Return plot
-  for entity in selected_entities:
+  for entity in BENCHMARK_ENTITIES:
       entity_data = performance_df[performance_df['Entity'] == entity]
       fig.add_trace(go.Bar(x=entity_data['Year'], y=entity_data['Annual Return'], name=f'{entity} Annual Return', marker_color=color_map[entity], text=entity_data['Entity'], textposition='auto'), row=1, col=1)
 
   # Sharpe Ratio plot
-  for entity in selected_entities:
+  for entity in BENCHMARK_ENTITIES:
       entity_data = performance_df[performance_df['Entity'] == entity]
       fig.add_trace(go.Bar(x=entity_data['Year'], y=entity_data['Sharpe Ratio'], name=f'{entity} Sharpe Ratio', marker_color=color_map[entity], text=entity_data['Entity'], textposition='auto'), row=2, col=1)
 
   # Beta (vs SPY) plot
-  for entity in selected_entities:
+  for entity in BENCHMARK_ENTITIES:
       entity_data = performance_df[performance_df['Entity'] == entity]
       fig.add_trace(go.Bar(x=entity_data['Year'], y=entity_data['Beta (vs SPY)'], name=f'{entity} Beta (vs SPY)', marker_color=color_map[entity], text=entity_data['Entity'], textposition='auto'), row=3, col=1)
 
   # Alpha (vs SPY) plot
-  for entity in selected_entities:
+  for entity in BENCHMARK_ENTITIES:
       entity_data = performance_df[performance_df['Entity'] == entity]
       fig.add_trace(go.Bar(x=entity_data['Year'], y=entity_data['Alpha (vs SPY)'], name=f'{entity} Alpha (vs SPY)', marker_color=color_map[entity], text=entity_data['Entity'], textposition='auto'), row=4, col=1)
 
   # Max Drawdown plot
-  for entity in selected_entities:
+  for entity in BENCHMARK_ENTITIES:
       entity_data = performance_df[performance_df['Entity'] == entity]
       fig.add_trace(go.Bar(x=entity_data['Year'], y=entity_data['Max Drawdown'], name=f'{entity} Max Drawdown', marker_color=color_map[entity], text=entity_data['Entity'], textposition='auto'), row=5, col=1)
 
