@@ -88,6 +88,18 @@ def get_data(mode, login_result):
         return {
             "market_data": get_market_data()
         }
+
+    elif mode == 'holdings':
+        holdings_df = r.account.build_holdings(with_dividends=True)
+        return {
+            "holdings_df": holdings_df
+        }
+
+    elif mode == 'historical':
+        historical_df = get_historical_portfolio(r, login_result=login_result, span='all')
+        return {
+            "historical_df": historical_df
+        }
     
     elif mode == 'profile':
         holdings_df = r.account.build_holdings(with_dividends=True)
