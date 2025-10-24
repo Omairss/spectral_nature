@@ -7,11 +7,16 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 import plotly.graph_objects as go  
 import plotly.express as px
 from plotly.subplots import make_subplots
+from collections import Counter
+from statistics import mean
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import sys
 sys.path.append("..")
 import yfinance as yf
 import FundamentalAnalyzer, MarketExplorer, TechnicalAnalyzer, OptionFinder, CurrentStatus, LinkedAuth
+
+from utils.perplexity_helper import summarize_ticker_news_with_perplexity
 
 # ----------------------------------------------------------------
 # Set Plotly theme to dark
@@ -30,7 +35,7 @@ app.secret_key = "das"  # for demonstration
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-us, ps = LinkedAuth.get_creds('test')
+us, ps = LinkedAuth.get_creds("spectral-nature-kvault", retreive = ['rh-username', 'rh-pswd'])
 
 global BENCHMARK_ENTITIES
 BENCHMARK_ENTITIES = ['portfolio', 'SPY', 'DIA', 'QQQ', 'VOO', 'BRK.B', 'ARKK']
@@ -285,7 +290,7 @@ def update_portfolio_chart(n):
 
     fig.for_each_trace(_style_trace)
     fig.update_traces(mode='lines+markers', connectgaps=True)
-    
+
     return fig
 
 
@@ -427,79 +432,102 @@ def update_market_charts(n):
     
     return combined_fig
 
-
-def create_news_cards_():
     
-    print('Creating news cards...')
-
-    news_data = [
-    {"title": "Title 1", "content": "News content 1", "image": "https://via.placeholder.com/150", "link": "#"},
-    {"title": "Title 2", "content": "News content 2", "image": "https://via.placeholder.com/150", "link": "#"},
-    {"title": "Title 3", "content": "News content 3", "image": "https://via.placeholder.com/150", "link": "#"},
-    ]
-    cards = []
-    for news in news_data:
-        card = dbc.Card(
-            [
-                dbc.CardImg(src=news["image"], top=True),
-                dbc.CardBody([
-                    dbc.CardHeader(news["title"]),
-                    html.P(news["content"]),
-                    dbc.Button("Read more", href=news["link"], color="primary")
-                ])
-            ],
-            className="mb-3"
-        )
-        cards.append(card)
-    return cards
-
-    
-# Function to create news cards with images and links
 def create_news_cards():
-
+    # Fetch market data
     market_data = MarketExplorer.main(us, ps, 'local', True)
-    
-    print('Creating news cards...')
-
-    # Initialize an empty list to store all news items
-    all_news_list = []
-
-    # Merge news data from different sources
+    # Merge news data from sources
     all_news = {}
-    all_news.update(market_data['top_movers_sp500_up']['news'])
-    all_news.update(market_data['top_movers_sp500_down']['news'])
+    if 'top_movers_sp500_up' in market_data and 'news' in market_data['top_movers_sp500_up']:
+        all_news.update(market_data['top_movers_sp500_up']['news'])
+    if 'top_movers_sp500_down' in market_data and 'news' in market_data['top_movers_sp500_down']:
+        all_news.update(market_data['top_movers_sp500_down']['news'])
 
-    print(all_news)
+    # Perplexity summaries in parallel (once per ticker)
+    ppx_api = LinkedAuth.get_creds("spectral-nature-kvault", retreive=['PerplexityAPI'])
+    tickers = list(all_news.keys())
+    pplx_summaries = {}
 
-    selected_fields = ['symbol', 'title', 'summary', 'sentimentRating', 'priceImpactReasoning', 'stockImpactRating', 'impactHorizonReasoning', 'sentimentScore']
+    if tickers:
+        def _summarize(tk):
+            return summarize_ticker_news_with_perplexity(ppx_api, tk, days=1)
 
-    for ticker, data in all_news.items():
-        for item in data['data']['target']:
-          if ticker.lower() == item['symbol'].lower(): ## Filter mismatches
-            news = {}
-            news['title'] = f"{item['symbol']} : {item['title']}"
-            print(news['title'])
-            news['content'] = " | ".join([f"{field}: {item.get(field, 'N/A')}" for field in selected_fields])
-            news['link'] = item['url']
-            all_news_list.append(news)
+        max_workers = min(8, max(1, len(tickers)))
+        with ThreadPoolExecutor(max_workers=max_workers) as ex:
+            futures = {ex.submit(_summarize, tk): tk for tk in tickers}
+            for fut in as_completed(futures):
+                tk = futures[fut]
+                try:
+                    pplx_summaries[tk] = fut.result()
+                except Exception as e:
+                    pplx_summaries[tk] = f"Perplexity summary error: {e}"
 
-    print('All news')
-    print(all_news_list)
+    from collections import Counter
+    from statistics import mean
 
     cards = []
-    for news in all_news_list:
+    for ticker, payload in all_news.items():
+        targets = (payload or {}).get('data', {}).get('target', []) or []
+        # Keep only items that match the ticker symbol
+        items = [it for it in targets if str(it.get('symbol', '')).lower() == ticker.lower()]
+        if not items:
+            continue
+
+        # Aggregate metrics
+        def _to_float(x):
+            try:
+                return float(x)
+            except Exception:
+                return None
+
+        sentiments = [_to_float(it.get('sentimentScore')) for it in items]
+        sentiments = [s for s in sentiments if s is not None]
+        avg_sent = f"{mean(sentiments):.2f}" if sentiments else "N/A"
+
+        ratings = [str(it.get('sentimentRating')) for it in items if it.get('sentimentRating')]
+        top_rating = Counter(ratings).most_common(1)[0][0] if ratings else "N/A"
+
+        impacts = [str(it.get('stockImpactRating')) for it in items if it.get('stockImpactRating')]
+        top_impact = Counter(impacts).most_common(1)[0][0] if impacts else "N/A"
+
+        # Headlines (unique, up to 3)
+        seen = set()
+        headlines = []
+        for it in items:
+            title = (it.get('title') or "").strip()
+            if title and title not in seen:
+                headlines.append(title)
+                seen.add(title)
+            if len(headlines) == 3:
+                break
+
+        # Links (first available)
+        first_link = next((it.get('url') for it in items if it.get('url')), "#")
+
+        # Build content and bullets
+        content = f"Stories: {len(items)} | Avg sentiment: {avg_sent} | Top sentiment: {top_rating} | Impact: {top_impact}"
+        bullets = "\n".join(f"- {h}" for h in headlines) if headlines else "- No headlines available"
+
+        # Perplexity summary fetched in parallel
+        pplx_md = pplx_summaries.get(ticker, "Perplexity summary unavailable.")
+
+        # One card per ticker
         card = dbc.Card(
             [
-                # dbc.CardImg(src=news["image"], top=True),
                 dbc.CardBody([
-                    dbc.CardHeader(news["title"]),
-                    html.P(news["content"]),
-                    dbc.Button("Read more", href=news["link"], color="primary")
+                    dbc.CardHeader(f"{ticker} — News Summary"),
+                    dcc.Markdown(bullets),
+                    html.P(content, className="text-muted mb-1"),
+                    html.Hr(),
+                    html.H6("Perplexity (last 1 day)"),
+                    dcc.Markdown(pplx_md),
+                    dbc.Button("Primary Link", href=first_link, color="primary", className="mt-2"),
                 ])
             ],
             className="mb-3"
         )
         cards.append(card)
+
     return cards
 
 @dash_app.callback(Output("fundamental-timechart-old", "figure"), [Input("update-button", "n_clicks")], [State("ticker-input", "value")])

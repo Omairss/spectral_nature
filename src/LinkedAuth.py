@@ -21,17 +21,10 @@ def get_creds_old_v1(name='test'):
         return u, p
 
 
-def get_creds(name='test'):
+def get_creds(KV_NAME="spectral-nature-kvault", retreive = ['rh-username', 'rh-pswd']):
 
-    KV_NAME = "spectral-nature-kvault"
     KVUri = f"https://{KV_NAME}.vault.azure.net"
     credential = DefaultAzureCredential()
     client = SecretClient(vault_url=KVUri, credential=credential)
 
-    u = client.get_secret("rh-username").value
-    p = client.get_secret("rh-pswd").value
-
-    return u, p
-
-
-
+    return [client.get_secret(i).value for i in retreive]

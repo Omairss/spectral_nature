@@ -43,32 +43,12 @@ class MarketExplorer():
 
         cooldown_s = 5
 
-        print("Fetching top movers in S&P 500 (up)...")
-        time.sleep(cooldown_s)
-        top_movers_sp500_up = markets.get_top_movers_sp500('up')
-
-        print("Fetching top movers in S&P 500 (down)...")
-        time.sleep(cooldown_s)
-        top_movers_sp500_down = markets.get_top_movers_sp500('down')
-
-        print("Fetching top 100 stocks...")
-        time.sleep(cooldown_s)
-        top_100 = markets.get_top_100()
-
-        print("Fetching top movers...")
-        time.sleep(cooldown_s)
-        top_movers = markets.get_top_movers()
-
-        print("Fetching stocks with upcoming earnings...")
-        time.sleep(cooldown_s)
-        upcoming_earnings = markets.get_all_stocks_from_market_tag('upcoming-earnings')
-
         return {
-            "top_movers_sp500_up": top_movers_sp500_up,
-            "top_movers_sp500_down": top_movers_sp500_down,
-            "top_100": top_100,
-            "top_movers": top_movers,
-            "upcoming_earnings": upcoming_earnings
+            "top_movers_sp500_up": markets.get_top_movers_sp500('up'),
+            "top_movers_sp500_down": markets.get_top_movers_sp500('down'),
+            "top_100": markets.get_top_100(),
+            "top_movers": markets.get_top_movers(),
+            "upcoming_earnings": markets.get_all_stocks_from_market_tag('upcoming-earnings')
         }
     
     def plot_market_data(self, group_dictionary, start_date):
