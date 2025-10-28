@@ -220,21 +220,21 @@ def get_historical_magnitude_plots(symbol, timeframe, historical_start_date, his
         filter_end_date_ = pd.to_datetime(filter_end_date, utc = True)
         indices = np.where((t >= filter_start_date_) & (t <= filter_end_date_))
 
-        bins = axs[0][0].hist(c[indices][1:] - c[indices][:-1], bins = 100)
+        bins = axs[0][0].hist(c[indices][1:] - c[indices][:-1], bins = 100, density = True)
         axs[0][0].set_xlabel('Change Values')
-        axs[0][0].set_ylabel('Frequency')
+        axs[0][0].set_ylabel('Probability Density')
 
         axs[0][1].set_title(f'Histogram of Day-to-Day Change Magnitudes\n{filter_start_date} - {filter_end_date}\nLast {offset} Days')
-        bins = axs[0][1].hist(np.abs(c[indices][1:] - c[indices][:-1]), bins = 100)
+        bins = axs[0][1].hist(np.abs(c[indices][1:] - c[indices][:-1]), bins = 100, density = True)
         axs[0][1].set_xlabel('Magnitude of Change')
-        axs[0][1].set_ylabel('Frequency')
+        axs[0][1].set_ylabel('Probability Density')
 
         ###############################
         ######## Power Law Fit ########
         ###############################
 
         # Create histogram
-        counts, bin_edges = np.histogram(np.abs(c[indices][1:] - c[indices][:-1]), bins = 100)
+        counts, bin_edges = np.histogram(np.abs(c[indices][1:] - c[indices][:-1]), bins = 100, density = True)
 
         # Calculate bin centers (not edges)
         bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
@@ -251,17 +251,17 @@ def get_historical_magnitude_plots(symbol, timeframe, historical_start_date, his
         alpha, logC = param
 
         axs[1][0].set_title(f'Linear Scale Power Law Fit\n{filter_start_date} - {filter_end_date}\nLast {offset} Days')
-        axs[1][0].hist(np.abs(c[indices][1:] - c[indices][:-1]), bins = 100, label = 'Magnitude of Change')
+        axs[1][0].hist(np.abs(c[indices][1:] - c[indices][:-1]), bins = 100, label = 'Magnitude of Change', density = True)
         axs[1][0].plot(x_data, np.exp(logC) * x_data**(-alpha), 'r-', linewidth = 2, label = f'Power Law Fit: $\gamma = {alpha:.3f}\ |\ c = {np.exp(logC):.3f}$')
         axs[1][0].set_xlabel('Magnitude of Change')
-        axs[1][0].set_ylabel('Frequency')
+        axs[1][0].set_ylabel('Probability Density')
         axs[1][0].legend()
 
         axs[1][1].set_title(f'Log Scale Power Law Fit\n{filter_start_date} - {filter_end_date}\nLast {offset} Days')
         axs[1][1].loglog(x_data, y_data, 'o', label = 'Magnitude of Change')
         axs[1][1].loglog(x_data, np.exp(logC) * x_data ** (-alpha), 'r-', linewidth = 2, label = f'Power Law Fit: $\gamma = {alpha:.3f}\ |\ c = {np.exp(logC):.3f}$')
         axs[1][1].set_xlabel('Magnitude of Change')
-        axs[1][1].set_ylabel('Frequency')
+        axs[1][1].set_ylabel('Probability Density')
         axs[1][1].legend()
 
         plt.show()
