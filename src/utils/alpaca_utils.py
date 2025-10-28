@@ -155,3 +155,113 @@ def filter_option_trades_by_ff(current_price, strike_group, min_time_distance, m
                         display(out_pd)
                         out_list = out_list[:-1]
 
+# Define power law in log-log space
+def power_law_log(log_x, alpha, logC):
+    return (-alpha * log_x) + logC
+
+def get_historical_magnitude_plots(symbol, timeframe, historical_start_date, historical_end_date = 'now', day_offsets = [30, 60, 90, 180]):
+    
+    
+    if historical_end_date == 'now':
+        now = datetime.now()
+        historical_end_date = str(now.date())
+    c = []
+    h = []
+    l = []
+    t = []
+
+    url = f"https://data.alpaca.markets/v2/stocks/bars?symbols={symbol}&timeframe={timeframe}&start={historical_start_date}&end={historical_end_date}&limit=1000&adjustment=raw&feed=iex&sort=asc"
+    response = requests.get(url, headers = headers)
+
+    data = json.loads(response.text)
+    for idx in range(len(data['bars'][symbol])):
+        c.append(data['bars'][symbol][idx]['c'])
+        h.append(data['bars'][symbol][idx]['h'])    
+        l.append(data['bars'][symbol][idx]['l'])    
+        t.append(data['bars'][symbol][idx]['t'])
+
+    while data['next_page_token'] is not None:
+        url = f"https://data.alpaca.markets/v2/stocks/bars?symbols={symbol}&timeframe={timeframe}&start={historical_start_date}&end={historical_end_date}&limit=1000&adjustment=raw&feed=iex&sort=asc&page_token={data['next_page_token']}"
+        response = requests.get(url, headers = headers)
+        data = json.loads(response.text)
+        for idx in range(len(data['bars'][symbol])):
+            c.append(data['bars'][symbol][idx]['c'])
+            h.append(data['bars'][symbol][idx]['h'])    
+            l.append(data['bars'][symbol][idx]['l'])    
+            t.append(data['bars'][symbol][idx]['t'])    
+
+    c = np.array(c)
+    h = np.array(h)
+    l = np.array(l)
+    t = np.array([pd.to_datetime(x) for x in t])
+    
+    plt.figure(figsize = (15, 5))
+    plt.title(f"{symbol}: {start_date} - {end_date}")
+    plt.plot(t, c)
+    plt.xlabel('Closing Price')
+    plt.ylabel('Time')
+    plt.xticks(rotation = 90)
+    plt.show()
+    
+    for offset in day_offsets:
+        now = datetime.now()
+        filter_start_date = (now - timedelta(days = offset)).date()
+        filter_end_date = str(now.date())
+
+        ###############################
+        ########## Histogram ##########
+        ###############################
+
+        fig, axs = plt.subplots(2, 2, figsize=(20, 20))
+
+        axs[0][0].set_title(f'Histogram of Day-to-Day Changes\n{filter_start_date} - {filter_end_date}\nLast {offset} Days')
+
+        filter_start_date_ = pd.to_datetime(filter_start_date, utc = True)
+        filter_end_date_ = pd.to_datetime(filter_end_date, utc = True)
+        indices = np.where((t >= filter_start_date_) & (t <= filter_end_date_))
+
+        bins = axs[0][0].hist(c[indices][1:] - c[indices][:-1], bins = 100)
+        axs[0][0].set_xlabel('Change Values')
+        axs[0][0].set_ylabel('Frequency')
+
+        axs[0][1].set_title(f'Histogram of Day-to-Day Change Magnitudes\n{filter_start_date} - {filter_end_date}\nLast {offset} Days')
+        bins = axs[0][1].hist(np.abs(c[indices][1:] - c[indices][:-1]), bins = 100)
+        axs[0][1].set_xlabel('Magnitude of Change')
+        axs[0][1].set_ylabel('Frequency')
+
+        ###############################
+        ######## Power Law Fit ########
+        ###############################
+
+        # Create histogram
+        counts, bin_edges = np.histogram(np.abs(c[indices][1:] - c[indices][:-1]), bins = 100)
+
+        # Calculate bin centers (not edges)
+        bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+
+        # Remove zero counts to avoid log(0)
+        nonzero_mask = counts > 0
+        x_data = bin_centers[nonzero_mask]
+        y_data = counts[nonzero_mask]
+
+        param, _ = opt.curve_fit(f = power_law_log,
+                                 xdata = np.log(x_data),
+                                 ydata = np.log(y_data))
+
+        alpha, logC = param
+
+        axs[1][0].set_title(f'Linear Scale Power Law Fit\n{filter_start_date} - {filter_end_date}\nLast {offset} Days')
+        axs[1][0].hist(np.abs(c[indices][1:] - c[indices][:-1]), bins = 100, label = 'Magnitude of Change')
+        axs[1][0].plot(x_data, np.exp(logC) * x_data**(-alpha), 'r-', linewidth = 2, label = f'Power Law Fit: $\gamma = {alpha:.3f}\ |\ c = {np.exp(logC):.3f}$')
+        axs[1][0].set_xlabel('Magnitude of Change')
+        axs[1][0].set_ylabel('Frequency')
+        axs[1][0].legend()
+
+        axs[1][1].set_title(f'Log Scale Power Law Fit\n{filter_start_date} - {filter_end_date}\nLast {offset} Days')
+        axs[1][1].loglog(x_data, y_data, 'o', label = 'Magnitude of Change')
+        axs[1][1].loglog(x_data, np.exp(logC) * x_data ** (-alpha), 'r-', linewidth = 2, label = f'Power Law Fit: $\gamma = {alpha:.3f}\ |\ c = {np.exp(logC):.3f}$')
+        axs[1][1].set_xlabel('Magnitude of Change')
+        axs[1][1].set_ylabel('Frequency')
+        axs[1][1].legend()
+
+        plt.show()
