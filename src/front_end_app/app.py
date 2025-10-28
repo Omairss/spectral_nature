@@ -16,7 +16,6 @@ sys.path.append("..")
 import yfinance as yf
 import FundamentalAnalyzer, MarketExplorer, TechnicalAnalyzer, OptionFinder, CurrentStatus, LinkedAuth
 
-from utils.perplexity_helper import summarize_ticker_news_with_perplexity
 
 # ----------------------------------------------------------------
 # Set Plotly theme to dark
@@ -443,24 +442,12 @@ def create_news_cards():
     if 'top_movers_sp500_down' in market_data and 'news' in market_data['top_movers_sp500_down']:
         all_news.update(market_data['top_movers_sp500_down']['news'])
 
-    # Perplexity summaries in parallel (once per ticker)
-    ppx_api = LinkedAuth.get_creds("spectral-nature-kvault", retreive=['PerplexityAPI'])
-    tickers = list(all_news.keys())
+    # Use Perplexity summaries precomputed by MarketExplorer (keep your template)
     pplx_summaries = {}
-
-    if tickers:
-        def _summarize(tk):
-            return summarize_ticker_news_with_perplexity(ppx_api, tk, days=1)
-
-        max_workers = min(8, max(1, len(tickers)))
-        with ThreadPoolExecutor(max_workers=max_workers) as ex:
-            futures = {ex.submit(_summarize, tk): tk for tk in tickers}
-            for fut in as_completed(futures):
-                tk = futures[fut]
-                try:
-                    pplx_summaries[tk] = fut.result()
-                except Exception as e:
-                    pplx_summaries[tk] = f"Perplexity summary error: {e}"
+    if 'top_movers_sp500_up' in market_data and 'perplexity_summaries' in market_data['top_movers_sp500_up']:
+        pplx_summaries.update(market_data['top_movers_sp500_up']['perplexity_summaries'])
+    if 'top_movers_sp500_down' in market_data and 'perplexity_summaries' in market_data['top_movers_sp500_down']:
+        pplx_summaries.update(market_data['top_movers_sp500_down']['perplexity_summaries'])
 
     from collections import Counter
     from statistics import mean
@@ -529,6 +516,7 @@ def create_news_cards():
         cards.append(card)
 
     return cards
+
 
 @dash_app.callback(Output("fundamental-timechart-old", "figure"), [Input("update-button", "n_clicks")], [State("ticker-input", "value")])
 def update_fundamental_charts(n, ticker):  

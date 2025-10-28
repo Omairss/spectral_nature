@@ -34,7 +34,9 @@ def summarize_ticker_news_with_perplexity(ppx_api, ticker: str, days: int = 1, t
     system = "You are a finance analyst. Search the web and summarize recent, material company news with citations."
     user = (
         f"Summarize the most impactful news for {ticker} from the last {days} day(s). "
-        "Provide 5-8 concise bullets with links/citations. Focus on catalysts, earnings, guidance, regulatory, legal, M&A, macro, and why it matters."
+        "Provide 5-8 concise bullets with links/citations. Divide into following sections if applicable: "
+        "Hard Data: Focus on catalysts, earnings, guidance, regulatory, legal, M&A, macro, and why it matters."
+        "Soft Data: Summarize the narrative - what is the business about, what are it's competitive advantages, who are it's customers, growth areas and key risks."
     )
 
     try:

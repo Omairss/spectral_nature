@@ -21,7 +21,11 @@ sys.path.append("../analysis_modules")
 
 import markets
 import TechnicalAnalyzer
+from utils.perplexity_helper import summarize_ticker_news_with_perplexity
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from datetime import timedelta, timezone
+
 
 # Get the current working directory
 current_directory = os.getcwd()
@@ -38,6 +42,7 @@ class MarketExplorer():
         self.r.login(self.rh_username, self.rh_password)
         self.technical_bundle_cache = {}
         self.news_bundle_cache = {}
+        self.px_bundle_cache = {}
 
     def get_market_data(self):
 
@@ -50,6 +55,40 @@ class MarketExplorer():
             "top_movers": markets.get_top_movers(),
             "upcoming_earnings": markets.get_all_stocks_from_market_tag('upcoming-earnings')
         }
+
+    def get_perplexity_summaries(self, group_dictionary, days) -> dict:
+        """
+        Compute Perplexity summaries in parallel, one per ticker.
+        all_news: { ticker: {...}, ... } as returned by MarketExplorer.main(...)[*]['news'] merges.
+        Returns: { ticker: markdown_summary }
+        """
+        max_workers = 4
+
+        try:
+            ppx_api = LinkedAuth.get_creds("spectral-nature-kvault", retreive=['PerplexityAPI'])
+        except Exception:
+            ppx_api = None
+
+        tickers = list(group_dictionary[i]['symbol'] for i in range(len(group_dictionary)))
+        summaries = {}
+        if not tickers:
+            return summaries
+
+        def _summarize(tk: str) -> str:
+            return summarize_ticker_news_with_perplexity(ppx_api, tk, days=days)
+
+        workers = min(max_workers, max(1, len(tickers)))
+        with ThreadPoolExecutor(max_workers=workers) as ex:
+            futures = {ex.submit(_summarize, tk): tk for tk in tickers}
+            for fut in as_completed(futures):
+                tk = futures[fut]
+                try:
+                    summaries[tk] = fut.result()
+                except Exception as e:
+                    summaries[tk] = f"Perplexity summary error: {e}"
+
+        return summaries
+    
     
     def plot_market_data(self, group_dictionary, start_date):
         """
@@ -242,7 +281,8 @@ def main(rh_username: str, rh_password: str, cache_mode: str, TEST: bool = False
 
         market_group_data[group_name] = {
             'fig': m.plot_market_data(group_data, '5yr'),
-            'news': m.stocknews_api_endpoint(group_data)
+            'news': m.stocknews_api_endpoint(group_data),
+            'perplexity_summaries': m.get_perplexity_summaries(group_data, days=1)
         }
 
     if (cache_mode == 'refresh' or cache_mode == 'normal') or is_cache_stale(cache_file_path):
