@@ -5,9 +5,11 @@ import requests
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.optimize as opt 
 
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+
 
 def forward_ratio(dte_1, dte_2, iv_1, iv_2):
 
