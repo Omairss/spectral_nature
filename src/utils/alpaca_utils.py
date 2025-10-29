@@ -265,3 +265,121 @@ def get_historical_magnitude_plots(symbol, timeframe, historical_start_date, his
         axs[1][1].legend()
 
         plt.show()
+        
+        
+def get_prediction_error(symbol, timeframe, train_start_date, train_end_date, test_start_date, test_end_date):
+
+    historical_start_date = train_start_date
+    historical_end_date = test_end_date
+
+    if historical_end_date == 'now':
+        now = datetime.now()
+        historical_end_date = str(now.date())
+        test_end_date = str(now.date())
+    c = []
+    h = []
+    l = []
+    t = []
+
+    url = f"https://data.alpaca.markets/v2/stocks/bars?symbols={symbol}&timeframe={timeframe}&start={historical_start_date}&end={historical_end_date}&limit=1000&adjustment=raw&feed=iex&sort=asc"
+    response = requests.get(url, headers = headers)
+
+    data = json.loads(response.text)
+    for idx in range(len(data['bars'][symbol])):
+        c.append(data['bars'][symbol][idx]['c'])
+        h.append(data['bars'][symbol][idx]['h'])    
+        l.append(data['bars'][symbol][idx]['l'])    
+        t.append(data['bars'][symbol][idx]['t'])
+
+    while data['next_page_token'] is not None:
+        url = f"https://data.alpaca.markets/v2/stocks/bars?symbols={symbol}&timeframe={timeframe}&start={historical_start_date}&end={historical_end_date}&limit=1000&adjustment=raw&feed=iex&sort=asc&page_token={data['next_page_token']}"
+        response = requests.get(url, headers = headers)
+        data = json.loads(response.text)
+        for idx in range(len(data['bars'][symbol])):
+            c.append(data['bars'][symbol][idx]['c'])
+            h.append(data['bars'][symbol][idx]['h'])    
+            l.append(data['bars'][symbol][idx]['l'])    
+            t.append(data['bars'][symbol][idx]['t'])    
+
+    c = np.array(c)
+    h = np.array(h)
+    l = np.array(l)
+    t = np.array([pd.to_datetime(x) for x in t])
+
+    plt.figure(figsize = (15, 5))
+    plt.title(f"{symbol}: {start_date} - {end_date}")
+    plt.plot(t, c)
+    plt.xlabel('Closing Price')
+    plt.ylabel('Time')
+    plt.xticks(rotation = 90)
+    plt.show()
+    
+    train_start = np.where(t > pd.to_datetime(train_start_date, utc = True))[0][0]
+    train_end = np.where(t > pd.to_datetime(train_end_date, utc = True))[0][0]
+    test_start = np.where(t > pd.to_datetime(test_start_date, utc = True))[0][0]
+    test_end = np.where(t > pd.to_datetime(test_end_date, utc = True))[0][-1]
+
+    train = c[train_start:train_end]
+    possible_changes = train[1:] - train[:-1]
+    sampled_changes = np.random.choice(possible_changes, test_end - test_start)
+
+
+    predicted_matrix = []
+    gaussian_matrix = []
+
+    difference = []
+
+    for _ in range(100):
+        current_value = train[-1]
+        predicted_values = [current_value]
+        gaussian_values = [current_value]
+        for idx in range(len(sampled_changes)):
+            predicted_values.append(predicted_values[-1] + sampled_changes[idx])
+            gaussian_values.append(gaussian_values[-1] + np.random.normal(loc = np.mean(possible_changes), scale = np.std(possible_changes)))
+        predicted_matrix.append(predicted_values)
+        gaussian_matrix.append(gaussian_values)
+
+        predicted_error = np.mean(np.square(c[test_start:test_end + 1] - predicted_values))
+        gaussian_error = np.mean(np.square(c[test_start:test_end + 1] - gaussian_values))
+        difference.append(predicted_error - gaussian_error)
+
+
+    predicted_values = np.mean(predicted_matrix, axis = 0)
+    gaussian_values = np.mean(gaussian_matrix, axis = 0)
+
+    predicted_std = np.std(predicted_matrix, axis = 0)
+    gaussian_std = np.std(gaussian_matrix, axis = 0)
+
+    predicted_upper = predicted_values + predicted_std
+    predicted_lower = predicted_values - predicted_std
+
+    gaussian_upper = gaussian_values + gaussian_std
+    gaussian_lower = gaussian_values - gaussian_std
+
+    predicted_error = np.mean(np.square(c[test_start:test_end + 1] - predicted_values))
+    gaussian_error = np.mean(np.square(c[test_start:test_end + 1] - gaussian_values))
+
+    plt.figure(figsize = (15, 5))
+    plt.title(f"{symbol}: {test_start_date} - {test_end_date} | Sampled Error - Gaussian Error: ${np.mean(difference):.3f} \pm {np.std(difference):.3f}$")
+    plt.plot(t[test_start:], c[test_start:], label = 'True')
+
+
+    plt.plot(t[test_start:], predicted_values, label = f'Sampled Prediction (MSE = {predicted_error:.3f})')
+    plt.fill_between(t[test_start:test_end + 1], predicted_lower, predicted_upper, color = 'red', alpha = 1)
+
+    plt.plot(t[test_start:], gaussian_values, label = f'Gaussian Prediction (MSE = {gaussian_error:.3f})')
+    plt.fill_between(t[test_start:test_end + 1], gaussian_lower, gaussian_upper, color = 'green', alpha = 0.1)
+
+
+    plt.xticks(rotation = 90)
+    plt.xlabel('Time')
+    plt.ylabel('Price ($)')
+    plt.legend()
+    plt.show()
+
+    plt.figure(figsize = (15, 5))
+    plt.title('Distribution of Errors Between Sampled and Gaussian Predictions')
+    plt.hist(difference, bins = 50)
+    plt.xlabel('MSE(Sampled) - MSE(Gaussian)')
+    plt.ylabel('Frequency')
+    plt.show()
