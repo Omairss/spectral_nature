@@ -56,6 +56,55 @@ class MarketExplorer():
             "upcoming_earnings": markets.get_all_stocks_from_market_tag('upcoming-earnings')
         }
 
+    def get_watchlist_df(self, name) -> pd.DataFrame:
+    
+        lst = self.r.account.get_watchlist_by_name(name)
+        items = lst.get("results", []) or []
+        rows = [{
+            "watchlist": name,
+            "symbol": it.get("symbol") or "UNKNOWN",
+            "market_cap": it.get("market_cap"),
+            "chg_pct": it.get("one_day_percent_change"),
+        } for it in items]
+
+        df = pd.DataFrame(rows)
+        if not df.empty:
+            df[["market_cap", "chg_pct"]] = df[["market_cap", "chg_pct"]].apply(pd.to_numeric, errors="coerce").fillna(0.0)
+        return df
+
+    def plot_combined_watchlists_icicle(self) -> Figure:
+
+        wl = r.account.get_all_watchlists()
+        selected_watchlists = [i['display_name'] for i in wl['results'] if 'themes' in i['display_name'].lower() or 'status update' in i['display_name'].lower()]
+        
+        dfs = [self.get_watchlist_df(n) for n in selected_watchlists]
+        df = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
+        if df.empty:
+            raise RuntimeError("No data found for the provided watchlists.")
+
+        # Compress size range so small caps aren’t minuscule and giants don’t dominate
+        df["market_cap"] = df["market_cap"].clip(lower=0)
+        p95 = df["market_cap"].quantile(0.95)
+        df["size"] = np.log1p(df["market_cap"].clip(upper=float(p95))).clip(lower=1e-6)
+
+        # Diverging color: red (neg) -> grey (0) -> green (pos), centered at 0
+        scale = [(0.0, "#c0392b"), (0.5, "#bdbdbd"), (1.0, "#2e7d32")]
+        max_abs = float(df["chg_pct"].abs().max() or 1.0)
+
+        fig = px.icicle(
+            df,
+            path=["watchlist", "symbol"],
+            values="size",
+            color="chg_pct",
+            color_continuous_scale=scale,
+            color_continuous_midpoint=0,
+            range_color=[-max_abs, max_abs],
+            title='Watchlists Overview',
+        )
+        fig.update_traces(root_color="lightgray")
+        #fig.update_layout(margin=dict(t=60, l=10, r=10, b=10), height=1000)
+        return fig
+
     def get_perplexity_summaries(self, group_dictionary, days) -> dict:
         """
         Compute Perplexity summaries in parallel, one per ticker.
@@ -181,7 +230,6 @@ class MarketExplorer():
     
     def stocknews_api_endpoint(self, group_dictionary):
         
-
         cooldown_s = 5
         for ticker_dict in group_dictionary:
 
