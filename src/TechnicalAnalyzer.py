@@ -16,7 +16,7 @@ from scipy.signal import stft
 import pandas as pd
 
 import plotly.graph_objects as go
-
+import utils.helpers_MarketExplorer as helpers_MarketExplorer
 
 # Get the current working directory
 current_directory = os.getcwd()
@@ -108,8 +108,15 @@ class Technicals():
         valid_x, valid_y = zip(*valid_data) if valid_data else ([], [])
 
         self.figs = make_subplots(
-            rows=4, cols=1,
-            subplot_titles=("Histogram of Stock Prices", "Spectrogram (STFT)", "Price with Channels", "Scatter of 3-Day vs. 2-Day % Changes")
+            rows=6, cols=1,
+            subplot_titles=(
+                "Histogram of Stock Prices",
+                "Spectrogram (STFT)",
+                "Price with Channels",
+                "Scatter of 3-Day vs. 2-Day % Changes",
+                "Stationarized Series — Highlighted by Threshold",
+                "Transition Probabilities (row-normalized)"
+            )
         )
 
         self.figs.add_trace(go.Histogram(x=closes, xbins=dict(size=1)), row=1, col=1)
@@ -155,9 +162,35 @@ class Technicals():
 
         self.figs.update_layout(
             title_text="Combined Stock Analysis Plots",
-            height=2000,
+            height=2800,
             showlegend=False
         )
+        # --- New: add stationarized chart (row 5) and transition heatmap (row 6) into self.figs ---
+        # Stationarized chart with threshold highlighting (row 5)
+        fig_combined, _ = helpers_MarketExplorer.plot_stationary_split(
+            closes, method="log_return", threshold_pct=1.5, use_abs=True, separate=False
+        )
+        for tr in fig_combined.data:
+            self.figs.add_trace(tr, row=5, col=1)
+        # zero reference line for row 5
+        self.figs.add_shape(
+            type="line",
+            x0=closes.index.min(), x1=closes.index.max(), y0=0, y1=0,
+            line=dict(color="#999", width=1, dash="dot"),
+            row=5, col=1
+        )
+
+        # Transition heatmap from bucketized 1-day log returns (row 6)
+        ret_1d = helpers_MarketExplorer.stationarize_closes(closes, method="log_return")  # % log returns
+        edges, labels, centers = helpers_MarketExplorer.make_symmetric_bins([0.5, 1, 2.5, 5, 10, 20])
+        codes, labels = helpers_MarketExplorer.bucketize(ret_1d, edges, labels)
+        C = helpers_MarketExplorer.transition_counts(codes, n_bins=len(labels), lag=1)
+        fig_heat = helpers_MarketExplorer.plot_transition_heatmap(labels, C, normalize="row")
+        for tr in fig_heat.data:
+            self.figs.add_trace(tr, row=6, col=1)
+        # improve label readability on the heatmap
+        self.figs.update_xaxes(tickangle=45, row=6, col=1)
+        # --- end new ---
 
         return
 
