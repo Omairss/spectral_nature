@@ -125,40 +125,86 @@ class Technicals():
         latest_price = closes.iloc[-1]
         self.figs.add_vline(x=latest_price, line_color='red', row=1, col=1)
 
-        self.figs.add_trace(go.Heatmap(x=t, y=f, z=abs(Zxx), colorscale="Viridis"), row=2, col=1)
+        # Constrain spectrogram colorbar to row 2 domain
+        yaxis2 = getattr(self.figs.layout, "yaxis2", None)
+        ydom2 = list(getattr(yaxis2, "domain", [0.0, 1.0]))
+        y_center_2 = (ydom2[0] + ydom2[1]) / 2.0
+        y_len_2 = (ydom2[1] - ydom2[0]) * 0.95
+        self.figs.add_trace(
+            go.Heatmap(
+                x=t, y=f, z=abs(Zxx), colorscale="Viridis",
+                colorbar=dict(
+                    len=y_len_2, lenmode="fraction", y=y_center_2, yanchor="middle",
+                    thickness=12
+                )
+            ),
+            row=2, col=1
+        )
 
         self.figs.add_trace(go.Scatter(x=dates, y=closes, mode='lines', name='Close'), row=3, col=1)
         self.figs.add_trace(go.Scatter(x=dates, y=upper_channel, mode='lines', name='Upper Channel'), row=3, col=1)
         self.figs.add_trace(go.Scatter(x=dates, y=lower_channel, mode='lines', name='Lower Channel'), row=3, col=1)
 
-        ## Add the scatter plot for the 3-day vs. 2-day % changes
-        self.figs.add_trace(go.Scatter(x=valid_x, y=valid_y, mode='markers', marker=dict(opacity=0.3, color='lightblue')), row=4, col=1)
+        # Scatter: Past 3-day % vs Next 2-day % with |%| filters + regression fit
+        p, fwd = 3, 2
+        min_past_pct = 1.5   # set >0 to require |past %| >= threshold (e.g., 1.0)
+        min_future_pct = 1.5 # set >0 to require |future %| >= threshold (e.g., 0.5)
+        use_abs = True       # True => use absolute magnitude filters
 
-        # Add the current point to the scatter plot
-        current_i = len(closes) - 2
+        vx = np.asarray(valid_x, dtype=float)
+        vy = np.asarray(valid_y, dtype=float)
+        mask = np.isfinite(vx) & np.isfinite(vy)
+        if use_abs:
+            mask &= (np.abs(vx) >= min_past_pct) & (np.abs(vy) >= min_future_pct)
+        else:
+            mask &= (vx >= min_past_pct) & (vy >= min_future_pct)
+        x_f, y_f = vx[mask], vy[mask]
 
-        # Plot the last valid point (current-1, 5-day period)
-        i_current = len(closes) - 3  # last index for which future 2 days exist
-        x_current = pct_past_3[i_current]
-        y_current = pct_future_2[i_current]
-        self.figs.add_trace(go.Scatter(
-            x=[x_current],
-            y=[y_current],
-            mode='markers',
-            marker=dict(color='red', size=10),
-            name='Current-1 (5-day period)'
-        ), row=4, col=1)
-
-        # Add vertical red line for the current past 3 days %
-        self.figs.add_shape(
-            type='line',
-            x0=pct_past_3[-1],
-            x1=pct_past_3[-1],
-            y0=min(valid_y),
-            y1=max(valid_y),
-            line=dict(color='red', width=2),
+        # Points
+        self.figs.add_trace(
+            go.Scatter(x=x_f, y=y_f, mode='markers',
+                       marker=dict(opacity=0.7, size=6, color='lightblue'),
+                       name='Obs'),
             row=4, col=1
         )
+
+        # Fit line (if enough points)
+        if x_f.size >= 2:
+            slope, intercept = np.polyfit(x_f, y_f, 1)
+            xr = np.linspace(float(np.nanmin(x_f)), float(np.nanmax(x_f)), 50)
+            yr = slope * xr + intercept
+            self.figs.add_trace(
+                go.Scatter(x=xr, y=yr, mode='lines',
+                           name=f'Fit y={slope:.2f}x+{intercept:.2f}',
+                           line=dict(color='orange')),
+                row=4, col=1
+            )
+
+        # Highlight last valid point (current-1) if it passes the filter
+        i_current = len(closes) - fwd - 1
+        if i_current >= p and i_current + fwd < len(closes):
+            x_cur = pct_past_3[i_current]
+            y_cur = pct_future_2[i_current]
+            passes = np.isfinite(x_cur) and np.isfinite(y_cur)
+            if passes:
+                if use_abs:
+                    passes &= (abs(x_cur) >= min_past_pct) and (abs(y_cur) >= min_future_pct)
+                else:
+                    passes &= (x_cur >= min_past_pct) and (y_cur >= min_future_pct)
+            if passes:
+                self.figs.add_trace(
+                    go.Scatter(x=[x_cur], y=[y_cur], mode='markers',
+                               marker=dict(color='red', size=10),
+                               name=f'Current-1 ({p}+{fwd} days)'),
+                    row=4, col=1
+                )
+                y0 = float(np.nanmin(y_f)) if y_f.size else float(np.nanmin(vy)) if vy.size else 0.0
+                y1 = float(np.nanmax(y_f)) if y_f.size else float(np.nanmax(vy)) if vy.size else 0.0
+                self.figs.add_shape(
+                    type='line', x0=x_cur, x1=x_cur, y0=y0, y1=y1,
+                    line=dict(color='red', width=2),
+                    row=4, col=1
+                )
 
         self.figs.update_layout(
             title_text="Combined Stock Analysis Plots",
@@ -186,7 +232,21 @@ class Technicals():
         codes, labels = helpers_MarketExplorer.bucketize(ret_1d, edges, labels)
         C = helpers_MarketExplorer.transition_counts(codes, n_bins=len(labels), lag=1)
         fig_heat = helpers_MarketExplorer.plot_transition_heatmap(labels, C, normalize="row")
+        # Constrain transition heatmap colorbar to row 6 domain (set remove_colorbar=True to hide)
+        remove_colorbar = False
+        yaxis6 = getattr(self.figs.layout, "yaxis6", None)
+        ydom6 = list(getattr(yaxis6, "domain", [0.0, 1.0]))
+        y_center_6 = (ydom6[0] + ydom6[1]) / 2.0
+        y_len_6 = (ydom6[1] - ydom6[0]) * 0.95
         for tr in fig_heat.data:
+            if isinstance(tr, go.Heatmap):
+                if remove_colorbar:
+                    tr.update(showscale=False)
+                else:
+                    tr.update(colorbar=dict(
+                        len=y_len_6, lenmode="fraction", y=y_center_6, yanchor="middle",
+                        thickness=12
+                    ))
             self.figs.add_trace(tr, row=6, col=1)
         # improve label readability on the heatmap
         self.figs.update_xaxes(tickangle=45, row=6, col=1)
