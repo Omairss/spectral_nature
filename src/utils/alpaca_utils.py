@@ -5,26 +5,35 @@ import requests
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.optimize as opt 
+import scipy.optimize as opt
 
+from tqdm import tqdm
+from scipy.optimize import brentq
+from scipy.stats import norm
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
+# Define power law in log-log space
+def power_law_log(log_x, alpha, logC):
+    return (-alpha * log_x) + logC
 
 def forward_ratio(dte_1, dte_2, iv_1, iv_2):
+    
+    try:
+        T1 = dte_1 / 365.0
+        T2 = dte_2 / 365.0
+        s_1 = iv_1 
+        s_2 = iv_2 
 
-    T1 = dte_1 / 365.0
-    T2 = dte_2 / 365.0
-    s_1 = iv_1 
-    s_2 = iv_2 
+        tv_1 = (s_1 ** 2) * T1
+        tv_2 = (s_2 ** 2) * T2
 
-    tv_1 = (s_1 ** 2) * T1
-    tv_2 = (s_2 ** 2) * T2
-
-    denom = T2 - T1
-    fwd_var = (tv_2 - tv_1) / denom
-    fwd_sigma = math.sqrt(fwd_var) 
-    ff_ratio = (s_1 - fwd_sigma) / fwd_sigma
+        denom = T2 - T1
+        fwd_var = (tv_2 - tv_1) / denom
+        fwd_sigma = math.sqrt(fwd_var) 
+        ff_ratio = (s_1 - fwd_sigma) / fwd_sigma
+    except:
+        ff_ratio = 0
     
     return ff_ratio * 100
 
@@ -121,43 +130,70 @@ def get_options_information(symbol, start_day_offset, end_day_offset, option_typ
 
     return option_details, strike_group, current_price
 
-def filter_option_trades_by_ff(current_price, strike_group, min_time_distance, min_ff_perc):
+def filter_option_trades_by_ff(current_price, strike_group, min_time_distance, min_ff_perc, current_date = 'now', print_output = True):
     
+    return_list = []
     # Print out all calendar spreads with a forward factor >= 20%
     for key in strike_group:
         
-        print (f"############################################\n####### Strike Price (Current Price) #######\n############## {key} ({current_price}) ################\n############################################\n")
+        if print_output:
+            print (f"############################################\n####### Strike Price (Current Price) #######\n############## {key} ({current_price}) ################\n############################################\n")
         df = strike_group[key]
-        now = datetime.now()
+        
+        if current_date == 'now':
+            now = datetime.now()
+        else: 
+            now = pd.to_datetime(current_date, utc = True)
 
+        col_names = list(df.columns)
+        exp_idx = col_names.index('Expiration Date')
+        iv_idx = col_names.index('IV')
+        
+        try:
+            sell_idx = col_names.index('Sell Price')
+            buy_idx = col_names.index('Buy Price')
+        except:
+            sell_idx = col_names.index('Low Option Price')
+            buy_idx = col_names.index('High Option Price')
+        
         for idx in range(df.shape[0]):
 
             out_list = []
 
-            dte_1 = (pd.to_datetime(df.values[idx][1]) - pd.to_datetime(now)).days
-            iv_1 = df.values[idx][10]
-
+            dte_1 = (pd.to_datetime(df.values[idx][exp_idx], utc = True) - pd.to_datetime(now, utc = True)).days
+            iv_1 = df.values[idx][iv_idx]
+            
             out_list.append(df.values[idx])
 
             for j in range(idx + 1, df.shape[0]):
-                dte_2 = (pd.to_datetime(df.values[j][1]) - pd.to_datetime(now)).days
-                iv_2 = df.values[j][10]
+                dte_2 = (pd.to_datetime(df.values[j][exp_idx], utc = True) - pd.to_datetime(now, utc = True)).days
+                iv_2 = df.values[j][iv_idx]
 
                 if dte_2 - dte_1 >= min_time_distance:
                     f_ratio = forward_ratio(dte_1, dte_2, iv_1, iv_2)
 
                     if f_ratio >= min_ff_perc:
-
-                        print (f"Forward Ratio: {f_ratio:.3f}% | DTE Front (Sell): {dte_1} | DTE Back (Buy): {dte_2}")
+                        
+                        if print_output:
+                            print (f"Forward Ratio: {f_ratio:.3f}% | DTE Front (Sell): {dte_1} | DTE Back (Buy): {dte_2}")
                         out_list.append(df.values[j])
+                        
+                        net_position = out_list[0][sell_idx] - out_list[1][buy_idx] # sell price - buy price
+                        
                         out_pd = pd.DataFrame(out_list)
-                        out_pd.columns = ['Symbol', 'Expiration Date', 'Strike Price', 'Close Price', 'Type', 'Delta', 'Gamma', 'Rho', 'Theta', 'Vega', 'IV', 'Buy Price', 'Sell Price']
-                        display(out_pd)
+                        out_pd.columns = col_names
+                        
+                        out_pd['Forward Factor'] = [f_ratio, f_ratio]
+                        out_pd['Net'] = [net_position, net_position]
+                        
+                        if print_output:
+                            display(out_pd)
+                        return_list.append(out_pd)
                         out_list = out_list[:-1]
+                        
+    return return_list
 
-# Define power law in log-log space
-def power_law_log(log_x, alpha, logC):
-    return (-alpha * log_x) + logC
+
 
 def get_historical_magnitude_plots(symbol, timeframe, historical_start_date, historical_end_date = 'now', day_offsets = [30, 60, 90, 180]):
     
