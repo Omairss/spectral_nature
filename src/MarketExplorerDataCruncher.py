@@ -130,7 +130,6 @@ class MarketExplorer():
             return "<br>".join(lines)
 
         leaf_text = [(wrap(desc_by_symbol.get(sym)) if desc_by_symbol else "") for sym in leaves["symbol"]]
-        #leaf_text = [(wrap(self.get_perplexity_summaries([{"symbol": sym}], 1)) if desc_by_symbol else "") for sym in leaves["symbol"]]
         wl_text = [f"{int(c)} symbols" for c in wl_agg["count"]]
         root_text = f"{int(leaves.shape[0])} symbols total"
 

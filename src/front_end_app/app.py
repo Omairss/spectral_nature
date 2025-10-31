@@ -1,6 +1,7 @@
 import dash
 import pandas as pd
 from dash import dcc, html, Input, Output, State
+from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 from flask import Flask, redirect, url_for, request, render_template_string
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -177,8 +178,10 @@ def render_content(tab):
     if tab == 'tab2':
         return html.Div([
           dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
-          dcc.Graph(id="market-graph"),
           dcc.Graph(id="market-watchlist-icicle"),
+          #NEW
+          html.Div(id="market-icicle-selection", className="mt-2"),
+          dcc.Graph(id="market-graph"),
           html.Div(id="news-feed", children=create_news_cards())
           ], className="mt-3")
     # Strategizer - Option
@@ -391,6 +394,37 @@ def update_technicals_charts(n, ticker):
     )   
     
     return fig
+
+@dash_app.callback(Output("market-icicle-selection", "children"),
+                   Input("market-watchlist-icicle", "clickData"))
+def show_icicle_click(clickData):
+    if not clickData or not clickData.get("points"):
+        raise PreventUpdate
+    pt = clickData["points"][0]
+    label = pt.get("label") or ""
+    node_id = pt.get("id") or label or ""
+    node_id_lower = str(node_id).lower()
+
+    # If not a "themes" or "status update" bucket, treat as ticker and fetch Perplexity
+    if node_id and ("themes" not in node_id_lower and "status update" not in node_id_lower):
+        symbol = str(node_id).split("/")[-1] or label
+        symbol = (symbol or "").upper()
+        try:
+            mrk = MarketExplorer.MarketExplorer(us, ps)
+            res = mrk.get_perplexity_summaries([{"symbol": symbol}], days=1)  # returns {symbol: summary}
+            summary = res.get(symbol, "No summary available.")
+        except Exception as e:
+            summary = f"Error fetching summary for {symbol}: {e}"
+
+        return html.Div([
+            html.H5(f"{symbol} — Summary"),
+            dcc.Markdown(summary)
+        ])
+
+    # Otherwise (theme/status buckets), just echo the selection
+    if not label:
+        label = node_id.split("/")[-1] if node_id else "N/A"
+    return f"Selected: {label}"
 
 @dash_app.callback(Output("market-watchlist-icicle", "figure"), [Input("update-button", "n_clicks")])
 def market_watchlist_icicle_chart(n):
