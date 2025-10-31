@@ -1,6 +1,7 @@
 import dash
 import pandas as pd
 from dash import dcc, html, Input, Output, State
+from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 from flask import Flask, redirect, url_for, request, render_template_string
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -177,6 +178,9 @@ def render_content(tab):
     if tab == 'tab2':
         return html.Div([
           dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
+          dcc.Graph(id="market-watchlist-icicle"),
+          #NEW
+          html.Div(id="market-icicle-selection", className="mt-2"),
           dcc.Graph(id="market-graph"),
           html.Div(id="news-feed", children=create_news_cards())
           ], className="mt-3")
@@ -293,29 +297,6 @@ def update_portfolio_chart(n):
     return fig
 
 
-def update_portfolio_chart_old(n):
-    
-  print("Fetching portfolio data...")
-
-  current_status = CurrentStatus.main(us, ps, 'all', 'local')
-
-  # Convert the 'equity_historicals' list of dicts to a pandas DataFrame
-  historical_df = pd.DataFrame(current_status['historical_df']['equity_historicals'])
-
-  # Convert 'begins_at' to datetime
-  historical_df['begins_at'] = pd.to_datetime(historical_df['begins_at'])
-
-  # Convert 'close_equity' field to numeric
-  historical_df['adjusted_close_equity'] = pd.to_numeric(historical_df['adjusted_close_equity'], errors='coerce')
-
-  # Sort by date
-  historical_df.sort_values(by='begins_at', inplace=True)
-
-  # Plot the data using Plotly
-  fig = px.line(historical_df, x='begins_at', y='adjusted_close_equity', title='Robinhood Portfolio Value Over Time', labels={'begins_at': 'Date', 'adjusted_close_equity': 'Equity ($)'})
-  fig.update_layout(template='plotly_dark')
-  return fig
-
 @dash_app.callback(Output("earnings-barchart", "figure"), [Input("update-button", "n_clicks")])
 def normalized_earnings_chart(n):
     
@@ -414,6 +395,43 @@ def update_technicals_charts(n, ticker):
     
     return fig
 
+@dash_app.callback(Output("market-icicle-selection", "children"),
+                   Input("market-watchlist-icicle", "clickData"))
+def show_icicle_click(clickData):
+    if not clickData or not clickData.get("points"):
+        raise PreventUpdate
+    pt = clickData["points"][0]
+    label = pt.get("label") or ""
+    node_id = pt.get("id") or label or ""
+    node_id_lower = str(node_id).lower()
+
+    # If not a "themes" or "status update" bucket, treat as ticker and fetch Perplexity
+    if node_id and ("themes" not in node_id_lower and "status update" not in node_id_lower):
+        symbol = str(node_id).split("/")[-1] or label
+        symbol = (symbol or "").upper()
+        try:
+            mrk = MarketExplorer.MarketExplorer(us, ps)
+            res = mrk.get_perplexity_summaries([{"symbol": symbol}], days=1)  # returns {symbol: summary}
+            summary = res.get(symbol, "No summary available.")
+        except Exception as e:
+            summary = f"Error fetching summary for {symbol}: {e}"
+
+        return html.Div([
+            html.H5(f"{symbol} — Summary"),
+            dcc.Markdown(summary)
+        ])
+
+    # Otherwise (theme/status buckets), just echo the selection
+    if not label:
+        label = node_id.split("/")[-1] if node_id else "N/A"
+    return f"Selected: {label}"
+
+@dash_app.callback(Output("market-watchlist-icicle", "figure"), [Input("update-button", "n_clicks")])
+def market_watchlist_icicle_chart(n):
+    mrk = MarketExplorer.MarketExplorer(us, ps)
+    fig = mrk.plot_combined_watchlists_icicle()
+    return fig
+
 @dash_app.callback(Output("market-graph", "figure"), [Input("update-button", "n_clicks")])
 def update_market_charts(n):  
     
@@ -442,7 +460,7 @@ def create_news_cards():
     if 'top_movers_sp500_down' in market_data and 'news' in market_data['top_movers_sp500_down']:
         all_news.update(market_data['top_movers_sp500_down']['news'])
 
-    # Use Perplexity summaries precomputed by MarketExplorer (keep your template)
+    # Use Perplexity summaries precomputed by MarketExplorer
     pplx_summaries = {}
     if 'top_movers_sp500_up' in market_data and 'perplexity_summaries' in market_data['top_movers_sp500_up']:
         pplx_summaries.update(market_data['top_movers_sp500_up']['perplexity_summaries'])
@@ -517,16 +535,6 @@ def create_news_cards():
 
     return cards
 
-
-@dash_app.callback(Output("fundamental-timechart-old", "figure"), [Input("update-button", "n_clicks")], [State("ticker-input", "value")])
-def update_fundamental_charts(n, ticker):  
-    
-
-  f = FundamentalAnalyzer
-  fundamental_bundle = f.main(ticker, 'local')
-  fig = fundamental_bundle['figs']
-
-  return fig
 
 @dash_app.callback(
     [Output("fundamental-timechart", "figure"), Output("fundamental-sankey", "figure")],
