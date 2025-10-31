@@ -16,7 +16,7 @@ import sys
 sys.path.append("..")
 import yfinance as yf
 import FundamentalAnalyzer, MarketExplorer, TechnicalAnalyzer, OptionFinder, CurrentStatus, LinkedAuth
-
+from FundamentalAnalyzer import run_quarterly_comparison  # ensure module is importable on PYTHONPATH
 
 # ----------------------------------------------------------------
 # Set Plotly theme to dark
@@ -115,7 +115,8 @@ dash_app = dash.Dash(
     __name__,
     server=app,
     routes_pathname_prefix="/dash/",
-    external_stylesheets=[dbc.themes.DARKLY]  # Darkly theme
+    external_stylesheets=[dbc.themes.DARKLY],  # Darkly theme
+    suppress_callback_exceptions=True          # allow callbacks to reference dynamic tab content
 )
 
 
@@ -206,12 +207,13 @@ def render_content(tab):
     # Strategizer - Fundamental
     if tab == 'tab5':
         return html.Div([
-          dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
+          dbc.Button("Update Chart", id="fundamental-update-button", color="primary", className="mb-3"),
           dbc.Row([
-          dbc.Col(dbc.Input(id="ticker-input", placeholder="Enter TICKER", type="text", className="mb-3"), width=6),
-            ]),
-            dcc.Graph(id="fundamental-timechart"),
-            dcc.Graph(id="fundamental-sankey")
+            dbc.Col(dbc.Input(id="fundamental-ticker-input", placeholder="Enter TICKER", type="text", className="mb-3"), width=6),
+          ]),
+          dcc.Graph(id="fundamental-income-chart"),
+          dcc.Graph(id="fundamental-balance-chart"),
+          dcc.Graph(id="fundamental-cashflow-chart")
         ], className="mt-3")
     else:
         return html.Div("Coming soon", className="mt-3")
@@ -537,117 +539,114 @@ def create_news_cards():
 
 
 @dash_app.callback(
-    [Output("fundamental-timechart", "figure"), Output("fundamental-sankey", "figure")],
-    [Input("update-button", "n_clicks")],
-    [State("ticker-input", "value")])
+    [
+        Output("fundamental-income-chart", "figure"),
+        Output("fundamental-balance-chart", "figure"),
+        Output("fundamental-cashflow-chart", "figure"),
+    ],
+    [Input("fundamental-update-button", "n_clicks")],
+    [State("fundamental-ticker-input", "value")],
+)
 def update_fundamental_charts(n, ticker):
     if not ticker:
-        return go.Figure(), go.Figure()
+        return go.Figure(), go.Figure(), go.Figure()
 
-    def _error_fig(msg: str):
+    def _error_fig(msg: str, title: str):
         fig = go.Figure()
         fig.add_annotation(text=f"Fundamentals error: {msg}", showarrow=False, font=dict(color="red"))
-        fig.update_layout(template="plotly_dark", title="Fundamentals")
+        fig.update_layout(template="plotly_dark", title=title)
         return fig
 
+    # Benchmarks (light/dotted). Adjust as needed.
+    BENCHMARKS = ["MSFT", "GOOGL", "AMZN", "NVDA", "META"]
+    primary = str(ticker).upper().strip()
+    peers = [b for b in BENCHMARKS if b != primary][:3]
+    all_tickers = [primary] + peers
+
     try:
-        # Fetch quarterly fundamentals using the new analyzer
-        tidy, pivots, errs = FundamentalAnalyzer.run_quarterly_comparison(
-            [ticker], since="2018Q1", api_key=None, data_dir="../data/stock_fundamental/", plot=False
+        tidy, pivots, errs = run_quarterly_comparison(
+            all_tickers, since="2018Q1", data_dir="../data/stock_fundamental/", plot=False
         )
     except Exception as e:
-        return _error_fig(str(e)), go.Figure()
-
-    if errs and errs.get(ticker):
-        return _error_fig(errs[ticker]), go.Figure()
-
-    cashflow_df = tidy.get("cashflow", pd.DataFrame())
-    income_df = tidy.get("income", pd.DataFrame())
-
-    # 1) Time-series chart
-    if not cashflow_df.empty:
-        df_plot = cashflow_df[
-            (cashflow_df["Ticker"] == ticker)
-            & (cashflow_df["Metric"].isin(["CFO", "CapEx", "Free Cash Flow"]))
-        ].copy().sort_values("Report Date")
-        title = f"{ticker} Cash Flow (Quarterly)"
-    else:
-        df_plot = income_df[
-            (income_df["Ticker"] == ticker)
-            & (income_df["Metric"].isin(["Revenue", "Operating Income", "Net Income"]))
-        ].copy().sort_values("Report Date")
-        title = f"{ticker} Income Statement (Quarterly)"
-
-    if df_plot.empty:
-        time_fig = _error_fig("No quarterly fundamentals available.")
-    else:
-        time_fig = px.line(
-            df_plot, x="Report Date", y="Value", color="Metric", markers=True, title=title
+        err = str(e)
+        return (
+            _error_fig(err, f"{primary} — Income Statement"),
+            _error_fig(err, f"{primary} — Balance Sheet"),
+            _error_fig(err, f"{primary} — Cash Flow"),
         )
-        time_fig.update_layout(template="darkly", legend_orientation="h")
 
-    # 2) Sankey for the most recent quarter (cash flow)
-    sankey_fig = go.Figure()
-    sankey_fig.update_layout(template="plotly_dark", title=f"{ticker} Cash Flow Breakdown (Most Recent Quarter)")
+    if errs and any(errs.get(t) for t in all_tickers):
+        err = "; ".join(f"{k}: {v}" for k, v in errs.items() if v)
+        return (
+            _error_fig(err, f"{primary} — Income Statement"),
+            _error_fig(err, f"{primary} — Balance Sheet"),
+            _error_fig(err, f"{primary} — Cash Flow"),
+        )
 
-    if not cashflow_df.empty:
-        sub = cashflow_df[cashflow_df["Ticker"] == ticker].copy()
+    income_df = tidy.get("income", pd.DataFrame())
+    balance_df = tidy.get("balance", pd.DataFrame())
+    cashflow_df = tidy.get("cashflow", pd.DataFrame())
 
-        # Select the most recent YearQ
-        sub = sub.dropna(subset=["Year", "QuarterNum"])
-        if not sub.empty:
-            sub = sub.sort_values(["Year", "QuarterNum", "Report Date"])
-            last_yq = sub.iloc[-1]["YearQ"]
-            recent = sub[sub["YearQ"] == last_yq].pivot_table(index="YearQ", columns="Metric", values="Value", aggfunc="last")
+    def build_statement_fig(df: pd.DataFrame, title_prefix: str, primary_metrics: list, color_map: dict):
+        if df.empty:
+            return _error_fig("No quarterly data.", f"{primary} — {title_prefix}")
 
-            cfo = float(recent.iloc[0].get("CFO", 0.0)) if not recent.empty else 0.0
-            capex = float(recent.iloc[0].get("CapEx", 0.0)) if not recent.empty else 0.0
-            fcf = float(recent.iloc[0].get("Free Cash Flow", 0.0)) if not recent.empty else 0.0
+        df = df[df["Metric"].isin(primary_metrics) & df["Ticker"].isin(all_tickers)].copy()
+        if df.empty:
+            return _error_fig("Metrics unavailable.", f"{primary} — {title_prefix}")
+        df = df.sort_values("Report Date")
 
-            # Build a simple CFO -> CapEx, CFO -> FCF Sankey with positive magnitudes
-            nodes = ["CFO", "CapEx", "Free Cash Flow"]
-            idx = {name: i for i, name in enumerate(nodes)}
-            values = [
-                abs(capex) if abs(capex) > 0 else 0.0,
-                abs(fcf) if abs(fcf) > 0 else 0.0
-            ]
+        fig = go.Figure()
 
-            sankey_fig = go.Figure(data=[go.Sankey(
-                node=dict(
-                    pad=20,
-                    thickness=18,
-                    line=dict(color="white", width=0.5),
-                    label=nodes,
-                    color=["#2a9d8f", "#e76f51", "#264653"]
-                ),
-                link=dict(
-                    source=[idx["CFO"], idx["CFO"]],
-                    target=[idx["CapEx"], idx["Free Cash Flow"]],
-                    value=values,
-                    color=["#e76f51", "#264653"]
-                )
-            )])
-            sankey_fig.update_layout(
-                template="plotly_dark",
-                title=f"{ticker} Cash Flow Breakdown — {last_yq}"
-            )
+        # Primary (solid vivid)
+        for metric in primary_metrics:
+            sub = df[(df["Ticker"] == primary) & (df["Metric"] == metric)]
+            if sub.empty:
+                continue
+            fig.add_trace(go.Scatter(
+                x=sub["Report Date"], y=sub["Value"],
+                mode="lines+markers",
+                name=f"{metric} — {primary}",
+                line=dict(color=color_map.get(metric, "#1f77b4"), width=2.5, dash="solid"),
+                marker=dict(size=5)
+            ))
 
-    return time_fig, sankey_fig
+        # Benchmarks (dotted grey)
+        for bench in peers:
+            for metric in primary_metrics:
+                sub = df[(df["Ticker"] == bench) & (df["Metric"] == metric)]
+                if sub.empty:
+                    continue
+                fig.add_trace(go.Scatter(
+                    x=sub["Report Date"], y=sub["Value"],
+                    mode="lines",
+                    name=f"{metric} — {bench}",
+                    line=dict(color="rgba(160,160,160,0.7)", width=1.5, dash="dot"),
+                    opacity=0.8
+                ))
 
-#@dash_app.callback(
-#    [Output("fundamental-timechart", "figure"), Output("fundamental-sankey", "figure")],
-#    [Input("update-button", "n_clicks")],
-#    [State("ticker-input", "value")])
-def update_fundamental_charts_old(n, ticker):  
-  f = FundamentalAnalyzer
+        fig.update_layout(
+            template="plotly_dark",
+            title=f"{title_prefix} — {primary} (benchmarks: {', '.join(peers) if peers else 'none'})",
+            legend=dict(orientation="h"),
+            xaxis_title="Report Date",
+            yaxis_title="Value",
+            hovermode="x unified"
+        )
+        return fig
 
-  fundamental_bundle = f.main(ticker, 'local')
+    income_metrics = ["Revenue", "Operating Income", "Net Income"]
+    income_colors = {"Revenue": "#1f77b4", "Operating Income": "#ff7f0e", "Net Income": "#2ca02c"}
+    balance_metrics = ["Total Assets", "Total Liabilities", "Total Equity"]
+    balance_colors = {"Total Assets": "#636EFA", "Total Liabilities": "#EF553B", "Total Equity": "#00CC96"}
+    cashflow_metrics = ["CFO", "CapEx", "Free Cash Flow"]
+    cashflow_colors = {"CFO": "#19d3f3", "CapEx": "#ab63fa", "Free Cash Flow": "#FFA15A"}
 
-  print(len(fundamental_bundle['figs']))
+    income_fig = build_statement_fig(income_df, "Income Statement (Quarterly)", income_metrics, income_colors)
+    balance_fig = build_statement_fig(balance_df, "Balance Sheet (Quarterly)", balance_metrics, balance_colors)
+    cashflow_fig = build_statement_fig(cashflow_df, "Cash Flow (Quarterly)", cashflow_metrics, cashflow_colors)
 
-  return fundamental_bundle['figs'][0], fundamental_bundle['figs'][1]
-
-
+    return income_fig, balance_fig, cashflow_fig
 
 @dash_app.callback(Output("sample-graph", "figure"), [Input("update-button", "n_clicks")])
 def update_chart(n):
