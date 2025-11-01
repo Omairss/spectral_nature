@@ -1,276 +1,397 @@
-import numpy as np
-import pandas as pd
 import os
-import getpass
+import re
 import argparse
-import yfinance as yf
-import plotly.express as px
-import time
 import datetime
 import pickle
-from plotly.subplots import make_subplots
-from plotly.graph_objs import Figure
-import plotly.graph_objects as go
-from difflib import get_close_matches
+from typing import Tuple, Dict, List, Optional
+
+import pandas as pd
+import plotly.express as px
+import simfin as sf
+import LinkedAuth  
 
 
-# Get the current working directory
+# Keep your template paths/logging
 current_directory = os.getcwd()
 print(f"Current Working Directory: {current_directory}")
 
 DATA_STORE_CORE = '/mnt/batch/tasks/shared/LS_root/mounts/clusters/spectral-nature3/code/Users/omai.r/spectral_nature/data/'
-
 FUNDAMENTAL_HISTORY_STORE = os.path.join(DATA_STORE_CORE, 'common', 'stock_fundamental')
-print(os.listdir(DATA_STORE_CORE))
+try:
+    print(os.listdir(DATA_STORE_CORE))
+except Exception:
+    pass
 
-def find_closest_index_item(df, item_name, cutoff=0.6):
-    """Returns None for 'Issuance Of Debt' so it's not treated as an outflow."""
-    if df.empty:
-        return None
-    if item_name.lower() == "issuance of debt":
-        return None
-    index_list = df.index.tolist()
-    close_matches = get_close_matches(item_name, index_list, n=1, cutoff=cutoff)
-    return close_matches[0] if close_matches else None
+# ---------------- SimFin setup & loaders ----------------
+def setup_simfin(api_key: Optional[str] = None, data_dir: Optional[str] = None):
 
+    sf.set_api_key(LinkedAuth.get_creds("spectral-nature-kvault", retreive=['SimFinAPI'])[0])
+    sf.set_data_dir('../data/stock_fundamental/' if data_dir is None else data_dir)
 
-class Financials():
-    def __init__(self, ticker, data_path=None, data=None):
-        self.ticker = ticker
-        self.data_path = FUNDAMENTAL_HISTORY_STORE
-        self.income_statement = None
-        self.balance_sheet = None
-        self.cash_flow = None
-        self.figs = []
-        self.cooldown_s = 3  # Set the cooldown period in seconds
+def _has_quarters(df: pd.DataFrame) -> bool:
+    try:
+        base = df.reset_index()
+        if 'Fiscal Period' not in base.columns:
+            return False
+        vals = base['Fiscal Period'].astype(str).unique()
+        return any(v in {'Q1','Q2','Q3','Q4'} for v in vals)
+    except Exception:
+        return False
 
-    def get_financials(self):
-        print(f"Getting financials for {self.ticker}")
-        time.sleep(self.cooldown_s)
-        ticker = yf.Ticker(self.ticker)
-        self.income_statement = ticker.financials
-        self.balance_sheet = ticker.balance_sheet
-        self.cash_flow = ticker.cashflow
-        return self.income_statement, self.balance_sheet, self.cash_flow
+def load_quarterly_frames() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    try:
+        inc = sf.load(dataset='income',   variant='quarterly', market='us')
+        bal = sf.load(dataset='balance',  variant='quarterly', market='us')
+        cfs = sf.load(dataset='cashflow', variant='quarterly', market='us')
+    except Exception as e:
+        raise RuntimeError(f"Failed to load SimFin quarterly frames (auth/network?): {e}")
+    if not (_has_quarters(inc) and _has_quarters(bal) and _has_quarters(cfs)):
+        raise RuntimeError("Loaded frames but no Q1–Q4 rows detected. Check dataset/variant/market.")
+    return inc, bal, cfs
 
-    def create_sankey_diagram(self):
-        
-        # One way to avoid the KeyError is to look up the correct row names first using the helper function:
-        idx_ocf = find_closest_index_item(self.cash_flow, "Total Cash From Operating Activities")
-        idx_capex = find_closest_index_item(self.cash_flow, "Capital Expenditures")
+# ---------------- Normalization helpers ----------------
+def _norm(s: str) -> str:
+    s = str(s).lower().replace('&', 'and').replace('pp&e', 'ppe').replace('p p e', 'ppe')
+    return re.sub(r'[^a-z0-9]+', '', s)
 
-        if idx_ocf is None or idx_capex is None:
-            print("Could not find the required rows for OCF or CapEx.")
-        else:
-            fcf = self.cash_flow.loc[idx_ocf] + self.cash_flow.loc[idx_capex]
-            print("Free Cash Flow (by column):")
-            print(fcf)
-        
-        
-        items_map = {
-            "Operating Cash Flow": "Total Cash From Operating Activities",
-            "Repurchase Of Capital Stock": "Repurchase Of Stock",
-            "Repayment Of Debt": "Repayment Of Debt",
-            "Issuance Of Debt": "Issuance Of Debt",
-            "Capital Expenditure": "Capital Expenditures",
-            "Interest Paid": "Interest Paid",
-            "Income Tax Paid": "Income Tax Paid",
-        }
-        outflow_items = [
-            "Repurchase Of Capital Stock",
-            "Repayment Of Debt",
-            "Issuance Of Debt",
-            "Capital Expenditure",
-            "Interest Paid",
-            "Income Tax Paid",
-        ]
-        node_list = list(items_map.keys())
-        node_list.append("Free Cash Flow (Remainder)")
-        node_list.append("Free Cash Flow")
+def _find_col_normalized(columns, candidates_norm):
+    norm_map = {_norm(c): c for c in columns}
+    cols_norm = list(norm_map.keys())
+    for cand in candidates_norm:
+        if cand in norm_map:
+            return norm_map[cand]
+    for cand in candidates_norm:
+        for cn in cols_norm:
+            if cand in cn:
+                return norm_map[cn]
+    return None
 
-        indices_map = {}
-        for conceptual_name, raw_item_name in items_map.items():
-            idx_match = find_closest_index_item(self.cash_flow, raw_item_name) if raw_item_name else None
-            indices_map[conceptual_name] = idx_match
+def _normalize_ticker(s: str) -> str:
+    return re.sub(r'[^A-Z0-9]+', '', str(s).upper())
 
-        cols = self.cash_flow.columns.tolist()
-        if not cols:
-            raise ValueError("No columns in the cash flow data.")
-        latest_col = cols[0]
+def _ticker_aliases(ticker: str):
+    t = ticker.upper()
+    alts = {t}
+    if t == 'GOOGL':
+        alts |= {'GOOG'}
+    if t in {'BRK.B', 'BRK-B', 'BRKB'}:
+        alts |= {'BRK.B', 'BRK-B', 'BRKB'}
+    if t in {'META', 'FB'}:
+        alts |= {'META', 'FB'}
+    return list(alts)
 
-        ocf_idx = indices_map["Operating Cash Flow"]
-        if ocf_idx is None:
-            raise ValueError("Could not find 'Operating Cash Flow' in the DataFrame.")
-        ocf_value = self.cash_flow.loc[ocf_idx, latest_col]
-        if not isinstance(ocf_value, (int, float)) or (ocf_value != ocf_value):
-            ocf_value = 0
+# ---------------- Ticker extraction ----------------
+def _extract_stmt_for_ticker(stmt_df: pd.DataFrame, ticker: str) -> pd.DataFrame:
+    if stmt_df is None or getattr(stmt_df, 'empty', False):
+        raise ValueError("Statement frame is empty.")
+    df = stmt_df
+    # MultiIndex path
+    if isinstance(df.index, pd.MultiIndex):
+        names = [str(n).lower() if n else '' for n in df.index.names]
+        if 'ticker' in names:
+            lvl = names.index('ticker')
+            lv = df.index.get_level_values(lvl)
+            for tk in _ticker_aliases(ticker):
+                if tk in set(lv):
+                    return df.xs(tk, level=lvl, drop_level=False).copy()
+            norm_target = _normalize_ticker(ticker)
+            for val in pd.Index(lv).unique():
+                if _normalize_ticker(val) == norm_target:
+                    return df.xs(val, level=lvl, drop_level=False).copy()
+    # Column path
+    base = df.reset_index()
+    for cand in ['Ticker', 'ticker', 'Symbol']:
+        if cand in base.columns:
+            for tk in _ticker_aliases(ticker):
+                sub = base[base[cand] == tk]
+                if not sub.empty:
+                    return sub.copy()
+            norm_target = _normalize_ticker(ticker)
+            tmp = base[base[cand].astype(str).str.upper().str.replace(r'[^A-Z0-9]+', '', regex=True) == norm_target]
+            if not tmp.empty:
+                return tmp.copy()
+    raise ValueError(f"No rows for {ticker} in statement.")
 
-        outflows_raw = {}
-        for item in outflow_items:
-            idx_match = indices_map[item]
-            val = 0
-            if idx_match is not None:
-                raw_val = self.cash_flow.loc[idx_match, latest_col]
-                if isinstance(raw_val, (int, float)) and (raw_val == raw_val):
-                    val = raw_val
-            outflows_raw[item] = val
-
-        sum_abs_outflows = sum(abs(v) for v in outflows_raw.values())
-
-        links = []
-        node_idx_map = {n: i for i, n in enumerate(node_list)}
-        for item in outflow_items:
-            source_idx = node_idx_map["Operating Cash Flow"]
-            target_idx = node_idx_map[item]
-            raw_val = outflows_raw[item]
-            fraction = abs(raw_val) / sum_abs_outflows if sum_abs_outflows else 0
-            scaled_val = abs(ocf_value) * fraction
-            links.append(dict(source=source_idx, target=target_idx, value=scaled_val))
-
-        total_scaled_outflows = sum(link["value"] for link in links)
-        leftover = abs(ocf_value) - total_scaled_outflows
-        if leftover < 0:
-            leftover = 0
-        links.append(dict(
-            source=node_idx_map["Operating Cash Flow"],
-            target=node_idx_map["Free Cash Flow (Remainder)"],
-            value=leftover
-        ))
-
-        links.append(dict(
-            source=node_idx_map["Operating Cash Flow"],
-            target=node_idx_map["Free Cash Flow"],
-            value=fcf[latest_col]
-        ))
-
-        node_hover_data = []
-        for node in node_list:
-            line_item = indices_map.get(node)
-            if line_item is None:
-                node_hover_data.append("Conceptual/No direct line item")
-            else:
-                node_hover_data.append(line_item)
-
-        fig = go.Figure(data=[go.Sankey(
-            node=dict(
-                pad=15,
-                thickness=20,
-                line=dict(color="black", width=0.5),
-                label=node_list,
-                customdata=node_hover_data,
-                hovertemplate=("Node: %{label}<br>"
-                            "DataFrame Line Item: %{customdata}<extra></extra>")
-            ),
-            link=dict(
-                source=[lnk["source"] for lnk in links],
-                target=[lnk["target"] for lnk in links],
-                value=[lnk["value"] for lnk in links],
-                hovertemplate="Value: %{value}<extra></extra>"
-            )
-        )])
-        fig.update_layout(title_text="Cash Flow Statement Sankey Diagram (with Remainder and FCF)", font_size=10)
-        self.figs.append(fig)
-        return
-
-    def generate_fundamental_timechart(self):
-        # Transpose the income statement for better visualization
-        income_statement_transposed = self.income_statement.T
-
-        # Reset the index to have dates as a column
-        income_statement_transposed.reset_index(inplace=True)
-
-        # Melt the dataframe to have a long format suitable for plotly express
-        income_statement_melted = income_statement_transposed.melt(id_vars="index", var_name="Account", value_name="Amount")
-
-        # Create a line chart for the income statement
-        fig_income_statement = px.line(income_statement_melted, 
-                                       x="index", 
-                                       y="Amount", 
-                                       color="Account", 
-                                       title="Income Statement",
-                                       labels={"index": "Date", "Amount": "Amount"})
-
-        fig_income_statement.update_layout(xaxis_title="Date", yaxis_title="Amount")
-
-        self.figs.append(fig_income_statement)
-        return
-
-def main(ticker: str, cache_mode: str):
+# ---------------- Strict quarterly shaping (require Q1–Q4) ----------------
+def _qtr_prepare(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Main function to retrieve and cache financial data for a given ticker.
-    Args:
-        ticker (str): Stock ticker symbol.
-        cache_mode (str): Cache mode, can be 'local', 'refresh', or other modes.
-    Returns:
-        dict: A dictionary containing the financial data plotly figure and DataFrame.
+    Strict quarterly shaping. Avoid fragile Int64 casts; keep Year/QuarterNum numeric via to_numeric.
     """
+    if 'Report Date' not in df.columns:
+        df = df.reset_index()
+    base = df.copy()
 
-    # Check if the technical history store directory exists, if not, create it
-    if not os.path.exists(FUNDAMENTAL_HISTORY_STORE):
-        os.makedirs(FUNDAMENTAL_HISTORY_STORE)
+    # Require true quarterly rows
+    if 'Fiscal Period' not in base.columns:
+        raise ValueError("No 'Fiscal Period' column; not a quarterly frame.")
+    qmask = base['Fiscal Period'].astype(str).isin(['Q1', 'Q2', 'Q3', 'Q4'])
+    if not qmask.any():
+        raise ValueError("No Q1–Q4 rows; frame is annual.")
+    base = base[qmask].copy()
 
-    # Define the file path for caching
-    current_date_str = datetime.datetime.now().strftime('%Y%m%d')
-    cache_file_path = os.path.join(FUNDAMENTAL_HISTORY_STORE, f"{ticker}_fundamental_data_{current_date_str}.pkl")
-    
-    # Function to check if the cache file is older than 3 hours
-    def is_cache_stale(file_path):
-        if not os.path.exists(file_path):
-            return True
-        file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
-        return (datetime.datetime.now() - file_mod_time).total_seconds() > 3 * 3600
+    # Dates and period fields
+    base['Report Date'] = pd.to_datetime(base['Report Date'], errors='coerce')
 
-    # Check cache mode and load from cache if applicable
-    if cache_mode == 'local' and os.path.exists(cache_file_path) and not is_cache_stale(cache_file_path):
-        print("Loading financial data from local cache...")
-        print(cache_file_path)
-        with open(cache_file_path, 'rb') as f:
-            financial_bundle = pickle.load(f)
-        return financial_bundle
+    # Year: numeric, do not force Int64
+    if 'Fiscal Year' in base.columns:
+        base['Year'] = pd.to_numeric(base['Fiscal Year'], errors='coerce')
+    else:
+        base['Year'] = base['Report Date'].dt.year.astype('float64')
 
-    # Fetch new data
-    financials = Financials(ticker)
-    financials.get_financials()
-    financials.generate_fundamental_timechart()
-    financials.create_sankey_diagram()
+    # Quarter label and number
+    base['Quarter'] = base['Fiscal Period'].astype(str).str.extract(r'(Q[1-4])', expand=False)
+    base['QuarterNum'] = pd.to_numeric(base['Quarter'].str[-1], errors='coerce')
 
-    financial_bundle = {
-        'income_statement': financials.income_statement,
-        'balance_sheet': financials.balance_sheet,
-        'cash_flow': financials.cash_flow,
-        'figs': financials.figs
+    # Keep last report per Year/Quarter
+    base = base.sort_values('Report Date').drop_duplicates(subset=['Year', 'Quarter'], keep='last')
+
+    # YearQ label uses report date year to avoid int casting issues
+    base['YearQ'] = base['Report Date'].dt.year.astype(int).astype(str) + base['Quarter']
+    return base
+
+# ---------------- Column resolvers ----------------
+def _find_cfo_col(df_cols):
+    return _find_col_normalized(df_cols, [
+        'netcashfromoperatingactivities', 'cashfromoperatingactivities', 'netcashprovidedbyoperatingactivities',
+        'operatingcashflow', 'cashflowfromoperatingactivities', 'netcashflowfromoperatingactivities',
+        'netcffromoperatingactivities', 'cfo'
+    ])
+
+def _find_capex_single_col(df_cols):
+    return _find_col_normalized(df_cols, [
+        'capitalexpenditures', 'capitalexpenditure', 'capex',
+        'purchaseofppe', 'purchaseofpropertyplantandequipment', 'purchasepropertyplantandequipment',
+        'additionspropertyplantandequipment', 'investmentinppe',
+        'purchaseofintangibleassets', 'purchaseofintangibles', 'additionsintangibleassets'
+    ])
+
+def _find_change_fai_col(df_cols):
+    return _find_col_normalized(df_cols, [
+        'changeinfixedassetsandintangibles', 'changeinpropertyplantandequipmentandintangibles'
+    ])
+
+def _income_cols(df_cols):
+    return {
+        'Revenue': _find_col_normalized(df_cols, ['revenue', 'totalrevenue', 'sales']),
+        'Operating Income': _find_col_normalized(df_cols, ['operatingincomeebit', 'operatingincome', 'ebit']),
+        'Net Income': _find_col_normalized(df_cols, ['netincome', 'netincomecommon']),
     }
 
-    # Save the new data to the cache file if needed
-    if cache_mode == 'refresh' or is_cache_stale(cache_file_path):
-        print("Refreshing financial data...")
-        with open(cache_file_path, 'wb') as f:
-            pickle.dump(financial_bundle, f)
+def _balance_cols(df_cols):
+    return {
+        'Total Assets': _find_col_normalized(df_cols, ['totalassets']),
+        'Total Liabilities': _find_col_normalized(df_cols, ['totalliabilities']),
+        'Total Equity': _find_col_normalized(df_cols, ['totalequity', 'shareholdersequity']),
+    }
 
-    return financial_bundle
+# ---------------- Per-statement quarterly frames ----------------
+def quarterly_income_for_ticker(ticker: str, income: pd.DataFrame) -> pd.DataFrame:
+    df = _extract_stmt_for_ticker(income, ticker)
+    return _qtr_prepare(df)
+
+def quarterly_balance_for_ticker(ticker: str, balance: pd.DataFrame) -> pd.DataFrame:
+    df = _extract_stmt_for_ticker(balance, ticker)
+    return _qtr_prepare(df)
+
+def quarterly_cash_for_ticker(ticker: str, cashflw: pd.DataFrame) -> pd.DataFrame:
+    df = _extract_stmt_for_ticker(cashflw, ticker)
+    df = _qtr_prepare(df)
+    cols = list(df.columns)
+    cfo_col = _find_cfo_col(cols)
+    if not cfo_col:
+        raise ValueError(f"CFO column not found for {ticker}.")
+    capex_col = _find_capex_single_col(cols)
+    change_fai_col = _find_change_fai_col(cols)
+
+    out = pd.DataFrame({
+        'Report Date': df['Report Date'],
+        'Year': df['Year'],             # keep numeric without forcing Int64
+        'Quarter': df['Quarter'],
+        'QuarterNum': df['QuarterNum'], # numeric (float/int) is fine for filtering
+        'YearQ': df['YearQ'],
+        'Ticker': ticker,
+        'CFO': pd.to_numeric(df[cfo_col], errors='coerce')
+    })
+    if capex_col:
+        out['CapEx'] = pd.to_numeric(df[capex_col], errors='coerce')
+    elif change_fai_col:
+        out['CapEx'] = -pd.to_numeric(df[change_fai_col], errors='coerce')
+    else:
+        out['CapEx'] = pd.NA
+
+    out['Free Cash Flow'] = out['CFO'] - pd.to_numeric(out['CapEx'], errors='coerce')
+    return out
+
+# ---------------- Year-quarter filtering ----------------
+def _parse_year_quarter(yq: Optional[str]):
+    if not yq:
+        return None
+    m = re.match(r'^\s*(\d{4})\s*[- ]?\s*[Qq]\s*([1-4])\s*$', str(yq))
+    if not m:
+        raise ValueError("year_quarter must look like '2018Q1' or '2018-Q3'")
+    return int(m.group(1)), int(m.group(2))
+
+def _apply_since_yq(df: pd.DataFrame, yq):
+    if not yq or df.empty:
+        return df
+    y, q = yq
+    return df[(df['Year'] > y) | ((df['Year'] == y) & (df['QuarterNum'] >= q))].copy()
+
+# ---------------- Public entry point ----------------
+def run_quarterly_comparison(
+    tickers: List[str],
+    since: Optional[str] = None,
+    api_key: Optional[str] = None,
+    data_dir: Optional[str] = None,
+    plot: bool = True
+):
+    """
+    Compare 3 balance, 3 income, and 3 cash flow metrics quarterly for given tickers.
+    since: 'YYYYQn' (e.g., '2018Q1') to filter from that quarter inclusive.
+    Returns: (tidy_frames, pivot_tables, errors)
+    """
+    setup_simfin(api_key=api_key, data_dir=data_dir or '../data/stock_fundamental/')
+    income, balance, cashflw = load_quarterly_frames()
+    since_yq = _parse_year_quarter(since)
+
+    results = {'income': [], 'balance': [], 'cashflow': []}
+    errors: Dict[str, str] = {}
+
+    for t in tickers:
+        try:
+            inc = quarterly_income_for_ticker(t, income)
+            bal = quarterly_balance_for_ticker(t, balance)
+            cfs = quarterly_cash_for_ticker(t, cashflw)
+            if since_yq:
+                inc = _apply_since_yq(inc, since_yq)
+                bal = _apply_since_yq(bal, since_yq)
+                cfs = _apply_since_yq(cfs, since_yq)
+
+            inc_cols = _income_cols(list(inc.columns))
+            bal_cols = _balance_cols(list(bal.columns))
+
+            for label, col in inc_cols.items():
+                if col:
+                    tmp = inc[['Report Date', 'Year', 'Quarter', 'QuarterNum', 'YearQ', col]].copy()
+                    tmp['Metric'] = label
+                    tmp['Ticker'] = t
+                    tmp.rename(columns={col: 'Value'}, inplace=True)
+                    results['income'].append(tmp)
+
+            for label, col in bal_cols.items():
+                if col:
+                    tmp = bal[['Report Date', 'Year', 'Quarter', 'QuarterNum', 'YearQ', col]].copy()
+                    tmp['Metric'] = label
+                    tmp['Ticker'] = t
+                    tmp.rename(columns={col: 'Value'}, inplace=True)
+                    results['balance'].append(tmp)
+
+            cfs2 = cfs[['Report Date', 'Year', 'Quarter', 'QuarterNum', 'YearQ', 'Ticker', 'CFO', 'CapEx', 'Free Cash Flow']].copy()
+            results['cashflow'].append(
+                cfs2.melt(id_vars=['Report Date', 'Year', 'Quarter', 'QuarterNum', 'YearQ', 'Ticker'],
+                          var_name='Metric', value_name='Value')
+            )
+        except Exception as e:
+            errors[t] = str(e)
+
+    income_df = pd.concat(results['income'], ignore_index=True) if results['income'] else pd.DataFrame()
+    balance_df = pd.concat(results['balance'], ignore_index=True) if results['balance'] else pd.DataFrame()
+    cashflow_df = pd.concat(results['cashflow'], ignore_index=True) if results['cashflow'] else pd.DataFrame()
+
+    def _pivots_by_metric(df):
+        piv = {}
+        if df.empty:
+            return piv
+        for metric in sorted(df['Metric'].dropna().unique()):
+            sub = df[df['Metric'] == metric]
+            piv[metric] = sub.pivot_table(index='YearQ', columns='Ticker', values='Value', aggfunc='last').sort_index()
+        return piv
+
+    income_pivots = _pivots_by_metric(income_df)
+    balance_pivots = _pivots_by_metric(balance_df)
+    cashflow_pivots = _pivots_by_metric(cashflow_df)
+
+    if plot:
+        def _plot_tidy(df, title_prefix):
+            if df.empty:
+                return
+            for metric in sorted(df['Metric'].dropna().unique()):
+                sub = df[df['Metric'] == metric].copy().sort_values('Report Date')
+                fig = px.line(sub, x='Report Date', y='Value', color='Ticker',
+                              title=f'{title_prefix} (Quarterly) - {metric}', markers=True)
+                fig.update_layout(legend_orientation='h')
+                fig.show()
+        _plot_tidy(income_df, 'Income Statement')
+        _plot_tidy(balance_df, 'Balance Sheet')
+        _plot_tidy(cashflow_df, 'Cash Flow')
+
+    return {'income': income_df, 'balance': balance_df, 'cashflow': cashflow_df}, \
+           {'income': income_pivots, 'balance': balance_pivots, 'cashflow': cashflow_pivots}, \
+           errors
+
+# ---------------- CLI and caching (kept from template) ----------------
+def _sanitize_for_filename(s: str) -> str:
+    return re.sub(r'[^A-Za-z0-9._-]+', '_', s)
+
+def _is_cache_stale(file_path: str, max_age_seconds: int = 3 * 3600) -> bool:
+    if not os.path.exists(file_path):
+        return True
+    file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
+    return (datetime.datetime.now() - file_mod_time).total_seconds() > max_age_seconds
+
+def main_cli(tickers_csv: str, since: Optional[str], cache_mode: str):
+    if not os.path.exists(FUNDAMENTAL_HISTORY_STORE):
+        os.makedirs(FUNDAMENTAL_HISTORY_STORE, exist_ok=True)
+
+    tickers = [t.strip().upper() for t in tickers_csv.split(',') if t.strip()]
+    since_key = since or 'ALL'
+    fname = f"fundamental_quarterly_{_sanitize_for_filename('-'.join(tickers))}_{_sanitize_for_filename(since_key)}.pkl"
+    cache_file_path = os.path.join(FUNDAMENTAL_HISTORY_STORE, fname)
+
+    if cache_mode == 'local' and os.path.exists(cache_file_path) and not _is_cache_stale(cache_file_path):
+        print("Loading quarterly fundamentals from local cache...")
+        print(cache_file_path)
+        with open(cache_file_path, 'rb') as f:
+            bundle = pickle.load(f)
+        return bundle
+
+    # Run comparison and cache
+    tidy, pivots, errs = run_quarterly_comparison(
+        tickers=tickers,
+        since=since,
+        api_key=None,                       # pass explicit key if desired
+        data_dir='../data/stock_fundamental/',
+        plot=True
+    )
+    bundle = {'tidy': tidy, 'pivots': pivots, 'errors': errs}
+
+    if cache_mode == 'refresh' or _is_cache_stale(cache_file_path):
+        print("Refreshing quarterly fundamentals cache...")
+        with open(cache_file_path, 'wb') as f:
+            pickle.dump(bundle, f)
+
+    if errs:
+        print("Errors:", errs)
+    return bundle
 
 if __name__ == "__main__":
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(description='Financial Data Analysis')
-    parser.add_argument('--ticker', required=True, help='Stock ticker symbol')
-    parser.add_argument('--force_refresh', action='store_true', help='Force refresh the financial data')
-    parser.add_argument('--force_local', action='store_true', help='Force use local cache')
+    parser = argparse.ArgumentParser(description='Quarterly Fundamental Comparison (SimFin)')
+    parser.add_argument('--tickers', required=True, help='Comma-separated tickers (e.g., AAPL,MSFT,NVDA)')
+    parser.add_argument('--since', default='2018Q1', help="Start quarter, e.g., 2018Q1")
+    parser.add_argument('--force_refresh', action='store_true', help='Force refresh the data/cache')
+    parser.add_argument('--force_local', action='store_true', help='Force use local cache if fresh')
 
     args = parser.parse_args()
-    
-    ticker = args.ticker
-    force_refresh = args.force_refresh
-    force_local = args.force_local
 
-    if force_refresh:
-        cache_mode = "refresh"
-    elif not force_refresh:
-        cache_mode = "normal"
-        if force_local:
-            cache_mode = "local"
-    
-    if force_refresh and force_local:
+    if args.force_refresh and args.force_local:
         print("Error: Cannot force refresh and use local cache at the same time.")
-        exit(1)
+        raise SystemExit(1)
 
-    main(ticker, cache_mode)
+    if args.force_refresh:
+        cache_mode = "refresh"
+    else:
+        cache_mode = "normal"
+        if args.force_local:
+            cache_mode = "local"
+
+    main_cli(args.tickers, args.since, cache_mode)

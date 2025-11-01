@@ -163,3 +163,4 @@ def to_daily(df, time_cols=('date','begins_at','timestamp'),
                .groupby('timestamp', as_index=False)['value']
                .last())
     return daily
+
