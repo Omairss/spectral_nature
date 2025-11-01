@@ -130,7 +130,7 @@ def get_options_information(symbol, start_day_offset, end_day_offset, option_typ
 
     return option_details, strike_group, current_price
 
-def filter_option_trades_by_ff(current_price, strike_group, min_time_distance, min_ff_perc, current_date = 'now', print_output = True):
+def filter_option_trades_by_ff(current_price, strike_group, min_time_distance, max_time_distance, min_ff_perc, current_date = 'now', print_output = True):
     
     return_list = []
     # Print out all calendar spreads with a forward factor >= 20%
@@ -169,7 +169,7 @@ def filter_option_trades_by_ff(current_price, strike_group, min_time_distance, m
                 dte_2 = (pd.to_datetime(df.values[j][exp_idx], utc = True) - pd.to_datetime(now, utc = True)).days
                 iv_2 = df.values[j][iv_idx]
 
-                if dte_2 - dte_1 >= min_time_distance:
+                if (dte_2 - dte_1 >= min_time_distance) and (dte_2 - dte_1 <= max_time_distance):
                     f_ratio = forward_ratio(dte_1, dte_2, iv_1, iv_2)
 
                     if f_ratio >= min_ff_perc:
@@ -419,3 +419,207 @@ def get_prediction_error(symbol, timeframe, train_start_date, train_end_date, te
     plt.xlabel('MSE(Sampled) - MSE(Gaussian)')
     plt.ylabel('Frequency')
     plt.show()
+    
+def get_historical_options_data(option_symbols, current_date, stock_data, timeframe = '1D'):
+    
+    options_price_tracker = {}
+    options_symbols = ",".join(option_symbols)
+    start_date = str(current_date.date())
+    end_date = current_date + timedelta(30)
+
+    url = f"https://data.alpaca.markets/v1beta1/options/bars?symbols={options_symbols}&timeframe={timeframe}&start={start_date}&limit=1000&sort=asc"
+    response = requests.get(url, headers=headers).text
+    data = json.loads(response)
+
+    while data['next_page_token'] is not None:
+        url = f"https://data.alpaca.markets/v1beta1/options/bars?symbols={options_symbols}&timeframe={timeframe}&start={start_date}&limit=1000&sort=asc&page_token={data['next_page_token']}"
+        data = json.loads(requests.get(url, headers=headers).text)
+
+    for op_symbol in data['bars']:    
+        df = []
+        for idx in range(len(data['bars'][op_symbol])):
+
+            mid_op_price = data['bars'][op_symbol][idx]['c']
+            high_op_price = data['bars'][op_symbol][idx]['h']
+            low_op_price = data['bars'][op_symbol][idx]['l']
+            cur_date = pd.to_datetime(data['bars'][op_symbol][idx]['t'])
+            cur_stock_price = stock_data[(stock_data['Date'].dt.date == pd.to_datetime(cur_date, utc = True).date())]['Mid'].values[0]
+            strike_price = extract_strike_price_from_symbol(op_symbol)
+            exp_date = pd.to_datetime(op_symbol[-15:-9], format = '%y%m%d', utc = True)
+            if op_symbol[-9] == 'P':
+                op_type = 'put'
+            elif op_symbol[-9] == 'C':
+                op_type = 'call'
+            dte = (exp_date - cur_date).days
+
+            if dte > 0:
+
+                iv = calculate_implied_volatility(option_price = mid_op_price,
+                                                  S = cur_stock_price,
+                                                  K = strike_price,
+                                                  T =  dte / 365,
+                                                  r = get_risk_free_rate_estimate(dte),
+                                                  option_type = op_type)
+
+                delta = calculate_delta_historical(option_price = mid_op_price,
+                                                   strike_price = strike_price,
+                                                   expiry = pd.Timestamp(exp_date),
+                                                   underlying_price = cur_stock_price,
+                                                   risk_free_rate = get_risk_free_rate_estimate(dte),
+                                                   option_type = op_type,
+                                                   timestamp = pd.Timestamp(cur_date))
+
+                # Add bounds to IV calculation
+                if iv is not None and (iv < 0 or iv > 5):  # IV > 500% is suspicious
+                    print(f"Unusual IV={iv:.2f} for {op_symbol} on {cur_date}")
+                    iv = None  # or skip this data point
+
+                # Delta should be bounded
+                if op_type == 'call' and delta is not None and (delta < 0 or delta > 1):
+                    print(f"Invalid call delta={delta:.2f} for {op_symbol}")
+                    delta = None
+
+                if op_type == 'put' and delta is not None and (delta < -1 or delta > 0):
+                    print(f"Invalid put delta={delta:.2f} for {op_symbol}")
+                    delta = None
+
+
+                if iv != 0 and iv is not None and delta is not None:
+                    df.append([op_symbol, high_op_price, mid_op_price, low_op_price, cur_date, cur_stock_price, strike_price, exp_date, op_type, iv, delta, dte])
+
+
+        df = pd.DataFrame(df)
+        if df.shape[0] != 0:
+            
+            df.columns = ['Symbol', 'High Option Price', 'Current Option Price', 'Low Option Price', 'Current Date', 'Current Stock Price', 'Strike Price', 'Expiration Date', 'Type', 'IV', 'Delta', 'DTE']
+
+            options_price_tracker[op_symbol] = df
+            options_price_tracker[op_symbol] = options_price_tracker[op_symbol].sort_values(by = 'Current Date').reset_index(drop = True)
+        
+    return options_price_tracker
+
+def get_risk_free_rate_estimate(days_to_expiration):
+            """Simple estimate based on current yield curve"""
+            if days_to_expiration <= 30:
+                return 0.0393  # 3-month rate
+            elif days_to_expiration <= 365:
+                return 0.0370  # 1-year rate
+            else:
+                return 0.0408  # 10-year rate
+
+# Calculate implied volatility
+def calculate_implied_volatility(
+    option_price: float, S: float, K: float, T: float, r: float, option_type: str
+):
+    """
+    Calculate implied volatility using the Black-Scholes model.
+
+    Args:
+        option_price: Market price of the option
+        S: Current stock price (underlying asset price)
+        K: Strike price of the option
+        T: Time to expiration in years
+        r: Risk-free interest rate
+        option_type: Type of option (ContractType.CALL or ContractType.PUT)
+
+    Returns:
+        Implied volatility as a float, or None if calculation fails
+    """
+    # Define a reasonable range for sigma
+    sigma_lower = 1e-6
+    sigma_upper = 5.0  # Adjust upper limit if necessary
+
+    # Check if the option is out-of-the-money and price is close to zero
+    intrinsic_value = max(0, (S - K) if option_type == "call" else (K - S))
+    if option_price <= intrinsic_value + 1e-6:
+        # print("Option price is close to intrinsic value; implied volatility is near zero.") # Uncomment for checking the status
+        return 0.0
+
+    # Define the function to find the root
+    def option_price_diff(sigma: float) -> float:
+        d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+        d2 = d1 - sigma * np.sqrt(T)
+        if option_type == "call":
+            price = S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
+        elif option_type == "put":
+            price = K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
+        return price - option_price
+
+    try:
+        return brentq(option_price_diff, sigma_lower, sigma_upper)
+    except ValueError as e:
+#         print(f"Failed to find implied volatility: {e}")
+        return None
+    
+# Calculate historical option Delta
+def calculate_delta_historical(
+    option_price: float,
+    strike_price: float,
+    expiry: pd.Timestamp,
+    underlying_price: float,
+    risk_free_rate: float,
+    option_type: str,
+    timestamp: pd.Timestamp,
+):
+    """
+    Calculate option delta using historical data and the Black-Scholes model.
+
+    Args:
+        option_price: Market price of the option
+        strike_price: Strike price of the option
+        expiry: Option expiration datetime
+        underlying_price: Current price of underlying asset
+        risk_free_rate: Risk-free interest rate
+        option_type: Type of option ('call' or 'put')
+        timestamp: Current timestamp for calculation
+
+    Returns:
+        Option delta as a float, or None if calculation fails
+    """
+    # Calculate the time to expiry in years
+    T = (expiry - timestamp).total_seconds() / (365 * 24 * 60 * 60)
+    # Set minimum T to avoid zero
+    T = max(T, 1e-6)
+
+    if T == 1e-6:
+#         print("Option has expired or is expiring now; setting delta based on intrinsic value.")
+        if option_type == "put":
+            return -1.0 if underlying_price < strike_price else 0.0
+        else:
+            return 1.0 if underlying_price > strike_price else 0.0
+
+    implied_volatility = calculate_implied_volatility(
+        option_price, underlying_price, strike_price, T, risk_free_rate, option_type
+    )
+    if implied_volatility is None or implied_volatility <= 1e-6:
+        # print("Implied volatility could not be determined, skipping delta calculation.")
+        return None
+
+    d1 = (
+        np.log(underlying_price / strike_price)
+        + (risk_free_rate + 0.5 * implied_volatility**2) * T
+    ) / (implied_volatility * np.sqrt(T))
+    delta = norm.cdf(d1) if option_type == "call" else -norm.cdf(-d1)
+    return delta
+
+def extract_strike_price_from_symbol(symbol: str) -> float:
+    """
+    Extract strike price from option symbol.
+    Converts last 8 digits of option symbol to strike price by dividing by 1000.
+
+    Args:
+        symbol: Option symbol (e.g., 'SPY250616P00571000')
+
+    Returns:
+        float: Strike price (e.g., 571.0) or 0.0 if invalid format
+    """
+    # Option symbols typically have format: TICKER + YYMMDD + (C/P) + 8-digit strike price
+    # The last 8 digits represent strike price * 1000
+    try:
+        # Extract the last 8 digits and convert to strike price
+        strike_str = symbol[-8:]
+        strike_price = float(strike_str) / 1000.0
+        return strike_price
+    except (ValueError, IndexError):
+        print(f"Warning: Could not extract strike price from symbol {symbol}")
+        return 0.0
