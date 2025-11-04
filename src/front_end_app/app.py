@@ -598,7 +598,7 @@ def update_fundamental_charts(n, ticker):
 
         fig = go.Figure()
 
-        # Primary (solid vivid)
+        # Primary (solid vivid) -> secondary y-axis (y2)
         for metric in primary_metrics:
             sub = df[(df["Ticker"] == primary) & (df["Metric"] == metric)]
             if sub.empty:
@@ -608,10 +608,11 @@ def update_fundamental_charts(n, ticker):
                 mode="lines+markers",
                 name=f"{metric} — {primary}",
                 line=dict(color=color_map.get(metric, "#1f77b4"), width=2.5, dash="solid"),
-                marker=dict(size=5)
+                marker=dict(size=5),
+                yaxis="y2"  # put primary ticker on right axis
             ))
 
-        # Benchmarks (dotted grey)
+        # Benchmarks (dotted grey) -> primary y-axis (y)
         for bench in peers:
             for metric in primary_metrics:
                 sub = df[(df["Ticker"] == bench) & (df["Metric"] == metric)]
@@ -630,7 +631,9 @@ def update_fundamental_charts(n, ticker):
             title=f"{title_prefix} — {primary} (benchmarks: {', '.join(peers) if peers else 'none'})",
             legend=dict(orientation="h"),
             xaxis_title="Report Date",
-            yaxis_title="Value",
+            # Separate y-axes: left for benchmarks, right for selected ticker
+            yaxis=dict(title="Benchmarks Value"),
+            yaxis2=dict(title=f"{primary} Value", overlaying="y", side="right", showgrid=False, zeroline=False),
             hovermode="x unified"
         )
         return fig
