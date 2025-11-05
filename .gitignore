@@ -49,4 +49,5 @@ build/
 /data/
 /log/
 /notebooks/.ipynb_aml_checkpoints/
+/cache/
 /secrets/

@@ -6,12 +6,97 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.optimize as opt
+import pickle as pkl
+
 
 from tqdm import tqdm
 from scipy.optimize import brentq
 from scipy.stats import norm
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+from pathlib import Path
+
+
+
+
+CACHE_ROOT = Path(os.path.join(repo_path, 'cache/options'))
+
+
+def _opt_cache_path(symbol: str, timeframe: str) -> Path:
+    # One file per symbol per timeframe
+    safe_symbol = symbol.replace('/', '_')
+    return CACHE_ROOT / timeframe / f'{safe_symbol}.pkl'
+
+
+def _load_cached_df(path: Path):
+    if path.exists():
+        try:
+            return pd.read_pickle(path)
+        except Exception:
+            return None
+    return None
+
+
+def _save_cached_df(path: Path, df: pd.DataFrame):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_pickle(path)
+
+
+def get_historical_options_data_cached(option_symbols, current_date, stock_data, timeframe, headers):
+    """
+    Cache-aware wrapper around get_historical_options_data.
+    - Loads per-symbol DataFrames from disk if present
+    - If cache is stale (max Current Date < current_date), fetches updates and merges
+    - Saves updated DataFrames back to disk
+    Returns a dict[symbol] -> DataFrame, same as the original function.
+    """
+    current_date = pd.to_datetime(current_date)
+    result = {}
+    to_fetch = set()
+
+    # Attempt to load from cache and detect staleness
+    for sym in option_symbols:
+        path = _opt_cache_path(sym, timeframe)
+        df_cached = _load_cached_df(path)
+        if df_cached is None or len(df_cached) == 0:
+            to_fetch.add(sym)
+        else:
+            result[sym] = df_cached
+            if 'Current Date' in df_cached.columns:
+                try:
+                    max_dt = pd.to_datetime(df_cached['Current Date']).max()
+                    if pd.isna(max_dt) or max_dt.date() < current_date.date():
+                        to_fetch.add(sym)
+                except Exception:
+                    # If parsing fails, refetch this symbol
+                    to_fetch.add(sym)
+            else:
+                # Schema missing, refetch
+                to_fetch.add(sym)
+
+    # Fetch missing or stale symbols via API
+    if len(to_fetch) > 0:
+        fetched = get_historical_options_data(
+            option_symbols=list(to_fetch),
+            current_date=current_date,
+            stock_data=stock_data,
+            timeframe=timeframe,
+            headers=headers,
+        )
+        for sym, df_new in fetched.items():
+            if sym in result and result[sym] is not None and len(result[sym]) > 0:
+                combined = pd.concat([result[sym], df_new], ignore_index=True)
+                # Deduplicate by date if available
+                if 'Current Date' in combined.columns:
+                    combined['Current Date'] = pd.to_datetime(combined['Current Date'])
+                    combined.drop_duplicates(subset=['Current Date'], keep='last', inplace=True)
+                result[sym] = combined
+            else:
+                result[sym] = df_new
+            # Persist
+            _save_cached_df(_opt_cache_path(sym, timeframe), result[sym])
+
+    return result
 
 # Define power law in log-log space
 def power_law_log(log_x, alpha, logC):
@@ -692,3 +777,318 @@ def get_historical_stock_price(symbol, timeframe, historical_start_date, histori
     t = np.array([pd.to_datetime(x) for x in t])
     
     return c, h, l, t
+
+
+def get_all_open_positions_value(open_positions):
+    
+    open_positions_value = 0
+    for trade_id, position in open_positions.items():
+        if position['status'] == 'open':            
+            open_positions_value += get_single_position_value(position)
+    
+    return open_positions_value
+
+def get_single_position_value(position):
+
+    short_pnl = (position['short_entry_price'] - position['current_short_price']) * 100 * position['num_contracts']
+    long_pnl = (position['current_long_price'] - position['long_entry_price']) * 100 * position['num_contracts']
+    total_pnl = short_pnl + long_pnl
+
+    return total_pnl
+    
+def execute_identified_trades(list_of_options_dataframes, open_positions, current_cash, current_date, trade_id_counter, total_capital_deployed, max_number_of_open_positions, stock_strike_deviation_limit = 0.1, max_position_ratio_of_capital_per_trade = 0.02):
+
+    num_trades_executed_today = 0
+    # For calendar spreads: Sell near-term, Buy far-term (same strike)
+    for trade in list_of_options_dataframes:
+        
+        if len([p for p in open_positions.values() if p['status'] == 'open']) >= max_number_of_open_positions:
+            break  # Hit max concurrent positions
+            
+        stock_strike_deviation = abs(trade['Current Stock Price'][0] - trade['Strike Price'][0]) / trade['Current Stock Price'][0]
+        if stock_strike_deviation <= stock_strike_deviation_limit:
+            
+            # Execute Trades
+            trade_id_counter += 1
+
+            # Extract trade details
+            short_leg_symbol = trade['Symbol'][0]  # Near-term expiry (sell)
+            long_leg_symbol = trade['Symbol'][1]   # Far-term expiry (buy)
+            strike = trade['Strike Price'][0]
+            option_type = trade['Type'][0]
+            forward_factor = trade['Forward Factor'][0]
+
+            # Get entry prices
+            short_leg_price = trade['Low Option Price'][0]  # Premium received (credit)
+            long_leg_price = trade['High Option Price'][1]  # Premium paid (debit)
+
+            # Net debit for calendar spread (we pay more for long than we receive for short)
+            net_debit = (long_leg_price - short_leg_price) * 100  # Per contract
+
+            # Position sizing: don't exceed max_position_ratio_of_capital of portfolio
+            max_position_value = current_portfolio_value * max_position_ratio_of_capital_per_trade
+            num_contracts = max(1, int(max_position_value / net_debit))
+
+            # Check if we have enough cash for lesser contracts
+            total_cost = net_debit * num_contracts
+
+            if total_cost > current_cash:
+                num_contracts = max(1, int(current_cash / net_debit))
+                total_cost = net_debit * num_contracts
+
+            if total_cost > current_cash:
+                trade_id_counter -= 1
+                continue  # Not enough capital
+
+            # Deduct capital
+            current_cash -= total_cost
+            total_capital_deployed += total_cost
+
+            # Get expiry dates
+            short_expiry = trade['Expiration Date'][0]
+            long_expiry = trade['Expiration Date'][1]
+
+            # Store the position
+            open_positions[trade_id_counter] = {
+                'entry_date': pd.to_datetime(current_date),
+                'entry_credit' : -total_cost,
+                'entry_stock_price': trade['Current Stock Price'][0],
+                'strike': strike,
+                'option_type': option_type,
+                'short_leg': short_leg_symbol,
+                'long_leg': long_leg_symbol,
+                'short_expiry': short_expiry,
+                'long_expiry': long_expiry,
+                'num_contracts': num_contracts,
+                'capital_deployed': total_cost,
+                'short_entry_price': short_leg_price,
+                'long_entry_price': long_leg_price,
+                'current_short_price': short_leg_price,
+                'current_long_price': long_leg_price,
+                'current_pnl': -total_cost, # Net Debit Position 
+                'forward_factor' : forward_factor,
+                'status': 'open'
+            }
+            
+            
+            num_trades_executed_today += 1
+
+    return open_positions, num_trades_executed_today, current_cash, trade_id_counter
+
+
+def exit_short_leg(position, current_date, options_price_tracker, reason = None):
+
+    if position['short_leg'] in options_price_tracker:
+        
+        # Get last available price before expiry
+        short_leg_data = options_price_tracker[position['short_leg']]
+
+        if current_date >= position['short_expiry']: 
+            short_leg_data = short_leg_data[short_leg_data['Current Date'] <= position['short_expiry']]
+            position['short_exit_reason'] = 'Short Expired'
+            position['short_exit_date'] = position['short_expiry']
+        
+        else:
+            short_leg_data = short_leg_data[short_leg_data['Current Date'] <= current_date]
+            position['short_exit_reason'] = f'Early Exit: {str(reason)}'
+            position['short_exit_date'] = current_date.date()
+
+        if len(short_leg_data) > 0:
+            short_exit_price = short_leg_data.iloc[-1]['High Option Price']
+        
+        # Assume the option was executed 
+        else:
+
+            # Calculate intrinsic value at expiry
+            stock_price_at_expiry = stock_data[stock_data['Date'].dt.date == position['short_expiry'].date()]['Low'].values[0]
+            
+            if position['option_type'] == 'call':
+                short_exit_price = max(0, stock_price_at_expiry - position['strike'])
+            
+            else:  # put
+                short_exit_price = max(0, position['strike'] - stock_price_at_expiry)
+    else:
+        short_exit_price = 0  # Assume worthless if no data
+
+    position['current_short_price'] = short_exit_price
+    
+def exit_long_leg(position, current_date, current_cash, options_price_tracker, reason = None):
+
+    # Long leg expired - close position
+    if position['long_leg'] in options_price_tracker:
+        long_leg_data = options_price_tracker[position['long_leg']]
+
+        if current_date >= position['long_expiry']:
+            long_leg_data = long_leg_data[long_leg_data['Current Date'] <= position['long_expiry']]
+            position['long_exit_reason'] = 'Long Expired'
+            position['long_exit_date'] = position['long_expiry']
+        else: 
+            long_leg_data = long_leg_data[long_leg_data['Current Date'] <= current_date]
+            position['long_exit_reason'] = f'Early Exit: {str(reason)}'
+            position['long_exit_date'] = current_date.date()
+
+        
+        if len(long_leg_data) > 0:
+            long_exit_price = long_leg_data.iloc[-1]['Low Option Price']
+        
+        # Assume the option was executed
+        else:
+            # Calculate intrinsic value at expiry
+            stock_price_at_expiry = stock_data[stock_data['Date'].dt.date == position['long_expiry'].date()]['High'].values[0]
+            if position['option_type'] == 'call':
+                long_exit_price = max(0, stock_price_at_expiry - position['strike'])
+            else:  # put
+                long_exit_price = max(0, position['strike'] - stock_price_at_expiry)
+    else:
+        long_exit_price = 0
+        
+    
+    position['current_long_price'] = long_exit_price
+
+    # Exit overall position (long adn short)
+    total_pnl = get_single_position_value(position)
+    
+    # Return capital plus P&L (return principal + realized P&L)
+    current_cash += position['capital_deployed'] + total_pnl
+    
+    position['exit_date'] = current_date
+    position['final_pnl'] = total_pnl
+    position['return_pct'] = (total_pnl / position['capital_deployed']) * 100
+    position['status'] = 'closed'
+
+    return current_cash
+    
+
+def get_all_open_positions_value(open_positions):
+    
+    open_positions_value = 0
+    for trade_id, position in open_positions.items():
+        if position['status'] == 'open':            
+            open_positions_value += get_single_position_value(position)
+    
+    return open_positions_value
+
+def get_single_position_value(position):
+
+    short_pnl = (position['short_entry_price'] - position['current_short_price']) * 100 * position['num_contracts']
+    long_pnl = (position['current_long_price'] - position['long_entry_price']) * 100 * position['num_contracts']
+    total_pnl = short_pnl + long_pnl
+
+    return total_pnl
+
+def check_existing_positions(portfolio_history, open_positions, closed_positions, current_date, current_cash, options_price_tracker, short_exit_limits = (-0.4, 0.3), long_exit_limits = (-0.4, 0.3), position_exit_limits = (-0.4, 0.3)):
+
+    positions_to_close = []
+    
+    for trade_id, position in open_positions.items():
+        
+        # Ignore closed trades
+        if position['status'] != 'open':
+            continue
+            
+        current_date = pd.to_datetime(current_date)
+        
+        ###########################
+        ##### Check Short Leg #####
+        ###########################
+
+        # Check if short leg has expired
+        if current_date >= position['short_expiry']:
+            exit_short_leg(position, current_date, options_price_tracker)
+            
+        else:
+
+            # Update current price of short leg if short position has not been exited
+            if position['short_leg'] in options_price_tracker and 'short_exit_date' not in position:
+                
+                short_leg_data = options_price_tracker[position['short_leg']]
+                short_current = short_leg_data[short_leg_data['Current Date'].dt.date == current_date.date()]
+                
+                if len(short_current) > 0:
+                    position['current_short_price'] = short_current.iloc[0]['High Option Price']
+                else:
+                    position['current_short_price'] = 0  # Assume worthless if no data
+
+                # Limit Loss
+                short_pnl_ratio = (position['short_entry_price'] - position['current_short_price']) / position['short_entry_price']
+
+                if short_pnl_ratio <= short_exit_limits[0]:
+                    exit_short_leg(position, current_date, options_price_tracker, reason = f'Limit Loss: {short_pnl_ratio * 100:.3f}%')
+
+                if short_pnl_ratio >= short_exit_limits[1]:
+                    exit_short_leg(position, current_date, options_price_tracker, reason = f'Profit Reached: {short_pnl_ratio * 100:.3f}%')
+                    
+        ##########################
+        ##### Check Long Leg #####
+        ##########################
+        
+        # Check if long leg has expired or should be closed
+        if current_date >= position['long_expiry']:
+
+            current_cash = exit_long_leg(position, current_date, current_cash, options_price_tracker)
+            positions_to_close.append(trade_id)
+            
+        else:
+
+            # Update current price of long leg if it has not already been exited
+            if position['long_leg'] in options_price_tracker and 'long_exit_date' not in position:
+                long_leg_data = options_price_tracker[position['long_leg']]
+                long_current = long_leg_data[long_leg_data['Current Date'].dt.date == current_date.date()]
+                
+                if len(long_current) > 0:
+                    position['current_long_price'] = long_current.iloc[0]['Current Option Price']
+                
+                # Limit Loss
+
+                long_pnl_ratio = (position['current_long_price'] - position['long_entry_price']) / position['long_entry_price']
+
+                if long_pnl_ratio <= long_exit_limits[0]:
+                    current_cash = exit_long_leg(position, current_date, current_cash, options_price_tracker, reason = f'Limit Loss: {long_pnl_ratio * 100:.3f}%')
+                    positions_to_close.append(trade_id)
+
+                if long_pnl_ratio >= long_exit_limits[1]:
+                    current_cash = exit_long_leg(position, current_date, current_cash, options_price_tracker, reason = f'Profit Reached: {long_pnl_ratio * 100:.3f}%')
+                    positions_to_close.append(trade_id)
+
+
+        # Calculate Current PnL 
+        position['current_pnl'] = get_single_position_value(position)
+        position['current_date'] = current_date
+        position['return_pct'] = (position['current_pnl'] / position['capital_deployed'])
+        
+        # Check stop loss on TOTAL position
+        if position['return_pct'] <= position_exit_limits[0]:
+
+            exit_short_leg(position, current_date, options_price_tracker, reason = f'Position Limit Loss: {position["return_pct"] * 100:.3f}%')
+            current_cash = exit_long_leg(position, current_date, current_cash, options_price_tracker, reason = f'Position Limit Loss: {position["return_pct"] * 100:.3f}%')
+            positions_to_close.append(trade_id)
+            
+        # Check profit target
+        if position['return_pct'] >= position_exit_limits[1]:
+            exit_short_leg(position, current_date, options_price_tracker, reason = f'Position Profit Reached: {position["return_pct"] * 100:.3f}%')
+            current_cash = exit_long_leg(position, current_date, current_cash, options_price_tracker, reason = f'Position Profit Reached: {position["return_pct"] * 100:.3f}%')
+            positions_to_close.append(trade_id)
+
+    # Move closed positions to closed_positions list
+    for trade_id in positions_to_close:
+        if trade_id in open_positions:
+            closed_positions.append(open_positions[trade_id])
+            del open_positions[trade_id]
+        
+
+    total_unrealized_pnl = sum([p['current_pnl'] for p in open_positions.values() if p['status'] == 'open'])
+    total_deployed = sum([p['capital_deployed'] for p in open_positions.values() if p['status'] == 'open'])
+    total_portfolio_value = current_cash + total_unrealized_pnl + total_deployed
+
+
+    # Track portfolio history
+    portfolio_history.append({
+        'date': pd.to_datetime(current_date),
+        'cash': current_cash,
+        'open_positions_value': get_all_open_positions_value(open_positions),
+        'total_value': total_portfolio_value,
+        'num_open_positions': len([p for p in open_positions.values() if p['status'] == 'open']),
+        'num_closed_positions': len(closed_positions)
+    })
+
+    return portfolio_history, open_positions, closed_positions, current_cash
