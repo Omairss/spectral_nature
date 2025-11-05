@@ -12,6 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.optimize as opt
 import pickle as pkl
+import re
 
 
 from tqdm import tqdm
@@ -411,57 +412,168 @@ def _save_cached_df(path: Path, df: pd.DataFrame):
 def get_historical_options_data_cached(option_symbols, current_date, stock_data, timeframe, headers):
     """
     Cache-aware wrapper around get_historical_options_data.
-    - Loads per-symbol DataFrames from disk if present
-    - If cache is stale (max Current Date < current_date), fetches updates and merges
-    - Saves updated DataFrames back to disk
-    Returns a dict[symbol] -> DataFrame, same as the original function.
+    Single-file cache per underlying+timeframe: stores a dict[contract_symbol] -> DataFrame
+    in one pickle file (e.g., options_cache_AAPL_1D.pkl) instead of one file per contract.
+
+    - Loads the monolithic cache for the timeframe if present
+    - For each requested symbol, if missing or stale (max Current Date < current_date),
+      fetch updates, merge, and de-duplicate by Current Date
+    - Saves the whole cache back to disk once if any updates occurred
+
+    Returns a dict[symbol] -> DataFrame for the requested symbols.
     """
     current_date = pd.to_datetime(current_date)
-    result = {}
-    to_fetch = set()
 
-    # Attempt to load from cache and detect staleness
-    for sym in option_symbols:
-        path = _opt_cache_path(sym, timeframe)
-        df_cached = _load_cached_df(path)
-        if df_cached is None or len(df_cached) == 0:
-            to_fetch.add(sym)
-        else:
-            result[sym] = df_cached
-            if 'Current Date' in df_cached.columns:
+    # --- Monolithic cache helpers ---
+    def _mono_cache_path(tf: str, underlying: str) -> Path:
+        safe_u = underlying.replace('/', '_').upper() if underlying else 'UNKNOWN'
+        return CACHE_ROOT / f"options_cache_{safe_u}_{tf}.pkl"
+
+    def _mono_load(tf: str, underlying: str) -> dict:
+        path = _mono_cache_path(tf, underlying)
+        if path.exists():
+            try:
+                data = pd.read_pickle(path)
+                # Expecting a dict[symbol] -> DataFrame
+                return data if isinstance(data, dict) else {}
+            except Exception:
+                return {}
+        # Backfill from any legacy per-contract cache files for this underlying if present
+        legacy_dir = CACHE_ROOT / tf
+        legacy_cache: dict = {}
+        if legacy_dir.exists() and legacy_dir.is_dir():
+            for f in legacy_dir.glob('*.pkl'):
                 try:
-                    max_dt = pd.to_datetime(df_cached['Current Date']).max()
-                    if pd.isna(max_dt) or max_dt.date() < current_date.date():
-                        to_fetch.add(sym)
+                    df_legacy = pd.read_pickle(f)
+                    if isinstance(df_legacy, pd.DataFrame):
+                        # Heuristic: contract symbols start with underlying
+                        if f.stem.upper().startswith((underlying or '').upper()):
+                            legacy_cache[f.stem] = df_legacy
                 except Exception:
-                    # If parsing fails, refetch this symbol
-                    to_fetch.add(sym)
-            else:
-                # Schema missing, refetch
-                to_fetch.add(sym)
+                    continue
+        return legacy_cache
 
-    # Fetch missing or stale symbols via API
+    def _mono_save(tf: str, underlying: str, data: dict):
+        path = _mono_cache_path(tf, underlying)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        pd.to_pickle(data, path)
+
+    def _extract_underlying(sym: str) -> str:
+        # Expected format: UNDERLYING + YYMMDD + (C|P) + 8-digit strike
+        m = re.match(r'^([A-Z\.]+)\d{6}[CP]\d{8}$', sym)
+        if m:
+            return m.group(1)
+        # Fallback: remove the last 15 chars (YYMMDD + C/P + 8 digits)
+        return sym[:-15] if len(sym) > 15 else sym
+
+    # Group requested option symbols by underlying
+    by_underlying: dict[str, list[str]] = {}
+    for sym in option_symbols:
+        u = _extract_underlying(sym)
+        by_underlying.setdefault(u, []).append(sym)
+
+    final_result: dict = {}
+
+    # Process per underlying symbol and persist per-underlying cache file
+    for underlying, syms in by_underlying.items():
+        cache_all = _mono_load(timeframe, underlying)
+        to_fetch: set[str] = set()
+
+        # Inspect cache for each requested symbol in this underlying
+        for sym in syms:
+            df_cached = cache_all.get(sym)
+            if df_cached is None or len(df_cached) == 0:
+                to_fetch.add(sym)
+            else:
+                final_result[sym] = df_cached
+                if 'Current Date' in df_cached.columns:
+                    try:
+                        max_dt = pd.to_datetime(df_cached['Current Date']).max()
+                        if pd.isna(max_dt) or max_dt.date() < current_date.date():
+                            to_fetch.add(sym)
+                    except Exception:
+                        to_fetch.add(sym)
+                else:
+                    to_fetch.add(sym)
+
+        updated = False
+        if len(to_fetch) > 0:
+            fetched = get_historical_options_data(
+                option_symbols=list(to_fetch),
+                current_date=current_date,
+                stock_data=stock_data,
+                timeframe=timeframe,
+                headers=headers,
+            )
+            for sym, df_new in fetched.items():
+                df_existing = cache_all.get(sym)
+                if df_existing is not None and len(df_existing) > 0:
+                    combined = pd.concat([df_existing, df_new], ignore_index=True)
+                    if 'Current Date' in combined.columns:
+                        combined['Current Date'] = pd.to_datetime(combined['Current Date'])
+                        combined.drop_duplicates(subset=['Current Date'], keep='last', inplace=True)
+                        combined.sort_values('Current Date', inplace=True)
+                    cache_all[sym] = combined
+                    final_result[sym] = combined
+                else:
+                    cache_all[sym] = df_new
+                    final_result[sym] = df_new
+                updated = True
+
+        if updated:
+            _mono_save(timeframe, underlying, cache_all)
+
+    return final_result
+
+def get_historical_options_data_cached_fast(option_symbols, current_date, stock_data, timeframe, headers):
+    """
+    Wrapper that minimizes disk I/O by using an in-memory cache first and only
+    hitting the on-disk cache/API when either:
+      - the symbol is not in memory, or
+      - the cached data does not extend up to current_date.
+    Returns dict[symbol] -> DataFrame
+    """
+    current_date = pd.to_datetime(current_date)
+    fresh = {}
+    to_fetch = []
+
+    for sym in option_symbols:
+        df_cached = options_cache_memory.get(sym)
+        if df_cached is None or len(df_cached) == 0:
+            to_fetch.append(sym)
+        else:
+            try:
+                max_dt = pd.to_datetime(df_cached['Current Date']).max()
+                if pd.isna(max_dt) or max_dt.date() < current_date.date():
+                    to_fetch.append(sym)
+                else:
+                    fresh[sym] = df_cached
+            except Exception:
+                to_fetch.append(sym)
+
     if len(to_fetch) > 0:
-        fetched = get_historical_options_data(
-            option_symbols=list(to_fetch),
-            current_date=current_date,
-            stock_data=stock_data,
-            timeframe=timeframe,
-            headers=headers,
-        )
+        fetched = get_historical_options_data_cached(option_symbols=to_fetch,
+                                                     current_date=current_date,
+                                                     stock_data=stock_data,
+                                                     timeframe=timeframe,
+                                                     headers=headers)
+        # Merge fetched into memory and dedupe by Current Date
         for sym, df_new in fetched.items():
-            if sym in result and result[sym] is not None and len(result[sym]) > 0:
-                combined = pd.concat([result[sym], df_new], ignore_index=True)
-                # Deduplicate by date if available
+            df_existing = options_cache_memory.get(sym)
+            if df_existing is not None and len(df_existing) > 0:
+                combined = pd.concat([df_existing, df_new], ignore_index=True)
                 if 'Current Date' in combined.columns:
                     combined['Current Date'] = pd.to_datetime(combined['Current Date'])
                     combined.drop_duplicates(subset=['Current Date'], keep='last', inplace=True)
-                result[sym] = combined
+                    combined.sort_values('Current Date', inplace=True)
+                options_cache_memory[sym] = combined
             else:
-                result[sym] = df_new
-            # Persist
-            _save_cached_df(_opt_cache_path(sym, timeframe), result[sym])
+                options_cache_memory[sym] = df_new
 
+    # Build final result
+    result = {}
+    result.update(fresh)
+    result.update({sym: options_cache_memory[sym] for sym in to_fetch if sym in options_cache_memory})
     return result
 
 ##############################################
