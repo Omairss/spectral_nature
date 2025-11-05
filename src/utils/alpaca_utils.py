@@ -1,4 +1,9 @@
+##############################################
+################## Imports ###################
+##############################################
+
 import time
+import os
 import math
 import json 
 import requests
@@ -17,89 +22,22 @@ from zoneinfo import ZoneInfo
 from pathlib import Path
 
 
+##############################################
+################# Variables ##################
+##############################################
 
-
+repo_path = '/Users/zohairshafi/Local Workspace/spectral_nature/'
+notebook_path = os.path.join(repo_path, 'notebooks')
+cache_path = os.path.join(repo_path, 'cache')
 CACHE_ROOT = Path(os.path.join(repo_path, 'cache/options'))
 
+##############################################
+############### Math Functions ###############
+##############################################
 
-def _opt_cache_path(symbol: str, timeframe: str) -> Path:
-    # One file per symbol per timeframe
-    safe_symbol = symbol.replace('/', '_')
-    return CACHE_ROOT / timeframe / f'{safe_symbol}.pkl'
-
-
-def _load_cached_df(path: Path):
-    if path.exists():
-        try:
-            return pd.read_pickle(path)
-        except Exception:
-            return None
-    return None
-
-
-def _save_cached_df(path: Path, df: pd.DataFrame):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_pickle(path)
-
-
-def get_historical_options_data_cached(option_symbols, current_date, stock_data, timeframe, headers):
-    """
-    Cache-aware wrapper around get_historical_options_data.
-    - Loads per-symbol DataFrames from disk if present
-    - If cache is stale (max Current Date < current_date), fetches updates and merges
-    - Saves updated DataFrames back to disk
-    Returns a dict[symbol] -> DataFrame, same as the original function.
-    """
-    current_date = pd.to_datetime(current_date)
-    result = {}
-    to_fetch = set()
-
-    # Attempt to load from cache and detect staleness
-    for sym in option_symbols:
-        path = _opt_cache_path(sym, timeframe)
-        df_cached = _load_cached_df(path)
-        if df_cached is None or len(df_cached) == 0:
-            to_fetch.add(sym)
-        else:
-            result[sym] = df_cached
-            if 'Current Date' in df_cached.columns:
-                try:
-                    max_dt = pd.to_datetime(df_cached['Current Date']).max()
-                    if pd.isna(max_dt) or max_dt.date() < current_date.date():
-                        to_fetch.add(sym)
-                except Exception:
-                    # If parsing fails, refetch this symbol
-                    to_fetch.add(sym)
-            else:
-                # Schema missing, refetch
-                to_fetch.add(sym)
-
-    # Fetch missing or stale symbols via API
-    if len(to_fetch) > 0:
-        fetched = get_historical_options_data(
-            option_symbols=list(to_fetch),
-            current_date=current_date,
-            stock_data=stock_data,
-            timeframe=timeframe,
-            headers=headers,
-        )
-        for sym, df_new in fetched.items():
-            if sym in result and result[sym] is not None and len(result[sym]) > 0:
-                combined = pd.concat([result[sym], df_new], ignore_index=True)
-                # Deduplicate by date if available
-                if 'Current Date' in combined.columns:
-                    combined['Current Date'] = pd.to_datetime(combined['Current Date'])
-                    combined.drop_duplicates(subset=['Current Date'], keep='last', inplace=True)
-                result[sym] = combined
-            else:
-                result[sym] = df_new
-            # Persist
-            _save_cached_df(_opt_cache_path(sym, timeframe), result[sym])
-
-    return result
-
-# Define power law in log-log space
 def power_law_log(log_x, alpha, logC):
+
+    # Define power law in log-log space
     return (-alpha * log_x) + logC
 
 def forward_ratio(dte_1, dte_2, iv_1, iv_2):
@@ -114,13 +52,123 @@ def forward_ratio(dte_1, dte_2, iv_1, iv_2):
         tv_2 = (s_2 ** 2) * T2
 
         denom = T2 - T1
+        if denom <= 0:
+            return 0
         fwd_var = (tv_2 - tv_1) / denom
+        if fwd_var <= 0:
+            return 0
         fwd_sigma = math.sqrt(fwd_var) 
         ff_ratio = (s_1 - fwd_sigma) / fwd_sigma
     except:
         ff_ratio = 0
     
     return ff_ratio * 100
+
+def get_risk_free_rate_estimate(days_to_expiration):
+            """Simple estimate based on current yield curve"""
+            if days_to_expiration <= 30:
+                return 0.0393  # 3-month rate
+            elif days_to_expiration <= 365:
+                return 0.0370  # 1-year rate
+            else:
+                return 0.0408  # 10-year rate
+
+def calculate_implied_volatility(
+    option_price: float, S: float, K: float, T: float, r: float, option_type: str
+):
+    """
+    Calculate implied volatility using the Black-Scholes model.
+
+    Args:
+        option_price: Market price of the option
+        S: Current stock price (underlying asset price)
+        K: Strike price of the option
+        T: Time to expiration in years
+        r: Risk-free interest rate
+        option_type: Type of option (ContractType.CALL or ContractType.PUT)
+
+    Returns:
+        Implied volatility as a float, or None if calculation fails
+    """
+    # Define a reasonable range for sigma
+    sigma_lower = 1e-6
+    sigma_upper = 5.0  # Adjust upper limit if necessary
+
+    # Check if the option is out-of-the-money and price is close to zero
+    intrinsic_value = max(0, (S - K) if option_type == "call" else (K - S))
+    if option_price <= intrinsic_value + 1e-6:
+        # print("Option price is close to intrinsic value; implied volatility is near zero.") # Uncomment for checking the status
+        return 0.0
+
+    # Define the function to find the root
+    def option_price_diff(sigma: float) -> float:
+        d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+        d2 = d1 - sigma * np.sqrt(T)
+        if option_type == "call":
+            price = S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
+        elif option_type == "put":
+            price = K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
+        return price - option_price
+
+    try:
+        return brentq(option_price_diff, sigma_lower, sigma_upper)
+    except ValueError as e:
+#         print(f"Failed to find implied volatility: {e}")
+        return None
+    
+def calculate_delta_historical(
+    option_price: float,
+    strike_price: float,
+    expiry: pd.Timestamp,
+    underlying_price: float,
+    risk_free_rate: float,
+    option_type: str,
+    timestamp: pd.Timestamp,
+):
+    """
+    Calculate option delta using historical data and the Black-Scholes model.
+
+    Args:
+        option_price: Market price of the option
+        strike_price: Strike price of the option
+        expiry: Option expiration datetime
+        underlying_price: Current price of underlying asset
+        risk_free_rate: Risk-free interest rate
+        option_type: Type of option ('call' or 'put')
+        timestamp: Current timestamp for calculation
+
+    Returns:
+        Option delta as a float, or None if calculation fails
+    """
+    # Calculate the time to expiry in years
+    T = (expiry - timestamp).total_seconds() / (365 * 24 * 60 * 60)
+    # Set minimum T to avoid zero
+    T = max(T, 1e-6)
+
+    if T == 1e-6:
+#         print("Option has expired or is expiring now; setting delta based on intrinsic value.")
+        if option_type == "put":
+            return -1.0 if underlying_price < strike_price else 0.0
+        else:
+            return 1.0 if underlying_price > strike_price else 0.0
+
+    implied_volatility = calculate_implied_volatility(
+        option_price, underlying_price, strike_price, T, risk_free_rate, option_type
+    )
+    if implied_volatility is None or implied_volatility <= 1e-6:
+        # print("Implied volatility could not be determined, skipping delta calculation.")
+        return None
+
+    d1 = (
+        np.log(underlying_price / strike_price)
+        + (risk_free_rate + 0.5 * implied_volatility**2) * T
+    ) / (implied_volatility * np.sqrt(T))
+    delta = norm.cdf(d1) if option_type == "call" else -norm.cdf(-d1)
+    return delta
+
+##############################################
+############### API Functions ################
+##############################################
 
 def get_current_value(symbol, headers):
     
@@ -215,72 +263,212 @@ def get_options_information(symbol, start_day_offset, end_day_offset, option_typ
 
     return option_details, strike_group, current_price
 
-def filter_option_trades_by_ff(current_price, strike_group, min_time_distance, max_time_distance, min_ff_perc, current_date = 'now', print_output = True):
+def get_historical_options_data(option_symbols, current_date, stock_data, timeframe = '1D', headers = None):
     
-    return_list = []
-    # Print out all calendar spreads with a forward factor >= 20%
-    for key in strike_group:
-        
-        if print_output:
-            print (f"############################################\n####### Strike Price (Current Price) #######\n############## {key} ({current_price}) ################\n############################################\n")
-        df = strike_group[key]
-        
-        if current_date == 'now':
-            now = datetime.now()
-        else: 
-            now = pd.to_datetime(current_date, utc = True)
+    options_price_tracker = {}
+    options_symbols = ",".join(option_symbols)
+    start_date = str(current_date.date())
+    end_date = current_date + timedelta(30)
 
-        col_names = list(df.columns)
-        exp_idx = col_names.index('Expiration Date')
-        iv_idx = col_names.index('IV')
-        
-        try:
-            sell_idx = col_names.index('Sell Price')
-            buy_idx = col_names.index('Buy Price')
-        except:
-            sell_idx = col_names.index('Low Option Price')
-            buy_idx = col_names.index('High Option Price')
-        
-        for idx in range(df.shape[0]):
+    url = f"https://data.alpaca.markets/v1beta1/options/bars?symbols={options_symbols}&timeframe={timeframe}&start={start_date}&limit=1000&sort=asc"
+    response = requests.get(url, headers=headers).text
+    data = json.loads(response)
 
-            out_list = []
+    # Accumulate all pages of results per symbol
+    combined_bars = data.get('bars', {})
+    next_token = data.get('next_page_token')
+    while next_token is not None:
+        url = f"https://data.alpaca.markets/v1beta1/options/bars?symbols={options_symbols}&timeframe={timeframe}&start={start_date}&limit=1000&sort=asc&page_token={next_token}"
+        page = json.loads(requests.get(url, headers=headers).text)
+        for sym, rows in page.get('bars', {}).items():
+            if sym in combined_bars:
+                combined_bars[sym].extend(rows)
+            else:
+                combined_bars[sym] = rows
+        next_token = page.get('next_page_token')
 
-            dte_1 = (pd.to_datetime(df.values[idx][exp_idx], utc = True) - pd.to_datetime(now, utc = True)).days
-            iv_1 = df.values[idx][iv_idx]
+    for op_symbol in combined_bars:
+        df = []
+        for idx in range(len(combined_bars[op_symbol])):
+
+            mid_op_price = combined_bars[op_symbol][idx]['c']
+            high_op_price = combined_bars[op_symbol][idx]['h']
+            low_op_price = combined_bars[op_symbol][idx]['l']
+            cur_date = pd.to_datetime(combined_bars[op_symbol][idx]['t'])
+            # Find matching stock price for the same date; skip if missing
+            try:
+                cur_stock_price = stock_data[(stock_data['Date'].dt.date == pd.to_datetime(cur_date, utc = True).date())]['Mid'].values[0]
+            except Exception:
+                continue
+            strike_price = extract_strike_price_from_symbol(op_symbol)
+            exp_date = pd.to_datetime(op_symbol[-15:-9], format = '%y%m%d', utc = True)
+            if op_symbol[-9] == 'P':
+                op_type = 'put'
+            elif op_symbol[-9] == 'C':
+                op_type = 'call'
+            dte = (exp_date - cur_date).days
+
+            if dte > 0:
+
+                iv = calculate_implied_volatility(option_price = mid_op_price,
+                                                  S = cur_stock_price,
+                                                  K = strike_price,
+                                                  T =  dte / 365,
+                                                  r = get_risk_free_rate_estimate(dte),
+                                                  option_type = op_type)
+
+                delta = calculate_delta_historical(option_price = mid_op_price,
+                                                   strike_price = strike_price,
+                                                   expiry = pd.Timestamp(exp_date),
+                                                   underlying_price = cur_stock_price,
+                                                   risk_free_rate = get_risk_free_rate_estimate(dte),
+                                                   option_type = op_type,
+                                                   timestamp = pd.Timestamp(cur_date))
+
+                # Add bounds to IV calculation
+                if iv is not None and (iv < 0 or iv > 5):  # IV > 500% is suspicious
+                    print(f"Unusual IV={iv:.2f} for {op_symbol} on {cur_date}")
+                    iv = None  # or skip this data point
+
+                # Delta should be bounded
+                if op_type == 'call' and delta is not None and (delta < 0 or delta > 1):
+                    print(f"Invalid call delta={delta:.2f} for {op_symbol}")
+                    delta = None
+
+                if op_type == 'put' and delta is not None and (delta < -1 or delta > 0):
+                    print(f"Invalid put delta={delta:.2f} for {op_symbol}")
+                    delta = None
+
+
+                if iv != 0 and iv is not None and delta is not None:
+                    df.append([op_symbol, high_op_price, mid_op_price, low_op_price, cur_date, cur_stock_price, strike_price, exp_date, op_type, iv, delta, dte])
+
+
+        df = pd.DataFrame(df)
+        if df.shape[0] != 0:
             
-            out_list.append(df.values[idx])
+            df.columns = ['Symbol', 'High Option Price', 'Current Option Price', 'Low Option Price', 'Current Date', 'Current Stock Price', 'Strike Price', 'Expiration Date', 'Type', 'IV', 'Delta', 'DTE']
 
-            for j in range(idx + 1, df.shape[0]):
-                dte_2 = (pd.to_datetime(df.values[j][exp_idx], utc = True) - pd.to_datetime(now, utc = True)).days
-                iv_2 = df.values[j][iv_idx]
+            options_price_tracker[op_symbol] = df
+            options_price_tracker[op_symbol] = options_price_tracker[op_symbol].sort_values(by = 'Current Date').reset_index(drop = True)
+        
+    return options_price_tracker
 
-                if (dte_2 - dte_1 >= min_time_distance) and (dte_2 - dte_1 <= max_time_distance):
-                    f_ratio = forward_ratio(dte_1, dte_2, iv_1, iv_2)
+def get_historical_stock_price(symbol, timeframe, historical_start_date, historical_end_date = 'now', headers = None):
+    
+    if historical_end_date == 'now':
+        now = datetime.now()
+        historical_end_date = str(now.date())
+    c = []
+    h = []
+    l = []
+    t = []
 
-                    if f_ratio >= min_ff_perc:
-                        
-                        if print_output:
-                            print (f"Forward Ratio: {f_ratio:.3f}% | DTE Front (Sell): {dte_1} | DTE Back (Buy): {dte_2}")
-                        out_list.append(df.values[j])
-                        
-                        net_position = out_list[0][sell_idx] - out_list[1][buy_idx] # sell price - buy price
-                        
-                        out_pd = pd.DataFrame(out_list)
-                        out_pd.columns = col_names
-                        
-                        out_pd['Forward Factor'] = [f_ratio, f_ratio]
-                        out_pd['Net'] = [net_position, net_position]
-                        
-                        if print_output:
-                            display(out_pd)
-                        return_list.append(out_pd)
-                        out_list = out_list[:-1]
-                        
-    return return_list
+    url = f"https://data.alpaca.markets/v2/stocks/bars?symbols={symbol}&timeframe={timeframe}&start={historical_start_date}&end={historical_end_date}&limit=1000&adjustment=raw&feed=iex&sort=asc"
+    response = requests.get(url, headers = headers)
 
+    data = json.loads(response.text)
+    for idx in range(len(data['bars'][symbol])):
+        c.append(data['bars'][symbol][idx]['c'])
+        h.append(data['bars'][symbol][idx]['h'])    
+        l.append(data['bars'][symbol][idx]['l'])    
+        t.append(data['bars'][symbol][idx]['t'])
 
+    while data['next_page_token'] is not None:
+        url = f"https://data.alpaca.markets/v2/stocks/bars?symbols={symbol}&timeframe={timeframe}&start={historical_start_date}&end={historical_end_date}&limit=1000&adjustment=raw&feed=iex&sort=asc&page_token={data['next_page_token']}"
+        response = requests.get(url, headers = headers)
+        data = json.loads(response.text)
+        for idx in range(len(data['bars'][symbol])):
+            c.append(data['bars'][symbol][idx]['c'])
+            h.append(data['bars'][symbol][idx]['h'])    
+            l.append(data['bars'][symbol][idx]['l'])    
+            t.append(data['bars'][symbol][idx]['t'])    
 
-def get_historical_magnitude_plots(symbol, timeframe, historical_start_date, historical_end_date = 'now', day_offsets = [30, 60, 90, 180]):
+    c = np.array(c)
+    h = np.array(h)
+    l = np.array(l)
+    t = np.array([pd.to_datetime(x) for x in t])
+    
+    return c, h, l, t
+
+def _opt_cache_path(symbol: str, timeframe: str) -> Path:
+    # One file per symbol per timeframe
+    safe_symbol = symbol.replace('/', '_')
+    return CACHE_ROOT / timeframe / f'{safe_symbol}.pkl'
+
+def _load_cached_df(path: Path):
+    if path.exists():
+        try:
+            return pd.read_pickle(path)
+        except Exception:
+            return None
+    return None
+
+def _save_cached_df(path: Path, df: pd.DataFrame):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_pickle(path)
+
+def get_historical_options_data_cached(option_symbols, current_date, stock_data, timeframe, headers):
+    """
+    Cache-aware wrapper around get_historical_options_data.
+    - Loads per-symbol DataFrames from disk if present
+    - If cache is stale (max Current Date < current_date), fetches updates and merges
+    - Saves updated DataFrames back to disk
+    Returns a dict[symbol] -> DataFrame, same as the original function.
+    """
+    current_date = pd.to_datetime(current_date)
+    result = {}
+    to_fetch = set()
+
+    # Attempt to load from cache and detect staleness
+    for sym in option_symbols:
+        path = _opt_cache_path(sym, timeframe)
+        df_cached = _load_cached_df(path)
+        if df_cached is None or len(df_cached) == 0:
+            to_fetch.add(sym)
+        else:
+            result[sym] = df_cached
+            if 'Current Date' in df_cached.columns:
+                try:
+                    max_dt = pd.to_datetime(df_cached['Current Date']).max()
+                    if pd.isna(max_dt) or max_dt.date() < current_date.date():
+                        to_fetch.add(sym)
+                except Exception:
+                    # If parsing fails, refetch this symbol
+                    to_fetch.add(sym)
+            else:
+                # Schema missing, refetch
+                to_fetch.add(sym)
+
+    # Fetch missing or stale symbols via API
+    if len(to_fetch) > 0:
+        fetched = get_historical_options_data(
+            option_symbols=list(to_fetch),
+            current_date=current_date,
+            stock_data=stock_data,
+            timeframe=timeframe,
+            headers=headers,
+        )
+        for sym, df_new in fetched.items():
+            if sym in result and result[sym] is not None and len(result[sym]) > 0:
+                combined = pd.concat([result[sym], df_new], ignore_index=True)
+                # Deduplicate by date if available
+                if 'Current Date' in combined.columns:
+                    combined['Current Date'] = pd.to_datetime(combined['Current Date'])
+                    combined.drop_duplicates(subset=['Current Date'], keep='last', inplace=True)
+                result[sym] = combined
+            else:
+                result[sym] = df_new
+            # Persist
+            _save_cached_df(_opt_cache_path(sym, timeframe), result[sym])
+
+    return result
+
+##############################################
+########### Prediction Functions #############
+##############################################
+
+def get_historical_magnitude_plots(symbol, timeframe, historical_start_date, historical_end_date = 'now', day_offsets = [30, 60, 90, 180], headers = None):
     
     
     if historical_end_date == 'now':
@@ -317,7 +505,7 @@ def get_historical_magnitude_plots(symbol, timeframe, historical_start_date, his
     t = np.array([pd.to_datetime(x) for x in t])
     
     plt.figure(figsize = (15, 5))
-    plt.title(f"{symbol}: {start_date} - {end_date}")
+    plt.title(f"{symbol}: {historical_start_date} - {historical_end_date}")
     plt.plot(t, c)
     plt.xlabel('Closing Price')
     plt.ylabel('Time')
@@ -386,7 +574,6 @@ def get_historical_magnitude_plots(symbol, timeframe, historical_start_date, his
         axs[1][1].legend()
 
         plt.show()
-        
         
 def get_prediction_error(symbol, timeframe, train_start_date, train_end_date, test_start_date, test_end_date, headers):
 
@@ -505,85 +692,98 @@ def get_prediction_error(symbol, timeframe, train_start_date, train_end_date, te
     plt.ylabel('Frequency')
     plt.show()
     
-def get_historical_options_data(option_symbols, current_date, stock_data, timeframe = '1D', headers = None):
+##############################################
+######## Options Strategy Functions ##########
+##############################################
+
+def filter_option_trades_by_ff(current_price, strike_group, min_time_distance, max_time_distance, min_ff_perc, max_ff_perc, current_date = 'now', print_output = True):
     
-    options_price_tracker = {}
-    options_symbols = ",".join(option_symbols)
-    start_date = str(current_date.date())
-    end_date = current_date + timedelta(30)
-
-    url = f"https://data.alpaca.markets/v1beta1/options/bars?symbols={options_symbols}&timeframe={timeframe}&start={start_date}&limit=1000&sort=asc"
-    response = requests.get(url, headers=headers).text
-    data = json.loads(response)
-
-
-    while data['next_page_token'] is not None:
-        url = f"https://data.alpaca.markets/v1beta1/options/bars?symbols={options_symbols}&timeframe={timeframe}&start={start_date}&limit=1000&sort=asc&page_token={data['next_page_token']}"
-        data = json.loads(requests.get(url, headers=headers).text)
-
-    for op_symbol in data['bars']:    
-        df = []
-        for idx in range(len(data['bars'][op_symbol])):
-
-            mid_op_price = data['bars'][op_symbol][idx]['c']
-            high_op_price = data['bars'][op_symbol][idx]['h']
-            low_op_price = data['bars'][op_symbol][idx]['l']
-            cur_date = pd.to_datetime(data['bars'][op_symbol][idx]['t'])
-            cur_stock_price = stock_data[(stock_data['Date'].dt.date == pd.to_datetime(cur_date, utc = True).date())]['Mid'].values[0]
-            strike_price = extract_strike_price_from_symbol(op_symbol)
-            exp_date = pd.to_datetime(op_symbol[-15:-9], format = '%y%m%d', utc = True)
-            if op_symbol[-9] == 'P':
-                op_type = 'put'
-            elif op_symbol[-9] == 'C':
-                op_type = 'call'
-            dte = (exp_date - cur_date).days
-
-            if dte > 0:
-
-                iv = calculate_implied_volatility(option_price = mid_op_price,
-                                                  S = cur_stock_price,
-                                                  K = strike_price,
-                                                  T =  dte / 365,
-                                                  r = get_risk_free_rate_estimate(dte),
-                                                  option_type = op_type)
-
-                delta = calculate_delta_historical(option_price = mid_op_price,
-                                                   strike_price = strike_price,
-                                                   expiry = pd.Timestamp(exp_date),
-                                                   underlying_price = cur_stock_price,
-                                                   risk_free_rate = get_risk_free_rate_estimate(dte),
-                                                   option_type = op_type,
-                                                   timestamp = pd.Timestamp(cur_date))
-
-                # Add bounds to IV calculation
-                if iv is not None and (iv < 0 or iv > 5):  # IV > 500% is suspicious
-                    print(f"Unusual IV={iv:.2f} for {op_symbol} on {cur_date}")
-                    iv = None  # or skip this data point
-
-                # Delta should be bounded
-                if op_type == 'call' and delta is not None and (delta < 0 or delta > 1):
-                    print(f"Invalid call delta={delta:.2f} for {op_symbol}")
-                    delta = None
-
-                if op_type == 'put' and delta is not None and (delta < -1 or delta > 0):
-                    print(f"Invalid put delta={delta:.2f} for {op_symbol}")
-                    delta = None
-
-
-                if iv != 0 and iv is not None and delta is not None:
-                    df.append([op_symbol, high_op_price, mid_op_price, low_op_price, cur_date, cur_stock_price, strike_price, exp_date, op_type, iv, delta, dte])
-
-
-        df = pd.DataFrame(df)
-        if df.shape[0] != 0:
-            
-            df.columns = ['Symbol', 'High Option Price', 'Current Option Price', 'Low Option Price', 'Current Date', 'Current Stock Price', 'Strike Price', 'Expiration Date', 'Type', 'IV', 'Delta', 'DTE']
-
-            options_price_tracker[op_symbol] = df
-            options_price_tracker[op_symbol] = options_price_tracker[op_symbol].sort_values(by = 'Current Date').reset_index(drop = True)
+    return_list = []
+    # Print out all calendar spreads with a forward factor >= 20%
+    for key in strike_group:
         
-    return options_price_tracker
+        if print_output:
+            print (f"############################################\n####### Strike Price (Current Price) #######\n############## {key} ({current_price}) ################\n############################################\n")
+        df = strike_group[key]
+        
+        if current_date == 'now':
+            now = datetime.now()
+        else: 
+            now = pd.to_datetime(current_date, utc = True)
 
+        col_names = list(df.columns)
+        exp_idx = col_names.index('Expiration Date')
+        iv_idx = col_names.index('IV')
+        
+        try:
+            sell_idx = col_names.index('Sell Price')
+            buy_idx = col_names.index('Buy Price')
+        except:
+            sell_idx = col_names.index('Low Option Price')
+            buy_idx = col_names.index('High Option Price')
+        
+        for idx in range(df.shape[0]):
+
+            out_list = []
+
+            dte_1 = (pd.to_datetime(df.values[idx][exp_idx], utc = True) - pd.to_datetime(now, utc = True)).days
+            iv_1 = df.values[idx][iv_idx]
+            
+            out_list.append(df.values[idx])
+
+            for j in range(idx + 1, df.shape[0]):
+                dte_2 = (pd.to_datetime(df.values[j][exp_idx], utc = True) - pd.to_datetime(now, utc = True)).days
+                iv_2 = df.values[j][iv_idx]
+
+                if (dte_2 - dte_1 >= min_time_distance) and (dte_2 - dte_1 <= max_time_distance):
+                    f_ratio = forward_ratio(dte_1, dte_2, iv_1, iv_2)
+
+                    if f_ratio >= min_ff_perc and f_ratio <= max_ff_perc:
+                        
+                        if print_output:
+                            print (f"Forward Ratio: {f_ratio:.3f}% | DTE Front (Sell): {dte_1} | DTE Back (Buy): {dte_2}")
+                        out_list.append(df.values[j])
+                        
+                        net_position = out_list[0][sell_idx] - out_list[1][buy_idx] # sell price - buy price
+                        
+                        out_pd = pd.DataFrame(out_list)
+                        out_pd.columns = col_names
+                        
+                        out_pd['Forward Factor'] = [f_ratio, f_ratio]
+                        out_pd['Net'] = [net_position, net_position]
+                        
+                        if print_output:
+                            display(out_pd)
+                        return_list.append(out_pd)
+                        out_list = out_list[:-1]
+                        
+    return return_list
+
+##############################################
+############ Backtest Functions ##############
+##############################################
+    
+def extract_strike_price_from_symbol(symbol: str) -> float:
+    """
+    Extract strike price from option symbol.
+    Converts last 8 digits of option symbol to strike price by dividing by 1000.
+
+    Args:
+        symbol: Option symbol (e.g., 'SPY250616P00571000')
+
+    Returns:
+        float: Strike price (e.g., 571.0) or 0.0 if invalid format
+    """
+    # Option symbols typically have format: TICKER + YYMMDD + (C/P) + 8-digit strike price
+    # The last 8 digits represent strike price * 1000
+    try:
+        # Extract the last 8 digits and convert to strike price
+        strike_str = symbol[-8:]
+        strike_price = float(strike_str) / 1000.0
+        return strike_price
+    except (ValueError, IndexError):
+        print(f"Warning: Could not extract strike price from symbol {symbol}")
+        return 0.0
     
 def generate_option_symbols(symbol, current_date, end_date_delta, min_strike, max_strike, strike_increment, op_type):
 
@@ -613,171 +813,14 @@ def generate_option_symbols(symbol, current_date, end_date_delta, min_strike, ma
             current_strike += strike_increment
 
     return option_symbols
-
-def get_risk_free_rate_estimate(days_to_expiration):
-            """Simple estimate based on current yield curve"""
-            if days_to_expiration <= 30:
-                return 0.0393  # 3-month rate
-            elif days_to_expiration <= 365:
-                return 0.0370  # 1-year rate
-            else:
-                return 0.0408  # 10-year rate
-
-# Calculate implied volatility
-def calculate_implied_volatility(
-    option_price: float, S: float, K: float, T: float, r: float, option_type: str
-):
-    """
-    Calculate implied volatility using the Black-Scholes model.
-
-    Args:
-        option_price: Market price of the option
-        S: Current stock price (underlying asset price)
-        K: Strike price of the option
-        T: Time to expiration in years
-        r: Risk-free interest rate
-        option_type: Type of option (ContractType.CALL or ContractType.PUT)
-
-    Returns:
-        Implied volatility as a float, or None if calculation fails
-    """
-    # Define a reasonable range for sigma
-    sigma_lower = 1e-6
-    sigma_upper = 5.0  # Adjust upper limit if necessary
-
-    # Check if the option is out-of-the-money and price is close to zero
-    intrinsic_value = max(0, (S - K) if option_type == "call" else (K - S))
-    if option_price <= intrinsic_value + 1e-6:
-        # print("Option price is close to intrinsic value; implied volatility is near zero.") # Uncomment for checking the status
-        return 0.0
-
-    # Define the function to find the root
-    def option_price_diff(sigma: float) -> float:
-        d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-        d2 = d1 - sigma * np.sqrt(T)
-        if option_type == "call":
-            price = S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
-        elif option_type == "put":
-            price = K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
-        return price - option_price
-
-    try:
-        return brentq(option_price_diff, sigma_lower, sigma_upper)
-    except ValueError as e:
-#         print(f"Failed to find implied volatility: {e}")
-        return None
     
-# Calculate historical option Delta
-def calculate_delta_historical(
-    option_price: float,
-    strike_price: float,
-    expiry: pd.Timestamp,
-    underlying_price: float,
-    risk_free_rate: float,
-    option_type: str,
-    timestamp: pd.Timestamp,
-):
-    """
-    Calculate option delta using historical data and the Black-Scholes model.
+def get_single_position_value(position):
 
-    Args:
-        option_price: Market price of the option
-        strike_price: Strike price of the option
-        expiry: Option expiration datetime
-        underlying_price: Current price of underlying asset
-        risk_free_rate: Risk-free interest rate
-        option_type: Type of option ('call' or 'put')
-        timestamp: Current timestamp for calculation
+    short_pnl = (position['short_entry_price'] - position['current_short_price']) * 100 * position['num_contracts']
+    long_pnl = (position['current_long_price'] - position['long_entry_price']) * 100 * position['num_contracts']
+    total_pnl = short_pnl + long_pnl
 
-    Returns:
-        Option delta as a float, or None if calculation fails
-    """
-    # Calculate the time to expiry in years
-    T = (expiry - timestamp).total_seconds() / (365 * 24 * 60 * 60)
-    # Set minimum T to avoid zero
-    T = max(T, 1e-6)
-
-    if T == 1e-6:
-#         print("Option has expired or is expiring now; setting delta based on intrinsic value.")
-        if option_type == "put":
-            return -1.0 if underlying_price < strike_price else 0.0
-        else:
-            return 1.0 if underlying_price > strike_price else 0.0
-
-    implied_volatility = calculate_implied_volatility(
-        option_price, underlying_price, strike_price, T, risk_free_rate, option_type
-    )
-    if implied_volatility is None or implied_volatility <= 1e-6:
-        # print("Implied volatility could not be determined, skipping delta calculation.")
-        return None
-
-    d1 = (
-        np.log(underlying_price / strike_price)
-        + (risk_free_rate + 0.5 * implied_volatility**2) * T
-    ) / (implied_volatility * np.sqrt(T))
-    delta = norm.cdf(d1) if option_type == "call" else -norm.cdf(-d1)
-    return delta
-
-def extract_strike_price_from_symbol(symbol: str) -> float:
-    """
-    Extract strike price from option symbol.
-    Converts last 8 digits of option symbol to strike price by dividing by 1000.
-
-    Args:
-        symbol: Option symbol (e.g., 'SPY250616P00571000')
-
-    Returns:
-        float: Strike price (e.g., 571.0) or 0.0 if invalid format
-    """
-    # Option symbols typically have format: TICKER + YYMMDD + (C/P) + 8-digit strike price
-    # The last 8 digits represent strike price * 1000
-    try:
-        # Extract the last 8 digits and convert to strike price
-        strike_str = symbol[-8:]
-        strike_price = float(strike_str) / 1000.0
-        return strike_price
-    except (ValueError, IndexError):
-        print(f"Warning: Could not extract strike price from symbol {symbol}")
-        return 0.0
-    
-    
-def get_historical_stock_price(symbol, timeframe, historical_start_date, historical_end_date = 'now', headers = None):
-    
-    if historical_end_date == 'now':
-        now = datetime.now()
-        historical_end_date = str(now.date())
-    c = []
-    h = []
-    l = []
-    t = []
-
-    url = f"https://data.alpaca.markets/v2/stocks/bars?symbols={symbol}&timeframe={timeframe}&start={historical_start_date}&end={historical_end_date}&limit=1000&adjustment=raw&feed=iex&sort=asc"
-    response = requests.get(url, headers = headers)
-
-    data = json.loads(response.text)
-    for idx in range(len(data['bars'][symbol])):
-        c.append(data['bars'][symbol][idx]['c'])
-        h.append(data['bars'][symbol][idx]['h'])    
-        l.append(data['bars'][symbol][idx]['l'])    
-        t.append(data['bars'][symbol][idx]['t'])
-
-    while data['next_page_token'] is not None:
-        url = f"https://data.alpaca.markets/v2/stocks/bars?symbols={symbol}&timeframe={timeframe}&start={historical_start_date}&end={historical_end_date}&limit=1000&adjustment=raw&feed=iex&sort=asc&page_token={data['next_page_token']}"
-        response = requests.get(url, headers = headers)
-        data = json.loads(response.text)
-        for idx in range(len(data['bars'][symbol])):
-            c.append(data['bars'][symbol][idx]['c'])
-            h.append(data['bars'][symbol][idx]['h'])    
-            l.append(data['bars'][symbol][idx]['l'])    
-            t.append(data['bars'][symbol][idx]['t'])    
-
-    c = np.array(c)
-    h = np.array(h)
-    l = np.array(l)
-    t = np.array([pd.to_datetime(x) for x in t])
-    
-    return c, h, l, t
-
+    return total_pnl
 
 def get_all_open_positions_value(open_positions):
     
@@ -788,14 +831,6 @@ def get_all_open_positions_value(open_positions):
     
     return open_positions_value
 
-def get_single_position_value(position):
-
-    short_pnl = (position['short_entry_price'] - position['current_short_price']) * 100 * position['num_contracts']
-    long_pnl = (position['current_long_price'] - position['long_entry_price']) * 100 * position['num_contracts']
-    total_pnl = short_pnl + long_pnl
-
-    return total_pnl
-    
 def execute_identified_trades(list_of_options_dataframes, open_positions, current_cash, current_date, trade_id_counter, total_capital_deployed, max_number_of_open_positions, stock_strike_deviation_limit = 0.1, max_position_ratio_of_capital_per_trade = 0.02):
 
     num_trades_executed_today = 0
@@ -826,6 +861,9 @@ def execute_identified_trades(list_of_options_dataframes, open_positions, curren
             net_debit = (long_leg_price - short_leg_price) * 100  # Per contract
 
             # Position sizing: don't exceed max_position_ratio_of_capital of portfolio
+            open_positions_value = get_all_open_positions_value(open_positions)
+            current_portfolio_value = current_cash + open_positions_value
+            
             max_position_value = current_portfolio_value * max_position_ratio_of_capital_per_trade
             num_contracts = max(1, int(max_position_value / net_debit))
 
@@ -854,6 +892,10 @@ def execute_identified_trades(list_of_options_dataframes, open_positions, curren
                 'entry_credit' : -total_cost,
                 'entry_stock_price': trade['Current Stock Price'][0],
                 'strike': strike,
+                'IV Short' : trade['IV'][0],
+                'IV Long' : trade['IV'][1],
+                'Delta_Short' : trade['Delta'][0],
+                'Delta_Long' : trade['Delta'][1],
                 'option_type': option_type,
                 'short_leg': short_leg_symbol,
                 'long_leg': long_leg_symbol,
@@ -867,7 +909,8 @@ def execute_identified_trades(list_of_options_dataframes, open_positions, curren
                 'current_long_price': long_leg_price,
                 'current_pnl': -total_cost, # Net Debit Position 
                 'forward_factor' : forward_factor,
-                'status': 'open'
+                'status': 'open', 
+                'spread_distance': (long_expiry - short_expiry).days
             }
             
             
@@ -875,8 +918,7 @@ def execute_identified_trades(list_of_options_dataframes, open_positions, curren
 
     return open_positions, num_trades_executed_today, current_cash, trade_id_counter
 
-
-def exit_short_leg(position, current_date, options_price_tracker, reason = None):
+def exit_short_leg(position, current_date, options_price_tracker, reason = None, stock_data: pd.DataFrame | None = None):
 
     if position['short_leg'] in options_price_tracker:
         
@@ -894,25 +936,31 @@ def exit_short_leg(position, current_date, options_price_tracker, reason = None)
             position['short_exit_date'] = current_date.date()
 
         if len(short_leg_data) > 0:
-            short_exit_price = short_leg_data.iloc[-1]['High Option Price']
+            # Use current/mid price for consistency
+            price_col = 'Current Option Price' if 'Current Option Price' in short_leg_data.columns else 'High Option Price'
+            short_exit_price = short_leg_data.iloc[-1][price_col]
         
         # Assume the option was executed 
         else:
 
             # Calculate intrinsic value at expiry
-            stock_price_at_expiry = stock_data[stock_data['Date'].dt.date == position['short_expiry'].date()]['Low'].values[0]
-            
-            if position['option_type'] == 'call':
-                short_exit_price = max(0, stock_price_at_expiry - position['strike'])
-            
-            else:  # put
-                short_exit_price = max(0, position['strike'] - stock_price_at_expiry)
+            if stock_data is not None:
+                try:
+                    stock_price_at_expiry = stock_data[stock_data['Date'].dt.date == position['short_expiry'].date()]['Low'].values[0]
+                    if position['option_type'] == 'call':
+                        short_exit_price = max(0, stock_price_at_expiry - position['strike'])
+                    else:  # put
+                        short_exit_price = max(0, position['strike'] - stock_price_at_expiry)
+                except Exception:
+                    short_exit_price = 0
+            else:
+                short_exit_price = 0
     else:
         short_exit_price = 0  # Assume worthless if no data
 
     position['current_short_price'] = short_exit_price
     
-def exit_long_leg(position, current_date, current_cash, options_price_tracker, reason = None):
+def exit_long_leg(position, current_date, current_cash, options_price_tracker, reason = None, stock_data: pd.DataFrame | None = None):
 
     # Long leg expired - close position
     if position['long_leg'] in options_price_tracker:
@@ -929,23 +977,31 @@ def exit_long_leg(position, current_date, current_cash, options_price_tracker, r
 
         
         if len(long_leg_data) > 0:
-            long_exit_price = long_leg_data.iloc[-1]['Low Option Price']
+            # Use current/mid price for consistency
+            price_col = 'Current Option Price' if 'Current Option Price' in long_leg_data.columns else 'Low Option Price'
+            long_exit_price = long_leg_data.iloc[-1][price_col]
         
         # Assume the option was executed
         else:
             # Calculate intrinsic value at expiry
-            stock_price_at_expiry = stock_data[stock_data['Date'].dt.date == position['long_expiry'].date()]['High'].values[0]
-            if position['option_type'] == 'call':
-                long_exit_price = max(0, stock_price_at_expiry - position['strike'])
-            else:  # put
-                long_exit_price = max(0, position['strike'] - stock_price_at_expiry)
+            if stock_data is not None:
+                try:
+                    stock_price_at_expiry = stock_data[stock_data['Date'].dt.date == position['long_expiry'].date()]['High'].values[0]
+                    if position['option_type'] == 'call':
+                        long_exit_price = max(0, stock_price_at_expiry - position['strike'])
+                    else:  # put
+                        long_exit_price = max(0, position['strike'] - stock_price_at_expiry)
+                except Exception:
+                    long_exit_price = 0
+            else:
+                long_exit_price = 0
     else:
         long_exit_price = 0
         
     
     position['current_long_price'] = long_exit_price
 
-    # Exit overall position (long adn short)
+    # Exit overall position (long and short)
     total_pnl = get_single_position_value(position)
     
     # Return capital plus P&L (return principal + realized P&L)
@@ -959,24 +1015,9 @@ def exit_long_leg(position, current_date, current_cash, options_price_tracker, r
     return current_cash
     
 
-def get_all_open_positions_value(open_positions):
-    
-    open_positions_value = 0
-    for trade_id, position in open_positions.items():
-        if position['status'] == 'open':            
-            open_positions_value += get_single_position_value(position)
-    
-    return open_positions_value
+    # (duplicate helper functions removed below; using single definitions above)
 
-def get_single_position_value(position):
-
-    short_pnl = (position['short_entry_price'] - position['current_short_price']) * 100 * position['num_contracts']
-    long_pnl = (position['current_long_price'] - position['long_entry_price']) * 100 * position['num_contracts']
-    total_pnl = short_pnl + long_pnl
-
-    return total_pnl
-
-def check_existing_positions(portfolio_history, open_positions, closed_positions, current_date, current_cash, options_price_tracker, short_exit_limits = (-0.4, 0.3), long_exit_limits = (-0.4, 0.3), position_exit_limits = (-0.4, 0.3)):
+def check_existing_positions(portfolio_history, open_positions, closed_positions, current_date, current_cash, options_price_tracker, short_exit_limits = (-0.4, 0.3), long_exit_limits = (-0.4, 0.3), position_exit_limits = (-0.4, 0.3), stock_data = None):
 
     positions_to_close = []
     
@@ -994,7 +1035,7 @@ def check_existing_positions(portfolio_history, open_positions, closed_positions
 
         # Check if short leg has expired
         if current_date >= position['short_expiry']:
-            exit_short_leg(position, current_date, options_price_tracker)
+            exit_short_leg(position, current_date, options_price_tracker, stock_data = stock_data)
             
         else:
 
@@ -1005,7 +1046,7 @@ def check_existing_positions(portfolio_history, open_positions, closed_positions
                 short_current = short_leg_data[short_leg_data['Current Date'].dt.date == current_date.date()]
                 
                 if len(short_current) > 0:
-                    position['current_short_price'] = short_current.iloc[0]['High Option Price']
+                    position['current_short_price'] = short_current.iloc[0]['Current Option Price'] if 'Current Option Price' in short_current.columns else short_current.iloc[0].get('High Option Price', np.nan)
                 else:
                     position['current_short_price'] = 0  # Assume worthless if no data
 
@@ -1013,10 +1054,10 @@ def check_existing_positions(portfolio_history, open_positions, closed_positions
                 short_pnl_ratio = (position['short_entry_price'] - position['current_short_price']) / position['short_entry_price']
 
                 if short_pnl_ratio <= short_exit_limits[0]:
-                    exit_short_leg(position, current_date, options_price_tracker, reason = f'Limit Loss: {short_pnl_ratio * 100:.3f}%')
+                    exit_short_leg(position, current_date, options_price_tracker, reason = f'Limit Loss: {short_pnl_ratio * 100:.3f}%', stock_data = stock_data)
 
                 if short_pnl_ratio >= short_exit_limits[1]:
-                    exit_short_leg(position, current_date, options_price_tracker, reason = f'Profit Reached: {short_pnl_ratio * 100:.3f}%')
+                    exit_short_leg(position, current_date, options_price_tracker, reason = f'Profit Reached: {short_pnl_ratio * 100:.3f}%', stock_data = stock_data)
                     
         ##########################
         ##### Check Long Leg #####
@@ -1043,11 +1084,11 @@ def check_existing_positions(portfolio_history, open_positions, closed_positions
                 long_pnl_ratio = (position['current_long_price'] - position['long_entry_price']) / position['long_entry_price']
 
                 if long_pnl_ratio <= long_exit_limits[0]:
-                    current_cash = exit_long_leg(position, current_date, current_cash, options_price_tracker, reason = f'Limit Loss: {long_pnl_ratio * 100:.3f}%')
+                    current_cash = exit_long_leg(position, current_date, current_cash, options_price_tracker, reason = f'Limit Loss: {long_pnl_ratio * 100:.3f}%', stock_data = stock_data)
                     positions_to_close.append(trade_id)
 
-                if long_pnl_ratio >= long_exit_limits[1]:
-                    current_cash = exit_long_leg(position, current_date, current_cash, options_price_tracker, reason = f'Profit Reached: {long_pnl_ratio * 100:.3f}%')
+                if long_pnl_ratio >= long_exit_limits[1] and current_date >= position['short_expiry']:
+                    current_cash = exit_long_leg(position, current_date, current_cash, options_price_tracker, reason = f'Profit Reached: {long_pnl_ratio * 100:.3f}%', stock_data = stock_data)
                     positions_to_close.append(trade_id)
 
 
@@ -1059,14 +1100,14 @@ def check_existing_positions(portfolio_history, open_positions, closed_positions
         # Check stop loss on TOTAL position
         if position['return_pct'] <= position_exit_limits[0]:
 
-            exit_short_leg(position, current_date, options_price_tracker, reason = f'Position Limit Loss: {position["return_pct"] * 100:.3f}%')
-            current_cash = exit_long_leg(position, current_date, current_cash, options_price_tracker, reason = f'Position Limit Loss: {position["return_pct"] * 100:.3f}%')
+            exit_short_leg(position, current_date, options_price_tracker, reason = f'Position Limit Loss: {position["return_pct"] * 100:.3f}%', stock_data = stock_data)
+            current_cash = exit_long_leg(position, current_date, current_cash, options_price_tracker, reason = f'Position Limit Loss: {position["return_pct"] * 100:.3f}%', stock_data = stock_data)
             positions_to_close.append(trade_id)
             
         # Check profit target
         if position['return_pct'] >= position_exit_limits[1]:
-            exit_short_leg(position, current_date, options_price_tracker, reason = f'Position Profit Reached: {position["return_pct"] * 100:.3f}%')
-            current_cash = exit_long_leg(position, current_date, current_cash, options_price_tracker, reason = f'Position Profit Reached: {position["return_pct"] * 100:.3f}%')
+            exit_short_leg(position, current_date, options_price_tracker, reason = f'Position Profit Reached: {position["return_pct"] * 100:.3f}%', stock_data = stock_data)
+            current_cash = exit_long_leg(position, current_date, current_cash, options_price_tracker, reason = f'Position Profit Reached: {position["return_pct"] * 100:.3f}%', stock_data = stock_data)
             positions_to_close.append(trade_id)
 
     # Move closed positions to closed_positions list
