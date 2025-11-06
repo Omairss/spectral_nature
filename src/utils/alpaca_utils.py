@@ -22,12 +22,6 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from pathlib import Path
 
-# Lightweight display shim for non-notebook environments
-def display(x):
-    try:
-        print(x)
-    except Exception:
-        pass
 
 
 ##############################################
