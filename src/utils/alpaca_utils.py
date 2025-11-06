@@ -22,6 +22,13 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from pathlib import Path
 
+# Lightweight display shim for non-notebook environments
+def display(x):
+    try:
+        print(x)
+    except Exception:
+        pass
+
 
 ##############################################
 ################# Variables ##################
@@ -31,6 +38,8 @@ repo_path = '/Users/zohairshafi/Local Workspace/spectral_nature/'
 notebook_path = os.path.join(repo_path, 'notebooks')
 cache_path = os.path.join(repo_path, 'cache')
 CACHE_ROOT = Path(os.path.join(repo_path, 'cache/options'))
+options_cache_memory = {}  # dict[contract_symbol] -> DataFrame
+
 
 ##############################################
 ############### Math Functions ###############
@@ -74,9 +83,7 @@ def get_risk_free_rate_estimate(days_to_expiration):
             else:
                 return 0.0408  # 10-year rate
 
-def calculate_implied_volatility(
-    option_price: float, S: float, K: float, T: float, r: float, option_type: str
-):
+def calculate_implied_volatility(option_price: float, S: float, K: float, T: float, r: float, option_type: str):
     """
     Calculate implied volatility using the Black-Scholes model.
 
@@ -117,15 +124,7 @@ def calculate_implied_volatility(
 #         print(f"Failed to find implied volatility: {e}")
         return None
     
-def calculate_delta_historical(
-    option_price: float,
-    strike_price: float,
-    expiry: pd.Timestamp,
-    underlying_price: float,
-    risk_free_rate: float,
-    option_type: str,
-    timestamp: pd.Timestamp,
-):
+def calculate_delta_historical(option_price: float, strike_price: float, expiry: pd.Timestamp, underlying_price: float, risk_free_rate: float, option_type: str, timestamp: pd.Timestamp):
     """
     Calculate option delta using historical data and the Black-Scholes model.
 
@@ -166,6 +165,136 @@ def calculate_delta_historical(
     ) / (implied_volatility * np.sqrt(T))
     delta = norm.cdf(d1) if option_type == "call" else -norm.cdf(-d1)
     return delta
+
+def calculate_gamma_historical(option_price: float, strike_price: float, expiry: pd.Timestamp, underlying_price: float, risk_free_rate: float, option_type: str, timestamp: pd.Timestamp):
+    """
+    Calculate option gamma using historical inputs and Black–Scholes.
+
+    Args:
+        option_price: Market price of the option (used to infer IV)
+        strike_price: Strike price of the option
+        expiry: Option expiration datetime
+        underlying_price: Current price of underlying asset
+        risk_free_rate: Annualized risk-free rate (as decimal, e.g., 0.04)
+        option_type: 'call' or 'put' (not used directly in gamma, but kept for parity)
+        timestamp: Current timestamp for calculation
+
+    Returns:
+        Gamma as a float (per $1 change in underlying), or None if calculation fails
+    """
+    # Time to expiry in years; clamp to avoid division by zero
+    T = (expiry - timestamp).total_seconds() / (365 * 24 * 60 * 60)
+    T = max(T, 1e-6)
+
+    if T == 1e-6:
+        return 0.0
+
+    implied_volatility = calculate_implied_volatility(
+        option_price, underlying_price, strike_price, T, risk_free_rate, option_type
+    )
+    if implied_volatility is None or implied_volatility <= 1e-6:
+        return None
+
+    try:
+        d1 = (
+            np.log(underlying_price / strike_price)
+            + (risk_free_rate + 0.5 * implied_volatility**2) * T
+        ) / (implied_volatility * np.sqrt(T))
+        gamma = norm.pdf(d1) / (underlying_price * implied_volatility * np.sqrt(T))
+        return gamma
+    except Exception:
+        return None
+
+def calculate_vega_historical(option_price: float, strike_price: float, expiry: pd.Timestamp, underlying_price: float, risk_free_rate: float, option_type: str, timestamp: pd.Timestamp):
+    """
+    Calculate option vega using historical inputs and Black–Scholes.
+
+    Args:
+        option_price: Market price of the option (used to infer IV)
+        strike_price: Strike price of the option
+        expiry: Option expiration datetime
+        underlying_price: Current price of underlying asset
+        risk_free_rate: Annualized risk-free rate (as decimal, e.g., 0.04)
+        option_type: 'call' or 'put'
+        timestamp: Current timestamp for calculation
+
+    Returns:
+        Vega as a float (price change for a 1.0 change in volatility), or None if calculation fails.
+        Note: To get vega per 1% vol change, multiply this value by 0.01.
+    """
+    # Time to expiry in years; clamp to avoid division by zero
+    T = (expiry - timestamp).total_seconds() / (365 * 24 * 60 * 60)
+    T = max(T, 1e-6)
+
+    if T == 1e-6:
+        return 0.0
+
+    implied_volatility = calculate_implied_volatility(
+        option_price, underlying_price, strike_price, T, risk_free_rate, option_type
+    )
+    if implied_volatility is None or implied_volatility <= 1e-6:
+        return None
+
+    try:
+        d1 = (
+            np.log(underlying_price / strike_price)
+            + (risk_free_rate + 0.5 * implied_volatility**2) * T
+        ) / (implied_volatility * np.sqrt(T))
+        vega = underlying_price * norm.pdf(d1) * np.sqrt(T)
+        return vega
+    except Exception:
+        return None
+
+def calculate_theta_historical(option_price: float, strike_price: float, expiry: pd.Timestamp, underlying_price: float, risk_free_rate: float, option_type: str, timestamp: pd.Timestamp):
+    """
+    Calculate option theta using historical inputs and Black–Scholes.
+
+    Args:
+        option_price: Market price of the option (used to infer IV)
+        strike_price: Strike price of the option
+        expiry: Option expiration datetime
+        underlying_price: Current price of underlying asset
+        risk_free_rate: Annualized risk-free rate (as decimal, e.g., 0.04)
+        option_type: 'call' or 'put'
+        timestamp: Current timestamp for calculation
+
+    Returns:
+        Theta as a float (annualized rate of price decay). For daily theta, divide by 365.
+        Returns None if calculation fails.
+    """
+    # Time to expiry in years; clamp to avoid division by zero
+    T = (expiry - timestamp).total_seconds() / (365 * 24 * 60 * 60)
+    T = max(T, 1e-6)
+
+    if T == 1e-6:
+        # Approaching expiry, theta can be unstable; approximate as 0
+        return 0.0
+
+    implied_volatility = calculate_implied_volatility(
+        option_price, underlying_price, strike_price, T, risk_free_rate, option_type
+    )
+    if implied_volatility is None or implied_volatility <= 1e-6:
+        return None
+
+    try:
+        sqrtT = np.sqrt(T)
+        d1 = (
+            np.log(underlying_price / strike_price)
+            + (risk_free_rate + 0.5 * implied_volatility**2) * T
+        ) / (implied_volatility * sqrtT)
+        d2 = d1 - implied_volatility * sqrtT
+
+        first_term = -(underlying_price * norm.pdf(d1) * implied_volatility) / (2 * sqrtT)
+        if option_type == "call":
+            second_term = -risk_free_rate * strike_price * np.exp(-risk_free_rate * T) * norm.cdf(d2)
+            theta = first_term + second_term
+        else:  # put
+            second_term = risk_free_rate * strike_price * np.exp(-risk_free_rate * T) * norm.cdf(-d2)
+            theta = first_term + second_term
+
+        return theta
+    except Exception:
+        return None
 
 ##############################################
 ############### API Functions ################
@@ -317,8 +446,28 @@ def get_historical_options_data(option_symbols, current_date, stock_data, timefr
                                                   T =  dte / 365,
                                                   r = get_risk_free_rate_estimate(dte),
                                                   option_type = op_type)
-
                 delta = calculate_delta_historical(option_price = mid_op_price,
+                                                   strike_price = strike_price,
+                                                   expiry = pd.Timestamp(exp_date),
+                                                   underlying_price = cur_stock_price,
+                                                   risk_free_rate = get_risk_free_rate_estimate(dte),
+                                                   option_type = op_type,
+                                                   timestamp = pd.Timestamp(cur_date))
+                gamma = calculate_gamma_historical(option_price = mid_op_price,
+                                                   strike_price = strike_price,
+                                                   expiry = pd.Timestamp(exp_date),
+                                                   underlying_price = cur_stock_price,
+                                                   risk_free_rate = get_risk_free_rate_estimate(dte),
+                                                   option_type = op_type,
+                                                   timestamp = pd.Timestamp(cur_date))
+                vega = calculate_vega_historical(option_price = mid_op_price,
+                                                   strike_price = strike_price,
+                                                   expiry = pd.Timestamp(exp_date),
+                                                   underlying_price = cur_stock_price,
+                                                   risk_free_rate = get_risk_free_rate_estimate(dte),
+                                                   option_type = op_type,
+                                                   timestamp = pd.Timestamp(cur_date))
+                theta = calculate_theta_historical(option_price = mid_op_price,
                                                    strike_price = strike_price,
                                                    expiry = pd.Timestamp(exp_date),
                                                    underlying_price = cur_stock_price,
@@ -340,15 +489,14 @@ def get_historical_options_data(option_symbols, current_date, stock_data, timefr
                     print(f"Invalid put delta={delta:.2f} for {op_symbol}")
                     delta = None
 
-
                 if iv != 0 and iv is not None and delta is not None:
-                    df.append([op_symbol, high_op_price, mid_op_price, low_op_price, cur_date, cur_stock_price, strike_price, exp_date, op_type, iv, delta, dte])
+                    df.append([op_symbol, high_op_price, mid_op_price, low_op_price, cur_date, cur_stock_price, strike_price, exp_date, op_type, iv, delta, dte, gamma, vega, theta])
 
 
         df = pd.DataFrame(df)
         if df.shape[0] != 0:
             
-            df.columns = ['Symbol', 'High Option Price', 'Current Option Price', 'Low Option Price', 'Current Date', 'Current Stock Price', 'Strike Price', 'Expiration Date', 'Type', 'IV', 'Delta', 'DTE']
+            df.columns = ['Symbol', 'High Option Price', 'Current Option Price', 'Low Option Price', 'Current Date', 'Current Stock Price', 'Strike Price', 'Expiration Date', 'Type', 'IV', 'Delta', 'DTE', 'Gamma', 'Vega', 'Theta']
 
             options_price_tracker[op_symbol] = df
             options_price_tracker[op_symbol] = options_price_tracker[op_symbol].sort_values(by = 'Current Date').reset_index(drop = True)
@@ -1008,6 +1156,12 @@ def execute_identified_trades(list_of_options_dataframes, open_positions, curren
                 'IV Long' : trade['IV'][1],
                 'Delta_Short' : trade['Delta'][0],
                 'Delta_Long' : trade['Delta'][1],
+                'Gamma Short' : trade['Gamma'][0],
+                'Gamma Long' : trade['Gamma'][1],
+                'Theta Short' : trade['Theta'][0],
+                'Theta Long' : trade['Theta'][1],
+                'Vega Short' : trade['Vega'][0],
+                'Vega Long' : trade['Vega'][1],
                 'option_type': option_type,
                 'short_leg': short_leg_symbol,
                 'long_leg': long_leg_symbol,
@@ -1190,9 +1344,10 @@ def check_existing_positions(portfolio_history, open_positions, closed_positions
                 
                 if len(long_current) > 0:
                     position['current_long_price'] = long_current.iloc[0]['Current Option Price']
+                else:
+                    position['current_long_price'] = 0  # Assume worthless if no data
                 
                 # Limit Loss
-
                 long_pnl_ratio = (position['current_long_price'] - position['long_entry_price']) / position['long_entry_price']
 
                 if long_pnl_ratio <= long_exit_limits[0]:
