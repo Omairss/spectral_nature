@@ -374,6 +374,26 @@ def main_cli(tickers_csv: str, since: Optional[str], cache_mode: str):
         print("Errors:", errs)
     return bundle
 
+def main(tickers_csv: str, cache_mode: str = 'normal', since: Optional[str] = '2018Q1', plot: bool = True):
+    """
+    Back-compat wrapper for front_end_app.app usage:
+      - tickers_csv: 'MSFT' or 'AAPL,MSFT'
+      - cache_mode: 'local' | 'refresh' | 'normal'
+      - since: e.g., '2018Q1'
+      - plot: pass-through to run_quarterly_comparison
+    Returns the same bundle dict shape as main_cli.
+    """
+    if plot is not True:
+        tidy, pivots, errs = run_quarterly_comparison(
+            tickers=[t.strip().upper() for t in tickers_csv.split(',') if t.strip()],
+            since=since,
+            api_key=None,
+            data_dir='../data/stock_fundamental/',
+            plot=plot
+        )
+        return {'tidy': tidy, 'pivots': pivots, 'errors': errs}
+    return main_cli(tickers_csv, since, cache_mode)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Quarterly Fundamental Comparison (SimFin)')
     parser.add_argument('--tickers', required=True, help='Comma-separated tickers (e.g., AAPL,MSFT,NVDA)')

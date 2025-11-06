@@ -68,7 +68,7 @@ class Technicals():
 
         
         self.historicals_df = pd.DataFrame(self.historicals)
-        print(self.historicals_df)
+        #print(self.historicals_df)
         self.historicals_df = self.historicals_df.set_index('begins_at')
         self.historicals_df = self.historicals_df.sort_index()
 

@@ -165,7 +165,7 @@ def render_content(tab):
     if tab == 'tab0':
         return html.Div([
                 dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
-                dcc.Graph(id="sample-graph")
+                dcc.Graph(id="performance-chart")
                 ], className="mt-3")
     # Current Portfolio
     if tab == 'tab1':
@@ -173,7 +173,8 @@ def render_content(tab):
             dbc.Button("Update Chart", id="update-button", color="primary", className="mb-3"),
             dcc.Graph(id="portfolio-timechart"),
             dcc.Graph(id="earnings-barchart"),
-            dcc.Graph(id="performance-chart")
+            # NEW: ROC Momentum across holdings (3 lines per ticker: 1d→1w, 1w→1m, 1m→3m)
+            dcc.Graph(id="roc-momentum-chart"),
         ], className="mt-3")
     # Market Opportunity
     if tab == 'tab2':
@@ -320,6 +321,23 @@ def normalized_earnings_chart(n):
   # Create the grouped bar chart
   fig = px.bar(holdings_melted, x='name', y='Value', color='Metric', barmode='group', title='Holdings Equity and Equity Normalized PE Ratio', log_y=True)
   return fig
+
+# NEW: RoC Momentum chart for all holdings
+@dash_app.callback(Output("roc-momentum-chart", "figure"), [Input("update-button", "n_clicks")])
+def roc_momentum_chart(n):
+    # Get holdings from CurrentStatus (consistent with existing usage)
+    payload = CurrentStatus.main(us, ps, 'holdings', 'local')
+    holdings_df = pd.DataFrame(payload['holdings_df']).T  # rows = tickers
+
+    # Build the figure using the helper added to CurrentStatus.py
+    fig = CurrentStatus.plot_holdings_roc_momentum(
+        us, ps, holdings_df,
+        windows={'1d': 2, '1w': 5, '1m': 21, '3m': 63, '1yr': 252},
+        pairs=[('1d','1w'), ('1w','1m'), ('1m','3m')],
+        smooth=5
+    )
+    fig.update_layout(template='plotly_dark', height=700)
+    return fig
 
 @dash_app.callback(Output("performance-chart", "figure"), [Input("update-button", "n_clicks")])
 def performance_chart(n):
