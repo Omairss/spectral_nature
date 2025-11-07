@@ -282,7 +282,7 @@ def main(rh_username: str, rh_password: str, ticker: str, cache_mode: str, mode:
         return (datetime.datetime.now() - file_mod_time).total_seconds() > 3 * 3600
 
     # Check cache mode and load from cache if applicable
-    if cache_mode == 'local' and os.path.exists(cache_file_path) and not is_cache_stale(cache_file_path):
+    if cache_mode in ('local', 'normal') and os.path.exists(cache_file_path) and not is_cache_stale(cache_file_path):
         print("Loading technical data from local cache...")
         with open(cache_file_path, 'rb') as f:
             technical_bundle = pickle.load(f)
