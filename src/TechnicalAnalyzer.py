@@ -61,7 +61,7 @@ class Technicals():
     
     def get_historicals(self, interval='day', span='5year'):
 
-        print(f"Getting historicals for {self.ticker}")
+        print(f"Getting historicals for {self.ticker} from remote")
         time.sleep(self.cooldown_s)
         self.historicals = r.stocks.get_stock_historicals(self.ticker, interval=interval, span=span)
         print(f"Got historicals for {self.ticker} with {len(self.historicals)} records")

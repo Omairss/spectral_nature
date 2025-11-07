@@ -583,7 +583,7 @@ def update_fundamental_charts(n, ticker):
 
     try:
         tidy, pivots, errs = run_quarterly_comparison(
-            all_tickers, since="2018Q1", data_dir="../data/stock_fundamental/", plot=False
+            all_tickers, since="2018Q1", data_dir="../../data/stock_fundamental/", plot=False
         )
     except Exception as e:
         err = str(e)
