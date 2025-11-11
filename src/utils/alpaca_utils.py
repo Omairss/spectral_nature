@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import scipy.optimize as opt
 import pickle as pkl
 import re
+import copy
 
 
 from tqdm import tqdm
@@ -1085,7 +1086,7 @@ def get_all_open_positions_value(open_positions):
     
     return open_positions_value
 
-def execute_identified_trades(list_of_options_dataframes, open_positions, current_cash, current_date, trade_id_counter, total_capital_deployed, max_number_of_open_positions, stock_strike_deviation_limit = 0.1, max_position_ratio_of_capital_per_trade = 0.02):
+def execute_identified_trades(list_of_options_dataframes, open_positions, current_cash, current_date, trade_id_counter, total_capital_deployed, max_number_of_open_positions, stock_strike_deviation_limit = 0.1, max_position_ratio_of_capital_per_trade = 0.02, num_contracts_limit = None):
 
     num_trades_executed_today = 0
     # For calendar spreads: Sell near-term, Buy far-term (same strike)
@@ -1119,7 +1120,11 @@ def execute_identified_trades(list_of_options_dataframes, open_positions, curren
             current_portfolio_value = current_cash + open_positions_value
             
             max_position_value = current_portfolio_value * max_position_ratio_of_capital_per_trade
-            num_contracts = max(1, int(max_position_value / net_debit))
+
+            if num_contracts_limit is None:
+                num_contracts = max(1, int(max_position_value / net_debit))
+            else:
+                num_contracts = num_contracts_limit
 
             # Check if we have enough cash for lesser contracts
             total_cost = net_debit * num_contracts
