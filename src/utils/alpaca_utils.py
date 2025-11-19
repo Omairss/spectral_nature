@@ -16,12 +16,33 @@ import re
 import copy
 
 
+
 from tqdm import tqdm
 from scipy.optimize import brentq
 from scipy.stats import norm
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from pathlib import Path
+
+import numpy as np
+import torch
+import torch.nn as nn
+from torch.utils.data import TensorDataset, DataLoader
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics import roc_auc_score, roc_curve, precision_recall_curve
+
+
+from datetime import datetime
+from multiprocessing import Pool, cpu_count
+import multiprocessing as mp
+import pickle as pkl
+from functools import partial
+import pandas as pd
+import numpy as np
+import os
+from sklearn.decomposition import PCA
+
 
 
 
@@ -287,7 +308,7 @@ def calculate_theta_historical(option_price: float, strike_price: float, expiry:
             second_term = risk_free_rate * strike_price * np.exp(-risk_free_rate * T) * norm.cdf(-d2)
             theta = first_term + second_term
 
-        return theta
+        return theta / 100
     except Exception:
         return None
 
@@ -384,7 +405,7 @@ def get_options_information(symbol, start_day_offset, end_day_offset, option_typ
     option_details = pd.DataFrame(d)
     option_details.columns = ['Symbol', 'Expiration Date', 'Strike Price', 'Close Price', 'Type', 'Delta', 'Gamma', 'Rho', 'Theta', 'Vega', 'IV', 'Buy Price', 'Sell Price']
     option_details = option_details.sort_values(by = ['Strike Price', 'Expiration Date']).reset_index(drop = True)
-    strike_group = {int(key): group for key, group in option_details.groupby('Strike Price')}
+    strike_group = {float(key): group for key, group in option_details.groupby('Strike Price')}
 
     return option_details, strike_group, current_price
 
@@ -883,7 +904,10 @@ def get_prediction_error(symbol, timeframe, train_start_date, train_end_date, te
     test_end = np.where(t >= pd.to_datetime(test_end_date, utc = True))[0][-1]
 
     train = c[train_start:train_end]
-    possible_changes = train[1:] - train[:-1]
+    # Percentage changes
+    possible_changes = (train[1:] - train[:-1]) / train[:-1] 
+    possible_changes_abs = train[1:] - train[:-1]
+
     sampled_changes = np.random.choice(possible_changes, test_end - test_start)
 
 
@@ -897,8 +921,8 @@ def get_prediction_error(symbol, timeframe, train_start_date, train_end_date, te
         predicted_values = [current_value]
         gaussian_values = [current_value]
         for idx in range(len(sampled_changes)):
-            predicted_values.append(predicted_values[-1] + sampled_changes[idx])
-            gaussian_values.append(gaussian_values[-1] + np.random.normal(loc = np.mean(possible_changes), scale = np.std(possible_changes)))
+            predicted_values.append(predicted_values[-1] + (predicted_values[-1] * sampled_changes[idx]))
+            gaussian_values.append(gaussian_values[-1] + np.random.normal(loc = np.mean(possible_changes_abs), scale = np.std(possible_changes_abs)))
         predicted_matrix.append(predicted_values)
         gaussian_matrix.append(gaussian_values)
 
@@ -1017,6 +1041,7 @@ def filter_option_trades_by_ff(current_price, strike_group, min_time_distance, m
 ##############################################
 ############ Backtest Functions ##############
 ##############################################
+
     
 def extract_strike_price_from_symbol(symbol: str) -> float:
     """
@@ -1190,10 +1215,20 @@ def exit_short_leg(position, current_date, options_price_tracker, reason = None,
         # Get last available price before expiry
         short_leg_data = options_price_tracker[position['short_leg']]
 
-        if current_date >= position['short_expiry']: 
+        if current_date >= position['short_expiry'] and 'short_exit_reason' not in position: 
             short_leg_data = short_leg_data[short_leg_data['Current Date'] <= position['short_expiry']]
             position['short_exit_reason'] = 'Short Expired'
             position['short_exit_date'] = position['short_expiry']
+
+            stock_price_at_expiry = stock_data[stock_data['Date'].dt.date == position['short_expiry'].date()]['Low'].values[0]
+            if position['option_type'] == 'call':
+                short_exit_price = max(0, stock_price_at_expiry - position['strike'])
+                if stock_price_at_expiry >= position['strike']:
+                    position['short_exit_reason'] = 'Executed + Expired'
+            else:  # put
+                short_exit_price = max(0, position['strike'] - stock_price_at_expiry)
+                if stock_price_at_expiry <= position['strike']:
+                    position['short_exit_reason'] = 'Executed + Expired'
         
         else:
             short_leg_data = short_leg_data[short_leg_data['Current Date'] <= current_date]
@@ -1207,19 +1242,27 @@ def exit_short_leg(position, current_date, options_price_tracker, reason = None,
         
         # Assume the option was executed 
         else:
-
             # Calculate intrinsic value at expiry
             if stock_data is not None:
                 try:
                     stock_price_at_expiry = stock_data[stock_data['Date'].dt.date == position['short_expiry'].date()]['Low'].values[0]
                     if position['option_type'] == 'call':
                         short_exit_price = max(0, stock_price_at_expiry - position['strike'])
+                        if stock_price_at_expiry >= position['strike']:
+                            position['short_exit_reason'] = 'Executed'
                     else:  # put
                         short_exit_price = max(0, position['strike'] - stock_price_at_expiry)
+                        if stock_price_at_expiry <= position['strike']:
+                            position['short_exit_reason'] = 'Executed'
+
                 except Exception:
                     short_exit_price = 0
+                    position['short_exit_reason'] = 'Worthless'
+
             else:
                 short_exit_price = 0
+                position['short_exit_reason'] = 'Worthless'
+
     else:
         short_exit_price = 0  # Assume worthless if no data
 
@@ -1231,10 +1274,23 @@ def exit_long_leg(position, current_date, current_cash, options_price_tracker, r
     if position['long_leg'] in options_price_tracker:
         long_leg_data = options_price_tracker[position['long_leg']]
 
-        if current_date >= position['long_expiry']:
+        if current_date >= position['long_expiry'] and 'long_exit_reason' not in position:
             long_leg_data = long_leg_data[long_leg_data['Current Date'] <= position['long_expiry']]
             position['long_exit_reason'] = 'Long Expired'
             position['long_exit_date'] = position['long_expiry']
+            
+            stock_price_at_expiry = stock_data[stock_data['Date'].dt.date == position['long_expiry'].date()]['High'].values[0]
+            if position['option_type'] == 'call':
+                long_exit_price = max(0, stock_price_at_expiry - position['strike'])
+                if stock_price_at_expiry >= position['strike']:
+                    position['long_exit_reason'] = 'Expired + Executed'
+                    position['long_exit_date'] = current_date.date()
+            else:  # put
+                long_exit_price = max(0, position['strike'] - stock_price_at_expiry)
+                if stock_price_at_expiry <= position['strike']:
+                    position['long_exit_reason'] = 'Expired + Executed'
+                    position['long_exit_date'] = current_date.date()
+                    
         else: 
             long_leg_data = long_leg_data[long_leg_data['Current Date'] <= current_date]
             position['long_exit_reason'] = f'Early Exit: {str(reason)}'
@@ -1254,8 +1310,15 @@ def exit_long_leg(position, current_date, current_cash, options_price_tracker, r
                     stock_price_at_expiry = stock_data[stock_data['Date'].dt.date == position['long_expiry'].date()]['High'].values[0]
                     if position['option_type'] == 'call':
                         long_exit_price = max(0, stock_price_at_expiry - position['strike'])
+                        if stock_price_at_expiry >= position['strike']:
+                            position['long_exit_reason'] = 'Executed'
+                            position['long_exit_date'] = current_date.date()
                     else:  # put
                         long_exit_price = max(0, position['strike'] - stock_price_at_expiry)
+                        if stock_price_at_expiry <= position['strike']:
+                            position['long_exit_reason'] = 'Executed'
+                            position['long_exit_date'] = current_date.date()
+
                 except Exception:
                     long_exit_price = 0
             else:
@@ -1266,16 +1329,22 @@ def exit_long_leg(position, current_date, current_cash, options_price_tracker, r
     
     position['current_long_price'] = long_exit_price
 
-    # Exit overall position (long and short)
-    total_pnl = get_single_position_value(position)
-    
-    # Return capital plus P&L (return principal + realized P&L)
-    current_cash += position['capital_deployed'] + total_pnl
-    
-    position['exit_date'] = current_date
-    position['final_pnl'] = total_pnl
-    position['return_pct'] = (total_pnl / position['capital_deployed']) * 100
-    position['status'] = 'closed'
+
+    if 'short_exit_reason' in position:
+
+        # Exit overall position (long and short)
+        total_pnl = get_single_position_value(position)
+        
+        if total_pnl < 0:
+            total_pnl = position['entry_credit']  # Cap losses to initial debit
+
+        # Return capital plus P&L (return principal + realized P&L)
+        current_cash += position['capital_deployed'] + total_pnl
+        
+        position['exit_date'] = current_date
+        position['final_pnl'] = total_pnl
+        position['return_pct'] = (total_pnl / position['capital_deployed']) * 100
+        position['status'] = 'closed'
 
     return current_cash
     
@@ -1323,6 +1392,12 @@ def check_existing_positions(portfolio_history, open_positions, closed_positions
 
                 if short_pnl_ratio >= short_exit_limits[1]:
                     exit_short_leg(position, current_date, options_price_tracker, reason = f'Profit Reached: {short_pnl_ratio * 100:.3f}%', stock_data = stock_data)
+        
+        if 'short_exit_reason' in position:
+            if position['short_exit_reason'] == 'Executed + Expired' or position['short_exit_reason'] == 'Executed':
+                # Exit position if short was executed
+                current_cash = exit_long_leg(position, current_date, current_cash, options_price_tracker, reason = 'Short Leg Executed', stock_data = stock_data)
+                positions_to_close.append(trade_id)    
                     
         ##########################
         ##### Check Long Leg #####
@@ -1331,7 +1406,7 @@ def check_existing_positions(portfolio_history, open_positions, closed_positions
         # Check if long leg has expired or should be closed
         if current_date >= position['long_expiry']:
 
-            current_cash = exit_long_leg(position, current_date, current_cash, options_price_tracker)
+            current_cash = exit_long_leg(position, current_date, current_cash, options_price_tracker, reason = 'Long Expired', stock_data = stock_data)
             positions_to_close.append(trade_id)
             
         else:
@@ -1399,3 +1474,124 @@ def check_existing_positions(portfolio_history, open_positions, closed_positions
     })
 
     return portfolio_history, open_positions, closed_positions, current_cash
+
+
+##############################################
+############### ML Functions #################
+##############################################
+
+# Inverse transform: scaled -> original units
+def invert_reg_scale(x, denom_reg_scale, min_reg_scale):
+    return x * denom_reg_scale + min_reg_scale
+
+class MultiModel(nn.Module):
+
+    def __init__(self, in_dim, hidden_dim = 512):
+        super().__init__()
+
+        self.lin_one = nn.Linear(in_dim, hidden_dim)
+        self.lin_two = nn.Linear(hidden_dim, hidden_dim)
+        self.lin_three = nn.Linear(hidden_dim, hidden_dim)
+        self.lin_four = nn.Linear(hidden_dim, hidden_dim)
+
+        self.out = nn.Linear(hidden_dim, 2)
+        
+        self.dropout = nn.Dropout(p = 0.2)
+
+        self.bn1 = nn.BatchNorm1d(hidden_dim)
+        self.bn2 = nn.BatchNorm1d(hidden_dim)
+        self.bn3 = nn.BatchNorm1d(hidden_dim)
+        self.bn4 = nn.BatchNorm1d(hidden_dim)
+
+    def forward(self, x):
+
+        out = torch.relu(self.lin_one(x))
+        out = self.bn1(out)
+        out_one = self.dropout(out)
+
+        out = torch.relu(self.lin_two(out_one))
+        out = self.bn2(out) + out_one # Residual connection
+        out_two = self.dropout(out) 
+
+        out = torch.relu(self.lin_three(out_two))
+        out = self.bn3(out) + out_two # Residual connection
+        out_three = self.dropout(out)
+
+        out = torch.relu(self.lin_four(out_three))
+        out = self.bn4(out) + out_three # Residual connection
+        out_four = self.dropout(out)
+        
+        return self.out(out_four)
+
+
+def get_model_confidence(underlying_price, options_df, model_path='/Users/zohairshafi/Local Workspace/spectral_nature/cache', model_name='alpaca_multi_model_calendar_spread.pth', params_name='alpaca_multi_model_calendar_spread_params.pkl'):
+    
+    data = {
+        'Delta Long' : options_df['Delta'][1],
+        'Delta Short' : options_df['Delta'][0],
+        'Delta Ratio' : options_df['Delta'][1] / options_df['Delta'][0],
+        'Delta Difference' : options_df['Delta'][1] - options_df['Delta'][0],
+        'Gamma Long' : options_df['Gamma'][1],
+        'Gamma Short' : options_df['Gamma'][0],
+        'Gamma Difference' : options_df['Gamma'][1] - options_df['Gamma'][0],
+        'Gamma Ratio' : options_df['Gamma'][1] / options_df['Gamma'][0],
+        'IV Long' : options_df['IV'][1],
+        'IV Short' : options_df['IV'][0],
+        'IV Difference' : options_df['IV'][1] - options_df['IV'][0],
+        'IV Ratio' : options_df['IV'][1] / options_df['IV'][0],
+        'Theta Long' : options_df['Theta'][1],
+        'Theta Short' : options_df['Theta'][0],
+        'Theta Difference' : options_df['Theta'][1] - options_df['Theta'][0],
+        'Theta Ratio' : options_df['Theta'][1] / options_df['Theta'][0],
+        'Vega Long' : options_df['Vega'][1],
+        'Vega Short' : options_df['Vega'][0],
+        'Vega Difference': options_df['Vega'][1] - options_df['Vega'][0],
+        'Vega Ratio' : options_df['Vega'][1] / options_df['Vega'][0],
+        'Forward Factor' : options_df['Forward Factor'][0],
+        'Spread' : (pd.to_datetime(options_df['Expiration Date'][1]) - pd.to_datetime(options_df['Expiration Date'][0])).days,
+        'Short DTE': np.abs((pd.to_datetime(options_df['Expiration Date'][0], utc=True) - pd.Timestamp.now(tz='UTC')).days),
+        'Strike Deviation' : 100 * np.abs(underlying_price - float(options_df['Strike Price'][0])) / float(options_df['Strike Price'][0]),
+        # Map option type correctly from the short leg's type
+        'Option Type' : 1 if options_df['Type'][0] == 'call' else 0,
+    }
+
+    data = {key: float(value) for key, value in data.items()}    
+    data = pd.DataFrame([data])
+    feature_cols = [c for c in data.columns
+                    if c not in ['PnL', 'PnL Percent', 'Symbol']
+                    and pd.api.types.is_numeric_dtype(data[c])]
+
+    # Assemble modeling frame and clean
+    data = data.replace([np.inf, -np.inf], np.nan).dropna()
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
+    
+
+    model = MultiModel(in_dim = len(feature_cols)).to(device)
+    model.load_state_dict(torch.load(os.path.join(model_path, model_name), map_location=device))
+    with open(os.path.join(model_path, params_name), 'rb') as file: 
+        model_params = pkl.load(file)
+    
+
+    mean_ = model_params['mean_']
+    std_ = model_params['std_']
+    min_reg_scale = model_params['min_reg_scale']
+    denom_reg_scale = model_params['denom_reg_scale']
+
+    model.eval()
+
+    with torch.no_grad():
+        
+        X = data[feature_cols].to_numpy(dtype=np.float32)
+
+        X_options = (X - mean_) / std_
+      
+        logits = model(torch.from_numpy(X_options).to(device))
+        
+        probs = torch.sigmoid(logits[:, 0]).cpu().numpy().ravel()
+        
+        y_reg_pred = logits[:, 1].cpu().numpy().ravel()
+        
+        y_reg_pred_original = invert_reg_scale(y_reg_pred, denom_reg_scale, min_reg_scale)
+
+    return probs, y_reg_pred_original
