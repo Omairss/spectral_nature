@@ -44,8 +44,6 @@ import os
 from sklearn.decomposition import PCA
 
 
-
-
 ##############################################
 ################# Variables ##################
 ##############################################
@@ -415,23 +413,48 @@ def get_historical_options_data(option_symbols, current_date, stock_data, timefr
     options_symbols = ",".join(option_symbols)
     start_date = str(current_date.date())
     end_date = current_date + timedelta(30)
+    
+    i = 0
+    if len(option_symbols) > 1000:
+        combined_bars = {}
+        while i < len(option_symbols):
+            op_symbols_subset = option_symbols[i:i + 1000]
+            url = f"https://data.alpaca.markets/v1beta1/options/bars?symbols={op_symbols_subset}&timeframe={timeframe}&start={start_date}&limit=1000&sort=asc"
+            response = requests.get(url, headers=headers).text
+            data = json.loads(response)
+            i += 1000
 
-    url = f"https://data.alpaca.markets/v1beta1/options/bars?symbols={options_symbols}&timeframe={timeframe}&start={start_date}&limit=1000&sort=asc"
-    response = requests.get(url, headers=headers).text
-    data = json.loads(response)
+            combined_bars = combined_bars | data.get('bars', {})
 
-    # Accumulate all pages of results per symbol
-    combined_bars = data.get('bars', {})
-    next_token = data.get('next_page_token')
-    while next_token is not None:
-        url = f"https://data.alpaca.markets/v1beta1/options/bars?symbols={options_symbols}&timeframe={timeframe}&start={start_date}&limit=1000&sort=asc&page_token={next_token}"
-        page = json.loads(requests.get(url, headers=headers).text)
-        for sym, rows in page.get('bars', {}).items():
-            if sym in combined_bars:
-                combined_bars[sym].extend(rows)
-            else:
-                combined_bars[sym] = rows
-        next_token = page.get('next_page_token')
+            # Accumulate all pages of results per symbol
+            next_token = data.get('next_page_token')
+            while next_token is not None:
+                url = f"https://data.alpaca.markets/v1beta1/options/bars?symbols={op_symbols_subset}&timeframe={timeframe}&start={start_date}&limit=1000&sort=asc&page_token={next_token}"
+                page = json.loads(requests.get(url, headers=headers).text)
+                for sym, rows in page.get('bars', {}).items():
+                    if sym in combined_bars:
+                        combined_bars[sym].extend(rows)
+                    else:
+                        combined_bars[sym] = rows
+                next_token = page.get('next_page_token')
+
+    else:
+        url = f"https://data.alpaca.markets/v1beta1/options/bars?symbols={options_symbols}&timeframe={timeframe}&start={start_date}&limit=1000&sort=asc"
+        response = requests.get(url, headers=headers).text
+        data = json.loads(response)
+
+        # Accumulate all pages of results per symbol
+        combined_bars = data.get('bars', {})
+        next_token = data.get('next_page_token')
+        while next_token is not None:
+            url = f"https://data.alpaca.markets/v1beta1/options/bars?symbols={options_symbols}&timeframe={timeframe}&start={start_date}&limit=1000&sort=asc&page_token={next_token}"
+            page = json.loads(requests.get(url, headers=headers).text)
+            for sym, rows in page.get('bars', {}).items():
+                if sym in combined_bars:
+                    combined_bars[sym].extend(rows)
+                else:
+                    combined_bars[sym] = rows
+            next_token = page.get('next_page_token')
 
     for op_symbol in combined_bars:
         df = []
@@ -518,6 +541,7 @@ def get_historical_options_data(option_symbols, current_date, stock_data, timefr
             options_price_tracker[op_symbol] = options_price_tracker[op_symbol].sort_values(by = 'Current Date').reset_index(drop = True)
         
     return options_price_tracker
+
 
 def get_historical_stock_price(symbol, timeframe, historical_start_date, historical_end_date = 'now', headers = None):
     
@@ -1480,9 +1504,9 @@ def check_existing_positions(portfolio_history, open_positions, closed_positions
 ############### ML Functions #################
 ##############################################
 
-# Inverse transform: scaled -> original units
-def invert_reg_scale(x, denom_reg_scale, min_reg_scale):
-    return x * denom_reg_scale + min_reg_scale
+# Inverse transform (z-score): scaled -> original units
+def invert_reg_scale(x, std_reg_scale, mean_reg_scale):
+    return x * std_reg_scale + mean_reg_scale
 
 class MultiModel(nn.Module):
 
@@ -1524,7 +1548,48 @@ class MultiModel(nn.Module):
         return self.out(out_four)
 
 
-def get_model_confidence(underlying_price, options_df, model_path='/Users/zohairshafi/Local Workspace/spectral_nature/cache', model_name='alpaca_multi_model_calendar_spread.pth', params_name='alpaca_multi_model_calendar_spread_params.pkl'):
+class OptionModel(nn.Module):
+
+    def __init__(self, in_dim, hidden_dim = 512, dropout = 0.3):
+        super().__init__()
+
+        self.lin_one = nn.Linear(in_dim, hidden_dim)
+        self.lin_two = nn.Linear(hidden_dim, hidden_dim)
+        self.lin_three = nn.Linear(hidden_dim, hidden_dim)
+        self.lin_four = nn.Linear(hidden_dim, hidden_dim)
+
+        # self.log_lin_one = nn.Linear(in_dim, hidden_dim)
+
+        self.out = nn.Linear(hidden_dim, 2)
+        
+        self.dropout = nn.Dropout(p = dropout)
+
+        self.bn1 = nn.BatchNorm1d(hidden_dim)
+        self.bn2 = nn.BatchNorm1d(hidden_dim)
+        self.bn3 = nn.BatchNorm1d(hidden_dim)
+        self.bn4 = nn.BatchNorm1d(hidden_dim)
+
+    def forward(self, x):
+
+        out = torch.relu(self.lin_one(x))
+        out = self.bn1(out)
+        out_one = self.dropout(out)
+
+        out = torch.relu(self.lin_two(out_one))
+        out = self.bn2(out) + out_one # Residual connection
+        out_two = self.dropout(out) 
+
+        out = torch.relu(self.lin_three(out_two))
+        out = self.bn3(out) + out_two # Residual connection
+        out_three = self.dropout(out)
+
+        out = torch.relu(self.lin_four(out_three))
+        out = self.bn4(out) + out_three # Residual connection
+        out_four = self.dropout(out)
+        
+        return self.out(out_four)
+    
+def get_model_confidence(underlying_price, options_df, model_path='/Users/zohairshafi/Local Workspace/spectral_nature/cache', model_name='alpaca_multi_model_calendar_spread.pth', params_name='alpaca_multi_model_calendar_spread_params.pkl', model_dims = 512):
     
     data = {
         'Delta Long' : options_df['Delta'][1],
@@ -1555,43 +1620,38 @@ def get_model_confidence(underlying_price, options_df, model_path='/Users/zohair
         'Option Type' : 1 if options_df['Type'][0] == 'call' else 0,
     }
 
+    with open(os.path.join(model_path, params_name), 'rb') as file: 
+        model_params = pkl.load(file)
+
+    mean_x_train = model_params['mean_x_train']
+    std_x_scale = model_params['std_x_scale']
+    mean_reg_scale = model_params['mean_reg_scale']
+    std_reg_scale = model_params['std_reg_scale']
+    feature_cols = model_params['feature_cols']
+
     data = {key: float(value) for key, value in data.items()}    
     data = pd.DataFrame([data])
-    feature_cols = [c for c in data.columns
-                    if c not in ['PnL', 'PnL Percent', 'Symbol']
-                    and pd.api.types.is_numeric_dtype(data[c])]
 
     # Assemble modeling frame and clean
     data = data.replace([np.inf, -np.inf], np.nan).dropna()
-
+    
     device = torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
     
-
-    model = MultiModel(in_dim = len(feature_cols)).to(device)
+    model = OptionModel(in_dim = len(feature_cols), hidden_dim = model_dims).to(device)
     model.load_state_dict(torch.load(os.path.join(model_path, model_name), map_location=device))
-    with open(os.path.join(model_path, params_name), 'rb') as file: 
-        model_params = pkl.load(file)
     
-
-    mean_ = model_params['mean_']
-    std_ = model_params['std_']
-    min_reg_scale = model_params['min_reg_scale']
-    denom_reg_scale = model_params['denom_reg_scale']
 
     model.eval()
 
     with torch.no_grad():
         
         X = data[feature_cols].to_numpy(dtype=np.float32)
+        X_options = (X - mean_x_train) / (std_x_scale + 1e-8)
 
-        X_options = (X - mean_) / std_
-      
         logits = model(torch.from_numpy(X_options).to(device))
         
         probs = torch.sigmoid(logits[:, 0]).cpu().numpy().ravel()
-        
         y_reg_pred = logits[:, 1].cpu().numpy().ravel()
-        
-        y_reg_pred_original = invert_reg_scale(y_reg_pred, denom_reg_scale, min_reg_scale)
+        y_reg_pred_original = invert_reg_scale(y_reg_pred, std_reg_scale, mean_reg_scale)
 
     return probs, y_reg_pred_original

@@ -87,6 +87,8 @@ def run_symbol(symbol: str, repo_path: str, progress_log_path: str) -> Dict[str,
     total_capital_deployed = 0
     positions_history = []
 
+    list_of_options_dataframes = {}
+    
     # Iterate over each day with manual progress increments
     total_days = len(t)
     for idx, (high, low, mid, current_date) in enumerate(list(zip(h, l, c, t))):
@@ -99,8 +101,8 @@ def run_symbol(symbol: str, repo_path: str, progress_log_path: str) -> Dict[str,
                     f'symbol={symbol} day_index={idx}/{total_days} ({pct:0.2f}%) current_date={current_date}',
                 )
 
-            max_strike = high + (0.05 * high)
-            min_strike = low - (0.05 * low)
+            max_strike = high + (0.1 * high)
+            min_strike = low - (0.1 * low)
 
             put_option_symbols = generate_option_symbols(
                 symbol=symbol,
@@ -175,7 +177,7 @@ def run_symbol(symbol: str, repo_path: str, progress_log_path: str) -> Dict[str,
                 int(key): group for key, group in current_options.groupby('Strike Price', sort=True)
             }
 
-            list_of_options_dataframes = filter_option_trades_by_ff(
+            options_dataframes = filter_option_trades_by_ff(
                 strike_group=strike_group,
                 current_price=mid,
                 min_time_distance=20,
@@ -185,65 +187,71 @@ def run_symbol(symbol: str, repo_path: str, progress_log_path: str) -> Dict[str,
                 current_date=current_date,
                 print_output=False,
             )
-            list_of_options_dataframes = sorted(
-                list_of_options_dataframes,
+            options_dataframes = sorted(
+                options_dataframes,
                 key=lambda x: x['Forward Factor'][0],
                 reverse=True,
             )
 
-            open_positions_value = get_all_open_positions_value(open_positions)
-            current_portfolio_value = current_cash + open_positions_value
+            list_of_options_dataframes[current_date] = options_dataframes
 
-            portfolio_history, open_positions, closed_positions, current_cash = check_existing_positions(
-                portfolio_history,
-                open_positions,
-                closed_positions,
-                current_date,
-                current_cash,
-                options_price_tracker,
-                short_exit_limits=(-200, 200),
-                long_exit_limits=(-200, 200),
-                position_exit_limits=(-200, 200),
-                stock_data=stock_data,
-            )
+            with open(os.path.join(cache_path, f'options/list_of_options_dataframes_{symbol}.pkl'), 'wb') as file:
+                pkl.dump(list_of_options_dataframes, file)
 
-            open_positions, num_trades_executed_today, current_cash, trade_id_counter = execute_identified_trades(
-                list_of_options_dataframes=list_of_options_dataframes,
-                open_positions=open_positions,
-                current_date=current_date,
-                current_cash=current_cash,
-                trade_id_counter=trade_id_counter,
-                total_capital_deployed=total_capital_deployed,
-                max_number_of_open_positions=max_number_of_open_positions,
-                stock_strike_deviation_limit=5,
-                max_position_ratio_of_capital_per_trade=0.01,
-                num_contracts_limit=1,
-            )
-            closed_trades_df = pd.DataFrame(closed_positions)
+            # open_positions_value = get_all_open_positions_value(open_positions)
+            # current_portfolio_value = current_cash + open_positions_value
 
-            with open(os.path.join(cache_path, f'{symbol}_closed_trades.pkl'), 'wb') as file:
-                pkl.dump(closed_trades_df, file)
+            # portfolio_history, open_positions, closed_positions, current_cash = check_existing_positions(
+            #     portfolio_history,
+            #     open_positions,
+            #     closed_positions,
+            #     current_date,
+            #     current_cash,
+            #     options_price_tracker,
+            #     short_exit_limits=(-200, 200),
+            #     long_exit_limits=(-200, 200),
+            #     position_exit_limits=(-200, 200),
+            #     stock_data=stock_data,
+            # )
+
+            # open_positions, num_trades_executed_today, current_cash, trade_id_counter = execute_identified_trades(
+            #     list_of_options_dataframes=list_of_options_dataframes,
+            #     open_positions=open_positions,
+            #     current_date=current_date,
+            #     current_cash=current_cash,
+            #     trade_id_counter=trade_id_counter,
+            #     total_capital_deployed=total_capital_deployed,
+            #     max_number_of_open_positions=max_number_of_open_positions,
+            #     stock_strike_deviation_limit=5,
+            #     max_position_ratio_of_capital_per_trade=0.01,
+            #     num_contracts_limit=1,
+            # )
+            # closed_trades_df = pd.DataFrame(closed_positions)
+
+            # with open(os.path.join(cache_path, f'{symbol}_closed_trades.pkl'), 'wb') as file:
+            #     pkl.dump(closed_trades_df, file)
         except:
             continue
 
-    closed_trades_df = pd.DataFrame(closed_positions)
-    portfolio_df = pd.DataFrame(portfolio_history)
+    # closed_trades_df = pd.DataFrame(closed_positions)
+    # portfolio_df = pd.DataFrame(portfolio_history)
 
-    try:
-        summary = {'symbol': symbol, 'total_trades': int(len(closed_trades_df or []))}
-        if len(closed_trades_df) > 0:
-            closed_trades_df['return_pct'] = (
-                closed_trades_df['final_pnl'] / closed_trades_df['capital_deployed']
-            ) * 100
-            with open(os.path.join(cache_path, f'{symbol}_closed_trades.pkl'), 'wb') as file:
-                pkl.dump(closed_trades_df, file)
-            summary.update({
-                'total_pnl': float(closed_trades_df['final_pnl'].sum()),
-                'win_rate': float(((closed_trades_df['final_pnl'] > 0).sum() / len(closed_trades_df)) * 100),
-                'avg_pnl': float(closed_trades_df['final_pnl'].mean()),
-            })
-    except:
-        summary = {'symbol': symbol, 'total_trades': 0}
+    # try:
+    #     summary = {'symbol': symbol, 'total_trades': int(len(closed_trades_df or []))}
+    #     if len(closed_trades_df) > 0:
+    #         closed_trades_df['return_pct'] = (
+    #             closed_trades_df['final_pnl'] / closed_trades_df['capital_deployed']
+    #         ) * 100
+    #         with open(os.path.join(cache_path, f'{symbol}_closed_trades.pkl'), 'wb') as file:
+    #             pkl.dump(closed_trades_df, file)
+    #         summary.update({
+    #             'total_pnl': float(closed_trades_df['final_pnl'].sum()),
+    #             'win_rate': float(((closed_trades_df['final_pnl'] > 0).sum() / len(closed_trades_df)) * 100),
+    #             'avg_pnl': float(closed_trades_df['final_pnl'].mean()),
+    #         })
+    # except:
+    #     summary = {'symbol': symbol, 'total_trades': 0}
     elapsed = time.time() - start_time
     log_progress(progress_log_path, f'END symbol={symbol} elapsed_sec={elapsed:0.2f}')
+    summary = {'symbol': symbol, 'total_trades': 0}
     return summary
