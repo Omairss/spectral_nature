@@ -1,0 +1,24 @@
+Collecting alpaca-py
+  Downloading alpaca_py-0.43.2-py3-none-any.whl (122 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 122.5/122.5 kB 5.8 MB/s eta 0:00:00
+Requirement already satisfied: requests<3.0.0,>=2.30.0 in /anaconda/envs/azureml_py38/lib/python3.10/site-packages (from alpaca-py) (2.32.3)
+Requirement already satisfied: msgpack<2.0.0,>=1.0.3 in /anaconda/envs/azureml_py38/lib/python3.10/site-packages (from alpaca-py) (1.0.3)
+Requirement already satisfied: websockets>=10.4 in /anaconda/envs/azureml_py38/lib/python3.10/site-packages (from alpaca-py) (10.4)
+Requirement already satisfied: pandas>=1.5.3 in /anaconda/envs/azureml_py38/lib/python3.10/site-packages (from alpaca-py) (2.3.3)
+Requirement already satisfied: pydantic<3.0.0,>=2.0.3 in /anaconda/envs/azureml_py38/lib/python3.10/site-packages (from alpaca-py) (2.9.2)
+Collecting sseclient-py<2.0.0,>=1.7.2
+  Downloading sseclient_py-1.9.0-py3-none-any.whl (8.4 kB)
+Requirement already satisfied: python-dateutil>=2.8.2 in /anaconda/envs/azureml_py38/lib/python3.10/site-packages (from pandas>=1.5.3->alpaca-py) (2.9.0.post0)
+Requirement already satisfied: numpy>=1.22.4 in /anaconda/envs/azureml_py38/lib/python3.10/site-packages (from pandas>=1.5.3->alpaca-py) (1.26.4)
+Requirement already satisfied: pytz>=2020.1 in /anaconda/envs/azureml_py38/lib/python3.10/site-packages (from pandas>=1.5.3->alpaca-py) (2022.5)
+Requirement already satisfied: tzdata>=2022.7 in /anaconda/envs/azureml_py38/lib/python3.10/site-packages (from pandas>=1.5.3->alpaca-py) (2024.1)
+Requirement already satisfied: typing-extensions>=4.6.1 in /anaconda/envs/azureml_py38/lib/python3.10/site-packages (from pydantic<3.0.0,>=2.0.3->alpaca-py) (4.12.2)
+Requirement already satisfied: pydantic-core==2.23.4 in /anaconda/envs/azureml_py38/lib/python3.10/site-packages (from pydantic<3.0.0,>=2.0.3->alpaca-py) (2.23.4)
+Requirement already satisfied: annotated-types>=0.6.0 in /anaconda/envs/azureml_py38/lib/python3.10/site-packages (from pydantic<3.0.0,>=2.0.3->alpaca-py) (0.7.0)
+Requirement already satisfied: charset-normalizer<4,>=2 in /anaconda/envs/azureml_py38/lib/python3.10/site-packages (from requests<3.0.0,>=2.30.0->alpaca-py) (3.3.2)
+Requirement already satisfied: idna<4,>=2.5 in /anaconda/envs/azureml_py38/lib/python3.10/site-packages (from requests<3.0.0,>=2.30.0->alpaca-py) (3.7)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /anaconda/envs/azureml_py38/lib/python3.10/site-packages (from requests<3.0.0,>=2.30.0->alpaca-py) (1.26.19)
+Requirement already satisfied: certifi>=2017.4.17 in /anaconda/envs/azureml_py38/lib/python3.10/site-packages (from requests<3.0.0,>=2.30.0->alpaca-py) (2024.8.30)
+Requirement already satisfied: six>=1.5 in /anaconda/envs/azureml_py38/lib/python3.10/site-packages (from python-dateutil>=2.8.2->pandas>=1.5.3->alpaca-py) (1.16.0)
+Installing collected packages: sseclient-py, alpaca-py
+Successfully installed alpaca-py-0.43.2 sseclient-py-1.9.0
