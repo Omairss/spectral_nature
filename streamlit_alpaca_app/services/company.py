@@ -8,6 +8,84 @@ import re
 import pandas as pd
 
 from .alpaca_api import AlpacaAPI, AlpacaAPIError
+from .market import BUSINESS_FOCUS_UNIVERSES
+
+
+COMPANY_ROLE_HINTS: dict[str, str] = {
+    "A": "sells analytical instruments, diagnostics, and lab workflow tools used across research and applied testing",
+    "AAPL": "builds a consumer device, software, and services ecosystem centered on the iPhone and installed-base monetization",
+    "MSFT": "sells enterprise software, cloud infrastructure, productivity tools, and AI-enabled platforms",
+    "NVDA": "designs accelerated-computing chips and software used across AI, data-center, and graphics workloads",
+    "AMZN": "combines e-commerce, logistics, advertising, and cloud infrastructure through AWS",
+    "META": "runs large social platforms monetized through digital advertising and engagement",
+    "GOOGL": "monetizes search, video, cloud, and broader digital advertising demand",
+    "TSLA": "sells electric vehicles, energy storage, and software-driven mobility products",
+    "NFLX": "sells subscription streaming and monetizes audience engagement through content and ad-supported tiers",
+    "AMD": "designs CPUs, GPUs, and related silicon for data-center, PC, gaming, and AI workloads",
+    "INTC": "designs and manufactures processors and semiconductor platforms for PCs, servers, and edge systems",
+    "JPM": "provides consumer banking, payments, capital-markets, and investment-banking services",
+    "V": "operates a global payments network that earns from transaction volume and payment flows",
+    "MA": "operates a global card and payments network tied to consumer and business spend",
+    "PYPL": "provides digital checkout, merchant tools, and consumer payments products",
+    "SHOP": "sells merchant software, storefront tooling, and commerce infrastructure",
+    "UBER": "runs ride-sharing, delivery, and mobility marketplaces",
+    "XOM": "produces oil and gas and monetizes energy supply through upstream and downstream operations",
+    "CVX": "produces oil and gas and monetizes energy supply across upstream, refining, and chemicals",
+    "COP": "focuses on upstream oil and gas production tied to energy-price cycles",
+    "SLB": "sells oilfield services and technology into upstream energy spending",
+    "PFE": "develops and sells branded medicines and biopharma products",
+    "JNJ": "sells pharmaceuticals and medical technologies across a broad healthcare portfolio",
+    "LLY": "develops branded medicines with a narrative often tied to obesity, diabetes, and pipeline execution",
+    "UNH": "sells managed-care coverage and healthcare-services infrastructure",
+    "MRK": "develops branded medicines tied to oncology, vaccines, and pipeline execution",
+    "ABBV": "sells branded pharmaceuticals with exposure to immunology, aesthetics, and new-product ramp",
+}
+
+BUSINESS_ROLE_HINTS: dict[str, str] = {
+    "Housing": "operates a housing-linked business tied to homebuilding, renovation, and housing turnover",
+    "Retail": "sells goods or retail services directly to consumers through stores, digital storefronts, or merchant platforms",
+    "Media": "owns or distributes content, channels, streaming, or media platforms",
+    "Social Media & Entertainment": "monetizes audience attention through social platforms, streaming, music, or interactive entertainment",
+    "Advertising": "makes money from ad budgets, audience targeting, or performance-marketing infrastructure",
+    "Commodity": "sells or produces energy, metals, mining, fertilizer, or other commodity-linked output",
+    "Payments & Commerce": "sells transaction rails, merchant tooling, checkout, or commerce-enablement software",
+    "Travel & Mobility": "monetizes travel demand through ride-sharing, booking, airline, lodging, or related mobility services",
+    "Healthcare & Life Sciences": "sells drugs, medical tools, managed-care products, or life-science workflow services",
+}
+
+BUSINESS_NARRATIVE_HINTS: dict[str, str] = {
+    "Housing": "rates, affordability, repair-and-remodel demand, and new-home supply",
+    "Retail": "consumer spending, trade-down behavior, inventory discipline, and e-commerce share",
+    "Media": "content cadence, streaming economics, affiliate-fee pressure, and the ad cycle",
+    "Social Media & Entertainment": "engagement, subscriber momentum, creator monetization, and release cadence",
+    "Advertising": "brand budgets, performance-marketing demand, targeting efficiency, and ad-platform product cycles",
+    "Commodity": "underlying commodity prices, supply discipline, cost inflation, and capital spending",
+    "Payments & Commerce": "payment volumes, checkout conversion, merchant adoption, and consumer spend mix",
+    "Travel & Mobility": "travel demand, occupancy/load factors, pricing power, and consumer mobility trends",
+    "Healthcare & Life Sciences": "drug uptake, reimbursement, medical utilization, and pipeline or tooling demand",
+}
+
+NEWS_THEME_KEYWORDS: list[tuple[str, list[str]]] = [
+    ("AI rollout", [" ai ", "artificial intelligence", "copilot", "model", "llm", "on-device ai"]),
+    ("product cycle", ["product cycle", "replacement cycle", "upgrade cycle", "device", "iphone", "launch"]),
+    ("services monetization", ["services", "subscription", "attach rate", "installed base", "monetization"]),
+    ("cloud and enterprise spend", ["cloud", "enterprise", "software", "seat growth", "data center", "workload"]),
+    ("digital ad demand", ["advertising", "ad spend", "ad market", "performance marketing", "brand budgets"]),
+    ("consumer spending", ["consumer", "traffic", "inventory", "value", "spending", "merchandise"]),
+    ("housing demand", ["housing", "mortgage", "affordability", "homebuilder", "home sales", "repair and remodel"]),
+    ("travel demand", ["travel", "booking", "airline", "hotel", "mobility", "rides"]),
+    ("commodity prices", ["oil", "copper", "gold", "gas", "commodity", "metals", "mining"]),
+    ("drug pipeline", ["drug", "trial", "approval", "therapy", "obesity", "pipeline", "clinical"]),
+    ("regulation", ["regulation", "antitrust", "tariff", "policy", "approval", "scrutiny"]),
+]
+
+REGIME_TEXT: dict[str, str] = {
+    "Trend continuation": "Price action still looks like a trend-continuation story rather than a broken setup.",
+    "Compression near breakout": "Price action looks coiled, with the market waiting for a catalyst to confirm the story.",
+    "Range-bound": "Price action looks indecisive, so the narrative is present but not yet cleanly confirmed.",
+    "Mean reversion watch": "Price action suggests the market is testing whether the story has gone too far too fast.",
+    "Breakdown risk": "Price action suggests the narrative is under pressure and needs a fresh catalyst.",
+}
 
 
 def _normalized(value: str) -> str:
@@ -166,56 +244,107 @@ def _latest_metric(frame: pd.DataFrame, metric: str) -> tuple[float | None, pd.T
     return (None if pd.isna(value) else float(value), report_date)
 
 
+def _matched_business_lenses(symbol: str) -> list[str]:
+    target = str(symbol or "").upper().strip()
+    if not target:
+        return []
+    matches: list[str] = []
+    for lens, symbols in BUSINESS_FOCUS_UNIVERSES.items():
+        if lens == "All Market":
+            continue
+        if target in {str(item).upper().strip() for item in symbols}:
+            matches.append(lens)
+    return matches
+
+
+def _join_phrases(values: list[str]) -> str:
+    cleaned = [str(value).strip() for value in values if str(value).strip()]
+    if not cleaned:
+        return ""
+    if len(cleaned) == 1:
+        return cleaned[0]
+    if len(cleaned) == 2:
+        return f"{cleaned[0]} and {cleaned[1]}"
+    return f"{', '.join(cleaned[:-1])}, and {cleaned[-1]}"
+
+
+def _extract_news_themes(payload: dict[str, object] | None) -> list[str]:
+    payload = payload or {}
+    articles = payload.get("articles")
+    texts: list[str] = []
+    if isinstance(articles, pd.DataFrame) and not articles.empty:
+        for _, row in articles.head(6).iterrows():
+            texts.append(
+                " ".join(
+                    str(row.get(field) or "")
+                    for field in ["headline", "summary", "description"]
+                )
+            )
+    fallback_summary = str(payload.get("fallback_summary") or "").strip()
+    if fallback_summary:
+        texts.append(fallback_summary)
+    blob = f" {' '.join(texts).lower()} "
+    if not blob.strip():
+        return []
+
+    scored: list[tuple[int, str]] = []
+    for theme, keywords in NEWS_THEME_KEYWORDS:
+        score = sum(blob.count(keyword.lower()) for keyword in keywords)
+        if score > 0:
+            scored.append((score, theme))
+    scored.sort(key=lambda item: (-item[0], item[1]))
+    return [theme for _, theme in scored[:3]]
+
+
 def build_company_description(
     ticker: str,
     asset: dict[str, object] | None,
     fundamentals: dict[str, pd.DataFrame] | None,
     signal_summary: dict[str, object] | None = None,
+    *,
+    news_payload: dict[str, object] | None = None,
+    active_lens: str | None = None,
 ) -> str:
     symbol = str(ticker or "").upper().strip()
     asset = asset or {}
-    fundamentals = fundamentals or {}
     signal_summary = signal_summary or {}
 
     name = str(asset.get("name") or symbol).strip()
-    exchange = str(asset.get("exchange") or "").strip()
-    status = str(asset.get("status") or "").strip().lower()
-    asset_class = str(asset.get("class") or "equity").replace("_", " ").strip()
-    if asset_class.lower() == "us equity":
-        asset_class = "US equity"
-
-    first_sentence = f"{name} ({symbol})"
-    descriptors = [part for part in [status, f"{exchange}-listed" if exchange else "", asset_class] if part]
-    if descriptors:
-        first_sentence += " is an " + " ".join(descriptors) + "."
+    matched_lenses = _matched_business_lenses(symbol)
+    if active_lens and active_lens not in {"", "All Market"}:
+        ordered_lenses = [active_lens] + [lens for lens in matched_lenses if lens != active_lens]
     else:
-        first_sentence += " is an actively tracked equity."
+        ordered_lenses = matched_lenses
 
-    income = fundamentals.get("income", pd.DataFrame())
-    cashflow = fundamentals.get("cashflow", pd.DataFrame())
-    revenue, report_date = _latest_metric(income, "Total Revenue")
-    net_income, _ = _latest_metric(income, "Net Income")
-    free_cash_flow, _ = _latest_metric(cashflow, "Free Cash Flow")
+    role_hint = COMPANY_ROLE_HINTS.get(symbol)
+    if not role_hint and ordered_lenses:
+        role_hint = BUSINESS_ROLE_HINTS.get(ordered_lenses[0])
+    if not role_hint:
+        role_hint = "is being tracked here as an individual company narrative inside the market dashboard"
 
-    details: list[str] = [first_sentence]
-    if revenue is not None or net_income is not None or free_cash_flow is not None:
-        report_label = report_date.strftime("%Y-%m-%d") if report_date is not None and not pd.isna(report_date) else "latest quarter"
+    details: list[str] = [f"{name} ({symbol}) {role_hint}."]
+
+    if ordered_lenses:
+        lens_text = _join_phrases(ordered_lenses[:2])
+        narrative_inputs = [
+            BUSINESS_NARRATIVE_HINTS.get(lens, "")
+            for lens in ordered_lenses[:2]
+        ]
         details.append(
-            f"Latest quarterly results ({report_label}) show revenue of {_fmt_money(revenue)}, "
-            f"net income of {_fmt_money(net_income)}, and free cash flow of {_fmt_money(free_cash_flow)}."
+            f"In this dashboard it maps most naturally to the {lens_text} narrative, where investors usually watch "
+            f"{_join_phrases([value for value in narrative_inputs if value])}."
         )
 
+    theme_hits = _extract_news_themes(news_payload)
+    if theme_hits:
+        details.append(f"Recent coverage is reinforcing a story around {_join_phrases(theme_hits)}.")
+
     regime = str(signal_summary.get("regime") or "").strip()
-    pullback = pd.to_numeric(signal_summary.get("pullback_from_ath_pct"), errors="coerce")
-    room_to_resistance = pd.to_numeric(signal_summary.get("dist_to_resistance_pct"), errors="coerce")
     if regime:
-        if pd.notna(pullback) and pd.notna(room_to_resistance):
-            details.append(
-                f"Current setup is {regime.lower()}, trading {float(pullback):.1f}% below its all-time high "
-                f"with {float(room_to_resistance):.1f}% room to channel resistance."
-            )
-        else:
-            details.append(f"Current setup is {regime.lower()}.")
+        details.append(REGIME_TEXT.get(regime, f"From a price-action standpoint, the tape still fits a {regime.lower()} story."))
+
+    if len(details) == 1:
+        details.append("The current narrative is still thin, so the best read comes from the linked price action and recent headlines.")
 
     return " ".join(details)
 

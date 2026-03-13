@@ -7,3 +7,6 @@ alpaca-py>=0.34
 python-dotenv>=1.0
 azure-identity>=1.17
 azure-keyvault-secrets>=4.8
+azure-storage-blob>=12.23
+pyarrow>=17.0
+psycopg[binary]>=3.2

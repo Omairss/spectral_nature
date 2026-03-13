@@ -30,6 +30,7 @@ DEFAULT_CACHE_POLICY = {
         "daily_movers": 10,
         "momentum_profiles": 30,
         "correlation_phase_shift": 30,
+        "commodity_regime": 30,
         "price_history": 60,
         "option_chain": 15,
         "option_surface": 15,

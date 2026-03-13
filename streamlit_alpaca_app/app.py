@@ -36,6 +36,7 @@ from services.data_cache import (
     dataset_scope,
 )
 from services.fred import (
+    FRED_CATEGORY_BLURBS,
     FredAPIError,
     FredSeriesSpec,
     build_fred_figure,
@@ -43,8 +44,14 @@ from services.fred import (
     format_fred_delta,
     format_fred_value,
     fred_categories,
+    fred_specs_by_category,
     load_fred_api_key,
     load_fred_dashboard,
+)
+from services.pipeline_store import (
+    load_latest_dataset_frame,
+    pipeline_store_configured,
+    start_source_refresh_job,
 )
 from services.fundamentals import load_quarterly_fundamentals, plot_statement
 from services.market import (
@@ -52,12 +59,25 @@ from services.market import (
     business_focus_description,
     business_focus_options,
     business_focus_universe,
+    commodity_dependency_graph,
+    commodity_focus_description,
+    commodity_focus_options,
+    commodity_focus_universe,
+    commodity_proxy_profile,
+    commodity_reference_universe,
     load_price_history,
+    scan_commodity_regimes,
     scan_correlation_phase_shifts,
     scan_daily_movers,
     scan_momentum_profiles,
 )
-from services.options import analyze_option_candidates, load_option_chain, load_option_surface, rank_options
+from services.options import (
+    analyze_option_candidates,
+    load_option_chain,
+    load_option_surface,
+    rank_options,
+    select_option_surface_window,
+)
 from services.technicals import build_technical_figure
 
 _SIGNALS_IMPORT_ERROR: str | None = None
@@ -185,6 +205,77 @@ def _has_live_api(api: AlpacaAPI | None, message: str) -> bool:
     return False
 
 
+def _source_force_requested(source: str) -> bool:
+    flags = st.session_state.get("_source_force_refresh", {})
+    if not isinstance(flags, dict):
+        return False
+    return bool(flags.get(source, False))
+
+
+def _load_pipeline_dataset(dataset_name: str) -> pd.DataFrame:
+    frame, _ = load_latest_dataset_frame(dataset_name)
+    if frame.empty:
+        return frame
+    return frame.reset_index(drop=True)
+
+
+def _build_fred_dashboard_from_pipeline(
+    summary: pd.DataFrame,
+    observations: pd.DataFrame,
+    years: int,
+) -> dict[str, object]:
+    summary_frame = summary.copy()
+    obs_frame = observations.copy()
+
+    if "date" in obs_frame.columns:
+        obs_frame["date"] = pd.to_datetime(obs_frame["date"], errors="coerce")
+        cutoff = pd.Timestamp.utcnow().tz_localize(None) - pd.DateOffset(years=max(int(years), 1))
+        obs_frame = obs_frame[obs_frame["date"] >= cutoff].copy()
+    if "value" in obs_frame.columns:
+        obs_frame["value"] = pd.to_numeric(obs_frame["value"], errors="coerce")
+
+    summary_frame["series_id"] = summary_frame.get("series_id", pd.Series(dtype=str)).astype(str)
+    metadata_by_id: dict[str, dict[str, object]] = {}
+    for _, row in summary_frame.iterrows():
+        sid = str(row.get("series_id") or "").strip()
+        if not sid:
+            continue
+        metadata_by_id[sid] = {
+            "series_id": sid,
+            "units_short": row.get("units_short"),
+            "frequency_short": row.get("frequency_short"),
+            "title": row.get("source_title") or row.get("indicator") or sid,
+            "last_updated": row.get("last_updated"),
+        }
+
+    series_data: dict[str, pd.DataFrame] = {}
+    if not obs_frame.empty and "series_id" in obs_frame.columns:
+        for sid, frame in obs_frame.groupby("series_id", sort=False):
+            series_data[str(sid)] = frame[[col for col in ["date", "value"] if col in frame.columns]].reset_index(drop=True)
+
+    series_index_cols = [col for col in ["series_id", "indicator", "frequency_short", "units_short", "source_title"] if col in summary_frame.columns]
+    series_index = summary_frame[series_index_cols].copy() if series_index_cols else pd.DataFrame()
+    if "indicator" in series_index.columns:
+        series_index = series_index.rename(columns={"indicator": "title"})
+
+    release_index = pd.DataFrame()
+    if "release_id" in obs_frame.columns:
+        release_ids = pd.to_numeric(obs_frame["release_id"], errors="coerce").dropna().astype(int).drop_duplicates().sort_values()
+        if not release_ids.empty:
+            release_index = pd.DataFrame({"release_id": release_ids})
+
+    return {
+        "summary": summary_frame.reset_index(drop=True),
+        "series_data": series_data,
+        "metadata": metadata_by_id,
+        "specs_by_category": fred_specs_by_category(),
+        "category_blurbs": FRED_CATEGORY_BLURBS,
+        "series_index": series_index.reset_index(drop=True),
+        "observations": obs_frame.reset_index(drop=True),
+        "release_index": release_index.reset_index(drop=True),
+    }
+
+
 def _load_account_cached(cfg: AppConfig, force_refresh: bool = False) -> dict[str, object]:
     return cached_scalar_dict(
         "account",
@@ -233,13 +324,22 @@ def _scan_daily_movers_cached(
     symbols: list[str] | None = None,
     force_refresh: bool = False,
 ) -> pd.DataFrame:
+    effective_force = force_refresh or _source_force_requested("equities")
+    if not effective_force and pipeline_store_configured():
+        pipeline = _load_pipeline_dataset("daily_movers")
+        if not pipeline.empty:
+            if symbols and "symbol" in pipeline.columns:
+                allowed = {str(item).upper().strip() for item in symbols if str(item).strip()}
+                pipeline = pipeline[pipeline["symbol"].astype(str).str.upper().isin(allowed)].copy()
+            return pipeline.reset_index(drop=True)
+
     universe = symbols or DEFAULT_UNIVERSE
     symbol_scope = dataset_scope("market-universe", ",".join(sorted({str(symbol).upper() for symbol in universe})))
     return cached_frame(
         "daily_movers",
         f"{_alpaca_cache_scope(cfg)}__{symbol_scope}",
         lambda: scan_daily_movers(_make_api(cfg), symbols=universe),
-        force_refresh=force_refresh,
+        force_refresh=effective_force,
     )
 
 
@@ -249,14 +349,23 @@ def _scan_momentum_profiles_cached(
     symbols: list[str] | None = None,
     force_refresh: bool = False,
 ) -> pd.DataFrame:
+    effective_force = force_refresh or _source_force_requested("equities")
+    if not effective_force and pipeline_store_configured():
+        pipeline = _load_pipeline_dataset("momentum_profiles")
+        if not pipeline.empty:
+            if symbols and "symbol" in pipeline.columns:
+                allowed = {str(item).upper().strip() for item in symbols if str(item).strip()}
+                pipeline = pipeline[pipeline["symbol"].astype(str).str.upper().isin(allowed)].copy()
+            return pipeline.reset_index(drop=True)
+
     universe = symbols or DEFAULT_UNIVERSE
     symbol_scope = dataset_scope("market-universe", ",".join(sorted({str(symbol).upper() for symbol in universe})))
     return cached_frame(
         "momentum_profiles",
         f"{_alpaca_cache_scope(cfg)}__{days}d__{symbol_scope}",
         lambda: scan_momentum_profiles(_make_api(cfg), symbols=universe, days=days),
-        force_refresh=force_refresh,
-        version=2,
+        force_refresh=effective_force,
+        version=5,
     )
 
 
@@ -270,6 +379,33 @@ def _load_correlation_phase_shift_cached(
     symbols: list[str] | None = None,
     force_refresh: bool = False,
 ) -> dict[str, pd.DataFrame]:
+    effective_force = force_refresh or _source_force_requested("derivatives")
+    if not effective_force and pipeline_store_configured():
+        summary = _load_pipeline_dataset("correlation_phase_shift_summary")
+        history = _load_pipeline_dataset("correlation_phase_shift_history")
+        if not summary.empty or not history.empty:
+            bench = str(benchmark or "SPY").upper().strip()
+            if "phase_benchmark" in summary.columns:
+                summary = summary[summary["phase_benchmark"].astype(str).str.upper() == bench].copy()
+            if "benchmark" in summary.columns:
+                summary = summary[summary["benchmark"].astype(str).str.upper() == bench].copy()
+            if "phase_benchmark" in history.columns:
+                history = history[history["phase_benchmark"].astype(str).str.upper() == bench].copy()
+            if "benchmark" in history.columns:
+                history = history[history["benchmark"].astype(str).str.upper() == bench].copy()
+
+            if symbols:
+                allowed = {str(symbol).upper().strip() for symbol in symbols if str(symbol).strip()}
+                if "symbol" in summary.columns:
+                    summary = summary[summary["symbol"].astype(str).str.upper().isin(allowed)].copy()
+                if "symbol" in history.columns:
+                    history = history[history["symbol"].astype(str).str.upper().isin(allowed)].copy()
+
+            return {
+                "summary": summary.reset_index(drop=True),
+                "history": history.reset_index(drop=True),
+            }
+
     universe = symbols or DEFAULT_UNIVERSE
     symbol_scope = dataset_scope("phase-shift-universe", ",".join(sorted({str(symbol).upper() for symbol in universe})))
     return cached_frame_dict(
@@ -292,18 +428,151 @@ def _load_correlation_phase_shift_cached(
             if key in {"summary", "history"}
         },
         keys=["summary", "history"],
-        force_refresh=force_refresh,
+        force_refresh=effective_force,
+        version=3,
+    )
+
+
+def _load_commodity_regime_cached(
+    cfg: AppConfig,
+    commodity_symbols: list[str],
+    days: int,
+    corr_window: int,
+    roc_window: int,
+    momentum_window: int,
+    symbols: list[str] | None = None,
+    force_refresh: bool = False,
+) -> dict[str, pd.DataFrame]:
+    effective_force = force_refresh or _source_force_requested("commodities")
+    if not effective_force and pipeline_store_configured():
+        summary = _load_pipeline_dataset("commodity_regime_summary")
+        history = _load_pipeline_dataset("commodity_regime_history")
+        if not summary.empty or not history.empty:
+            return {
+                "summary": summary.reset_index(drop=True),
+                "history": history.reset_index(drop=True),
+            }
+
+    universe = symbols or DEFAULT_UNIVERSE
+    symbol_scope = dataset_scope("commodity-universe", ",".join(sorted({str(symbol).upper() for symbol in universe})))
+    commodity_scope = dataset_scope(
+        "commodity-basket",
+        ",".join(sorted({str(symbol).upper() for symbol in commodity_symbols})),
+    )
+    return cached_frame_dict(
+        "commodity_regime",
+        (
+            f"{_alpaca_cache_scope(cfg)}__{days}d__corr_{corr_window}__roc_{roc_window}"
+            f"__mom_{momentum_window}__{symbol_scope}__{commodity_scope}"
+        ),
+        lambda: {
+            key: value
+            for key, value in scan_commodity_regimes(
+                _make_api(cfg),
+                symbols=universe,
+                commodity_symbols=commodity_symbols,
+                days=days,
+                corr_window=corr_window,
+                roc_window=roc_window,
+                momentum_window=momentum_window,
+            ).items()
+            if key in {"summary", "history"}
+        },
+        keys=["summary", "history"],
+        force_refresh=effective_force,
         version=2,
     )
 
 
 def _load_price_history_cached(cfg: AppConfig, ticker: str, days: int, force_refresh: bool = False) -> pd.DataFrame:
+    effective_force = force_refresh or _source_force_requested("equities")
+    if not effective_force and pipeline_store_configured():
+        pipeline = _load_pipeline_dataset("price_history")
+        if not pipeline.empty and {"symbol", "timestamp"}.issubset(set(pipeline.columns)):
+            out = pipeline[pipeline["symbol"].astype(str).str.upper() == ticker.upper()].copy()
+            if not out.empty:
+                out["timestamp"] = pd.to_datetime(out["timestamp"], utc=True, errors="coerce")
+                out = out.dropna(subset=["timestamp"]).sort_values("timestamp")
+                if days > 0:
+                    cutoff = out["timestamp"].max() - pd.Timedelta(days=max(int(days), 1))
+                    out = out[out["timestamp"] >= cutoff].copy()
+                return out.reset_index(drop=True)
+
     return cached_frame(
         "price_history",
         f"{_alpaca_cache_scope(cfg)}__{ticker.upper()}__{days}d",
         lambda: load_price_history(_make_api(cfg), ticker, days=days),
-        force_refresh=force_refresh,
+        force_refresh=effective_force,
     )
+
+
+def _load_technical_signal_history_cached(
+    cfg: AppConfig,
+    ticker: str,
+    days: int,
+    force_refresh: bool = False,
+) -> pd.DataFrame:
+    effective_force = force_refresh or _source_force_requested("derivatives")
+    if not effective_force and pipeline_store_configured():
+        pipeline = _load_pipeline_dataset("technical_signal_history")
+        if not pipeline.empty and {"symbol", "timestamp"}.issubset(set(pipeline.columns)):
+            out = pipeline[pipeline["symbol"].astype(str).str.upper() == ticker.upper()].copy()
+            if not out.empty:
+                out["timestamp"] = pd.to_datetime(out["timestamp"], utc=True, errors="coerce")
+                out = out.dropna(subset=["timestamp"]).sort_values("timestamp")
+                if days > 0:
+                    cutoff = out["timestamp"].max() - pd.Timedelta(days=max(int(days), 1))
+                    out = out[out["timestamp"] >= cutoff].copy()
+                return out.reset_index(drop=True)
+
+    base_days = max(int(days), 365)
+    price = _load_price_history_cached(cfg, ticker, days=base_days, force_refresh=effective_force)
+    if price.empty:
+        return pd.DataFrame()
+    frame = build_signal_frame(price)
+    if frame.empty:
+        return frame
+    frame = frame.copy()
+    frame["symbol"] = ticker.upper().strip()
+    return frame.reset_index(drop=True)
+
+
+def _load_technical_signal_summary_cached(
+    cfg: AppConfig,
+    ticker: str,
+    signal_frame: pd.DataFrame,
+    force_refresh: bool = False,
+) -> dict[str, float | str]:
+    effective_force = force_refresh or _source_force_requested("derivatives")
+    if not effective_force and pipeline_store_configured():
+        latest = _load_pipeline_dataset("technical_signals_latest")
+        if not latest.empty and "symbol" in latest.columns:
+            rows = latest[latest["symbol"].astype(str).str.upper() == ticker.upper()].copy()
+            if not rows.empty:
+                row = rows.iloc[0]
+                return {
+                    key: row.get(key)
+                    for key in [
+                        "close",
+                        "ath",
+                        "pullback_from_ath_pct",
+                        "channel_support",
+                        "channel_resistance",
+                        "channel_position",
+                        "dist_to_support_pct",
+                        "dist_to_resistance_pct",
+                        "ret_5_pct",
+                        "ret_21_pct",
+                        "ret_63_pct",
+                        "rsi_14",
+                        "vol_20_ann_pct",
+                        "regime",
+                    ]
+                }
+
+    if signal_frame.empty:
+        return {}
+    return summarize_signal_frame(signal_frame)
 
 
 def _load_option_chain_cached(
@@ -312,12 +581,42 @@ def _load_option_chain_cached(
     expiration: str | None = None,
     force_refresh: bool = False,
 ) -> tuple[list[str], pd.DataFrame, pd.DataFrame]:
+    effective_force = force_refresh or _source_force_requested("options")
+    if not effective_force and pipeline_store_configured():
+        pipeline = _load_pipeline_dataset("option_contract_snapshots")
+        if not pipeline.empty and {"symbol", "expiration", "type"}.issubset(set(pipeline.columns)):
+            options = pipeline[pipeline["symbol"].astype(str).str.upper() == ticker.upper()].copy()
+            if not options.empty:
+                expirations = sorted(
+                    {str(value) for value in options["expiration"].dropna().astype(str).tolist() if str(value).strip()}
+                )
+                if expirations:
+                    if expiration is None:
+                        return expirations, pd.DataFrame(), pd.DataFrame()
+
+                    selected_expiration = expiration if expiration in expirations else expirations[0]
+                    scoped = options[options["expiration"].astype(str) == selected_expiration].copy()
+                    scoped = scoped.sort_values([col for col in ["strike", "contractSymbol"] if col in scoped.columns])
+                    calls = scoped[scoped["type"].astype(str).str.lower() == "call"].copy()
+                    puts = scoped[scoped["type"].astype(str).str.lower() == "put"].copy()
+                    return expirations, calls.reset_index(drop=True), puts.reset_index(drop=True)
+
+        if expiration is None:
+            exp_only = _load_pipeline_dataset("option_expirations")
+            if not exp_only.empty and {"symbol", "expiration"}.issubset(set(exp_only.columns)):
+                options = exp_only[exp_only["symbol"].astype(str).str.upper() == ticker.upper()].copy()
+                expirations = sorted(
+                    {str(value) for value in options["expiration"].dropna().astype(str).tolist() if str(value).strip()}
+                )
+                if expirations:
+                    return expirations, pd.DataFrame(), pd.DataFrame()
+
     expiration_scope = expiration or "expirations"
     return cached_option_chain(
         "option_chain",
         f"{_alpaca_cache_scope(cfg)}__{ticker.upper()}__{expiration_scope}",
         lambda: load_option_chain(_make_api(cfg), ticker, expiration),
-        force_refresh=force_refresh,
+        force_refresh=effective_force,
     )
 
 
@@ -329,6 +628,22 @@ def _load_option_surface_cached(
     underlying_price: float,
     force_refresh: bool = False,
 ) -> pd.DataFrame:
+    effective_force = force_refresh or _source_force_requested("options")
+    if not effective_force and pipeline_store_configured():
+        pipeline = _load_pipeline_dataset("option_contract_snapshots")
+        if not pipeline.empty and {"symbol", "expiration"}.issubset(set(pipeline.columns)):
+            scoped = pipeline[pipeline["symbol"].astype(str).str.upper() == ticker.upper()].copy()
+            if not scoped.empty:
+                windowed = select_option_surface_window(
+                    scoped,
+                    underlying_price=underlying_price,
+                    expected_price=expected_price,
+                    horizon_days=horizon_days,
+                    max_contracts=450,
+                )
+                if not windowed.empty:
+                    return windowed.reset_index(drop=True)
+
     return cached_frame(
         "option_surface",
         (
@@ -342,17 +657,35 @@ def _load_option_surface_cached(
             expected_price=expected_price,
             horizon_days=horizon_days,
         ),
-        force_refresh=force_refresh,
+        force_refresh=effective_force,
     )
 
 
 def _load_quarterly_fundamentals_cached(ticker: str, force_refresh: bool = False) -> dict[str, pd.DataFrame]:
+    effective_force = force_refresh or _source_force_requested("fundamentals")
+    if not effective_force and pipeline_store_configured():
+        pipeline = _load_pipeline_dataset("quarterly_fundamentals")
+        if not pipeline.empty and "ticker" in pipeline.columns:
+            rows = pipeline[pipeline["ticker"].astype(str).str.upper() == ticker.upper()].copy()
+            if not rows.empty:
+                if "report_date" in rows.columns:
+                    rows["report_date"] = pd.to_datetime(rows["report_date"], errors="coerce")
+                if "statement" in rows.columns:
+                    rows["statement"] = rows["statement"].astype(str).str.lower()
+                out = {
+                    "income": rows[rows.get("statement", pd.Series(dtype=str)) == "income"].copy().reset_index(drop=True),
+                    "balance": rows[rows.get("statement", pd.Series(dtype=str)) == "balance"].copy().reset_index(drop=True),
+                    "cashflow": rows[rows.get("statement", pd.Series(dtype=str)) == "cashflow"].copy().reset_index(drop=True),
+                }
+                if any(not part.empty for part in out.values()):
+                    return out
+
     return cached_frame_dict(
         "quarterly_fundamentals",
         ticker.upper(),
         lambda: load_quarterly_fundamentals(ticker),
         keys=["income", "balance", "cashflow"],
-        force_refresh=force_refresh,
+        force_refresh=effective_force,
     )
 
 
@@ -372,20 +705,51 @@ def _load_recent_news_cached(
     limit: int = 8,
     force_refresh: bool = False,
 ) -> dict[str, object]:
+    effective_force = force_refresh or _source_force_requested("news")
+    if not effective_force and pipeline_store_configured():
+        pipeline = _load_pipeline_dataset("news_articles")
+        if not pipeline.empty:
+            target = ticker.upper().strip()
+
+            def _has_symbol(value: object) -> bool:
+                if isinstance(value, (list, tuple, set)):
+                    vals = [str(item).upper().strip() for item in value]
+                    return target in vals
+                blob = str(value or "").replace("|", ",")
+                vals = [item.upper().strip() for item in blob.split(",") if item.strip()]
+                return target in vals
+
+            rows = pipeline.copy()
+            if "symbols" in rows.columns:
+                rows = rows[rows["symbols"].apply(_has_symbol)].copy()
+            if not rows.empty:
+                if "published_at" in rows.columns:
+                    rows["published_at"] = pd.to_datetime(rows["published_at"], utc=True, errors="coerce")
+                    rows = rows.sort_values("published_at", ascending=False, na_position="last")
+                rows = rows.head(limit).reset_index(drop=True)
+                return {"articles": rows, "fallback_summary": None, "source": "pipeline"}
+
     return cached_news_payload(
         "recent_news",
         f"{_alpaca_cache_scope(cfg)}__{ticker.upper()}__{days}d__{limit}",
         lambda: load_recent_news(_make_api(cfg), ticker, days=days, limit=limit),
-        force_refresh=force_refresh,
+        force_refresh=effective_force,
     )
 
 
 def _load_fred_dashboard_cached(api_key: str, years: int, force_refresh: bool = False) -> dict[str, object]:
+    effective_force = force_refresh or _source_force_requested("fred")
+    if not effective_force and pipeline_store_configured():
+        summary = _load_pipeline_dataset("fred_summary")
+        observations = _load_pipeline_dataset("fred_observations")
+        if not summary.empty and not observations.empty:
+            return _build_fred_dashboard_from_pipeline(summary, observations, years)
+
     return cached_fred_dashboard(
         "fred_dashboard",
         f"{_fred_cache_scope(api_key)}__{years}y",
         lambda: load_fred_dashboard(api_key, years=years),
-        force_refresh=force_refresh,
+        force_refresh=effective_force,
     )
 
 
@@ -418,6 +782,7 @@ def _render_selectable_ticker_table(
     df: pd.DataFrame,
     columns: list[str],
     key: str,
+    column_config: dict[str, object] | None = None,
 ) -> str | None:
     st.subheader(title)
     if df.empty:
@@ -430,6 +795,8 @@ def _render_selectable_ticker_table(
         table,
         use_container_width=True,
         hide_index=True,
+        column_config=column_config,
+        row_height=48 if "sparkline_3m" in table.columns else None,
         on_select="rerun",
         selection_mode="single-row",
         key=key,
@@ -446,6 +813,115 @@ def _render_selectable_ticker_table(
 def _render_help_popover(title: str, body: str, label: str = "How to read") -> None:
     with st.popover(label, help=title, use_container_width=True):
         st.markdown(body)
+
+
+def _load_symbol_name_map(
+    cfg: AppConfig,
+    symbols: list[str],
+    *,
+    force_refresh: bool = False,
+) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for symbol in sorted({str(value).upper().strip() for value in symbols if str(value).strip()}):
+        try:
+            asset = _load_asset_metadata_cached(cfg, symbol, force_refresh=force_refresh)
+        except Exception:
+            asset = {}
+        name = str(asset.get("name") or "").strip()
+        if name:
+            out[symbol] = name
+    return out
+
+
+def _prepare_momentum_table(
+    df: pd.DataFrame,
+    *,
+    name_map: dict[str, str] | None = None,
+) -> tuple[pd.DataFrame, dict[str, object]]:
+    table = df.copy()
+    if "symbol" in table.columns:
+        table["company_name"] = [
+            str((name_map or {}).get(str(symbol).upper().strip()) or "")
+            for symbol in table["symbol"]
+        ]
+    if "sparkline_3m" in table.columns:
+        table["sparkline_3m"] = [
+            list(value) if isinstance(value, (list, tuple, np.ndarray)) else []
+            for value in table["sparkline_3m"]
+        ]
+
+    column_config: dict[str, object] = {
+        "symbol": st.column_config.TextColumn("Ticker"),
+    }
+    if "company_name" in table.columns:
+        column_config["company_name"] = st.column_config.TextColumn(
+            "Company",
+            help="Company name shown directly because Streamlit's native selectable dataframe does not support per-row hover tooltips reliably.",
+            width="medium",
+        )
+    if "sparkline_3m" in table.columns:
+        column_config["sparkline_3m"] = st.column_config.LineChartColumn(
+            "Mini Chart",
+            help="Normalized 3-month price path.",
+            y_min=80,
+            y_max=140,
+            width="medium",
+        )
+    return table, column_config
+
+
+def _build_rank_timeseries_figure(
+    history: pd.DataFrame,
+    rank_df: pd.DataFrame,
+    title: str,
+    *,
+    days: int,
+    value_col: str = "asset_norm",
+) -> go.Figure:
+    fig = go.Figure()
+    fig.update_layout(template="plotly_dark", title=title, xaxis_title="Date", yaxis_title="Normalized Price", hovermode="x unified")
+    if history.empty or rank_df.empty or value_col not in history.columns:
+        return fig
+
+    symbols = [str(symbol).upper().strip() for symbol in rank_df.get("symbol", pd.Series(dtype=str)).tolist() if str(symbol).strip()]
+    if not symbols:
+        return fig
+
+    frame = history[history["symbol"].astype(str).isin(symbols)].copy()
+    if frame.empty:
+        return fig
+
+    frame["timestamp"] = pd.to_datetime(frame["timestamp"], utc=True, errors="coerce")
+    frame = frame.dropna(subset=["timestamp", value_col]).sort_values("timestamp")
+    if frame.empty:
+        return fig
+
+    cutoff = frame["timestamp"].max() - pd.Timedelta(days=max(int(days), 30))
+    frame = frame[frame["timestamp"] >= cutoff].copy()
+    if frame.empty:
+        return fig
+
+    label_map: dict[str, str] = {}
+    for row in rank_df.itertuples(index=False):
+        symbol = str(getattr(row, "symbol", "")).upper().strip()
+        name = str(getattr(row, "commodity_label", "") or getattr(row, "name", "") or symbol).strip()
+        label_map[symbol] = f"{name} ({symbol})" if name and name != symbol else symbol
+
+    for symbol in symbols:
+        symbol_frame = frame[frame["symbol"].astype(str) == symbol].copy()
+        if symbol_frame.empty:
+            continue
+        fig.add_trace(
+            go.Scatter(
+                x=symbol_frame["timestamp"],
+                y=pd.to_numeric(symbol_frame[value_col], errors="coerce"),
+                mode="lines",
+                name=label_map.get(symbol, symbol),
+            )
+        )
+
+    fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0))
+    return fig
 
 
 def _sync_market_ticker_from_widget() -> None:
@@ -554,17 +1030,48 @@ def _compute_holding_roc(api: AlpacaAPI, symbols: list[str], days: int = 365) ->
 def _render_market_opportunity_experiments(
     cfg: AppConfig,
     force_data_refresh: bool,
+    advanced_view: str,
+    lens_label: str,
+    lens_name: str,
+    lens_symbols: list[str],
+) -> None:
+    heading_cols = st.columns([10, 2])
+    with heading_cols[0]:
+        st.subheader("Advanced")
+        st.caption("Less-standard scanners for regime shifts, structural leadership, and commodity transmission.")
+        st.caption(f"{lens_label}: {lens_name} | {len(lens_symbols)} names")
+    with heading_cols[1]:
+        _render_help_popover(
+            "How to read advanced views",
+            """
+Use this area when you want signals that are a little more structural than simple movers or momentum tables.
+
+- `Broad Markets` looks for names breaking away from or re-linking with a market benchmark.
+- `Commodity Section` is commodity-first and answers what is moving, in what direction, and how moves can transmit across the chain.
+            """,
+        )
+
+    if advanced_view == "Commodity Section":
+        _render_commodity_experiment(cfg, force_data_refresh, lens_name, lens_symbols)
+        return
+
+    _render_phase_shift_experiment(cfg, force_data_refresh, lens_name, lens_symbols)
+
+
+def _render_phase_shift_experiment(
+    cfg: AppConfig,
+    force_data_refresh: bool,
     business_filter: str,
     business_symbols: list[str],
 ) -> None:
     heading_cols = st.columns([10, 2])
     with heading_cols[0]:
-        st.subheader("Experiments")
+        st.markdown("##### Broad Markets")
         st.caption(
-            "Phase-shift analyzer: searches for changes in rolling market correlation versus multi-horizon compounding "
+            "Correlation phase-shift analyzer: searches for changes in rolling market correlation versus multi-horizon compounding "
             "momentum to surface decoupling leaders, beta-linked breakouts, and crowded unwinds."
         )
-        st.caption(f"Business lens: {business_filter} | {len(business_symbols)} names")
+        st.caption(f"Business lens: {business_filter}")
     with heading_cols[1]:
         _render_help_popover(
             "How to read this experiment",
@@ -962,6 +1469,654 @@ Easy interpretation:
     st.plotly_chart(fig_momentum, use_container_width=True)
 
 
+def _render_commodity_experiment(
+    cfg: AppConfig,
+    force_data_refresh: bool,
+    commodity_focus: str,
+    commodity_symbols: list[str],
+) -> None:
+    heading_cols = st.columns([10, 2])
+    with heading_cols[0]:
+        st.markdown("##### Commodity Section")
+        st.caption(
+            "Commodity-first view that answers what is moving, in what direction, and how those moves can transmit across upstream and downstream links."
+        )
+        st.caption(f"Commodity filter: {commodity_focus}")
+    with heading_cols[1]:
+        _render_help_popover(
+            "How to read this section",
+            """
+**Plain-English version**
+
+- `Direction` tells you whether a commodity is rising, falling, or changing pace.
+- `Relative strength` tells you whether it is outperforming the broad commodity basket.
+- `Dependency graph` shows where one commodity often transmits into another through energy inputs, fertilizer costs, electrification demand, or soft-commodity spillovers.
+
+**What this section is trying to answer**
+
+- Which commodities are moving up or down right now?
+- Which moves are accelerating versus cooling off?
+- Which commodities may be pressuring or feeding into other commodities?
+            """,
+        )
+
+    control_cols = st.columns(4)
+    with control_cols[0]:
+        experiment_days = st.slider("History (days)", 126, 504, 252, step=21, key="market_commodity_days")
+    with control_cols[1]:
+        corr_window = st.slider("Beta Window", 10, 60, 20, step=5, key="market_commodity_corr_window")
+    with control_cols[2]:
+        roc_window = st.slider("Beta RoC", 5, 30, 10, step=1, key="market_commodity_roc_window")
+    with control_cols[3]:
+        momentum_window = st.slider("Transmission Window", 21, 126, 63, step=21, key="market_commodity_momentum_window")
+
+    st.caption(commodity_focus_description(commodity_focus))
+    reference_symbols = commodity_reference_universe()
+    st.caption(
+        "Broad commodity reference basket: "
+        + ", ".join(f"{commodity_proxy_profile(symbol)['commodity']} ({symbol})" for symbol in reference_symbols)
+    )
+    with st.expander("Commodity Lens Constituents", expanded=False):
+        lens_profiles = pd.DataFrame([commodity_proxy_profile(symbol) for symbol in commodity_symbols])
+        st.dataframe(
+            lens_profiles[["symbol", "name", "commodity", "description"]],
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    try:
+        with st.spinner("Scanning commodity market structure..."):
+            with _timed(
+                "scan_commodity_regimes",
+                basket=commodity_focus,
+                days=experiment_days,
+                corr_window=corr_window,
+                roc_window=roc_window,
+                momentum_window=momentum_window,
+            ):
+                experiment_data = _load_commodity_regime_cached(
+                    cfg,
+                    commodity_symbols=reference_symbols,
+                    days=experiment_days,
+                    corr_window=corr_window,
+                    roc_window=roc_window,
+                    momentum_window=momentum_window,
+                    symbols=commodity_symbols,
+                    force_refresh=force_data_refresh,
+                )
+                momentum = _scan_momentum_profiles_cached(
+                    cfg,
+                    experiment_days,
+                    symbols=commodity_symbols,
+                    force_refresh=force_data_refresh,
+                )
+    except AlpacaAPIError as exc:
+        _log_event("scan_commodity_regimes_failed", basket=commodity_focus, error=str(exc)[:200])
+        st.error(f"Could not run the commodity analyzer: {exc}")
+        return
+
+    summary = experiment_data.get("summary", pd.DataFrame())
+    history = experiment_data.get("history", pd.DataFrame())
+    if summary.empty or history.empty or momentum.empty:
+        st.info("Not enough commodity history was returned to build this section.")
+        return
+
+    summary = summary.merge(
+        momentum[
+            [
+                "symbol",
+                "daily_change_pct",
+                "return_1w_pct",
+                "return_1m_pct",
+                "return_3m_pct",
+                "momentum_score",
+                "momentum_roc_score",
+                "trend_r2_3m",
+                "trend_fit_gap",
+            ]
+        ],
+        on="symbol",
+        how="left",
+    )
+    for column in ["name", "commodity_label", "description"]:
+        if column not in summary.columns:
+            summary[column] = None
+
+    for row_idx, symbol in summary["symbol"].astype(str).items():
+        profile = commodity_proxy_profile(symbol)
+        if pd.isna(summary.at[row_idx, "name"]) or not str(summary.at[row_idx, "name"]).strip():
+            summary.at[row_idx, "name"] = profile["name"]
+        if pd.isna(summary.at[row_idx, "commodity_label"]) or not str(summary.at[row_idx, "commodity_label"]).strip():
+            summary.at[row_idx, "commodity_label"] = profile["commodity"]
+        if pd.isna(summary.at[row_idx, "description"]) or not str(summary.at[row_idx, "description"]).strip():
+            summary.at[row_idx, "description"] = profile["description"]
+
+    def commodity_direction_label(row: pd.Series) -> str:
+        return_1m = pd.to_numeric(row.get("return_1m_pct"), errors="coerce")
+        roc = pd.to_numeric(row.get("momentum_roc_score"), errors="coerce")
+        daily = pd.to_numeric(row.get("daily_change_pct"), errors="coerce")
+        if pd.notna(return_1m) and return_1m >= 0 and pd.notna(roc) and roc >= 0:
+            return "Up and accelerating"
+        if pd.notna(return_1m) and return_1m >= 0:
+            return "Up but cooling"
+        if pd.notna(return_1m) and return_1m < 0 and pd.notna(roc) and roc < 0:
+            return "Down and worsening"
+        if pd.notna(return_1m) and return_1m < 0:
+            return "Down but stabilizing"
+        if pd.notna(daily) and daily >= 0:
+            return "Positive turn"
+        return "Mixed"
+
+    summary["direction_label"] = summary.apply(commodity_direction_label, axis=1)
+    summary["trend_consistency_pct"] = pd.to_numeric(summary["trend_r2_3m"], errors="coerce") * 100.0
+    summary["pullback_abs"] = pd.to_numeric(summary["pullback_from_high_pct"], errors="coerce").abs()
+
+    breadth_positive = int(pd.to_numeric(summary["daily_change_pct"], errors="coerce").gt(0).sum())
+    breadth_negative = int(pd.to_numeric(summary["daily_change_pct"], errors="coerce").lt(0).sum())
+    leader = summary.sort_values("return_1m_pct", ascending=False, na_position="last").head(1)
+    laggard = summary.sort_values("return_1m_pct", ascending=True, na_position="last").head(1)
+    accelerator = summary.sort_values("momentum_roc_score", ascending=False, na_position="last").head(1)
+
+    metric_cols = st.columns(4)
+    with metric_cols[0]:
+        if not leader.empty:
+            st.metric(
+                "1M Leader",
+                str(leader.iloc[0]["commodity_label"]),
+                f"{pd.to_numeric(leader.iloc[0]['return_1m_pct'], errors='coerce'):.1f}%",
+            )
+    with metric_cols[1]:
+        if not laggard.empty:
+            st.metric(
+                "1M Laggard",
+                str(laggard.iloc[0]["commodity_label"]),
+                f"{pd.to_numeric(laggard.iloc[0]['return_1m_pct'], errors='coerce'):.1f}%",
+            )
+    with metric_cols[2]:
+        st.metric("Daily Breadth", f"{breadth_positive} up / {breadth_negative} down")
+    with metric_cols[3]:
+        if not accelerator.empty:
+            st.metric(
+                "Fastest Rotation",
+                str(accelerator.iloc[0]["commodity_label"]),
+                f"{pd.to_numeric(accelerator.iloc[0]['momentum_roc_score'], errors='coerce'):.2f}",
+            )
+
+    selected_commodity_ticker: str | None = None
+    moving_up = summary[pd.to_numeric(summary["return_1m_pct"], errors="coerce") > 0].sort_values(
+        ["return_1m_pct", "daily_change_pct"],
+        ascending=[False, False],
+        na_position="last",
+    ).head(10)[
+        [
+            "symbol",
+            "name",
+            "commodity_label",
+            "daily_change_pct",
+            "return_1w_pct",
+            "return_1m_pct",
+            "direction_label",
+        ]
+    ]
+    moving_down = summary[pd.to_numeric(summary["return_1m_pct"], errors="coerce") < 0].sort_values(
+        ["return_1m_pct", "daily_change_pct"],
+        ascending=[True, True],
+        na_position="last",
+    ).head(10)[
+        [
+            "symbol",
+            "name",
+            "commodity_label",
+            "daily_change_pct",
+            "return_1w_pct",
+            "return_1m_pct",
+            "direction_label",
+        ]
+    ]
+    consistent_trends = summary.sort_values(["trend_fit_gap", "return_1m_pct"], ascending=[True, False], na_position="last").head(10)[
+        [
+            "symbol",
+            "name",
+            "commodity_label",
+            "trend_consistency_pct",
+            "pullback_from_high_pct",
+            "relative_strength_pct",
+        ]
+    ]
+
+    table_left, table_right = st.columns(2)
+    with table_left:
+        selected_commodity_ticker = _render_selectable_ticker_table(
+            "Moving Up",
+            moving_up,
+            ["symbol", "name", "commodity_label", "daily_change_pct", "return_1w_pct", "return_1m_pct"],
+            key="market_commodity_beneficiaries",
+        ) or selected_commodity_ticker
+    with table_right:
+        selected_commodity_ticker = _render_selectable_ticker_table(
+            "Moving Down",
+            moving_down,
+            ["symbol", "name", "commodity_label", "daily_change_pct", "return_1w_pct", "return_1m_pct"],
+            key="market_commodity_squeezes",
+        ) or selected_commodity_ticker
+
+    selected_commodity_ticker = _render_selectable_ticker_table(
+        "Most Consistent Trends",
+        consistent_trends,
+        ["symbol", "name", "commodity_label", "trend_consistency_pct", "pullback_from_high_pct", "relative_strength_pct"],
+        key="market_commodity_decouplers",
+    ) or selected_commodity_ticker
+
+    series_left, series_right = st.columns(2)
+    with series_left:
+        if moving_up.empty:
+            st.info("No commodities are currently in the `up` bucket for this filter.")
+        else:
+            st.plotly_chart(
+                _build_rank_timeseries_figure(
+                    history,
+                    moving_up,
+                    f"Moving Up Time Series: {commodity_focus}",
+                    days=experiment_days,
+                ),
+                use_container_width=True,
+            )
+    with series_right:
+        if moving_down.empty:
+            st.info("No commodities are currently in the `down` bucket for this filter.")
+        else:
+            st.plotly_chart(
+                _build_rank_timeseries_figure(
+                    history,
+                    moving_down,
+                    f"Moving Down Time Series: {commodity_focus}",
+                    days=experiment_days,
+                ),
+                use_container_width=True,
+            )
+
+    if consistent_trends.empty:
+        st.info("No consistent trend series were available for this commodity filter.")
+    else:
+        st.plotly_chart(
+            _build_rank_timeseries_figure(
+                history,
+                consistent_trends,
+                f"Most Consistent Trend Time Series: {commodity_focus}",
+                days=experiment_days,
+            ),
+            use_container_width=True,
+        )
+
+    heatmap_frame = summary.sort_values("return_1m_pct", ascending=False, na_position="last").reset_index(drop=True)
+    heatmap_values = heatmap_frame[
+        ["daily_change_pct", "return_1w_pct", "return_1m_pct", "return_3m_pct", "relative_strength_pct"]
+    ].apply(pd.to_numeric, errors="coerce")
+    heatmap_labels = [f"{row['commodity_label']} ({row['symbol']})" for _, row in heatmap_frame.iterrows()]
+
+    scatter_frame = summary.copy()
+    scatter_frame["rotation_abs"] = pd.to_numeric(scatter_frame["momentum_roc_score"], errors="coerce").abs()
+    scatter_frame, commodity_size_col = _prepare_scatter_size(scatter_frame, "rotation_abs")
+
+    chart_left, chart_right = st.columns(2)
+    with chart_left:
+        chart_help_cols = st.columns([10, 2])
+        with chart_help_cols[1]:
+            _render_help_popover(
+                "Direction Heatmap",
+                """
+This is the fastest answer to "what is moving and in what direction?"
+
+- rows are commodities in the selected filter
+- columns are return horizons
+- green means rising, red means falling
+- the further from zero, the stronger the move
+                """,
+            )
+        fig_heatmap = go.Figure(
+            data=go.Heatmap(
+                z=heatmap_values.to_numpy(dtype=float),
+                x=["1D %", "1W %", "1M %", "3M %", "Rel Strength %"],
+                y=heatmap_labels,
+                colorscale="RdYlGn",
+                zmid=0,
+                colorbar=dict(title="%"),
+                hovertemplate="%{y}<br>%{x}: %{z:.2f}%<extra></extra>",
+            )
+        )
+        fig_heatmap.update_layout(template="plotly_dark", title=f"Commodity Direction Heatmap: {commodity_focus}")
+        st.plotly_chart(fig_heatmap, use_container_width=True)
+
+    with chart_right:
+        chart_help_cols = st.columns([10, 2])
+        with chart_help_cols[1]:
+            _render_help_popover(
+                "Leadership vs Pullback",
+                """
+This separates strong leaders from weak laggards.
+
+- `X axis`: relative strength versus the broad commodity basket
+- `Y axis`: 1-month direction of travel
+- `Marker size`: change in momentum pace
+- higher and further right usually means stronger commodity leadership
+                """,
+            )
+        fig_commodity = px.scatter(
+            scatter_frame,
+            x="relative_strength_pct",
+            y="return_1m_pct",
+            color="direction_label",
+            size=commodity_size_col,
+            hover_name="name",
+            hover_data={
+                "symbol": True,
+                "commodity_label": True,
+                "daily_change_pct": ":.2f",
+                "return_3m_pct": ":.2f",
+                "transmission_gap_pct": ":.2f",
+                "pullback_from_high_pct": ":.2f",
+            },
+            template="plotly_dark",
+            title=f"Commodity Leadership Map: {commodity_focus}",
+            labels={
+                "relative_strength_pct": "Relative Strength vs Broad Basket %",
+                "return_1m_pct": "1M Return %",
+            },
+        )
+        fig_commodity.add_hline(y=0, line_dash="dot", line_color="#666")
+        fig_commodity.add_vline(x=0, line_dash="dot", line_color="#666")
+        st.plotly_chart(fig_commodity, use_container_width=True)
+
+    dependency_edges = commodity_dependency_graph(commodity_symbols)
+    if not dependency_edges.empty:
+        sankey_left, sankey_right = st.columns([2.2, 1.2])
+        with sankey_left:
+            chart_help_cols = st.columns([10, 2])
+            with chart_help_cols[1]:
+                _render_help_popover(
+                    "Commodity Dependency Graph",
+                    """
+This graph shows common transmission paths.
+
+- links point from likely upstream pressure into likely downstream reaction
+- thicker links represent stronger expected transmission
+- node color reflects current 1-month direction of the commodity
+                    """,
+                )
+
+            value_map = summary.set_index("symbol")["return_1m_pct"].to_dict()
+
+            def _node_color(value: float) -> str:
+                if not np.isfinite(value):
+                    return "#888888"
+                if value >= 8:
+                    return "#1f9d55"
+                if value > 0:
+                    return "#7bc96f"
+                if value <= -8:
+                    return "#c23b22"
+                if value < 0:
+                    return "#f28b82"
+                return "#888888"
+
+            def _link_color(value: float) -> str:
+                if not np.isfinite(value):
+                    return "rgba(160,160,160,0.35)"
+                if value >= 0:
+                    return "rgba(31,157,85,0.35)"
+                return "rgba(194,59,34,0.35)"
+
+            nodes = list(dict.fromkeys(dependency_edges["source"].tolist() + dependency_edges["target"].tolist()))
+            node_index = {symbol: idx for idx, symbol in enumerate(nodes)}
+            node_labels = [f"{commodity_proxy_profile(symbol)['commodity']} ({symbol})" for symbol in nodes]
+            node_colors = [_node_color(pd.to_numeric(value_map.get(symbol), errors="coerce")) for symbol in nodes]
+            link_colors = [_link_color(pd.to_numeric(value_map.get(symbol), errors="coerce")) for symbol in dependency_edges["source"]]
+            link_labels = [
+                f"{row.source_commodity} -> {row.target_commodity}<br>{row.relation}: {row.description}"
+                for row in dependency_edges.itertuples(index=False)
+            ]
+
+            fig_sankey = go.Figure(
+                go.Sankey(
+                    arrangement="snap",
+                    node=dict(label=node_labels, color=node_colors, pad=18, thickness=18),
+                    link=dict(
+                        source=[node_index[symbol] for symbol in dependency_edges["source"]],
+                        target=[node_index[symbol] for symbol in dependency_edges["target"]],
+                        value=dependency_edges["weight"].astype(float).tolist(),
+                        color=link_colors,
+                        label=link_labels,
+                        hovertemplate="%{label}<extra></extra>",
+                    ),
+                )
+            )
+            fig_sankey.update_layout(template="plotly_dark", title=f"Commodity Dependency Graph: {commodity_focus}")
+            st.plotly_chart(fig_sankey, use_container_width=True)
+
+        with sankey_right:
+            edge_view = dependency_edges[
+                ["source_commodity", "target_commodity", "relation", "weight"]
+            ].rename(
+                columns={
+                    "source_commodity": "Upstream",
+                    "target_commodity": "Downstream",
+                    "relation": "Link",
+                    "weight": "Weight",
+                }
+            )
+            st.subheader("Key Links")
+            st.dataframe(edge_view, use_container_width=True, hide_index=True)
+
+    commodity_symbol_options = sorted(summary["symbol"].astype(str).unique().tolist())
+    commodity_selected_key = "market_commodity_selected_ticker"
+    commodity_widget_key = "market_commodity_ticker_widget"
+    fallback_commodity_ticker = st.session_state.get(commodity_selected_key) or commodity_symbol_options[0]
+    if fallback_commodity_ticker not in commodity_symbol_options:
+        fallback_commodity_ticker = commodity_symbol_options[0]
+
+    current_commodity_ticker = st.session_state.get(commodity_selected_key)
+    if current_commodity_ticker not in commodity_symbol_options:
+        current_commodity_ticker = fallback_commodity_ticker
+
+    if selected_commodity_ticker and selected_commodity_ticker in commodity_symbol_options:
+        if selected_commodity_ticker != current_commodity_ticker:
+            st.session_state[commodity_selected_key] = selected_commodity_ticker
+            st.session_state[commodity_widget_key] = selected_commodity_ticker
+            st.rerun()
+    elif commodity_selected_key not in st.session_state or st.session_state[commodity_selected_key] not in commodity_symbol_options:
+        st.session_state[commodity_selected_key] = fallback_commodity_ticker
+
+    if commodity_widget_key not in st.session_state or st.session_state[commodity_widget_key] not in commodity_symbol_options:
+        st.session_state[commodity_widget_key] = st.session_state[commodity_selected_key]
+    elif st.session_state[commodity_widget_key] != st.session_state[commodity_selected_key]:
+        st.session_state[commodity_widget_key] = st.session_state[commodity_selected_key]
+
+    commodity_ticker = st.selectbox(
+        "Commodity Detail",
+        commodity_symbol_options,
+        key=commodity_widget_key,
+        on_change=lambda: st.session_state.__setitem__(commodity_selected_key, st.session_state.get(commodity_widget_key)),
+    )
+    st.session_state[commodity_selected_key] = commodity_ticker
+
+    detail_row = summary[summary["symbol"] == commodity_ticker].head(1)
+    detail_history = history[history["symbol"] == commodity_ticker].copy()
+    if detail_row.empty or detail_history.empty:
+        st.info("No detail history available for the selected commodity ticker.")
+        return
+
+    detail = detail_row.iloc[0]
+    commodity_name = str(detail.get("name") or commodity_proxy_profile(commodity_ticker)["name"])
+    commodity_description = str(detail.get("description") or commodity_proxy_profile(commodity_ticker)["description"])
+    commodity_label = str(detail.get("commodity_label") or commodity_proxy_profile(commodity_ticker)["commodity"])
+    st.subheader(f"{commodity_name} ({commodity_ticker})")
+    st.write(commodity_description)
+    st.caption(f"Commodity type: {commodity_label} | Filter: {commodity_focus}")
+
+    metric_cols = st.columns(6)
+    with metric_cols[0]:
+        st.metric("Direction", str(detail.get("direction_label") or "n/a"))
+    with metric_cols[1]:
+        st.metric("1D Move", f"{pd.to_numeric(detail.get('daily_change_pct'), errors='coerce'):.1f}%")
+    with metric_cols[2]:
+        st.metric("1W Move", f"{pd.to_numeric(detail.get('return_1w_pct'), errors='coerce'):.1f}%")
+    with metric_cols[3]:
+        st.metric("1M Move", f"{pd.to_numeric(detail.get('return_1m_pct'), errors='coerce'):.1f}%")
+    with metric_cols[4]:
+        st.metric("Relative Strength", f"{pd.to_numeric(detail.get('relative_strength_pct'), errors='coerce'):.1f}%")
+    with metric_cols[5]:
+        st.metric("Pullback vs High", f"{pd.to_numeric(detail.get('pullback_from_high_pct'), errors='coerce'):.1f}%")
+
+    detail_history = detail_history.sort_values("timestamp").copy()
+    visible_cutoff = detail_history["timestamp"].max() - pd.Timedelta(days=min(experiment_days, 180))
+    visible_history = detail_history[detail_history["timestamp"] >= visible_cutoff].copy()
+    if visible_history.empty:
+        visible_history = detail_history.copy()
+
+    detail_chart_left, detail_chart_right = st.columns(2)
+    with detail_chart_left:
+        chart_help_cols = st.columns([10, 2])
+        with chart_help_cols[1]:
+            _render_help_popover(
+                "Relative Path vs Commodity Basket",
+                """
+This compares the selected commodity against the broad commodity basket from the same starting scale.
+
+- if the commodity line rises faster, it is leading the broad market
+- if the basket rises faster, leadership is broad and this commodity is lagging
+- a widening gap often matters more than the absolute beta reading
+                """,
+            )
+        fig_relative = go.Figure()
+        fig_relative.add_trace(
+            go.Scatter(
+                x=visible_history["timestamp"],
+                y=visible_history["asset_norm"],
+                mode="lines",
+                name=commodity_ticker,
+            )
+        )
+        fig_relative.add_trace(
+            go.Scatter(
+                x=visible_history["timestamp"],
+                y=visible_history["commodity_norm"],
+                mode="lines",
+                name="Broad Commodity Basket",
+            )
+        )
+        fig_relative.update_layout(
+            template="plotly_dark",
+            title=f"{commodity_name} vs Broad Commodity Basket",
+            xaxis_title="Date",
+            yaxis_title="Normalized Price",
+            hovermode="x unified",
+        )
+        st.plotly_chart(fig_relative, use_container_width=True)
+
+    with detail_chart_right:
+        chart_help_cols = st.columns([10, 2])
+        with chart_help_cols[1]:
+            _render_help_popover(
+                "Return Ladder",
+                """
+This condenses the move across horizons into one chart.
+
+- left of zero means the commodity is still under pressure
+- right of zero means it is moving higher
+- compare short and medium horizons to see whether the move is strengthening or fading
+                """,
+            )
+        return_ladder = pd.DataFrame(
+            {
+                "horizon": ["1D", "1W", "1M", "3M", "Rel Strength"],
+                "value": [
+                    pd.to_numeric(detail.get("daily_change_pct"), errors="coerce"),
+                    pd.to_numeric(detail.get("return_1w_pct"), errors="coerce"),
+                    pd.to_numeric(detail.get("return_1m_pct"), errors="coerce"),
+                    pd.to_numeric(detail.get("return_3m_pct"), errors="coerce"),
+                    pd.to_numeric(detail.get("relative_strength_pct"), errors="coerce"),
+                ],
+            }
+        )
+        fig_ladder = px.bar(
+            return_ladder,
+            x="value",
+            y="horizon",
+            orientation="h",
+            color="value",
+            color_continuous_scale="RdYlGn",
+            template="plotly_dark",
+            title=f"{commodity_name} Return Ladder",
+            labels={"value": "Percent", "horizon": ""},
+        )
+        fig_ladder.add_vline(x=0, line_dash="dot", line_color="#666")
+        st.plotly_chart(fig_ladder, use_container_width=True)
+
+    transmission_help_cols = st.columns([10, 2])
+    with transmission_help_cols[1]:
+        _render_help_popover(
+            "Trend Structure",
+            """
+This compares the commodity's trend strength against the broad basket and its pullback from a recent high.
+
+- `Commodity Comp Momentum %`: the selected commodity's own stacked return impulse
+- `Broad Basket Momentum %`: the same idea for the broad commodity market
+- `Pullback %`: how stretched or washed out the commodity is versus its recent high
+
+Strong momentum with a shallow pullback usually signals leadership. Weak momentum with a deep pullback usually signals stress.
+            """,
+        )
+    fig_transmission = go.Figure()
+    fig_transmission.add_trace(
+        go.Scatter(
+            x=visible_history["timestamp"],
+            y=visible_history["asset_compounding_momentum"] * 100.0,
+            mode="lines",
+            name="Commodity Comp Momentum %",
+        )
+    )
+    fig_transmission.add_trace(
+        go.Scatter(
+            x=visible_history["timestamp"],
+            y=visible_history["commodity_compounding_momentum"] * 100.0,
+            mode="lines",
+            name="Broad Basket Momentum %",
+        )
+    )
+    fig_transmission.add_trace(
+        go.Scatter(
+            x=visible_history["timestamp"],
+            y=visible_history["pullback_from_high"] * 100.0,
+            mode="lines",
+            name="Pullback vs High %",
+        )
+    )
+    fig_transmission.update_layout(
+        template="plotly_dark",
+        title=f"{commodity_name} Trend and Pullback",
+        xaxis_title="Date",
+        yaxis_title="Percent",
+        hovermode="x unified",
+    )
+    st.plotly_chart(fig_transmission, use_container_width=True)
+
+    related_edges = dependency_edges[
+        (dependency_edges["source"] == commodity_ticker) | (dependency_edges["target"] == commodity_ticker)
+    ].copy() if not dependency_edges.empty else pd.DataFrame()
+    st.subheader("Dependency Context")
+    if related_edges.empty:
+        st.info("No curated upstream/downstream dependency links are defined for this commodity in the current filter.")
+    else:
+        related_edges["flow"] = [
+            f"{row.source_commodity} -> {row.target_commodity}" for row in related_edges.itertuples(index=False)
+        ]
+        st.dataframe(
+            related_edges[["flow", "relation", "description", "weight"]],
+            use_container_width=True,
+            hide_index=True,
+        )
+
+
 with _timed("load_config"):
     cfg = load_config()
 api: AlpacaAPI | None = None
@@ -1046,6 +2201,39 @@ force_data_refresh = st.sidebar.button(
 if force_data_refresh:
     _log_event("cache_refresh_requested", section=section)
     st.sidebar.success("Refreshing requested data for this run.")
+
+source_refresh_flags: dict[str, bool] = {}
+source_labels = {
+    "equities": "Equities",
+    "fred": "FRED",
+    "commodities": "Commodities",
+    "options": "Options",
+    "news": "News",
+    "fundamentals": "Fundamentals",
+    "derivatives": "Derivatives",
+}
+st.sidebar.markdown("### Source Controls")
+st.sidebar.caption("Dashboard reads pipeline snapshots by default. Use buttons below to trigger source-specific refresh jobs.")
+for source_key, source_label in source_labels.items():
+    clicked = st.sidebar.button(
+        f"Force Refresh {source_label}",
+        key=f"source_refresh_{source_key}",
+        help=f"Triggers the `{source_label}` pipeline job and bypasses local cache logic for this run.",
+    )
+    source_refresh_flags[source_key] = bool(clicked)
+    if clicked:
+        ok, msg = start_source_refresh_job(source_key)
+        if ok:
+            st.sidebar.success(msg)
+        else:
+            st.sidebar.warning(msg)
+
+st.session_state["_source_force_refresh"] = source_refresh_flags
+if pipeline_store_configured():
+    st.sidebar.caption("Data mode: Pipeline metadata + parquet snapshots")
+else:
+    st.sidebar.caption("Data mode: Live API fallback (pipeline config not detected)")
+
 st.sidebar.caption(f"CSV cache: {cache_data_root()}")
 st.sidebar.caption(f"Cache policy: {cache_policy_path()}")
 
@@ -1237,10 +2425,10 @@ elif section == "FRED Macro":
         with fred_control_cols[0]:
             lookback_years = st.slider("Lookback (years)", 3, 20, 10, step=1)
         with fred_control_cols[1]:
-            show_relative_pct = st.checkbox(
-                "Overlay % change",
+            show_stationary_overlay = st.checkbox(
+                "Overlay stationarized change",
                 value=False,
-                help="Adds percent change from the first visible observation on a secondary axis.",
+                help="Adds an obs-to-obs transformed series on a secondary axis. Level series use percent change; rate-like series use first differences.",
             )
         fred_cache_key = f"{_fred_cache_scope(fred_api_key)}__{lookback_years}y"
         fred_cache_ready = cache_bundle_exists(
@@ -1414,7 +2602,7 @@ elif section == "FRED Macro":
                         selected_spec,
                         selected_meta,
                         selected_frame,
-                        show_relative_pct=show_relative_pct,
+                        show_stationary_overlay=show_stationary_overlay,
                     ),
                     use_container_width=True,
                 )
@@ -1470,7 +2658,7 @@ elif section == "FRED Macro":
                             f"{meta.get('frequency_short', '')} | Last obs: {date_label}"
                         )
                         st.plotly_chart(
-                            build_fred_figure(spec, meta, frame, show_relative_pct=show_relative_pct),
+                            build_fred_figure(spec, meta, frame, show_stationary_overlay=show_stationary_overlay),
                             use_container_width=True,
                         )
 
@@ -1479,6 +2667,65 @@ elif section == "Market Opportunity":
     if not _has_live_api(api, "Market Opportunity requires a working Alpaca connection."):
         st.info("Fix the Alpaca connection to scan movers and load price history.")
     else:
+        market_subpage = st.radio(
+            "Market Opportunity View",
+            ["Markets", "Advanced"],
+            horizontal=True,
+            key="market_opportunity_subpage",
+        )
+        if market_subpage == "Advanced":
+            advanced_view = st.radio(
+                "Advanced View",
+                ["Broad Markets", "Commodity Section"],
+                horizontal=True,
+                key="market_experiment_view",
+            )
+
+            lens_cols = st.columns([2.2, 3.8])
+            if advanced_view == "Commodity Section":
+                with lens_cols[0]:
+                    experiment_filter = st.selectbox(
+                        "Commodity Filter",
+                        commodity_focus_options(),
+                        index=0,
+                        key="market_commodity_focus",
+                    )
+                with lens_cols[1]:
+                    st.caption("Commodity-market lens for the experiment view.")
+                    st.caption(commodity_focus_description(experiment_filter))
+                experiment_symbols = commodity_focus_universe(experiment_filter)
+                _render_market_opportunity_experiments(
+                    cfg,
+                    force_data_refresh,
+                    advanced_view,
+                    "Commodity Filter",
+                    experiment_filter,
+                    experiment_symbols,
+                )
+            else:
+                with lens_cols[0]:
+                    experiment_filter = st.selectbox(
+                        "Business Filter",
+                        business_focus_options(),
+                        index=0,
+                        key="market_business_filter",
+                    )
+                with lens_cols[1]:
+                    st.caption(
+                        "Custom business lens based on what the company primarily sells, not standard sector classifications."
+                    )
+                    st.caption(business_focus_description(experiment_filter))
+                experiment_symbols = business_focus_universe(experiment_filter)
+                _render_market_opportunity_experiments(
+                    cfg,
+                    force_data_refresh,
+                    advanced_view,
+                    "Business Filter",
+                    experiment_filter,
+                    experiment_symbols,
+                )
+            st.stop()
+
         lens_cols = st.columns([2.2, 3.8])
         with lens_cols[0]:
             business_filter = st.selectbox(
@@ -1494,16 +2741,6 @@ elif section == "Market Opportunity":
             st.caption(business_focus_description(business_filter))
         business_symbols = business_focus_universe(business_filter)
 
-        market_subpage = st.radio(
-            "Market Opportunity View",
-            ["Overview", "Experiments"],
-            horizontal=True,
-            key="market_opportunity_subpage",
-        )
-        if market_subpage == "Experiments":
-            _render_market_opportunity_experiments(cfg, force_data_refresh, business_filter, business_symbols)
-            st.stop()
-
         momentum_days = st.slider("Momentum Lookback (days)", 90, 365, 180, step=30)
 
         try:
@@ -1516,30 +2753,10 @@ elif section == "Market Opportunity":
                     )
         except AlpacaAPIError as exc:
             _log_event("scan_daily_movers_failed", error=str(exc)[:200])
-            st.error(f"Could not scan movers: {exc}")
-            st.stop()
-
-        if movers.empty:
-            st.info("No market snapshot data returned.")
-            st.stop()
+            st.warning(f"Could not scan movers: {exc}")
+            movers = pd.DataFrame()
 
         selected_market_ticker: str | None = None
-
-        col1, col2 = st.columns(2)
-        with col1:
-            selected_market_ticker = _render_selectable_ticker_table(
-                "Top Gainers",
-                movers.head(10),
-                ["symbol", "close", "change_pct", "volume"],
-                key="market_top_gainers",
-            ) or selected_market_ticker
-        with col2:
-            selected_market_ticker = _render_selectable_ticker_table(
-                "Top Losers",
-                movers.tail(10).sort_values("change_pct"),
-                ["symbol", "close", "change_pct", "volume"],
-                key="market_top_losers",
-            ) or selected_market_ticker
 
         try:
             with st.spinner("Scanning momentum profiles..."):
@@ -1556,67 +2773,145 @@ elif section == "Market Opportunity":
             momentum = pd.DataFrame()
 
         if not momentum.empty:
-            top_momentum = momentum.nlargest(10, "momentum_score")[
-                ["symbol", "close", "return_1m_pct", "return_3m_pct", "momentum_1m", "momentum_3m", "momentum_score"]
+            raw_up = momentum.nlargest(20, "momentum_score")[
+                ["symbol", "sparkline_3m", "close", "daily_change_pct", "return_1m_pct", "return_3m_pct", "momentum_score"]
             ]
-            top_momentum_roc = momentum.nlargest(10, "momentum_roc_score")[
-                ["symbol", "close", "roc_1w_to_1m", "roc_1m_to_3m", "momentum_1m", "momentum_3m", "momentum_roc_score"]
+            raw_down = momentum.nsmallest(20, "momentum_score")[
+                ["symbol", "sparkline_3m", "close", "daily_change_pct", "return_1m_pct", "return_3m_pct", "momentum_score"]
+            ]
+            roc_up = momentum.nlargest(20, "momentum_roc_score")[
+                ["symbol", "sparkline_3m", "close", "return_1w_pct", "return_1m_pct", "roc_1m_to_3m", "momentum_roc_score"]
+            ]
+            roc_down = momentum.nsmallest(20, "momentum_roc_score")[
+                ["symbol", "sparkline_3m", "close", "return_1w_pct", "return_1m_pct", "roc_1m_to_3m", "momentum_roc_score"]
             ]
 
-            col3, col4 = st.columns(2)
-            with col3:
+            st.markdown("##### Momentum Raw")
+            visible_market_symbols = sorted(
+                {
+                    str(symbol).upper().strip()
+                    for table in (raw_up, raw_down, roc_up, roc_down)
+                    for symbol in table.get("symbol", pd.Series(dtype=str)).tolist()
+                    if str(symbol).strip()
+                }
+            )
+            row1_left, row1_right = st.columns(2)
+            name_map = _load_symbol_name_map(
+                cfg,
+                visible_market_symbols,
+                force_refresh=force_data_refresh,
+            )
+            raw_up_table, raw_up_column_config = _prepare_momentum_table(raw_up, name_map=name_map)
+            raw_down_table, raw_down_column_config = _prepare_momentum_table(raw_down, name_map=name_map)
+            with row1_left:
                 selected_market_ticker = _render_selectable_ticker_table(
-                    "Top Momentum Stocks",
-                    top_momentum,
-                    ["symbol", "close", "return_1m_pct", "return_3m_pct", "momentum_score"],
-                    key="market_top_momentum",
+                    "Top 20 Up",
+                    raw_up_table,
+                    ["symbol", "company_name", "sparkline_3m", "close", "daily_change_pct", "return_1m_pct", "momentum_score"],
+                    key="market_momentum_raw_up",
+                    column_config=raw_up_column_config,
                 ) or selected_market_ticker
-            with col4:
+            with row1_right:
                 selected_market_ticker = _render_selectable_ticker_table(
-                    "Top Momentum RoC Stocks",
-                    top_momentum_roc,
-                    ["symbol", "close", "roc_1w_to_1m", "roc_1m_to_3m", "momentum_roc_score"],
-                    key="market_top_momentum_roc",
+                    "Top 20 Down",
+                    raw_down_table,
+                    ["symbol", "company_name", "sparkline_3m", "close", "daily_change_pct", "return_1m_pct", "momentum_score"],
+                    key="market_momentum_raw_down",
+                    column_config=raw_down_column_config,
                 ) or selected_market_ticker
 
-            chart_left, chart_right = st.columns(2)
-            with chart_left:
-                fig_momentum = px.bar(
-                    top_momentum.sort_values("momentum_score"),
-                    x="momentum_score",
-                    y="symbol",
-                    orientation="h",
-                    color="return_3m_pct",
-                    template="plotly_dark",
-                    title="Momentum Leaders (3M Slope)",
-                )
-                st.plotly_chart(fig_momentum, use_container_width=True)
-            with chart_right:
-                fig_roc = px.bar(
-                    top_momentum_roc.sort_values("momentum_roc_score"),
-                    x="momentum_roc_score",
-                    y="symbol",
-                    orientation="h",
-                    color="roc_1m_to_3m",
-                    template="plotly_dark",
-                    title="Momentum Acceleration Leaders",
-                )
-                st.plotly_chart(fig_roc, use_container_width=True)
+            st.markdown("##### Momentum RoC")
+            row2_left, row2_right = st.columns(2)
+            roc_up_table, roc_up_column_config = _prepare_momentum_table(roc_up, name_map=name_map)
+            roc_down_table, roc_down_column_config = _prepare_momentum_table(roc_down, name_map=name_map)
+            with row2_left:
+                selected_market_ticker = _render_selectable_ticker_table(
+                    "Up",
+                    roc_up_table,
+                    ["symbol", "company_name", "sparkline_3m", "close", "return_1w_pct", "return_1m_pct", "momentum_roc_score"],
+                    key="market_momentum_roc_up",
+                    column_config=roc_up_column_config,
+                ) or selected_market_ticker
+            with row2_right:
+                selected_market_ticker = _render_selectable_ticker_table(
+                    "Down",
+                    roc_down_table,
+                    ["symbol", "company_name", "sparkline_3m", "close", "return_1w_pct", "return_1m_pct", "momentum_roc_score"],
+                    key="market_momentum_roc_down",
+                    column_config=roc_down_column_config,
+                ) or selected_market_ticker
 
-        tree = px.treemap(
-            movers,
-            path=["symbol"],
-            values="volume",
-            color="change_pct",
-            color_continuous_scale="RdYlGn",
-            template="plotly_dark",
-            title=f"Daily Movers - {business_filter} (Volume / Change %)",
-        )
-        st.plotly_chart(tree, use_container_width=True)
+            st.markdown("##### Momentum Consistency")
+            st.caption("Sorted by the lowest 3-month trendline-fit gap; lower means price has stayed closer to trend.")
+            momentum = momentum.copy()
+            momentum["trend_consistency_pct"] = (1.0 - pd.to_numeric(momentum["trend_fit_gap"], errors="coerce")) * 100.0
+            consistency_up = momentum[pd.to_numeric(momentum["momentum_score"], errors="coerce") > 0].nsmallest(20, "trend_fit_gap")[
+                ["symbol", "sparkline_3m", "close", "return_1m_pct", "return_3m_pct", "trend_consistency_pct", "trend_fit_gap"]
+            ]
+            consistency_down = momentum[pd.to_numeric(momentum["momentum_score"], errors="coerce") < 0].nsmallest(20, "trend_fit_gap")[
+                ["symbol", "sparkline_3m", "close", "return_1m_pct", "return_3m_pct", "trend_consistency_pct", "trend_fit_gap"]
+            ]
+            consistency_symbols = sorted(
+                {
+                    *visible_market_symbols,
+                    *[
+                        str(symbol).upper().strip()
+                        for table in (consistency_up, consistency_down)
+                        for symbol in table.get("symbol", pd.Series(dtype=str)).tolist()
+                        if str(symbol).strip()
+                    ],
+                }
+            )
+            if len(consistency_symbols) != len(visible_market_symbols):
+                name_map.update(
+                    _load_symbol_name_map(
+                        cfg,
+                        consistency_symbols,
+                        force_refresh=force_data_refresh,
+                    )
+                )
+            consistency_up_table, consistency_up_column_config = _prepare_momentum_table(consistency_up, name_map=name_map)
+            consistency_down_table, consistency_down_column_config = _prepare_momentum_table(consistency_down, name_map=name_map)
+            row3_left, row3_right = st.columns(2)
+            with row3_left:
+                selected_market_ticker = _render_selectable_ticker_table(
+                    "Up",
+                    consistency_up_table,
+                    ["symbol", "company_name", "sparkline_3m", "close", "return_1m_pct", "trend_consistency_pct", "trend_fit_gap"],
+                    key="market_momentum_consistency_up",
+                    column_config=consistency_up_column_config,
+                ) or selected_market_ticker
+            with row3_right:
+                selected_market_ticker = _render_selectable_ticker_table(
+                    "Down",
+                    consistency_down_table,
+                    ["symbol", "company_name", "sparkline_3m", "close", "return_1m_pct", "trend_consistency_pct", "trend_fit_gap"],
+                    key="market_momentum_consistency_down",
+                    column_config=consistency_down_column_config,
+                ) or selected_market_ticker
+        else:
+            st.info("No momentum profiles were returned for this market lens.")
 
-        detail_symbols = set(movers["symbol"].astype(str).tolist())
+        if not movers.empty:
+            tree = px.treemap(
+                movers,
+                path=["symbol"],
+                values="volume",
+                color="change_pct",
+                color_continuous_scale="RdYlGn",
+                template="plotly_dark",
+                title=f"Daily Movers - {business_filter} (Volume / Change %)",
+            )
+            st.plotly_chart(tree, use_container_width=True)
+        else:
+            st.info("Daily mover snapshots were unavailable for this market lens, so only the momentum-based views are shown.")
+
+        detail_symbols = set(movers["symbol"].astype(str).tolist()) if not movers.empty else set()
         if not momentum.empty:
             detail_symbols.update(momentum["symbol"].astype(str).tolist())
+        if not detail_symbols:
+            st.info("No market symbols were available for the detail view.")
+            st.stop()
         detail_symbol_options = sorted(detail_symbols)
         selected_key = "market_selected_ticker"
         widget_key = "market_ticker_detail_widget"
@@ -1683,7 +2978,12 @@ elif section == "Market Opportunity":
                 fig.update_layout(template="plotly_dark", title=f"{ticker} Price", xaxis_title="Date", yaxis_title="Price")
                 st.plotly_chart(fig, use_container_width=True)
 
-            signal_frame = build_signal_frame(price)
+            signal_frame = _load_technical_signal_history_cached(
+                cfg,
+                ticker,
+                days=max(days, 180),
+                force_refresh=force_data_refresh,
+            )
             if signal_frame.empty:
                 if not _SIGNALS_IMPORT_ERROR:
                     st.info("Not enough valid price history to compute signals.")
@@ -1693,7 +2993,12 @@ elif section == "Market Opportunity":
                 if visible_signal_frame.empty:
                     visible_signal_frame = signal_frame.tail(min(len(signal_frame), 120)).copy()
 
-                signal_summary = summarize_signal_frame(signal_frame)
+                signal_summary = _load_technical_signal_summary_cached(
+                    cfg,
+                    ticker,
+                    signal_frame,
+                    force_refresh=force_data_refresh,
+                )
                 forecast = forecast_next_week(signal_frame)
 
                 metric_cols = st.columns(6)
@@ -1778,7 +3083,14 @@ elif section == "Market Opportunity":
             news_payload = {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
 
         st.subheader(f"{ticker} Overview")
-        description = build_company_description(ticker, asset, market_fundamentals, signal_summary)
+        description = build_company_description(
+            ticker,
+            asset,
+            market_fundamentals,
+            signal_summary,
+            news_payload=news_payload,
+            active_lens=business_filter,
+        )
         st.write(description)
 
         news_summary = summarize_recent_news(ticker, news_payload)
@@ -1842,6 +3154,31 @@ elif section == "Technical Strategizer":
         else:
             st.plotly_chart(build_technical_figure(frame, f"Technical View - {ticker}"), use_container_width=True)
             st.dataframe(frame.tail(40), use_container_width=True, hide_index=True)
+
+            signal_frame = _load_technical_signal_history_cached(
+                cfg,
+                ticker,
+                days=max(days, 180),
+                force_refresh=force_data_refresh,
+            )
+            signal_summary = _load_technical_signal_summary_cached(
+                cfg,
+                ticker,
+                signal_frame,
+                force_refresh=force_data_refresh,
+            )
+            if signal_summary:
+                metric_cols = st.columns(5)
+                with metric_cols[0]:
+                    st.metric("Signal Regime", str(signal_summary.get("regime") or "n/a"))
+                with metric_cols[1]:
+                    st.metric("RSI 14", f"{pd.to_numeric(signal_summary.get('rsi_14'), errors='coerce'):.1f}")
+                with metric_cols[2]:
+                    st.metric("Pullback vs ATH", f"{pd.to_numeric(signal_summary.get('pullback_from_ath_pct'), errors='coerce'):.1f}%")
+                with metric_cols[3]:
+                    st.metric("Channel Position", f"{pd.to_numeric(signal_summary.get('channel_position'), errors='coerce') * 100:.0f}%")
+                with metric_cols[4]:
+                    st.metric("20D Vol (ann)", f"{pd.to_numeric(signal_summary.get('vol_20_ann_pct'), errors='coerce'):.1f}%")
 
 elif section == "Option Strategizer":
     st.title("Option Strategizer")

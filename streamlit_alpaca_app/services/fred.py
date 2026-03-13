@@ -444,19 +444,40 @@ def load_fred_dashboard(api_key: str, years: int = 10) -> dict[str, object]:
         "release_index": pd.DataFrame(release_index_rows),
     }
 
-def _relative_change_pct(frame: pd.DataFrame) -> pd.DataFrame:
+def _is_rate_like_series(metadata: dict[str, Any]) -> bool:
+    units_blob = " ".join(
+        [
+            str(metadata.get("units_short") or ""),
+            str(metadata.get("units") or ""),
+            str(metadata.get("frequency_short") or ""),
+        ]
+    ).lower()
+    rate_tokens = ("percent", "%", "rate", "ratio", "basis points", "bps")
+    return any(token in units_blob for token in rate_tokens)
+
+
+def _stationarized_change(frame: pd.DataFrame, metadata: dict[str, Any]) -> tuple[pd.DataFrame, str, str, str]:
     if frame.empty or "value" not in frame.columns or "date" not in frame.columns:
-        return pd.DataFrame(columns=["date", "relative_pct"])
+        return pd.DataFrame(columns=["date", "stationary_value"]), "", "", ""
 
     values = pd.to_numeric(frame["value"], errors="coerce")
-    non_zero = values[values.notna() & (values != 0)]
-    if non_zero.empty:
-        return pd.DataFrame(columns=["date", "relative_pct"])
+    if values.dropna().shape[0] < 2:
+        return pd.DataFrame(columns=["date", "stationary_value"]), "", "", ""
 
-    base_value = float(non_zero.iloc[0])
-    relative = ((values / base_value) - 1.0) * 100.0
-    out = pd.DataFrame({"date": frame["date"], "relative_pct": relative})
-    return out.dropna(subset=["date", "relative_pct"]).reset_index(drop=True)
+    if _is_rate_like_series(metadata) or (values.dropna() <= 0).any():
+        stationary = values.diff()
+        trace_name = "Obs-to-obs delta"
+        axis_title = "Delta per observation"
+        hover_label = "Delta"
+    else:
+        stationary = values.pct_change() * 100.0
+        trace_name = "Obs-to-obs % change"
+        axis_title = "Change per observation (%)"
+        hover_label = "% Change"
+
+    out = pd.DataFrame({"date": frame["date"], "stationary_value": stationary})
+    out = out.dropna(subset=["date", "stationary_value"]).reset_index(drop=True)
+    return out, trace_name, axis_title, hover_label
 
 
 def build_fred_figure(
@@ -464,7 +485,7 @@ def build_fred_figure(
     metadata: dict[str, Any],
     frame: pd.DataFrame,
     *,
-    show_relative_pct: bool = False,
+    show_stationary_overlay: bool = False,
 ) -> go.Figure:
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     if frame.empty:
@@ -483,21 +504,21 @@ def build_fred_figure(
         secondary_y=False,
     )
 
-    if show_relative_pct:
-        relative = _relative_change_pct(frame)
-        if not relative.empty:
+    if show_stationary_overlay:
+        stationary, trace_name, axis_title, hover_label = _stationarized_change(frame, metadata)
+        if not stationary.empty:
             fig.add_trace(
                 go.Scatter(
-                    x=relative["date"],
-                    y=relative["relative_pct"],
+                    x=stationary["date"],
+                    y=stationary["stationary_value"],
                     mode="lines",
-                    name="% change vs first obs",
+                    name=trace_name,
                     line={"width": 1.75, "dash": "dot"},
-                    hovertemplate="%{x|%Y-%m-%d}<br>% Change=%{y:.2f}%<extra></extra>",
+                    hovertemplate=f"%{{x|%Y-%m-%d}}<br>{hover_label}=%{{y:.2f}}<extra></extra>",
                 ),
                 secondary_y=True,
             )
-            fig.update_yaxes(title_text="Change vs first obs (%)", secondary_y=True)
+            fig.update_yaxes(title_text=axis_title, secondary_y=True, zeroline=True, zerolinecolor="#666")
 
     fig.update_layout(
         template="plotly_dark",
@@ -509,6 +530,6 @@ def build_fred_figure(
         height=320,
     )
     fig.update_yaxes(title_text=str(metadata.get("units_short") or metadata.get("units") or ""), secondary_y=False)
-    if not show_relative_pct:
+    if not show_stationary_overlay:
         fig.update_yaxes(showticklabels=False, secondary_y=True)
     return fig

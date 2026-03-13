@@ -57,8 +57,8 @@ def _candidate_data_dirs() -> list[Path]:
         roots.append(Path(env_dir).expanduser())
 
     here = Path(__file__).resolve()
-    roots.append(here.parents[3] / "data" / "stock_fundamental")
-    roots.append(here.parents[2] / "data" / "stock_fundamental")
+    for parent in here.parents:
+        roots.append(parent / "data" / "stock_fundamental")
 
     unique: list[Path] = []
     for root in roots:

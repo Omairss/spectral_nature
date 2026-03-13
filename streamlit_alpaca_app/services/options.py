@@ -102,13 +102,10 @@ def _rank_pct(series: pd.Series, ascending: bool) -> pd.Series:
     return out
 
 
-def load_option_surface(
+def build_option_snapshot_surface(
     api: AlpacaAPI,
     ticker: str,
-    underlying_price: float | None,
-    expected_price: float | None,
-    horizon_days: int,
-    max_contracts: int = 450,
+    max_contracts: int = 1200,
 ) -> pd.DataFrame:
     contracts = api.get_option_contracts(ticker)
     if contracts.empty:
@@ -124,7 +121,36 @@ def load_option_surface(
     if frame.empty:
         return frame
 
-    horizon_days = max(int(horizon_days), 1)
+    frame = frame.sort_values(["dte", "strike", "contractSymbol"]).head(max_contracts).copy()
+    snapshots = api.get_option_snapshots(frame["contractSymbol"].astype(str).tolist(), feed="indicative")
+    shaped = _with_snapshot_fields(frame, snapshots)
+    shaped["premium"] = _effective_premium(shaped)
+    return shaped.sort_values(["dte", "strike", "contractSymbol"]).reset_index(drop=True)
+
+
+def select_option_surface_window(
+    contracts: pd.DataFrame,
+    underlying_price: float | None,
+    expected_price: float | None,
+    horizon_days: int,
+    max_contracts: int = 450,
+) -> pd.DataFrame:
+    if contracts.empty:
+        return contracts
+
+    frame = contracts.copy()
+    frame["expiration_dt"] = pd.to_datetime(frame.get("expiration_dt", frame.get("expiration")), errors="coerce")
+    if "dte" not in frame.columns:
+        today = pd.Timestamp.now(tz=timezone.utc).tz_localize(None).normalize()
+        frame["dte"] = (frame["expiration_dt"] - today).dt.days
+    frame["dte"] = pd.to_numeric(frame["dte"], errors="coerce")
+    frame["strike"] = pd.to_numeric(frame.get("strike"), errors="coerce")
+    frame = frame.dropna(subset=["expiration_dt", "dte", "strike"])
+    frame = frame[frame["dte"] >= 0].copy()
+    if frame.empty:
+        return frame
+
+    days = max(int(horizon_days), 1)
     valid_underlying = pd.to_numeric(pd.Series([underlying_price]), errors="coerce").iloc[0]
     valid_expected = pd.to_numeric(pd.Series([expected_price]), errors="coerce").iloc[0]
     if pd.notna(valid_underlying):
@@ -134,8 +160,8 @@ def load_option_surface(
     else:
         reference_price = float(frame["strike"].median())
 
-    min_dte = max(0, horizon_days - 7)
-    max_dte = max(horizon_days + 45, int(round(horizon_days * 1.8)))
+    min_dte = max(0, days - 7)
+    max_dte = max(days + 45, int(round(days * 1.8)))
     horizon_slice = frame[(frame["dte"] >= min_dte) & (frame["dte"] <= max_dte)].copy()
     if len(horizon_slice) >= min(len(frame), 40):
         frame = horizon_slice
@@ -148,13 +174,30 @@ def load_option_surface(
     if len(strike_slice) >= min(len(frame), 40):
         frame = strike_slice
 
-    frame["dte_gap"] = (frame["dte"] - horizon_days).abs()
+    frame["dte_gap"] = (frame["dte"] - days).abs()
     frame["strike_gap"] = (frame["strike"] - reference_price).abs()
-    frame = frame.sort_values(["dte_gap", "strike_gap", "expiration_dt", "strike"]).head(max_contracts).copy()
-    snapshots = api.get_option_snapshots(frame["contractSymbol"].astype(str).tolist(), feed="indicative")
-    shaped = _with_snapshot_fields(frame, snapshots)
-    shaped["premium"] = _effective_premium(shaped)
-    return shaped.sort_values(["dte", "strike", "contractSymbol"]).reset_index(drop=True)
+    return frame.sort_values(["dte_gap", "strike_gap", "expiration_dt", "strike"]).head(max_contracts).reset_index(drop=True)
+
+
+def load_option_surface(
+    api: AlpacaAPI,
+    ticker: str,
+    underlying_price: float | None,
+    expected_price: float | None,
+    horizon_days: int,
+    max_contracts: int = 450,
+) -> pd.DataFrame:
+    shaped = build_option_snapshot_surface(api, ticker, max_contracts=max(1200, max_contracts))
+    if shaped.empty:
+        return shaped
+    frame = select_option_surface_window(
+        shaped,
+        underlying_price=underlying_price,
+        expected_price=expected_price,
+        horizon_days=horizon_days,
+        max_contracts=max_contracts,
+    )
+    return frame.sort_values(["dte", "strike", "contractSymbol"]).reset_index(drop=True)
 
 
 def analyze_option_candidates(
