@@ -2,12 +2,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from io import BytesIO
+import json
 from pathlib import Path
 import os
 import subprocess
 from typing import Any
 
 import pandas as pd
+
+from .secrets import resolve_secret_value
 
 
 try:
@@ -73,7 +76,11 @@ def _get_env(name: str, default: str = "") -> str:
 
 
 def _postgres_connection_string() -> str:
-    return _get_env("POSTGRES_CONNECTION_STRING")
+    return resolve_secret_value(
+        ["POSTGRES_CONNECTION_STRING"],
+        secret_name_env="POSTGRES_CONNECTION_STRING_SECRET",
+        default_secret_name="postgres-connection-string",
+    )
 
 
 def _storage_account_url() -> str:
@@ -230,3 +237,100 @@ def start_source_refresh_job(source: str) -> tuple[bool, str]:
     if not execution:
         execution = "started"
     return True, f"Triggered `{job_name}` execution `{execution}`"
+
+
+def latest_job_status_table() -> pd.DataFrame:
+    resource_group = _resource_group()
+    columns = ["job_name", "run", "status", "start_time_utc", "end_time_utc", "message"]
+    if not resource_group:
+        return pd.DataFrame(
+            [
+                {
+                    "job_name": "N/A",
+                    "run": "N/A",
+                    "status": "NotConfigured",
+                    "start_time_utc": "",
+                    "end_time_utc": "",
+                    "message": "Missing resource group. Set PIPELINE_RESOURCE_GROUP or infra/deployment.outputs.env.",
+                }
+            ],
+            columns=columns,
+        )
+
+    job_names = sorted(set(SOURCE_JOB_MAP.values()))
+    rows: list[dict[str, str]] = []
+    for job_name in job_names:
+        cmd = [
+            "az",
+            "containerapp",
+            "job",
+            "execution",
+            "list",
+            "--name",
+            job_name,
+            "--resource-group",
+            resource_group,
+            "--query",
+            "sort_by(@,&properties.startTime)[-1]",
+            "-o",
+            "json",
+        ]
+        try:
+            proc = subprocess.run(cmd, capture_output=True, text=True, check=False, timeout=45)
+        except Exception as exc:
+            rows.append(
+                {
+                    "job_name": job_name,
+                    "run": "N/A",
+                    "status": "Error",
+                    "start_time_utc": "",
+                    "end_time_utc": "",
+                    "message": f"CLI execution failed: {exc}",
+                }
+            )
+            continue
+
+        if proc.returncode != 0:
+            rows.append(
+                {
+                    "job_name": job_name,
+                    "run": "N/A",
+                    "status": "Error",
+                    "start_time_utc": "",
+                    "end_time_utc": "",
+                    "message": (proc.stderr or proc.stdout or "job execution list failed").strip(),
+                }
+            )
+            continue
+
+        try:
+            payload = json.loads(proc.stdout or "null")
+        except Exception:
+            payload = None
+
+        if not isinstance(payload, dict):
+            rows.append(
+                {
+                    "job_name": job_name,
+                    "run": "N/A",
+                    "status": "NoRuns",
+                    "start_time_utc": "",
+                    "end_time_utc": "",
+                    "message": "No executions found.",
+                }
+            )
+            continue
+
+        props = payload.get("properties") or {}
+        rows.append(
+            {
+                "job_name": job_name,
+                "run": str(payload.get("name") or "N/A"),
+                "status": str(props.get("status") or "Unknown"),
+                "start_time_utc": str(props.get("startTime") or ""),
+                "end_time_utc": str(props.get("endTime") or ""),
+                "message": "",
+            }
+        )
+
+    return pd.DataFrame(rows, columns=columns)

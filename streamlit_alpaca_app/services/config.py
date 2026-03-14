@@ -4,6 +4,8 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from .secrets import resolve_secret_value
+
 try:
     from dotenv import load_dotenv
 except Exception:
@@ -38,14 +40,17 @@ def load_config() -> AppConfig | None:
     api_placeholders = {"your_key_here"}
     secret_placeholders = {"your_secret_here"}
 
-    api_key = (
-        _clean_credential(os.getenv("APCA_API_KEY_ID"), api_placeholders)
-        or _clean_credential(os.getenv("APCA_API_KEY"), api_placeholders)
-        or _clean_credential(os.getenv("ALPACA_API_KEY"), api_placeholders)
+    api_key = resolve_secret_value(
+        ["APCA_API_KEY_ID", "APCA_API_KEY", "ALPACA_API_KEY"],
+        secret_name_env="APCA_API_KEY_SECRET",
+        default_secret_name="apca-api-key",
+        placeholders=api_placeholders,
     )
-    secret_key = (
-        _clean_credential(os.getenv("APCA_API_SECRET_KEY"), secret_placeholders)
-        or _clean_credential(os.getenv("ALPACA_SECRET_KEY"), secret_placeholders)
+    secret_key = resolve_secret_value(
+        ["APCA_API_SECRET_KEY", "ALPACA_SECRET_KEY"],
+        secret_name_env="APCA_API_SECRET_KEY_SECRET",
+        default_secret_name="apca-api-secret-key",
+        placeholders=secret_placeholders,
     )
 
     if not api_key or not secret_key:

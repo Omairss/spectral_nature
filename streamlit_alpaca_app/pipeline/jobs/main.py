@@ -24,6 +24,7 @@ from services.market import (
     scan_momentum_profiles,
 )
 from services.options import build_option_snapshot_surface, load_option_chain
+from services.secrets import resolve_secret_value
 
 try:
     from services.signals import build_signal_frame, summarize_signal_frame
@@ -85,7 +86,11 @@ def _code_version() -> str:
 
 
 def _db_connection() -> Any | None:
-    conn_str = (os.getenv("POSTGRES_CONNECTION_STRING") or "").strip()
+    conn_str = resolve_secret_value(
+        ["POSTGRES_CONNECTION_STRING"],
+        secret_name_env="POSTGRES_CONNECTION_STRING_SECRET",
+        default_secret_name="postgres-connection-string",
+    )
     if not conn_str or psycopg is None:
         return None
     try:
@@ -307,8 +312,16 @@ def _persist_dataset(dataset_name: str, frame: pd.DataFrame, ctx: JobContext, co
 
 
 def _alpaca_config() -> AppConfig | None:
-    key = (os.getenv("APCA_API_KEY") or os.getenv("APCA_API_KEY_ID") or "").strip()
-    secret = (os.getenv("APCA_API_SECRET_KEY") or "").strip()
+    key = resolve_secret_value(
+        ["APCA_API_KEY", "APCA_API_KEY_ID"],
+        secret_name_env="APCA_API_KEY_SECRET",
+        default_secret_name="apca-api-key",
+    )
+    secret = resolve_secret_value(
+        ["APCA_API_SECRET_KEY"],
+        secret_name_env="APCA_API_SECRET_KEY_SECRET",
+        default_secret_name="apca-api-secret-key",
+    )
     if not key or not secret:
         return None
     return AppConfig(

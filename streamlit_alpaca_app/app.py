@@ -49,10 +49,12 @@ from services.fred import (
     load_fred_dashboard,
 )
 from services.pipeline_store import (
+    latest_job_status_table,
     load_latest_dataset_frame,
     pipeline_store_configured,
     start_source_refresh_job,
 )
+from services.secrets import resolve_secret_value
 from services.fundamentals import load_quarterly_fundamentals, plot_statement
 from services.market import (
     DEFAULT_UNIVERSE,
@@ -196,6 +198,65 @@ def _render_connection_issue(summary: str, *, details: str | None = None, setup_
         st.caption(details)
     if setup_code:
         st.code(setup_code, language="bash")
+
+
+def _auth_enabled() -> bool:
+    raw = (os.getenv("DASHBOARD_AUTH_ENABLED") or "true").strip().lower()
+    return raw not in {"0", "false", "no", "off"}
+
+
+def _auth_username() -> str:
+    return resolve_secret_value(
+        ["DASHBOARD_AUTH_USERNAME"],
+        secret_name_env="DASHBOARD_AUTH_USERNAME_SECRET",
+        default_secret_name="dashboard-auth-username",
+    )
+
+
+def _auth_password() -> str:
+    return resolve_secret_value(
+        ["DASHBOARD_AUTH_PASSWORD"],
+        secret_name_env="DASHBOARD_AUTH_PASSWORD_SECRET",
+        default_secret_name="dashboard-auth-password",
+    )
+
+
+def _enforce_login_gate() -> None:
+    if not _auth_enabled():
+        st.session_state["_ui_authenticated"] = True
+        return
+
+    if st.session_state.get("_ui_authenticated"):
+        return
+
+    username_expected = _auth_username()
+    password_expected = _auth_password()
+    st.title("Spectral Nature Login")
+
+    if not username_expected or not password_expected:
+        st.error("Dashboard authentication is enabled, but login credentials are not configured.")
+        st.code(
+            "export DASHBOARD_AUTH_ENABLED=true\n"
+            "export DASHBOARD_AUTH_USERNAME='admin'\n"
+            "export DASHBOARD_AUTH_PASSWORD='change-me'\n"
+            "# or provide Key Vault secret names via:\n"
+            "# DASHBOARD_AUTH_USERNAME_SECRET / DASHBOARD_AUTH_PASSWORD_SECRET",
+            language="bash",
+        )
+        st.stop()
+
+    with st.form("dashboard_login", clear_on_submit=False):
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        submitted = st.form_submit_button("Login", type="primary")
+
+    if submitted:
+        if username.strip() == username_expected and password == password_expected:
+            st.session_state["_ui_authenticated"] = True
+            st.rerun()
+        else:
+            st.error("Invalid username or password.")
+    st.stop()
 
 
 def _has_live_api(api: AlpacaAPI | None, message: str) -> bool:
@@ -2118,6 +2179,7 @@ Strong momentum with a shallow pullback usually signals leadership. Weak momentu
 
 
 with _timed("load_config"):
+    _enforce_login_gate()
     cfg = load_config()
 api: AlpacaAPI | None = None
 account: dict[str, object] = {}
@@ -2176,6 +2238,12 @@ else:
 
 st.sidebar.title("Spectral Nature")
 st.sidebar.caption("Alpaca + Streamlit")
+app_track = (os.getenv("APP_TRACK") or "local").strip().lower()
+if app_track:
+    st.sidebar.caption(f"Environment: {app_track}")
+if st.sidebar.button("Logout", key="dashboard_logout"):
+    st.session_state["_ui_authenticated"] = False
+    st.rerun()
 _log_event("ui_sidebar_ready")
 
 section = st.sidebar.radio(
@@ -2185,6 +2253,7 @@ section = st.sidebar.radio(
         "Portfolio Overview",
         "Performance",
         "FRED Macro",
+        "Pipeline Jobs",
         "Market Opportunity",
         "Technical Strategizer",
         "Option Strategizer",
@@ -2661,6 +2730,42 @@ elif section == "FRED Macro":
                             build_fred_figure(spec, meta, frame, show_stationary_overlay=show_stationary_overlay),
                             use_container_width=True,
                         )
+
+elif section == "Pipeline Jobs":
+    st.title("Pipeline Jobs")
+    st.caption("Latest execution status for each Azure Container App Job backing snapshot ingestion.")
+
+    refresh_now = st.button("Refresh Job Status", key="refresh_job_status")
+    if refresh_now:
+        _log_event("job_status_refresh_clicked")
+
+    with st.spinner("Loading latest job executions..."):
+        with _timed("load_job_status_table"):
+            status_table = latest_job_status_table()
+
+    if status_table.empty:
+        st.info("No job status rows returned.")
+    else:
+        succeeded = int((status_table["status"] == "Succeeded").sum()) if "status" in status_table.columns else 0
+        running = int((status_table["status"] == "Running").sum()) if "status" in status_table.columns else 0
+        failing = int((~status_table["status"].isin(["Succeeded", "Running"])).sum()) if "status" in status_table.columns else 0
+
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Succeeded", succeeded)
+        c2.metric("Running", running)
+        c3.metric("Other", failing)
+
+        display = status_table.rename(
+            columns={
+                "job_name": "Job Name",
+                "run": "Run",
+                "status": "Status",
+                "start_time_utc": "Start (UTC)",
+                "end_time_utc": "End (UTC)",
+                "message": "Message",
+            }
+        )
+        st.dataframe(display, use_container_width=True, hide_index=True)
 
 elif section == "Market Opportunity":
     st.title("Market Opportunity")
