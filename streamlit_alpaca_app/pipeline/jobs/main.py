@@ -250,6 +250,28 @@ def _db_upsert_dataset_version(conn: Any, manifest: dict, ctx: JobContext) -> No
     conn.commit()
 
 
+def _db_dataset_is_fresh(conn: Any, dataset_name: str, max_age_hours: float) -> bool:
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT MAX(ingested_at_utc)
+                FROM dataset_versions
+                WHERE dataset_name = %s AND status = 'ready'
+                """,
+                (dataset_name,),
+            )
+            row = cur.fetchone()
+    except Exception:
+        return False
+
+    latest = row[0] if row else None
+    if latest is None:
+        return False
+    age_hours = (_utc_now() - latest).total_seconds() / 3600.0
+    return age_hours < max_age_hours
+
+
 def _blob_client() -> Any | None:
     account_url = (os.getenv("AZURE_STORAGE_ACCOUNT_URL") or "").strip()
     if not account_url or DefaultAzureCredential is None or BlobServiceClient is None:
@@ -427,26 +449,31 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
             print("[warn] signals module unavailable; skipping technical derivatives preload")
 
         try:
-            fundamentals_parts: list[pd.DataFrame] = []
-            for symbol in symbols:
-                bundle = load_quarterly_fundamentals(symbol)
-                for statement in ("income", "balance", "cashflow"):
-                    statement_frame = bundle.get(statement, pd.DataFrame())
-                    if statement_frame is None or statement_frame.empty:
-                        continue
-                    chunk = statement_frame.copy()
-                    if "ticker" not in chunk.columns:
-                        chunk["ticker"] = symbol
-                    if "statement" not in chunk.columns:
-                        chunk["statement"] = statement
-                    fundamentals_parts.append(chunk)
+            fundamentals_min_refresh_hours = max(float(os.getenv("FUNDAMENTALS_MIN_REFRESH_HOURS", "24")), 1.0)
+            fundamentals_fresh = bool(conn is not None and _db_dataset_is_fresh(conn, "quarterly_fundamentals", fundamentals_min_refresh_hours))
+            if fundamentals_fresh:
+                print(f"[info] fundamentals preload skipped: latest snapshot is < {fundamentals_min_refresh_hours:g}h old")
+            else:
+                fundamentals_parts: list[pd.DataFrame] = []
+                for symbol in symbols:
+                    bundle = load_quarterly_fundamentals(symbol)
+                    for statement in ("income", "balance", "cashflow"):
+                        statement_frame = bundle.get(statement, pd.DataFrame())
+                        if statement_frame is None or statement_frame.empty:
+                            continue
+                        chunk = statement_frame.copy()
+                        if "ticker" not in chunk.columns:
+                            chunk["ticker"] = symbol
+                        if "statement" not in chunk.columns:
+                            chunk["statement"] = statement
+                        fundamentals_parts.append(chunk)
 
-            fundamentals = pd.concat(fundamentals_parts, ignore_index=True) if fundamentals_parts else pd.DataFrame()
-            if not fundamentals.empty:
-                dedupe_cols = [col for col in ["ticker", "statement", "metric", "report_date"] if col in fundamentals.columns]
-                if dedupe_cols:
-                    fundamentals = fundamentals.drop_duplicates(subset=dedupe_cols, keep="last")
-            _persist_dataset("quarterly_fundamentals", fundamentals, ctx, conn)
+                fundamentals = pd.concat(fundamentals_parts, ignore_index=True) if fundamentals_parts else pd.DataFrame()
+                if not fundamentals.empty:
+                    dedupe_cols = [col for col in ["ticker", "statement", "metric", "report_date"] if col in fundamentals.columns]
+                    if dedupe_cols:
+                        fundamentals = fundamentals.drop_duplicates(subset=dedupe_cols, keep="last")
+                _persist_dataset("quarterly_fundamentals", fundamentals, ctx, conn)
         except Exception as exc:
             print(f"[warn] fundamentals preload skipped: {type(exc).__name__}: {exc}")
     except AlpacaAPIError as exc:
