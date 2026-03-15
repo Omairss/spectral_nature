@@ -240,97 +240,75 @@ def start_source_refresh_job(source: str) -> tuple[bool, str]:
 
 
 def latest_job_status_table() -> pd.DataFrame:
-    resource_group = _resource_group()
     columns = ["job_name", "run", "status", "start_time_utc", "end_time_utc", "message"]
-    if not resource_group:
-        return pd.DataFrame(
-            [
+    job_names = sorted(set(SOURCE_JOB_MAP.values()))
+
+    conn = _db_connect()
+    if conn is not None:
+        rows: list[dict[str, str]] = []
+        try:
+            with conn.cursor() as cur:
+                for job_name in job_names:
+                    cur.execute(
+                        """
+                        SELECT run_id, status, start_time_utc, end_time_utc, error_summary
+                        FROM job_runs
+                        WHERE job_name = %s
+                        ORDER BY start_time_utc DESC
+                        LIMIT 1
+                        """,
+                        (job_name,),
+                    )
+                    row = cur.fetchone()
+                    if not row:
+                        rows.append(
+                            {
+                                "job_name": job_name,
+                                "run": "N/A",
+                                "status": "NoRuns",
+                                "start_time_utc": "",
+                                "end_time_utc": "",
+                                "message": "No executions found.",
+                            }
+                        )
+                        continue
+                    rows.append(
+                        {
+                            "job_name": job_name,
+                            "run": str(row[0] or "N/A"),
+                            "status": str(row[1] or "Unknown"),
+                            "start_time_utc": str(row[2] or ""),
+                            "end_time_utc": str(row[3] or ""),
+                            "message": str(row[4] or ""),
+                        }
+                    )
+            return pd.DataFrame(rows, columns=columns)
+        except Exception as exc:
+            rows = [
                 {
                     "job_name": "N/A",
                     "run": "N/A",
-                    "status": "NotConfigured",
-                    "start_time_utc": "",
-                    "end_time_utc": "",
-                    "message": "Missing resource group. Set PIPELINE_RESOURCE_GROUP or infra/deployment.outputs.env.",
-                }
-            ],
-            columns=columns,
-        )
-
-    job_names = sorted(set(SOURCE_JOB_MAP.values()))
-    rows: list[dict[str, str]] = []
-    for job_name in job_names:
-        cmd = [
-            "az",
-            "containerapp",
-            "job",
-            "execution",
-            "list",
-            "--name",
-            job_name,
-            "--resource-group",
-            resource_group,
-            "--query",
-            "sort_by(@,&properties.startTime)[-1]",
-            "-o",
-            "json",
-        ]
-        try:
-            proc = subprocess.run(cmd, capture_output=True, text=True, check=False, timeout=45)
-        except Exception as exc:
-            rows.append(
-                {
-                    "job_name": job_name,
-                    "run": "N/A",
                     "status": "Error",
                     "start_time_utc": "",
                     "end_time_utc": "",
-                    "message": f"CLI execution failed: {exc}",
+                    "message": f"Postgres query failed: {exc}",
                 }
-            )
-            continue
-
-        if proc.returncode != 0:
-            rows.append(
-                {
-                    "job_name": job_name,
-                    "run": "N/A",
-                    "status": "Error",
-                    "start_time_utc": "",
-                    "end_time_utc": "",
-                    "message": (proc.stderr or proc.stdout or "job execution list failed").strip(),
-                }
-            )
-            continue
-
-        try:
-            payload = json.loads(proc.stdout or "null")
-        except Exception:
-            payload = None
-
-        if not isinstance(payload, dict):
-            rows.append(
-                {
-                    "job_name": job_name,
-                    "run": "N/A",
-                    "status": "NoRuns",
-                    "start_time_utc": "",
-                    "end_time_utc": "",
-                    "message": "No executions found.",
-                }
-            )
-            continue
-
-        props = payload.get("properties") or {}
-        rows.append(
-            {
-                "job_name": job_name,
-                "run": str(payload.get("name") or "N/A"),
-                "status": str(props.get("status") or "Unknown"),
-                "start_time_utc": str(props.get("startTime") or ""),
-                "end_time_utc": str(props.get("endTime") or ""),
-                "message": "",
-            }
-        )
-
+            ]
+            return pd.DataFrame(rows, columns=columns)
+        finally:
+            try:
+                conn.close()
+            except Exception:
+                pass
+    rows: list[dict[str, str]] = [
+        {
+            "job_name": job_name,
+            "run": "N/A",
+            "status": "Unavailable",
+            "start_time_utc": "",
+            "end_time_utc": "",
+            "message": "Postgres job metadata unavailable. Configure Key Vault/Postgres connection for tracker.",
+        }
+        for job_name in job_names
+    ]
     return pd.DataFrame(rows, columns=columns)

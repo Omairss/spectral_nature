@@ -15,6 +15,7 @@ COPY requirements.txt ./requirements.txt
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY . .
+COPY data/stock_fundamental /app/data/stock_fundamental
 
 EXPOSE 8501
 

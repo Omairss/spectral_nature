@@ -5,6 +5,7 @@ from datetime import date, datetime, timezone
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 import re
 from typing import Any, Callable
@@ -69,6 +70,8 @@ def cache_bundle_dir(dataset: str, cache_key: str) -> Path:
 
 
 def cache_bundle_exists(dataset: str, cache_key: str, required_files: list[str] | None = None) -> bool:
+    if _cache_disabled():
+        return False
     bundle_dir = cache_bundle_dir(dataset, cache_key)
     required = required_files or []
     if required:
@@ -316,6 +319,9 @@ def _load_or_refresh(
     force_refresh: bool,
     version: int,
 ) -> Any:
+    if _cache_disabled():
+        return fetcher()
+
     bundle_dir = target.bundle_dir
     cache_present = has_cache(bundle_dir)
 
@@ -556,3 +562,8 @@ def _slug(value: str) -> str:
         digest = hashlib.sha1(text.encode("utf-8")).hexdigest()[:12]
         text = f"{text[:80].rstrip('-._')}-{digest}"
     return text
+
+
+def _cache_disabled() -> bool:
+    raw = (os.getenv("APP_DISABLE_CACHE") or "").strip().lower()
+    return raw in {"1", "true", "yes", "on"}

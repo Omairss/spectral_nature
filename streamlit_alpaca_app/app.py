@@ -3,8 +3,10 @@ from __future__ import annotations
 from contextlib import contextmanager
 from datetime import timezone
 import importlib
+import json
 import logging
 import os
+import secrets as py_secrets
 import time
 
 import numpy as np
@@ -12,6 +14,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+from streamlit.components.v1 import html as components_html
 
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
 from services.analytics import (
@@ -49,6 +52,8 @@ from services.fred import (
     load_fred_dashboard,
 )
 from services.pipeline_store import (
+    SOURCE_DATASETS,
+    SOURCE_JOB_MAP,
     latest_job_status_table,
     load_latest_dataset_frame,
     pipeline_store_configured,
@@ -144,6 +149,39 @@ if not LOGGER.handlers:
 LOGGER.setLevel(logging.INFO)
 LOGGER.propagate = False
 
+SECTION_OPTIONS = [
+    "Home",
+    "Portfolio Overview",
+    "Performance",
+    "FRED Macro",
+    "Pipeline Jobs",
+    "Market Opportunity",
+    "Technical Strategizer",
+    "Option Strategizer",
+    "Fundamental Strategizer",
+]
+
+SOURCE_LABELS = {
+    "equities": "Equities",
+    "fred": "FRED",
+    "commodities": "Commodities",
+    "options": "Options",
+    "news": "News",
+    "fundamentals": "Fundamentals",
+    "derivatives": "Derivatives",
+}
+
+JOB_LABELS = {
+    "equities-intraday-preload": "Equities Core Snapshots",
+    "macro-fred-daily": "FRED Macro Snapshots",
+    "commodities-regime": "Commodity Regime Snapshots",
+    "options-liquid-universe": "Options Snapshot Refresh",
+    "news-ingest-and-features": "News Snapshot Refresh",
+}
+
+_AUTH_COOKIE_NAME = "spectral_nature_ui_session"
+_AUTH_COOKIE_TTL_SECONDS = 7 * 24 * 60 * 60
+
 
 def _log_event(message: str, **fields: object) -> None:
     details = " ".join(f"{key}={value}" for key, value in fields.items())
@@ -221,12 +259,86 @@ def _auth_password() -> str:
     )
 
 
+@st.cache_resource(show_spinner=False)
+def _auth_session_registry() -> dict[str, dict[str, object]]:
+    return {}
+
+
+def _auth_cookie_value() -> str:
+    raw = st.context.cookies.get(_AUTH_COOKIE_NAME)
+    if raw is None:
+        return ""
+    value = getattr(raw, "value", raw)
+    return str(value or "").strip()
+
+
+def _render_auth_cookie_sync(action: str, value: str = "") -> None:
+    cookie_name = json.dumps(_AUTH_COOKIE_NAME)
+    cookie_value = json.dumps(value)
+    if action == "clear":
+        cookie_script = (
+            f"document.cookie = {cookie_name} + '=; Max-Age=0; path=/; SameSite=Lax';"
+        )
+    else:
+        cookie_script = (
+            "const maxAge = "
+            f"{_AUTH_COOKIE_TTL_SECONDS};"
+            f"document.cookie = {cookie_name} + '=' + encodeURIComponent({cookie_value}) + '; Max-Age=' + maxAge + '; path=/; SameSite=Lax';"
+        )
+    components_html(f"<script>{cookie_script}</script>", height=0)
+
+
+def _create_auth_session(username: str) -> str:
+    registry = _auth_session_registry()
+    now = time.time()
+    expired = [session_id for session_id, payload in registry.items() if float(payload.get("expires_at", 0.0)) <= now]
+    for session_id in expired:
+        registry.pop(session_id, None)
+
+    session_id = py_secrets.token_urlsafe(24)
+    registry[session_id] = {
+        "username": username,
+        "expires_at": now + _AUTH_COOKIE_TTL_SECONDS,
+    }
+    return session_id
+
+
+def _invalidate_auth_session(session_id: str | None) -> None:
+    if not session_id:
+        return
+    _auth_session_registry().pop(session_id, None)
+
+
+def _restore_login_from_cookie() -> bool:
+    session_id = _auth_cookie_value()
+    if not session_id:
+        return False
+
+    registry = _auth_session_registry()
+    payload = registry.get(session_id)
+    now = time.time()
+    if not payload or float(payload.get("expires_at", 0.0)) <= now:
+        registry.pop(session_id, None)
+        _render_auth_cookie_sync("clear")
+        return False
+
+    st.session_state["_ui_authenticated"] = True
+    st.session_state["_ui_auth_session_id"] = session_id
+    return True
+
+
 def _enforce_login_gate() -> None:
     if not _auth_enabled():
         st.session_state["_ui_authenticated"] = True
         return
 
+    if st.session_state.pop("_ui_clear_auth_cookie", False):
+        _render_auth_cookie_sync("clear")
+
     if st.session_state.get("_ui_authenticated"):
+        return
+
+    if _restore_login_from_cookie():
         return
 
     username_expected = _auth_username()
@@ -252,18 +364,53 @@ def _enforce_login_gate() -> None:
 
     if submitted:
         if username.strip() == username_expected and password == password_expected:
+            session_id = _create_auth_session(username_expected)
             st.session_state["_ui_authenticated"] = True
-            st.rerun()
+            st.session_state["_ui_auth_session_id"] = session_id
+            _render_auth_cookie_sync("set", session_id)
+            return
         else:
             st.error("Invalid username or password.")
     st.stop()
 
 
-def _has_live_api(api: AlpacaAPI | None, message: str) -> bool:
-    if api is not None:
+def _has_live_api(api: AlpacaAPI | None, message: str, *, allow_pipeline: bool = False) -> bool:
+    if api is not None or (allow_pipeline and pipeline_store_configured()):
         return True
     st.warning(message)
     return False
+
+
+def _section_refresh_button(key: str, *, label: str = "Refresh cached data") -> bool:
+    clicked = st.button(
+        label,
+        key=key,
+        use_container_width=True,
+        help="Bypasses the local CSV cache for this view and loads fresh data where available.",
+    )
+    if clicked:
+        st.caption("Refreshing cached data for this view.")
+    return bool(clicked)
+
+
+def _job_control_groups() -> list[dict[str, object]]:
+    groups: dict[str, dict[str, object]] = {}
+    for source_key, job_name in SOURCE_JOB_MAP.items():
+        entry = groups.setdefault(
+            job_name,
+            {
+                "job_name": job_name,
+                "label": JOB_LABELS.get(job_name, job_name.replace("-", " ").title()),
+                "sources": [],
+                "datasets": [],
+            },
+        )
+        entry["sources"].append(source_key)
+        for dataset_name in SOURCE_DATASETS.get(source_key, []):
+            if dataset_name not in entry["datasets"]:
+                entry["datasets"].append(dataset_name)
+
+    return list(groups.values())
 
 
 def _source_force_requested(source: str) -> bool:
@@ -2236,80 +2383,39 @@ else:
     with _timed("create_api_client"):
         api = _make_api(cfg)
 
-st.sidebar.title("Spectral Nature")
-st.sidebar.caption("Alpaca + Streamlit")
 app_track = (os.getenv("APP_TRACK") or "local").strip().lower()
-if app_track:
-    st.sidebar.caption(f"Environment: {app_track}")
-if st.sidebar.button("Logout", key="dashboard_logout"):
-    st.session_state["_ui_authenticated"] = False
-    st.rerun()
-_log_event("ui_sidebar_ready")
-
-section = st.sidebar.radio(
-    "Section",
-    [
-        "Home",
-        "Portfolio Overview",
-        "Performance",
-        "FRED Macro",
-        "Pipeline Jobs",
-        "Market Opportunity",
-        "Technical Strategizer",
-        "Option Strategizer",
-        "Fundamental Strategizer",
-    ],
-)
-
-period = st.sidebar.selectbox("History Period", ["1M", "3M", "6M", "1Y", "2Y", "5Y"], index=3)
-_log_event("section_selected", section=section, period=period)
-force_data_refresh = st.sidebar.button(
-    "Update Cached Data",
-    help="Refreshes the CSV cache for the data loaded in this run, even if the cache is not stale yet.",
-)
-if force_data_refresh:
-    _log_event("cache_refresh_requested", section=section)
-    st.sidebar.success("Refreshing requested data for this run.")
-
-source_refresh_flags: dict[str, bool] = {}
-source_labels = {
-    "equities": "Equities",
-    "fred": "FRED",
-    "commodities": "Commodities",
-    "options": "Options",
-    "news": "News",
-    "fundamentals": "Fundamentals",
-    "derivatives": "Derivatives",
-}
-st.sidebar.markdown("### Source Controls")
-st.sidebar.caption("Dashboard reads pipeline snapshots by default. Use buttons below to trigger source-specific refresh jobs.")
-for source_key, source_label in source_labels.items():
-    clicked = st.sidebar.button(
-        f"Force Refresh {source_label}",
-        key=f"source_refresh_{source_key}",
-        help=f"Triggers the `{source_label}` pipeline job and bypasses local cache logic for this run.",
-    )
-    source_refresh_flags[source_key] = bool(clicked)
-    if clicked:
-        ok, msg = start_source_refresh_job(source_key)
-        if ok:
-            st.sidebar.success(msg)
-        else:
-            st.sidebar.warning(msg)
-
+cache_disabled = (os.getenv("APP_DISABLE_CACHE") or "").strip().lower() in {"1", "true", "yes", "on"}
+source_refresh_flags = dict(st.session_state.get("_source_force_refresh", {}))
 st.session_state["_source_force_refresh"] = source_refresh_flags
-if pipeline_store_configured():
-    st.sidebar.caption("Data mode: Pipeline metadata + parquet snapshots")
-else:
-    st.sidebar.caption("Data mode: Live API fallback (pipeline config not detected)")
 
-st.sidebar.caption(f"CSV cache: {cache_data_root()}")
-st.sidebar.caption(f"Cache policy: {cache_policy_path()}")
+with st.sidebar:
+    st.title("Spectral Nature")
+    st.caption("Alpaca + Streamlit")
+    if app_track:
+        st.caption(f"Environment: {app_track}")
+    section = st.selectbox("Workspace", SECTION_OPTIONS, key="workspace_section")
 
-st.sidebar.markdown("---")
-sidebar_connection = st.sidebar.empty()
-sidebar_status = st.sidebar.empty()
-sidebar_buying_power = st.sidebar.empty()
+    with st.expander("Status & Session", expanded=False):
+        if pipeline_store_configured():
+            st.caption("Data mode: Pipeline metadata + parquet snapshots")
+        else:
+            st.caption("Data mode: Live API fallback")
+        st.caption(f"Cache: {'disabled' if cache_disabled else 'enabled'}")
+        st.caption(f"CSV cache: {cache_data_root()}")
+        st.caption(f"Cache policy: {cache_policy_path()}")
+        if st.button("Logout", key="dashboard_logout", use_container_width=True):
+            _invalidate_auth_session(st.session_state.get("_ui_auth_session_id"))
+            st.session_state["_ui_authenticated"] = False
+            st.session_state["_ui_auth_session_id"] = None
+            st.session_state["_ui_clear_auth_cookie"] = True
+            st.rerun()
+        sidebar_connection = st.empty()
+        sidebar_status = st.empty()
+        sidebar_buying_power = st.empty()
+
+_log_event("ui_sidebar_ready")
+_log_event("section_selected", section=section)
+
 sidebar_connection.metric("Connection", "Configured" if api is not None else "Unavailable")
 sidebar_status.metric("Account Status", "NOT LOADED" if api is not None else "UNAVAILABLE")
 sidebar_buying_power.metric("Buying Power", "Not loaded" if api is not None else "Unavailable")
@@ -2321,16 +2427,25 @@ if startup_error_summary:
         setup_code=startup_setup_code,
     )
 
+force_data_refresh = False
+
 if section == "Home":
     st.title("Spectral Nature")
     st.write("Choose a section from the sidebar. Data-heavy views load on demand now, so the app shell renders first.")
+    st.caption("Pipeline refresh jobs now live under `Pipeline Jobs`, and data refresh is handled inside each page instead of the sidebar.")
     if api is None:
         st.info("Fix the Alpaca configuration to enable portfolio, market, technical, and options views. FRED Macro uses its own API key.")
     else:
         st.success("Alpaca configuration loaded. Open a section when you want live data.")
 
 elif section == "Portfolio Overview":
-    st.title("Portfolio Overview")
+    header_cols = st.columns([3.2, 1.6, 1.4])
+    with header_cols[0]:
+        st.title("Portfolio Overview")
+    with header_cols[1]:
+        period = st.selectbox("History Period", ["1M", "3M", "6M", "1Y", "2Y", "5Y"], index=3, key="portfolio_overview_period")
+    with header_cols[2]:
+        force_data_refresh = _section_refresh_button("portfolio_overview_refresh")
     if not _has_live_api(api, "Portfolio Overview requires a working Alpaca connection."):
         st.info("Fix the Alpaca connection to load positions, portfolio history, and benchmark comparisons.")
     else:
@@ -2439,7 +2554,13 @@ elif section == "Portfolio Overview":
                 st.warning(f"Could not compute momentum: {exc}")
 
 elif section == "Performance":
-    st.title("Performance")
+    header_cols = st.columns([3.2, 1.6, 1.4])
+    with header_cols[0]:
+        st.title("Performance")
+    with header_cols[1]:
+        period = st.selectbox("History Period", ["1M", "3M", "6M", "1Y", "2Y", "5Y"], index=3, key="performance_period")
+    with header_cols[2]:
+        force_data_refresh = _section_refresh_button("performance_refresh")
     if not _has_live_api(api, "Performance requires a working Alpaca connection."):
         st.info("Fix the Alpaca connection to compute portfolio and benchmark performance.")
     else:
@@ -2470,11 +2591,15 @@ elif section == "Performance":
             st.plotly_chart(build_metric_bar(perf, metric), use_container_width=True)
 
 elif section == "FRED Macro":
-    st.title("FRED Macro")
-    st.caption(
-        "Economic indicators sourced from FRED. Observations are loaded from FRED v2 bulk release downloads, "
-        "then filtered interactively in-app."
-    )
+    header_cols = st.columns([5.2, 1.4])
+    with header_cols[0]:
+        st.title("FRED Macro")
+        st.caption(
+            "Economic indicators sourced from FRED. Observations are loaded from FRED v2 bulk release downloads, "
+            "then filtered interactively in-app."
+        )
+    with header_cols[1]:
+        force_data_refresh = _section_refresh_button("fred_macro_refresh")
 
     fred_api_key = load_fred_api_key()
     if not fred_api_key:
@@ -2510,7 +2635,8 @@ elif section == "FRED Macro":
             type="primary" if not fred_cache_ready else "secondary",
             help="Cold bulk downloads can take a while on remote sessions. Cached data loads immediately.",
         )
-        if not fred_cache_ready and not load_fred_now and not force_data_refresh:
+        allow_fred_defer = (not pipeline_store_configured()) and (not cache_disabled)
+        if allow_fred_defer and not fred_cache_ready and not load_fred_now and not force_data_refresh:
             st.info(
                 "FRED bulk downloads are deferred until requested. This prevents the app from appearing to hang on "
                 "a cold remote load. Click `Load FRED Data` once, or use cached data on the next visit."
@@ -2733,11 +2859,42 @@ elif section == "FRED Macro":
 
 elif section == "Pipeline Jobs":
     st.title("Pipeline Jobs")
-    st.caption("Latest execution status for each Azure Container App Job backing snapshot ingestion.")
+    st.caption("Run remote snapshot refresh jobs here, then inspect the latest execution status below.")
+    st.info(
+        "Page-level `Refresh cached data` buttons bypass the local CSV cache for the current view. "
+        "The controls below trigger the remote pipeline jobs that rebuild snapshot data."
+    )
 
-    refresh_now = st.button("Refresh Job Status", key="refresh_job_status")
-    if refresh_now:
-        _log_event("job_status_refresh_clicked")
+    if source_refresh_flags:
+        if st.button("Clear local refresh overrides", key="clear_source_refresh_overrides"):
+            source_refresh_flags = {}
+            st.session_state["_source_force_refresh"] = source_refresh_flags
+            st.rerun()
+
+    job_cards = st.columns(2)
+    for index, group in enumerate(_job_control_groups()):
+        with job_cards[index % 2]:
+            job_name = str(group["job_name"])
+            sources = [SOURCE_LABELS.get(source_key, source_key.title()) for source_key in group["sources"]]
+            datasets = [str(item) for item in group["datasets"]]
+            st.markdown(f"#### {group['label']}")
+            st.caption(f"Job: `{job_name}`")
+            st.caption("Covers: " + ", ".join(sources))
+            if datasets:
+                preview = ", ".join(datasets[:4])
+                if len(datasets) > 4:
+                    preview += f", +{len(datasets) - 4} more"
+                st.caption(f"Datasets: {preview}")
+            if st.button("Run refresh job", key=f"run_job_{job_name}", use_container_width=True):
+                ok, msg = start_source_refresh_job(str(group["sources"][0]))
+                if ok:
+                    for source_key in group["sources"]:
+                        source_refresh_flags[str(source_key)] = True
+                    st.session_state["_source_force_refresh"] = source_refresh_flags
+                    st.success(msg)
+                else:
+                    st.warning(msg)
+            st.markdown("---")
 
     with st.spinner("Loading latest job executions..."):
         with _timed("load_job_status_table"):
@@ -2768,114 +2925,116 @@ elif section == "Pipeline Jobs":
         st.dataframe(display, use_container_width=True, hide_index=True)
 
 elif section == "Market Opportunity":
-    st.title("Market Opportunity")
-    if not _has_live_api(api, "Market Opportunity requires a working Alpaca connection."):
-        st.info("Fix the Alpaca connection to scan movers and load price history.")
+    header_cols = st.columns([4.8, 1.4])
+    with header_cols[0]:
+        st.title("Market Opportunity")
+    with header_cols[1]:
+        force_data_refresh = _section_refresh_button("market_opportunity_refresh")
+    if not _has_live_api(
+        api,
+        "Market Opportunity requires a working Alpaca connection or pipeline snapshots.",
+        allow_pipeline=True,
+    ):
+        st.info("Fix the Alpaca connection or configure pipeline snapshots to scan movers and load price history.")
     else:
-        market_subpage = st.radio(
-            "Market Opportunity View",
-            ["Markets", "Advanced"],
-            horizontal=True,
-            key="market_opportunity_subpage",
+        market_view = st.segmented_control(
+            "Market View",
+            ["Markets", "Broad Markets", "Commodity Section"],
+            default=st.session_state.get("market_view", "Markets"),
+            key="market_view",
+            width="stretch",
         )
-        if market_subpage == "Advanced":
-            advanced_view = st.radio(
-                "Advanced View",
-                ["Broad Markets", "Commodity Section"],
-                horizontal=True,
-                key="market_experiment_view",
+        if market_view == "Commodity Section":
+            lens_cols = st.columns([2.2, 3.8])
+            with lens_cols[0]:
+                experiment_filter = st.selectbox(
+                    "Commodity Filter",
+                    commodity_focus_options(),
+                    index=0,
+                    key="market_commodity_focus",
+                )
+            with lens_cols[1]:
+                st.caption("Commodity-market lens for the experiment view.")
+                st.caption(commodity_focus_description(experiment_filter))
+            experiment_symbols = commodity_focus_universe(experiment_filter)
+            _render_market_opportunity_experiments(
+                cfg,
+                force_data_refresh,
+                market_view,
+                "Commodity Filter",
+                experiment_filter,
+                experiment_symbols,
             )
+        elif market_view == "Broad Markets":
+            lens_cols = st.columns([2.2, 3.8])
+            with lens_cols[0]:
+                experiment_filter = st.selectbox(
+                    "Business Filter",
+                    business_focus_options(),
+                    index=0,
+                    key="market_business_filter",
+                )
+            with lens_cols[1]:
+                st.caption(
+                    "Custom business lens based on what the company primarily sells, not standard sector classifications."
+                )
+                st.caption(business_focus_description(experiment_filter))
+            experiment_symbols = business_focus_universe(experiment_filter)
+            _render_market_opportunity_experiments(
+                cfg,
+                force_data_refresh,
+                market_view,
+                "Business Filter",
+                experiment_filter,
+                experiment_symbols,
+            )
+        else:
 
             lens_cols = st.columns([2.2, 3.8])
-            if advanced_view == "Commodity Section":
-                with lens_cols[0]:
-                    experiment_filter = st.selectbox(
-                        "Commodity Filter",
-                        commodity_focus_options(),
-                        index=0,
-                        key="market_commodity_focus",
-                    )
-                with lens_cols[1]:
-                    st.caption("Commodity-market lens for the experiment view.")
-                    st.caption(commodity_focus_description(experiment_filter))
-                experiment_symbols = commodity_focus_universe(experiment_filter)
-                _render_market_opportunity_experiments(
-                    cfg,
-                    force_data_refresh,
-                    advanced_view,
-                    "Commodity Filter",
-                    experiment_filter,
-                    experiment_symbols,
-                )
-            else:
-                with lens_cols[0]:
-                    experiment_filter = st.selectbox(
-                        "Business Filter",
-                        business_focus_options(),
-                        index=0,
-                        key="market_business_filter",
-                    )
-                with lens_cols[1]:
-                    st.caption(
-                        "Custom business lens based on what the company primarily sells, not standard sector classifications."
-                    )
-                    st.caption(business_focus_description(experiment_filter))
-                experiment_symbols = business_focus_universe(experiment_filter)
-                _render_market_opportunity_experiments(
-                    cfg,
-                    force_data_refresh,
-                    advanced_view,
+            with lens_cols[0]:
+                business_filter = st.selectbox(
                     "Business Filter",
-                    experiment_filter,
-                    experiment_symbols,
+                    business_focus_options(),
+                    index=0,
+                    key="market_business_filter",
                 )
-            st.stop()
+            with lens_cols[1]:
+                st.caption(
+                    "Custom business lens based on what the company primarily sells, not standard sector classifications."
+                )
+                st.caption(business_focus_description(business_filter))
+            business_symbols = business_focus_universe(business_filter)
 
-        lens_cols = st.columns([2.2, 3.8])
-        with lens_cols[0]:
-            business_filter = st.selectbox(
-                "Business Filter",
-                business_focus_options(),
-                index=0,
-                key="market_business_filter",
-            )
-        with lens_cols[1]:
-            st.caption(
-                "Custom business lens based on what the company primarily sells, not standard sector classifications."
-            )
-            st.caption(business_focus_description(business_filter))
-        business_symbols = business_focus_universe(business_filter)
+            momentum_days = st.slider("Momentum Lookback (days)", 90, 365, 180, step=30)
 
-        momentum_days = st.slider("Momentum Lookback (days)", 90, 365, 180, step=30)
+            try:
+                with st.spinner("Scanning market movers..."):
+                    with _timed("scan_daily_movers"):
+                        movers = _scan_daily_movers_cached(
+                            cfg,
+                            symbols=business_symbols,
+                            force_refresh=force_data_refresh,
+                        )
+            except AlpacaAPIError as exc:
+                _log_event("scan_daily_movers_failed", error=str(exc)[:200])
+                st.warning(f"Could not scan movers: {exc}")
+                movers = pd.DataFrame()
 
-        try:
-            with st.spinner("Scanning market movers..."):
-                with _timed("scan_daily_movers"):
-                    movers = _scan_daily_movers_cached(
-                        cfg,
-                        symbols=business_symbols,
-                        force_refresh=force_data_refresh,
-                    )
-        except AlpacaAPIError as exc:
-            _log_event("scan_daily_movers_failed", error=str(exc)[:200])
-            st.warning(f"Could not scan movers: {exc}")
-            movers = pd.DataFrame()
+            selected_market_ticker: str | None = None
 
-        selected_market_ticker: str | None = None
-
-        try:
-            with st.spinner("Scanning momentum profiles..."):
-                with _timed("scan_momentum_profiles", days=momentum_days):
-                    momentum = _scan_momentum_profiles_cached(
-                        cfg,
-                        momentum_days,
-                        symbols=business_symbols,
-                        force_refresh=force_data_refresh,
-                    )
-        except AlpacaAPIError as exc:
-            _log_event("scan_momentum_profiles_failed", error=str(exc)[:200], days=momentum_days)
-            st.warning(f"Could not scan momentum profiles: {exc}")
-            momentum = pd.DataFrame()
+            try:
+                with st.spinner("Scanning momentum profiles..."):
+                    with _timed("scan_momentum_profiles", days=momentum_days):
+                        momentum = _scan_momentum_profiles_cached(
+                            cfg,
+                            momentum_days,
+                            symbols=business_symbols,
+                            force_refresh=force_data_refresh,
+                        )
+            except AlpacaAPIError as exc:
+                _log_event("scan_momentum_profiles_failed", error=str(exc)[:200], days=momentum_days)
+                st.warning(f"Could not scan momentum profiles: {exc}")
+                momentum = pd.DataFrame()
 
         if not momentum.empty:
             raw_up = momentum.nlargest(20, "momentum_score")[
@@ -3240,11 +3399,19 @@ elif section == "Market Opportunity":
                 st.plotly_chart(plot_statement(cashflow, f"{ticker} Cash Flow"), use_container_width=True)
 
 elif section == "Technical Strategizer":
-    st.title("Technical Strategizer")
+    header_cols = st.columns([4.8, 1.4])
+    with header_cols[0]:
+        st.title("Technical Strategizer")
+    with header_cols[1]:
+        force_data_refresh = _section_refresh_button("technical_refresh")
     ticker = st.text_input("Ticker", value="AAPL").upper().strip()
     days = st.slider("Lookback (days)", 90, 1095, 365, step=15)
 
-    if ticker and _has_live_api(api, "Technical Strategizer requires a working Alpaca connection."):
+    if ticker and _has_live_api(
+        api,
+        "Technical Strategizer requires a working Alpaca connection or pipeline snapshots.",
+        allow_pipeline=True,
+    ):
         try:
             with st.spinner("Loading technical data..."):
                 with _timed("technical_load_price_history", ticker=ticker, days=days):
@@ -3286,10 +3453,18 @@ elif section == "Technical Strategizer":
                     st.metric("20D Vol (ann)", f"{pd.to_numeric(signal_summary.get('vol_20_ann_pct'), errors='coerce'):.1f}%")
 
 elif section == "Option Strategizer":
-    st.title("Option Strategizer")
+    header_cols = st.columns([4.8, 1.4])
+    with header_cols[0]:
+        st.title("Option Strategizer")
+    with header_cols[1]:
+        force_data_refresh = _section_refresh_button("option_refresh")
     ticker = st.text_input("Ticker", value="AAPL", key="opt_ticker").upper().strip()
 
-    if ticker and _has_live_api(api, "Option Strategizer requires a working Alpaca connection."):
+    if ticker and _has_live_api(
+        api,
+        "Option Strategizer requires a working Alpaca connection or pipeline snapshots.",
+        allow_pipeline=True,
+    ):
         spot_price = np.nan
         try:
             with _timed("option_reference_price", ticker=ticker):
@@ -3539,7 +3714,11 @@ elif section == "Option Strategizer":
                 st.info("A recent stock price was not available, so the Greek-based scenario selector is hidden for this ticker.")
 
 elif section == "Fundamental Strategizer":
-    st.title("Fundamental Strategizer")
+    header_cols = st.columns([4.8, 1.4])
+    with header_cols[0]:
+        st.title("Fundamental Strategizer")
+    with header_cols[1]:
+        force_data_refresh = _section_refresh_button("fundamental_refresh")
     ticker = st.text_input("Ticker", value="AAPL", key="fund_ticker").upper().strip()
 
     if ticker:
