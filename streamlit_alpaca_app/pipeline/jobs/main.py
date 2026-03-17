@@ -373,7 +373,8 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
         movers = scan_daily_movers(api, symbols=symbols)
         _persist_dataset("daily_movers", movers, ctx, conn)
 
-        momentum = scan_momentum_profiles(api, symbols=symbols, days=180)
+        momentum_lookback_days = max(int(os.getenv("MOMENTUM_LOOKBACK_DAYS", "3650")), 365)
+        momentum = scan_momentum_profiles(api, symbols=symbols, days=momentum_lookback_days)
         _persist_dataset("momentum_profiles", momentum, ctx, conn)
 
         price_lookback_days = max(int(os.getenv("EQUITY_PRICE_LOOKBACK_DAYS", "3650")), 365)

@@ -649,7 +649,7 @@ def load_price_history(api: AlpacaAPI, symbol: str, days: int = 365) -> pd.DataF
 def scan_momentum_profiles(
     api: AlpacaAPI,
     symbols: list[str] | None = None,
-    days: int = 180,
+    days: int = 3650,
 ) -> pd.DataFrame:
     universe = symbols or DEFAULT_UNIVERSE
     end = datetime.now(timezone.utc)
@@ -680,10 +680,14 @@ def scan_momentum_profiles(
             {
                 "symbol": symbol,
                 "close": float(close.iloc[-1]),
+                "return_1d_pct": _window_return_pct(close, 2),
+                "return_7d_pct": _window_return_pct(close, 7),
                 "daily_change_pct": _window_return_pct(close, 2),
                 "return_1w_pct": _window_return_pct(close, 5),
                 "return_1m_pct": _window_return_pct(close, 21),
                 "return_3m_pct": _window_return_pct(close, 63),
+                "return_1y_pct": _window_return_pct(close, 252),
+                "return_5y_pct": _window_return_pct(close, 1260),
                 "momentum_1w": slope_1w,
                 "momentum_1m": slope_1m,
                 "momentum_3m": slope_3m,

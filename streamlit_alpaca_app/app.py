@@ -179,6 +179,24 @@ JOB_LABELS = {
     "news-ingest-and-features": "News Snapshot Refresh",
 }
 
+MARKET_MOMENTUM_SCAN_DAYS = 3650
+MARKET_MOMENTUM_HORIZON_LABELS = {
+    "1d": "1 Day",
+    "7d": "7 Day",
+    "1m": "1 Month",
+    "3m": "3 Month",
+    "1yr": "1 Year",
+    "5yr": "5 Year",
+}
+MARKET_MOMENTUM_HORIZON_COLUMNS = {
+    "1d": "return_1d_pct",
+    "7d": "return_7d_pct",
+    "1m": "return_1m_pct",
+    "3m": "return_3m_pct",
+    "1yr": "return_1y_pct",
+    "5yr": "return_5y_pct",
+}
+
 _AUTH_COOKIE_NAME = "spectral_nature_ui_session"
 _AUTH_COOKIE_TTL_SECONDS = 7 * 24 * 60 * 60
 
@@ -3004,8 +3022,17 @@ elif section == "Market Opportunity":
                 )
                 st.caption(business_focus_description(business_filter))
             business_symbols = business_focus_universe(business_filter)
-
-            momentum_days = st.slider("Momentum Lookback (days)", 90, 365, 180, step=30)
+            horizon_options = list(MARKET_MOMENTUM_HORIZON_COLUMNS.keys())
+            momentum_horizon = st.selectbox(
+                "Momentum Horizon",
+                horizon_options,
+                index=horizon_options.index("1m"),
+                format_func=lambda key: MARKET_MOMENTUM_HORIZON_LABELS.get(key, str(key)),
+                key="market_momentum_horizon",
+            )
+            momentum_days = MARKET_MOMENTUM_SCAN_DAYS
+            selected_horizon_col = MARKET_MOMENTUM_HORIZON_COLUMNS.get(momentum_horizon, "return_1m_pct")
+            selected_horizon_label = MARKET_MOMENTUM_HORIZON_LABELS.get(momentum_horizon, momentum_horizon)
 
             try:
                 with st.spinner("Scanning market movers..."):
@@ -3024,7 +3051,7 @@ elif section == "Market Opportunity":
 
             try:
                 with st.spinner("Scanning momentum profiles..."):
-                    with _timed("scan_momentum_profiles", days=momentum_days):
+                    with _timed("scan_momentum_profiles", days=momentum_days, horizon=momentum_horizon):
                         momentum = _scan_momentum_profiles_cached(
                             cfg,
                             momentum_days,
@@ -3032,23 +3059,43 @@ elif section == "Market Opportunity":
                             force_refresh=force_data_refresh,
                         )
             except AlpacaAPIError as exc:
-                _log_event("scan_momentum_profiles_failed", error=str(exc)[:200], days=momentum_days)
+                _log_event(
+                    "scan_momentum_profiles_failed",
+                    error=str(exc)[:200],
+                    days=momentum_days,
+                    horizon=momentum_horizon,
+                )
                 st.warning(f"Could not scan momentum profiles: {exc}")
                 momentum = pd.DataFrame()
 
         if not momentum.empty:
-            raw_up = momentum.nlargest(20, "momentum_score")[
-                ["symbol", "sparkline_3m", "close", "daily_change_pct", "return_1m_pct", "return_3m_pct", "momentum_score"]
-            ]
-            raw_down = momentum.nsmallest(20, "momentum_score")[
-                ["symbol", "sparkline_3m", "close", "daily_change_pct", "return_1m_pct", "return_3m_pct", "momentum_score"]
-            ]
-            roc_up = momentum.nlargest(20, "momentum_roc_score")[
-                ["symbol", "sparkline_3m", "close", "return_1w_pct", "return_1m_pct", "roc_1m_to_3m", "momentum_roc_score"]
-            ]
-            roc_down = momentum.nsmallest(20, "momentum_roc_score")[
-                ["symbol", "sparkline_3m", "close", "return_1w_pct", "return_1m_pct", "roc_1m_to_3m", "momentum_roc_score"]
-            ]
+            selected_horizon_col = locals().get("selected_horizon_col", "return_1m_pct")
+            selected_horizon_label = locals().get("selected_horizon_label", "1 Month")
+            for horizon_col in set(MARKET_MOMENTUM_HORIZON_COLUMNS.values()):
+                if horizon_col not in momentum.columns:
+                    momentum[horizon_col] = np.nan
+
+            ranking_col = selected_horizon_col
+            if ranking_col not in momentum.columns or not pd.to_numeric(momentum[ranking_col], errors="coerce").notna().any():
+                ranking_col = "momentum_score"
+                st.caption(f"{selected_horizon_label} return unavailable for current snapshot. Falling back to momentum score.")
+            else:
+                st.caption(f"Ranking by {selected_horizon_label} return.")
+
+            raw_columns = list(
+                dict.fromkeys(
+                    ["symbol", "sparkline_3m", "close", "daily_change_pct", selected_horizon_col, "momentum_score"]
+                )
+            )
+            roc_columns = list(
+                dict.fromkeys(
+                    ["symbol", "sparkline_3m", "close", "return_1w_pct", selected_horizon_col, "roc_1m_to_3m", "momentum_roc_score"]
+                )
+            )
+            raw_up = momentum.nlargest(20, ranking_col)[raw_columns]
+            raw_down = momentum.nsmallest(20, ranking_col)[raw_columns]
+            roc_up = momentum.nlargest(20, "momentum_roc_score")[roc_columns]
+            roc_down = momentum.nsmallest(20, "momentum_roc_score")[roc_columns]
 
             st.markdown("##### Momentum Raw")
             visible_market_symbols = sorted(
@@ -3071,7 +3118,19 @@ elif section == "Market Opportunity":
                 selected_market_ticker = _render_selectable_ticker_table(
                     "Top 20 Up",
                     raw_up_table,
-                    ["symbol", "company_name", "sparkline_3m", "close", "daily_change_pct", "return_1m_pct", "momentum_score"],
+                    list(
+                        dict.fromkeys(
+                            [
+                                "symbol",
+                                "company_name",
+                                "sparkline_3m",
+                                "close",
+                                "daily_change_pct",
+                                selected_horizon_col,
+                                "momentum_score",
+                            ]
+                        )
+                    ),
                     key="market_momentum_raw_up",
                     column_config=raw_up_column_config,
                 ) or selected_market_ticker
@@ -3079,7 +3138,19 @@ elif section == "Market Opportunity":
                 selected_market_ticker = _render_selectable_ticker_table(
                     "Top 20 Down",
                     raw_down_table,
-                    ["symbol", "company_name", "sparkline_3m", "close", "daily_change_pct", "return_1m_pct", "momentum_score"],
+                    list(
+                        dict.fromkeys(
+                            [
+                                "symbol",
+                                "company_name",
+                                "sparkline_3m",
+                                "close",
+                                "daily_change_pct",
+                                selected_horizon_col,
+                                "momentum_score",
+                            ]
+                        )
+                    ),
                     key="market_momentum_raw_down",
                     column_config=raw_down_column_config,
                 ) or selected_market_ticker
@@ -3092,7 +3163,19 @@ elif section == "Market Opportunity":
                 selected_market_ticker = _render_selectable_ticker_table(
                     "Up",
                     roc_up_table,
-                    ["symbol", "company_name", "sparkline_3m", "close", "return_1w_pct", "return_1m_pct", "momentum_roc_score"],
+                    list(
+                        dict.fromkeys(
+                            [
+                                "symbol",
+                                "company_name",
+                                "sparkline_3m",
+                                "close",
+                                "return_1w_pct",
+                                selected_horizon_col,
+                                "momentum_roc_score",
+                            ]
+                        )
+                    ),
                     key="market_momentum_roc_up",
                     column_config=roc_up_column_config,
                 ) or selected_market_ticker
@@ -3100,7 +3183,19 @@ elif section == "Market Opportunity":
                 selected_market_ticker = _render_selectable_ticker_table(
                     "Down",
                     roc_down_table,
-                    ["symbol", "company_name", "sparkline_3m", "close", "return_1w_pct", "return_1m_pct", "momentum_roc_score"],
+                    list(
+                        dict.fromkeys(
+                            [
+                                "symbol",
+                                "company_name",
+                                "sparkline_3m",
+                                "close",
+                                "return_1w_pct",
+                                selected_horizon_col,
+                                "momentum_roc_score",
+                            ]
+                        )
+                    ),
                     key="market_momentum_roc_down",
                     column_config=roc_down_column_config,
                 ) or selected_market_ticker
@@ -3110,10 +3205,34 @@ elif section == "Market Opportunity":
             momentum = momentum.copy()
             momentum["trend_consistency_pct"] = (1.0 - pd.to_numeric(momentum["trend_fit_gap"], errors="coerce")) * 100.0
             consistency_up = momentum[pd.to_numeric(momentum["momentum_score"], errors="coerce") > 0].nsmallest(20, "trend_fit_gap")[
-                ["symbol", "sparkline_3m", "close", "return_1m_pct", "return_3m_pct", "trend_consistency_pct", "trend_fit_gap"]
+                list(
+                    dict.fromkeys(
+                        [
+                            "symbol",
+                            "sparkline_3m",
+                            "close",
+                            selected_horizon_col,
+                            "return_3m_pct",
+                            "trend_consistency_pct",
+                            "trend_fit_gap",
+                        ]
+                    )
+                )
             ]
             consistency_down = momentum[pd.to_numeric(momentum["momentum_score"], errors="coerce") < 0].nsmallest(20, "trend_fit_gap")[
-                ["symbol", "sparkline_3m", "close", "return_1m_pct", "return_3m_pct", "trend_consistency_pct", "trend_fit_gap"]
+                list(
+                    dict.fromkeys(
+                        [
+                            "symbol",
+                            "sparkline_3m",
+                            "close",
+                            selected_horizon_col,
+                            "return_3m_pct",
+                            "trend_consistency_pct",
+                            "trend_fit_gap",
+                        ]
+                    )
+                )
             ]
             consistency_symbols = sorted(
                 {
@@ -3141,7 +3260,19 @@ elif section == "Market Opportunity":
                 selected_market_ticker = _render_selectable_ticker_table(
                     "Up",
                     consistency_up_table,
-                    ["symbol", "company_name", "sparkline_3m", "close", "return_1m_pct", "trend_consistency_pct", "trend_fit_gap"],
+                    list(
+                        dict.fromkeys(
+                            [
+                                "symbol",
+                                "company_name",
+                                "sparkline_3m",
+                                "close",
+                                selected_horizon_col,
+                                "trend_consistency_pct",
+                                "trend_fit_gap",
+                            ]
+                        )
+                    ),
                     key="market_momentum_consistency_up",
                     column_config=consistency_up_column_config,
                 ) or selected_market_ticker
@@ -3149,7 +3280,19 @@ elif section == "Market Opportunity":
                 selected_market_ticker = _render_selectable_ticker_table(
                     "Down",
                     consistency_down_table,
-                    ["symbol", "company_name", "sparkline_3m", "close", "return_1m_pct", "trend_consistency_pct", "trend_fit_gap"],
+                    list(
+                        dict.fromkeys(
+                            [
+                                "symbol",
+                                "company_name",
+                                "sparkline_3m",
+                                "close",
+                                selected_horizon_col,
+                                "trend_consistency_pct",
+                                "trend_fit_gap",
+                            ]
+                        )
+                    ),
                     key="market_momentum_consistency_down",
                     column_config=consistency_down_column_config,
                 ) or selected_market_ticker
