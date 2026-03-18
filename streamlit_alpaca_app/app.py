@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from datetime import timezone
 import importlib
 import json
 import logging
@@ -16,30 +15,14 @@ import plotly.graph_objects as go
 import streamlit as st
 from streamlit.components.v1 import html as components_html
 
+from compute.portfolio import normalize_timeseries_view
+from data_access.layer import DataAccessLayer
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
-from services.analytics import (
-    BENCHMARKS,
-    build_metric_bar,
-    build_portfolio_vs_benchmarks_fig,
-    normalize_to_100,
-    performance_table,
-)
-from services.company import build_company_description, load_asset_metadata, load_recent_news, summarize_recent_news
+from services.analytics import build_metric_bar, build_portfolio_vs_benchmarks_fig, select_signed_ranked
+from services.company import build_company_description, summarize_recent_news
 from services.config import AppConfig, load_config
-from services.data_cache import (
-    cache_bundle_exists,
-    cache_data_root,
-    cache_policy_path,
-    cached_frame,
-    cached_frame_dict,
-    cached_fred_dashboard,
-    cached_news_payload,
-    cached_option_chain,
-    cached_scalar_dict,
-    dataset_scope,
-)
+from services.data_cache import cache_bundle_exists, cache_data_root, cache_policy_path, dataset_scope
 from services.fred import (
-    FRED_CATEGORY_BLURBS,
     FredAPIError,
     FredSeriesSpec,
     build_fred_figure,
@@ -47,22 +30,18 @@ from services.fred import (
     format_fred_delta,
     format_fred_value,
     fred_categories,
-    fred_specs_by_category,
     load_fred_api_key,
-    load_fred_dashboard,
 )
 from services.pipeline_store import (
     SOURCE_DATASETS,
     SOURCE_JOB_MAP,
     latest_job_status_table,
-    load_latest_dataset_frame,
     pipeline_store_configured,
     start_source_refresh_job,
 )
 from services.secrets import resolve_secret_value
-from services.fundamentals import load_quarterly_fundamentals, plot_statement
+from services.fundamentals import plot_statement
 from services.market import (
-    DEFAULT_UNIVERSE,
     business_focus_description,
     business_focus_options,
     business_focus_universe,
@@ -72,19 +51,8 @@ from services.market import (
     commodity_focus_universe,
     commodity_proxy_profile,
     commodity_reference_universe,
-    load_price_history,
-    scan_commodity_regimes,
-    scan_correlation_phase_shifts,
-    scan_daily_movers,
-    scan_momentum_profiles,
 )
-from services.options import (
-    analyze_option_candidates,
-    load_option_chain,
-    load_option_surface,
-    rank_options,
-    select_option_surface_window,
-)
+from services.options import rank_options
 from services.technicals import build_technical_figure
 
 _SIGNALS_IMPORT_ERROR: str | None = None
@@ -94,23 +62,11 @@ try:
     build_forecast_cone_figure = _signals.build_forecast_cone_figure
     build_price_channel_figure = _signals.build_price_channel_figure
     build_pullback_figure = _signals.build_pullback_figure
-    build_signal_frame = _signals.build_signal_frame
     build_terminal_distribution_figure = _signals.build_terminal_distribution_figure
-    forecast_next_week = _signals.forecast_next_week
-    summarize_signal_frame = _signals.summarize_signal_frame
 except ModuleNotFoundError as exc:
     if exc.name != "services.signals":
         raise
     _SIGNALS_IMPORT_ERROR = str(exc)
-
-    def build_signal_frame(price: pd.DataFrame, channel_window: int = 63) -> pd.DataFrame:
-        return pd.DataFrame()
-
-    def summarize_signal_frame(frame: pd.DataFrame) -> dict[str, float | str]:
-        return {}
-
-    def forecast_next_week(frame: pd.DataFrame, horizon: int = 5, simulations: int = 1500) -> dict[str, object]:
-        return {}
 
     def build_price_channel_figure(frame: pd.DataFrame, ticker: str) -> go.Figure:
         fig = go.Figure()
@@ -235,6 +191,10 @@ def _to_float(payload: dict, key: str) -> float:
 
 def _make_api(cfg: AppConfig) -> AlpacaAPI:
     return AlpacaAPI(cfg)
+
+
+def _data_access_layer(cfg: AppConfig | None = None, fred_api_key: str | None = None) -> DataAccessLayer:
+    return DataAccessLayer(cfg=cfg, fred_api_key=fred_api_key)
 
 
 def _alpaca_cache_scope(cfg: AppConfig) -> str:
@@ -438,93 +398,42 @@ def _source_force_requested(source: str) -> bool:
     return bool(flags.get(source, False))
 
 
-def _load_pipeline_dataset(dataset_name: str) -> pd.DataFrame:
-    frame, _ = load_latest_dataset_frame(dataset_name)
-    if frame.empty:
-        return frame
-    return frame.reset_index(drop=True)
-
-
-def _build_fred_dashboard_from_pipeline(
-    summary: pd.DataFrame,
-    observations: pd.DataFrame,
-    years: int,
-) -> dict[str, object]:
-    summary_frame = summary.copy()
-    obs_frame = observations.copy()
-
-    if "date" in obs_frame.columns:
-        obs_frame["date"] = pd.to_datetime(obs_frame["date"], errors="coerce")
-        cutoff = pd.Timestamp.utcnow().tz_localize(None) - pd.DateOffset(years=max(int(years), 1))
-        obs_frame = obs_frame[obs_frame["date"] >= cutoff].copy()
-    if "value" in obs_frame.columns:
-        obs_frame["value"] = pd.to_numeric(obs_frame["value"], errors="coerce")
-
-    summary_frame["series_id"] = summary_frame.get("series_id", pd.Series(dtype=str)).astype(str)
-    metadata_by_id: dict[str, dict[str, object]] = {}
-    for _, row in summary_frame.iterrows():
-        sid = str(row.get("series_id") or "").strip()
-        if not sid:
-            continue
-        metadata_by_id[sid] = {
-            "series_id": sid,
-            "units_short": row.get("units_short"),
-            "frequency_short": row.get("frequency_short"),
-            "title": row.get("source_title") or row.get("indicator") or sid,
-            "last_updated": row.get("last_updated"),
-        }
-
-    series_data: dict[str, pd.DataFrame] = {}
-    if not obs_frame.empty and "series_id" in obs_frame.columns:
-        for sid, frame in obs_frame.groupby("series_id", sort=False):
-            series_data[str(sid)] = frame[[col for col in ["date", "value"] if col in frame.columns]].reset_index(drop=True)
-
-    series_index_cols = [col for col in ["series_id", "indicator", "frequency_short", "units_short", "source_title"] if col in summary_frame.columns]
-    series_index = summary_frame[series_index_cols].copy() if series_index_cols else pd.DataFrame()
-    if "indicator" in series_index.columns:
-        series_index = series_index.rename(columns={"indicator": "title"})
-
-    release_index = pd.DataFrame()
-    if "release_id" in obs_frame.columns:
-        release_ids = pd.to_numeric(obs_frame["release_id"], errors="coerce").dropna().astype(int).drop_duplicates().sort_values()
-        if not release_ids.empty:
-            release_index = pd.DataFrame({"release_id": release_ids})
-
-    return {
-        "summary": summary_frame.reset_index(drop=True),
-        "series_data": series_data,
-        "metadata": metadata_by_id,
-        "specs_by_category": fred_specs_by_category(),
-        "category_blurbs": FRED_CATEGORY_BLURBS,
-        "series_index": series_index.reset_index(drop=True),
-        "observations": obs_frame.reset_index(drop=True),
-        "release_index": release_index.reset_index(drop=True),
-    }
+def _resolve_data_access_payload(
+    resolver: str,
+    *,
+    cfg: AppConfig | None = None,
+    fred_api_key: str | None = None,
+    source: str | None = None,
+    force_refresh: bool = False,
+    **kwargs: object,
+):
+    effective_force = force_refresh or (source is not None and _source_force_requested(source))
+    method = getattr(_data_access_layer(cfg=cfg, fred_api_key=fred_api_key), resolver)
+    return method(force_refresh=effective_force, **kwargs).payload
 
 
 def _load_account_cached(cfg: AppConfig, force_refresh: bool = False) -> dict[str, object]:
-    return cached_scalar_dict(
-        "account",
-        _alpaca_cache_scope(cfg),
-        lambda: _make_api(cfg).get_account(),
-        force_refresh=force_refresh,
-    )
+    return _resolve_data_access_payload("resolve_account", cfg=cfg, force_refresh=force_refresh)
 
 
 def _load_positions_cached(cfg: AppConfig, force_refresh: bool = False) -> pd.DataFrame:
-    return cached_frame(
-        "positions",
-        _alpaca_cache_scope(cfg),
-        lambda: _make_api(cfg).get_positions(),
+    return _resolve_data_access_payload("resolve_positions", cfg=cfg, force_refresh=force_refresh)
+
+
+def _load_timeseries_cached(cfg: AppConfig, period: str, force_refresh: bool = False) -> pd.DataFrame:
+    return _resolve_data_access_payload(
+        "resolve_portfolio_timeseries",
+        cfg=cfg,
+        period=period,
         force_refresh=force_refresh,
     )
 
 
-def _load_timeseries_cached(cfg: AppConfig, period: str, force_refresh: bool = False) -> pd.DataFrame:
-    return cached_frame(
-        "portfolio_timeseries",
-        f"{_alpaca_cache_scope(cfg)}__period_{period}",
-        lambda: _build_timeseries(_make_api(cfg), period),
+def _load_portfolio_performance_cached(cfg: AppConfig, period: str, force_refresh: bool = False) -> pd.DataFrame:
+    return _resolve_data_access_payload(
+        "resolve_portfolio_performance",
+        cfg=cfg,
+        period=period,
         force_refresh=force_refresh,
     )
 
@@ -536,11 +445,11 @@ def _load_holding_roc_cached(
     force_refresh: bool = False,
 ) -> pd.DataFrame:
     normalized_symbols = sorted({str(symbol).upper().strip() for symbol in symbols if str(symbol).strip()})
-    symbol_scope = dataset_scope("symbols", ",".join(normalized_symbols))
-    return cached_frame(
-        "holding_roc",
-        f"{_alpaca_cache_scope(cfg)}__{symbol_scope}__{days}d",
-        lambda: _compute_holding_roc(_make_api(cfg), normalized_symbols, days=days),
+    return _resolve_data_access_payload(
+        "resolve_holding_roc",
+        cfg=cfg,
+        symbols=normalized_symbols,
+        days=days,
         force_refresh=force_refresh,
     )
 
@@ -550,22 +459,12 @@ def _scan_daily_movers_cached(
     symbols: list[str] | None = None,
     force_refresh: bool = False,
 ) -> pd.DataFrame:
-    effective_force = force_refresh or _source_force_requested("equities")
-    if not effective_force and pipeline_store_configured():
-        pipeline = _load_pipeline_dataset("daily_movers")
-        if not pipeline.empty:
-            if symbols and "symbol" in pipeline.columns:
-                allowed = {str(item).upper().strip() for item in symbols if str(item).strip()}
-                pipeline = pipeline[pipeline["symbol"].astype(str).str.upper().isin(allowed)].copy()
-            return pipeline.reset_index(drop=True)
-
-    universe = symbols or DEFAULT_UNIVERSE
-    symbol_scope = dataset_scope("market-universe", ",".join(sorted({str(symbol).upper() for symbol in universe})))
-    return cached_frame(
-        "daily_movers",
-        f"{_alpaca_cache_scope(cfg)}__{symbol_scope}",
-        lambda: scan_daily_movers(_make_api(cfg), symbols=universe),
-        force_refresh=effective_force,
+    return _resolve_data_access_payload(
+        "resolve_daily_movers",
+        cfg=cfg,
+        source="equities",
+        symbols=symbols,
+        force_refresh=force_refresh,
     )
 
 
@@ -575,23 +474,13 @@ def _scan_momentum_profiles_cached(
     symbols: list[str] | None = None,
     force_refresh: bool = False,
 ) -> pd.DataFrame:
-    effective_force = force_refresh or _source_force_requested("equities")
-    if not effective_force and pipeline_store_configured():
-        pipeline = _load_pipeline_dataset("momentum_profiles")
-        if not pipeline.empty:
-            if symbols and "symbol" in pipeline.columns:
-                allowed = {str(item).upper().strip() for item in symbols if str(item).strip()}
-                pipeline = pipeline[pipeline["symbol"].astype(str).str.upper().isin(allowed)].copy()
-            return pipeline.reset_index(drop=True)
-
-    universe = symbols or DEFAULT_UNIVERSE
-    symbol_scope = dataset_scope("market-universe", ",".join(sorted({str(symbol).upper() for symbol in universe})))
-    return cached_frame(
-        "momentum_profiles",
-        f"{_alpaca_cache_scope(cfg)}__{days}d__{symbol_scope}",
-        lambda: scan_momentum_profiles(_make_api(cfg), symbols=universe, days=days),
-        force_refresh=effective_force,
-        version=5,
+    return _resolve_data_access_payload(
+        "resolve_momentum_profiles",
+        cfg=cfg,
+        source="equities",
+        days=days,
+        symbols=symbols,
+        force_refresh=force_refresh,
     )
 
 
@@ -605,57 +494,17 @@ def _load_correlation_phase_shift_cached(
     symbols: list[str] | None = None,
     force_refresh: bool = False,
 ) -> dict[str, pd.DataFrame]:
-    effective_force = force_refresh or _source_force_requested("derivatives")
-    if not effective_force and pipeline_store_configured():
-        summary = _load_pipeline_dataset("correlation_phase_shift_summary")
-        history = _load_pipeline_dataset("correlation_phase_shift_history")
-        if not summary.empty or not history.empty:
-            bench = str(benchmark or "SPY").upper().strip()
-            if "phase_benchmark" in summary.columns:
-                summary = summary[summary["phase_benchmark"].astype(str).str.upper() == bench].copy()
-            if "benchmark" in summary.columns:
-                summary = summary[summary["benchmark"].astype(str).str.upper() == bench].copy()
-            if "phase_benchmark" in history.columns:
-                history = history[history["phase_benchmark"].astype(str).str.upper() == bench].copy()
-            if "benchmark" in history.columns:
-                history = history[history["benchmark"].astype(str).str.upper() == bench].copy()
-
-            if symbols:
-                allowed = {str(symbol).upper().strip() for symbol in symbols if str(symbol).strip()}
-                if "symbol" in summary.columns:
-                    summary = summary[summary["symbol"].astype(str).str.upper().isin(allowed)].copy()
-                if "symbol" in history.columns:
-                    history = history[history["symbol"].astype(str).str.upper().isin(allowed)].copy()
-
-            return {
-                "summary": summary.reset_index(drop=True),
-                "history": history.reset_index(drop=True),
-            }
-
-    universe = symbols or DEFAULT_UNIVERSE
-    symbol_scope = dataset_scope("phase-shift-universe", ",".join(sorted({str(symbol).upper() for symbol in universe})))
-    return cached_frame_dict(
-        "correlation_phase_shift",
-        (
-            f"{_alpaca_cache_scope(cfg)}__{benchmark.upper()}__{days}d__corr_{corr_window}"
-            f"__roc_{roc_window}__mom_{momentum_window}__{symbol_scope}"
-        ),
-        lambda: {
-            key: value
-            for key, value in scan_correlation_phase_shifts(
-                _make_api(cfg),
-                symbols=universe,
-                benchmark=benchmark,
-                days=days,
-                corr_window=corr_window,
-                roc_window=roc_window,
-                momentum_window=momentum_window,
-            ).items()
-            if key in {"summary", "history"}
-        },
-        keys=["summary", "history"],
-        force_refresh=effective_force,
-        version=3,
+    return _resolve_data_access_payload(
+        "resolve_correlation_phase_shift",
+        cfg=cfg,
+        source="derivatives",
+        benchmark=benchmark,
+        days=days,
+        corr_window=corr_window,
+        roc_window=roc_window,
+        momentum_window=momentum_window,
+        symbols=symbols,
+        force_refresh=force_refresh,
     )
 
 
@@ -669,66 +518,28 @@ def _load_commodity_regime_cached(
     symbols: list[str] | None = None,
     force_refresh: bool = False,
 ) -> dict[str, pd.DataFrame]:
-    effective_force = force_refresh or _source_force_requested("commodities")
-    if not effective_force and pipeline_store_configured():
-        summary = _load_pipeline_dataset("commodity_regime_summary")
-        history = _load_pipeline_dataset("commodity_regime_history")
-        if not summary.empty or not history.empty:
-            return {
-                "summary": summary.reset_index(drop=True),
-                "history": history.reset_index(drop=True),
-            }
-
-    universe = symbols or DEFAULT_UNIVERSE
-    symbol_scope = dataset_scope("commodity-universe", ",".join(sorted({str(symbol).upper() for symbol in universe})))
-    commodity_scope = dataset_scope(
-        "commodity-basket",
-        ",".join(sorted({str(symbol).upper() for symbol in commodity_symbols})),
-    )
-    return cached_frame_dict(
-        "commodity_regime",
-        (
-            f"{_alpaca_cache_scope(cfg)}__{days}d__corr_{corr_window}__roc_{roc_window}"
-            f"__mom_{momentum_window}__{symbol_scope}__{commodity_scope}"
-        ),
-        lambda: {
-            key: value
-            for key, value in scan_commodity_regimes(
-                _make_api(cfg),
-                symbols=universe,
-                commodity_symbols=commodity_symbols,
-                days=days,
-                corr_window=corr_window,
-                roc_window=roc_window,
-                momentum_window=momentum_window,
-            ).items()
-            if key in {"summary", "history"}
-        },
-        keys=["summary", "history"],
-        force_refresh=effective_force,
-        version=2,
+    return _resolve_data_access_payload(
+        "resolve_commodity_regime",
+        cfg=cfg,
+        source="commodities",
+        commodity_symbols=commodity_symbols,
+        days=days,
+        corr_window=corr_window,
+        roc_window=roc_window,
+        momentum_window=momentum_window,
+        symbols=symbols,
+        force_refresh=force_refresh,
     )
 
 
 def _load_price_history_cached(cfg: AppConfig, ticker: str, days: int, force_refresh: bool = False) -> pd.DataFrame:
-    effective_force = force_refresh or _source_force_requested("equities")
-    if not effective_force and pipeline_store_configured():
-        pipeline = _load_pipeline_dataset("price_history")
-        if not pipeline.empty and {"symbol", "timestamp"}.issubset(set(pipeline.columns)):
-            out = pipeline[pipeline["symbol"].astype(str).str.upper() == ticker.upper()].copy()
-            if not out.empty:
-                out["timestamp"] = pd.to_datetime(out["timestamp"], utc=True, errors="coerce")
-                out = out.dropna(subset=["timestamp"]).sort_values("timestamp")
-                if days > 0:
-                    cutoff = out["timestamp"].max() - pd.Timedelta(days=max(int(days), 1))
-                    out = out[out["timestamp"] >= cutoff].copy()
-                return out.reset_index(drop=True)
-
-    return cached_frame(
-        "price_history",
-        f"{_alpaca_cache_scope(cfg)}__{ticker.upper()}__{days}d",
-        lambda: load_price_history(_make_api(cfg), ticker, days=days),
-        force_refresh=effective_force,
+    return _resolve_data_access_payload(
+        "resolve_price_history",
+        cfg=cfg,
+        source="equities",
+        ticker=ticker,
+        days=days,
+        force_refresh=force_refresh,
     )
 
 
@@ -738,29 +549,14 @@ def _load_technical_signal_history_cached(
     days: int,
     force_refresh: bool = False,
 ) -> pd.DataFrame:
-    effective_force = force_refresh or _source_force_requested("derivatives")
-    if not effective_force and pipeline_store_configured():
-        pipeline = _load_pipeline_dataset("technical_signal_history")
-        if not pipeline.empty and {"symbol", "timestamp"}.issubset(set(pipeline.columns)):
-            out = pipeline[pipeline["symbol"].astype(str).str.upper() == ticker.upper()].copy()
-            if not out.empty:
-                out["timestamp"] = pd.to_datetime(out["timestamp"], utc=True, errors="coerce")
-                out = out.dropna(subset=["timestamp"]).sort_values("timestamp")
-                if days > 0:
-                    cutoff = out["timestamp"].max() - pd.Timedelta(days=max(int(days), 1))
-                    out = out[out["timestamp"] >= cutoff].copy()
-                return out.reset_index(drop=True)
-
-    base_days = max(int(days), 365)
-    price = _load_price_history_cached(cfg, ticker, days=base_days, force_refresh=effective_force)
-    if price.empty:
-        return pd.DataFrame()
-    frame = build_signal_frame(price)
-    if frame.empty:
-        return frame
-    frame = frame.copy()
-    frame["symbol"] = ticker.upper().strip()
-    return frame.reset_index(drop=True)
+    return _resolve_data_access_payload(
+        "resolve_technical_signal_history",
+        cfg=cfg,
+        source="derivatives",
+        ticker=ticker,
+        days=days,
+        force_refresh=force_refresh,
+    )
 
 
 def _load_technical_signal_summary_cached(
@@ -769,36 +565,32 @@ def _load_technical_signal_summary_cached(
     signal_frame: pd.DataFrame,
     force_refresh: bool = False,
 ) -> dict[str, float | str]:
-    effective_force = force_refresh or _source_force_requested("derivatives")
-    if not effective_force and pipeline_store_configured():
-        latest = _load_pipeline_dataset("technical_signals_latest")
-        if not latest.empty and "symbol" in latest.columns:
-            rows = latest[latest["symbol"].astype(str).str.upper() == ticker.upper()].copy()
-            if not rows.empty:
-                row = rows.iloc[0]
-                return {
-                    key: row.get(key)
-                    for key in [
-                        "close",
-                        "ath",
-                        "pullback_from_ath_pct",
-                        "channel_support",
-                        "channel_resistance",
-                        "channel_position",
-                        "dist_to_support_pct",
-                        "dist_to_resistance_pct",
-                        "ret_5_pct",
-                        "ret_21_pct",
-                        "ret_63_pct",
-                        "rsi_14",
-                        "vol_20_ann_pct",
-                        "regime",
-                    ]
-                }
+    return _resolve_data_access_payload(
+        "resolve_technical_signal_summary",
+        cfg=cfg,
+        source="derivatives",
+        ticker=ticker,
+        signal_frame=signal_frame,
+        force_refresh=force_refresh,
+    )
 
-    if signal_frame.empty:
-        return {}
-    return summarize_signal_frame(signal_frame)
+
+def _load_forecast_next_week_cached(
+    cfg: AppConfig,
+    ticker: str,
+    days: int,
+    signal_frame: pd.DataFrame | None = None,
+    force_refresh: bool = False,
+) -> dict[str, object]:
+    return _resolve_data_access_payload(
+        "resolve_forecast_next_week",
+        cfg=cfg,
+        source="derivatives",
+        ticker=ticker,
+        days=days,
+        signal_frame=signal_frame,
+        force_refresh=force_refresh,
+    )
 
 
 def _load_option_chain_cached(
@@ -807,42 +599,13 @@ def _load_option_chain_cached(
     expiration: str | None = None,
     force_refresh: bool = False,
 ) -> tuple[list[str], pd.DataFrame, pd.DataFrame]:
-    effective_force = force_refresh or _source_force_requested("options")
-    if not effective_force and pipeline_store_configured():
-        pipeline = _load_pipeline_dataset("option_contract_snapshots")
-        if not pipeline.empty and {"symbol", "expiration", "type"}.issubset(set(pipeline.columns)):
-            options = pipeline[pipeline["symbol"].astype(str).str.upper() == ticker.upper()].copy()
-            if not options.empty:
-                expirations = sorted(
-                    {str(value) for value in options["expiration"].dropna().astype(str).tolist() if str(value).strip()}
-                )
-                if expirations:
-                    if expiration is None:
-                        return expirations, pd.DataFrame(), pd.DataFrame()
-
-                    selected_expiration = expiration if expiration in expirations else expirations[0]
-                    scoped = options[options["expiration"].astype(str) == selected_expiration].copy()
-                    scoped = scoped.sort_values([col for col in ["strike", "contractSymbol"] if col in scoped.columns])
-                    calls = scoped[scoped["type"].astype(str).str.lower() == "call"].copy()
-                    puts = scoped[scoped["type"].astype(str).str.lower() == "put"].copy()
-                    return expirations, calls.reset_index(drop=True), puts.reset_index(drop=True)
-
-        if expiration is None:
-            exp_only = _load_pipeline_dataset("option_expirations")
-            if not exp_only.empty and {"symbol", "expiration"}.issubset(set(exp_only.columns)):
-                options = exp_only[exp_only["symbol"].astype(str).str.upper() == ticker.upper()].copy()
-                expirations = sorted(
-                    {str(value) for value in options["expiration"].dropna().astype(str).tolist() if str(value).strip()}
-                )
-                if expirations:
-                    return expirations, pd.DataFrame(), pd.DataFrame()
-
-    expiration_scope = expiration or "expirations"
-    return cached_option_chain(
-        "option_chain",
-        f"{_alpaca_cache_scope(cfg)}__{ticker.upper()}__{expiration_scope}",
-        lambda: load_option_chain(_make_api(cfg), ticker, expiration),
-        force_refresh=effective_force,
+    return _resolve_data_access_payload(
+        "resolve_option_chain",
+        cfg=cfg,
+        source="options",
+        ticker=ticker,
+        expiration=expiration,
+        force_refresh=force_refresh,
     )
 
 
@@ -854,72 +617,54 @@ def _load_option_surface_cached(
     underlying_price: float,
     force_refresh: bool = False,
 ) -> pd.DataFrame:
-    effective_force = force_refresh or _source_force_requested("options")
-    if not effective_force and pipeline_store_configured():
-        pipeline = _load_pipeline_dataset("option_contract_snapshots")
-        if not pipeline.empty and {"symbol", "expiration"}.issubset(set(pipeline.columns)):
-            scoped = pipeline[pipeline["symbol"].astype(str).str.upper() == ticker.upper()].copy()
-            if not scoped.empty:
-                windowed = select_option_surface_window(
-                    scoped,
-                    underlying_price=underlying_price,
-                    expected_price=expected_price,
-                    horizon_days=horizon_days,
-                    max_contracts=450,
-                )
-                if not windowed.empty:
-                    return windowed.reset_index(drop=True)
+    return _resolve_data_access_payload(
+        "resolve_option_surface",
+        cfg=cfg,
+        source="options",
+        ticker=ticker,
+        expected_price=expected_price,
+        horizon_days=horizon_days,
+        underlying_price=underlying_price,
+        force_refresh=force_refresh,
+    )
 
-    return cached_frame(
-        "option_surface",
-        (
-            f"{_alpaca_cache_scope(cfg)}__{ticker.upper()}__exp_{expected_price:.2f}"
-            f"__h_{int(horizon_days)}__spot_{underlying_price:.2f}"
-        ),
-        lambda: load_option_surface(
-            _make_api(cfg),
-            ticker,
-            underlying_price=underlying_price,
-            expected_price=expected_price,
-            horizon_days=horizon_days,
-        ),
-        force_refresh=effective_force,
+
+def _load_option_candidates_cached(
+    cfg: AppConfig,
+    ticker: str,
+    expected_price: float,
+    horizon_days: int,
+    underlying_price: float,
+    surface: pd.DataFrame | None = None,
+    force_refresh: bool = False,
+) -> dict[str, object]:
+    return _resolve_data_access_payload(
+        "resolve_option_candidates",
+        cfg=cfg,
+        source="options",
+        ticker=ticker,
+        expected_price=expected_price,
+        horizon_days=horizon_days,
+        underlying_price=underlying_price,
+        surface=surface,
+        force_refresh=force_refresh,
     )
 
 
 def _load_quarterly_fundamentals_cached(ticker: str, force_refresh: bool = False) -> dict[str, pd.DataFrame]:
-    effective_force = force_refresh or _source_force_requested("fundamentals")
-    if not effective_force and pipeline_store_configured():
-        pipeline = _load_pipeline_dataset("quarterly_fundamentals")
-        if not pipeline.empty and "ticker" in pipeline.columns:
-            rows = pipeline[pipeline["ticker"].astype(str).str.upper() == ticker.upper()].copy()
-            if not rows.empty:
-                if "report_date" in rows.columns:
-                    rows["report_date"] = pd.to_datetime(rows["report_date"], errors="coerce")
-                if "statement" in rows.columns:
-                    rows["statement"] = rows["statement"].astype(str).str.lower()
-                out = {
-                    "income": rows[rows.get("statement", pd.Series(dtype=str)) == "income"].copy().reset_index(drop=True),
-                    "balance": rows[rows.get("statement", pd.Series(dtype=str)) == "balance"].copy().reset_index(drop=True),
-                    "cashflow": rows[rows.get("statement", pd.Series(dtype=str)) == "cashflow"].copy().reset_index(drop=True),
-                }
-                if any(not part.empty for part in out.values()):
-                    return out
-
-    return cached_frame_dict(
-        "quarterly_fundamentals",
-        ticker.upper(),
-        lambda: load_quarterly_fundamentals(ticker),
-        keys=["income", "balance", "cashflow"],
-        force_refresh=effective_force,
+    return _resolve_data_access_payload(
+        "resolve_quarterly_fundamentals",
+        source="fundamentals",
+        ticker=ticker,
+        force_refresh=force_refresh,
     )
 
 
 def _load_asset_metadata_cached(cfg: AppConfig, ticker: str, force_refresh: bool = False) -> dict[str, object]:
-    return cached_scalar_dict(
-        "asset_metadata",
-        f"{_alpaca_cache_scope(cfg)}__{ticker.upper()}",
-        lambda: load_asset_metadata(_make_api(cfg), ticker),
+    return _resolve_data_access_payload(
+        "resolve_asset_metadata",
+        cfg=cfg,
+        ticker=ticker,
         force_refresh=force_refresh,
     )
 
@@ -931,51 +676,24 @@ def _load_recent_news_cached(
     limit: int = 8,
     force_refresh: bool = False,
 ) -> dict[str, object]:
-    effective_force = force_refresh or _source_force_requested("news")
-    if not effective_force and pipeline_store_configured():
-        pipeline = _load_pipeline_dataset("news_articles")
-        if not pipeline.empty:
-            target = ticker.upper().strip()
-
-            def _has_symbol(value: object) -> bool:
-                if isinstance(value, (list, tuple, set)):
-                    vals = [str(item).upper().strip() for item in value]
-                    return target in vals
-                blob = str(value or "").replace("|", ",")
-                vals = [item.upper().strip() for item in blob.split(",") if item.strip()]
-                return target in vals
-
-            rows = pipeline.copy()
-            if "symbols" in rows.columns:
-                rows = rows[rows["symbols"].apply(_has_symbol)].copy()
-            if not rows.empty:
-                if "published_at" in rows.columns:
-                    rows["published_at"] = pd.to_datetime(rows["published_at"], utc=True, errors="coerce")
-                    rows = rows.sort_values("published_at", ascending=False, na_position="last")
-                rows = rows.head(limit).reset_index(drop=True)
-                return {"articles": rows, "fallback_summary": None, "source": "pipeline"}
-
-    return cached_news_payload(
-        "recent_news",
-        f"{_alpaca_cache_scope(cfg)}__{ticker.upper()}__{days}d__{limit}",
-        lambda: load_recent_news(_make_api(cfg), ticker, days=days, limit=limit),
-        force_refresh=effective_force,
+    return _resolve_data_access_payload(
+        "resolve_recent_news",
+        cfg=cfg,
+        source="news",
+        ticker=ticker,
+        days=days,
+        limit=limit,
+        force_refresh=force_refresh,
     )
 
 
 def _load_fred_dashboard_cached(api_key: str, years: int, force_refresh: bool = False) -> dict[str, object]:
-    effective_force = force_refresh or _source_force_requested("fred")
-    if not effective_force and pipeline_store_configured():
-        summary = _load_pipeline_dataset("fred_summary")
-        observations = _load_pipeline_dataset("fred_observations")
-        if not summary.empty and not observations.empty:
-            return _build_fred_dashboard_from_pipeline(summary, observations, years)
-
-    return cached_fred_dashboard(
-        "fred_dashboard",
-        f"{_fred_cache_scope(api_key)}__{years}y",
-        lambda: load_fred_dashboard(api_key, years=years),
-        force_refresh=effective_force,
+    return _resolve_data_access_payload(
+        "resolve_fred_dashboard",
+        fred_api_key=api_key,
+        source="fred",
+        years=years,
+        force_refresh=force_refresh,
     )
 
 
@@ -1154,103 +872,6 @@ def _sync_market_ticker_from_widget() -> None:
     ticker = st.session_state.get("market_ticker_detail_widget")
     if ticker:
         st.session_state["market_selected_ticker"] = ticker
-
-
-def _daily_series(df: pd.DataFrame, value_col: str) -> pd.DataFrame:
-    if df.empty or "timestamp" not in df.columns:
-        return pd.DataFrame(columns=["timestamp", value_col])
-
-    frame = df.copy()
-    ts = pd.to_datetime(frame["timestamp"], utc=True, errors="coerce")
-    frame["timestamp"] = ts.dt.tz_convert("US/Eastern").dt.floor("D").dt.tz_localize(None)
-    frame[value_col] = pd.to_numeric(frame[value_col], errors="coerce")
-    frame = frame.dropna(subset=["timestamp", value_col])
-    return frame.groupby("timestamp", as_index=False)[value_col].last().sort_values("timestamp")
-
-
-
-def _build_timeseries(api: AlpacaAPI, period: str) -> pd.DataFrame:
-    with _timed("portfolio_history", period=period):
-        history = api.get_portfolio_history(period=period, timeframe="1D")
-    if history.empty:
-        _log_event("portfolio_history empty", period=period)
-        return pd.DataFrame()
-
-    portfolio = _daily_series(history, "equity").rename(columns={"equity": "portfolio"})
-    start = history["timestamp"].min().to_pydatetime().replace(tzinfo=timezone.utc)
-    with _timed("benchmark_bars", symbols=len(BENCHMARKS), period=period):
-        bench_bars = api.get_stock_bars(BENCHMARKS, start=start, timeframe="1Day", feed="iex")
-
-    merged = portfolio.copy()
-    for symbol in BENCHMARKS:
-        frame = bench_bars.get(symbol, pd.DataFrame())
-        if frame.empty:
-            continue
-        col = symbol.replace("-", ".")
-        daily = _daily_series(frame, "close").rename(columns={"close": col})
-        merged = merged.merge(daily, on="timestamp", how="left")
-
-    merged = merged.sort_values("timestamp")
-    for col in [c for c in merged.columns if c != "timestamp"]:
-        merged[col] = merged[col].ffill()
-    out = merged.dropna(subset=["portfolio"])
-    _log_event("timeseries_ready", rows=len(out), cols=len(out.columns), period=period)
-    return out
-
-
-
-def _build_normalized_view(raw: pd.DataFrame) -> pd.DataFrame:
-    if raw.empty:
-        return raw
-
-    out = raw.copy()
-    for col in [c for c in out.columns if c != "timestamp"]:
-        out[col] = normalize_to_100(out[col])
-    return out
-
-
-
-def _compute_holding_roc(api: AlpacaAPI, symbols: list[str], days: int = 365) -> pd.DataFrame:
-    if not symbols:
-        return pd.DataFrame()
-
-    with _timed("holdings_bars", symbols=len(symbols), days=days):
-        bars = api.get_stock_bars(symbols, timeframe="1Day", feed="iex")
-    rows = []
-    windows = {"1d": 2, "1w": 5, "1m": 21, "3m": 63}
-
-    for symbol in symbols:
-        frame = bars.get(symbol, pd.DataFrame())
-        if frame.empty or "close" not in frame.columns:
-            continue
-
-        s = pd.to_numeric(frame["close"], errors="coerce").dropna().tail(days)
-        if len(s) < max(windows.values()):
-            continue
-
-        def slope(series: pd.Series, n: int) -> float:
-            chunk = np.log(series.tail(n).to_numpy(dtype=float))
-            x = np.arange(len(chunk), dtype=float)
-            m, _ = np.polyfit(x, chunk, 1)
-            return float(m)
-
-        s1d = slope(s, windows["1d"])
-        s1w = slope(s, windows["1w"])
-        s1m = slope(s, windows["1m"])
-        s3m = slope(s, windows["3m"])
-
-        rows.append(
-            {
-                "symbol": symbol,
-                "roc_1d_to_1w": (s1w / s1d - 1.0) if s1d else np.nan,
-                "roc_1w_to_1m": (s1m / s1w - 1.0) if s1w else np.nan,
-                "roc_1m_to_3m": (s3m / s1m - 1.0) if s1m else np.nan,
-            }
-        )
-
-    out = pd.DataFrame(rows)
-    _log_event("holding_roc_ready", rows=len(out), symbols=len(symbols))
-    return out
 
 
 def _render_market_opportunity_experiments(
@@ -2534,7 +2155,7 @@ elif section == "Portfolio Overview":
                 with st.spinner("Loading portfolio history and benchmarks..."):
                     with _timed("build_timeseries", period=period):
                         raw = _load_timeseries_cached(cfg, period, force_refresh=force_data_refresh)
-                norm = _build_normalized_view(raw)
+                norm = normalize_timeseries_view(raw)
                 if norm.empty:
                     st.info("No portfolio history available.")
                 else:
@@ -2584,29 +2205,23 @@ elif section == "Performance":
     else:
         try:
             with st.spinner("Loading performance data..."):
-                with _timed("performance_build_timeseries", period=period):
-                    raw = _load_timeseries_cached(cfg, period, force_refresh=force_data_refresh)
-            norm = _build_normalized_view(raw)
+                with _timed("load_portfolio_performance", period=period):
+                    perf = _load_portfolio_performance_cached(cfg, period, force_refresh=force_data_refresh)
         except AlpacaAPIError as exc:
-            _log_event("performance_timeseries_failed", error=str(exc)[:200])
-            st.error(f"Could not fetch timeseries: {exc}")
+            _log_event("load_portfolio_performance_failed", error=str(exc)[:200])
+            st.error(f"Could not load performance data: {exc}")
             st.stop()
 
-        if raw.empty:
+        if perf.empty:
             st.info("No performance data available.")
             st.stop()
+        st.dataframe(perf, use_container_width=True, hide_index=True)
 
-        perf = performance_table(norm)
-        if perf.empty:
-            st.info("Not enough data to compute metrics.")
-        else:
-            st.dataframe(perf, use_container_width=True, hide_index=True)
-
-            metric = st.selectbox(
-                "Metric",
-                ["annual_return", "sharpe_ratio", "beta_vs_spy", "alpha_vs_spy", "max_drawdown"],
-            )
-            st.plotly_chart(build_metric_bar(perf, metric), use_container_width=True)
+        metric = st.selectbox(
+            "Metric",
+            ["annual_return", "sharpe_ratio", "beta_vs_spy", "alpha_vs_spy", "max_drawdown"],
+        )
+        st.plotly_chart(build_metric_bar(perf, metric), use_container_width=True)
 
 elif section == "FRED Macro":
     header_cols = st.columns([5.2, 1.4])
@@ -3092,10 +2707,10 @@ elif section == "Market Opportunity":
                     ["symbol", "sparkline_3m", "close", "return_1w_pct", selected_horizon_col, "roc_1m_to_3m", "momentum_roc_score"]
                 )
             )
-            raw_up = momentum.nlargest(20, ranking_col)[raw_columns]
-            raw_down = momentum.nsmallest(20, ranking_col)[raw_columns]
-            roc_up = momentum.nlargest(20, "momentum_roc_score")[roc_columns]
-            roc_down = momentum.nsmallest(20, "momentum_roc_score")[roc_columns]
+            raw_up = select_signed_ranked(momentum, ranking_col, direction="up", limit=20)[raw_columns]
+            raw_down = select_signed_ranked(momentum, ranking_col, direction="down", limit=20)[raw_columns]
+            roc_up = select_signed_ranked(momentum, "momentum_roc_score", direction="up", limit=20)[roc_columns]
+            roc_down = select_signed_ranked(momentum, "momentum_roc_score", direction="down", limit=20)[roc_columns]
 
             st.markdown("##### Momentum Raw")
             visible_market_symbols = sorted(
@@ -3406,7 +3021,13 @@ elif section == "Market Opportunity":
                     signal_frame,
                     force_refresh=force_data_refresh,
                 )
-                forecast = forecast_next_week(signal_frame)
+                forecast = _load_forecast_next_week_cached(
+                    cfg,
+                    ticker,
+                    days=max(days, 180),
+                    signal_frame=signal_frame,
+                    force_refresh=force_data_refresh,
+                )
 
                 metric_cols = st.columns(6)
                 with metric_cols[0]:
@@ -3730,12 +3351,17 @@ elif section == "Option Strategizer":
                 if surface.empty:
                     st.info("No option surface data was available for this scenario.")
                 else:
-                    candidates, summary = analyze_option_candidates(
-                        surface,
-                        underlying_price=float(spot_price),
+                    candidate_payload = _load_option_candidates_cached(
+                        cfg,
+                        ticker,
                         expected_price=float(expected_price),
                         horizon_days=int(scenario_days),
+                        underlying_price=float(spot_price),
+                        surface=surface,
+                        force_refresh=force_data_refresh,
                     )
+                    candidates = candidate_payload.get("candidates", pd.DataFrame())
+                    summary = candidate_payload.get("summary", {})
 
                     if candidates.empty:
                         st.info("No option candidates had enough quote and Greek data for scenario analysis.")

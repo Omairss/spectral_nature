@@ -1,13 +1,13 @@
 # UI Deployment Status Tracker
 
-Last updated (UTC): 2026-03-14 03:35
+Last updated (UTC): 2026-03-18 07:35
 
 ## Environment Mapping
 
 | Role | Container App | URL | Latest Revision | Image | Health |
 |---|---|---|---|---|---|
-| **Production (stable)** | `sn-streamlit-ui` | https://sn-streamlit-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io | `sn-streamlit-ui--0000001` | `snpipelineacr03130136.azurecr.io/streamlit-ui:latest` | HTTP 200 |
-| **Development** | `sn-streamlit-ui-dev` | https://sn-streamlit-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io | `sn-streamlit-ui-dev--0000005` | `snpipelineacr03130136.azurecr.io/streamlit-ui@sha256:87e6b790059e1764da13fc640e3153ecf92b8207d61abb9fe632cf1873cbacca` | HTTP 200 |
+| **Production (stable)** | `sn-streamlit-ui` | https://sn-streamlit-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io | `sn-streamlit-ui--0000006` | `snpipelineacr03130136.azurecr.io/streamlit-ui@sha256:bc552720057a6ab2b5033714bd9fff9e8715ec1774c2b47dbe72cca99daae13c` | HTTP 200 |
+| **Development** | `sn-streamlit-ui-dev` | https://sn-streamlit-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io | `sn-streamlit-ui-dev--0000011` | `snpipelineacr03130136.azurecr.io/streamlit-ui@sha256:cc136dbb6458c7d61e63a5ce571919def1ed971d042d6368cc24afb53eadc6a7` | HTTP 200 |
 
 ## Promotion Workflow
 

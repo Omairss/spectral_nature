@@ -37,3 +37,29 @@ Deployment details are written to:
 - `infra/deployment.outputs.env`
 
 This file includes resource names, DB endpoint details, and image reference.
+
+## UI App Deployment
+
+The Streamlit UI app uses a separate deployment entrypoint:
+
+```bash
+./scripts/deploy_ui_azure.sh
+```
+
+Typical usage:
+
+```bash
+# Build current repo state and deploy to Development.
+./scripts/deploy_ui_azure.sh
+
+# Promote the currently running Development image to Production.
+./scripts/deploy_ui_azure.sh --target prod --promote-from dev
+```
+
+The UI deploy script:
+
+- builds `Dockerfile.app` into ACR when deploying to Development
+- pins the deployed image by digest
+- waits for the latest revision to become ready
+- smoke-checks the Streamlit endpoint
+- rewrites `infra/UI_DEPLOYMENT_STATUS.md` from live Azure state

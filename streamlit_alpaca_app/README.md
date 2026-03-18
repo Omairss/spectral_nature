@@ -48,6 +48,83 @@ streamlit run app.py
 - Option Strategizer
 - Fundamental Strategizer
 
+## Shared data access
+
+The app now has a shared data access layer under `data_access/`:
+
+- `data_access/layer.py` resolves data from the best available source:
+  - precomputed pipeline snapshots first
+  - on-demand cached/live computation second
+- `compute/` now holds pure transformation logic that is shared by the DAL, query layer, and legacy service wrappers
+- `data_access/query_service.py` exposes agent/query-friendly dataset and chart operations, including resolution hints such as `materialized_first` and `live_cached`
+- `presentation/plotly.py` renders canonical chart models into Plotly figures when needed
+
+Today the heavy shared analytics are snapshot-first, while portfolio/account-style views remain live-backed and lazy by request.
+
+The important contract is:
+
+`materialized data -> shared DAL -> compute -> chart/data model -> optional Plotly rendering`
+
+That means Plotly JSON is treated as an output format, not the primary shared artifact.
+
+## Agent / query access
+
+Agents and other non-Streamlit consumers should call the shared query entrypoint instead of importing `app.py`.
+
+List supported dataset and chart operations:
+
+```bash
+python scripts/run_query.py --operation capabilities
+```
+
+Fetch a canonical dataset response:
+
+```bash
+python scripts/run_query.py \
+  --operation dataset \
+  --name price_history \
+  --params-json '{"ticker":"AAPL","days":180}'
+```
+
+Fetch a canonical chart model:
+
+```bash
+python scripts/run_query.py \
+  --operation chart \
+  --name technical_price_channel \
+  --params-json '{"ticker":"AAPL","days":180}'
+```
+
+Render the same chart model as Plotly JSON only at the edge:
+
+```bash
+python scripts/run_query.py \
+  --operation chart \
+  --name technical_price_channel \
+  --params-json '{"ticker":"AAPL","days":180}' \
+  --render plotly
+```
+
+Each response includes provenance so callers can tell whether the result came from:
+
+- `materialized` pipeline artifacts
+- `on_demand` local cache/live fetches
+- `computed` derived transforms built from lower-level datasets
+
+## Azure UI deploy
+
+Use the dedicated UI deploy script from repo root:
+
+```bash
+# Build and deploy current repo state to Development.
+./scripts/deploy_ui_azure.sh
+
+# Promote the currently running Development image to Production.
+./scripts/deploy_ui_azure.sh --target prod --promote-from dev
+```
+
+The script updates the target Container App, waits for the latest revision, smoke-checks the Streamlit endpoint, and refreshes `infra/UI_DEPLOYMENT_STATUS.md`.
+
 ## Notes
 
 - Uses Alpaca paper endpoint by default.

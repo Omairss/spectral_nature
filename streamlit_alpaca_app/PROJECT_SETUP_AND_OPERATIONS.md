@@ -15,6 +15,7 @@ This guide is for new contributors/operators with **no prior project context**.
 ### Core components
 
 - **UI app**: `app.py`
+- **Compute layer**: `compute/*` (pure transforms and derived-data logic)
 - **Services**: `services/*` (API clients, caching, pipeline store integration, secrets)
 - **Pipeline jobs**: `pipeline/jobs/main.py`
 - **Infra scripts/docs**: `scripts/*`, `infra/*`
@@ -155,17 +156,30 @@ Notes:
 
 ## 7) Deploying UI app
 
-Image:
+Main script:
 
-- `Dockerfile.app`
+```bash
+./scripts/deploy_ui_azure.sh
+```
 
-Typical flow:
+Default behavior:
 
-1. Build/push `streamlit-ui` image to ACR.
-2. Update `sn-streamlit-ui-dev` first.
-3. Validate in dev.
-4. Promote to `sn-streamlit-ui`.
-5. Update `infra/UI_DEPLOYMENT_STATUS.md`.
+1. Build/push `Dockerfile.app` as `streamlit-ui:<target>-<timestamp>` in ACR.
+2. Deploy the digest-pinned image to `sn-streamlit-ui-dev`.
+3. Wait for the latest revision to become ready.
+4. Run endpoint smoke checks.
+5. Rewrite `infra/UI_DEPLOYMENT_STATUS.md` from live Azure state.
+
+Promote the currently running Development image to Production:
+
+```bash
+./scripts/deploy_ui_azure.sh --target prod --promote-from dev
+```
+
+Useful flags:
+
+- `--image-ref <repo:tag|repo@sha256:...>` to deploy an existing image
+- `--refresh-tracker-only` to rewrite `infra/UI_DEPLOYMENT_STATUS.md` without deploying
 
 ---
 
@@ -234,9 +248,9 @@ These are high-impact and low-risk improvements:
    - Create `views/` package (`views/fred.py`, `views/pipeline_jobs.py`, etc.)
    - Keep `app.py` as router + shared sidebar state.
 
-2. **Add one deployment entrypoint for UI**
-   - Add `scripts/deploy_ui_azure.sh` to standardize build/update/promotion.
-   - Include digest pinning and tracker-file update.
+2. **Extend UI deployment checks**
+   - Keep `scripts/deploy_ui_azure.sh` aligned with runtime behavior.
+   - Add deeper preflight checks for secrets and dataset freshness before rollout.
 
 3. **Consolidate environment docs**
    - Keep one source of truth for env vars and secret names (`docs/configuration.md`).
