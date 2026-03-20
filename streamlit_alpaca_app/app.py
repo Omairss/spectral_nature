@@ -15,6 +15,7 @@ import plotly.graph_objects as go
 import streamlit as st
 from streamlit.components.v1 import html as components_html
 
+from compute.anomalies import SENSITIVITY_PRESETS, attention_preset, normalize_horizons
 from compute.portfolio import normalize_timeseries_view
 from data_access.layer import DataAccessLayer
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
@@ -152,6 +153,15 @@ MARKET_MOMENTUM_HORIZON_COLUMNS = {
     "1yr": "return_1y_pct",
     "5yr": "return_5y_pct",
 }
+ATTENTION_HORIZON_OPTIONS = ["1d", "1w", "1mo", "3mo", "1yr"]
+ATTENTION_HORIZON_LABELS = {
+    "1d": "1 Day",
+    "1w": "1 Week",
+    "1mo": "1 Month",
+    "3mo": "3 Month",
+    "1yr": "1 Year",
+}
+ATTENTION_SENSITIVITY_ORDER = ["aggressive", "balanced", "conservative"]
 
 _AUTH_COOKIE_NAME = "spectral_nature_ui_session"
 _AUTH_COOKIE_TTL_SECONDS = 7 * 24 * 60 * 60
@@ -695,6 +705,482 @@ def _load_fred_dashboard_cached(api_key: str, years: int, force_refresh: bool = 
         years=years,
         force_refresh=force_refresh,
     )
+
+
+def _load_attention_feed_cached(
+    cfg: AppConfig | None = None,
+    *,
+    dataset_name: str = "attention_feed",
+    source: str = "derivatives",
+    limit: int = 10,
+    entity_ids: list[str] | None = None,
+    horizons: list[str] | None = None,
+    statuses: list[str] | None = None,
+    sensitivity: str | None = None,
+    min_attention_score: float | None = None,
+    residual_zscore_threshold: float | None = None,
+    force_refresh: bool = False,
+) -> pd.DataFrame:
+    return _resolve_data_access_payload(
+        "resolve_attention_feed",
+        cfg=cfg,
+        source=source,
+        dataset_name=dataset_name,
+        limit=limit,
+        entity_ids=entity_ids,
+        horizons=horizons,
+        statuses=statuses,
+        sensitivity=sensitivity,
+        min_attention_score=min_attention_score,
+        residual_zscore_threshold=residual_zscore_threshold,
+        force_refresh=force_refresh,
+    )
+
+
+def _load_attention_rollups_cached(
+    cfg: AppConfig | None = None,
+    *,
+    dataset_name: str = "attention_rollups",
+    source: str = "derivatives",
+    rollup_type: str | None = None,
+    horizons: list[str] | None = None,
+    statuses: list[str] | None = None,
+    sensitivity: str | None = None,
+    min_attention_score: float | None = None,
+    residual_zscore_threshold: float | None = None,
+    high_priority_threshold: float | None = None,
+    limit: int = 10,
+    force_refresh: bool = False,
+) -> pd.DataFrame:
+    return _resolve_data_access_payload(
+        "resolve_attention_rollups",
+        cfg=cfg,
+        source=source,
+        dataset_name=dataset_name,
+        rollup_type=rollup_type,
+        horizons=horizons,
+        statuses=statuses,
+        sensitivity=sensitivity,
+        min_attention_score=min_attention_score,
+        residual_zscore_threshold=residual_zscore_threshold,
+        high_priority_threshold=high_priority_threshold,
+        limit=limit,
+        force_refresh=force_refresh,
+    )
+
+
+def _parse_drilldown_params(raw: object) -> dict[str, object]:
+    if isinstance(raw, dict):
+        return raw
+    blob = str(raw or "").strip()
+    if not blob:
+        return {}
+    try:
+        parsed = json.loads(blob)
+    except Exception:
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
+
+
+def _format_scalar(value: object, *, digits: int = 1, suffix: str = "", signed: bool = False) -> str:
+    numeric = pd.to_numeric(value, errors="coerce")
+    if pd.isna(numeric):
+        return "n/a"
+    sign = "+" if signed else ""
+    return f"{float(numeric):{sign},.{digits}f}{suffix}"
+
+
+def _attention_snapshot_label(frame: pd.DataFrame) -> str:
+    if frame.empty or "asof_time_utc" not in frame.columns:
+        return "n/a"
+    timestamps = pd.to_datetime(frame["asof_time_utc"], utc=True, errors="coerce").dropna()
+    if timestamps.empty:
+        return "n/a"
+    return timestamps.max().strftime("%Y-%m-%d %H:%M UTC")
+
+
+def _annotate_attention_source(frame: pd.DataFrame, *, source_key: str) -> pd.DataFrame:
+    if frame.empty:
+        return frame
+    out = frame.copy()
+    out["attention_source"] = source_key
+    out["source_label"] = SOURCE_LABELS.get(source_key, source_key.replace("_", " ").title())
+    return out
+
+
+def _attention_sensitivity_label(key: str) -> str:
+    preset = SENSITIVITY_PRESETS.get(str(key).strip().lower(), {})
+    return str(preset.get("label") or str(key).replace("_", " ").title())
+
+
+def _open_attention_target(section_name: str, params: dict[str, object] | None = None) -> None:
+    target = str(section_name or "").strip() or "Market Opportunity"
+    payload = dict(params or {})
+    ticker = str(payload.get("ticker") or "").upper().strip()
+    market_view = str(payload.get("market_view") or "").strip()
+    commodity_focus = str(payload.get("commodity_focus") or "").strip()
+
+    st.session_state["_pending_workspace_section"] = target
+    if target == "Market Opportunity":
+        st.session_state["market_view"] = market_view or "Markets"
+        if commodity_focus:
+            st.session_state["market_commodity_focus"] = commodity_focus
+    if ticker:
+        st.session_state["market_selected_ticker"] = ticker
+        st.session_state["market_ticker_detail_widget"] = ticker
+        if target == "Market Opportunity" and market_view == "Commodity Section":
+            st.session_state["market_commodity_selected_ticker"] = ticker
+            st.session_state["market_commodity_ticker_widget"] = ticker
+        st.session_state["technical_ticker"] = ticker
+        st.session_state["opt_ticker"] = ticker
+        st.session_state["fund_ticker"] = ticker
+    st.rerun()
+
+
+def _render_attention_card(row: pd.Series, *, key_prefix: str) -> None:
+    params = _parse_drilldown_params(row.get("drilldown_params_json"))
+    title = str(row.get("title") or row.get("entity_id") or "Untitled anomaly").strip()
+    subtitle = str(row.get("subtitle") or "").strip()
+    entity_id = str(row.get("entity_id") or "").upper().strip()
+    status = str(row.get("status") or "active").replace("_", " ").title()
+    source_label = str(row.get("source_label") or "").strip()
+    target_section = str(row.get("drilldown_section") or "Market Opportunity").strip() or "Market Opportunity"
+
+    linked_news_raw = pd.to_numeric(row.get("linked_news_count"), errors="coerce")
+    linked_news_count = int(linked_news_raw) if pd.notna(linked_news_raw) else 0
+
+    with st.container(border=True):
+        header_cols = st.columns([6.2, 1.4, 1.4])
+        with header_cols[0]:
+            st.markdown(f"##### {title}")
+            meta = [item for item in [source_label, subtitle, entity_id, status] if item]
+            st.caption(" | ".join(meta))
+        with header_cols[1]:
+            st.metric("Score", _format_scalar(row.get("attention_score"), digits=1))
+        with header_cols[2]:
+            st.metric("News", str(linked_news_count))
+
+        detail_cols = st.columns(3)
+        with detail_cols[0]:
+            st.metric("Severity", _format_scalar(row.get("severity_score"), digits=1))
+        with detail_cols[1]:
+            st.metric("Impact", _format_scalar(row.get("impact_score"), digits=1))
+        with detail_cols[2]:
+            st.metric("Entity", entity_id or "n/a")
+
+        why_now_text = str(row.get("why_now_text") or "").strip()
+        if why_now_text:
+            st.write(why_now_text)
+        expected_text = str(row.get("expected_vs_observed_text") or "").strip()
+        if expected_text:
+            st.caption(expected_text)
+
+        footer_cols = st.columns([5.6, 2.4])
+        with footer_cols[0]:
+            next_action = str(row.get("next_best_action") or "").strip()
+            if next_action:
+                st.caption(f"Next: {next_action}")
+        with footer_cols[1]:
+            if st.button(
+                f"Open {target_section}",
+                key=f"{key_prefix}_{str(row.get('event_id') or entity_id or 'item')}_open",
+                use_container_width=True,
+                disabled=not target_section,
+            ):
+                _open_attention_target(target_section, params=params)
+
+
+def _render_home_attention(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_refresh: bool) -> None:
+    header_cols = st.columns([4.8, 1.4])
+    with header_cols[0]:
+        st.title("Spectral Nature")
+        st.caption("Attention view: anomaly-ranked changes versus expectation, with rollups that answer where to look first.")
+    with header_cols[1]:
+        force_data_refresh = _section_refresh_button("home_attention_refresh")
+
+    if not pipeline_store_configured():
+        st.write("Choose a section from the sidebar. Data-heavy views load on demand now, so the app shell renders first.")
+        st.caption("The attention layer appears here once pipeline metadata and parquet snapshots are configured.")
+        if api is None:
+            st.info("Fix the Alpaca configuration to enable portfolio, market, technical, and options views. FRED Macro uses its own API key.")
+        else:
+            st.success("Alpaca configuration loaded. Open a section when you want live data.")
+        return
+
+    filter_cols = st.columns([1.3, 2.7, 1.6])
+    with filter_cols[0]:
+        sensitivity = st.selectbox(
+            "Sensitivity",
+            ATTENTION_SENSITIVITY_ORDER,
+            index=ATTENTION_SENSITIVITY_ORDER.index("balanced"),
+            format_func=_attention_sensitivity_label,
+            key="home_attention_sensitivity",
+        )
+    with filter_cols[1]:
+        selected_horizons = st.multiselect(
+            "Lookback",
+            ATTENTION_HORIZON_OPTIONS,
+            default=ATTENTION_HORIZON_OPTIONS,
+            format_func=lambda key: ATTENTION_HORIZON_LABELS.get(key, str(key)),
+            key="home_attention_horizons",
+        )
+    preset = attention_preset(sensitivity)
+    effective_horizons = list(normalize_horizons(selected_horizons)) or ATTENTION_HORIZON_OPTIONS
+    with filter_cols[2]:
+        st.caption(
+            f"{_attention_sensitivity_label(sensitivity)} = "
+            f"{float(preset['residual_zscore_threshold']):.2f}z+ "
+            f"and {float(preset['min_attention_score']):.0f}+ score"
+        )
+
+    try:
+        with st.spinner("Loading attention feed..."):
+            equities_feed = _annotate_attention_source(
+                _load_attention_feed_cached(
+                    cfg,
+                    dataset_name="attention_feed",
+                    source="derivatives",
+                    limit=24,
+                    horizons=effective_horizons,
+                    statuses=["active", "cooling"],
+                    sensitivity=sensitivity,
+                    min_attention_score=float(preset["min_attention_score"]),
+                    residual_zscore_threshold=float(preset["residual_zscore_threshold"]),
+                    force_refresh=force_data_refresh,
+                ),
+                source_key="equities",
+            )
+            commodity_feed = _annotate_attention_source(
+                _load_attention_feed_cached(
+                    cfg,
+                    dataset_name="commodity_attention_feed",
+                    source="commodities",
+                    limit=24,
+                    horizons=effective_horizons,
+                    statuses=["active", "cooling"],
+                    sensitivity=sensitivity,
+                    min_attention_score=float(preset["min_attention_score"]),
+                    residual_zscore_threshold=float(preset["residual_zscore_threshold"]),
+                    force_refresh=force_data_refresh,
+                ),
+                source_key="commodities",
+            )
+            equities_rollups = _annotate_attention_source(
+                _load_attention_rollups_cached(
+                    cfg,
+                    dataset_name="attention_rollups",
+                    source="derivatives",
+                    horizons=effective_horizons,
+                    statuses=["active", "cooling"],
+                    sensitivity=sensitivity,
+                    min_attention_score=float(preset["min_attention_score"]),
+                    residual_zscore_threshold=float(preset["residual_zscore_threshold"]),
+                    high_priority_threshold=float(preset["high_priority_threshold"]),
+                    limit=6,
+                    force_refresh=force_data_refresh,
+                ),
+                source_key="equities",
+            )
+            commodity_rollups = _annotate_attention_source(
+                _load_attention_rollups_cached(
+                    cfg,
+                    dataset_name="commodity_attention_rollups",
+                    source="commodities",
+                    horizons=effective_horizons,
+                    statuses=["active", "cooling"],
+                    sensitivity=sensitivity,
+                    min_attention_score=float(preset["min_attention_score"]),
+                    residual_zscore_threshold=float(preset["residual_zscore_threshold"]),
+                    high_priority_threshold=float(preset["high_priority_threshold"]),
+                    limit=6,
+                    force_refresh=force_data_refresh,
+                ),
+                source_key="commodities",
+            )
+    except Exception as exc:
+        st.warning(f"Could not load the attention layer: {exc}")
+        return
+
+    feed_parts = [frame for frame in [equities_feed, commodity_feed] if not frame.empty]
+    rollup_parts = [frame for frame in [equities_rollups, commodity_rollups] if not frame.empty]
+    feed = pd.concat(feed_parts, ignore_index=True) if feed_parts else pd.DataFrame()
+    rollups = pd.concat(rollup_parts, ignore_index=True) if rollup_parts else pd.DataFrame()
+
+    if feed.empty:
+        st.info(
+            "No attention items matched the current sensitivity/lookback settings. "
+            "Try a more aggressive sensitivity, broaden the horizon selection, or rerun the preload jobs if snapshots are stale."
+        )
+        return
+
+    feed = feed.copy()
+    feed["asof_time_utc"] = pd.to_datetime(feed.get("asof_time_utc"), utc=True, errors="coerce")
+    feed["entity_id"] = feed.get("entity_id", pd.Series(dtype=str)).astype(str).str.upper().str.strip()
+    feed["_drilldown_params"] = [
+        _parse_drilldown_params(value)
+        for value in feed.get("drilldown_params_json", pd.Series(dtype=object)).tolist()
+    ]
+
+    held_symbols: set[str] = set()
+    if api is not None:
+        try:
+            positions = _load_positions_cached(cfg, force_refresh=force_data_refresh)
+            if not positions.empty and "symbol" in positions.columns:
+                held_symbols = {
+                    str(symbol).upper().strip()
+                    for symbol in positions["symbol"].dropna().astype(str).tolist()
+                    if str(symbol).strip()
+                }
+        except Exception:
+            held_symbols = set()
+
+    feed["in_portfolio"] = feed["entity_id"].isin(held_symbols)
+    if "attention_score" in feed.columns:
+        feed["attention_score"] = pd.to_numeric(feed["attention_score"], errors="coerce")
+        feed["severity_score"] = pd.to_numeric(feed.get("severity_score"), errors="coerce")
+        feed = feed.sort_values(["attention_score", "severity_score"], ascending=[False, False], na_position="last").reset_index(drop=True)
+        feed["feed_rank"] = range(1, len(feed) + 1)
+    portfolio_feed = feed[feed["in_portfolio"]].copy()
+    if "rollup_type" in rollups.columns:
+        rollup_type_series = rollups["rollup_type"].astype(str).str.lower()
+        market_rollups = rollups[rollup_type_series.isin({"market", "commodity_market"})].copy()
+        secondary_rollups = rollups[~rollup_type_series.isin({"market", "commodity_market", "portfolio"})].copy()
+    else:
+        market_rollups = pd.DataFrame()
+        secondary_rollups = pd.DataFrame()
+
+    score_series = pd.to_numeric(feed["attention_score"], errors="coerce") if "attention_score" in feed.columns else pd.Series(dtype=float)
+    news_counts = pd.to_numeric(feed["linked_news_count"], errors="coerce").fillna(0) if "linked_news_count" in feed.columns else pd.Series(dtype=float)
+    high_priority_count = int(score_series.ge(float(preset["high_priority_threshold"])).sum()) if not score_series.empty else 0
+    news_linked_count = int(news_counts.gt(0).sum()) if not news_counts.empty else 0
+
+    metric_cols = st.columns(4)
+    with metric_cols[0]:
+        st.metric("Snapshot", _attention_snapshot_label(feed))
+    with metric_cols[1]:
+        st.metric("Attention Items", str(len(feed)))
+    with metric_cols[2]:
+        st.metric("High Priority", str(high_priority_count))
+    with metric_cols[3]:
+        if held_symbols:
+            st.metric("Portfolio Overlap", str(len(portfolio_feed)))
+        else:
+            st.metric("News Linked", str(news_linked_count))
+
+    main_cols = st.columns([1.7, 1.1], gap="large")
+    with main_cols[0]:
+        st.subheader("What Needs Attention")
+        for row in feed.head(6).itertuples(index=False):
+            _render_attention_card(pd.Series(row._asdict()), key_prefix="home_attention")
+
+    with main_cols[1]:
+        st.subheader("Where To Look First")
+        if market_rollups.empty:
+            st.info("No market-level rollups were published in the latest snapshots.")
+        else:
+            for row in market_rollups.sort_values(["net_attention_score", "top_attention_score"], ascending=False, na_position="last").itertuples(index=False):
+                market_row = pd.Series(row._asdict())
+                with st.container(border=True):
+                    st.markdown(f"##### {str(market_row.get('source_label') or '').strip() or 'Attention'}")
+                    st.write(str(market_row.get("summary_text") or ""))
+                    st.caption(
+                        "Breadth "
+                        f"{int(pd.to_numeric(market_row.get('breadth_positive'), errors='coerce') or 0)} up / "
+                        f"{int(pd.to_numeric(market_row.get('breadth_negative'), errors='coerce') or 0)} down"
+                    )
+                    st.caption(
+                        "Top score "
+                        f"{_format_scalar(market_row.get('top_attention_score'), digits=1)} | "
+                        f"Net attention {_format_scalar(market_row.get('net_attention_score'), digits=1)}"
+                    )
+        if secondary_rollups.empty:
+            st.info("No lens-level rollups were published in the latest snapshots.")
+        else:
+            rollup_table = secondary_rollups.copy()
+            if "rollup_name" in rollup_table.columns:
+                rollup_table["rollup_name"] = rollup_table["rollup_name"].astype(str)
+            show_cols = [
+                col
+                for col in [
+                    "source_label",
+                    "rollup_name",
+                    "rollup_type",
+                    "active_event_count",
+                    "top_attention_score",
+                    "net_attention_score",
+                ]
+                if col in rollup_table.columns
+            ]
+            st.dataframe(
+                rollup_table.head(5)[show_cols],
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "source_label": "Source",
+                    "rollup_name": "Lens",
+                    "rollup_type": "Type",
+                    "active_event_count": st.column_config.NumberColumn("Events", format="%d"),
+                    "top_attention_score": st.column_config.NumberColumn("Top Score", format="%.1f"),
+                    "net_attention_score": st.column_config.NumberColumn("Net Attention", format="%.1f"),
+                },
+            )
+
+    if not portfolio_feed.empty:
+        st.markdown("---")
+        st.subheader("In Your Portfolio")
+        portfolio_table = portfolio_feed.copy()
+        show_cols = [
+            col
+            for col in [
+                "feed_rank",
+                "source_label",
+                "entity_id",
+                "title",
+                "attention_score",
+                "status",
+            ]
+            if col in portfolio_table.columns
+        ]
+        st.dataframe(
+            portfolio_table[show_cols],
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "feed_rank": st.column_config.NumberColumn("Rank", format="%d"),
+                "source_label": "Source",
+                "entity_id": "Ticker",
+                "attention_score": st.column_config.NumberColumn("Attention", format="%.1f"),
+            },
+        )
+
+    with st.expander("Show Feed Table"):
+        table = feed.copy()
+        show_cols = [
+            col
+            for col in [
+                "feed_rank",
+                "source_label",
+                "entity_id",
+                "title",
+                "subtitle",
+                "attention_score",
+                "linked_news_count",
+                "status",
+            ]
+            if col in table.columns
+        ]
+        st.dataframe(
+            table[show_cols],
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "feed_rank": st.column_config.NumberColumn("Rank", format="%d"),
+                "source_label": "Source",
+                "entity_id": "Ticker",
+                "attention_score": st.column_config.NumberColumn("Attention", format="%.1f"),
+                "linked_news_count": st.column_config.NumberColumn("News", format="%d"),
+            },
+        )
 
 
 def _prepare_scatter_size(df: pd.DataFrame, column: str) -> tuple[pd.DataFrame, str | None]:
@@ -2026,6 +2512,9 @@ app_track = (os.getenv("APP_TRACK") or "local").strip().lower()
 cache_disabled = (os.getenv("APP_DISABLE_CACHE") or "").strip().lower() in {"1", "true", "yes", "on"}
 source_refresh_flags = dict(st.session_state.get("_source_force_refresh", {}))
 st.session_state["_source_force_refresh"] = source_refresh_flags
+pending_workspace_section = str(st.session_state.pop("_pending_workspace_section", "") or "").strip()
+if pending_workspace_section in SECTION_OPTIONS:
+    st.session_state["workspace_section"] = pending_workspace_section
 
 with st.sidebar:
     st.title("Spectral Nature")
@@ -2069,13 +2558,7 @@ if startup_error_summary:
 force_data_refresh = False
 
 if section == "Home":
-    st.title("Spectral Nature")
-    st.write("Choose a section from the sidebar. Data-heavy views load on demand now, so the app shell renders first.")
-    st.caption("Pipeline refresh jobs now live under `Pipeline Jobs`, and data refresh is handled inside each page instead of the sidebar.")
-    if api is None:
-        st.info("Fix the Alpaca configuration to enable portfolio, market, technical, and options views. FRED Macro uses its own API key.")
-    else:
-        st.success("Alpaca configuration loaded. Open a section when you want live data.")
+    _render_home_attention(cfg, api, force_data_refresh=force_data_refresh)
 
 elif section == "Portfolio Overview":
     header_cols = st.columns([3.2, 1.6, 1.4])
@@ -2577,6 +3060,10 @@ elif section == "Market Opportunity":
             key="market_view",
             width="stretch",
         )
+        movers = pd.DataFrame()
+        momentum = pd.DataFrame()
+        selected_market_ticker: str | None = None
+        business_filter = ""
         if market_view == "Commodity Section":
             lens_cols = st.columns([2.2, 3.8])
             with lens_cols[0]:
@@ -2662,8 +3149,6 @@ elif section == "Market Opportunity":
                 st.warning(f"Could not scan movers: {exc}")
                 movers = pd.DataFrame()
 
-            selected_market_ticker: str | None = None
-
             try:
                 with st.spinner("Scanning momentum profiles..."):
                     with _timed("scan_momentum_profiles", days=momentum_days, horizon=momentum_horizon):
@@ -2682,6 +3167,9 @@ elif section == "Market Opportunity":
                 )
                 st.warning(f"Could not scan momentum profiles: {exc}")
                 momentum = pd.DataFrame()
+
+        if market_view != "Markets":
+            st.stop()
 
         if not momentum.empty:
             selected_horizon_col = locals().get("selected_horizon_col", "return_1m_pct")
@@ -3168,7 +3656,7 @@ elif section == "Technical Strategizer":
         st.title("Technical Strategizer")
     with header_cols[1]:
         force_data_refresh = _section_refresh_button("technical_refresh")
-    ticker = st.text_input("Ticker", value="AAPL").upper().strip()
+    ticker = st.text_input("Ticker", value="AAPL", key="technical_ticker").upper().strip()
     days = st.slider("Lookback (days)", 90, 1095, 365, step=15)
 
     if ticker and _has_live_api(

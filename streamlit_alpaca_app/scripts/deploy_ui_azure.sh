@@ -22,6 +22,7 @@ RELEASE_TAG_TS="$(date -u +%Y%m%d%H%M%S)"
 RESOURCE_GROUP="${RESOURCE_GROUP:-}"
 ACR_NAME="${ACR_NAME:-}"
 REGISTRY_SERVER="${REGISTRY_SERVER:-}"
+AZURE_STORAGE_CONTAINER="${AZURE_STORAGE_CONTAINER:-datasets}"
 
 usage() {
   cat <<'EOF'
@@ -345,7 +346,7 @@ az containerapp update \
   -n "$TARGET_APP" \
   -g "$RESOURCE_GROUP" \
   --image "$IMAGE_TO_DEPLOY" \
-  --set-env-vars APP_RELEASE_TS="$RELEASE_TS" \
+  --set-env-vars APP_RELEASE_TS="$RELEASE_TS" AZURE_STORAGE_CONTAINER="$AZURE_STORAGE_CONTAINER" \
   >/dev/null
 
 log "[3/5] Waiting for latest revision to become ready"

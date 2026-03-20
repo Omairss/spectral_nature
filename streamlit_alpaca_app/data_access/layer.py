@@ -6,6 +6,7 @@ from typing import Any
 import pandas as pd
 
 from compute.analytics import performance_table
+from compute.anomalies import AttentionConfig, attention_preset, build_attention_feed, build_attention_rollups, filter_attention_events, normalize_horizon, normalize_horizons
 from compute.fred import build_fred_dashboard_from_pipeline
 from compute.fundamentals import load_quarterly_fundamentals
 from compute.portfolio import build_portfolio_timeseries, compute_holding_roc, normalize_timeseries_view
@@ -77,6 +78,49 @@ class DataAccessLayer:
     def _pipeline_frame(self, dataset_name: str) -> tuple[pd.DataFrame, dict[str, Any]]:
         frame, metadata = load_latest_dataset_frame(dataset_name)
         return frame, _pipeline_details(metadata)
+
+    def _attention_candidate_dataset_name(self, dataset_name: str) -> str | None:
+        dataset_key = str(dataset_name or "").strip()
+        if dataset_key == "attention_feed":
+            return "attention_candidates"
+        if dataset_key == "commodity_attention_feed":
+            return "commodity_attention_candidates"
+        if dataset_key == "attention_rollups":
+            return "attention_candidates"
+        if dataset_key == "commodity_attention_rollups":
+            return "commodity_attention_candidates"
+        return None
+
+    def _attention_config_from_params(
+        self,
+        *,
+        sensitivity: str | None,
+        residual_zscore_threshold: float | None,
+        min_attention_score: float | None,
+        high_priority_threshold: float | None,
+    ) -> AttentionConfig:
+        preset = attention_preset(sensitivity)
+        return AttentionConfig(
+            residual_zscore_threshold=float(residual_zscore_threshold if residual_zscore_threshold is not None else preset["residual_zscore_threshold"]),
+            min_attention_score=float(min_attention_score if min_attention_score is not None else preset["min_attention_score"]),
+            high_priority_threshold=float(high_priority_threshold if high_priority_threshold is not None else preset["high_priority_threshold"]),
+        )
+
+    def _decorate_runtime_commodity_rollups(self, rollups: pd.DataFrame) -> pd.DataFrame:
+        if rollups.empty:
+            return rollups
+        out = rollups.copy()
+        rollup_types = out["rollup_type"].astype(str).str.lower()
+        market_mask = rollup_types == "market"
+        portfolio_mask = rollup_types == "portfolio"
+        focus_mask = rollup_types == "business_lens"
+        out.loc[market_mask, "rollup_type"] = "commodity_market"
+        out.loc[market_mask, "rollup_id"] = "commodity_market"
+        out.loc[market_mask, "rollup_name"] = "Commodities"
+        out.loc[portfolio_mask, "rollup_id"] = "commodity_portfolio"
+        out.loc[portfolio_mask, "rollup_name"] = "Commodity Portfolio"
+        out.loc[focus_mask, "rollup_type"] = "commodity_focus"
+        return out
 
     def _should_try_pipeline(self, force_refresh: bool) -> bool:
         return (not force_refresh) and pipeline_store_configured()
@@ -671,6 +715,179 @@ class DataAccessLayer:
             force_refresh=force_refresh,
         )
         return self._resolved(payload, mode="on_demand", datasets=("recent_news",), details={"ticker": ticker.upper(), "days": days, "limit": limit})
+
+    def resolve_attention_feed(
+        self,
+        *,
+        dataset_name: str = "attention_feed",
+        limit: int = 10,
+        entity_ids: list[str] | None = None,
+        horizons: list[str] | None = None,
+        statuses: list[str] | None = None,
+        sensitivity: str | None = None,
+        min_attention_score: float | None = None,
+        residual_zscore_threshold: float | None = None,
+        force_refresh: bool = False,
+    ) -> ResolvedPayload:
+        del force_refresh
+        dataset_key = str(dataset_name or "attention_feed").strip() or "attention_feed"
+        if not pipeline_store_configured():
+            return self._resolved(
+                pd.DataFrame(),
+                mode="materialized",
+                datasets=(dataset_key,),
+                details={"warning": "pipeline store unavailable"},
+            )
+
+        wants_tuned_feed = any(
+            [
+                sensitivity is not None,
+                residual_zscore_threshold is not None,
+                min_attention_score is not None,
+                bool(normalize_horizons(horizons)),
+            ]
+        )
+        candidate_dataset = self._attention_candidate_dataset_name(dataset_key)
+        if wants_tuned_feed and candidate_dataset:
+            candidate_frame, candidate_details = self._pipeline_frame(candidate_dataset)
+            if not candidate_frame.empty:
+                config = self._attention_config_from_params(
+                    sensitivity=sensitivity,
+                    residual_zscore_threshold=residual_zscore_threshold,
+                    min_attention_score=min_attention_score,
+                    high_priority_threshold=None,
+                )
+                filtered = filter_attention_events(
+                    candidate_frame,
+                    config=config,
+                    horizons=horizons,
+                    entity_ids=entity_ids,
+                    statuses=statuses,
+                )
+                feed = build_attention_feed(filtered, pd.DataFrame(), top_n=int(limit))
+                return self._resolved(
+                    feed.reset_index(drop=True),
+                    mode="materialized",
+                    datasets=(candidate_dataset,),
+                    details={**candidate_details, "filters": {"horizons": list(normalize_horizons(horizons)), "sensitivity": sensitivity or "balanced"}},
+                )
+
+        feed, details = self._pipeline_frame(dataset_key)
+        if feed.empty:
+            return self._resolved(feed, mode="materialized", datasets=(dataset_key,), details=details)
+
+        out = feed.copy()
+        if "entity_id" in out.columns and entity_ids:
+            allowed = {str(value).upper().strip() for value in entity_ids if str(value).strip()}
+            out = out[out["entity_id"].astype(str).str.upper().isin(allowed)].copy()
+        if "horizon" in out.columns and horizons:
+            selected_horizons = set(normalize_horizons(horizons))
+            if selected_horizons:
+                out = out[out["horizon"].astype(str).map(normalize_horizon).isin(selected_horizons)].copy()
+        if "status" in out.columns and statuses:
+            allowed_statuses = {str(value).lower().strip() for value in statuses if str(value).strip()}
+            out = out[out["status"].astype(str).str.lower().isin(allowed_statuses)].copy()
+        if "attention_score" in out.columns and min_attention_score is not None:
+            out["attention_score"] = pd.to_numeric(out["attention_score"], errors="coerce")
+            out = out[out["attention_score"] >= float(min_attention_score)].copy()
+        if "asof_time_utc" in out.columns:
+            out["asof_time_utc"] = pd.to_datetime(out["asof_time_utc"], utc=True, errors="coerce")
+        if "feed_rank" in out.columns:
+            out = out.sort_values(["feed_rank", "attention_score"], ascending=[True, False], na_position="last")
+        elif "attention_score" in out.columns:
+            out = out.sort_values("attention_score", ascending=False, na_position="last")
+        if int(limit) > 0:
+            out = out.head(int(limit))
+        return self._resolved(out.reset_index(drop=True), mode="materialized", datasets=(dataset_key,), details=details)
+
+    def resolve_attention_rollups(
+        self,
+        *,
+        dataset_name: str = "attention_rollups",
+        rollup_type: str | None = None,
+        horizons: list[str] | None = None,
+        statuses: list[str] | None = None,
+        sensitivity: str | None = None,
+        min_attention_score: float | None = None,
+        residual_zscore_threshold: float | None = None,
+        high_priority_threshold: float | None = None,
+        limit: int = 10,
+        force_refresh: bool = False,
+    ) -> ResolvedPayload:
+        del force_refresh
+        dataset_key = str(dataset_name or "attention_rollups").strip() or "attention_rollups"
+        if not pipeline_store_configured():
+            return self._resolved(
+                pd.DataFrame(),
+                mode="materialized",
+                datasets=(dataset_key,),
+                details={"warning": "pipeline store unavailable"},
+            )
+
+        wants_tuned_rollups = any(
+            [
+                sensitivity is not None,
+                residual_zscore_threshold is not None,
+                min_attention_score is not None,
+                high_priority_threshold is not None,
+                bool(normalize_horizons(horizons)),
+            ]
+        )
+        candidate_dataset = self._attention_candidate_dataset_name(dataset_key)
+        if wants_tuned_rollups and candidate_dataset:
+            candidate_frame, candidate_details = self._pipeline_frame(candidate_dataset)
+            if not candidate_frame.empty:
+                config = self._attention_config_from_params(
+                    sensitivity=sensitivity,
+                    residual_zscore_threshold=residual_zscore_threshold,
+                    min_attention_score=min_attention_score,
+                    high_priority_threshold=high_priority_threshold,
+                )
+                filtered = filter_attention_events(
+                    candidate_frame,
+                    config=config,
+                    horizons=horizons,
+                    statuses=statuses,
+                )
+                rollups = build_attention_rollups(
+                    filtered,
+                    peer_group_membership=pd.DataFrame(),
+                    high_priority_threshold=config.high_priority_threshold,
+                )
+                if dataset_key == "commodity_attention_rollups":
+                    rollups = self._decorate_runtime_commodity_rollups(rollups)
+                details = {**candidate_details, "filters": {"horizons": list(normalize_horizons(horizons)), "sensitivity": sensitivity or "balanced"}}
+                if rollup_type and "rollup_type" in rollups.columns:
+                    rollups = rollups[rollups["rollup_type"].astype(str).str.lower() == str(rollup_type).lower().strip()].copy()
+                if int(limit) > 0:
+                    rollups = rollups.head(int(limit))
+                return self._resolved(rollups.reset_index(drop=True), mode="materialized", datasets=(candidate_dataset,), details=details)
+
+        rollups, details = self._pipeline_frame(dataset_key)
+        if rollups.empty:
+            return self._resolved(rollups, mode="materialized", datasets=(dataset_key,), details=details)
+
+        out = rollups.copy()
+        if rollup_type and "rollup_type" in out.columns:
+            out = out[out["rollup_type"].astype(str).str.lower() == str(rollup_type).lower().strip()].copy()
+        if "asof_time_utc" in out.columns:
+            out["asof_time_utc"] = pd.to_datetime(out["asof_time_utc"], utc=True, errors="coerce")
+        sort_cols: list[str] = []
+        ascending: list[bool] = []
+        if "net_attention_score" in out.columns:
+            sort_cols.append("net_attention_score")
+            ascending.append(False)
+        if "top_attention_score" in out.columns:
+            sort_cols.append("top_attention_score")
+            ascending.append(False)
+        if "active_event_count" in out.columns:
+            sort_cols.append("active_event_count")
+            ascending.append(False)
+        if sort_cols:
+            out = out.sort_values(sort_cols, ascending=ascending, na_position="last")
+        if int(limit) > 0:
+            out = out.head(int(limit))
+        return self._resolved(out.reset_index(drop=True), mode="materialized", datasets=(dataset_key,), details=details)
 
     def resolve_fred_dashboard(self, *, years: int, force_refresh: bool = False) -> ResolvedPayload:
         api_key = (self.fred_api_key or "").strip()

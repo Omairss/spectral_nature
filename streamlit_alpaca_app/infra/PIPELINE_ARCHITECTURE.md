@@ -50,8 +50,8 @@ This document defines the canonical architecture for cached dashboard reads.
 
 - Derivatives
   - Job: `equities-intraday-preload`
-  - Datasets: `correlation_phase_shift_summary`, `correlation_phase_shift_history`, `technical_signals_latest`, `technical_signal_history`
-  - Dashboard: Market Opportunity (Broad Markets advanced), Technical Strategizer metrics
+  - Datasets: `correlation_phase_shift_summary`, `correlation_phase_shift_history`, `technical_signals_latest`, `technical_signal_history`, `peer_group_membership`, `price_expectations`, `anomaly_events`, `attention_rollups`, `attention_feed`
+  - Dashboard: Market Opportunity (Broad Markets advanced), Technical Strategizer metrics, future Home attention feed
 
 ## Force Refresh Controls
 

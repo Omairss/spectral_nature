@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from io import BytesIO
 import json
 from pathlib import Path
@@ -49,11 +50,31 @@ SOURCE_JOB_MAP: dict[str, str] = {
 SOURCE_DATASETS: dict[str, list[str]] = {
     "equities": ["daily_movers", "momentum_profiles", "price_history"],
     "fred": ["fred_summary", "fred_observations"],
-    "commodities": ["commodity_regime_summary", "commodity_regime_history"],
+    "commodities": [
+        "commodity_regime_summary",
+        "commodity_regime_history",
+        "commodity_peer_group_membership",
+        "commodity_price_expectations",
+        "commodity_attention_candidates",
+        "commodity_anomaly_events",
+        "commodity_attention_rollups",
+        "commodity_attention_feed",
+    ],
     "options": ["option_expirations", "option_contract_snapshots"],
     "news": ["news_articles", "news_symbol_map"],
     "fundamentals": ["quarterly_fundamentals"],
-    "derivatives": ["correlation_phase_shift_summary", "correlation_phase_shift_history", "technical_signals_latest", "technical_signal_history"],
+    "derivatives": [
+        "correlation_phase_shift_summary",
+        "correlation_phase_shift_history",
+        "technical_signals_latest",
+        "technical_signal_history",
+        "peer_group_membership",
+        "price_expectations",
+        "attention_candidates",
+        "anomaly_events",
+        "attention_rollups",
+        "attention_feed",
+    ],
 }
 
 
@@ -104,7 +125,7 @@ def _resource_group() -> str:
 
 
 def pipeline_store_configured() -> bool:
-    return bool(_postgres_connection_string() and _storage_account_url())
+    return bool(_storage_account_url())
 
 
 def _db_connect() -> Any | None:
@@ -155,10 +176,80 @@ def _read_blob_parquet(blob_path: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 
+def _read_blob_json(blob_path: str) -> dict[str, Any] | None:
+    client = _blob_service_client()
+    if client is None:
+        return None
+    try:
+        blob = client.get_blob_client(container=_storage_container(), blob=blob_path)
+        payload = blob.download_blob().readall()
+        if not payload:
+            return None
+        parsed = json.loads(payload.decode("utf-8"))
+        return parsed if isinstance(parsed, dict) else None
+    except Exception:
+        return None
+
+
+def _coerce_manifest_dataset(manifest: dict[str, Any], *, fallback_path: str | None = None) -> PipelineDataset | None:
+    dataset_name = str(manifest.get("dataset_name") or "").strip()
+    dataset_version_id = str(manifest.get("dataset_version_id") or "").strip()
+    blob_path = str(manifest.get("blob_path") or fallback_path or "").strip()
+    asof_time_utc = str(manifest.get("asof_time_utc") or "").strip()
+    ingested_at_utc = str(manifest.get("ingested_at_utc") or "").strip()
+    if not dataset_name or not dataset_version_id or not blob_path:
+        return None
+    try:
+        row_count = int(manifest.get("row_count") or 0)
+    except Exception:
+        row_count = 0
+    return PipelineDataset(
+        dataset_name=dataset_name,
+        dataset_version_id=dataset_version_id,
+        blob_path=blob_path,
+        asof_time_utc=asof_time_utc,
+        ingested_at_utc=ingested_at_utc,
+        row_count=row_count,
+    )
+
+
+def _latest_manifest_metadata(dataset_name: str) -> PipelineDataset | None:
+    client = _blob_service_client()
+    if client is None:
+        return None
+    try:
+        container = client.get_container_client(_storage_container())
+        prefix = f"manifests/{dataset_name}/"
+        blobs = list(container.list_blobs(name_starts_with=prefix))
+    except Exception:
+        return None
+
+    if not blobs:
+        return None
+
+    def _sort_key(blob: Any) -> tuple[datetime, str]:
+        last_modified = getattr(blob, "last_modified", None)
+        if isinstance(last_modified, datetime):
+            modified = last_modified
+        else:
+            modified = datetime.min.replace(tzinfo=timezone.utc)
+        return modified, str(getattr(blob, "name", ""))
+
+    candidates = sorted(blobs, key=_sort_key, reverse=True)[:5]
+    for blob in candidates:
+        manifest = _read_blob_json(str(getattr(blob, "name", "")))
+        if not manifest:
+            continue
+        dataset = _coerce_manifest_dataset(manifest)
+        if dataset is not None:
+            return dataset
+    return None
+
+
 def latest_dataset_metadata(dataset_name: str) -> PipelineDataset | None:
     conn = _db_connect()
     if conn is None:
-        return None
+        return _latest_manifest_metadata(dataset_name)
     try:
         with conn.cursor() as cur:
             cur.execute(
@@ -174,7 +265,7 @@ def latest_dataset_metadata(dataset_name: str) -> PipelineDataset | None:
             )
             row = cur.fetchone()
             if not row:
-                return None
+                return _latest_manifest_metadata(dataset_name)
             return PipelineDataset(
                 dataset_name=str(row[0]),
                 dataset_version_id=str(row[1]),
@@ -184,7 +275,7 @@ def latest_dataset_metadata(dataset_name: str) -> PipelineDataset | None:
                 row_count=int(row[5] or 0),
             )
     except Exception:
-        return None
+        return _latest_manifest_metadata(dataset_name)
     finally:
         try:
             conn.close()

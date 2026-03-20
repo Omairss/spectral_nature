@@ -11,6 +11,18 @@ from typing import Any
 
 import pandas as pd
 
+from compute.anomalies import (
+    AttentionConfig,
+    ExpectationConfig,
+    build_attention_candidates,
+    build_attention_feed,
+    build_attention_rollups,
+    build_commodity_peer_group_membership,
+    build_peer_group_membership,
+    build_price_expectations,
+    filter_attention_events,
+    normalize_horizons,
+)
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
 from services.config import AppConfig
 from services.fred import FredAPIError, load_fred_api_key, load_fred_dashboard
@@ -24,6 +36,7 @@ from services.market import (
     scan_momentum_profiles,
 )
 from services.options import build_option_snapshot_surface, load_option_chain
+from services.pipeline_store import load_latest_dataset_frame
 from services.secrets import resolve_secret_value
 
 try:
@@ -292,8 +305,6 @@ def _upload_bytes(path: str, payload: bytes, content_type: str) -> None:
 
 
 def _upload_frame(dataset_name: str, frame: pd.DataFrame, ctx: JobContext) -> str:
-    if frame.empty:
-        return ""
     asof_slug = ctx.asof.strftime("%Y-%m-%dT%H-%M-%SZ")
     dt_slug = ctx.asof.strftime("%Y-%m-%d")
     path = (
@@ -361,6 +372,185 @@ def _symbols_from_env(limit_default: int = 100) -> list[str]:
     return DEFAULT_UNIVERSE[:limit_default]
 
 
+def _news_symbol_map_from_frame(news: pd.DataFrame) -> pd.DataFrame:
+    if news.empty:
+        return pd.DataFrame(columns=["headline", "published_at", "source", "url", "symbols"])
+    if "symbols" in news.columns:
+        mapped = news[[col for col in ["headline", "published_at", "source", "url", "symbols"] if col in news.columns]].copy()
+        mapped["symbols"] = mapped["symbols"].apply(lambda x: ",".join(x) if isinstance(x, list) else str(x))
+        return mapped
+    return news.copy()
+
+
+def _load_attention_news_map(api: AlpacaAPI, symbols: list[str]) -> pd.DataFrame:
+    try:
+        frame, _ = load_latest_dataset_frame("news_symbol_map")
+    except Exception as exc:
+        print(f"[warn] failed to load latest news_symbol_map snapshot: {type(exc).__name__}: {exc}")
+        frame = pd.DataFrame()
+
+    if not frame.empty:
+        print(f"[info] using materialized news_symbol_map rows={len(frame)}")
+        return frame
+
+    try:
+        live_news = api.get_news(symbols=symbols, limit=50)
+        mapped = _news_symbol_map_from_frame(live_news)
+        if not mapped.empty:
+            print(f"[info] using live news fallback rows={len(mapped)}")
+        return mapped
+    except Exception as exc:
+        print(f"[warn] live news fallback unavailable: {type(exc).__name__}: {exc}")
+        return pd.DataFrame(columns=["headline", "published_at", "source", "url", "symbols"])
+
+
+def _load_attention_positions(api: AlpacaAPI) -> pd.DataFrame:
+    try:
+        positions = api.get_positions()
+        if not positions.empty:
+            print(f"[info] loaded positions for attention overlay rows={len(positions)}")
+        return positions
+    except Exception as exc:
+        print(f"[warn] positions unavailable for attention overlay: {type(exc).__name__}: {exc}")
+        return pd.DataFrame(columns=["symbol", "market_value"])
+
+
+def _parse_attention_horizons_env() -> tuple[str, ...]:
+    raw = (os.getenv("ATTENTION_HORIZONS") or "1d,1w,1mo,3mo,1yr").strip()
+    parsed = normalize_horizons([token.strip() for token in raw.split(",") if token.strip()])
+    return parsed or normalize_horizons(["1d", "1w", "1mo", "3mo", "1yr"])
+
+
+def _parse_attention_thresholds_env() -> dict[str, float]:
+    raw = (os.getenv("ATTENTION_RESIDUAL_ZSCORE_THRESHOLDS") or "").strip()
+    if not raw:
+        return {}
+
+    parsed: dict[str, float] = {}
+    for token in raw.split(","):
+        item = str(token or "").strip()
+        if ":" not in item:
+            continue
+        horizon, value = item.split(":", 1)
+        normalized = normalize_horizons([horizon])
+        if not normalized:
+            continue
+        try:
+            parsed[normalized[0]] = max(float(value), 0.0)
+        except Exception:
+            continue
+    return parsed
+
+
+def _load_stock_bars_frame(api: AlpacaAPI, symbols: list[str], *, days: int) -> pd.DataFrame:
+    normalized_symbols = sorted({str(symbol).upper().strip() for symbol in symbols if str(symbol).strip()})
+    if not normalized_symbols:
+        return pd.DataFrame()
+
+    end = _utc_now()
+    start = end - timedelta(days=max(int(days), 30))
+    bars = api.get_stock_bars(normalized_symbols, start=start, end=end, timeframe="1Day", feed="iex")
+    parts: list[pd.DataFrame] = []
+    for symbol, frame in bars.items():
+        if frame.empty:
+            continue
+        chunk = frame.copy()
+        chunk["symbol"] = str(symbol).upper().strip()
+        keep = [col for col in ["symbol", "timestamp", "open", "high", "low", "close", "volume"] if col in chunk.columns]
+        parts.append(chunk[keep])
+    return pd.concat(parts, ignore_index=True) if parts else pd.DataFrame()
+
+
+def _primary_peer_group_snapshot(
+    peer_group_membership: pd.DataFrame,
+    *,
+    fallback_names: set[str],
+) -> pd.DataFrame:
+    required = {"entity_id", "peer_group_id", "peer_group_name"}
+    if peer_group_membership.empty or not required.issubset(set(peer_group_membership.columns)):
+        return pd.DataFrame(columns=["entity_id", "peer_group_id", "peer_group_name", "benchmark"])
+
+    frame = peer_group_membership.copy()
+    frame["entity_id"] = frame["entity_id"].astype(str).str.upper().str.strip()
+    frame["peer_group_name"] = frame["peer_group_name"].astype(str)
+    frame["_fallback_rank"] = frame["peer_group_name"].isin(fallback_names).astype(int)
+    frame = frame.sort_values(["entity_id", "_fallback_rank", "peer_group_name"]).drop_duplicates(subset=["entity_id"], keep="first")
+    keep = [col for col in ["entity_id", "peer_group_id", "peer_group_name", "benchmark"] if col in frame.columns]
+    return frame[keep].reset_index(drop=True)
+
+
+def _commodity_regime_signals(summary: pd.DataFrame) -> pd.DataFrame:
+    required = {"symbol", "commodity_regime"}
+    if summary.empty or not required.issubset(set(summary.columns)):
+        return pd.DataFrame(columns=["symbol", "regime"])
+    frame = summary[["symbol", "commodity_regime"]].copy()
+    frame["symbol"] = frame["symbol"].astype(str).str.upper().str.strip()
+    frame = frame.rename(columns={"commodity_regime": "regime"})
+    return frame.drop_duplicates(subset=["symbol"], keep="last").reset_index(drop=True)
+
+
+def _decorate_commodity_anomaly_events(anomaly_events: pd.DataFrame) -> pd.DataFrame:
+    if anomaly_events.empty:
+        return anomaly_events
+
+    out = anomaly_events.copy()
+    out["entity_type"] = "commodity_symbol"
+    out["parent_entity_type"] = "commodity_focus"
+    out["peer_group_name"] = out["peer_group_name"].fillna("Broad Commodity Market").astype(str)
+    out["drilldown_section"] = "Market Opportunity"
+    out["drilldown_params_json"] = [
+        json.dumps(
+            {
+                "commodity_focus": str(row.get("peer_group_name") or "Broad Commodity Market").strip() or "Broad Commodity Market",
+                "horizon": str(row.get("horizon") or "").strip(),
+                "market_view": "Commodity Section",
+                "ticker": str(row.get("entity_id") or "").upper().strip(),
+            },
+            sort_keys=True,
+        )
+        for _, row in out.iterrows()
+    ]
+    return out
+
+
+def _decorate_commodity_attention_rollups(attention_rollups: pd.DataFrame) -> pd.DataFrame:
+    if attention_rollups.empty:
+        return attention_rollups
+
+    out = attention_rollups.copy()
+    rollup_types = out["rollup_type"].astype(str).str.lower()
+    market_mask = rollup_types == "market"
+    portfolio_mask = rollup_types == "portfolio"
+    focus_mask = rollup_types == "business_lens"
+
+    out.loc[market_mask, "rollup_type"] = "commodity_market"
+    out.loc[market_mask, "rollup_id"] = "commodity_market"
+    out.loc[market_mask, "rollup_name"] = "Commodities"
+
+    out.loc[portfolio_mask, "rollup_id"] = "commodity_portfolio"
+    out.loc[portfolio_mask, "rollup_name"] = "Commodity Portfolio"
+
+    out.loc[focus_mask, "rollup_type"] = "commodity_focus"
+
+    def _metric_int(value: object) -> int:
+        numeric = pd.to_numeric(value, errors="coerce")
+        return int(numeric) if pd.notna(numeric) else 0
+
+    def _metric_float(value: object) -> float:
+        numeric = pd.to_numeric(value, errors="coerce")
+        return float(numeric) if pd.notna(numeric) else 0.0
+
+    out["summary_text"] = [
+        (
+            f"{str(row.get('rollup_name') or '').strip() or 'Rollup'} has "
+            f"{_metric_int(row.get('active_event_count'))} active anomaly event(s); "
+            f"top score is {_metric_float(row.get('top_attention_score')):.1f}."
+        )
+        for _, row in out.iterrows()
+    ]
+    return out.sort_values(["net_attention_score", "active_event_count"], ascending=False, na_position="last").reset_index(drop=True)
+
+
 def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
     cfg = _alpaca_config()
     if cfg is None:
@@ -377,10 +567,17 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
         momentum = scan_momentum_profiles(api, symbols=symbols, days=momentum_lookback_days)
         _persist_dataset("momentum_profiles", momentum, ctx, conn)
 
+        phase_days = max(int(os.getenv("PHASE_SHIFT_DAYS", "365")), 120)
+        phase_corr_window = max(int(os.getenv("PHASE_SHIFT_CORR_WINDOW", "20")), 5)
+        phase_roc_window = max(int(os.getenv("PHASE_SHIFT_ROC_WINDOW", "10")), 1)
+        phase_momentum_window = max(int(os.getenv("PHASE_SHIFT_MOMENTUM_WINDOW", "63")), 5)
+        phase_benchmark = (os.getenv("PHASE_SHIFT_BENCHMARK") or "SPY").strip().upper() or "SPY"
+
         price_lookback_days = max(int(os.getenv("EQUITY_PRICE_LOOKBACK_DAYS", "3650")), 365)
         end = _utc_now()
         start = end - timedelta(days=price_lookback_days)
-        bars = api.get_stock_bars(symbols=symbols, start=start, end=end, timeframe="1Day", feed="iex")
+        bar_symbols = sorted({*symbols, phase_benchmark})
+        bars = api.get_stock_bars(symbols=bar_symbols, start=start, end=end, timeframe="1Day", feed="iex")
         parts: list[pd.DataFrame] = []
         for symbol, frame in bars.items():
             if frame.empty:
@@ -391,12 +588,6 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
             parts.append(chunk[keep])
         bars_frame = pd.concat(parts, ignore_index=True) if parts else pd.DataFrame()
         _persist_dataset("price_history", bars_frame, ctx, conn)
-
-        phase_days = max(int(os.getenv("PHASE_SHIFT_DAYS", "365")), 120)
-        phase_corr_window = max(int(os.getenv("PHASE_SHIFT_CORR_WINDOW", "20")), 5)
-        phase_roc_window = max(int(os.getenv("PHASE_SHIFT_ROC_WINDOW", "10")), 1)
-        phase_momentum_window = max(int(os.getenv("PHASE_SHIFT_MOMENTUM_WINDOW", "63")), 5)
-        phase_benchmark = (os.getenv("PHASE_SHIFT_BENCHMARK") or "SPY").strip().upper() or "SPY"
 
         phase_payload = scan_correlation_phase_shifts(
             api,
@@ -422,6 +613,8 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
         _persist_dataset("correlation_phase_shift_summary", phase_summary, ctx, conn)
         _persist_dataset("correlation_phase_shift_history", phase_history, ctx, conn)
 
+        technical_history = pd.DataFrame()
+        technical_latest = pd.DataFrame()
         if build_signal_frame is not None and summarize_signal_frame is not None:
             technical_history_parts: list[pd.DataFrame] = []
             technical_latest_rows: list[dict[str, object]] = []
@@ -448,6 +641,64 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
             _persist_dataset("technical_signals_latest", technical_latest, ctx, conn)
         else:
             print("[warn] signals module unavailable; skipping technical derivatives preload")
+
+        try:
+            peer_group_membership = build_peer_group_membership(asof_time_utc=pd.Timestamp(ctx.asof), symbols=symbols)
+            expectation_config = ExpectationConfig(
+                horizons=_parse_attention_horizons_env(),
+                min_history_rows=max(int(os.getenv("ATTENTION_MIN_HISTORY_ROWS", "21")), 5),
+                schema_version=(os.getenv("ATTENTION_SCHEMA_VERSION") or "v1").strip() or "v1",
+            )
+            attention_config = AttentionConfig(
+                residual_zscore_threshold=max(float(os.getenv("ATTENTION_RESIDUAL_ZSCORE_THRESHOLD", "2.0")), 0.5),
+                residual_zscore_thresholds=_parse_attention_thresholds_env() or None,
+                min_attention_score=max(float(os.getenv("ATTENTION_MIN_ATTENTION_SCORE", "0")), 0.0),
+                high_priority_threshold=max(float(os.getenv("ATTENTION_HIGH_PRIORITY_THRESHOLD", "75.0")), 1.0),
+                news_lookback_days=max(int(os.getenv("ATTENTION_NEWS_LOOKBACK_DAYS", "3")), 0),
+                persistence_periods=max(int(os.getenv("ATTENTION_PERSISTENCE_PERIODS", "2")), 1),
+                schema_version=(os.getenv("ATTENTION_SCHEMA_VERSION") or "v1").strip() or "v1",
+            )
+            news_symbol_map = _load_attention_news_map(api, symbols)
+            positions = _load_attention_positions(api)
+
+            price_expectations = build_price_expectations(
+                bars_frame,
+                momentum,
+                phase_summary,
+                peer_group_membership,
+                config=expectation_config,
+            )
+            attention_candidates = build_attention_candidates(
+                price_expectations,
+                technical_signals_latest=technical_latest,
+                news_symbol_map=news_symbol_map,
+                positions=positions,
+                config=attention_config,
+            )
+            anomaly_events = filter_attention_events(
+                attention_candidates,
+                config=attention_config,
+                statuses=["active", "cooling"],
+            )
+            attention_rollups = build_attention_rollups(
+                anomaly_events,
+                peer_group_membership,
+                high_priority_threshold=attention_config.high_priority_threshold,
+            )
+            attention_feed = build_attention_feed(
+                anomaly_events,
+                attention_rollups,
+                top_n=max(int(os.getenv("ATTENTION_FEED_TOP_N", "20")), 1),
+            )
+
+            _persist_dataset("peer_group_membership", peer_group_membership, ctx, conn)
+            _persist_dataset("price_expectations", price_expectations, ctx, conn)
+            _persist_dataset("attention_candidates", attention_candidates, ctx, conn)
+            _persist_dataset("anomaly_events", anomaly_events, ctx, conn)
+            _persist_dataset("attention_rollups", attention_rollups, ctx, conn)
+            _persist_dataset("attention_feed", attention_feed, ctx, conn)
+        except Exception as exc:
+            print(f"[warn] anomaly layer skipped: {type(exc).__name__}: {exc}")
 
         try:
             fundamentals_min_refresh_hours = max(float(os.getenv("FUNDAMENTALS_MIN_REFRESH_HOURS", "24")), 1.0)
@@ -511,8 +762,103 @@ def run_commodities(ctx: JobContext, conn: Any | None = None) -> None:
         history = payload.get("history", pd.DataFrame())
 
         _persist_dataset("commodity_regime_summary", summary, ctx, conn)
-
         _persist_dataset("commodity_regime_history", history, ctx, conn)
+
+        try:
+            peer_group_membership = build_commodity_peer_group_membership(asof_time_utc=pd.Timestamp(ctx.asof), symbols=symbols)
+            primary_membership = _primary_peer_group_snapshot(
+                peer_group_membership,
+                fallback_names={"Broad Commodity Market"},
+            )
+            expectation_config = ExpectationConfig(
+                horizons=_parse_attention_horizons_env(),
+                min_history_rows=max(int(os.getenv("ATTENTION_MIN_HISTORY_ROWS", "21")), 5),
+                schema_version=(os.getenv("ATTENTION_SCHEMA_VERSION") or "v1").strip() or "v1",
+            )
+            attention_config = AttentionConfig(
+                residual_zscore_threshold=max(float(os.getenv("ATTENTION_RESIDUAL_ZSCORE_THRESHOLD", "2.0")), 0.5),
+                residual_zscore_thresholds=_parse_attention_thresholds_env() or None,
+                min_attention_score=max(float(os.getenv("ATTENTION_MIN_ATTENTION_SCORE", "0")), 0.0),
+                high_priority_threshold=max(float(os.getenv("ATTENTION_HIGH_PRIORITY_THRESHOLD", "75.0")), 1.0),
+                news_lookback_days=max(int(os.getenv("ATTENTION_NEWS_LOOKBACK_DAYS", "3")), 0),
+                persistence_periods=max(int(os.getenv("ATTENTION_PERSISTENCE_PERIODS", "2")), 1),
+                schema_version=(os.getenv("ATTENTION_SCHEMA_VERSION") or "v1").strip() or "v1",
+            )
+
+            price_lookback_days = max(
+                int(os.getenv("COMMODITY_PRICE_LOOKBACK_DAYS", os.getenv("EQUITY_PRICE_LOOKBACK_DAYS", "3650"))),
+                252,
+            )
+            benchmark_symbols = (
+                primary_membership.get("benchmark", pd.Series(dtype=str))
+                .dropna()
+                .astype(str)
+                .str.upper()
+                .str.strip()
+                .tolist()
+            )
+            bars_frame = _load_stock_bars_frame(api, [*symbols, *benchmark_symbols], days=price_lookback_days)
+            momentum_lookback_days = max(
+                int(os.getenv("COMMODITY_MOMENTUM_LOOKBACK_DAYS", os.getenv("MOMENTUM_LOOKBACK_DAYS", "3650"))),
+                252,
+            )
+            momentum = scan_momentum_profiles(api, symbols=symbols, days=momentum_lookback_days)
+            news_symbol_map = _load_attention_news_map(api, symbols)
+            positions = _load_attention_positions(api)
+
+            phase_summary = summary.copy()
+            if not phase_summary.empty:
+                phase_summary["symbol"] = phase_summary["symbol"].astype(str).str.upper().str.strip()
+                phase_summary = phase_summary.merge(
+                    primary_membership.rename(columns={"entity_id": "symbol"})[["symbol", "benchmark"]],
+                    on="symbol",
+                    how="left",
+                )
+                keep = [col for col in ["symbol", "benchmark", "correlation_now", "correlation_roc"] if col in phase_summary.columns]
+                phase_summary = phase_summary[keep].drop_duplicates(subset=["symbol"], keep="last")
+
+            commodity_signals = _commodity_regime_signals(summary)
+            price_expectations = build_price_expectations(
+                bars_frame,
+                momentum,
+                phase_summary,
+                peer_group_membership,
+                config=expectation_config,
+            )
+            attention_candidates = build_attention_candidates(
+                price_expectations,
+                technical_signals_latest=commodity_signals,
+                news_symbol_map=news_symbol_map,
+                positions=positions,
+                config=attention_config,
+            )
+            anomaly_events = filter_attention_events(
+                attention_candidates,
+                config=attention_config,
+                statuses=["active", "cooling"],
+            )
+            attention_candidates = _decorate_commodity_anomaly_events(attention_candidates)
+            anomaly_events = _decorate_commodity_anomaly_events(anomaly_events)
+            attention_rollups = build_attention_rollups(
+                anomaly_events,
+                peer_group_membership,
+                high_priority_threshold=attention_config.high_priority_threshold,
+            )
+            attention_rollups = _decorate_commodity_attention_rollups(attention_rollups)
+            attention_feed = build_attention_feed(
+                anomaly_events,
+                attention_rollups,
+                top_n=max(int(os.getenv("ATTENTION_FEED_TOP_N", "20")), 1),
+            )
+
+            _persist_dataset("commodity_peer_group_membership", peer_group_membership, ctx, conn)
+            _persist_dataset("commodity_price_expectations", price_expectations, ctx, conn)
+            _persist_dataset("commodity_attention_candidates", attention_candidates, ctx, conn)
+            _persist_dataset("commodity_anomaly_events", anomaly_events, ctx, conn)
+            _persist_dataset("commodity_attention_rollups", attention_rollups, ctx, conn)
+            _persist_dataset("commodity_attention_feed", attention_feed, ctx, conn)
+        except Exception as exc:
+            print(f"[warn] commodity anomaly layer skipped: {type(exc).__name__}: {exc}")
     except AlpacaAPIError as exc:
         print(f"[error] commodity preload failed: {exc}")
 

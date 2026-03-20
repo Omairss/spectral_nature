@@ -28,6 +28,10 @@ DATASET_CAPABILITIES: dict[str, dict[str, Any]] = {
     "option_surface": {"params": ["ticker", "expected_price", "horizon_days", "underlying_price", "force_refresh"], "resolution": "materialized_first_then_on_demand"},
     "option_candidates": {"params": ["ticker", "expected_price", "horizon_days", "underlying_price", "force_refresh"], "resolution": "computed_from_option_surface"},
     "fred_dashboard": {"params": ["years", "force_refresh"], "resolution": "materialized_first"},
+    "attention_feed": {"params": ["limit", "entity_ids", "horizons", "statuses", "sensitivity", "min_attention_score", "residual_zscore_threshold", "force_refresh"], "resolution": "materialized"},
+    "attention_rollups": {"params": ["rollup_type", "horizons", "statuses", "sensitivity", "min_attention_score", "residual_zscore_threshold", "high_priority_threshold", "limit", "force_refresh"], "resolution": "materialized"},
+    "commodity_attention_feed": {"params": ["limit", "entity_ids", "horizons", "statuses", "sensitivity", "min_attention_score", "residual_zscore_threshold", "force_refresh"], "resolution": "materialized"},
+    "commodity_attention_rollups": {"params": ["rollup_type", "horizons", "statuses", "sensitivity", "min_attention_score", "residual_zscore_threshold", "high_priority_threshold", "limit", "force_refresh"], "resolution": "materialized"},
     "job_status": {"params": [], "resolution": "materialized"},
 }
 
@@ -130,6 +134,54 @@ class QueryService:
             )
         if key == "fred_dashboard":
             return self.data_access.resolve_fred_dashboard(years=int(params.get("years") or 10), force_refresh=bool(params.get("force_refresh", False)))
+        if key == "attention_feed":
+            return self.data_access.resolve_attention_feed(
+                limit=int(params.get("limit") or 10),
+                entity_ids=list(params.get("entity_ids") or []) or None,
+                horizons=list(params.get("horizons") or []) or None,
+                statuses=list(params.get("statuses") or []) or None,
+                sensitivity=str(params.get("sensitivity") or "").strip() or None,
+                min_attention_score=float(params["min_attention_score"]) if params.get("min_attention_score") is not None else None,
+                residual_zscore_threshold=float(params["residual_zscore_threshold"]) if params.get("residual_zscore_threshold") is not None else None,
+                force_refresh=bool(params.get("force_refresh", False)),
+            )
+        if key == "attention_rollups":
+            return self.data_access.resolve_attention_rollups(
+                rollup_type=str(params.get("rollup_type") or "").strip() or None,
+                horizons=list(params.get("horizons") or []) or None,
+                statuses=list(params.get("statuses") or []) or None,
+                sensitivity=str(params.get("sensitivity") or "").strip() or None,
+                min_attention_score=float(params["min_attention_score"]) if params.get("min_attention_score") is not None else None,
+                residual_zscore_threshold=float(params["residual_zscore_threshold"]) if params.get("residual_zscore_threshold") is not None else None,
+                high_priority_threshold=float(params["high_priority_threshold"]) if params.get("high_priority_threshold") is not None else None,
+                limit=int(params.get("limit") or 10),
+                force_refresh=bool(params.get("force_refresh", False)),
+            )
+        if key == "commodity_attention_feed":
+            return self.data_access.resolve_attention_feed(
+                dataset_name="commodity_attention_feed",
+                limit=int(params.get("limit") or 10),
+                entity_ids=list(params.get("entity_ids") or []) or None,
+                horizons=list(params.get("horizons") or []) or None,
+                statuses=list(params.get("statuses") or []) or None,
+                sensitivity=str(params.get("sensitivity") or "").strip() or None,
+                min_attention_score=float(params["min_attention_score"]) if params.get("min_attention_score") is not None else None,
+                residual_zscore_threshold=float(params["residual_zscore_threshold"]) if params.get("residual_zscore_threshold") is not None else None,
+                force_refresh=bool(params.get("force_refresh", False)),
+            )
+        if key == "commodity_attention_rollups":
+            return self.data_access.resolve_attention_rollups(
+                dataset_name="commodity_attention_rollups",
+                rollup_type=str(params.get("rollup_type") or "").strip() or None,
+                horizons=list(params.get("horizons") or []) or None,
+                statuses=list(params.get("statuses") or []) or None,
+                sensitivity=str(params.get("sensitivity") or "").strip() or None,
+                min_attention_score=float(params["min_attention_score"]) if params.get("min_attention_score") is not None else None,
+                residual_zscore_threshold=float(params["residual_zscore_threshold"]) if params.get("residual_zscore_threshold") is not None else None,
+                high_priority_threshold=float(params["high_priority_threshold"]) if params.get("high_priority_threshold") is not None else None,
+                limit=int(params.get("limit") or 10),
+                force_refresh=bool(params.get("force_refresh", False)),
+            )
         if key == "job_status":
             return self.data_access.latest_job_status()
 
