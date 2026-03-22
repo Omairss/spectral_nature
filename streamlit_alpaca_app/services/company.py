@@ -8,7 +8,7 @@ import re
 import pandas as pd
 
 from .alpaca_api import AlpacaAPI, AlpacaAPIError
-from .market import BUSINESS_FOCUS_UNIVERSES
+from .market import BUSINESS_FOCUS_UNIVERSES, commodity_proxy_profile
 
 
 COMPANY_ROLE_HINTS: dict[str, str] = {
@@ -66,7 +66,8 @@ BUSINESS_NARRATIVE_HINTS: dict[str, str] = {
 }
 
 NEWS_THEME_KEYWORDS: list[tuple[str, list[str]]] = [
-    ("AI rollout", [" ai ", "artificial intelligence", "copilot", "model", "llm", "on-device ai"]),
+    ("AI rollout", [" ai ", "artificial intelligence", "copilot", "model", "llm", "on-device ai", "ai spending", "ai capex"]),
+    ("data center buildout", ["data center", "datacenter", "gpu cluster", "training cluster", "server demand", "rack build"]),
     ("product cycle", ["product cycle", "replacement cycle", "upgrade cycle", "device", "iphone", "launch"]),
     ("services monetization", ["services", "subscription", "attach rate", "installed base", "monetization"]),
     ("cloud and enterprise spend", ["cloud", "enterprise", "software", "seat growth", "data center", "workload"]),
@@ -75,6 +76,8 @@ NEWS_THEME_KEYWORDS: list[tuple[str, list[str]]] = [
     ("housing demand", ["housing", "mortgage", "affordability", "homebuilder", "home sales", "repair and remodel"]),
     ("travel demand", ["travel", "booking", "airline", "hotel", "mobility", "rides"]),
     ("commodity prices", ["oil", "copper", "gold", "gas", "commodity", "metals", "mining"]),
+    ("supply tightness", ["shortage", "tight supply", "supply tightness", "supply squeeze", "inventory draw", "inventories", "physical supply", "mine disruption", "smelter", "shortfall", "bottleneck"]),
+    ("electrification buildout", ["electrification", "grid", "transmission", "battery", "power demand", "load growth"]),
     ("drug pipeline", ["drug", "trial", "approval", "therapy", "obesity", "pipeline", "clinical"]),
     ("regulation", ["regulation", "antitrust", "tariff", "policy", "approval", "scrutiny"]),
 ]
@@ -90,6 +93,37 @@ REGIME_TEXT: dict[str, str] = {
 
 def _normalized(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "", str(value).lower())
+
+
+def _coerce_items(value: object) -> list[object]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, (list, tuple, set, pd.Series, pd.Index)):
+        return list(value)
+    tolist = getattr(value, "tolist", None)
+    if callable(tolist):
+        try:
+            items = tolist()
+        except Exception:
+            items = value
+        if isinstance(items, list):
+            return items
+        if isinstance(items, tuple):
+            return list(items)
+        return [items]
+    return [value]
+
+
+def _symbol_tokens(value: object) -> list[str]:
+    tokens: list[str] = []
+    for item in _coerce_items(value):
+        for token in str(item).replace("|", ",").split(","):
+            cleaned = token.upper().strip()
+            if cleaned and cleaned.lower() != "nan":
+                tokens.append(cleaned)
+    return tokens
 
 
 def _candidate_news_dirs() -> list[Path]:
@@ -124,12 +158,7 @@ def _as_article_rows(items: list[dict], ticker: str) -> list[dict[str, object]]:
     target = _normalized(ticker)
     rows: list[dict[str, object]] = []
     for item in items:
-        raw_symbols = item.get("symbol") or item.get("symbols") or ""
-        symbols = [
-            symbol.upper()
-            for symbol in str(raw_symbols).replace("|", ",").split(",")
-            if symbol and _normalized(symbol) == target
-        ]
+        symbols = [symbol for value in [item.get("symbol"), item.get("symbols")] for symbol in _symbol_tokens(value) if _normalized(symbol) == target]
         if not symbols:
             continue
         rows.append(
@@ -294,6 +323,126 @@ def _extract_news_themes(payload: dict[str, object] | None) -> list[str]:
             scored.append((score, theme))
     scored.sort(key=lambda item: (-item[0], item[1]))
     return [theme for _, theme in scored[:3]]
+
+
+def _top_news_sources(payload: dict[str, object] | None, limit: int = 3) -> list[str]:
+    payload = payload or {}
+    articles = payload.get("articles")
+    if not isinstance(articles, pd.DataFrame) or articles.empty or "source" not in articles.columns:
+        return []
+
+    counts: dict[str, int] = {}
+    first_seen: list[str] = []
+    for value in articles["source"].dropna().astype(str).tolist():
+        source = value.strip()
+        if not source:
+            continue
+        if source not in counts:
+            counts[source] = 0
+            first_seen.append(source)
+        counts[source] += 1
+
+    ranked = sorted(first_seen, key=lambda item: (-counts[item], first_seen.index(item)))
+    return ranked[: max(int(limit), 1)]
+
+
+def _headline_links(payload: dict[str, object] | None, limit: int = 2) -> list[dict[str, object]]:
+    payload = payload or {}
+    articles = payload.get("articles")
+    if not isinstance(articles, pd.DataFrame) or articles.empty:
+        return []
+
+    rows: list[dict[str, object]] = []
+    for _, row in articles.head(max(int(limit), 1)).iterrows():
+        rows.append(
+            {
+                "headline": str(row.get("headline") or "Untitled").strip(),
+                "source": str(row.get("source") or "").strip(),
+                "published_at": pd.to_datetime(row.get("published_at"), utc=True, errors="coerce"),
+                "url": str(row.get("url") or "").strip(),
+            }
+        )
+    return rows
+
+
+def _compose_attention_news_story(
+    symbol: str,
+    themes: list[str],
+    *,
+    peer_group_name: str | None = None,
+    source_labels: list[str] | None = None,
+) -> str:
+    normalized_symbol = str(symbol or "").upper().strip()
+    source_text = _join_phrases(source_labels or [])
+    source_prefix = f"Coverage from {source_text}" if source_text else "Recent coverage"
+    normalized_peer_group = str(peer_group_name or "").strip()
+    theme_set = set(themes)
+
+    commodity_profile = commodity_proxy_profile(normalized_symbol)
+    commodity_name = str(commodity_profile.get("commodity") or "").strip()
+    is_commodity_proxy = commodity_name not in {"", "Commodity proxy"}
+
+    if commodity_name == "Copper":
+        if theme_set & {"AI rollout", "data center buildout", "cloud and enterprise spend"}:
+            lead = f"{source_prefix} is tying the move to AI and data-center spending feeding into copper demand."
+            if "supply tightness" in theme_set:
+                return lead + " The same coverage also points to tighter supply, which can amplify the squeeze."
+            return lead
+        if "supply tightness" in theme_set:
+            return f"{source_prefix} is leaning into a tighter physical copper market, with supply and inventory pressure driving the story."
+
+    if is_commodity_proxy and normalized_peer_group:
+        lowered_group = normalized_peer_group.lower()
+        if "supply tightness" in theme_set:
+            return f"{source_prefix} is framing this as a {lowered_group} supply story, with tighter availability pushing the tape away from expectation."
+        if themes:
+            theme_text = _join_phrases([theme.lower() for theme in themes[:2]])
+            return f"{source_prefix} is clustering around {theme_text}, which fits the current {lowered_group} move."
+
+    matched_lenses = [normalized_peer_group] if normalized_peer_group and normalized_peer_group not in {"All Market", "Broad Commodity Market"} else _matched_business_lenses(normalized_symbol)
+    if matched_lenses and themes:
+        theme_text = _join_phrases([theme.lower() for theme in themes[:2]])
+        return f"{source_prefix} is clustering around {theme_text}, which lines up with the {matched_lenses[0].lower()} narrative."
+    if themes:
+        theme_text = _join_phrases([theme.lower() for theme in themes[:2]])
+        return f"{source_prefix} is clustering around {theme_text}, which helps explain why the move looks idiosyncratic."
+    if source_text:
+        return f"{source_prefix} is providing the clearest narrative context behind the current move."
+    return ""
+
+
+def build_attention_news_narrative(
+    ticker: str,
+    payload: dict[str, object] | None,
+    *,
+    peer_group_name: str | None = None,
+) -> dict[str, object]:
+    payload = payload or {}
+    summary = summarize_recent_news(ticker, payload)
+    themes = _extract_news_themes(payload)
+    source_labels = _top_news_sources(payload, limit=3)
+    narrative_text = _compose_attention_news_story(
+        ticker,
+        themes,
+        peer_group_name=peer_group_name,
+        source_labels=source_labels,
+    )
+
+    if not narrative_text and summary.get("summary_lines"):
+        narrative_text = str(summary["summary_lines"][0]).strip()
+
+    source_line = ""
+    if source_labels:
+        source_line = f"Sources: {_join_phrases(source_labels)}"
+
+    return {
+        "narrative_text": narrative_text,
+        "source_line": source_line,
+        "source_labels": source_labels,
+        "themes": themes,
+        "headline_links": _headline_links(payload, limit=2),
+        "articles": summary.get("articles", pd.DataFrame()),
+    }
 
 
 def build_company_description(

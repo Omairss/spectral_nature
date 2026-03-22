@@ -18,9 +18,10 @@ from streamlit.components.v1 import html as components_html
 from compute.anomalies import SENSITIVITY_PRESETS, attention_preset, normalize_horizons
 from compute.portfolio import normalize_timeseries_view
 from data_access.layer import DataAccessLayer
+from services import auth_service
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
 from services.analytics import build_metric_bar, build_portfolio_vs_benchmarks_fig, select_signed_ranked
-from services.company import build_company_description, summarize_recent_news
+from services.company import build_attention_news_narrative, build_company_description, summarize_recent_news
 from services.config import AppConfig, load_config
 from services.data_cache import cache_bundle_exists, cache_data_root, cache_policy_path, dataset_scope
 from services.fred import (
@@ -43,6 +44,7 @@ from services.pipeline_store import (
 from services.secrets import resolve_secret_value
 from services.fundamentals import plot_statement
 from services.market import (
+    business_focus_for_symbol,
     business_focus_description,
     business_focus_options,
     business_focus_universe,
@@ -52,6 +54,7 @@ from services.market import (
     commodity_focus_universe,
     commodity_proxy_profile,
     commodity_reference_universe,
+    extend_symbol_universe,
 )
 from services.options import rank_options
 from services.technicals import build_technical_figure
@@ -106,7 +109,7 @@ if not LOGGER.handlers:
 LOGGER.setLevel(logging.INFO)
 LOGGER.propagate = False
 
-SECTION_OPTIONS = [
+BASE_SECTION_OPTIONS = [
     "Home",
     "Portfolio Overview",
     "Performance",
@@ -117,6 +120,7 @@ SECTION_OPTIONS = [
     "Option Strategizer",
     "Fundamental Strategizer",
 ]
+ADMIN_SECTION = "Access Admin"
 
 SOURCE_LABELS = {
     "equities": "Equities",
@@ -231,6 +235,80 @@ def _auth_enabled() -> bool:
     return raw not in {"0", "false", "no", "off"}
 
 
+def _current_user_context() -> auth_service.UserContext | None:
+    return auth_service.UserContext.from_dict(st.session_state.get("_ui_user_context"))
+
+
+def _store_user_context(context: auth_service.UserContext | None) -> None:
+    st.session_state["_ui_user_context"] = context.to_dict() if context is not None else None
+
+
+def _current_user_share_fraction() -> float:
+    context = _current_user_context()
+    if context is None:
+        return 1.0
+    return max(float(context.share_fraction or 0.0), 0.0)
+
+
+def _current_user_can_view_full_portfolio() -> bool:
+    context = _current_user_context()
+    if context is None:
+        return True
+    return bool(context.can_view_full_portfolio)
+
+
+def _current_user_is_admin() -> bool:
+    context = _current_user_context()
+    return bool(context.is_admin) if context is not None else False
+
+
+def _section_options() -> list[str]:
+    options = list(BASE_SECTION_OPTIONS)
+    if _current_user_is_admin():
+        options.append(ADMIN_SECTION)
+    return options
+
+
+def _query_param_value(name: str) -> str:
+    try:
+        raw = st.query_params.get(name, "")
+    except Exception:
+        return ""
+    if isinstance(raw, list):
+        return str(raw[0] or "").strip() if raw else ""
+    return str(raw or "").strip()
+
+
+def _clear_auth_query_params() -> None:
+    try:
+        params = st.query_params
+        for key in ["invite_token", "reset_token"]:
+            if key in params:
+                del params[key]
+    except Exception:
+        return
+
+
+def _request_headers() -> dict[str, str]:
+    headers = getattr(st.context, "headers", {}) or {}
+    if isinstance(headers, dict):
+        return {str(key): str(value) for key, value in headers.items()}
+    return {}
+
+
+def _request_ip_address() -> str:
+    headers = _request_headers()
+    forwarded = headers.get("X-Forwarded-For") or headers.get("x-forwarded-for") or ""
+    if forwarded:
+        return str(forwarded).split(",")[0].strip()
+    return headers.get("X-Real-Ip") or headers.get("x-real-ip") or ""
+
+
+def _request_user_agent() -> str:
+    headers = _request_headers()
+    return headers.get("User-Agent") or headers.get("user-agent") or ""
+
+
 def _auth_username() -> str:
     return resolve_secret_value(
         ["DASHBOARD_AUTH_USERNAME"],
@@ -297,7 +375,7 @@ def _invalidate_auth_session(session_id: str | None) -> None:
     _auth_session_registry().pop(session_id, None)
 
 
-def _restore_login_from_cookie() -> bool:
+def _restore_legacy_login_from_cookie() -> bool:
     session_id = _auth_cookie_value()
     if not session_id:
         return False
@@ -312,40 +390,47 @@ def _restore_login_from_cookie() -> bool:
 
     st.session_state["_ui_authenticated"] = True
     st.session_state["_ui_auth_session_id"] = session_id
+    st.session_state["_ui_auth_mode"] = "legacy"
+    _store_user_context(None)
     return True
 
 
-def _enforce_login_gate() -> None:
-    if not _auth_enabled():
-        st.session_state["_ui_authenticated"] = True
-        return
-
-    if st.session_state.pop("_ui_clear_auth_cookie", False):
+def _restore_database_login_from_cookie() -> bool:
+    session_token = _auth_cookie_value()
+    if not session_token:
+        return False
+    context = auth_service.restore_user_from_session(session_token)
+    if context is None:
         _render_auth_cookie_sync("clear")
+        return False
+    st.session_state["_ui_authenticated"] = True
+    st.session_state["_ui_auth_session_id"] = session_token
+    st.session_state["_ui_auth_mode"] = "database"
+    _store_user_context(context)
+    return True
 
-    if st.session_state.get("_ui_authenticated"):
-        return
 
-    if _restore_login_from_cookie():
-        return
-
+def _render_legacy_login_gate() -> None:
     username_expected = _auth_username()
     password_expected = _auth_password()
     st.title("Spectral Nature Login")
 
     if not username_expected or not password_expected:
-        st.error("Dashboard authentication is enabled, but login credentials are not configured.")
+        st.error("Dashboard authentication is enabled, but legacy login credentials are not configured.")
         st.code(
             "export DASHBOARD_AUTH_ENABLED=true\n"
             "export DASHBOARD_AUTH_USERNAME='admin'\n"
             "export DASHBOARD_AUTH_PASSWORD='change-me'\n"
-            "# or provide Key Vault secret names via:\n"
-            "# DASHBOARD_AUTH_USERNAME_SECRET / DASHBOARD_AUTH_PASSWORD_SECRET",
+            "# or switch to database auth:\n"
+            "# export DASHBOARD_AUTH_MODE='database'\n"
+            "# export POSTGRES_CONNECTION_STRING='postgresql://...'\n"
+            "# export DASHBOARD_AUTH_BOOTSTRAP_ADMIN_EMAIL='admin@example.com'\n"
+            "# export DASHBOARD_AUTH_BOOTSTRAP_ADMIN_PASSWORD='ChangeMe1234'\n",
             language="bash",
         )
         st.stop()
 
-    with st.form("dashboard_login", clear_on_submit=False):
+    with st.form("dashboard_login_legacy", clear_on_submit=False):
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
         submitted = st.form_submit_button("Login", type="primary")
@@ -355,11 +440,264 @@ def _enforce_login_gate() -> None:
             session_id = _create_auth_session(username_expected)
             st.session_state["_ui_authenticated"] = True
             st.session_state["_ui_auth_session_id"] = session_id
+            st.session_state["_ui_auth_mode"] = "legacy"
+            _store_user_context(None)
             _render_auth_cookie_sync("set", session_id)
             return
-        else:
-            st.error("Invalid username or password.")
+        st.error("Invalid username or password.")
     st.stop()
+
+
+def _render_database_login_gate() -> None:
+    auth_state = auth_service.initialize_auth_system()
+    st.title("Spectral Nature Login")
+
+    if not auth_state.get("available"):
+        st.error("Database-backed authentication is enabled, but the auth store is unavailable.")
+        st.code(
+            "export DASHBOARD_AUTH_MODE='database'\n"
+            "export POSTGRES_CONNECTION_STRING='postgresql://...'\n"
+            "streamlit run app.py",
+            language="bash",
+        )
+        st.stop()
+
+    if not auth_state.get("has_users"):
+        st.error("Database auth is configured, but no users are available yet.")
+        st.code(
+            "export DASHBOARD_AUTH_MODE='database'\n"
+            "export POSTGRES_CONNECTION_STRING='postgresql://...'\n"
+            "export DASHBOARD_AUTH_BOOTSTRAP_ADMIN_EMAIL='admin@example.com'\n"
+            "export DASHBOARD_AUTH_BOOTSTRAP_ADMIN_PASSWORD='ChangeMe1234'\n"
+            "streamlit run app.py",
+            language="bash",
+        )
+        st.stop()
+
+    invite_token = _query_param_value("invite_token")
+    reset_token = _query_param_value("reset_token")
+    login_tab, create_tab, forgot_tab, reset_tab = st.tabs(["Login", "Create Account", "Forgot Password", "Reset Password"])
+
+    with login_tab:
+        with st.form("dashboard_login_db", clear_on_submit=False):
+            email = st.text_input("Email")
+            password = st.text_input("Password", type="password")
+            submitted = st.form_submit_button("Login", type="primary")
+        if submitted:
+            result = auth_service.authenticate_user(
+                email=email,
+                password=password,
+                user_agent=_request_user_agent(),
+                ip_address=_request_ip_address(),
+            )
+            if result.get("ok"):
+                context = result.get("context")
+                session_token = str(result.get("session_token") or "")
+                if isinstance(context, auth_service.UserContext) and session_token:
+                    st.session_state["_ui_authenticated"] = True
+                    st.session_state["_ui_auth_session_id"] = session_token
+                    st.session_state["_ui_auth_mode"] = "database"
+                    _store_user_context(context)
+                    _render_auth_cookie_sync("set", session_token)
+                    st.rerun()
+            else:
+                st.error(str(result.get("message") or "Login failed."))
+
+    with create_tab:
+        preview = auth_service.get_invite_preview(invite_token) if invite_token else None
+        if preview:
+            st.caption(f"Invite for {preview.get('email')} | role: {preview.get('role')} | share: {float(preview.get('proposed_share_fraction') or 0.0) * 100:.2f}%")
+        with st.form("dashboard_create_account", clear_on_submit=False):
+            invite_token_input = st.text_input("Invite token", value=invite_token)
+            first_name = st.text_input("First name")
+            last_name = st.text_input("Last name")
+            display_name = st.text_input("Display name (optional)")
+            password = st.text_input("Password", type="password", key="create_password")
+            confirm_password = st.text_input("Confirm password", type="password")
+            accepted = st.form_submit_button("Create account", type="primary")
+        if accepted:
+            if password != confirm_password:
+                st.error("Passwords do not match.")
+            else:
+                result = auth_service.accept_invite(
+                    invite_token=invite_token_input,
+                    first_name=first_name,
+                    last_name=last_name,
+                    display_name=display_name,
+                    password=password,
+                    user_agent=_request_user_agent(),
+                    ip_address=_request_ip_address(),
+                )
+                if result.get("ok"):
+                    context = result.get("context")
+                    session_token = str(result.get("session_token") or "")
+                    if isinstance(context, auth_service.UserContext) and session_token:
+                        _clear_auth_query_params()
+                        st.session_state["_ui_authenticated"] = True
+                        st.session_state["_ui_auth_session_id"] = session_token
+                        st.session_state["_ui_auth_mode"] = "database"
+                        _store_user_context(context)
+                        _render_auth_cookie_sync("set", session_token)
+                        st.success("Account created. Loading your workspace...")
+                        st.rerun()
+                else:
+                    st.error(str(result.get("message") or "Account creation failed."))
+
+    with forgot_tab:
+        with st.form("dashboard_forgot_password", clear_on_submit=False):
+            forgot_email = st.text_input("Email", key="forgot_password_email")
+            requested = st.form_submit_button("Send reset instructions")
+        if requested:
+            result = auth_service.request_password_reset(
+                email=forgot_email,
+                requested_ip=_request_ip_address(),
+            )
+            st.success(str(result.get("message") or "If an account exists, reset instructions have been sent."))
+            if not auth_state.get("email_delivery"):
+                st.caption("Email delivery is not configured in this environment. Contact an administrator for a reset link.")
+
+    with reset_tab:
+        with st.form("dashboard_reset_password", clear_on_submit=False):
+            reset_token_input = st.text_input("Reset token", value=reset_token)
+            new_password = st.text_input("New password", type="password")
+            confirm_new_password = st.text_input("Confirm new password", type="password")
+            reset_submitted = st.form_submit_button("Reset password", type="primary")
+        if reset_submitted:
+            if new_password != confirm_new_password:
+                st.error("Passwords do not match.")
+            else:
+                result = auth_service.complete_password_reset(
+                    reset_token=reset_token_input,
+                    new_password=new_password,
+                )
+                if result.get("ok"):
+                    _clear_auth_query_params()
+                    st.success(str(result.get("message") or "Password reset complete."))
+                else:
+                    st.error(str(result.get("message") or "Password reset failed."))
+
+    st.stop()
+
+
+def _enforce_login_gate() -> None:
+    if not _auth_enabled():
+        st.session_state["_ui_authenticated"] = True
+        st.session_state["_ui_auth_mode"] = "disabled"
+        return
+
+    if st.session_state.pop("_ui_clear_auth_cookie", False):
+        _render_auth_cookie_sync("clear")
+
+    if st.session_state.get("_ui_authenticated"):
+        return
+
+    if auth_service.database_auth_enabled():
+        if _restore_database_login_from_cookie():
+            return
+        _render_database_login_gate()
+        return
+
+    if _restore_legacy_login_from_cookie():
+        return
+    _render_legacy_login_gate()
+
+
+def _render_access_admin_section() -> None:
+    st.title("Access Admin")
+    if st.session_state.get("_ui_auth_mode") != "database":
+        st.info("Database-backed auth is required for user invites and password reset management.")
+        return
+
+    current_user = _current_user_context()
+    if current_user is None or not current_user.is_admin:
+        st.error("Only admin users can access this section.")
+        return
+
+    auth_state = auth_service.initialize_auth_system()
+    st.caption(
+        "Manage invite-based account creation, review pending invites, and issue password reset links."
+    )
+    st.caption(
+        f"Email delivery: {'configured' if auth_state.get('email_delivery') else 'not configured'}"
+    )
+
+    invite_col, reset_col = st.columns(2)
+    with invite_col:
+        st.subheader("Create Invite")
+        with st.form("access_admin_invite", clear_on_submit=True):
+            invite_email = st.text_input("Email")
+            invite_role = st.selectbox("Role", ["investor", "viewer", "admin"], index=0)
+            invite_share_pct = st.number_input("Portfolio share %", min_value=0.0, max_value=100.0, value=0.0, step=0.25)
+            invite_submitted = st.form_submit_button("Create invite", type="primary")
+        if invite_submitted:
+            share_fraction = float(invite_share_pct) / 100.0 if invite_role == "investor" else 0.0
+            result = auth_service.issue_invite(
+                email=invite_email,
+                role=invite_role,
+                share_fraction=share_fraction,
+                created_by=current_user,
+            )
+            if result.get("ok"):
+                st.success("Invite created.")
+                if result.get("email_sent"):
+                    st.caption(str(result.get("email_message") or "Invite email sent."))
+                else:
+                    st.caption(str(result.get("email_message") or "Email not sent."))
+                    st.code(str(result.get("invite_url") or ""), language="text")
+            else:
+                st.error(str(result.get("message") or "Invite creation failed."))
+
+    with reset_col:
+        st.subheader("Issue Password Reset")
+        with st.form("access_admin_reset", clear_on_submit=True):
+            reset_email = st.text_input("User email")
+            reset_submitted = st.form_submit_button("Issue reset link", type="primary")
+        if reset_submitted:
+            result = auth_service.admin_issue_password_reset(
+                email=reset_email,
+                requested_by=current_user,
+            )
+            if result.get("ok"):
+                st.success("Password reset issued.")
+                if result.get("email_sent"):
+                    st.caption(str(result.get("email_message") or "Reset email sent."))
+                else:
+                    st.caption(str(result.get("email_message") or "Email not sent."))
+                    st.code(str(result.get("reset_url") or ""), language="text")
+            else:
+                st.error(str(result.get("message") or "Reset issuance failed."))
+
+    users = pd.DataFrame(auth_service.list_users())
+    st.subheader("Users")
+    if users.empty:
+        st.info("No users found.")
+    else:
+        display_cols = [
+            column
+            for column in [
+                "email",
+                "display_name",
+                "role",
+                "membership_role",
+                "share_fraction",
+                "can_view_full_portfolio",
+                "status",
+                "last_login_at",
+            ]
+            if column in users.columns
+        ]
+        if "share_fraction" in users.columns:
+            users["share_fraction"] = pd.to_numeric(users["share_fraction"], errors="coerce") * 100.0
+        st.dataframe(users[display_cols], use_container_width=True, hide_index=True)
+
+    invites = pd.DataFrame(auth_service.list_pending_invites())
+    st.subheader("Pending Invites")
+    if invites.empty:
+        st.info("No pending invites.")
+    else:
+        if "proposed_share_fraction" in invites.columns:
+            invites["proposed_share_fraction"] = pd.to_numeric(invites["proposed_share_fraction"], errors="coerce") * 100.0
+        st.dataframe(invites, use_container_width=True, hide_index=True)
 
 
 def _has_live_api(api: AlpacaAPI | None, message: str, *, allow_pipeline: bool = False) -> bool:
@@ -423,14 +761,29 @@ def _resolve_data_access_payload(
 
 
 def _load_account_cached(cfg: AppConfig, force_refresh: bool = False) -> dict[str, object]:
+    context = _current_user_context()
+    if context is not None and not context.can_view_full_portfolio:
+        return _resolve_data_access_payload("resolve_user_account", cfg=cfg, user_context=context, force_refresh=force_refresh)
     return _resolve_data_access_payload("resolve_account", cfg=cfg, force_refresh=force_refresh)
 
 
 def _load_positions_cached(cfg: AppConfig, force_refresh: bool = False) -> pd.DataFrame:
+    context = _current_user_context()
+    if context is not None and not context.can_view_full_portfolio:
+        return _resolve_data_access_payload("resolve_user_positions", cfg=cfg, user_context=context, force_refresh=force_refresh)
     return _resolve_data_access_payload("resolve_positions", cfg=cfg, force_refresh=force_refresh)
 
 
 def _load_timeseries_cached(cfg: AppConfig, period: str, force_refresh: bool = False) -> pd.DataFrame:
+    context = _current_user_context()
+    if context is not None and not context.can_view_full_portfolio:
+        return _resolve_data_access_payload(
+            "resolve_user_portfolio_timeseries",
+            cfg=cfg,
+            user_context=context,
+            period=period,
+            force_refresh=force_refresh,
+        )
     return _resolve_data_access_payload(
         "resolve_portfolio_timeseries",
         cfg=cfg,
@@ -440,6 +793,15 @@ def _load_timeseries_cached(cfg: AppConfig, period: str, force_refresh: bool = F
 
 
 def _load_portfolio_performance_cached(cfg: AppConfig, period: str, force_refresh: bool = False) -> pd.DataFrame:
+    context = _current_user_context()
+    if context is not None and not context.can_view_full_portfolio:
+        return _resolve_data_access_payload(
+            "resolve_user_portfolio_performance",
+            cfg=cfg,
+            user_context=context,
+            period=period,
+            force_refresh=force_refresh,
+        )
     return _resolve_data_access_payload(
         "resolve_portfolio_performance",
         cfg=cfg,
@@ -697,6 +1059,20 @@ def _load_recent_news_cached(
     )
 
 
+def _load_attention_context_cached(
+    cfg: AppConfig,
+    ticker: str,
+    force_refresh: bool = False,
+) -> dict[str, object]:
+    return _resolve_data_access_payload(
+        "resolve_attention_context",
+        cfg=cfg,
+        source="news",
+        ticker=ticker,
+        force_refresh=force_refresh,
+    )
+
+
 def _load_fred_dashboard_cached(api_key: str, years: int, force_refresh: bool = False) -> dict[str, object]:
     return _resolve_data_access_payload(
         "resolve_fred_dashboard",
@@ -813,22 +1189,55 @@ def _attention_sensitivity_label(key: str) -> str:
     return str(preset.get("label") or str(key).replace("_", " ").title())
 
 
+def _prime_widget_choice(
+    key: str,
+    options: list[str] | tuple[str, ...],
+    *,
+    fallback: str,
+    pending_key: str | None = None,
+) -> str:
+    available = [str(option) for option in options]
+    if not available:
+        return ""
+    default_value = fallback if fallback in available else available[0]
+    queued_key = pending_key or f"_pending_{key}"
+    pending_value = str(st.session_state.pop(queued_key, "") or "").strip()
+    current_value = str(st.session_state.get(key, "") or "").strip()
+    selected_value = pending_value or current_value or default_value
+    if selected_value not in available:
+        selected_value = default_value
+    if current_value != selected_value:
+        st.session_state[key] = selected_value
+    return selected_value
+
+
 def _open_attention_target(section_name: str, params: dict[str, object] | None = None) -> None:
     target = str(section_name or "").strip() or "Market Opportunity"
     payload = dict(params or {})
     ticker = str(payload.get("ticker") or "").upper().strip()
     market_view = str(payload.get("market_view") or "").strip()
+    business_filter = str(payload.get("business_filter") or "").strip()
     commodity_focus = str(payload.get("commodity_focus") or "").strip()
+    normalized_market_view = market_view or ("Commodity Section" if commodity_focus else "Markets")
 
     st.session_state["_pending_workspace_section"] = target
     if target == "Market Opportunity":
-        st.session_state["market_view"] = market_view or "Markets"
-        if commodity_focus:
-            st.session_state["market_commodity_focus"] = commodity_focus
+        st.session_state["_pending_market_view"] = normalized_market_view
+        if normalized_market_view == "Commodity Section":
+            st.session_state.pop("_pending_market_business_filter", None)
+            st.session_state["_pending_market_commodity_focus"] = commodity_focus or "Broad Commodity Market"
+        elif normalized_market_view == "Markets":
+            st.session_state.pop("_pending_market_commodity_focus", None)
+            inferred_business_filter = business_filter or business_focus_for_symbol(ticker)
+            st.session_state["_pending_market_business_filter"] = inferred_business_filter or "All Market"
+        elif normalized_market_view == "Broad Markets":
+            st.session_state.pop("_pending_market_commodity_focus", None)
+            if business_filter:
+                st.session_state["_pending_market_business_filter"] = business_filter
     if ticker:
         st.session_state["market_selected_ticker"] = ticker
         st.session_state["market_ticker_detail_widget"] = ticker
-        if target == "Market Opportunity" and market_view == "Commodity Section":
+        if target == "Market Opportunity" and normalized_market_view == "Commodity Section":
             st.session_state["market_commodity_selected_ticker"] = ticker
             st.session_state["market_commodity_ticker_widget"] = ticker
         st.session_state["technical_ticker"] = ticker
@@ -837,7 +1246,175 @@ def _open_attention_target(section_name: str, params: dict[str, object] | None =
     st.rerun()
 
 
-def _render_attention_card(row: pd.Series, *, key_prefix: str) -> None:
+def _attention_story_text(row: pd.Series) -> str:
+    story = str(row.get("story_text") or "").strip()
+    if story:
+        return story
+    why_now = str(row.get("why_now_text") or "").strip()
+    if why_now:
+        return why_now
+    entity_id = str(row.get("entity_id") or "").upper().strip()
+    return f"{entity_id} is moving away from expectation." if entity_id else ""
+
+
+def _attention_key_points_text(row: pd.Series) -> str:
+    pieces: list[str] = []
+    horizon = str(row.get("horizon") or "").strip()
+    if horizon:
+        pieces.append(ATTENTION_HORIZON_LABELS.get(horizon, horizon))
+
+    residual = pd.to_numeric(row.get("residual_value"), errors="coerce")
+    if pd.notna(residual):
+        pieces.append(f"Residual {_format_scalar(residual, digits=2, suffix='%', signed=True)}")
+
+    residual_zscore = pd.to_numeric(row.get("residual_zscore"), errors="coerce")
+    if pd.notna(residual_zscore):
+        pieces.append(f"{_format_scalar(residual_zscore, digits=2, signed=True)}z")
+
+    peer_group_name = str(row.get("peer_group_name") or "").strip()
+    if peer_group_name and peer_group_name != "All Market":
+        pieces.append(peer_group_name)
+
+    regime_label = str(row.get("regime_label") or "").strip()
+    if regime_label:
+        pieces.append(regime_label)
+
+    linked_news_count = pd.to_numeric(row.get("linked_news_count"), errors="coerce")
+    if pd.notna(linked_news_count) and int(linked_news_count) > 0:
+        count = int(linked_news_count)
+        pieces.append(f"{count} headline{'s' if count != 1 else ''}")
+
+    return " | ".join(piece for piece in pieces if piece)
+
+
+def _build_attention_micro_chart(row: pd.Series) -> go.Figure | None:
+    expected = pd.to_numeric(row.get("expected_value"), errors="coerce")
+    observed = pd.to_numeric(row.get("observed_value"), errors="coerce")
+    residual = pd.to_numeric(row.get("residual_value"), errors="coerce")
+
+    if pd.isna(expected) or pd.isna(observed):
+        return None
+
+    expected_value = float(expected)
+    observed_value = float(observed)
+    accent = "#34d399" if observed_value >= expected_value else "#f87171"
+    neutral = "#94a3b8"
+    max_abs = max(abs(expected_value), abs(observed_value), 0.5)
+    padding = max(0.75, max_abs * 0.25)
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Bar(
+            x=[expected_value, observed_value],
+            y=["Expected", "Observed"],
+            orientation="h",
+            marker_color=[neutral, accent],
+            text=[f"{expected_value:+.1f}%", f"{observed_value:+.1f}%"],
+            textposition="auto",
+            hovertemplate="%{y}: %{x:+.2f}%<extra></extra>",
+        )
+    )
+    fig.add_vline(x=0.0, line_color="rgba(148, 163, 184, 0.45)", line_width=1, line_dash="dot")
+    annotations: list[dict[str, object]] = []
+    if pd.notna(residual):
+        annotations.append(
+            {
+                "x": 0.99,
+                "xref": "paper",
+                "y": 1.12,
+                "yref": "paper",
+                "text": f"Gap {float(residual):+.2f}%",
+                "showarrow": False,
+                "font": {"size": 11, "color": accent},
+                "xanchor": "right",
+            }
+        )
+    fig.update_layout(
+        template="plotly_dark",
+        height=155,
+        margin=dict(l=8, r=8, t=28, b=8),
+        showlegend=False,
+        bargap=0.35,
+        annotations=annotations,
+        xaxis=dict(
+            title=None,
+            ticksuffix="%",
+            range=[-(max_abs + padding), max_abs + padding],
+            showgrid=True,
+            gridcolor="rgba(148, 163, 184, 0.12)",
+            zeroline=False,
+            fixedrange=True,
+        ),
+        yaxis=dict(title=None, fixedrange=True, automargin=True),
+    )
+    return fig
+
+
+def _load_attention_news_payloads(
+    cfg: AppConfig,
+    symbols: list[str],
+    *,
+    force_refresh: bool = False,
+) -> dict[str, dict[str, object]]:
+    payloads: dict[str, dict[str, object]] = {}
+    for symbol in dict.fromkeys(str(value or "").upper().strip() for value in symbols):
+        if not symbol:
+            continue
+        try:
+            payloads[symbol] = _load_recent_news_cached(
+                cfg,
+                symbol,
+                days=14,
+                limit=6,
+                force_refresh=force_refresh,
+            )
+        except Exception:
+            payloads[symbol] = {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
+    return payloads
+
+
+def _load_attention_context_payloads(
+    cfg: AppConfig,
+    symbols: list[str],
+    *,
+    force_refresh: bool = False,
+) -> dict[str, dict[str, object]]:
+    payloads: dict[str, dict[str, object]] = {}
+    for symbol in dict.fromkeys(str(value or "").upper().strip() for value in symbols):
+        if not symbol:
+            continue
+        try:
+            payloads[symbol] = _load_attention_context_cached(
+                cfg,
+                symbol,
+                force_refresh=force_refresh,
+            )
+        except Exception:
+            payloads[symbol] = {
+                "symbol": symbol,
+                "context_story_text": "",
+                "primary_source_excerpt": "",
+                "source_line": "",
+                "llm_headline": "",
+                "llm_summary_text": "",
+                "llm_narrative_text": "",
+                "llm_why_now": "",
+                "llm_management_signal": "",
+                "llm_confidence": "",
+                "llm_source_line": "",
+                "llm_supporting_points": [],
+                "top_filing_links": [],
+            }
+    return payloads
+
+
+def _render_attention_card(
+    row: pd.Series,
+    *,
+    key_prefix: str,
+    news_payload: dict[str, object] | None = None,
+    context_payload: dict[str, object] | None = None,
+) -> None:
     params = _parse_drilldown_params(row.get("drilldown_params_json"))
     title = str(row.get("title") or row.get("entity_id") or "Untitled anomaly").strip()
     subtitle = str(row.get("subtitle") or "").strip()
@@ -860,20 +1437,103 @@ def _render_attention_card(row: pd.Series, *, key_prefix: str) -> None:
         with header_cols[2]:
             st.metric("News", str(linked_news_count))
 
-        detail_cols = st.columns(3)
-        with detail_cols[0]:
-            st.metric("Severity", _format_scalar(row.get("severity_score"), digits=1))
-        with detail_cols[1]:
-            st.metric("Impact", _format_scalar(row.get("impact_score"), digits=1))
-        with detail_cols[2]:
-            st.metric("Entity", entity_id or "n/a")
-
+        story_text = _attention_story_text(row)
+        news_context = build_attention_news_narrative(
+            entity_id,
+            news_payload,
+            peer_group_name=str(row.get("peer_group_name") or "").strip(),
+        )
+        news_story_text = str(news_context.get("narrative_text") or "").strip()
+        news_source_line = str(news_context.get("source_line") or "").strip()
+        headline_links = news_context.get("headline_links", [])
+        context_story_text = str((context_payload or {}).get("context_story_text") or "").strip()
+        primary_source_excerpt = str((context_payload or {}).get("primary_source_excerpt") or "").strip()
+        primary_source_line = str((context_payload or {}).get("source_line") or "").strip()
+        llm_headline = str((context_payload or {}).get("llm_headline") or "").strip()
+        llm_summary_text = str((context_payload or {}).get("llm_summary_text") or "").strip()
+        llm_narrative_text = str((context_payload or {}).get("llm_narrative_text") or "").strip()
+        llm_why_now = str((context_payload or {}).get("llm_why_now") or "").strip()
+        llm_management_signal = str((context_payload or {}).get("llm_management_signal") or "").strip()
+        llm_confidence = str((context_payload or {}).get("llm_confidence") or "").strip()
+        llm_source_line = str((context_payload or {}).get("llm_source_line") or "").strip()
+        llm_supporting_points = (context_payload or {}).get("llm_supporting_points", [])
+        filing_links = (context_payload or {}).get("top_filing_links", [])
         why_now_text = str(row.get("why_now_text") or "").strip()
-        if why_now_text:
-            st.write(why_now_text)
         expected_text = str(row.get("expected_vs_observed_text") or "").strip()
-        if expected_text:
-            st.caption(expected_text)
+        key_points_text = _attention_key_points_text(row)
+        chart = _build_attention_micro_chart(row)
+
+        insight_cols = st.columns([1.05, 1.55], gap="large")
+        with insight_cols[0]:
+            if chart is not None:
+                st.plotly_chart(
+                    chart,
+                    use_container_width=True,
+                    config={"displayModeBar": False, "staticPlot": True},
+                )
+        with insight_cols[1]:
+            if story_text:
+                st.markdown(f"**Likely Story**  \n{story_text}")
+            if key_points_text:
+                st.caption(key_points_text)
+            if news_story_text:
+                st.markdown(f"**News Angle**  \n{news_story_text}")
+            if news_source_line:
+                st.caption(news_source_line)
+            if llm_headline:
+                st.markdown(f"**EDGAR Read**  \n{llm_headline}")
+            if llm_summary_text:
+                st.write(llm_summary_text)
+            if llm_narrative_text:
+                st.caption(llm_narrative_text)
+            if isinstance(llm_supporting_points, list):
+                points = [str(item).strip() for item in llm_supporting_points if str(item).strip()]
+                if points:
+                    st.markdown("\n".join(f"- {point}" for point in points[:3]))
+            if llm_why_now:
+                st.caption(f"Why now: {llm_why_now}")
+            if llm_management_signal:
+                st.caption(f"Management signal: {llm_management_signal}")
+            if llm_confidence:
+                st.caption(f"Confidence: {llm_confidence}")
+            if llm_source_line:
+                st.caption(llm_source_line)
+            if context_story_text:
+                st.markdown(f"**Primary Source**  \n{context_story_text}")
+            if primary_source_excerpt:
+                st.caption(primary_source_excerpt)
+            if primary_source_line:
+                st.caption(primary_source_line)
+            if isinstance(headline_links, list):
+                for item in headline_links[:2]:
+                    headline = str((item or {}).get("headline") or "").strip()
+                    if not headline:
+                        continue
+                    url = str((item or {}).get("url") or "").strip()
+                    source = str((item or {}).get("source") or "News").strip()
+                    published_at = pd.to_datetime((item or {}).get("published_at"), utc=True, errors="coerce")
+                    published_label = published_at.strftime("%b %d") if pd.notna(published_at) else "n/a"
+                    if url:
+                        st.markdown(f"- [{headline}]({url})")
+                    else:
+                        st.markdown(f"- {headline}")
+                    st.caption(f"{source} | {published_label}")
+            if isinstance(filing_links, list):
+                if any(str((item or {}).get("label") or "").strip() for item in filing_links[:2]):
+                    st.caption("SEC filings")
+                for item in filing_links[:2]:
+                    label = str((item or {}).get("label") or "").strip()
+                    if not label:
+                        continue
+                    url = str((item or {}).get("url") or "").strip()
+                    if url:
+                        st.markdown(f"- [{label}]({url})")
+                    else:
+                        st.markdown(f"- {label}")
+            if why_now_text and why_now_text != story_text:
+                st.caption(why_now_text)
+            if expected_text:
+                st.caption(expected_text)
 
         footer_cols = st.columns([5.6, 2.4])
         with footer_cols[0]:
@@ -940,7 +1600,7 @@ def _render_home_attention(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_
                     cfg,
                     dataset_name="attention_feed",
                     source="derivatives",
-                    limit=24,
+                    limit=36,
                     horizons=effective_horizons,
                     statuses=["active", "cooling"],
                     sensitivity=sensitivity,
@@ -955,7 +1615,7 @@ def _render_home_attention(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_
                     cfg,
                     dataset_name="commodity_attention_feed",
                     source="commodities",
-                    limit=24,
+                    limit=36,
                     horizons=effective_horizons,
                     statuses=["active", "cooling"],
                     sensitivity=sensitivity,
@@ -1070,8 +1730,25 @@ def _render_home_attention(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_
     main_cols = st.columns([1.7, 1.1], gap="large")
     with main_cols[0]:
         st.subheader("What Needs Attention")
-        for row in feed.head(6).itertuples(index=False):
-            _render_attention_card(pd.Series(row._asdict()), key_prefix="home_attention")
+        visible_feed = feed.head(8).copy()
+        news_payloads = _load_attention_news_payloads(
+            cfg,
+            visible_feed.get("entity_id", pd.Series(dtype=str)).astype(str).tolist(),
+            force_refresh=force_data_refresh,
+        )
+        context_payloads = _load_attention_context_payloads(
+            cfg,
+            visible_feed.get("entity_id", pd.Series(dtype=str)).astype(str).tolist(),
+            force_refresh=force_data_refresh,
+        )
+        for row in visible_feed.itertuples(index=False):
+            row_series = pd.Series(row._asdict())
+            _render_attention_card(
+                row_series,
+                key_prefix="home_attention",
+                news_payload=news_payloads.get(str(row_series.get("entity_id") or "").upper().strip()),
+                context_payload=context_payloads.get(str(row_series.get("entity_id") or "").upper().strip()),
+            )
 
     with main_cols[1]:
         st.subheader("Where To Look First")
@@ -2512,16 +3189,30 @@ app_track = (os.getenv("APP_TRACK") or "local").strip().lower()
 cache_disabled = (os.getenv("APP_DISABLE_CACHE") or "").strip().lower() in {"1", "true", "yes", "on"}
 source_refresh_flags = dict(st.session_state.get("_source_force_refresh", {}))
 st.session_state["_source_force_refresh"] = source_refresh_flags
+section_options = _section_options()
 pending_workspace_section = str(st.session_state.pop("_pending_workspace_section", "") or "").strip()
-if pending_workspace_section in SECTION_OPTIONS:
+if pending_workspace_section in section_options:
     st.session_state["workspace_section"] = pending_workspace_section
+elif st.session_state.get("workspace_section") not in section_options:
+    st.session_state["workspace_section"] = section_options[0]
+
+current_user = _current_user_context()
 
 with st.sidebar:
     st.title("Spectral Nature")
     st.caption("Alpaca + Streamlit")
     if app_track:
         st.caption(f"Environment: {app_track}")
-    section = st.selectbox("Workspace", SECTION_OPTIONS, key="workspace_section")
+    if current_user is not None:
+        st.caption(f"Signed in as {current_user.label}")
+        if current_user.can_view_full_portfolio:
+            st.caption("Access: Full portfolio")
+        else:
+            st.caption(f"Portfolio share: {_current_user_share_fraction() * 100:.2f}%")
+    elif st.session_state.get("_ui_auth_mode") == "legacy":
+        st.caption("Signed in via legacy admin login")
+
+    section = st.selectbox("Workspace", section_options, key="workspace_section")
 
     with st.expander("Status & Session", expanded=False):
         if pipeline_store_configured():
@@ -2532,9 +3223,14 @@ with st.sidebar:
         st.caption(f"CSV cache: {cache_data_root()}")
         st.caption(f"Cache policy: {cache_policy_path()}")
         if st.button("Logout", key="dashboard_logout", use_container_width=True):
-            _invalidate_auth_session(st.session_state.get("_ui_auth_session_id"))
+            if st.session_state.get("_ui_auth_mode") == "database":
+                auth_service.logout_session(str(st.session_state.get("_ui_auth_session_id") or ""))
+            else:
+                _invalidate_auth_session(st.session_state.get("_ui_auth_session_id"))
             st.session_state["_ui_authenticated"] = False
             st.session_state["_ui_auth_session_id"] = None
+            st.session_state["_ui_auth_mode"] = None
+            _store_user_context(None)
             st.session_state["_ui_clear_auth_cookie"] = True
             st.rerun()
         sidebar_connection = st.empty()
@@ -2545,8 +3241,12 @@ _log_event("ui_sidebar_ready")
 _log_event("section_selected", section=section)
 
 sidebar_connection.metric("Connection", "Configured" if api is not None else "Unavailable")
-sidebar_status.metric("Account Status", "NOT LOADED" if api is not None else "UNAVAILABLE")
-sidebar_buying_power.metric("Buying Power", "Not loaded" if api is not None else "Unavailable")
+if current_user is not None and not current_user.can_view_full_portfolio:
+    sidebar_status.metric("Access", "Investor")
+    sidebar_buying_power.metric("Portfolio Share", f"{_current_user_share_fraction() * 100:.2f}%")
+else:
+    sidebar_status.metric("Account Status", "NOT LOADED" if api is not None else "UNAVAILABLE")
+    sidebar_buying_power.metric("Buying Power", "Not loaded" if api is not None else "Unavailable")
 
 if startup_error_summary:
     _render_connection_issue(
@@ -2564,6 +3264,8 @@ elif section == "Portfolio Overview":
     header_cols = st.columns([3.2, 1.6, 1.4])
     with header_cols[0]:
         st.title("Portfolio Overview")
+        if current_user is not None and not current_user.can_view_full_portfolio:
+            st.caption(f"Viewing your {_current_user_share_fraction() * 100:.2f}% economic share of the master portfolio.")
     with header_cols[1]:
         period = st.selectbox("History Period", ["1M", "3M", "6M", "1Y", "2Y", "5Y"], index=3, key="portfolio_overview_period")
     with header_cols[2]:
@@ -2575,20 +3277,31 @@ elif section == "Portfolio Overview":
             with st.spinner("Loading account summary..."):
                 with _timed("get_account"):
                     account = _load_account_cached(cfg, force_refresh=force_data_refresh)
-            sidebar_status.metric("Account Status", str(account.get("status", "unknown")).upper())
-            sidebar_buying_power.metric("Buying Power", f"${_to_float(account, 'buying_power'):,.2f}")
+            if current_user is not None and not current_user.can_view_full_portfolio:
+                sidebar_status.metric("Access", "Investor")
+                sidebar_buying_power.metric("Portfolio Share", f"{_current_user_share_fraction() * 100:.2f}%")
+            else:
+                sidebar_status.metric("Account Status", str(account.get("status", "unknown")).upper())
+                sidebar_buying_power.metric("Buying Power", f"${_to_float(account, 'buying_power'):,.2f}")
         except AlpacaAPIError as exc:
             _log_event("get_account_failed", error=str(exc)[:200])
             st.warning(f"Could not load account summary: {exc}")
             account = {}
-            sidebar_status.metric("Account Status", "ERROR")
-            sidebar_buying_power.metric("Buying Power", "Unavailable")
+            if current_user is not None and not current_user.can_view_full_portfolio:
+                sidebar_status.metric("Access", "ERROR")
+                sidebar_buying_power.metric("Portfolio Share", f"{_current_user_share_fraction() * 100:.2f}%")
+            else:
+                sidebar_status.metric("Account Status", "ERROR")
+                sidebar_buying_power.metric("Buying Power", "Unavailable")
 
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("Equity", f"${_to_float(account, 'equity'):,.2f}")
         col2.metric("Cash", f"${_to_float(account, 'cash'):,.2f}")
         col3.metric("Portfolio Value", f"${_to_float(account, 'portfolio_value'):,.2f}")
-        col4.metric("Daytrade Count", str(account.get("daytrade_count", "0")))
+        if current_user is not None and not current_user.can_view_full_portfolio:
+            col4.metric("Portfolio Share", f"{_current_user_share_fraction() * 100:.2f}%")
+        else:
+            col4.metric("Daytrade Count", str(account.get("daytrade_count", "0")))
 
         try:
             with st.spinner("Loading positions..."):
@@ -2610,6 +3323,7 @@ elif section == "Portfolio Overview":
                     c
                     for c in [
                         "symbol",
+                        "effective_qty",
                         "qty",
                         "avg_entry_price",
                         "current_price",
@@ -2638,6 +3352,15 @@ elif section == "Portfolio Overview":
                 with st.spinner("Loading portfolio history and benchmarks..."):
                     with _timed("build_timeseries", period=period):
                         raw = _load_timeseries_cached(cfg, period, force_refresh=force_data_refresh)
+                if current_user is not None and not current_user.can_view_full_portfolio and not raw.empty and "portfolio" in raw.columns:
+                    dollar_fig = px.line(
+                        raw,
+                        x="timestamp",
+                        y="portfolio",
+                        template="plotly_dark",
+                        title="Your Dollar Equity",
+                    )
+                    st.plotly_chart(dollar_fig, use_container_width=True)
                 norm = normalize_timeseries_view(raw)
                 if norm.empty:
                     st.info("No portfolio history available.")
@@ -2679,6 +3402,8 @@ elif section == "Performance":
     header_cols = st.columns([3.2, 1.6, 1.4])
     with header_cols[0]:
         st.title("Performance")
+        if current_user is not None and not current_user.can_view_full_portfolio:
+            st.caption("Return-based metrics match the master portfolio while your ownership share remains fixed.")
     with header_cols[1]:
         period = st.selectbox("History Period", ["1M", "3M", "6M", "1Y", "2Y", "5Y"], index=3, key="performance_period")
     with header_cols[2]:
@@ -2688,6 +3413,8 @@ elif section == "Performance":
     else:
         try:
             with st.spinner("Loading performance data..."):
+                with _timed("load_portfolio_timeseries", period=period):
+                    raw_timeseries = _load_timeseries_cached(cfg, period, force_refresh=force_data_refresh)
                 with _timed("load_portfolio_performance", period=period):
                     perf = _load_portfolio_performance_cached(cfg, period, force_refresh=force_data_refresh)
         except AlpacaAPIError as exc:
@@ -2698,6 +3425,15 @@ elif section == "Performance":
         if perf.empty:
             st.info("No performance data available.")
             st.stop()
+        if current_user is not None and not current_user.can_view_full_portfolio and not raw_timeseries.empty and "portfolio" in raw_timeseries.columns:
+            dollar_fig = px.line(
+                raw_timeseries,
+                x="timestamp",
+                y="portfolio",
+                template="plotly_dark",
+                title="Your Dollar Equity Over Time",
+            )
+            st.plotly_chart(dollar_fig, use_container_width=True)
         st.dataframe(perf, use_container_width=True, hide_index=True)
 
         metric = st.selectbox(
@@ -2705,6 +3441,9 @@ elif section == "Performance":
             ["annual_return", "sharpe_ratio", "beta_vs_spy", "alpha_vs_spy", "max_drawdown"],
         )
         st.plotly_chart(build_metric_bar(perf, metric), use_container_width=True)
+
+elif section == ADMIN_SECTION:
+    _render_access_admin_section()
 
 elif section == "FRED Macro":
     header_cols = st.columns([5.2, 1.4])
@@ -3053,10 +3792,11 @@ elif section == "Market Opportunity":
     ):
         st.info("Fix the Alpaca connection or configure pipeline snapshots to scan movers and load price history.")
     else:
+        market_view_options = ["Markets", "Broad Markets", "Commodity Section"]
+        _prime_widget_choice("market_view", market_view_options, fallback="Markets", pending_key="_pending_market_view")
         market_view = st.segmented_control(
             "Market View",
-            ["Markets", "Broad Markets", "Commodity Section"],
-            default=st.session_state.get("market_view", "Markets"),
+            market_view_options,
             key="market_view",
             width="stretch",
         )
@@ -3064,13 +3804,20 @@ elif section == "Market Opportunity":
         momentum = pd.DataFrame()
         selected_market_ticker: str | None = None
         business_filter = ""
+        requested_market_ticker = str(st.session_state.get("market_selected_ticker") or "").upper().strip()
         if market_view == "Commodity Section":
+            commodity_options = commodity_focus_options()
+            _prime_widget_choice(
+                "market_commodity_focus",
+                commodity_options,
+                fallback="Broad Commodity Market",
+                pending_key="_pending_market_commodity_focus",
+            )
             lens_cols = st.columns([2.2, 3.8])
             with lens_cols[0]:
                 experiment_filter = st.selectbox(
                     "Commodity Filter",
-                    commodity_focus_options(),
-                    index=0,
+                    commodity_options,
                     key="market_commodity_focus",
                 )
             with lens_cols[1]:
@@ -3086,12 +3833,18 @@ elif section == "Market Opportunity":
                 experiment_symbols,
             )
         elif market_view == "Broad Markets":
+            business_options = business_focus_options()
+            _prime_widget_choice(
+                "market_business_filter",
+                business_options,
+                fallback="All Market",
+                pending_key="_pending_market_business_filter",
+            )
             lens_cols = st.columns([2.2, 3.8])
             with lens_cols[0]:
                 experiment_filter = st.selectbox(
                     "Business Filter",
-                    business_focus_options(),
-                    index=0,
+                    business_options,
                     key="market_business_filter",
                 )
             with lens_cols[1]:
@@ -3109,13 +3862,19 @@ elif section == "Market Opportunity":
                 experiment_symbols,
             )
         else:
+            business_options = business_focus_options()
+            _prime_widget_choice(
+                "market_business_filter",
+                business_options,
+                fallback="All Market",
+                pending_key="_pending_market_business_filter",
+            )
 
             lens_cols = st.columns([2.2, 3.8])
             with lens_cols[0]:
                 business_filter = st.selectbox(
                     "Business Filter",
-                    business_focus_options(),
-                    index=0,
+                    business_options,
                     key="market_business_filter",
                 )
             with lens_cols[1]:
@@ -3123,7 +3882,10 @@ elif section == "Market Opportunity":
                     "Custom business lens based on what the company primarily sells, not standard sector classifications."
                 )
                 st.caption(business_focus_description(business_filter))
-            business_symbols = business_focus_universe(business_filter)
+            business_symbols = extend_symbol_universe(
+                business_focus_universe(business_filter),
+                [requested_market_ticker] if requested_market_ticker else None,
+            )
             horizon_options = list(MARKET_MOMENTUM_HORIZON_COLUMNS.keys())
             momentum_horizon = st.selectbox(
                 "Momentum Horizon",
@@ -3419,6 +4181,13 @@ elif section == "Market Opportunity":
         detail_symbols = set(movers["symbol"].astype(str).tolist()) if not movers.empty else set()
         if not momentum.empty:
             detail_symbols.update(momentum["symbol"].astype(str).tolist())
+        scanned_detail_symbols = {
+            str(symbol).upper().strip()
+            for symbol in detail_symbols
+            if str(symbol).strip()
+        }
+        if requested_market_ticker:
+            detail_symbols.add(requested_market_ticker)
         if not detail_symbols:
             st.info("No market symbols were available for the detail view.")
             st.stop()
@@ -3432,6 +4201,11 @@ elif section == "Market Opportunity":
         current_market_ticker = st.session_state.get(selected_key)
         if current_market_ticker not in detail_symbol_options:
             current_market_ticker = fallback_market_ticker
+
+        if requested_market_ticker and requested_market_ticker not in scanned_detail_symbols:
+            st.caption(
+                f"{requested_market_ticker} was opened from attention and pinned into the detail view because it is outside the current {business_filter} scan lens."
+            )
 
         if selected_market_ticker and selected_market_ticker in detail_symbol_options:
             if selected_market_ticker != current_market_ticker:
@@ -3592,11 +4366,29 @@ elif section == "Market Opportunity":
                         limit=6,
                         force_refresh=force_data_refresh,
                     )
+                    attention_context = _load_attention_context_cached(
+                        cfg,
+                        ticker,
+                        force_refresh=force_data_refresh,
+                    )
         except Exception as exc:
             _log_event("load_market_detail_context_failed", ticker=ticker, error=str(exc)[:200])
             st.warning(f"Could not load company context for {ticker}: {exc}")
             asset = {}
             news_payload = {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
+            attention_context = {
+                "context_story_text": "",
+                "primary_source_excerpt": "",
+                "llm_headline": "",
+                "llm_summary_text": "",
+                "llm_narrative_text": "",
+                "llm_why_now": "",
+                "llm_management_signal": "",
+                "llm_confidence": "",
+                "llm_source_line": "",
+                "llm_supporting_points": [],
+                "top_filing_links": [],
+            }
 
         st.subheader(f"{ticker} Overview")
         description = build_company_description(
@@ -3618,6 +4410,53 @@ elif section == "Market Opportunity":
             st.markdown("\n".join(f"- {line}" for line in summary_lines))
         else:
             st.info("No recent news summary was available for this ticker.")
+
+        primary_context_text = str(attention_context.get("context_story_text") or "").strip()
+        primary_excerpt = str(attention_context.get("primary_source_excerpt") or "").strip()
+        llm_headline = str(attention_context.get("llm_headline") or "").strip()
+        llm_summary_text = str(attention_context.get("llm_summary_text") or "").strip()
+        llm_narrative_text = str(attention_context.get("llm_narrative_text") or "").strip()
+        llm_why_now = str(attention_context.get("llm_why_now") or "").strip()
+        llm_management_signal = str(attention_context.get("llm_management_signal") or "").strip()
+        llm_confidence = str(attention_context.get("llm_confidence") or "").strip()
+        llm_source_line = str(attention_context.get("llm_source_line") or "").strip()
+        llm_supporting_points = attention_context.get("llm_supporting_points", [])
+        primary_links = attention_context.get("top_filing_links", [])
+        if primary_context_text or primary_excerpt or primary_links or llm_summary_text or llm_narrative_text:
+            if llm_source_line:
+                st.caption(llm_source_line)
+            if llm_headline:
+                st.markdown(f"**EDGAR Narrative**  \n{llm_headline}")
+            if llm_summary_text:
+                st.write(llm_summary_text)
+            if llm_narrative_text:
+                st.caption(llm_narrative_text)
+            if llm_why_now:
+                st.caption(f"Why now: {llm_why_now}")
+            if llm_management_signal:
+                st.caption(f"Management signal: {llm_management_signal}")
+            if llm_confidence:
+                st.caption(f"Confidence: {llm_confidence}")
+            if isinstance(llm_supporting_points, list):
+                points = [str(item).strip() for item in llm_supporting_points if str(item).strip()]
+                if points:
+                    st.markdown("\n".join(f"- {point}" for point in points[:4]))
+            st.caption(str(attention_context.get("source_line") or "Primary sources").strip() or "Primary sources")
+            if primary_context_text:
+                st.markdown(f"**Primary-Source Context**  \n{primary_context_text}")
+            if primary_excerpt:
+                st.caption(primary_excerpt)
+            if isinstance(primary_links, list) and primary_links:
+                with st.expander("Recent SEC Filings", expanded=False):
+                    for item in primary_links[:3]:
+                        label = str((item or {}).get("label") or "").strip()
+                        if not label:
+                            continue
+                        url = str((item or {}).get("url") or "").strip()
+                        if url:
+                            st.markdown(f"- [{label}]({url})")
+                        else:
+                            st.markdown(f"- {label}")
 
         news_articles = news_summary.get("articles", pd.DataFrame())
         if isinstance(news_articles, pd.DataFrame) and not news_articles.empty:

@@ -29,6 +29,9 @@ def _unique_symbols(values: list[str]) -> list[str]:
 
 BUSINESS_FOCUS_UNIVERSES: dict[str, list[str]] = {
     "All Market": DEFAULT_UNIVERSE,
+    "Alternative Asset Managers": [
+        "BX", "KKR", "OWL", "APO", "ARES", "BAM", "CG", "TPG",
+    ],
     "Housing": [
         "HD", "LOW", "DHI", "LEN", "PHM", "TOL", "NVR", "KBH", "BLD", "SHW", "WHR", "Z", "RDFN",
     ],
@@ -60,6 +63,7 @@ BUSINESS_FOCUS_UNIVERSES: dict[str, list[str]] = {
 
 BUSINESS_FOCUS_DESCRIPTIONS: dict[str, str] = {
     "All Market": "Broad liquid universe across major consumer, technology, finance, energy, and healthcare names.",
+    "Alternative Asset Managers": "Private capital, credit, and alternative-asset managers that often move together through fundraising, fee-related earnings, deployment pace, and financing conditions.",
     "Housing": "Homebuilding, renovation, housing transactions, and home-linked product businesses.",
     "Retail": "Businesses that primarily sell goods to end consumers through stores or digital storefronts.",
     "Media": "Content distribution, cable, studios, streaming platforms, and broad media networks.",
@@ -402,6 +406,18 @@ def business_focus_description(name: str) -> str:
     return BUSINESS_FOCUS_DESCRIPTIONS.get(str(name), "")
 
 
+def business_focus_for_symbol(symbol: str) -> str:
+    normalized = str(symbol or "").upper().strip()
+    if not normalized:
+        return "All Market"
+    for name, symbols in BUSINESS_FOCUS_UNIVERSES.items():
+        if name == "All Market":
+            continue
+        if normalized in {str(value).upper().strip() for value in symbols if str(value).strip()}:
+            return name
+    return "All Market"
+
+
 def business_focus_universe(name: str) -> list[str]:
     label = str(name or "All Market")
     if label not in BUSINESS_FOCUS_UNIVERSES:
@@ -422,6 +438,10 @@ def commodity_focus_universe(name: str) -> list[str]:
     if label not in COMMODITY_FOCUS_UNIVERSES:
         label = "Broad Commodity Market"
     return list(COMMODITY_FOCUS_UNIVERSES[label])
+
+
+def extend_symbol_universe(symbols: list[str] | None, extra_symbols: list[str] | None = None) -> list[str]:
+    return _unique_symbols(list(symbols or []) + list(extra_symbols or []))
 
 
 def commodity_reference_universe() -> list[str]:
@@ -638,27 +658,25 @@ def scan_daily_movers(api: AlpacaAPI, symbols: list[str] | None = None) -> pd.Da
 def load_price_history(api: AlpacaAPI, symbol: str, days: int = 365) -> pd.DataFrame:
     end = datetime.now(timezone.utc)
     start = end - timedelta(days=days)
-    bars = api.get_stock_bars([symbol], start=start, end=end, timeframe="1Day", feed="iex")
-    frame = bars.get(symbol.upper(), pd.DataFrame())
+    normalized_symbol = AlpacaAPI._normalize_symbol(symbol)
+    bars = api.get_stock_bars([normalized_symbol], start=start, end=end, timeframe="1Day", feed="iex")
+    frame = bars.get(normalized_symbol, pd.DataFrame())
     if frame.empty:
         return frame
     keep = [c for c in ["timestamp", "open", "high", "low", "close", "volume"] if c in frame.columns]
     return frame[keep].dropna(subset=["timestamp", "close"]).sort_values("timestamp")
 
 
-def scan_momentum_profiles(
-    api: AlpacaAPI,
+def build_momentum_profiles_from_bars(
+    bars: dict[str, pd.DataFrame],
+    *,
     symbols: list[str] | None = None,
-    days: int = 3650,
 ) -> pd.DataFrame:
     universe = symbols or DEFAULT_UNIVERSE
-    end = datetime.now(timezone.utc)
-    start = end - timedelta(days=days)
-    bars = api.get_stock_bars(universe, start=start, end=end, timeframe="1Day", feed="iex")
-
     rows: list[dict[str, float | str]] = []
     for symbol in universe:
-        frame = bars.get(symbol.upper(), pd.DataFrame())
+        normalized_symbol = AlpacaAPI._normalize_symbol(symbol)
+        frame = bars.get(normalized_symbol, pd.DataFrame())
         if frame.empty or "close" not in frame.columns:
             continue
 
@@ -678,7 +696,7 @@ def scan_momentum_profiles(
 
         rows.append(
             {
-                "symbol": symbol,
+                "symbol": normalized_symbol,
                 "close": float(close.iloc[-1]),
                 "return_1d_pct": _window_return_pct(close, 2),
                 "return_7d_pct": _window_return_pct(close, 7),
@@ -711,8 +729,21 @@ def scan_momentum_profiles(
     return out.sort_values(["momentum_score", "momentum_roc_score"], ascending=False, na_position="last").reset_index(drop=True)
 
 
-def scan_correlation_phase_shifts(
+def scan_momentum_profiles(
     api: AlpacaAPI,
+    symbols: list[str] | None = None,
+    days: int = 3650,
+) -> pd.DataFrame:
+    universe = [AlpacaAPI._normalize_symbol(symbol) for symbol in (symbols or DEFAULT_UNIVERSE) if str(symbol).strip()]
+    end = datetime.now(timezone.utc)
+    start = end - timedelta(days=days)
+    bars = api.get_stock_bars(universe, start=start, end=end, timeframe="1Day", feed="iex")
+    return build_momentum_profiles_from_bars(bars, symbols=universe)
+
+
+def build_correlation_phase_shifts_from_bars(
+    bars: dict[str, pd.DataFrame],
+    *,
     symbols: list[str] | None = None,
     benchmark: str = "SPY",
     days: int = 252,
@@ -720,25 +751,25 @@ def scan_correlation_phase_shifts(
     roc_window: int = 10,
     momentum_window: int = 63,
 ) -> dict[str, pd.DataFrame | str]:
-    universe = [str(symbol).upper().strip() for symbol in (symbols or DEFAULT_UNIVERSE) if str(symbol).strip()]
-    benchmark_symbol = str(benchmark or "SPY").upper().strip()
+    universe = [AlpacaAPI._normalize_symbol(symbol) for symbol in (symbols or DEFAULT_UNIVERSE) if str(symbol).strip()]
+    benchmark_symbol = AlpacaAPI._normalize_symbol(benchmark or "SPY")
     universe = [symbol for symbol in universe if symbol != benchmark_symbol]
     if not universe:
         return {"summary": pd.DataFrame(), "history": pd.DataFrame(), "benchmark": benchmark_symbol}
 
-    end = datetime.now(timezone.utc)
-    start = end - timedelta(days=max(int(days), momentum_window + corr_window + roc_window + 30))
-    bars = api.get_stock_bars(
-        [benchmark_symbol] + universe,
-        start=start,
-        end=end,
-        timeframe="1Day",
-        feed="iex",
-    )
-
     benchmark_frame = bars.get(benchmark_symbol, pd.DataFrame())
     if benchmark_frame.empty or "close" not in benchmark_frame.columns:
         return {"summary": pd.DataFrame(), "history": pd.DataFrame(), "benchmark": benchmark_symbol}
+
+    benchmark_frame = benchmark_frame.copy()
+    if "timestamp" in benchmark_frame.columns:
+        benchmark_frame["timestamp"] = pd.to_datetime(benchmark_frame["timestamp"], utc=True, errors="coerce")
+    history_days = max(int(days), momentum_window + corr_window + roc_window + 30)
+    cutoff = None
+    benchmark_end = pd.to_datetime(benchmark_frame.get("timestamp"), utc=True, errors="coerce").dropna().max()
+    if pd.notna(benchmark_end):
+        cutoff = benchmark_end - pd.Timedelta(days=history_days)
+        benchmark_frame = benchmark_frame[benchmark_frame["timestamp"] >= cutoff].copy()
 
     benchmark_price = (
         benchmark_frame[["timestamp", "close"]]
@@ -746,6 +777,8 @@ def scan_correlation_phase_shifts(
         .sort_values("timestamp")
         .rename(columns={"close": "benchmark_close"})
     )
+    if benchmark_price.empty:
+        return {"summary": pd.DataFrame(), "history": pd.DataFrame(), "benchmark": benchmark_symbol}
     benchmark_price["benchmark_return"] = pd.to_numeric(benchmark_price["benchmark_close"], errors="coerce").pct_change()
     benchmark_price["benchmark_norm"] = benchmark_price["benchmark_close"] / float(benchmark_price["benchmark_close"].iloc[0])
 
@@ -755,6 +788,12 @@ def scan_correlation_phase_shifts(
         frame = bars.get(symbol, pd.DataFrame())
         if frame.empty or "close" not in frame.columns:
             continue
+
+        frame = frame.copy()
+        if "timestamp" in frame.columns:
+            frame["timestamp"] = pd.to_datetime(frame["timestamp"], utc=True, errors="coerce")
+        if cutoff is not None:
+            frame = frame[frame["timestamp"] >= cutoff].copy()
 
         asset_price = (
             frame[["timestamp", "close"]]
@@ -845,6 +884,41 @@ def scan_correlation_phase_shifts(
     ]
     summary = summary.sort_values(["decoupling_score", "beta_breakout_score"], ascending=False, na_position="last").reset_index(drop=True)
     return {"summary": summary, "history": history, "benchmark": benchmark_symbol}
+
+
+def scan_correlation_phase_shifts(
+    api: AlpacaAPI,
+    symbols: list[str] | None = None,
+    benchmark: str = "SPY",
+    days: int = 252,
+    corr_window: int = 20,
+    roc_window: int = 10,
+    momentum_window: int = 63,
+) -> dict[str, pd.DataFrame | str]:
+    universe = [AlpacaAPI._normalize_symbol(symbol) for symbol in (symbols or DEFAULT_UNIVERSE) if str(symbol).strip()]
+    benchmark_symbol = AlpacaAPI._normalize_symbol(benchmark or "SPY")
+    universe = [symbol for symbol in universe if symbol != benchmark_symbol]
+    if not universe:
+        return {"summary": pd.DataFrame(), "history": pd.DataFrame(), "benchmark": benchmark_symbol}
+
+    end = datetime.now(timezone.utc)
+    start = end - timedelta(days=max(int(days), momentum_window + corr_window + roc_window + 30))
+    bars = api.get_stock_bars(
+        [benchmark_symbol] + universe,
+        start=start,
+        end=end,
+        timeframe="1Day",
+        feed="iex",
+    )
+    return build_correlation_phase_shifts_from_bars(
+        bars,
+        symbols=universe,
+        benchmark=benchmark_symbol,
+        days=days,
+        corr_window=corr_window,
+        roc_window=roc_window,
+        momentum_window=momentum_window,
+    )
 
 
 def scan_commodity_regimes(

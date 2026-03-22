@@ -24,6 +24,7 @@ DATASET_CAPABILITIES: dict[str, dict[str, Any]] = {
     "forecast_next_week": {"params": ["ticker", "days", "horizon", "simulations", "force_refresh"], "resolution": "computed_from_signal_history"},
     "quarterly_fundamentals": {"params": ["ticker", "force_refresh"], "resolution": "materialized_first"},
     "recent_news": {"params": ["ticker", "days", "limit", "force_refresh"], "resolution": "materialized_first"},
+    "attention_context": {"params": ["ticker", "force_refresh"], "resolution": "materialized"},
     "option_chain": {"params": ["ticker", "expiration", "force_refresh"], "resolution": "materialized_first"},
     "option_surface": {"params": ["ticker", "expected_price", "horizon_days", "underlying_price", "force_refresh"], "resolution": "materialized_first_then_on_demand"},
     "option_candidates": {"params": ["ticker", "expected_price", "horizon_days", "underlying_price", "force_refresh"], "resolution": "computed_from_option_surface"},
@@ -108,6 +109,12 @@ class QueryService:
                 ticker,
                 days=int(params.get("days") or 14),
                 limit=int(params.get("limit") or 8),
+                force_refresh=bool(params.get("force_refresh", False)),
+            )
+        if key == "attention_context":
+            ticker = str(params.get("ticker") or "").strip()
+            return self.data_access.resolve_attention_context(
+                ticker,
                 force_refresh=bool(params.get("force_refresh", False)),
             )
         if key == "option_chain":

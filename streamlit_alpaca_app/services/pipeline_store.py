@@ -48,7 +48,7 @@ SOURCE_JOB_MAP: dict[str, str] = {
 }
 
 SOURCE_DATASETS: dict[str, list[str]] = {
-    "equities": ["daily_movers", "momentum_profiles", "price_history"],
+    "equities": ["universe_snapshot", "daily_movers", "momentum_profiles", "price_history"],
     "fred": ["fred_summary", "fred_observations"],
     "commodities": [
         "commodity_regime_summary",
@@ -61,7 +61,7 @@ SOURCE_DATASETS: dict[str, list[str]] = {
         "commodity_attention_feed",
     ],
     "options": ["option_expirations", "option_contract_snapshots"],
-    "news": ["news_articles", "news_symbol_map"],
+    "news": ["news_articles", "news_symbol_map", "edgar_filings", "edgar_evidence", "attention_context_llm", "attention_context_bundle"],
     "fundamentals": ["quarterly_fundamentals"],
     "derivatives": [
         "correlation_phase_shift_summary",

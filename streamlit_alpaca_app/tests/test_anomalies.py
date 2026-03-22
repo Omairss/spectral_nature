@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pandas as pd
 import pytest
 
@@ -171,6 +173,46 @@ def test_detect_anomaly_events_boosts_portfolio_relevance_and_news_confirmation(
     assert events.iloc[0]["why_now_text"].startswith("AAA moved 8.00%")
 
 
+def test_detect_anomaly_events_adds_business_lens_drilldown_context():
+    price_expectations = pd.DataFrame(
+        {
+            "asof_time_utc": pd.to_datetime(["2026-03-20T00:00:00Z"], utc=True),
+            "symbol": ["BX"],
+            "horizon": ["1d"],
+            "close": [150.0],
+            "observed_return_pct": [4.0],
+            "trend_expected_return_pct": [1.0],
+            "peer_expected_return_pct": [1.2],
+            "benchmark_expected_return_pct": [0.5],
+            "blended_expected_return_pct": [1.0],
+            "residual_return_pct": [3.0],
+            "residual_zscore": [2.5],
+            "trend_zscore": [0.0],
+            "peer_zscore": [0.0],
+            "benchmark_zscore": [0.0],
+            "vol_20_ann_pct": [22.0],
+            "momentum_score": [0.8],
+            "momentum_roc_score": [0.2],
+            "correlation_now": [0.7],
+            "correlation_roc": [0.1],
+            "peer_group_id": ["business_lens:alternative_asset_managers"],
+            "peer_group_name": ["Alternative Asset Managers"],
+            "benchmark": ["SPY"],
+            "trajectory_model_version": ["trend_blend_v1"],
+            "peer_model_version": ["business_lens_peer_v1"],
+            "schema_version": ["v1"],
+        }
+    )
+
+    events = detect_anomaly_events(price_expectations, config=AttentionConfig())
+
+    params = json.loads(events.iloc[0]["drilldown_params_json"])
+    assert params["ticker"] == "BX"
+    assert params["horizon"] == "1d"
+    assert params["market_view"] == "Markets"
+    assert params["business_filter"] == "Alternative Asset Managers"
+
+
 def test_build_price_expectations_degrades_cleanly_when_benchmark_rows_are_missing():
     dates = pd.bdate_range("2026-02-16", periods=22, tz="UTC")
     price_history = pd.concat(
@@ -265,8 +307,65 @@ def test_build_attention_rollups_and_feed_surface_top_anomalies():
     assert set(rollups["rollup_type"]) == {"market", "portfolio", "business_lens"}
     assert feed.iloc[0]["entity_id"] == "AAA"
     assert feed.iloc[0]["title"].startswith("Portfolio attention")
+    assert feed.iloc[0]["horizon"] == "1w"
+    assert feed.iloc[0]["residual_value"] == pytest.approx(6.0)
+    assert feed.iloc[0]["residual_zscore"] == pytest.approx(3.5)
     assert "Observed 8.00% vs expected 2.00%" in feed.iloc[0]["expected_vs_observed_text"]
+    assert "AAA is trading stronger than its Test Lens peers implied." in feed.iloc[0]["story_text"]
+    assert "technical backdrop: trend breakout" in feed.iloc[0]["story_text"]
     assert "AAA" in feed.iloc[0]["next_best_action"]
+    assert json.loads(feed.iloc[0]["drilldown_params_json"]) == {"horizon": "1w", "market_view": "Markets", "ticker": "AAA"}
+
+
+def test_build_attention_feed_preserves_commodity_drilldown_context():
+    anomaly_events = pd.DataFrame(
+        {
+            "event_id": ["evt_bno"],
+            "asof_time_utc": pd.to_datetime(["2026-03-20T00:00:00Z"], utc=True),
+            "entity_type": ["commodity_symbol"],
+            "entity_id": ["BNO"],
+            "parent_entity_type": ["commodity_focus"],
+            "parent_entity_id": ["commodity_focus:energy_and_oil"],
+            "horizon": ["1mo"],
+            "anomaly_type": ["price_residual"],
+            "direction": ["up"],
+            "observed_value": [9.0],
+            "expected_value": [3.0],
+            "residual_value": [6.0],
+            "residual_zscore": [2.8],
+            "severity_score": [70.0],
+            "impact_score": [65.0],
+            "relevance_score": [70.0],
+            "confidence_score": [72.0],
+            "attention_score": [69.0],
+            "persistence_score": [80.0],
+            "novelty_score": [70.0],
+            "portfolio_exposure_weight": [0.0],
+            "peer_group_id": ["commodity_focus:energy_and_oil"],
+            "peer_group_name": ["Energy & Oil"],
+            "benchmark": ["PDBC"],
+            "regime_label": ["Trend breakout"],
+            "why_now_code": ["price_residual"],
+            "why_now_text": ["BNO moved above expectation."],
+            "supporting_datasets": ["commodity_price_expectations"],
+            "linked_news_count": [0],
+            "linked_news_ids": [""],
+            "drilldown_section": ["Market Opportunity"],
+            "drilldown_params_json": ['{"ticker":"BNO"}'],
+            "status": ["active"],
+            "schema_version": ["v1"],
+        }
+    )
+
+    feed = build_attention_feed(anomaly_events, pd.DataFrame(), top_n=5)
+
+    assert "Energy & Oil peers" in feed.iloc[0]["story_text"]
+    assert json.loads(feed.iloc[0]["drilldown_params_json"]) == {
+        "commodity_focus": "Energy & Oil",
+        "horizon": "1mo",
+        "market_view": "Commodity Section",
+        "ticker": "BNO",
+    }
 
 
 def test_build_price_expectations_supports_longer_attention_horizons():

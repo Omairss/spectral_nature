@@ -24,20 +24,29 @@ from compute.anomalies import (
     normalize_horizons,
 )
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
+from services.attention_context_llm import (
+    build_attention_context_narratives,
+    build_edgar_evidence,
+    merge_attention_context_with_llm,
+)
 from services.config import AppConfig
+from services.edgar import DEFAULT_EDGAR_FORMS, EdgarAPIError, EdgarClient, build_attention_context_bundle
 from services.fred import FredAPIError, load_fred_api_key, load_fred_dashboard
 from services.fundamentals import load_quarterly_fundamentals
+from services.llm import LLMAPIError, load_llm_client
 from services.market import (
     COMMODITY_FOCUS_UNIVERSES,
     DEFAULT_UNIVERSE,
+    build_correlation_phase_shifts_from_bars,
+    build_momentum_profiles_from_bars,
     scan_commodity_regimes,
-    scan_correlation_phase_shifts,
     scan_daily_movers,
     scan_momentum_profiles,
 )
 from services.options import build_option_snapshot_surface, load_option_chain
 from services.pipeline_store import load_latest_dataset_frame
 from services.secrets import resolve_secret_value
+from services.universe import build_liquidity_ranked_equity_universe
 
 try:
     from services.signals import build_signal_frame, summarize_signal_frame
@@ -84,6 +93,15 @@ def _parameter_hash(ctx: JobContext) -> str:
         "job_name": ctx.name,
         "universe_version": ctx.universe_version,
         "universe_symbols": (os.getenv("UNIVERSE_SYMBOLS") or "").strip(),
+        "equity_universe_target_size": (os.getenv("EQUITY_UNIVERSE_TARGET_SIZE") or "1000").strip(),
+        "equity_universe_include_etfs": (os.getenv("EQUITY_UNIVERSE_INCLUDE_ETFS") or "false").strip(),
+        "equity_universe_include_non_common": (os.getenv("EQUITY_UNIVERSE_INCLUDE_NON_COMMON") or "false").strip(),
+        "equity_price_lookback_days": (os.getenv("EQUITY_PRICE_LOOKBACK_DAYS") or "3650").strip(),
+        "equity_price_incremental_lookback_days": (os.getenv("EQUITY_PRICE_INCREMENTAL_LOOKBACK_DAYS") or "45").strip(),
+        "equity_price_full_refresh_hours": (os.getenv("EQUITY_PRICE_FULL_REFRESH_HOURS") or "168").strip(),
+        "momentum_lookback_days": (os.getenv("MOMENTUM_LOOKBACK_DAYS") or "3650").strip(),
+        "phase_shift_days": (os.getenv("PHASE_SHIFT_DAYS") or "365").strip(),
+        "phase_shift_benchmark": (os.getenv("PHASE_SHIFT_BENCHMARK") or "SPY").strip(),
         "fred_lookback_years": (os.getenv("FRED_LOOKBACK_YEARS") or "10").strip(),
     }
     return hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()
@@ -372,6 +390,132 @@ def _symbols_from_env(limit_default: int = 100) -> list[str]:
     return DEFAULT_UNIVERSE[:limit_default]
 
 
+def _edgar_forms_from_env() -> list[str]:
+    raw = (os.getenv("EDGAR_FORMS") or "").strip()
+    if raw:
+        forms = [item.strip().upper() for item in raw.split(",") if item.strip()]
+        return forms or list(DEFAULT_EDGAR_FORMS)
+    return list(DEFAULT_EDGAR_FORMS)
+
+
+def _parse_bool_env(name: str, default: bool = False) -> bool:
+    raw = (os.getenv(name) or ("true" if default else "false")).strip().lower()
+    return raw in {"1", "true", "yes", "on"}
+
+
+def _parse_int_env(name: str, default: int, *, minimum: int = 1) -> int:
+    try:
+        value = int(os.getenv(name, str(default)))
+    except Exception:
+        value = int(default)
+    return max(value, minimum)
+
+
+def _parse_float_env(name: str, default: float, *, minimum: float = 0.0) -> float:
+    try:
+        value = float(os.getenv(name, str(default)))
+    except Exception:
+        value = float(default)
+    return max(value, minimum)
+
+
+def _equity_universe_target_size(default: int = 1000) -> int:
+    return _parse_int_env("EQUITY_UNIVERSE_TARGET_SIZE", default, minimum=len(DEFAULT_UNIVERSE))
+
+
+def _symbols_from_snapshot(frame: pd.DataFrame, *, limit: int | None = None) -> list[str]:
+    if frame.empty or "symbol" not in frame.columns:
+        return []
+    symbols = [
+        str(symbol).upper().strip()
+        for symbol in frame["symbol"].tolist()
+        if str(symbol).strip()
+    ]
+    deduped = list(dict.fromkeys(symbols))
+    if limit is not None and limit > 0:
+        return deduped[:limit]
+    return deduped
+
+
+def _load_latest_equity_universe_snapshot(target_size: int) -> pd.DataFrame:
+    max_age_hours = _parse_float_env("EQUITY_UNIVERSE_MAX_AGE_HOURS", 24.0, minimum=0.0)
+    try:
+        frame, metadata = load_latest_dataset_frame("universe_snapshot")
+    except Exception as exc:
+        print(f"[warn] failed to load latest universe_snapshot: {type(exc).__name__}: {exc}")
+        return pd.DataFrame()
+    if frame.empty or "symbol" not in frame.columns:
+        return pd.DataFrame()
+
+    snapshot_symbols = _symbols_from_snapshot(frame)
+    minimum_acceptable_size = max(int(target_size * 0.5), len(DEFAULT_UNIVERSE))
+    if len(snapshot_symbols) < minimum_acceptable_size:
+        print(
+            f"[info] latest universe_snapshot is too small for target_size={target_size}: "
+            f"{len(snapshot_symbols)} symbol(s) < {minimum_acceptable_size}"
+        )
+        return pd.DataFrame()
+
+    if metadata is not None and max_age_hours > 0:
+        asof = pd.to_datetime(getattr(metadata, "asof_time_utc", None), utc=True, errors="coerce")
+        if pd.notna(asof):
+            age_hours = max((pd.Timestamp(_utc_now()) - asof).total_seconds() / 3600.0, 0.0)
+            if age_hours > max_age_hours:
+                print(
+                    f"[info] latest universe_snapshot is stale for target_size={target_size}: "
+                    f"age_hours={age_hours:.1f} > max_age_hours={max_age_hours:.1f}"
+                )
+                return pd.DataFrame()
+    return frame.copy()
+
+
+def _build_equity_universe_snapshot(api: AlpacaAPI, *, target_size: int) -> pd.DataFrame:
+    return build_liquidity_ranked_equity_universe(
+        api,
+        target_size=target_size,
+        include_etfs=_parse_bool_env("EQUITY_UNIVERSE_INCLUDE_ETFS", False),
+        include_non_common=_parse_bool_env("EQUITY_UNIVERSE_INCLUDE_NON_COMMON", False),
+        min_price=_parse_float_env("EQUITY_UNIVERSE_MIN_PRICE", 5.0, minimum=0.0),
+        min_volume=_parse_float_env("EQUITY_UNIVERSE_MIN_VOLUME", 100_000.0, minimum=0.0),
+        min_dollar_volume=_parse_float_env("EQUITY_UNIVERSE_MIN_DOLLAR_VOLUME", 5_000_000.0, minimum=0.0),
+        feed=(os.getenv("EQUITY_UNIVERSE_FEED") or "iex").strip() or "iex",
+    )
+
+
+def _resolve_equity_symbols(api: AlpacaAPI, ctx: JobContext, conn: Any | None = None) -> list[str]:
+    explicit = _symbols_from_env(limit_default=len(DEFAULT_UNIVERSE))
+    if (os.getenv("UNIVERSE_SYMBOLS") or "").strip():
+        print(f"[info] using explicit UNIVERSE_SYMBOLS override with {len(explicit)} symbol(s)")
+        return explicit
+
+    target_size = _equity_universe_target_size()
+    snapshot = _load_latest_equity_universe_snapshot(target_size)
+    if not snapshot.empty:
+        symbols = _symbols_from_snapshot(snapshot, limit=target_size)
+        if symbols:
+            print(f"[info] using universe_snapshot with {len(symbols)} symbol(s)")
+            return symbols
+
+    try:
+        rebuilt = _build_equity_universe_snapshot(api, target_size=target_size)
+    except Exception as exc:
+        print(f"[warn] failed to build expanded equity universe: {type(exc).__name__}: {exc}")
+        rebuilt = pd.DataFrame()
+
+    rebuilt_symbols = _symbols_from_snapshot(rebuilt, limit=target_size)
+    if rebuilt_symbols:
+        print(f"[info] rebuilt equity universe inline with {len(rebuilt_symbols)} symbol(s)")
+        try:
+            _persist_dataset("universe_snapshot", rebuilt, ctx, conn)
+        except Exception as exc:
+            print(f"[warn] failed to persist rebuilt universe_snapshot: {type(exc).__name__}: {exc}")
+        return rebuilt_symbols
+
+    fallback = DEFAULT_UNIVERSE[:]
+    print(f"[warn] falling back to DEFAULT_UNIVERSE with {len(fallback)} symbol(s)")
+    return fallback
+
+
 def _news_symbol_map_from_frame(news: pd.DataFrame) -> pd.DataFrame:
     if news.empty:
         return pd.DataFrame(columns=["headline", "published_at", "source", "url", "symbols"])
@@ -402,6 +546,43 @@ def _load_attention_news_map(api: AlpacaAPI, symbols: list[str]) -> pd.DataFrame
     except Exception as exc:
         print(f"[warn] live news fallback unavailable: {type(exc).__name__}: {exc}")
         return pd.DataFrame(columns=["headline", "published_at", "source", "url", "symbols"])
+
+
+def _load_latest_attention_seed(limit: int) -> pd.DataFrame:
+    target_limit = max(int(limit), 1)
+    for dataset_name in ("attention_candidates", "attention_feed"):
+        try:
+            frame, _ = load_latest_dataset_frame(dataset_name)
+        except Exception as exc:
+            print(f"[warn] failed to load {dataset_name} for attention context: {type(exc).__name__}: {exc}")
+            continue
+        if frame.empty or "entity_id" not in frame.columns:
+            continue
+        out = frame.copy()
+        if "entity_type" in out.columns:
+            entity_type = out["entity_type"].astype(str).str.lower()
+            out = out[entity_type.eq("symbol") | entity_type.eq("")].copy()
+        out["entity_id"] = out["entity_id"].astype(str).str.upper().str.strip()
+        out = out[out["entity_id"].ne("")].copy()
+        if out.empty:
+            continue
+        if "attention_score" in out.columns:
+            out["attention_score"] = pd.to_numeric(out["attention_score"], errors="coerce")
+            out = out.sort_values("attention_score", ascending=False, na_position="last")
+        return out.head(target_limit).reset_index(drop=True)
+
+    fallback_symbols = _symbols_from_env(limit_default=min(target_limit, len(DEFAULT_UNIVERSE)))
+    if not fallback_symbols:
+        return pd.DataFrame(columns=["entity_id"])
+    return pd.DataFrame({"entity_id": fallback_symbols})
+
+
+def _load_latest_materialized_frame(dataset_name: str) -> pd.DataFrame:
+    try:
+        frame, _ = load_latest_dataset_frame(dataset_name)
+    except Exception:
+        frame = pd.DataFrame()
+    return frame.copy() if isinstance(frame, pd.DataFrame) else pd.DataFrame()
 
 
 def _load_attention_positions(api: AlpacaAPI) -> pd.DataFrame:
@@ -459,6 +640,160 @@ def _load_stock_bars_frame(api: AlpacaAPI, symbols: list[str], *, days: int) -> 
         keep = [col for col in ["symbol", "timestamp", "open", "high", "low", "close", "volume"] if col in chunk.columns]
         parts.append(chunk[keep])
     return pd.concat(parts, ignore_index=True) if parts else pd.DataFrame()
+
+
+def _prepare_price_history_frame(
+    frame: pd.DataFrame,
+    *,
+    allowed_symbols: set[str] | None = None,
+) -> pd.DataFrame:
+    columns = ["symbol", "timestamp", "open", "high", "low", "close", "volume"]
+    if frame is None or frame.empty:
+        return pd.DataFrame(columns=columns)
+
+    out = frame.copy()
+    if "symbol" not in out.columns:
+        out["symbol"] = ""
+    out["symbol"] = out["symbol"].apply(AlpacaAPI._normalize_symbol)
+    if allowed_symbols is not None:
+        out = out[out["symbol"].isin(allowed_symbols)].copy()
+
+    if "timestamp" not in out.columns:
+        out["timestamp"] = pd.NaT
+    out["timestamp"] = pd.to_datetime(out["timestamp"], utc=True, errors="coerce")
+    for col in columns[2:]:
+        if col not in out.columns:
+            out[col] = pd.NA
+        out[col] = pd.to_numeric(out[col], errors="coerce")
+
+    out = out[columns].dropna(subset=["symbol", "timestamp", "close"])
+    if out.empty:
+        return pd.DataFrame(columns=columns)
+
+    out = out.sort_values(["symbol", "timestamp"]).drop_duplicates(subset=["symbol", "timestamp"], keep="last")
+    return out.reset_index(drop=True)
+
+
+def _bars_to_price_history_frame(bars: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    parts: list[pd.DataFrame] = []
+    for symbol, frame in bars.items():
+        if frame is None or frame.empty:
+            continue
+        chunk = frame.copy()
+        chunk["symbol"] = AlpacaAPI._normalize_symbol(symbol)
+        parts.append(chunk)
+    if not parts:
+        return _prepare_price_history_frame(pd.DataFrame())
+    return _prepare_price_history_frame(pd.concat(parts, ignore_index=True))
+
+
+def _price_history_frame_to_bars(frame: pd.DataFrame) -> dict[str, pd.DataFrame]:
+    prepared = _prepare_price_history_frame(frame)
+    if prepared.empty:
+        return {}
+
+    bars: dict[str, pd.DataFrame] = {}
+    for symbol, chunk in prepared.groupby("symbol", sort=True):
+        bars[str(symbol)] = chunk.drop(columns=["symbol"]).reset_index(drop=True)
+    return bars
+
+
+def _build_equity_price_history_snapshot(
+    api: AlpacaAPI,
+    symbols: list[str],
+    *,
+    benchmark: str,
+    history_days: int,
+    incremental_lookback_days: int,
+    full_refresh_hours: float,
+) -> tuple[dict[str, pd.DataFrame], pd.DataFrame]:
+    required_symbols = sorted(
+        {
+            AlpacaAPI._normalize_symbol(symbol)
+            for symbol in [*symbols, benchmark]
+            if str(symbol).strip()
+        }
+    )
+    if not required_symbols:
+        return {}, _prepare_price_history_frame(pd.DataFrame())
+
+    end = _utc_now()
+    history_days = max(int(history_days), 1)
+    incremental_lookback_days = max(int(incremental_lookback_days), 5)
+    history_cutoff = pd.Timestamp(end) - pd.Timedelta(days=history_days)
+    full_start = end - timedelta(days=history_days)
+    incremental_start = end - timedelta(days=incremental_lookback_days)
+
+    try:
+        latest_frame, latest_metadata = load_latest_dataset_frame("price_history")
+    except Exception as exc:
+        print(f"[warn] failed to load latest price_history snapshot: {type(exc).__name__}: {exc}")
+        latest_frame, latest_metadata = pd.DataFrame(), None
+
+    existing = _prepare_price_history_frame(latest_frame, allowed_symbols=set(required_symbols))
+    coverage_view = existing.copy()
+    if not existing.empty:
+        existing = existing[existing["timestamp"] >= history_cutoff].reset_index(drop=True)
+
+    full_refresh_due = False
+    if latest_metadata is not None and full_refresh_hours > 0:
+        latest_asof = pd.to_datetime(getattr(latest_metadata, "asof_time_utc", None), utc=True, errors="coerce")
+        if pd.notna(latest_asof):
+            age_hours = max((pd.Timestamp(end) - latest_asof).total_seconds() / 3600.0, 0.0)
+            full_refresh_due = age_hours >= float(full_refresh_hours)
+            if full_refresh_due:
+                print(
+                    "[info] price_history full refresh triggered: "
+                    f"age_hours={age_hours:.1f} >= full_refresh_hours={full_refresh_hours:.1f}"
+                )
+
+    try:
+        history_tolerance_days = max(int(os.getenv("EQUITY_PRICE_HISTORY_TOLERANCE_DAYS", "7")), 0)
+    except Exception:
+        history_tolerance_days = 7
+    coverage_cutoff = history_cutoff + pd.Timedelta(days=history_tolerance_days)
+
+    if full_refresh_due or existing.empty:
+        full_history_symbols = required_symbols
+    else:
+        earliest_by_symbol = coverage_view.groupby("symbol")["timestamp"].min()
+        full_history_symbols = [
+            symbol
+            for symbol in required_symbols
+            if symbol not in earliest_by_symbol.index or earliest_by_symbol[symbol] > coverage_cutoff
+        ]
+
+    if full_history_symbols:
+        print(f"[info] price_history full-history fetch for {len(full_history_symbols)} symbol(s)")
+        full_history_bars = api.get_stock_bars(
+            full_history_symbols,
+            start=full_start,
+            end=end,
+            timeframe="1Day",
+            feed="iex",
+        )
+    else:
+        full_history_bars = {}
+
+    incremental_bars = api.get_stock_bars(
+        required_symbols,
+        start=incremental_start,
+        end=end,
+        timeframe="1Day",
+        feed="iex",
+    )
+
+    merged_parts = [part for part in [existing, _bars_to_price_history_frame(full_history_bars), _bars_to_price_history_frame(incremental_bars)] if not part.empty]
+    merged = _prepare_price_history_frame(pd.concat(merged_parts, ignore_index=True) if merged_parts else pd.DataFrame())
+    if not merged.empty:
+        merged = merged[merged["timestamp"] >= history_cutoff].reset_index(drop=True)
+
+    bars = _price_history_frame_to_bars(merged)
+    print(
+        "[info] price_history snapshot ready: "
+        f"symbols={len(bars)} rows={len(merged)} incremental_lookback_days={incremental_lookback_days} history_days={history_days}"
+    )
+    return bars, merged
 
 
 def _primary_peer_group_snapshot(
@@ -557,40 +892,40 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
         print("[warn] APCA credentials missing; skipping equities preload")
         return
     api = AlpacaAPI(cfg)
-    symbols = _symbols_from_env(limit_default=100)
+    symbols = AlpacaAPI._normalize_symbols(_resolve_equity_symbols(api, ctx, conn))
 
     try:
         movers = scan_daily_movers(api, symbols=symbols)
         _persist_dataset("daily_movers", movers, ctx, conn)
 
         momentum_lookback_days = max(int(os.getenv("MOMENTUM_LOOKBACK_DAYS", "3650")), 365)
-        momentum = scan_momentum_profiles(api, symbols=symbols, days=momentum_lookback_days)
-        _persist_dataset("momentum_profiles", momentum, ctx, conn)
-
         phase_days = max(int(os.getenv("PHASE_SHIFT_DAYS", "365")), 120)
         phase_corr_window = max(int(os.getenv("PHASE_SHIFT_CORR_WINDOW", "20")), 5)
         phase_roc_window = max(int(os.getenv("PHASE_SHIFT_ROC_WINDOW", "10")), 1)
         phase_momentum_window = max(int(os.getenv("PHASE_SHIFT_MOMENTUM_WINDOW", "63")), 5)
-        phase_benchmark = (os.getenv("PHASE_SHIFT_BENCHMARK") or "SPY").strip().upper() or "SPY"
+        phase_benchmark = AlpacaAPI._normalize_symbol((os.getenv("PHASE_SHIFT_BENCHMARK") or "SPY").strip().upper() or "SPY")
 
         price_lookback_days = max(int(os.getenv("EQUITY_PRICE_LOOKBACK_DAYS", "3650")), 365)
-        end = _utc_now()
-        start = end - timedelta(days=price_lookback_days)
-        bar_symbols = sorted({*symbols, phase_benchmark})
-        bars = api.get_stock_bars(symbols=bar_symbols, start=start, end=end, timeframe="1Day", feed="iex")
-        parts: list[pd.DataFrame] = []
-        for symbol, frame in bars.items():
-            if frame.empty:
-                continue
-            chunk = frame.copy()
-            chunk["symbol"] = symbol
-            keep = [col for col in ["symbol", "timestamp", "open", "high", "low", "close", "volume"] if col in chunk.columns]
-            parts.append(chunk[keep])
-        bars_frame = pd.concat(parts, ignore_index=True) if parts else pd.DataFrame()
+        incremental_lookback_days = max(int(os.getenv("EQUITY_PRICE_INCREMENTAL_LOOKBACK_DAYS", "45")), 5)
+        full_refresh_hours = max(float(os.getenv("EQUITY_PRICE_FULL_REFRESH_HOURS", "168")), 0.0)
+        phase_history_days = max(phase_days, phase_momentum_window + phase_corr_window + phase_roc_window + 30)
+        effective_history_days = max(price_lookback_days, momentum_lookback_days, phase_history_days)
+
+        bars, bars_frame = _build_equity_price_history_snapshot(
+            api,
+            symbols,
+            benchmark=phase_benchmark,
+            history_days=effective_history_days,
+            incremental_lookback_days=incremental_lookback_days,
+            full_refresh_hours=full_refresh_hours,
+        )
         _persist_dataset("price_history", bars_frame, ctx, conn)
 
-        phase_payload = scan_correlation_phase_shifts(
-            api,
+        momentum = build_momentum_profiles_from_bars(bars, symbols=symbols)
+        _persist_dataset("momentum_profiles", momentum, ctx, conn)
+
+        phase_payload = build_correlation_phase_shifts_from_bars(
+            bars,
             symbols=symbols,
             benchmark=phase_benchmark,
             days=phase_days,
@@ -913,13 +1248,81 @@ def run_news(ctx: JobContext, conn: Any | None = None) -> None:
         _persist_dataset("news_articles", news, ctx, conn)
 
         _persist_dataset("news_symbol_map", mapped, ctx, conn)
+        attention_seed = _load_latest_attention_seed(_parse_int_env("ATTENTION_CONTEXT_SYMBOL_LIMIT", 80, minimum=1))
+        existing_edgar_filings = _load_latest_materialized_frame("edgar_filings")
+        context_symbols = [
+            str(symbol).upper().strip()
+            for symbol in attention_seed.get("entity_id", pd.Series(dtype=str)).tolist()
+            if str(symbol).strip()
+        ]
+        edgar_filings = EdgarClient().load_recent_filings(
+            context_symbols,
+            days=_parse_int_env("EDGAR_LOOKBACK_DAYS", 120, minimum=1),
+            forms=_edgar_forms_from_env(),
+            max_filings_per_symbol=_parse_int_env("EDGAR_MAX_FILINGS_PER_SYMBOL", 4, minimum=1),
+            fetch_document_text=_parse_bool_env("EDGAR_FETCH_DOCUMENT_TEXT", True),
+            max_document_fetches_per_symbol=_parse_int_env("EDGAR_MAX_DOCUMENT_FETCHES_PER_SYMBOL", 2, minimum=0),
+            existing_frame=existing_edgar_filings,
+        )
+        attention_context = build_attention_context_bundle(attention_seed, edgar_filings, asof_time_utc=ctx.asof)
+        edgar_evidence = build_edgar_evidence(pd.DataFrame(), None, asof_time_utc=ctx.asof)
+        attention_context_llm = build_attention_context_narratives(
+            pd.DataFrame(),
+            pd.DataFrame(),
+            pd.DataFrame(),
+            None,
+            asof_time_utc=ctx.asof,
+        )
+        try:
+            llm_client = load_llm_client()
+            if llm_client is None:
+                print("[warn] attention LLM enrichment skipped: missing LLM configuration")
+            else:
+                edgar_evidence = build_edgar_evidence(
+                    edgar_filings,
+                    llm_client,
+                    existing_frame=_load_latest_materialized_frame("edgar_evidence"),
+                    asof_time_utc=ctx.asof,
+                )
+                attention_context_llm = build_attention_context_narratives(
+                    attention_seed,
+                    edgar_filings,
+                    edgar_evidence,
+                    llm_client,
+                    existing_frame=_load_latest_materialized_frame("attention_context_llm"),
+                    asof_time_utc=ctx.asof,
+                )
+                attention_context = merge_attention_context_with_llm(attention_context, attention_context_llm)
+        except LLMAPIError as exc:
+            print(f"[warn] attention LLM enrichment skipped: {exc}")
+
+        _persist_dataset("edgar_filings", edgar_filings, ctx, conn)
+        _persist_dataset("edgar_evidence", edgar_evidence, ctx, conn)
+        _persist_dataset("attention_context_llm", attention_context_llm, ctx, conn)
+        _persist_dataset("attention_context_bundle", attention_context, ctx, conn)
     except AlpacaAPIError as exc:
         print(f"[error] news preload failed: {exc}")
+    except EdgarAPIError as exc:
+        print(f"[error] EDGAR attention context failed: {exc}")
 
 
 def run_universe_builder(ctx: JobContext, conn: Any | None = None) -> None:
-    default = pd.DataFrame({"symbol": DEFAULT_UNIVERSE, "rank": list(range(1, len(DEFAULT_UNIVERSE) + 1))})
-    _persist_dataset("universe_snapshot", default, ctx, conn)
+    cfg = _alpaca_config()
+    if cfg is None:
+        default = pd.DataFrame({"symbol": DEFAULT_UNIVERSE, "rank": list(range(1, len(DEFAULT_UNIVERSE) + 1))})
+        _persist_dataset("universe_snapshot", default, ctx, conn)
+        return
+
+    api = AlpacaAPI(cfg)
+    try:
+        universe = _build_equity_universe_snapshot(api, target_size=_equity_universe_target_size())
+    except Exception as exc:
+        print(f"[warn] expanded universe build failed; falling back to default: {type(exc).__name__}: {exc}")
+        universe = pd.DataFrame()
+
+    if universe.empty:
+        universe = pd.DataFrame({"symbol": DEFAULT_UNIVERSE, "rank": list(range(1, len(DEFAULT_UNIVERSE) + 1))})
+    _persist_dataset("universe_snapshot", universe, ctx, conn)
 
 
 def main() -> None:

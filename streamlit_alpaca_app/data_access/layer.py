@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 from typing import Any
 
 import pandas as pd
@@ -9,6 +10,7 @@ from compute.analytics import performance_table
 from compute.anomalies import AttentionConfig, attention_preset, build_attention_feed, build_attention_rollups, filter_attention_events, normalize_horizon, normalize_horizons
 from compute.fred import build_fred_dashboard_from_pipeline
 from compute.fundamentals import load_quarterly_fundamentals
+from compute.ownership import normalize_share_fraction, project_account_view, project_portfolio_timeseries, project_positions_view
 from compute.portfolio import build_portfolio_timeseries, compute_holding_roc, normalize_timeseries_view
 from data_access.contracts import DataProvenance, ResolvedPayload
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
@@ -147,6 +149,21 @@ class DataAccessLayer:
             details[dataset_name] = metadata
         return frames, details
 
+    def _user_share_fraction(self, user_context: Any | None) -> float:
+        if isinstance(user_context, dict):
+            return normalize_share_fraction(user_context.get("share_fraction"))
+        return normalize_share_fraction(getattr(user_context, "share_fraction", 0.0))
+
+    def _user_can_view_full(self, user_context: Any | None) -> bool:
+        if isinstance(user_context, dict):
+            return bool(user_context.get("can_view_full_portfolio"))
+        return bool(getattr(user_context, "can_view_full_portfolio", False))
+
+    def _user_id(self, user_context: Any | None) -> str:
+        if isinstance(user_context, dict):
+            return str(user_context.get("user_id") or "")
+        return str(getattr(user_context, "user_id", "") or "")
+
     def resolve_account(self, *, force_refresh: bool = False) -> ResolvedPayload:
         frame = cached_scalar_dict(
             "account",
@@ -155,6 +172,15 @@ class DataAccessLayer:
             force_refresh=force_refresh,
         )
         return self._resolved(frame, mode="on_demand", datasets=("account",))
+
+    def resolve_user_account(self, user_context: Any, *, force_refresh: bool = False) -> ResolvedPayload:
+        resolved = self.resolve_account(force_refresh=force_refresh)
+        if self._user_can_view_full(user_context):
+            return resolved
+        projected = project_account_view(resolved.payload, self._user_share_fraction(user_context))
+        details = dict(resolved.provenance.details)
+        details.update({"projected": True, "user_id": self._user_id(user_context)})
+        return self._resolved(projected, mode=resolved.provenance.mode, datasets=resolved.provenance.datasets + ("ownership_projection",), details=details)
 
     def resolve_positions(self, *, force_refresh: bool = False) -> ResolvedPayload:
         frame = cached_frame(
@@ -165,6 +191,15 @@ class DataAccessLayer:
         )
         return self._resolved(frame, mode="on_demand", datasets=("positions",))
 
+    def resolve_user_positions(self, user_context: Any, *, force_refresh: bool = False) -> ResolvedPayload:
+        resolved = self.resolve_positions(force_refresh=force_refresh)
+        if self._user_can_view_full(user_context):
+            return resolved
+        projected = project_positions_view(resolved.payload, self._user_share_fraction(user_context))
+        details = dict(resolved.provenance.details)
+        details.update({"projected": True, "user_id": self._user_id(user_context)})
+        return self._resolved(projected, mode=resolved.provenance.mode, datasets=resolved.provenance.datasets + ("ownership_projection",), details=details)
+
     def resolve_portfolio_timeseries(self, period: str, *, force_refresh: bool = False) -> ResolvedPayload:
         frame = cached_frame(
             "portfolio_timeseries",
@@ -174,11 +209,28 @@ class DataAccessLayer:
         )
         return self._resolved(frame, mode="on_demand", datasets=("portfolio_timeseries",), details={"period": period})
 
+    def resolve_user_portfolio_timeseries(self, user_context: Any, period: str, *, force_refresh: bool = False) -> ResolvedPayload:
+        resolved = self.resolve_portfolio_timeseries(period, force_refresh=force_refresh)
+        if self._user_can_view_full(user_context):
+            return resolved
+        projected = project_portfolio_timeseries(resolved.payload, self._user_share_fraction(user_context))
+        details = dict(resolved.provenance.details)
+        details.update({"projected": True, "user_id": self._user_id(user_context)})
+        return self._resolved(projected, mode=resolved.provenance.mode, datasets=resolved.provenance.datasets + ("ownership_projection",), details=details)
+
     def resolve_portfolio_performance(self, period: str, *, force_refresh: bool = False) -> ResolvedPayload:
         resolved = self.resolve_portfolio_timeseries(period, force_refresh=force_refresh)
         normalized = normalize_timeseries_view(resolved.payload)
         table = performance_table(normalized)
         return self._resolved(table, mode=resolved.provenance.mode, datasets=("portfolio_timeseries", "performance_table"), details={"period": period})
+
+    def resolve_user_portfolio_performance(self, user_context: Any, period: str, *, force_refresh: bool = False) -> ResolvedPayload:
+        resolved = self.resolve_user_portfolio_timeseries(user_context, period, force_refresh=force_refresh)
+        normalized = normalize_timeseries_view(resolved.payload)
+        table = performance_table(normalized)
+        details = dict(resolved.provenance.details)
+        details.update({"period": period})
+        return self._resolved(table, mode=resolved.provenance.mode, datasets=("portfolio_timeseries", "performance_table"), details=details)
 
     def resolve_holding_roc(self, symbols: list[str], *, days: int = 365, force_refresh: bool = False) -> ResolvedPayload:
         normalized_symbols = sorted({str(symbol).upper().strip() for symbol in symbols if str(symbol).strip()})
@@ -693,10 +745,35 @@ class DataAccessLayer:
                 target = ticker.upper().strip()
 
                 def _has_symbol(value: object) -> bool:
-                    if isinstance(value, (list, tuple, set)):
-                        return target in [str(item).upper().strip() for item in value]
-                    blob = str(value or "").replace("|", ",")
-                    return target in [item.upper().strip() for item in blob.split(",") if item.strip()]
+                    if value is None:
+                        return False
+                    if isinstance(value, str):
+                        items = [value]
+                    elif isinstance(value, (list, tuple, set, pd.Series, pd.Index)):
+                        items = list(value)
+                    else:
+                        tolist = getattr(value, "tolist", None)
+                        if callable(tolist):
+                            try:
+                                listed = tolist()
+                            except Exception:
+                                listed = value
+                            if isinstance(listed, list):
+                                items = listed
+                            elif isinstance(listed, tuple):
+                                items = list(listed)
+                            else:
+                                items = [listed]
+                        else:
+                            items = [value]
+
+                    tokens: list[str] = []
+                    for item in items:
+                        for token in str(item).replace("|", ",").split(","):
+                            cleaned = token.upper().strip()
+                            if cleaned and cleaned.lower() != "nan":
+                                tokens.append(cleaned)
+                    return target in tokens
 
                 rows = pipeline.copy()
                 if "symbols" in rows.columns:
@@ -715,6 +792,62 @@ class DataAccessLayer:
             force_refresh=force_refresh,
         )
         return self._resolved(payload, mode="on_demand", datasets=("recent_news",), details={"ticker": ticker.upper(), "days": days, "limit": limit})
+
+    def resolve_attention_context(self, ticker: str, *, force_refresh: bool = False) -> ResolvedPayload:
+        target = str(ticker or "").upper().strip()
+        empty_payload = {
+            "symbol": target,
+            "context_story_text": "",
+            "primary_source_excerpt": "",
+            "latest_filing_excerpt": "",
+            "source_line": "",
+            "llm_headline": "",
+            "llm_summary_text": "",
+            "llm_narrative_text": "",
+            "llm_why_now": "",
+            "llm_management_signal": "",
+            "llm_confidence": "",
+            "llm_source_line": "",
+            "llm_supporting_points": [],
+            "top_filing_links": [],
+        }
+
+        materialized = self._try_pipeline_frame("attention_context_bundle", force_refresh=force_refresh)
+        if materialized is None:
+            return self._resolved(empty_payload, mode="materialized", datasets=("attention_context_bundle",), details={"ticker": target})
+
+        pipeline, details = materialized
+        if pipeline.empty or "symbol" not in pipeline.columns:
+            return self._resolved(empty_payload, mode="materialized", datasets=("attention_context_bundle",), details=details)
+
+        rows = pipeline.copy()
+        rows["symbol"] = rows["symbol"].astype(str).str.upper().str.strip()
+        match = rows[rows["symbol"] == target].head(1)
+        if match.empty:
+            return self._resolved(empty_payload, mode="materialized", datasets=("attention_context_bundle",), details=details)
+
+        payload = match.iloc[0].to_dict()
+        links_raw = payload.get("top_filing_links_json")
+        links: list[dict[str, object]] = []
+        if isinstance(links_raw, str) and links_raw.strip():
+            try:
+                parsed = json.loads(links_raw)
+                if isinstance(parsed, list):
+                    links = [item for item in parsed if isinstance(item, dict)]
+            except Exception:
+                links = []
+        payload["top_filing_links"] = links
+        supporting_points_raw = payload.get("llm_supporting_points_json")
+        supporting_points: list[str] = []
+        if isinstance(supporting_points_raw, str) and supporting_points_raw.strip():
+            try:
+                parsed_points = json.loads(supporting_points_raw)
+                if isinstance(parsed_points, list):
+                    supporting_points = [str(item).strip() for item in parsed_points if str(item).strip()]
+            except Exception:
+                supporting_points = []
+        payload["llm_supporting_points"] = supporting_points
+        return self._resolved(payload, mode="materialized", datasets=("attention_context_bundle",), details=details)
 
     def resolve_attention_feed(
         self,

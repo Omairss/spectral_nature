@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 from types import SimpleNamespace
 
+import numpy as np
 import pandas as pd
 
 
@@ -293,8 +295,81 @@ def test_data_access_layer_builds_tuned_attention_feed_from_candidate_snapshot(m
 
     assert resolved_feed.provenance.datasets == ("attention_candidates",)
     assert resolved_feed.payload["entity_id"].tolist() == ["NVDA"]
+    assert json.loads(resolved_feed.payload.iloc[0]["drilldown_params_json"]) == {
+        "horizon": "1yr",
+        "market_view": "Markets",
+        "ticker": "NVDA",
+    }
     assert resolved_rollups.provenance.datasets == ("attention_candidates",)
     assert resolved_rollups.payload["rollup_type"].tolist() == ["market", "business_lens"]
+
+
+def test_data_access_layer_recent_news_handles_array_symbols(monkeypatch):
+    import data_access.layer as layer_module
+
+    articles = pd.DataFrame(
+        {
+            "headline": ["Oklo signs supply agreement", "Unrelated item"],
+            "published_at": pd.to_datetime(["2026-03-20T12:00:00Z", "2026-03-19T09:00:00Z"], utc=True),
+            "symbols": [np.array(["OKLO", "SPY"]), np.array(["NVDA"])],
+            "source": ["ExampleWire", "ExampleWire"],
+        }
+    )
+    metadata = SimpleNamespace(
+        dataset_name="news_articles",
+        dataset_version_id="news_articles__20260320T120000Z__abcd1234",
+        blob_path="datasets/news_articles/example.parquet",
+        asof_time_utc="2026-03-20T12:00:00Z",
+        ingested_at_utc="2026-03-20T12:05:00Z",
+        row_count=2,
+    )
+
+    monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
+    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", lambda dataset_name: (articles.copy(), metadata))
+
+    resolved = DataAccessLayer().resolve_recent_news("OKLO", limit=5)
+
+    assert resolved.provenance.datasets == ("news_articles",)
+    assert resolved.payload["articles"]["headline"].tolist() == ["Oklo signs supply agreement"]
+
+
+def test_data_access_layer_attention_context_uses_materialized_bundle(monkeypatch):
+    import data_access.layer as layer_module
+
+    bundle = pd.DataFrame(
+        {
+            "symbol": ["AAPL", "MSFT"],
+            "context_story_text": ["AAPL filed an 8-K on Mar 20.", "MSFT filed a 10-Q on Mar 19."],
+            "primary_source_excerpt": ["Current report; items: 2.02", "Quarterly report"],
+            "source_line": ["Primary sources: SEC EDGAR filings", "Primary sources: SEC EDGAR filings"],
+            "llm_headline": ["EDGAR points to a services-led support story", ""],
+            "llm_summary_text": ["Management looks focused on services and capital returns.", ""],
+            "llm_supporting_points_json": ['["Fresh 8-K","Services growth"]', "[]"],
+            "top_filing_links_json": [
+                '[{"label":"8-K • Mar 20","url":"https://example.com/aapl-8k"}]',
+                '[{"label":"10-Q • Mar 19","url":"https://example.com/msft-10q"}]',
+            ],
+        }
+    )
+    metadata = SimpleNamespace(
+        dataset_name="attention_context_bundle",
+        dataset_version_id="attention_context_bundle__20260320T120000Z__abcd1234",
+        blob_path="datasets/attention_context_bundle/example.parquet",
+        asof_time_utc="2026-03-20T12:00:00Z",
+        ingested_at_utc="2026-03-20T12:05:00Z",
+        row_count=2,
+    )
+
+    monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
+    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", lambda dataset_name: (bundle.copy(), metadata))
+
+    resolved = DataAccessLayer().resolve_attention_context("AAPL")
+
+    assert resolved.provenance.datasets == ("attention_context_bundle",)
+    assert resolved.payload["symbol"] == "AAPL"
+    assert resolved.payload["top_filing_links"][0]["label"] == "8-K • Mar 20"
+    assert resolved.payload["llm_headline"] == "EDGAR points to a services-led support story"
+    assert resolved.payload["llm_supporting_points"] == ["Fresh 8-K", "Services growth"]
 
 
 def test_query_service_forwards_attention_tuning_params():
@@ -435,12 +510,26 @@ def test_query_service_capabilities_include_resolution_hints():
     assert capabilities["datasets"]["daily_movers"]["resolution"] == "materialized_first"
     assert capabilities["datasets"]["portfolio_timeseries"]["resolution"] == "live_cached"
     assert capabilities["datasets"]["attention_feed"]["resolution"] == "materialized"
+    assert capabilities["datasets"]["attention_context"]["resolution"] == "materialized"
     assert capabilities["datasets"]["commodity_attention_feed"]["resolution"] == "materialized"
     assert capabilities["charts"]["technical_price_channel"]["resolution"] == "computed_from_signal_history"
 
 
 def test_query_service_fetches_attention_datasets():
     class FakeAccess:
+        def resolve_attention_context(
+            self,
+            ticker: str,
+            *,
+            force_refresh: bool = False,
+        ) -> ResolvedPayload:
+            assert ticker == "AAPL"
+            assert force_refresh is True
+            return ResolvedPayload(
+                payload={"symbol": "AAPL", "context_story_text": "AAPL filed an 8-K."},
+                provenance=DataProvenance(mode="materialized", datasets=("attention_context_bundle",), details={"dataset_version_id": "context-v1"}),
+            )
+
         def resolve_attention_feed(
             self,
             *,
@@ -517,11 +606,13 @@ def test_query_service_fetches_attention_datasets():
             )
 
     service = QueryService(data_access=FakeAccess())
+    attention_context = service.fetch_dataset("attention_context", {"ticker": "AAPL", "force_refresh": True})
     attention_feed = service.fetch_dataset("attention_feed", {"limit": 5, "entity_ids": ["TSLA"], "statuses": ["cooling"]})
     attention_rollups = service.fetch_dataset("attention_rollups", {"rollup_type": "business_lens", "limit": 3, "force_refresh": True})
     commodity_attention_feed = service.fetch_dataset("commodity_attention_feed", {"limit": 2, "entity_ids": ["GLD"], "statuses": ["active"]})
     commodity_attention_rollups = service.fetch_dataset("commodity_attention_rollups", {"rollup_type": "commodity_focus", "limit": 2})
 
+    assert attention_context.payload["symbol"] == "AAPL"
     assert attention_feed.payload["entity_id"].tolist() == ["TSLA"]
     assert attention_rollups.payload["rollup_name"].tolist() == ["All Market"]
     assert commodity_attention_feed.payload["entity_id"].tolist() == ["GLD"]

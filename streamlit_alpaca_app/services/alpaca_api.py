@@ -3,7 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from functools import cached_property
+import os
+import random
 import re
+import time
 from typing import Any, Iterator
 
 import pandas as pd
@@ -87,6 +90,73 @@ class AlpacaAPI:
             "Content-Type": "application/json",
         }
 
+    @staticmethod
+    def _env_int(name: str, default: int, *, minimum: int = 1, maximum: int | None = None) -> int:
+        try:
+            value = int(os.getenv(name, str(default)))
+        except Exception:
+            value = int(default)
+        value = max(value, minimum)
+        if maximum is not None:
+            value = min(value, maximum)
+        return value
+
+    @staticmethod
+    def _env_float(name: str, default: float, *, minimum: float = 0.0) -> float:
+        try:
+            value = float(os.getenv(name, str(default)))
+        except Exception:
+            value = float(default)
+        return max(value, minimum)
+
+    @classmethod
+    def _stock_bars_batch_size(cls) -> int:
+        return cls._env_int("ALPACA_BARS_BATCH_SIZE", 25, minimum=1, maximum=25)
+
+    @classmethod
+    def _snapshot_batch_size(cls) -> int:
+        return cls._env_int("ALPACA_SNAPSHOT_BATCH_SIZE", 200, minimum=1, maximum=500)
+
+    @classmethod
+    def _batch_pause_seconds(cls) -> float:
+        return cls._env_float("ALPACA_BATCH_PAUSE_MS", 250.0, minimum=0.0) / 1000.0
+
+    @staticmethod
+    def _sleep(seconds: float) -> None:
+        if seconds > 0:
+            time.sleep(seconds)
+
+    @staticmethod
+    def _retry_after_seconds(headers: Any) -> float | None:
+        if not headers:
+            return None
+        raw = headers.get("Retry-After")
+        if raw in {None, ""}:
+            return None
+        try:
+            return max(float(raw), 0.0)
+        except Exception:
+            return None
+
+    @staticmethod
+    def _looks_rate_limited(status_code: int, body: str) -> bool:
+        text = str(body or "").lower()
+        if status_code == 429:
+            return True
+        if status_code != 403:
+            return False
+        tokens = ("rate limit", "too many requests", "exceeded", "throttle", "throttled")
+        return any(token in text for token in tokens)
+
+    @classmethod
+    def _retry_delay_seconds(cls, attempt: int, headers: Any = None) -> float:
+        retry_after = cls._retry_after_seconds(headers)
+        if retry_after is not None:
+            return retry_after
+        base = cls._env_float("ALPACA_RETRY_BACKOFF_SECONDS", 1.25, minimum=0.1)
+        jitter = cls._env_float("ALPACA_RETRY_JITTER_SECONDS", 0.35, minimum=0.0)
+        return (base * (2 ** max(attempt - 1, 0))) + random.uniform(0.0, jitter)
+
     def _request(
         self,
         method: str,
@@ -96,16 +166,37 @@ class AlpacaAPI:
         timeout: int = 25,
     ) -> Any:
         url = f"{base_url.rstrip('/')}/{path.lstrip('/')}"
-        resp = requests.request(
-            method=method,
-            url=url,
-            headers=self._headers(),
-            params=params,
-            timeout=timeout,
-        )
-        if resp.status_code >= 400:
-            raise AlpacaAPIError(f"Alpaca API {resp.status_code}: {resp.text}")
-        return resp.json()
+        max_attempts = self._env_int("ALPACA_REQUEST_MAX_ATTEMPTS", 4, minimum=1, maximum=8)
+        last_error = ""
+
+        for attempt in range(1, max_attempts + 1):
+            try:
+                resp = requests.request(
+                    method=method,
+                    url=url,
+                    headers=self._headers(),
+                    params=params,
+                    timeout=timeout,
+                )
+            except requests.RequestException as exc:
+                last_error = str(exc)
+                if attempt >= max_attempts:
+                    raise AlpacaAPIError(f"Alpaca request failed: {exc}") from exc
+                self._sleep(self._retry_delay_seconds(attempt))
+                continue
+
+            if resp.status_code < 400:
+                return resp.json()
+
+            error_text = (resp.text or "").strip()
+            last_error = f"Alpaca API {resp.status_code}: {error_text}"
+            should_retry = resp.status_code in {429, 500, 502, 503, 504} or self._looks_rate_limited(resp.status_code, error_text)
+            if should_retry and attempt < max_attempts:
+                self._sleep(self._retry_delay_seconds(attempt, resp.headers))
+                continue
+            raise AlpacaAPIError(last_error)
+
+        raise AlpacaAPIError(last_error or "Alpaca request failed")
 
     def get_account(self) -> dict[str, Any]:
         try:
@@ -268,7 +359,8 @@ class AlpacaAPI:
             return {}
 
         snapshots: dict[str, Any] = {}
-        for batch in self._chunked(symbols, 100):
+        pause_seconds = self._batch_pause_seconds()
+        for index, batch in enumerate(self._chunked(symbols, 100), start=1):
             payload = self._request(
                 "GET",
                 self.config.alpaca_data_base_url,
@@ -276,6 +368,8 @@ class AlpacaAPI:
                 params={"symbols": ",".join(batch), "feed": feed},
             )
             snapshots.update(payload.get("snapshots", {}) or {})
+            if pause_seconds > 0 and index * 100 < len(symbols):
+                self._sleep(pause_seconds)
 
         return snapshots
 
@@ -297,33 +391,47 @@ class AlpacaAPI:
 
         # Alpaca's bars endpoint applies the limit to the whole request, not per symbol.
         # Large universes therefore need batching or the later symbols can be silently dropped.
-        for batch in self._chunked(sorted(set(normalized_symbols)), 25):
-            params = {
-                "symbols": ",".join(batch),
-                "timeframe": timeframe,
-                "start": start.isoformat(),
-                "end": end.isoformat(),
-                "adjustment": "all",
-                "feed": feed,
-                "sort": "asc",
-                "limit": 10000,
-            }
+        deduped_symbols = sorted(set(normalized_symbols))
+        batch_size = self._stock_bars_batch_size()
+        pause_seconds = self._batch_pause_seconds()
+        for index, batch in enumerate(self._chunked(deduped_symbols, batch_size), start=1):
+            page_token: str | None = None
+            while True:
+                params = {
+                    "symbols": ",".join(batch),
+                    "timeframe": timeframe,
+                    "start": start.isoformat(),
+                    "end": end.isoformat(),
+                    "adjustment": "all",
+                    "feed": feed,
+                    "sort": "asc",
+                    "limit": 10000,
+                }
+                if page_token:
+                    params["page_token"] = page_token
 
-            payload = self._request(
-                "GET",
-                self.config.alpaca_data_base_url,
-                "/v2/stocks/bars",
-                params=params,
-            )
+                payload = self._request(
+                    "GET",
+                    self.config.alpaca_data_base_url,
+                    "/v2/stocks/bars",
+                    params=params,
+                )
 
-            bars = payload.get("bars", {})
-            if isinstance(bars, dict):
-                for symbol, rows in bars.items():
-                    by_symbol.setdefault(str(symbol).upper(), []).extend(rows or [])
-            elif isinstance(bars, list):
-                for row in bars:
-                    sym = str(row.get("S", "")).upper()
-                    by_symbol.setdefault(sym, []).append(row)
+                bars = payload.get("bars", {})
+                if isinstance(bars, dict):
+                    for symbol, rows in bars.items():
+                        by_symbol.setdefault(str(symbol).upper(), []).extend(rows or [])
+                elif isinstance(bars, list):
+                    for row in bars:
+                        sym = str(row.get("S", "")).upper()
+                        by_symbol.setdefault(sym, []).append(row)
+
+                page_token = str(payload.get("next_page_token") or payload.get("nextPageToken") or "").strip() or None
+                has_more_batches = index * batch_size < len(deduped_symbols)
+                if pause_seconds > 0 and (page_token is not None or has_more_batches):
+                    self._sleep(pause_seconds)
+                if page_token is None:
+                    break
 
         parsed: dict[str, pd.DataFrame] = {}
         for symbol, rows in by_symbol.items():
@@ -360,17 +468,26 @@ class AlpacaAPI:
         if not normalized_symbols:
             return {}
 
-        params = {
-            "symbols": ",".join(sorted(set(normalized_symbols))),
-            "feed": feed,
-        }
-        payload = self._request(
-            "GET",
-            self.config.alpaca_data_base_url,
-            "/v2/stocks/snapshots",
-            params=params,
-        )
-        return payload or {}
+        deduped_symbols = sorted(set(normalized_symbols))
+        batch_size = self._snapshot_batch_size()
+        pause_seconds = self._batch_pause_seconds()
+        snapshots: dict[str, Any] = {}
+        for index, batch in enumerate(self._chunked(deduped_symbols, batch_size), start=1):
+            params = {
+                "symbols": ",".join(batch),
+                "feed": feed,
+            }
+            payload = self._request(
+                "GET",
+                self.config.alpaca_data_base_url,
+                "/v2/stocks/snapshots",
+                params=params,
+            )
+            if isinstance(payload, dict):
+                snapshots.update(payload.get("snapshots", payload) or {})
+            if pause_seconds > 0 and index * batch_size < len(deduped_symbols):
+                self._sleep(pause_seconds)
+        return snapshots
 
     def get_news(
         self,

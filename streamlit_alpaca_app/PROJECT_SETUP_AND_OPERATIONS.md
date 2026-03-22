@@ -181,6 +181,67 @@ Useful flags:
 - `--image-ref <repo:tag|repo@sha256:...>` to deploy an existing image
 - `--refresh-tracker-only` to rewrite `infra/UI_DEPLOYMENT_STATUS.md` without deploying
 
+### Custom domains and managed TLS
+
+Current Development custom domains are bound on `sn-streamlit-ui-dev` in:
+
+- Resource group: `sn-pipeline-rg-03130136`
+- Container Apps environment: `sn-pipeline-env`
+- Generated app FQDN: `sn-streamlit-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io`
+
+For Azure Container Apps managed certificates, publish DNS first:
+
+- Apex domain (`torres-cap.com`)
+  - `A @ -> 172.168.33.46` (the Container Apps environment static IP)
+  - `TXT asuid -> <customDomainVerificationId>`
+- Subdomain (`www.torres-cap.com`)
+  - `CNAME www -> sn-streamlit-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io`
+  - `TXT asuid.www -> <customDomainVerificationId>`
+
+You can fetch the verification ID with:
+
+```bash
+az containerapp show \
+  -g sn-pipeline-rg-03130136 \
+  -n sn-streamlit-ui-dev \
+  --query properties.customDomainVerificationId -o tsv
+```
+
+Bind the hostnames after DNS is live:
+
+```bash
+az containerapp hostname add \
+  -g sn-pipeline-rg-03130136 \
+  -n sn-streamlit-ui-dev \
+  --hostname torres-cap.com
+
+az containerapp hostname bind \
+  -g sn-pipeline-rg-03130136 \
+  -n sn-streamlit-ui-dev \
+  --environment sn-pipeline-env \
+  --hostname torres-cap.com \
+  --validation-method HTTP
+
+az containerapp hostname add \
+  -g sn-pipeline-rg-03130136 \
+  -n sn-streamlit-ui-dev \
+  --hostname www.torres-cap.com
+
+az containerapp hostname bind \
+  -g sn-pipeline-rg-03130136 \
+  -n sn-streamlit-ui-dev \
+  --environment sn-pipeline-env \
+  --hostname www.torres-cap.com \
+  --validation-method CNAME
+```
+
+Operational notes:
+
+- The managed certificate creation step can stay in `Pending` for several minutes before Azure binds it.
+- Apex domains use `HTTP` validation; subdomains use `CNAME` validation.
+- If CAA records exist on the root domain, allow DigiCert or managed certificate issuance can fail.
+- As of `2026-03-20`, `torres-cap.com` and `www.torres-cap.com` both return `HTTP 200` over HTTPS on the Development app.
+
 ---
 
 ## 8) Caching behavior

@@ -151,9 +151,19 @@ ATTENTION_FEED_COLUMNS = [
     "subtitle",
     "entity_type",
     "entity_id",
+    "horizon",
+    "direction",
+    "peer_group_name",
+    "regime_label",
     "attention_score",
     "severity_score",
     "impact_score",
+    "confidence_score",
+    "observed_value",
+    "expected_value",
+    "residual_value",
+    "residual_zscore",
+    "story_text",
     "why_now_text",
     "expected_vs_observed_text",
     "next_best_action",
@@ -223,6 +233,36 @@ def normalize_horizons(values: list[str] | tuple[str, ...] | set[str] | None) ->
 def attention_preset(name: str | None) -> dict[str, float | str]:
     key = str(name or "balanced").strip().lower()
     return dict(SENSITIVITY_PRESETS.get(key, SENSITIVITY_PRESETS["balanced"]))
+
+
+def _attention_drilldown_params(
+    symbol: Any,
+    horizon: Any,
+    *,
+    entity_type: Any = "symbol",
+    peer_group_name: Any = None,
+) -> dict[str, str]:
+    normalized_symbol = _normalize_symbol(symbol)
+    normalized_horizon = normalize_horizon(horizon)
+    normalized_entity_type = str(entity_type or "symbol").strip().lower()
+    normalized_peer_group = str(peer_group_name or "").strip()
+
+    params: dict[str, str] = {"ticker": normalized_symbol}
+    if normalized_horizon in HORIZON_PERIODS:
+        params["horizon"] = normalized_horizon
+
+    is_commodity = normalized_entity_type == "commodity_symbol" or normalized_peer_group in COMMODITY_FOCUS_UNIVERSES
+    if is_commodity:
+        params["market_view"] = "Commodity Section"
+        params["commodity_focus"] = (
+            normalized_peer_group if normalized_peer_group in COMMODITY_FOCUS_UNIVERSES else "Broad Commodity Market"
+        )
+        return params
+
+    params["market_view"] = "Markets"
+    if normalized_peer_group in BUSINESS_FOCUS_UNIVERSES:
+        params["business_filter"] = normalized_peer_group
+    return params
 
 
 def _cross_sectional_zscore(series: pd.Series) -> pd.Series:
@@ -631,6 +671,66 @@ def _next_best_action(anomaly_type: str, entity_id: str, horizon: str) -> str:
     return f"Open Market Opportunity for {entity_id} and compare observed vs expected behavior."
 
 
+def _signed_percent_text(value: Any) -> str:
+    numeric = float(pd.to_numeric(value, errors="coerce"))
+    if not np.isfinite(numeric):
+        return "n/a"
+    return f"{numeric:+.2f}%"
+
+
+def _build_attention_story(row: pd.Series) -> str:
+    entity_id = str(row.get("entity_id") or "").strip().upper()
+    horizon = str(row.get("horizon") or "").strip()
+    direction = str(row.get("direction") or "").strip().lower()
+    anomaly_type = str(row.get("anomaly_type") or "").strip().lower()
+    peer_group_name = str(row.get("peer_group_name") or "").strip()
+    regime_label = str(row.get("regime_label") or "").strip()
+    residual_value = float(pd.to_numeric(row.get("residual_value"), errors="coerce"))
+    linked_news_raw = pd.to_numeric(row.get("linked_news_count"), errors="coerce")
+    linked_news_count = int(linked_news_raw) if pd.notna(linked_news_raw) else 0
+    portfolio_exposure_weight = float(pd.to_numeric(row.get("portfolio_exposure_weight"), errors="coerce"))
+
+    if not entity_id:
+        return ""
+
+    if peer_group_name and peer_group_name not in {"All Market", "Broad Commodity Market"}:
+        expectation_anchor = f"its {peer_group_name} peers"
+    elif peer_group_name == "Broad Commodity Market":
+        expectation_anchor = "the broader commodity tape"
+    else:
+        expectation_anchor = "its recent path and the broader tape"
+
+    lead = (
+        f"{entity_id} is trading stronger than {expectation_anchor} implied."
+        if direction == "up"
+        else f"{entity_id} is trading weaker than {expectation_anchor} implied."
+    )
+
+    if anomaly_type == "news_confirmed_move":
+        driver = (
+            f"{linked_news_count} fresh headline{'s are' if linked_news_count != 1 else ' is'} reinforcing the move, "
+            "so this looks more idiosyncratic than market-wide."
+        )
+    elif anomaly_type in {"correlation_break", "decoupling"}:
+        driver = "It is breaking from its usual benchmark or peer correlation, which points to a stock-specific move."
+    elif anomaly_type in {"momentum_acceleration", "momentum_deceleration"}:
+        driver = "Momentum is shifting faster than the prior trajectory suggested, so the move is starting to compound."
+    else:
+        driver = "The gap versus expectation is wide enough that this looks like more than ordinary beta noise."
+
+    context_parts: list[str] = []
+    if np.isfinite(residual_value):
+        context_parts.append(f"Residual over {horizon or 'the selected window'} is {_signed_percent_text(residual_value)}")
+    if regime_label:
+        context_parts.append(f"technical backdrop: {regime_label.lower()}")
+    if portfolio_exposure_weight > 0:
+        context_parts.append("portfolio overlap raises the priority")
+
+    if context_parts:
+        return f"{lead} {driver} {'; '.join(context_parts)}."
+    return f"{lead} {driver}"
+
+
 def build_peer_group_membership(*, asof_time_utc: pd.Timestamp, symbols: list[str] | None = None) -> pd.DataFrame:
     rows: list[dict[str, object]] = []
     covered: set[str] = set()
@@ -955,7 +1055,15 @@ def build_attention_candidates(
                 "linked_news_count": linked_news_count,
                 "linked_news_ids": linked_news_ids,
                 "drilldown_section": "Market Opportunity",
-                "drilldown_params_json": json.dumps({"ticker": symbol, "horizon": horizon}, sort_keys=True),
+                "drilldown_params_json": json.dumps(
+                    _attention_drilldown_params(
+                        symbol,
+                        horizon,
+                        entity_type="symbol",
+                        peer_group_name=row.get("peer_group_name"),
+                    ),
+                    sort_keys=True,
+                ),
                 "status": _status_from_scores(residual_zscore, anomaly_threshold),
                 "schema_version": config.schema_version,
             }
@@ -1136,6 +1244,7 @@ def build_attention_feed(
             else f"{entity_id} is {'outperforming' if residual >= 0 else 'underperforming'} expectation"
         )
         subtitle = f"{str(row.get('anomaly_type') or '').replace('_', ' ').title()} over {horizon}"
+        story_text = _build_attention_story(row)
         expected_vs_observed_text = (
             f"Observed {observed:.2f}% vs expected {expected:.2f}% over {horizon}; residual {residual:.2f}%."
         )
@@ -1149,14 +1258,32 @@ def build_attention_feed(
                 "subtitle": subtitle,
                 "entity_type": row.get("entity_type"),
                 "entity_id": entity_id,
+                "horizon": horizon,
+                "direction": row.get("direction"),
+                "peer_group_name": row.get("peer_group_name"),
+                "regime_label": row.get("regime_label"),
                 "attention_score": float(pd.to_numeric(row.get("attention_score"), errors="coerce")),
                 "severity_score": float(pd.to_numeric(row.get("severity_score"), errors="coerce")),
                 "impact_score": float(pd.to_numeric(row.get("impact_score"), errors="coerce")),
+                "confidence_score": float(pd.to_numeric(row.get("confidence_score"), errors="coerce")),
+                "observed_value": observed,
+                "expected_value": expected,
+                "residual_value": residual,
+                "residual_zscore": float(pd.to_numeric(row.get("residual_zscore"), errors="coerce")),
+                "story_text": story_text,
                 "why_now_text": row.get("why_now_text"),
                 "expected_vs_observed_text": expected_vs_observed_text,
                 "next_best_action": _next_best_action(str(row.get("anomaly_type") or ""), entity_id, horizon),
                 "drilldown_section": row.get("drilldown_section"),
-                "drilldown_params_json": row.get("drilldown_params_json"),
+                "drilldown_params_json": json.dumps(
+                    _attention_drilldown_params(
+                        entity_id,
+                        horizon,
+                        entity_type=row.get("entity_type"),
+                        peer_group_name=row.get("peer_group_name"),
+                    ),
+                    sort_keys=True,
+                ),
                 "linked_news_count": int(row.get("linked_news_count") or 0),
                 "status": row.get("status"),
                 "schema_version": row.get("schema_version") or "v1",
