@@ -25,6 +25,9 @@ DATASET_CAPABILITIES: dict[str, dict[str, Any]] = {
     "quarterly_fundamentals": {"params": ["ticker", "force_refresh"], "resolution": "materialized_first"},
     "recent_news": {"params": ["ticker", "days", "limit", "force_refresh"], "resolution": "materialized_first"},
     "attention_context": {"params": ["ticker", "force_refresh"], "resolution": "materialized"},
+    "attention_home_1d": {"params": ["force_refresh"], "resolution": "materialized_first_then_on_demand"},
+    "attention_research_bundle": {"params": ["bundle_id", "force_refresh"], "resolution": "materialized_first_then_on_demand"},
+    "attention_run_trace": {"params": ["run_id", "force_refresh"], "resolution": "materialized"},
     "option_chain": {"params": ["ticker", "expiration", "force_refresh"], "resolution": "materialized_first"},
     "option_surface": {"params": ["ticker", "expected_price", "horizon_days", "underlying_price", "force_refresh"], "resolution": "materialized_first_then_on_demand"},
     "option_candidates": {"params": ["ticker", "expected_price", "horizon_days", "underlying_price", "force_refresh"], "resolution": "computed_from_option_surface"},
@@ -115,6 +118,20 @@ class QueryService:
             ticker = str(params.get("ticker") or "").strip()
             return self.data_access.resolve_attention_context(
                 ticker,
+                force_refresh=bool(params.get("force_refresh", False)),
+            )
+        if key == "attention_home_1d":
+            return self.data_access.resolve_attention_home_1d(
+                force_refresh=bool(params.get("force_refresh", False)),
+            )
+        if key == "attention_research_bundle":
+            return self.data_access.resolve_attention_research_bundle(
+                str(params.get("bundle_id") or "").strip(),
+                force_refresh=bool(params.get("force_refresh", False)),
+            )
+        if key == "attention_run_trace":
+            return self.data_access.resolve_attention_run_trace(
+                str(params.get("run_id") or "").strip(),
                 force_refresh=bool(params.get("force_refresh", False)),
             )
         if key == "option_chain":

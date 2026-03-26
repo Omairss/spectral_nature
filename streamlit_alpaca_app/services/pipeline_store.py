@@ -48,7 +48,7 @@ SOURCE_JOB_MAP: dict[str, str] = {
 }
 
 SOURCE_DATASETS: dict[str, list[str]] = {
-    "equities": ["universe_snapshot", "daily_movers", "momentum_profiles", "price_history"],
+    "equities": ["universe_snapshot", "daily_movers", "macro_anchor_daily_movers", "positions_snapshot", "momentum_profiles", "price_history"],
     "fred": ["fred_summary", "fred_observations"],
     "commodities": [
         "commodity_regime_summary",
@@ -61,7 +61,28 @@ SOURCE_DATASETS: dict[str, list[str]] = {
         "commodity_attention_feed",
     ],
     "options": ["option_expirations", "option_contract_snapshots"],
-    "news": ["news_articles", "news_symbol_map", "edgar_filings", "edgar_evidence", "attention_context_llm", "attention_context_bundle"],
+    "news": [
+        "news_articles",
+        "news_symbol_map",
+        "edgar_filings",
+        "edgar_evidence",
+        "attention_context_llm",
+        "attention_context_bundle",
+        "attention_web_search_news",
+        "attention_candidates_1d",
+        "attention_research_plans",
+        "attention_search_requests",
+        "attention_search_results",
+        "attention_source_documents",
+        "attention_evidence_chunks",
+        "attention_claims",
+        "attention_candidate_graph",
+        "attention_event_clusters_1d",
+        "attention_home_snapshots_1d",
+        "attention_bundle_snapshots",
+        "attention_home_1d",
+        "attention_research_bundles",
+    ],
     "fundamentals": ["quarterly_fundamentals"],
     "derivatives": [
         "correlation_phase_shift_summary",

@@ -24,6 +24,16 @@ from compute.anomalies import (
     normalize_horizons,
 )
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
+from services.attention_home_1d import (
+    MACRO_ANCHOR_SYMBOLS,
+    build_attention_entity_master,
+    shortlist_attention_symbols_1d,
+)
+from services.attention_agentic import build_bottom_up_attention_artifacts, search_symbol_news_payload
+from services.attention_materialized import (
+    bars_by_symbol_from_price_history,
+    serialize_attention_home_payload,
+)
 from services.attention_context_llm import (
     build_attention_context_narratives,
     build_edgar_evidence,
@@ -33,7 +43,7 @@ from services.config import AppConfig
 from services.edgar import DEFAULT_EDGAR_FORMS, EdgarAPIError, EdgarClient, build_attention_context_bundle
 from services.fred import FredAPIError, load_fred_api_key, load_fred_dashboard
 from services.fundamentals import load_quarterly_fundamentals
-from services.llm import LLMAPIError, load_llm_client
+from services.llm import LLMAPIError, load_embedding_client, load_llm_client
 from services.market import (
     COMMODITY_FOCUS_UNIVERSES,
     DEFAULT_UNIVERSE,
@@ -596,6 +606,261 @@ def _load_attention_positions(api: AlpacaAPI) -> pd.DataFrame:
         return pd.DataFrame(columns=["symbol", "market_value"])
 
 
+def _normalize_symbol(value: object) -> str:
+    text = str(value or "").upper().strip()
+    return "" if not text or text == "NAN" else text
+
+
+def _normalize_symbol_list(value: object) -> list[str]:
+    if isinstance(value, list):
+        raw_items = value
+    elif isinstance(value, tuple):
+        raw_items = list(value)
+    else:
+        text = str(value or "").strip()
+        if not text:
+            return []
+        raw_items = [item.strip() for item in text.split(",")]
+    normalized = [
+        _normalize_symbol(item)
+        for item in raw_items
+        if str(item or "").strip()
+    ]
+    return [item for item in normalized if item]
+
+
+def _news_payloads_from_articles_frame(
+    news_frame: pd.DataFrame,
+    *,
+    symbols: list[str],
+    limit: int,
+) -> dict[str, dict[str, Any]]:
+    normalized_symbols = [
+        _normalize_symbol(symbol)
+        for symbol in symbols
+        if str(symbol or "").strip()
+    ]
+    normalized_symbols = [symbol for symbol in normalized_symbols if symbol]
+    if not isinstance(news_frame, pd.DataFrame) or news_frame.empty or not normalized_symbols:
+        return {}
+
+    rows_by_symbol: dict[str, list[dict[str, Any]]] = {symbol: [] for symbol in normalized_symbols}
+    frame = news_frame.copy()
+    if "published_at" in frame.columns:
+        frame["published_at"] = pd.to_datetime(frame["published_at"], utc=True, errors="coerce")
+
+    for _, row in frame.iterrows():
+        row_symbols = _normalize_symbol_list(row.get("symbols"))
+        if not row_symbols:
+            continue
+        article = {
+            "headline": str(row.get("headline") or "").strip(),
+            "summary": str(row.get("summary") or row.get("description") or "").strip(),
+            "description": str(row.get("description") or row.get("summary") or "").strip(),
+            "source": str(row.get("source") or "").strip(),
+            "published_at": pd.to_datetime(row.get("published_at"), utc=True, errors="coerce"),
+            "url": str(row.get("url") or "").strip(),
+        }
+        for symbol in row_symbols:
+            if symbol in rows_by_symbol:
+                rows_by_symbol[symbol].append(article)
+
+    payloads: dict[str, dict[str, Any]] = {}
+    for symbol, rows in rows_by_symbol.items():
+        if not rows:
+            payloads[symbol] = {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
+            continue
+        articles = pd.DataFrame(rows)
+        if "published_at" in articles.columns:
+            articles["published_at"] = pd.to_datetime(articles["published_at"], utc=True, errors="coerce")
+            articles = articles.sort_values("published_at", ascending=False, na_position="last")
+        articles = articles.drop_duplicates(subset=["headline", "url"], keep="first").head(max(int(limit), 1)).reset_index(drop=True)
+        payloads[symbol] = {"articles": articles, "fallback_summary": None, "source": "pipeline"}
+    return payloads
+
+
+def _context_payloads_from_frame(frame: pd.DataFrame) -> dict[str, dict[str, Any]]:
+    if not isinstance(frame, pd.DataFrame) or frame.empty or "symbol" not in frame.columns:
+        return {}
+    payloads: dict[str, dict[str, Any]] = {}
+    rows = frame.copy()
+    rows["symbol"] = rows["symbol"].astype(str).str.upper().str.strip()
+    for _, row in rows.iterrows():
+        symbol = str(row.get("symbol") or "").upper().strip()
+        if not symbol:
+            continue
+        payload = row.to_dict()
+        for json_column, default in [("top_filing_links_json", []), ("llm_supporting_points_json", [])]:
+            raw = payload.get(json_column)
+            if isinstance(raw, str) and raw.strip():
+                try:
+                    parsed = json.loads(raw)
+                    payload[json_column[:-5]] = parsed if isinstance(parsed, type(default)) else default
+                except Exception:
+                    payload[json_column[:-5]] = default
+            else:
+                payload[json_column[:-5]] = default
+        payloads[symbol] = payload
+    return payloads
+
+
+def _bundle_ids_from_home_payload(payload: dict[str, Any]) -> list[str]:
+    return [
+        str(item.get("bundle_id") or "").strip()
+        for item in list(payload.get("top_events") or [])
+        + list(payload.get("must_read_movers") or [])
+        + list(payload.get("unresolved_large_moves") or [])
+        if str(item.get("bundle_id") or "").strip()
+    ]
+
+
+def _bundle_symbols_from_home_payload(payload: dict[str, Any]) -> list[str]:
+    symbols = {
+        str(item.get("symbol") or "").upper().strip()
+        for item in list(payload.get("must_read_movers") or []) + list(payload.get("unresolved_large_moves") or [])
+        if str(item.get("symbol") or "").strip()
+    }
+    symbols |= {
+        str(symbol).upper().strip()
+        for event in list(payload.get("top_events") or [])
+        for symbol in list(event.get("supporting_symbols") or [])
+        if str(symbol or "").strip()
+    }
+    return sorted(symbols)
+
+
+def _materialize_attention_outputs(
+    *,
+    ctx: JobContext,
+    conn: Any | None,
+    daily_movers: pd.DataFrame,
+    macro_movers: pd.DataFrame,
+    positions_frame: pd.DataFrame,
+    price_history_frame: pd.DataFrame,
+    attention_feed_frame: pd.DataFrame,
+    commodity_attention_feed_frame: pd.DataFrame,
+    news_frame: pd.DataFrame,
+    attention_context_frame: pd.DataFrame,
+    edgar_filings_frame: pd.DataFrame,
+    llm_client: Any | None,
+) -> None:
+    movers = pd.concat(
+        [frame for frame in [daily_movers, macro_movers] if isinstance(frame, pd.DataFrame) and not frame.empty],
+        ignore_index=True,
+        sort=False,
+    ) if any(isinstance(frame, pd.DataFrame) and not frame.empty for frame in [daily_movers, macro_movers]) else pd.DataFrame()
+    if movers.empty or "symbol" not in movers.columns:
+        print("[warn] attention_home_1d materialization skipped: missing mover inputs")
+        return
+    movers["symbol"] = movers["symbol"].astype(str).str.upper().str.strip()
+    movers = movers.drop_duplicates(subset=["symbol"], keep="first").reset_index(drop=True)
+
+    attention_parts = [
+        frame.copy()
+        for frame in [attention_feed_frame, commodity_attention_feed_frame]
+        if isinstance(frame, pd.DataFrame) and not frame.empty
+    ]
+    attention_rows = pd.concat(attention_parts, ignore_index=True, sort=False) if attention_parts else pd.DataFrame()
+    holdings = [
+        _normalize_symbol(value)
+        for value in positions_frame.get("symbol", pd.Series(dtype=str)).dropna().astype(str).tolist()
+        if str(value).strip()
+    ] if isinstance(positions_frame, pd.DataFrame) and not positions_frame.empty and "symbol" in positions_frame.columns else []
+    holdings = [symbol for symbol in holdings if symbol]
+
+    shortlist = shortlist_attention_symbols_1d(
+        movers,
+        holdings=holdings,
+        attention_rows=attention_rows,
+        max_count=100,
+    )
+    if not shortlist:
+        print("[warn] attention_home_1d materialization skipped: shortlist empty")
+        return
+
+    entity_master = build_attention_entity_master(shortlist)
+    bars_by_symbol = bars_by_symbol_from_price_history(
+        price_history_frame,
+        shortlist,
+        asof_time_utc=ctx.asof,
+        lookback_days=120,
+    )
+    research_symbols = shortlist[:40]
+    news_payloads = _news_payloads_from_articles_frame(news_frame, symbols=shortlist, limit=8)
+    context_payloads = _context_payloads_from_frame(attention_context_frame)
+    fred_summary_frame = _load_latest_materialized_frame("fred_summary")
+    embedding_client = load_embedding_client()
+
+    artifacts = build_bottom_up_attention_artifacts(
+        movers,
+        attention_rows=attention_rows,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads=news_payloads,
+        context_payloads=context_payloads,
+        entity_master=entity_master,
+        holdings=holdings,
+        generated_at_utc=pd.Timestamp(ctx.asof),
+        filings_frame=edgar_filings_frame,
+        fred_summary_frame=fred_summary_frame,
+        llm_client=llm_client,
+        embedding_client=embedding_client,
+        run_id=ctx.run_id,
+        top_events_limit=5,
+        must_read_limit=10,
+        unresolved_limit=5,
+    )
+    payload = dict(artifacts.home_payload or {})
+    coverage = dict(payload.get("coverage_summary") or {})
+    coverage.update(
+        {
+            "equity_universe_count": int(movers[~movers["symbol"].isin(set(MACRO_ANCHOR_SYMBOLS))]["symbol"].nunique()),
+            "macro_anchor_target_count": len(MACRO_ANCHOR_SYMBOLS),
+            "research_symbol_count": len(research_symbols),
+        }
+    )
+    payload["coverage_summary"] = coverage
+    artifacts.frames["attention_home_snapshots_1d"] = serialize_attention_home_payload(payload)
+    if "attention_bundle_snapshots" not in artifacts.frames:
+        from services.attention_materialized import serialize_attention_research_bundles
+
+        artifacts.frames["attention_bundle_snapshots"] = serialize_attention_research_bundles(
+            artifacts.bundle_map,
+            generated_at_utc=ctx.asof,
+        )
+
+    search_results = artifacts.frames.get("attention_search_results", pd.DataFrame()).copy()
+    if not search_results.empty:
+        search_results["symbol"] = search_results["candidate_id"].astype(str).map(
+            lambda value: _normalize_symbol(str(value).split("candidate::", 1)[1]) if "candidate::" in str(value) else ""
+        )
+        legacy_search_news = pd.DataFrame(
+            {
+                "symbol": search_results.get("symbol", pd.Series(dtype=str)),
+                "row_type": "article",
+                "headline": search_results.get("title", pd.Series(dtype=str)),
+                "summary": search_results.get("snippet", pd.Series(dtype=str)),
+                "source": search_results.get("source", pd.Series(dtype=str)),
+                "published_at": search_results.get("published_at", pd.Series(dtype=str)),
+                "url": search_results.get("url", pd.Series(dtype=str)),
+                "payload_source": search_results.get("provider", pd.Series(dtype=str)),
+                "fallback_summary": "",
+                "asof_time_utc": pd.Timestamp(ctx.asof).isoformat(),
+            }
+        )
+        legacy_search_news = legacy_search_news[legacy_search_news["symbol"].astype(str).ne("")].reset_index(drop=True)
+    else:
+        legacy_search_news = pd.DataFrame()
+
+    persist_frames = {
+        **artifacts.frames,
+        "attention_home_1d": artifacts.frames.get("attention_home_snapshots_1d", pd.DataFrame()),
+        "attention_research_bundles": artifacts.frames.get("attention_bundle_snapshots", pd.DataFrame()),
+        "attention_web_search_news": legacy_search_news,
+    }
+    for dataset_name, frame in persist_frames.items():
+        _persist_dataset(dataset_name, frame.copy() if isinstance(frame, pd.DataFrame) else pd.DataFrame(), ctx, conn)
+
+
 def _parse_attention_horizons_env() -> tuple[str, ...]:
     raw = (os.getenv("ATTENTION_HORIZONS") or "1d,1w,1mo,3mo,1yr").strip()
     parsed = normalize_horizons([token.strip() for token in raw.split(",") if token.strip()])
@@ -897,6 +1162,10 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
     try:
         movers = scan_daily_movers(api, symbols=symbols)
         _persist_dataset("daily_movers", movers, ctx, conn)
+        macro_movers = scan_daily_movers(api, symbols=list(MACRO_ANCHOR_SYMBOLS))
+        _persist_dataset("macro_anchor_daily_movers", macro_movers, ctx, conn)
+        positions = _load_attention_positions(api)
+        _persist_dataset("positions_snapshot", positions, ctx, conn)
 
         momentum_lookback_days = max(int(os.getenv("MOMENTUM_LOOKBACK_DAYS", "3650")), 365)
         phase_days = max(int(os.getenv("PHASE_SHIFT_DAYS", "365")), 120)
@@ -994,8 +1263,6 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
                 schema_version=(os.getenv("ATTENTION_SCHEMA_VERSION") or "v1").strip() or "v1",
             )
             news_symbol_map = _load_attention_news_map(api, symbols)
-            positions = _load_attention_positions(api)
-
             price_expectations = build_price_expectations(
                 bars_frame,
                 momentum,
@@ -1300,6 +1567,21 @@ def run_news(ctx: JobContext, conn: Any | None = None) -> None:
         _persist_dataset("edgar_evidence", edgar_evidence, ctx, conn)
         _persist_dataset("attention_context_llm", attention_context_llm, ctx, conn)
         _persist_dataset("attention_context_bundle", attention_context, ctx, conn)
+
+        _materialize_attention_outputs(
+            ctx=ctx,
+            conn=conn,
+            daily_movers=_load_latest_materialized_frame("daily_movers"),
+            macro_movers=_load_latest_materialized_frame("macro_anchor_daily_movers"),
+            positions_frame=_load_latest_materialized_frame("positions_snapshot"),
+            price_history_frame=_load_latest_materialized_frame("price_history"),
+            attention_feed_frame=_load_latest_materialized_frame("attention_feed"),
+            commodity_attention_feed_frame=_load_latest_materialized_frame("commodity_attention_feed"),
+            news_frame=news,
+            attention_context_frame=attention_context,
+            edgar_filings_frame=edgar_filings,
+            llm_client=llm_client if "llm_client" in locals() else None,
+        )
     except AlpacaAPIError as exc:
         print(f"[error] news preload failed: {exc}")
     except EdgarAPIError as exc:

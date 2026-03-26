@@ -310,9 +310,10 @@ def test_build_attention_rollups_and_feed_surface_top_anomalies():
     assert feed.iloc[0]["horizon"] == "1w"
     assert feed.iloc[0]["residual_value"] == pytest.approx(6.0)
     assert feed.iloc[0]["residual_zscore"] == pytest.approx(3.5)
-    assert "Observed 8.00% vs expected 2.00%" in feed.iloc[0]["expected_vs_observed_text"]
+    assert "chart shows how the realized move separated from the model baseline over 1w" in feed.iloc[0]["expected_vs_observed_text"]
     assert "AAA is trading stronger than its Test Lens peers implied." in feed.iloc[0]["story_text"]
-    assert "technical backdrop: trend breakout" in feed.iloc[0]["story_text"]
+    assert "Price action still looks like a trend breakout setup" in feed.iloc[0]["story_text"]
+    assert "Residual over" not in feed.iloc[0]["story_text"]
     assert "AAA" in feed.iloc[0]["next_best_action"]
     assert json.loads(feed.iloc[0]["drilldown_params_json"]) == {"horizon": "1w", "market_view": "Markets", "ticker": "AAA"}
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 import json
 from typing import Any
 
@@ -14,6 +15,17 @@ from compute.ownership import normalize_share_fraction, project_account_view, pr
 from compute.portfolio import build_portfolio_timeseries, compute_holding_roc, normalize_timeseries_view
 from data_access.contracts import DataProvenance, ResolvedPayload
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
+from services.attention_agentic import build_bottom_up_attention_artifacts, search_symbol_news_payload
+from services.attention_materialized import (
+    deserialize_attention_home_payload,
+    deserialize_attention_research_bundle_frame,
+)
+from services.attention_home_1d import (
+    MACRO_ANCHOR_SYMBOLS,
+    build_attention_entity_master,
+    build_attention_home_1d,
+    shortlist_attention_symbols_1d,
+)
 from services.company import load_asset_metadata, load_recent_news
 from services.config import AppConfig, load_config
 from services.data_cache import (
@@ -25,10 +37,13 @@ from services.data_cache import (
     cached_scalar_dict,
     dataset_scope,
 )
+from services.edgar import EdgarClient
 from services.fred import load_fred_api_key, load_fred_dashboard
+from services.llm import load_embedding_client, load_llm_client
 from services.market import DEFAULT_UNIVERSE, load_price_history, scan_commodity_regimes, scan_correlation_phase_shifts, scan_daily_movers, scan_momentum_profiles
 from services.options import analyze_option_candidates, load_option_chain, load_option_surface, select_option_surface_window
 from services.pipeline_store import latest_job_status_table, load_latest_dataset_frame, pipeline_store_configured, start_source_refresh_job
+from services.universe import build_liquidity_ranked_equity_universe
 
 try:
     from compute.signals import build_signal_frame, forecast_next_week, summarize_signal_frame
@@ -63,6 +78,39 @@ def _pipeline_details(metadata: Any | None) -> dict[str, Any]:
         "ingested_at_utc": metadata.ingested_at_utc,
         "row_count": metadata.row_count,
     }
+
+
+def _coerce_text(value: object) -> str:
+    text = str(value or "").strip()
+    return "" if text.lower() == "nan" else text
+
+
+ATTENTION_HOME_SNAPSHOT_DATASETS = ("attention_home_snapshots_1d", "attention_home_1d")
+ATTENTION_BUNDLE_SNAPSHOT_DATASETS = ("attention_bundle_snapshots", "attention_research_bundles")
+ATTENTION_TRACE_DATASETS = (
+    "attention_candidates_1d",
+    "attention_research_plans",
+    "attention_search_requests",
+    "attention_search_results",
+    "attention_source_documents",
+    "attention_evidence_chunks",
+    "attention_claims",
+    "attention_candidate_graph",
+    "attention_event_clusters_1d",
+    "attention_home_snapshots_1d",
+    "attention_bundle_snapshots",
+)
+
+LEGACY_ATTENTION_TEXT_SNIPPETS = (
+    "market-wide relief read",
+    "renewed market stress",
+    "rates-relief move broadens across the tape",
+    "rates scare spreads across risk assets",
+    "defensive bid strengthens",
+    "defensive bid fades",
+    "broad risk-on move takes hold",
+    "broad risk-off move takes hold",
+)
 
 
 @dataclass(frozen=True)
@@ -149,6 +197,48 @@ class DataAccessLayer:
             details[dataset_name] = metadata
         return frames, details
 
+    def _first_materialized_frame(
+        self,
+        dataset_names: tuple[str, ...],
+        *,
+        force_refresh: bool,
+    ) -> tuple[str, pd.DataFrame, dict[str, Any]] | None:
+        for dataset_name in dataset_names:
+            materialized = self._try_pipeline_frame(dataset_name, force_refresh=force_refresh)
+            if materialized is None:
+                continue
+            frame, details = materialized
+            if isinstance(frame, pd.DataFrame) and not frame.empty:
+                return dataset_name, frame, details
+        return None
+
+    def _contains_legacy_attention_text(self, value: Any) -> bool:
+        text = str(value or "").strip().lower()
+        if not text:
+            return False
+        return any(snippet in text for snippet in LEGACY_ATTENTION_TEXT_SNIPPETS)
+
+    def _payload_uses_legacy_attention_titles(self, payload: dict[str, Any]) -> bool:
+        if not isinstance(payload, dict) or not payload:
+            return False
+        for event in list(payload.get("top_events") or []):
+            if self._contains_legacy_attention_text(event.get("event_title")):
+                return True
+            if self._contains_legacy_attention_text(event.get("headline")):
+                return True
+        for mover in list(payload.get("must_read_movers") or []):
+            if self._contains_legacy_attention_text(mover.get("headline")):
+                return True
+        return False
+
+    def _bundle_uses_legacy_attention_titles(self, payload: dict[str, Any]) -> bool:
+        if not isinstance(payload, dict) or not payload:
+            return False
+        return any(
+            self._contains_legacy_attention_text(payload.get(key))
+            for key in ("event_title", "headline", "surface_summary_text", "why_happened_text", "why_now_text")
+        )
+
     def _user_share_fraction(self, user_context: Any | None) -> float:
         if isinstance(user_context, dict):
             return normalize_share_fraction(user_context.get("share_fraction"))
@@ -163,6 +253,263 @@ class DataAccessLayer:
         if isinstance(user_context, dict):
             return str(user_context.get("user_id") or "")
         return str(getattr(user_context, "user_id", "") or "")
+
+    def _attention_home_equity_universe(self, *, force_refresh: bool = False) -> list[str]:
+        materialized = self._try_pipeline_frame("universe_snapshot", force_refresh=force_refresh)
+        if materialized is not None:
+            pipeline, _ = materialized
+            if not pipeline.empty and "symbol" in pipeline.columns:
+                values = [
+                    str(value).upper().strip()
+                    for value in pipeline["symbol"].dropna().astype(str).tolist()
+                    if str(value).strip()
+                ]
+                if values:
+                    return list(dict.fromkeys(values))[:1500]
+
+        if self.cfg is None:
+            return list(DEFAULT_UNIVERSE)
+
+        frame = cached_frame(
+            "attention_home_equity_universe",
+            f"{_alpaca_cache_scope(self.cfg)}__liquidity_1500",
+            lambda: build_liquidity_ranked_equity_universe(
+                _make_api(self.cfg),
+                target_size=1500,
+            ),
+            force_refresh=force_refresh,
+            version=1,
+        )
+        if not frame.empty and "symbol" in frame.columns:
+            values = [
+                str(value).upper().strip()
+                for value in frame["symbol"].dropna().astype(str).tolist()
+                if str(value).strip()
+            ]
+            if values:
+                return list(dict.fromkeys(values))[:1500]
+        return list(DEFAULT_UNIVERSE)
+
+    def _resolve_web_search_news(self, ticker: str, *, company_name: str = "", force_refresh: bool = False) -> dict[str, Any]:
+        target = str(ticker or "").upper().strip()
+        if not target:
+            return {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
+
+        cache_scope = f"{pd.Timestamp.utcnow().date().isoformat()}__{target}__{company_name.strip().lower()}"
+        return cached_news_payload(
+            "web_search_news",
+            cache_scope,
+            lambda: search_symbol_news_payload(target, company_name=company_name, max_results=8),
+            force_refresh=force_refresh,
+            version=1,
+        )
+
+    def _resolve_attention_edgar_filings(
+        self,
+        symbols: list[str],
+        *,
+        force_refresh: bool = False,
+    ) -> pd.DataFrame:
+        normalized = [
+            str(symbol or "").upper().strip()
+            for symbol in symbols
+            if str(symbol or "").strip()
+        ]
+        normalized = list(dict.fromkeys(normalized))
+        if not normalized:
+            return pd.DataFrame()
+
+        cache_scope = f"{pd.Timestamp.utcnow().date().isoformat()}__{'-'.join(normalized[:12])}"
+        return cached_frame(
+            "attention_research_edgar",
+            cache_scope,
+            lambda: EdgarClient().load_recent_filings(
+                normalized,
+                days=180,
+                max_filings_per_symbol=4,
+                fetch_document_text=True,
+                max_document_fetches_per_symbol=2,
+            ),
+            force_refresh=force_refresh,
+            version=1,
+        )
+
+    def _combine_mover_frames(self, *frames: pd.DataFrame) -> pd.DataFrame:
+        non_empty = [frame.copy() for frame in frames if isinstance(frame, pd.DataFrame) and not frame.empty]
+        if not non_empty:
+            return pd.DataFrame()
+        out = pd.concat(non_empty, ignore_index=True, sort=False)
+        if "symbol" in out.columns:
+            out["symbol"] = out["symbol"].astype(str).str.upper().str.strip()
+        for column in ["change_pct", "close", "prev_close", "volume", "dollar_volume"]:
+            if column in out.columns:
+                out[column] = pd.to_numeric(out[column], errors="coerce")
+        if "dollar_volume" not in out.columns and {"close", "volume"}.issubset(set(out.columns)):
+            out["dollar_volume"] = pd.to_numeric(out["close"], errors="coerce") * pd.to_numeric(out["volume"], errors="coerce")
+        if "symbol" in out.columns:
+            out["_priority"] = out["symbol"].isin(set(MACRO_ANCHOR_SYMBOLS)).astype(int)
+            out["_abs_move"] = pd.to_numeric(out.get("change_pct"), errors="coerce").abs()
+            out = out.sort_values(
+                ["_priority", "_abs_move", "dollar_volume", "symbol"],
+                ascending=[False, False, False, True],
+                na_position="last",
+            )
+            out = out.drop_duplicates(subset=["symbol"], keep="first").reset_index(drop=True)
+            out = out.drop(columns=["_priority", "_abs_move"], errors="ignore")
+        return out
+
+    def _resolve_live_attention_artifacts(self, *, force_refresh: bool) -> dict[str, Any]:
+        cache_scope = (
+            f"{_alpaca_cache_scope(self.cfg)}__{pd.Timestamp.utcnow().date().isoformat()}"
+            if self.cfg is not None
+            else f"missing-config__{pd.Timestamp.utcnow().date().isoformat()}"
+        )
+
+        def _fetch() -> dict[str, Any]:
+            empty_payload = {
+                "top_events": [],
+                "must_read_movers": [],
+                "unresolved_large_moves": [],
+                "generated_at_utc": pd.Timestamp.utcnow().isoformat(),
+                "coverage_summary": {
+                    "candidate_count": 0,
+                    "event_count": 0,
+                    "must_read_count": 0,
+                    "unresolved_count": 0,
+                    "today_only": True,
+                },
+                "event_candidates_1d": [],
+                "event_impacts_1d": [],
+                "entity_master": [],
+                "run_id": "",
+            }
+            if self.cfg is None:
+                return {"home_payload": empty_payload, "bundle_map": {}, "run_id": ""}
+
+            equity_universe = self._attention_home_equity_universe(force_refresh=force_refresh)
+            holdings: list[str] = []
+            try:
+                positions = self.resolve_positions(force_refresh=force_refresh).payload
+                if isinstance(positions, pd.DataFrame) and not positions.empty and "symbol" in positions.columns:
+                    holdings = [
+                        str(value).upper().strip()
+                        for value in positions["symbol"].dropna().astype(str).tolist()
+                        if str(value).strip()
+                    ]
+            except Exception:
+                holdings = []
+
+            equity_movers = self.resolve_daily_movers(symbols=equity_universe, force_refresh=force_refresh).payload
+            macro_movers = self.resolve_daily_movers(symbols=list(MACRO_ANCHOR_SYMBOLS), force_refresh=force_refresh).payload
+            movers = self._combine_mover_frames(equity_movers, macro_movers)
+
+            attention_parts: list[pd.DataFrame] = []
+            for dataset_name in ("attention_feed", "commodity_attention_feed"):
+                try:
+                    resolved = self.resolve_attention_feed(
+                        dataset_name=dataset_name,
+                        limit=80,
+                        horizons=["1d"],
+                        statuses=["active", "cooling"],
+                        sensitivity="aggressive",
+                        force_refresh=force_refresh,
+                    ).payload
+                except Exception:
+                    resolved = pd.DataFrame()
+                if isinstance(resolved, pd.DataFrame) and not resolved.empty:
+                    attention_parts.append(resolved)
+            attention_rows = pd.concat(attention_parts, ignore_index=True, sort=False) if attention_parts else pd.DataFrame()
+
+            shortlist = shortlist_attention_symbols_1d(
+                movers,
+                holdings=holdings,
+                attention_rows=attention_rows,
+                max_count=100,
+            )
+            entity_master = build_attention_entity_master(shortlist)
+
+            bars_by_symbol: dict[str, pd.DataFrame] = {}
+            if shortlist:
+                try:
+                    bars_by_symbol = _make_api(self.cfg).get_stock_bars(
+                        shortlist,
+                        start=datetime.now(timezone.utc) - pd.Timedelta(days=120),
+                        end=datetime.now(timezone.utc),
+                        timeframe="1Day",
+                        feed="iex",
+                    )
+                except Exception:
+                    bars_by_symbol = {}
+
+            research_symbols = shortlist[:40]
+            news_payloads: dict[str, dict[str, Any]] = {}
+            context_payloads: dict[str, dict[str, Any]] = {}
+            for symbol in research_symbols:
+                try:
+                    news_payloads[symbol] = self.resolve_recent_news(
+                        symbol,
+                        days=3,
+                        limit=8,
+                        force_refresh=force_refresh,
+                    ).payload
+                except Exception:
+                    news_payloads[symbol] = {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
+                try:
+                    context_payloads[symbol] = self.resolve_attention_context(
+                        symbol,
+                        force_refresh=force_refresh,
+                    ).payload
+                except Exception:
+                    context_payloads[symbol] = {}
+
+            filings_frame = self._resolve_attention_edgar_filings(shortlist[:60], force_refresh=force_refresh)
+            fred_summary_frame = pd.DataFrame()
+            if pipeline_store_configured():
+                try:
+                    fred_summary_frame, _ = self._pipeline_frame("fred_summary")
+                except Exception:
+                    fred_summary_frame = pd.DataFrame()
+
+            artifacts = build_bottom_up_attention_artifacts(
+                movers,
+                attention_rows=attention_rows,
+                bars_by_symbol=bars_by_symbol,
+                news_payloads=news_payloads,
+                context_payloads=context_payloads,
+                entity_master=entity_master,
+                holdings=holdings,
+                generated_at_utc=pd.Timestamp.utcnow(),
+                filings_frame=filings_frame,
+                fred_summary_frame=fred_summary_frame,
+                llm_client=load_llm_client(),
+                embedding_client=load_embedding_client(),
+                top_events_limit=5,
+                must_read_limit=10,
+                unresolved_limit=5,
+            )
+            payload = dict(artifacts.home_payload or {})
+            coverage = dict(payload.get("coverage_summary") or {})
+            coverage.update(
+                {
+                    "equity_universe_count": len(equity_universe),
+                    "macro_anchor_target_count": len(MACRO_ANCHOR_SYMBOLS),
+                    "research_symbol_count": len(research_symbols),
+                }
+            )
+            payload["coverage_summary"] = coverage
+            return {
+                "home_payload": payload,
+                "bundle_map": dict(artifacts.bundle_map or {}),
+                "run_id": _coerce_text(payload.get("run_id")),
+            }
+
+        return cached_scalar_dict(
+            "attention_agentic_live",
+            cache_scope,
+            _fetch,
+            force_refresh=force_refresh,
+            version=1,
+        )
 
     def resolve_account(self, *, force_refresh: bool = False) -> ResolvedPayload:
         frame = cached_scalar_dict(
@@ -848,6 +1195,102 @@ class DataAccessLayer:
                 supporting_points = []
         payload["llm_supporting_points"] = supporting_points
         return self._resolved(payload, mode="materialized", datasets=("attention_context_bundle",), details=details)
+
+    def resolve_attention_home_1d(self, *, force_refresh: bool = False) -> ResolvedPayload:
+        materialized = self._first_materialized_frame(
+            ATTENTION_HOME_SNAPSHOT_DATASETS,
+            force_refresh=force_refresh,
+        )
+        if materialized is not None:
+            dataset_name, frame, details = materialized
+            payload = deserialize_attention_home_payload(frame)
+            if payload and not self._payload_uses_legacy_attention_titles(payload):
+                return self._resolved(
+                    payload,
+                    mode="materialized",
+                    datasets=(dataset_name,),
+                    details=details,
+                )
+
+        payload = self._resolve_live_attention_artifacts(force_refresh=force_refresh).get("home_payload") or {}
+        return self._resolved(
+            payload,
+            mode="on_demand",
+            datasets=(
+                "daily_movers",
+                "attention_feed",
+                "commodity_attention_feed",
+                "attention_candidates_1d",
+                "attention_research_plans",
+                "attention_source_documents",
+                "attention_claims",
+                "attention_event_clusters_1d",
+            ),
+            details={"today_only": True, "run_id": _coerce_text((payload or {}).get("run_id"))},
+        )
+
+    def resolve_attention_research_bundle(self, bundle_id: str, *, force_refresh: bool = False) -> ResolvedPayload:
+        normalized_bundle_id = str(bundle_id or "").strip()
+        materialized = self._first_materialized_frame(
+            ATTENTION_BUNDLE_SNAPSHOT_DATASETS,
+            force_refresh=force_refresh,
+        )
+        if materialized is not None:
+            dataset_name, frame, details = materialized
+            payload = deserialize_attention_research_bundle_frame(frame, normalized_bundle_id)
+            if payload and not self._bundle_uses_legacy_attention_titles(payload):
+                return self._resolved(
+                    payload,
+                    mode="materialized",
+                    datasets=(dataset_name,),
+                    details={**details, "bundle_id": normalized_bundle_id},
+                )
+
+        live = self._resolve_live_attention_artifacts(force_refresh=force_refresh)
+        bundle_map = dict(live.get("bundle_map") or {})
+        payload = dict(bundle_map.get(normalized_bundle_id) or {})
+        return self._resolved(
+            payload,
+            mode="on_demand",
+            datasets=(
+                "attention_home_snapshots_1d",
+                "attention_bundle_snapshots",
+                "attention_source_documents",
+                "attention_evidence_chunks",
+                "attention_claims",
+            ),
+            details={
+                "bundle_id": normalized_bundle_id,
+                "run_id": _coerce_text(payload.get("run_id") or live.get("run_id")),
+            },
+        )
+
+    def resolve_attention_run_trace(self, run_id: str, *, force_refresh: bool = False) -> ResolvedPayload:
+        normalized_run_id = str(run_id or "").strip()
+        if not normalized_run_id:
+            return self._resolved({}, mode="materialized", datasets=(), details={"run_id": normalized_run_id})
+
+        frames_result = self._try_pipeline_frames(ATTENTION_TRACE_DATASETS, force_refresh=force_refresh)
+        if frames_result is None:
+            return self._resolved({}, mode="on_demand", datasets=ATTENTION_TRACE_DATASETS, details={"run_id": normalized_run_id})
+
+        frames, details = frames_result
+        trace: dict[str, Any] = {"run_id": normalized_run_id, "datasets": {}}
+        for dataset_name in ATTENTION_TRACE_DATASETS:
+            frame = frames.get(dataset_name, pd.DataFrame())
+            if not isinstance(frame, pd.DataFrame) or frame.empty:
+                trace["datasets"][dataset_name] = {"row_count": 0, "rows": []}
+                continue
+            scoped = frame.copy()
+            if "run_id" in scoped.columns:
+                scoped = scoped[scoped["run_id"].astype(str) == normalized_run_id].copy()
+            elif dataset_name == "attention_home_snapshots_1d":
+                scoped = scoped[scoped.get("run_id", pd.Series(dtype=str)).astype(str) == normalized_run_id].copy()
+            trace["datasets"][dataset_name] = {
+                "row_count": int(len(scoped)),
+                "rows": scoped.head(50).to_dict(orient="records"),
+            }
+        return self._resolved(trace, mode="materialized", datasets=ATTENTION_TRACE_DATASETS, details={"run_id": normalized_run_id, "frames": details})
 
     def resolve_attention_feed(
         self,

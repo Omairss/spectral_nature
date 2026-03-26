@@ -1,0 +1,1626 @@
+from __future__ import annotations
+
+from datetime import datetime, timezone
+import json
+import re
+from typing import Any
+
+import pandas as pd
+
+from .attention_agentic import build_bottom_up_attention_bundle
+from .attention_home_1d import build_attention_research_bundle
+from .llm import AzureOpenAIChatJSONClient, OpenAIChatJSONClient
+from .web_research import (
+    SerpAPISearchClient,
+    TavilySearchClient,
+    WebResearchError,
+    load_serpapi_config,
+    load_tavily_config,
+)
+
+
+LLMClient = OpenAIChatJSONClient | AzureOpenAIChatJSONClient
+
+OFFICIAL_SOURCE_TOKENS = [
+    "sec",
+    "edgar",
+    "investor relations",
+    "investors",
+    "press release",
+    "company release",
+]
+WIRE_SOURCE_TOKENS = ["reuters", "associated press", "ap", "dow jones", "bloomberg"]
+PRESS_SOURCE_TOKENS = ["benzinga", "marketwatch", "seeking alpha", "yahoo finance", "investing.com", "tipranks", "fool"]
+MOVE_WORD_TOKENS = [
+    "stock",
+    "shares",
+    "rose",
+    "rise",
+    "rises",
+    "rallied",
+    "jumped",
+    "surged",
+    "fell",
+    "fall",
+    "falls",
+    "dropped",
+    "drop",
+    "drops",
+    "slid",
+    "gained",
+    "gain",
+    "gains",
+    "higher",
+    "lower",
+    "climbed",
+    "climb",
+    "firmed",
+    "firming",
+]
+CATALYST_TOKENS = [
+    "earnings",
+    "guidance",
+    "results",
+    "forecast",
+    "outlook",
+    "upgrade",
+    "downgrade",
+    "target",
+    "deal",
+    "iran",
+    "ceasefire",
+    "de-escalation",
+    "relief",
+    "truce",
+    "contract",
+    "approval",
+    "trial",
+    "auditor",
+    "buyback",
+    "merger",
+    "acquisition",
+    "partnership",
+    "launch",
+    "pricing",
+    "restructuring",
+]
+LOW_SIGNAL_PHRASES = [
+    "big stocks moving higher",
+    "big stocks moving lower",
+    "stocks moving higher",
+    "stocks moving lower",
+    "market today",
+    "stock market today",
+]
+RATE_PROXY_DURATION = {
+    "IEF": 7.5,
+    "TLT": 16.5,
+    "SHY": 1.9,
+}
+RATE_PROXY_SYMBOLS = {"IEF", "TLT", "SHY"}
+OIL_PROXY_SYMBOLS = {"USO", "BNO"}
+RISK_PROXY_SYMBOLS = {"SPY", "QQQ", "IWM", "DIA", "LQD", "HYG", "XLF", "XLK"}
+DEFENSIVE_PROXY_SYMBOLS = {"GLD", "SLV", "PPLT", "PALL", "VIXY", "UVXY"}
+
+EVENT_THEME_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "oil": ("oil", "crude", "wti", "brent", "gasoline", "iran", "de-escalation", "ceasefire", "supply"),
+    "rates": ("treasury", "yield", "bond", "fed", "rates", "inflation"),
+    "defensives": ("gold", "haven", "defensive", "volatility", "risk-off"),
+    "risk": ("stocks", "equities", "risk-on", "risk off", "small caps", "airlines"),
+}
+
+EVENT_QUERY_TEMPLATES: dict[tuple[str, str], str] = {
+    ("oil", "down"): "oil prices down today iran de-escalation airlines stocks bonds",
+    ("oil", "up"): "oil prices up today supply risk airlines stocks bonds",
+    ("rates", "up"): "treasury rally today lower yields stocks bonds",
+    ("rates", "down"): "yields higher today rates scare stocks bonds",
+    ("defensives", "up"): "gold volatility up today defensive move stocks",
+    ("defensives", "down"): "gold volatility down today risk-on stocks",
+    ("risk", "up"): "stocks rally today risk on small caps airlines",
+    ("risk", "down"): "stocks fall today risk off defensives bonds",
+}
+
+RESEARCH_SYNTHESIS_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "why_now_text": {"type": "string"},
+        "what_else_moved_text": {"type": "string"},
+        "background_context_text": {"type": "string"},
+    },
+    "required": ["why_now_text", "what_else_moved_text", "background_context_text"],
+}
+
+
+def _coerce_text(value: object) -> str:
+    text = str(value or "").strip()
+    return "" if text.lower() == "nan" else text
+
+
+def _trim(text: object, limit: int = 220) -> str:
+    clean = " ".join(str(text or "").split())
+    if len(clean) <= limit:
+        return clean
+    return clean[: limit - 3].rstrip() + "..."
+
+
+def _first_sentence(text: object) -> str:
+    clean = " ".join(str(text or "").split())
+    if not clean:
+        return ""
+    parts = re.split(r"(?<=[.!?])\s+", clean)
+    return parts[0].strip() if parts else clean
+
+
+def _normalized_text(text: object) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", _coerce_text(text).lower()).strip()
+
+
+def _is_generic_filing_reference(text: object) -> bool:
+    clean = " ".join(str(text or "").split()).strip()
+    if not clean:
+        return False
+    normalized = re.sub(r"[^a-z0-9\s.&/-]", " ", clean.lower())
+    normalized = re.sub(r"\s+", " ", normalized).strip()
+    patterns = [
+        r"^(?:form\s+)?(?:8-k|10-k|10-q|20-f|6-k|s-1|f-1)$",
+        r"^(?:form\s+)?(?:8-k|10-k|10-q|20-f|6-k|s-1|f-1)\s+item\s+\d+(?:\.\d+)?(?:\s+.*)?$",
+        r"^item\s+\d+(?:\.\d+)?(?:\s+.*)?$",
+        r"^recent\s+(?:8-k|10-k|10-q|20-f|6-k|s-1|f-1)\s+filing\s+context$",
+        r"^(?:annual|quarterly|current)\s+report$",
+    ]
+    return any(re.match(pattern, normalized) for pattern in patterns)
+
+
+def _normalize_symbol(symbol: object) -> str:
+    return _coerce_text(symbol).upper()
+
+
+def _event_record(home_payload: dict[str, Any], bundle_id: str) -> dict[str, Any]:
+    normalized_bundle_id = _coerce_text(bundle_id)
+    for item in list(home_payload.get("top_events") or []):
+        if _coerce_text((item or {}).get("bundle_id")) == normalized_bundle_id:
+            return dict(item or {})
+    return {}
+
+
+def _safe_list(value: object) -> list[Any]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    if isinstance(value, tuple):
+        return list(value)
+    return [value]
+
+
+def _source_authority_bucket(source: object) -> tuple[str, int]:
+    text = _coerce_text(source).lower()
+    if not text:
+        return "unknown", 4
+    if any(token in text for token in OFFICIAL_SOURCE_TOKENS):
+        return "official", 0
+    if any(token == text or token in text for token in WIRE_SOURCE_TOKENS):
+        return "wire", 1
+    if any(token in text for token in PRESS_SOURCE_TOKENS):
+        return "press", 2
+    return "web", 3
+
+
+def _title_case_bucket(bucket: str) -> str:
+    return bucket.replace("_", " ").title() if bucket else ""
+
+
+def _is_low_signal_article(headline: str, summary: str) -> bool:
+    blob = f"{headline} {summary}".lower()
+    return any(token in blob for token in LOW_SIGNAL_PHRASES)
+
+
+def _mention_score(text: str, symbol: str, company_name: str) -> float:
+    lowered = f" {text.lower()} "
+    score = 0.0
+    if symbol and re.search(rf"(?<![A-Z0-9]){re.escape(symbol.lower())}(?![A-Z0-9])", lowered):
+        score += 0.65
+    company = company_name.lower().strip()
+    if company and company in lowered:
+        score += 0.45
+    return min(score, 1.0)
+
+
+def _event_keyword_score(text: str, theme: str) -> float:
+    blob = f" {str(text or '').lower()} "
+    keywords = EVENT_THEME_KEYWORDS.get(_coerce_text(theme).lower(), ())
+    hits = sum(1 for keyword in keywords if keyword in blob)
+    return min(hits * 0.18, 0.72)
+
+
+def _event_symbol_score(text: str, symbols: list[str]) -> float:
+    blob = f" {str(text or '').lower()} "
+    hits = 0
+    for symbol in symbols:
+        normalized = _normalize_symbol(symbol)
+        if normalized and re.search(rf"(?<![A-Z0-9]){re.escape(normalized.lower())}(?![A-Z0-9])", blob):
+            hits += 1
+    return min(hits * 0.12, 0.28)
+
+
+def _event_relevance_score(text: str, theme: str, symbols: list[str]) -> float:
+    theme_score = _event_keyword_score(text, theme)
+    symbol_score = _event_symbol_score(text, symbols)
+    if _coerce_text(theme).lower() == "generic":
+        return min(symbol_score, 1.0)
+    return min(theme_score + symbol_score, 1.0)
+
+
+def _passes_event_relevance_gate(headline: str, snippet: str, theme: str, symbols: list[str]) -> bool:
+    relevance = _event_relevance_score(f"{headline} {snippet}", theme, symbols)
+    if relevance < 0.32:
+        return False
+    if _is_low_signal_article(headline, snippet) and relevance < 0.62:
+        return False
+    return True
+
+
+def _passes_search_relevance_gate(headline: str, snippet: str, symbol: str, company_name: str) -> bool:
+    title_score = _mention_score(headline, symbol, company_name)
+    body_score = _mention_score(snippet, symbol, company_name)
+    combined_score = _mention_score(f"{headline} {snippet}", symbol, company_name)
+    if max(title_score, body_score, combined_score) < 0.45:
+        return False
+    if title_score < 0.45 and body_score < 0.75:
+        return False
+    return True
+
+
+def _freshness_score(published_at: pd.Timestamp, asof_time_utc: pd.Timestamp) -> float:
+    if pd.isna(published_at):
+        return 0.15
+    age_hours = max((asof_time_utc - published_at).total_seconds() / 3600.0, 0.0)
+    if age_hours <= 24:
+        return 1.0
+    if age_hours <= 72:
+        return 0.8
+    if age_hours <= 7 * 24:
+        return 0.55
+    if age_hours <= 30 * 24:
+        return 0.3
+    return 0.1
+
+
+def _catalyst_score(text: str) -> float:
+    lowered = f" {text.lower()} "
+    score = 0.0
+    for token in MOVE_WORD_TOKENS:
+        if f" {token.lower()} " in lowered:
+            score += 0.08
+    for token in CATALYST_TOKENS:
+        if token.lower() in lowered:
+            score += 0.12
+    if "today" in lowered:
+        score += 0.08
+    if "why" in lowered or "driving" in lowered:
+        score += 0.08
+    return min(score, 1.0)
+
+
+def _theme_tag(text: str) -> str:
+    lowered = text.lower()
+    theme_map = {
+        "earnings": ["earnings", "results", "guidance", "outlook"],
+        "analyst": ["upgrade", "downgrade", "price target"],
+        "deal": ["deal", "acquisition", "merger", "takeover", "iran", "ceasefire"],
+        "product": ["launch", "approval", "trial", "contract", "partnership"],
+        "governance": ["auditor", "ceo", "cfo", "board"],
+        "macro": ["inflation", "treasury", "oil", "rates", "dollar"],
+    }
+    for theme, tokens in theme_map.items():
+        if any(token in lowered for token in tokens):
+            return theme
+    return "general"
+
+
+def _rank_value(item: dict[str, Any]) -> float:
+    return (
+        float(item.get("relevance_score") or 0.0) * 0.42
+        + float(item.get("causal_score") or 0.0) * 0.28
+        + float(item.get("freshness_score") or 0.0) * 0.2
+        + max(0.0, 0.15 - float(item.get("authority_rank") or 0.0) * 0.03)
+    )
+
+
+def _same_day_rows(evidence_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [item for item in evidence_rows if item.get("is_same_day")]
+
+
+def _same_day_authoritative_rows(
+    evidence_rows: list[dict[str, Any]],
+    *,
+    min_causal: float,
+    min_relevance: float,
+) -> list[dict[str, Any]]:
+    return [
+        item
+        for item in evidence_rows
+        if item.get("is_same_day")
+        and int(item.get("authority_rank") or 9) <= 1
+        and float(item.get("causal_score") or 0.0) >= min_causal
+        and float(item.get("relevance_score") or 0.0) >= min_relevance
+    ]
+
+
+def _corroborating_same_day_rows(
+    evidence_rows: list[dict[str, Any]],
+    *,
+    min_causal: float,
+    min_relevance: float,
+) -> list[dict[str, Any]]:
+    return [
+        item
+        for item in evidence_rows
+        if item.get("is_same_day")
+        and float(item.get("causal_score") or 0.0) >= min_causal
+        and float(item.get("relevance_score") or 0.0) >= min_relevance
+    ]
+
+
+def _dedupe_evidence_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    seen: set[tuple[str, str, str]] = set()
+    for item in rows:
+        key = (
+            _coerce_text(item.get("url")).lower(),
+            _coerce_text(item.get("headline")).lower(),
+            _coerce_text(item.get("summary")).lower(),
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(item)
+    out.sort(
+        key=lambda item: (
+            -_rank_value(item),
+            int(item.get("authority_rank") or 9),
+            _coerce_text(item.get("headline")).lower(),
+        )
+    )
+    return out
+
+
+def _display_excerpt_from_article(headline: object, summary: object, *, limit: int = 180) -> str:
+    snippet = _trim(_first_sentence(summary), limit)
+    if not snippet or _is_generic_filing_reference(snippet):
+        return ""
+    if _normalized_text(snippet) == _normalized_text(headline):
+        return ""
+    return snippet
+
+
+def _best_evidence_excerpt(item: dict[str, Any], *, limit: int = 180) -> str:
+    headline = _coerce_text(item.get("headline"))
+    for candidate in [item.get("display_excerpt"), item.get("excerpt"), item.get("summary")]:
+        text = _trim(_first_sentence(candidate), limit)
+        if not text or _is_generic_filing_reference(text):
+            continue
+        if headline and _normalized_text(text) == _normalized_text(headline):
+            continue
+        return text
+    return ""
+
+
+def _serialize_evidence_item(item: dict[str, Any], *, symbol: str = "") -> dict[str, Any]:
+    return {
+        "symbol": symbol or _coerce_text(item.get("symbol")),
+        "source": _coerce_text(item.get("source")),
+        "authority_bucket": _coerce_text(item.get("authority_bucket")),
+        "headline": _coerce_text(item.get("headline")),
+        "summary": _coerce_text(item.get("summary")),
+        "excerpt": _coerce_text(item.get("excerpt")),
+        "display_excerpt": _best_evidence_excerpt(item),
+        "url": _coerce_text(item.get("url")),
+        "published_at": _coerce_text(item.get("published_at")),
+        "evidence_role": _coerce_text(item.get("evidence_role")),
+    }
+
+
+def _event_candidate_lookup(home_payload: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return {
+        _normalize_symbol(item.get("symbol")): dict(item or {})
+        for item in list(home_payload.get("event_candidates_1d") or [])
+        if _normalize_symbol((item or {}).get("symbol"))
+    }
+
+
+def _event_supporting_rows(event: dict[str, Any], home_payload: dict[str, Any]) -> list[dict[str, Any]]:
+    candidate_lookup = _event_candidate_lookup(home_payload)
+    rows: list[dict[str, Any]] = []
+    for symbol in _safe_list(event.get("supporting_symbols")):
+        normalized = _normalize_symbol(symbol)
+        row = candidate_lookup.get(normalized)
+        if row:
+            rows.append(row)
+    return rows
+
+
+def _format_move_value(move: float) -> str:
+    return f"{float(move):+.1f}%"
+
+
+def _join_move_examples(rows: list[dict[str, Any]], *, limit: int = 2) -> str:
+    examples = []
+    for row in rows[:limit]:
+        symbol = _normalize_symbol(row.get("symbol"))
+        move = pd.to_numeric(row.get("change_pct"), errors="coerce")
+        if not symbol or pd.isna(move):
+            continue
+        examples.append(f"{symbol} {_format_move_value(float(move))}")
+    if not examples:
+        return ""
+    if len(examples) == 1:
+        return examples[0]
+    if len(examples) == 2:
+        return f"{examples[0]} and {examples[1]}"
+    return ", ".join(examples[:-1]) + f", and {examples[-1]}"
+
+
+def _approx_yield_move_bps(rate_rows: list[dict[str, Any]]) -> int | None:
+    estimates: list[float] = []
+    for row in rate_rows:
+        symbol = _normalize_symbol(row.get("symbol"))
+        duration = RATE_PROXY_DURATION.get(symbol)
+        move = pd.to_numeric(row.get("change_pct"), errors="coerce")
+        if duration is None or pd.isna(move):
+            continue
+        estimates.append((-float(move) / duration) * 100.0)
+    if not estimates:
+        return None
+    return int(round(sum(estimates) / len(estimates)))
+
+
+def _event_market_context_text(event: dict[str, Any], home_payload: dict[str, Any]) -> str:
+    theme = _coerce_text(event.get("event_type")).lower()
+    direction = _coerce_text(event.get("anchor_direction")).lower()
+    supporting_rows = _event_supporting_rows(event, home_payload)
+    if not supporting_rows:
+        return ""
+
+    def _sorted_rows(symbols: set[str], *, positive: bool | None = None) -> list[dict[str, Any]]:
+        rows = []
+        for row in supporting_rows:
+            symbol = _normalize_symbol(row.get("symbol"))
+            move = pd.to_numeric(row.get("change_pct"), errors="coerce")
+            if not symbol or symbol not in symbols or pd.isna(move):
+                continue
+            if positive is True and float(move) <= 0:
+                continue
+            if positive is False and float(move) >= 0:
+                continue
+            rows.append(row)
+        rows.sort(key=lambda item: -abs(float(pd.to_numeric(item.get("change_pct"), errors="coerce") or 0.0)))
+        return rows
+
+    if theme == "rates":
+        rate_rows = _sorted_rows(RATE_PROXY_SYMBOLS, positive=True if direction == "up" else False)
+        proxy_text = _join_move_examples(rate_rows)
+        yield_bps = _approx_yield_move_bps(rate_rows)
+        if direction == "up":
+            sentence = "Treasury proxies rallied"
+            if proxy_text:
+                sentence += f": {proxy_text}"
+            if yield_bps is not None and yield_bps < 0:
+                sentence += f", implying yields fell about {abs(yield_bps)} bps"
+            sentence += "."
+            spill_rows = _sorted_rows(RISK_PROXY_SYMBOLS, positive=True)
+            spill_text = _join_move_examples(spill_rows)
+            if spill_text:
+                sentence += f" Rate-sensitive assets also rose, including {spill_text}."
+            return sentence
+        sentence = "Treasury proxies fell"
+        if proxy_text:
+            sentence += f": {proxy_text}"
+        if yield_bps is not None and yield_bps > 0:
+            sentence += f", implying yields rose about {yield_bps} bps"
+        sentence += "."
+        spill_rows = _sorted_rows(DEFENSIVE_PROXY_SYMBOLS, positive=True)
+        spill_text = _join_move_examples(spill_rows)
+        if spill_text:
+            sentence += f" Defensive assets firmed, including {spill_text}."
+        return sentence
+
+    if theme == "oil":
+        oil_rows = _sorted_rows(OIL_PROXY_SYMBOLS, positive=True if direction == "up" else False)
+        oil_text = _join_move_examples(oil_rows)
+        if direction == "down":
+            sentence = "Oil proxies fell"
+            if oil_text:
+                sentence += f": {oil_text}"
+            sentence += "."
+            spill_rows = _sorted_rows(RISK_PROXY_SYMBOLS | RATE_PROXY_SYMBOLS, positive=True)
+            spill_text = _join_move_examples(spill_rows)
+            if spill_text:
+                sentence += f" Relief showed up in {spill_text}."
+            return sentence
+        sentence = "Oil proxies rose"
+        if oil_text:
+            sentence += f": {oil_text}"
+        sentence += "."
+        spill_rows = _sorted_rows(RISK_PROXY_SYMBOLS | RATE_PROXY_SYMBOLS, positive=False)
+        spill_text = _join_move_examples(spill_rows)
+        if spill_text:
+            sentence += f" Pressure showed up in {spill_text}."
+        return sentence
+
+    if theme == "defensives":
+        defensive_rows = _sorted_rows(DEFENSIVE_PROXY_SYMBOLS, positive=True if direction == "up" else False)
+        defensive_text = _join_move_examples(defensive_rows)
+        if defensive_text:
+            verb = "rose" if direction == "up" else "fell"
+            return f"Defensive proxies {verb}: {defensive_text}."
+
+    if theme == "risk":
+        risk_rows = _sorted_rows(RISK_PROXY_SYMBOLS, positive=True if direction == "up" else False)
+        risk_text = _join_move_examples(risk_rows)
+        if risk_text:
+            verb = "rose" if direction == "up" else "fell"
+            return f"Risk proxies {verb}: {risk_text}."
+
+    return ""
+
+
+def _to_article_frame(rows: list[dict[str, Any]]) -> pd.DataFrame:
+    if not rows:
+        return pd.DataFrame(columns=["headline", "summary", "description", "source", "published_at", "url"])
+    frame = pd.DataFrame(rows)
+    for column in ["headline", "summary", "description", "source", "url"]:
+        if column not in frame.columns:
+            frame[column] = ""
+    frame["published_at"] = pd.to_datetime(frame.get("published_at"), utc=True, errors="coerce")
+    frame = frame.dropna(subset=["headline"]).copy()
+    if frame.empty:
+        return pd.DataFrame(columns=["headline", "summary", "description", "source", "published_at", "url"])
+    frame = frame.sort_values("published_at", ascending=False, na_position="last")
+    return frame.drop_duplicates(subset=["headline", "url"], keep="first").reset_index(drop=True)
+
+
+def merge_news_payloads(*payloads: dict[str, Any] | None) -> dict[str, Any]:
+    rows: list[dict[str, Any]] = []
+    source_parts: list[str] = []
+    fallback_summary = ""
+    for payload in payloads:
+        if not isinstance(payload, dict):
+            continue
+        articles = payload.get("articles")
+        if isinstance(articles, pd.DataFrame) and not articles.empty:
+            frame = articles.copy()
+            frame["published_at"] = pd.to_datetime(frame.get("published_at"), utc=True, errors="coerce")
+            for _, row in frame.iterrows():
+                rows.append(
+                    {
+                        "headline": _coerce_text(row.get("headline")),
+                        "summary": _coerce_text(row.get("summary") or row.get("description")),
+                        "description": _coerce_text(row.get("description") or row.get("summary")),
+                        "source": _coerce_text(row.get("source")),
+                        "published_at": pd.to_datetime(row.get("published_at"), utc=True, errors="coerce"),
+                        "url": _coerce_text(row.get("url")),
+                    }
+                )
+        source = _coerce_text(payload.get("source"))
+        if source and source not in source_parts:
+            source_parts.append(source)
+        if not fallback_summary:
+            fallback_summary = _coerce_text(payload.get("fallback_summary"))
+    frame = _to_article_frame(rows)
+    return {
+        "articles": frame,
+        "fallback_summary": fallback_summary or None,
+        "source": "+".join(source_parts) if source_parts else None,
+    }
+
+
+def search_symbol_news_payload(
+    symbol: str,
+    *,
+    company_name: str = "",
+    max_results: int = 8,
+    serp_client: SerpAPISearchClient | None = None,
+    tavily_client: TavilySearchClient | None = None,
+) -> dict[str, Any]:
+    normalized_symbol = _normalize_symbol(symbol)
+    if not normalized_symbol:
+        return {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
+
+    if serp_client is None:
+        cfg = load_serpapi_config()
+        serp_client = SerpAPISearchClient(cfg) if cfg is not None else None
+    if tavily_client is None:
+        cfg = load_tavily_config()
+        tavily_client = TavilySearchClient(cfg) if cfg is not None else None
+
+    query_base = f"{normalized_symbol} stock today"
+    if company_name:
+        query_base = f"{company_name} {normalized_symbol} stock today"
+
+    article_rows: list[dict[str, Any]] = []
+    sources: list[str] = []
+    errors: list[str] = []
+
+    if serp_client is not None:
+        try:
+            for item in serp_client.search(query_base, news=True, num=max(max_results, 3)):
+                title = _coerce_text(item.title)
+                snippet = _coerce_text(item.snippet)
+                if not title:
+                    continue
+                if not _passes_search_relevance_gate(title, snippet, normalized_symbol, company_name):
+                    continue
+                if _is_low_signal_article(title, snippet) and _mention_score(title, normalized_symbol, company_name) < 0.75:
+                    continue
+                article_rows.append(
+                    {
+                        "headline": title,
+                        "summary": snippet,
+                        "description": snippet,
+                        "source": _coerce_text(item.source) or "SerpApi",
+                        "published_at": pd.to_datetime(item.published_at, utc=True, errors="coerce"),
+                        "url": _coerce_text(item.url),
+                    }
+                )
+            sources.append("serpapi")
+        except WebResearchError as exc:
+            errors.append(str(exc))
+
+    if tavily_client is not None:
+        try:
+            for item in tavily_client.search(query_base, max_results=max(max_results // 2, 3), topic="news"):
+                title = _coerce_text(item.title)
+                snippet = _coerce_text(item.snippet)
+                if not title and not snippet:
+                    continue
+                if not _passes_search_relevance_gate(title, snippet, normalized_symbol, company_name):
+                    continue
+                if _is_low_signal_article(title, snippet) and _mention_score(title, normalized_symbol, company_name) < 0.75:
+                    continue
+                article_rows.append(
+                    {
+                        "headline": title or f"{normalized_symbol} web result",
+                        "summary": snippet,
+                        "description": snippet,
+                        "source": _coerce_text(item.source) or "Tavily",
+                        "published_at": pd.to_datetime(item.published_at, utc=True, errors="coerce"),
+                        "url": _coerce_text(item.url),
+                    }
+                )
+            sources.append("tavily")
+        except WebResearchError as exc:
+            errors.append(str(exc))
+
+    frame = _to_article_frame(article_rows).head(max(int(max_results), 1))
+    fallback_summary = None
+    if errors and frame.empty:
+        fallback_summary = errors[0]
+    return {"articles": frame, "fallback_summary": fallback_summary, "source": "+".join(sources) if sources else None}
+
+
+def _event_search_query(event: dict[str, Any]) -> str:
+    theme = _coerce_text(event.get("event_type")).lower() or "generic"
+    direction = _coerce_text(event.get("anchor_direction")).lower() or "down"
+    query = EVENT_QUERY_TEMPLATES.get((theme, direction))
+    if query:
+        return query
+    supporting_symbols = [
+        _normalize_symbol(symbol)
+        for symbol in list(event.get("supporting_symbols") or [])
+        if _normalize_symbol(symbol)
+    ]
+    anchor_symbol = _normalize_symbol(event.get("anchor_symbol"))
+    parts = [anchor_symbol] if anchor_symbol else []
+    parts.extend(supporting_symbols[:3])
+    suffix = "market move today"
+    return " ".join(part for part in parts if part) + f" {suffix}"
+
+
+def search_market_event_news_payload(
+    event: dict[str, Any],
+    *,
+    max_results: int = 8,
+    serp_client: SerpAPISearchClient | None = None,
+    tavily_client: TavilySearchClient | None = None,
+) -> dict[str, Any]:
+    if not isinstance(event, dict) or not event:
+        return {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
+
+    if serp_client is None:
+        cfg = load_serpapi_config()
+        serp_client = SerpAPISearchClient(cfg) if cfg is not None else None
+    if tavily_client is None:
+        cfg = load_tavily_config()
+        tavily_client = TavilySearchClient(cfg) if cfg is not None else None
+
+    theme = _coerce_text(event.get("event_type")).lower() or "generic"
+    symbols = [
+        _normalize_symbol(symbol)
+        for symbol in list(event.get("supporting_symbols") or [])
+        if _normalize_symbol(symbol)
+    ]
+    query_base = _event_search_query(event)
+    article_rows: list[dict[str, Any]] = []
+    sources: list[str] = []
+    errors: list[str] = []
+
+    if serp_client is not None:
+        try:
+            for item in serp_client.search(query_base, news=True, num=max(max_results, 3)):
+                title = _coerce_text(item.title)
+                snippet = _coerce_text(item.snippet)
+                if not title:
+                    continue
+                if not _passes_event_relevance_gate(title, snippet, theme, symbols):
+                    continue
+                article_rows.append(
+                    {
+                        "headline": title,
+                        "summary": snippet,
+                        "description": snippet,
+                        "source": _coerce_text(item.source) or "SerpApi",
+                        "published_at": pd.to_datetime(item.published_at, utc=True, errors="coerce"),
+                        "url": _coerce_text(item.url),
+                    }
+                )
+            sources.append("serpapi")
+        except WebResearchError as exc:
+            errors.append(str(exc))
+
+    if tavily_client is not None:
+        try:
+            for item in tavily_client.search(query_base, max_results=max(max_results // 2, 3), topic="news"):
+                title = _coerce_text(item.title)
+                snippet = _coerce_text(item.snippet)
+                if not title and not snippet:
+                    continue
+                if not _passes_event_relevance_gate(title, snippet, theme, symbols):
+                    continue
+                article_rows.append(
+                    {
+                        "headline": title or f"{theme.title()} market event result",
+                        "summary": snippet,
+                        "description": snippet,
+                        "source": _coerce_text(item.source) or "Tavily",
+                        "published_at": pd.to_datetime(item.published_at, utc=True, errors="coerce"),
+                        "url": _coerce_text(item.url),
+                    }
+                )
+            sources.append("tavily")
+        except WebResearchError as exc:
+            errors.append(str(exc))
+
+    frame = _to_article_frame(article_rows).head(max(int(max_results), 1))
+    fallback_summary = None
+    if errors and frame.empty:
+        fallback_summary = errors[0]
+    return {"articles": frame, "fallback_summary": fallback_summary, "source": "+".join(sources) if sources else None}
+
+
+def _normalize_news_evidence(
+    symbol: str,
+    company_name: str,
+    news_payload: dict[str, Any] | None,
+    *,
+    asof_time_utc: pd.Timestamp,
+) -> list[dict[str, Any]]:
+    payload = news_payload or {}
+    rows: list[dict[str, Any]] = []
+    articles = payload.get("articles")
+    if not isinstance(articles, pd.DataFrame) or articles.empty:
+        return rows
+
+    for _, article in articles.iterrows():
+        headline = _coerce_text(article.get("headline"))
+        summary = _coerce_text(article.get("summary") or article.get("description"))
+        excerpt = _display_excerpt_from_article(headline, summary)
+        published_at = pd.to_datetime(article.get("published_at"), utc=True, errors="coerce")
+        source = _coerce_text(article.get("source"))
+        authority_bucket, authority_rank = _source_authority_bucket(source)
+        blob = f"{headline} {summary}"
+        relevance_score = _mention_score(blob, symbol, company_name)
+        if relevance_score < 0.45:
+            continue
+        if _is_low_signal_article(headline, summary) and relevance_score < 0.75:
+            continue
+        freshness_score = _freshness_score(published_at, asof_time_utc)
+        causal_score = min(1.0, _catalyst_score(blob) + relevance_score * 0.25)
+        rows.append(
+            {
+                "symbol": symbol,
+                "source": source or "News",
+                "source_type": "news_article",
+                "authority_bucket": authority_bucket,
+                "authority_rank": authority_rank,
+                "headline": headline,
+                "summary": summary,
+                "excerpt": excerpt,
+                "url": _coerce_text(article.get("url")),
+                "published_at": published_at.isoformat() if pd.notna(published_at) else "",
+                "published_at_ts": published_at,
+                "freshness_score": round(freshness_score, 2),
+                "relevance_score": round(relevance_score, 2),
+                "causal_score": round(causal_score, 2),
+                "theme_tag": _theme_tag(blob),
+                "is_same_day": bool(pd.notna(published_at) and published_at.date() == asof_time_utc.date()),
+                "evidence_role": "same_day_confirmation" if pd.notna(published_at) and published_at.date() == asof_time_utc.date() else "background_context",
+            }
+        )
+    return rows
+
+
+def _normalize_event_news_evidence(
+    theme: str,
+    supporting_symbols: list[str],
+    news_payload: dict[str, Any] | None,
+    *,
+    asof_time_utc: pd.Timestamp,
+) -> list[dict[str, Any]]:
+    payload = news_payload or {}
+    rows: list[dict[str, Any]] = []
+    articles = payload.get("articles")
+    if not isinstance(articles, pd.DataFrame) or articles.empty:
+        return rows
+
+    for _, article in articles.iterrows():
+        headline = _coerce_text(article.get("headline"))
+        summary = _coerce_text(article.get("summary") or article.get("description"))
+        excerpt = _display_excerpt_from_article(headline, summary)
+        source = _coerce_text(article.get("source"))
+        published_at = pd.to_datetime(article.get("published_at"), utc=True, errors="coerce")
+        authority_bucket, authority_rank = _source_authority_bucket(source)
+        blob = f"{headline} {summary}"
+        relevance_score = _event_relevance_score(blob, theme, supporting_symbols)
+        if relevance_score < 0.32:
+            continue
+        if _is_low_signal_article(headline, summary) and relevance_score < 0.62:
+            continue
+        freshness_score = _freshness_score(published_at, asof_time_utc)
+        theme_bonus = 0.12 if _event_keyword_score(blob, theme) >= 0.18 else 0.0
+        causal_score = min(1.0, _catalyst_score(blob) + relevance_score * 0.3 + theme_bonus)
+        rows.append(
+            {
+                "symbol": "",
+                "source": source or "News",
+                "source_type": "event_news",
+                "authority_bucket": authority_bucket,
+                "authority_rank": authority_rank,
+                "headline": headline,
+                "summary": summary,
+                "excerpt": excerpt,
+                "url": _coerce_text(article.get("url")),
+                "published_at": published_at.isoformat() if pd.notna(published_at) else "",
+                "published_at_ts": published_at,
+                "freshness_score": round(freshness_score, 2),
+                "relevance_score": round(relevance_score, 2),
+                "causal_score": round(causal_score, 2),
+                "theme_tag": theme or _theme_tag(blob),
+                "is_same_day": bool(pd.notna(published_at) and published_at.date() == asof_time_utc.date()),
+                "evidence_role": "same_day_confirmation" if pd.notna(published_at) and published_at.date() == asof_time_utc.date() else "background_context",
+            }
+        )
+    return rows
+
+
+def _normalize_context_evidence(
+    symbol: str,
+    context_payload: dict[str, Any] | None,
+    *,
+    asof_time_utc: pd.Timestamp,
+) -> list[dict[str, Any]]:
+    payload = context_payload or {}
+    rows: list[dict[str, Any]] = []
+    summary = _coerce_text(payload.get("llm_why_now") or payload.get("llm_summary_text") or payload.get("context_story_text"))
+    excerpt = _trim(_first_sentence(payload.get("primary_source_excerpt") or payload.get("latest_filing_excerpt")))
+    if _is_generic_filing_reference(summary) and excerpt:
+        summary = excerpt
+    if summary:
+        source = _coerce_text(payload.get("llm_source_line") or payload.get("source_line") or "Primary source")
+        authority_bucket, authority_rank = _source_authority_bucket(source)
+        generic_summary = _is_generic_filing_reference(summary)
+        relevance_score = 0.7
+        causal_score = min(1.0, 0.2 + _catalyst_score(summary))
+        if generic_summary:
+            relevance_score = 0.45
+            causal_score = min(causal_score, 0.18)
+        rows.append(
+            {
+                "symbol": symbol,
+                "source": source,
+                "source_type": "context_summary",
+                "authority_bucket": authority_bucket if authority_bucket != "unknown" else "official",
+                "authority_rank": min(authority_rank, 1),
+                "headline": _coerce_text(payload.get("llm_headline")) or f"{symbol} context summary",
+                "summary": summary,
+                "excerpt": excerpt,
+                "url": "",
+                "published_at": "",
+                "published_at_ts": pd.NaT,
+                "freshness_score": 0.18,
+                "relevance_score": relevance_score,
+                "causal_score": causal_score,
+                "theme_tag": _theme_tag(summary),
+                "is_same_day": False,
+                "evidence_role": "background_context",
+            }
+        )
+    return rows
+
+
+def _normalize_filing_evidence(
+    symbol: str,
+    filings_frame: pd.DataFrame | None,
+    *,
+    asof_time_utc: pd.Timestamp,
+) -> list[dict[str, Any]]:
+    if not isinstance(filings_frame, pd.DataFrame) or filings_frame.empty:
+        return []
+    rows: list[dict[str, Any]] = []
+    filings = filings_frame.copy()
+    if "symbol" not in filings.columns:
+        return rows
+    filings["symbol"] = filings["symbol"].astype(str).str.upper().str.strip()
+    filings = filings[filings["symbol"] == symbol].copy()
+    if filings.empty:
+        return rows
+    filings["filing_date"] = pd.to_datetime(filings.get("filing_date"), utc=True, errors="coerce")
+    filings = filings.sort_values("filing_date", ascending=False, na_position="last").head(4)
+    for _, filing in filings.iterrows():
+        filing_date = pd.to_datetime(filing.get("filing_date"), utc=True, errors="coerce")
+        excerpt = _trim(_first_sentence(filing.get("filing_excerpt") or filing.get("document_text")))
+        form = _coerce_text(filing.get("form"))
+        items = _coerce_text(filing.get("items"))
+        desc = _coerce_text(filing.get("primary_doc_description"))
+        if not excerpt and not desc and not form:
+            continue
+        generic_desc = _is_generic_filing_reference(desc)
+        if desc and not generic_desc:
+            summary = desc
+            if excerpt and excerpt.lower() not in desc.lower():
+                summary = f"{desc}. {excerpt}"
+        elif excerpt:
+            summary = excerpt
+        elif desc:
+            summary = f"Recent {form or 'SEC'} filing context."
+        else:
+            summary = f"{symbol} filed a {form}"
+        summary = _trim(summary)
+        generic_summary = _is_generic_filing_reference(summary)
+        relevance_score = 0.85
+        freshness_score = _freshness_score(filing_date, asof_time_utc)
+        causal_score = 0.45
+        lowered = f"{items} {summary}".lower()
+        if any(token in lowered for token in ["2.02", "results of operations", "guidance", "earnings", "approval", "contract", "acquisition", "trial"]):
+            causal_score = 0.8
+        elif any(token in lowered for token in ["auditor", "board", "director", "officer"]):
+            causal_score = 0.3
+        if generic_desc and not excerpt:
+            relevance_score = 0.45
+            causal_score = min(causal_score, 0.15)
+        elif generic_summary:
+            relevance_score = 0.45
+            causal_score = min(causal_score, 0.15)
+        is_same_day = bool(pd.notna(filing_date) and filing_date.date() == asof_time_utc.date())
+        rows.append(
+            {
+                "symbol": symbol,
+                "source": "SEC EDGAR",
+                "source_type": "sec_filing",
+                "authority_bucket": "official",
+                "authority_rank": 0,
+                "headline": f"{form} • {filing_date.strftime('%b %d') if pd.notna(filing_date) else 'Recent'}",
+                "summary": summary,
+                "excerpt": excerpt,
+                "url": _coerce_text(filing.get("filing_url")),
+                "published_at": filing_date.isoformat() if pd.notna(filing_date) else "",
+                "published_at_ts": filing_date,
+                "freshness_score": round(freshness_score, 2),
+                "relevance_score": round(relevance_score, 2),
+                "causal_score": round(causal_score, 2),
+                "theme_tag": _theme_tag(f"{items} {summary}"),
+                "is_same_day": is_same_day,
+                "evidence_role": "fresh_catalyst" if is_same_day and causal_score >= 0.72 else "background_context",
+                "filing_form": form,
+                "filing_items": items,
+            }
+        )
+    return rows
+
+
+def _judge_cause_status(evidence_rows: list[dict[str, Any]]) -> tuple[str, str]:
+    if not evidence_rows:
+        return "unresolved", "unresolved"
+
+    strong_same_day = [
+        item
+        for item in evidence_rows
+        if item.get("is_same_day")
+        and (
+            float(item.get("causal_score") or 0.0) >= 0.72
+            or (
+                int(item.get("authority_rank") or 9) <= 1
+                and float(item.get("causal_score") or 0.0) >= 0.62
+                and float(item.get("relevance_score") or 0.0) >= 0.65
+            )
+        )
+        and int(item.get("authority_rank") or 9) <= 2
+    ]
+    if strong_same_day:
+        themes = {str(item.get("theme_tag") or "") for item in strong_same_day if str(item.get("theme_tag") or "")}
+        if len(themes) >= 2 and not any(theme == "general" for theme in themes):
+            return "conflicting", "conflicting"
+        return "supported", "fresh_catalyst"
+
+    authoritative_same_day = _same_day_authoritative_rows(
+        evidence_rows,
+        min_causal=0.5,
+        min_relevance=0.58,
+    )
+    corroborating_same_day = _corroborating_same_day_rows(
+        evidence_rows,
+        min_causal=0.46,
+        min_relevance=0.52,
+    )
+    if authoritative_same_day and corroborating_same_day:
+        return "supported", "same_day_confirmation"
+
+    medium_same_day = [
+        item
+        for item in evidence_rows
+        if item.get("is_same_day")
+        and float(item.get("causal_score") or 0.0) >= 0.52
+        and float(item.get("relevance_score") or 0.0) >= 0.58
+    ]
+    if medium_same_day:
+        return "supported", "same_day_confirmation"
+
+    older_context = [
+        item
+        for item in evidence_rows
+        if not item.get("is_same_day") and float(item.get("causal_score") or 0.0) >= 0.58 and float(item.get("relevance_score") or 0.0) >= 0.6
+    ]
+    if older_context:
+        return "continuation", "continuation"
+
+    return "unresolved", "unresolved"
+
+
+def _quality_label(retained: list[dict[str, Any]], background: list[dict[str, Any]], cause_status: str) -> tuple[str, str]:
+    strong = [item for item in retained if float(item.get("causal_score") or 0.0) >= 0.7]
+    same_day = _same_day_rows(retained)
+    authoritative_same_day = _same_day_authoritative_rows(
+        retained,
+        min_causal=0.5,
+        min_relevance=0.58,
+    )
+    if cause_status == "supported" and (
+        (strong and min(int(item.get("authority_rank") or 9) for item in strong) <= 1 and len(strong) >= 2)
+        or (authoritative_same_day and len(same_day) >= 2)
+    ):
+        evidence_quality = "High"
+    elif cause_status == "supported" and authoritative_same_day:
+        evidence_quality = "Medium"
+    elif retained and min(int(item.get("authority_rank") or 9) for item in retained) <= 2:
+        evidence_quality = "Medium"
+    elif retained or background:
+        evidence_quality = "Developing"
+    else:
+        evidence_quality = "Low"
+
+    if len(same_day) >= 2:
+        freshness_quality = "High"
+    elif len(same_day) == 1:
+        only = same_day[0]
+        if int(only.get("authority_rank") or 9) <= 1 or float(only.get("freshness_score") or 0.0) >= 0.95:
+            freshness_quality = "High"
+        else:
+            freshness_quality = "Medium"
+    elif background:
+        freshness_quality = "Low"
+    else:
+        freshness_quality = "Low"
+    return evidence_quality, freshness_quality
+
+
+def _event_tape_why_text(theme: str, direction: str) -> str:
+    theme = _coerce_text(theme).lower()
+    direction = _coerce_text(direction).lower() or "down"
+    if theme == "oil":
+        if direction == "down":
+            return "Oil is lower, which points to less supply-risk and less inflation pressure across the tape."
+        return "Oil is higher, which points to more supply-risk and more inflation pressure across the tape."
+    if theme == "rates":
+        if direction == "up":
+            return "Treasuries are rallying, which points to lower yields and a relief move in rate-sensitive assets."
+        return "Treasuries are falling, which points to higher yields and more pressure on risk assets."
+    if theme == "defensives":
+        if direction == "up":
+            return "Defensive assets are rising, which points to a more cautious tone."
+        return "Defensive demand is easing, which lines up with a broader relief move."
+    if theme == "risk":
+        if direction == "up":
+            return "Risk assets are rising together, which points to a broader risk-on move."
+        return "Risk assets are weakening together, which points to a broader risk-off move."
+    return "The move is real, but the retained evidence is still too thin to support a stronger event-level explanation."
+
+
+def _judge_event_cause_status(evidence_rows: list[dict[str, Any]]) -> tuple[str, str]:
+    if not evidence_rows:
+        return "unresolved", "unresolved"
+
+    same_day = [item for item in evidence_rows if item.get("is_same_day")]
+    strong_same_day = [
+        item
+        for item in same_day
+        if (
+            float(item.get("causal_score") or 0.0) >= 0.62
+            and float(item.get("relevance_score") or 0.0) >= 0.55
+        )
+        or (
+            int(item.get("authority_rank") or 9) <= 1
+            and float(item.get("causal_score") or 0.0) >= 0.5
+            and float(item.get("relevance_score") or 0.0) >= 0.5
+        )
+    ]
+    if strong_same_day:
+        themes = {
+            _coerce_text(item.get("theme_tag"))
+            for item in strong_same_day
+            if _coerce_text(item.get("theme_tag"))
+        }
+        if len(themes) >= 2 and "general" not in themes:
+            return "conflicting", "conflicting"
+        return "supported", "same_day_confirmation"
+
+    authoritative_same_day = _same_day_authoritative_rows(
+        same_day,
+        min_causal=0.45,
+        min_relevance=0.5,
+    )
+    corroborating_same_day = _corroborating_same_day_rows(
+        same_day,
+        min_causal=0.42,
+        min_relevance=0.45,
+    )
+    if authoritative_same_day and corroborating_same_day:
+        return "supported", "same_day_confirmation"
+
+    background = [
+        item
+        for item in evidence_rows
+        if not item.get("is_same_day") and float(item.get("relevance_score") or 0.0) >= 0.55
+    ]
+    if background:
+        return "continuation", "continuation"
+    return "unresolved", "unresolved"
+
+
+def _fallback_event_why_text(
+    event: dict[str, Any],
+    cause_status: str,
+    retained: list[dict[str, Any]],
+    home_payload: dict[str, Any],
+) -> str:
+    theme = _coerce_text(event.get("event_type")).lower()
+    direction = _coerce_text(event.get("anchor_direction")).lower()
+    market_context = _event_market_context_text(event, home_payload)
+    if cause_status == "supported" and retained:
+        top = retained[0]
+        summary = _best_evidence_excerpt(top, limit=220)
+        if market_context and summary:
+            combined = f"{market_context} {summary}".strip()
+            if _normalized_text(market_context) not in _normalized_text(summary):
+                return _trim(combined, 280)
+            return _trim(summary, 280)
+        if market_context:
+            return market_context
+        if summary:
+            return _trim(summary, 280)
+    if cause_status == "conflicting":
+        return "Coverage points to multiple competing macro explanations today, and no single event narrative is clearly dominant yet."
+    if cause_status == "continuation":
+        return market_context or _event_tape_why_text(theme, direction)
+    return market_context or _event_tape_why_text(theme, direction)
+
+
+def _best_background_item(background: list[dict[str, Any]]) -> dict[str, Any]:
+    def _item_rank(item: dict[str, Any]) -> tuple[float, float, float, float]:
+        summary = _coerce_text(item.get("summary"))
+        excerpt = _coerce_text(item.get("excerpt"))
+        generic_penalty = 1.0 if _is_generic_filing_reference(summary) and not excerpt else 0.0
+        return (
+            generic_penalty,
+            -float(item.get("causal_score") or 0.0),
+            -float(item.get("relevance_score") or 0.0),
+            float(item.get("authority_rank") or 9.0),
+        )
+
+    candidates = [item for item in background if isinstance(item, dict)]
+    if not candidates:
+        return {}
+    return sorted(candidates, key=_item_rank)[0]
+
+
+def _best_background_text(item: dict[str, Any]) -> str:
+    for candidate in [item.get("summary"), item.get("excerpt"), item.get("headline")]:
+        text = _trim(_first_sentence(candidate), limit=180)
+        if text and not _is_generic_filing_reference(text):
+            return text.rstrip(".")
+    return ""
+
+
+def _fallback_why_text(symbol: str, cause_status: str, retained: list[dict[str, Any]], background: list[dict[str, Any]]) -> str:
+    if cause_status == "supported" and retained:
+        top = retained[0]
+        summary = _best_evidence_excerpt(top, limit=220)
+        if summary:
+            return summary
+    if cause_status == "continuation" and background:
+        top = _best_background_item(background)
+        summary = _best_background_text(top)
+        if summary:
+            return (
+                "No clear new company-specific catalyst was confirmed today. "
+                f"The move appears to extend an earlier narrative. Recent background context includes {summary}."
+            )
+        return "No clear new company-specific catalyst was confirmed today. The move appears to be continuing an earlier narrative."
+    if cause_status == "conflicting":
+        return "Coverage points to multiple competing explanations today, and no single cause is clearly dominant yet."
+    return f"No clear new company-specific catalyst was identified for {symbol} today."
+
+
+def _find_peer_moves(candidate: dict[str, Any], home_payload: dict[str, Any]) -> list[dict[str, Any]]:
+    symbol = _normalize_symbol(candidate.get("symbol"))
+    sector = _coerce_text(candidate.get("sector"))
+    industry = _coerce_text(candidate.get("industry"))
+    candidates = list(home_payload.get("event_candidates_1d") or [])
+    out: list[dict[str, Any]] = []
+
+    for item in candidates:
+        peer_symbol = _normalize_symbol(item.get("symbol"))
+        if not peer_symbol or peer_symbol == symbol:
+            continue
+        if industry and industry != "Unknown" and _coerce_text(item.get("industry")) == industry:
+            relation = industry
+        elif sector and sector != "Unknown" and _coerce_text(item.get("sector")) == sector:
+            relation = sector
+        else:
+            continue
+        change_pct = pd.to_numeric(item.get("change_pct"), errors="coerce")
+        if pd.isna(change_pct) or abs(float(change_pct)) < 2.0:
+            continue
+        out.append(
+            {
+                "symbol": peer_symbol,
+                "change_pct": float(change_pct),
+                "headline": _coerce_text(item.get("headline")),
+                "relationship": relation,
+            }
+        )
+    out.sort(key=lambda item: (-abs(float(item.get("change_pct") or 0.0)), item.get("symbol", "")))
+    return out[:4]
+
+
+def _find_event_context(symbol: str, home_payload: dict[str, Any]) -> dict[str, Any]:
+    normalized_symbol = _normalize_symbol(symbol)
+    for event in list(home_payload.get("top_events") or []):
+        supporting = {_normalize_symbol(item) for item in _safe_list(event.get("supporting_symbols"))}
+        if normalized_symbol in supporting:
+            return event
+    return {}
+
+
+def _fallback_what_else_moved(symbol: str, candidate: dict[str, Any], home_payload: dict[str, Any], peer_moves: list[dict[str, Any]]) -> str:
+    event = _find_event_context(symbol, home_payload)
+    affected_summary = _coerce_text(event.get("affected_assets_summary_text"))
+    if affected_summary:
+        return affected_summary
+    if peer_moves:
+        preview = ", ".join(f"{item['symbol']} ({float(item['change_pct']):+.1f}%)" for item in peer_moves[:3])
+        return f"Related names also moved today, including {preview}."
+    return "No clear same-day peer or cross-asset spillover was confirmed."
+
+
+def _background_context_text(background: list[dict[str, Any]]) -> str:
+    top = _best_background_item(background)
+    if not top:
+        return ""
+    return _best_background_text(top)
+
+
+def _synthesize_with_llm(
+    llm_client: LLMClient | None,
+    *,
+    symbol: str,
+    candidate: dict[str, Any],
+    cause_status: str,
+    why_today_mode: str,
+    retained: list[dict[str, Any]],
+    background: list[dict[str, Any]],
+    peer_moves: list[dict[str, Any]],
+    fallback_why_text: str,
+    fallback_what_else_moved_text: str,
+) -> dict[str, str]:
+    if llm_client is None:
+        return {
+            "why_now_text": fallback_why_text,
+            "what_else_moved_text": fallback_what_else_moved_text,
+            "background_context_text": _background_context_text(background),
+        }
+
+    system_prompt = (
+        "You write concise market drilldown copy. Use only the supplied evidence. "
+        "Do not invent catalysts. Distinguish same-day evidence from older background context. "
+        "If there is no clear same-day catalyst, say so plainly."
+    )
+    user_prompt = json.dumps(
+        {
+            "symbol": symbol,
+            "candidate": {
+                "headline": _coerce_text(candidate.get("headline")),
+                "what_changed_text": _coerce_text(candidate.get("what_changed_text")),
+                "sector": _coerce_text(candidate.get("sector")),
+                "industry": _coerce_text(candidate.get("industry")),
+            },
+            "cause_status": cause_status,
+            "why_today_mode": why_today_mode,
+            "same_day_evidence": [
+                {
+                    "source": _coerce_text(item.get("source")),
+                    "authority_bucket": _coerce_text(item.get("authority_bucket")),
+                    "headline": _coerce_text(item.get("headline")),
+                    "summary": _coerce_text(item.get("summary")),
+                    "theme_tag": _coerce_text(item.get("theme_tag")),
+                }
+                for item in retained[:4]
+            ],
+            "background_context": [
+                {
+                    "source": _coerce_text(item.get("source")),
+                    "headline": _coerce_text(item.get("headline")),
+                    "summary": _coerce_text(item.get("summary")),
+                }
+                for item in background[:3]
+            ],
+            "peer_moves": peer_moves[:3],
+            "fallback_why_text": fallback_why_text,
+            "fallback_what_else_moved_text": fallback_what_else_moved_text,
+        },
+        ensure_ascii=False,
+        default=str,
+        indent=2,
+    )
+    try:
+        data = llm_client.generate_json(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            schema_name="attention_symbol_research_bundle",
+            schema=RESEARCH_SYNTHESIS_SCHEMA,
+        )
+    except Exception:
+        return {
+            "why_now_text": fallback_why_text,
+            "what_else_moved_text": fallback_what_else_moved_text,
+            "background_context_text": _background_context_text(background),
+        }
+    return {
+        "why_now_text": _coerce_text(data.get("why_now_text")) or fallback_why_text,
+        "what_else_moved_text": _coerce_text(data.get("what_else_moved_text")) or fallback_what_else_moved_text,
+        "background_context_text": _coerce_text(data.get("background_context_text")) or _background_context_text(background),
+    }
+
+
+def build_live_attention_research_bundle(
+    bundle_id: str,
+    home_payload: dict[str, Any],
+    *,
+    news_payloads: dict[str, dict[str, Any]] | None = None,
+    context_payloads: dict[str, dict[str, Any]] | None = None,
+    search_payloads: dict[str, dict[str, Any]] | None = None,
+    filings_frame: pd.DataFrame | None = None,
+    llm_client: LLMClient | None = None,
+    asof_time_utc: datetime | pd.Timestamp | None = None,
+    allow_live_event_search: bool = False,
+) -> dict[str, Any]:
+    normalized_bundle_id = _coerce_text(bundle_id)
+    agentic_bundle = build_bottom_up_attention_bundle(normalized_bundle_id, home_payload)
+    if agentic_bundle and any(agentic_bundle.get(key) for key in ["claims", "evidence", "background_context"]):
+        return agentic_bundle
+    base_bundle = build_attention_research_bundle(
+        normalized_bundle_id,
+        home_payload,
+        news_payloads=news_payloads,
+        context_payloads=context_payloads,
+    )
+    asof_ts = pd.to_datetime(asof_time_utc if asof_time_utc is not None else datetime.now(timezone.utc), utc=True, errors="coerce")
+    if pd.isna(asof_ts):
+        asof_ts = pd.Timestamp.now(tz="UTC")
+
+    if base_bundle.get("bundle_type") != "symbol":
+        event = _event_record(home_payload, normalized_bundle_id)
+        supporting_symbols = [
+            _normalize_symbol(symbol)
+            for symbol in list(event.get("supporting_symbols") or [])
+            if _normalize_symbol(symbol)
+        ]
+        theme = _coerce_text(event.get("event_type")).lower() or "generic"
+        symbol_payloads = [
+            merge_news_payloads(
+                (news_payloads or {}).get(symbol),
+                (search_payloads or {}).get(symbol),
+            )
+            for symbol in supporting_symbols[:8]
+        ]
+        merged_symbol_news = merge_news_payloads(*symbol_payloads)
+        event_search_payload = (search_payloads or {}).get(normalized_bundle_id)
+        if not isinstance(event_search_payload, dict) and allow_live_event_search:
+            try:
+                event_search_payload = search_market_event_news_payload(event)
+            except Exception:
+                event_search_payload = {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
+
+        evidence_rows = _normalize_event_news_evidence(
+            theme,
+            supporting_symbols,
+            merged_symbol_news,
+            asof_time_utc=asof_ts,
+        )
+        evidence_rows.extend(
+            _normalize_event_news_evidence(
+                theme,
+                supporting_symbols,
+                event_search_payload,
+                asof_time_utc=asof_ts,
+            )
+        )
+        evidence_rows = _dedupe_evidence_rows(evidence_rows)
+        cause_status, why_today_mode = _judge_event_cause_status(evidence_rows)
+        retained = [
+            item
+            for item in evidence_rows
+            if item.get("is_same_day") and float(item.get("relevance_score") or 0.0) >= 0.55
+        ][:6]
+        background = [
+            item
+            for item in evidence_rows
+            if not item.get("is_same_day") and float(item.get("relevance_score") or 0.0) >= 0.55
+        ][:3]
+        why_text = _fallback_event_why_text(event, cause_status, retained or evidence_rows[:3], home_payload)
+        evidence_quality, freshness_quality = _quality_label(retained, background, cause_status)
+        base_bundle["why_happened_text"] = why_text
+        base_bundle["cause_status"] = cause_status
+        base_bundle["why_today_mode"] = why_today_mode
+        base_bundle["evidence_quality"] = evidence_quality
+        base_bundle["freshness_quality"] = freshness_quality
+        base_bundle["source_summary"] = ", ".join(
+            dict.fromkeys(
+                _coerce_text(item.get("source"))
+                for item in (retained or evidence_rows[:6])
+                if _coerce_text(item.get("source"))
+            )
+        )
+        base_bundle["background_context"] = []
+        base_bundle["background_context_text"] = ""
+        base_bundle["evidence"] = [
+            _serialize_evidence_item(item)
+            for item in (retained or evidence_rows[:6])
+        ]
+        if cause_status == "supported":
+            base_bundle["confidence_label"] = "High" if len(retained) >= 2 else "Medium"
+        elif cause_status == "conflicting":
+            base_bundle["confidence_label"] = "Developing"
+        elif not _coerce_text(base_bundle.get("confidence_label")):
+            base_bundle["confidence_label"] = "Developing"
+        return base_bundle
+
+    symbol = _normalize_symbol(base_bundle.get("symbol"))
+    candidates = {
+        _normalize_symbol(item.get("symbol")): item
+        for item in list(home_payload.get("event_candidates_1d") or [])
+        if _normalize_symbol(item.get("symbol"))
+    }
+    candidate = dict(candidates.get(symbol) or {})
+    company_name = _coerce_text(candidate.get("company_name"))
+    merged_news_payload = merge_news_payloads(
+        (news_payloads or {}).get(symbol),
+        (search_payloads or {}).get(symbol),
+    )
+    evidence_rows = _normalize_news_evidence(
+        symbol,
+        company_name,
+        merged_news_payload,
+        asof_time_utc=asof_ts,
+    )
+    evidence_rows.extend(
+        _normalize_context_evidence(
+            symbol,
+            (context_payloads or {}).get(symbol),
+            asof_time_utc=asof_ts,
+        )
+    )
+    evidence_rows.extend(_normalize_filing_evidence(symbol, filings_frame, asof_time_utc=asof_ts))
+    evidence_rows = _dedupe_evidence_rows(evidence_rows)
+
+    cause_status, why_today_mode = _judge_cause_status(evidence_rows)
+    retained = [
+        item
+        for item in evidence_rows
+        if item.get("is_same_day") and float(item.get("relevance_score") or 0.0) >= 0.55
+    ][:6]
+    background = [
+        item
+        for item in evidence_rows
+        if not item.get("is_same_day") and float(item.get("relevance_score") or 0.0) >= 0.55
+    ][:4]
+    if cause_status == "continuation" and not background:
+        background = evidence_rows[:2]
+    peer_moves = _find_peer_moves(candidate, home_payload)
+    fallback_why_text = _fallback_why_text(symbol, cause_status, retained, background)
+    fallback_what_else = _fallback_what_else_moved(symbol, candidate, home_payload, peer_moves)
+    synthesized = _synthesize_with_llm(
+        llm_client,
+        symbol=symbol,
+        candidate=candidate,
+        cause_status=cause_status,
+        why_today_mode=why_today_mode,
+        retained=retained,
+        background=background,
+        peer_moves=peer_moves,
+        fallback_why_text=fallback_why_text,
+        fallback_what_else_moved_text=fallback_what_else,
+    )
+    evidence_quality, freshness_quality = _quality_label(retained, background, cause_status)
+
+    def _serialize(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return [_serialize_evidence_item(item, symbol=symbol) for item in items]
+
+    base_bundle.update(
+        {
+            "why_now_text": synthesized["why_now_text"],
+            "what_else_moved_text": synthesized["what_else_moved_text"],
+            "background_context_text": synthesized["background_context_text"],
+            "background_context": _serialize(background),
+            "peer_moves": peer_moves,
+            "cause_status": cause_status,
+            "why_today_mode": why_today_mode,
+            "evidence_quality": evidence_quality,
+            "freshness_quality": freshness_quality,
+            "evidence": _serialize(retained) or _serialize(evidence_rows[:6]),
+            "same_day_evidence_count": len(retained),
+            "background_evidence_count": len(background),
+            "source_summary": ", ".join(
+                dict.fromkeys(_coerce_text(item.get("source")) for item in (retained or evidence_rows[:6]) if _coerce_text(item.get("source")))
+            ),
+            "related_symbols": [
+                {
+                    "symbol": _coerce_text(item.get("symbol")),
+                    "headline": _coerce_text(item.get("headline")),
+                    "change_pct": item.get("change_pct"),
+                    "sector": _coerce_text(item.get("sector")),
+                    "industry": _coerce_text(item.get("industry")),
+                }
+                for item in list(base_bundle.get("related_symbols") or [])
+            ],
+        }
+    )
+    if peer_moves and not base_bundle.get("related_symbols"):
+        base_bundle["related_symbols"] = [
+            {
+                "symbol": item["symbol"],
+                "headline": item.get("headline", ""),
+                "change_pct": item.get("change_pct"),
+                "sector": _coerce_text(candidate.get("sector")),
+                "industry": _coerce_text(candidate.get("industry")),
+            }
+            for item in peer_moves
+        ]
+    return base_bundle
+
+
+__all__ = [
+    "build_live_attention_research_bundle",
+    "merge_news_payloads",
+    "search_symbol_news_payload",
+]

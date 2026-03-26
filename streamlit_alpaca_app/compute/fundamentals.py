@@ -22,6 +22,10 @@ CASHFLOW_METRICS = {
     "Operating Cash Flow": ["Net Cash from Operating Activities", "Operating Cash Flow"],
     "Capital Expenditure": ["Change in Fixed Assets & Intangibles", "Capital Expenditures", "Capital Expenditure"],
 }
+SHARE_COUNT_METRICS = {
+    "Shares Diluted": ["Shares (Diluted)", "Shares Diluted"],
+    "Shares Basic": ["Shares (Basic)", "Shares Basic"],
+}
 
 STATEMENT_FILES = {
     "income": "us-income-quarterly.csv",
@@ -165,10 +169,57 @@ def load_quarterly_fundamentals(ticker: str) -> dict[str, pd.DataFrame]:
     return {"income": income, "balance": balance, "cashflow": cashflow}
 
 
+def latest_share_count(ticker: str, *, diluted_preferred: bool = True) -> tuple[float | None, pd.Timestamp | None, str | None]:
+    symbol = str(ticker or "").upper().strip()
+    if not symbol:
+        return None, None, None
+
+    metric_order = ["Shares Diluted", "Shares Basic"] if diluted_preferred else ["Shares Basic", "Shares Diluted"]
+    best_value: float | None = None
+    best_date: pd.Timestamp | None = None
+    best_metric: str | None = None
+
+    for statement in ["income", "balance", "cashflow"]:
+        try:
+            rows = _quarterly_rows(_load_statement(statement), symbol)
+        except Exception:
+            rows = pd.DataFrame()
+        if rows.empty:
+            continue
+
+        for metric_name in metric_order:
+            column = _resolve_column(list(rows.columns), SHARE_COUNT_METRICS[metric_name])
+            if column is None:
+                continue
+
+            frame = pd.DataFrame(
+                {
+                    "report_date": pd.to_datetime(rows["Report Date"], errors="coerce"),
+                    "value": pd.to_numeric(rows[column], errors="coerce"),
+                }
+            ).dropna(subset=["report_date", "value"])
+            if frame.empty:
+                continue
+
+            latest = frame.sort_values("report_date").iloc[-1]
+            report_date = pd.Timestamp(latest["report_date"])
+            value = float(latest["value"])
+            if best_date is None or report_date > best_date or (
+                report_date == best_date and best_metric == "Shares Basic" and metric_name == "Shares Diluted"
+            ):
+                best_value = value
+                best_date = report_date
+                best_metric = metric_name
+
+    return best_value, best_date, best_metric
+
+
 __all__ = [
     "BALANCE_METRICS",
     "CASHFLOW_METRICS",
     "INCOME_METRICS",
+    "SHARE_COUNT_METRICS",
     "STATEMENT_FILES",
+    "latest_share_count",
     "load_quarterly_fundamentals",
 ]

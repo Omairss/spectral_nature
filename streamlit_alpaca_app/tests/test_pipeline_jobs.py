@@ -269,3 +269,237 @@ def test_run_news_persists_attention_context(monkeypatch):
     assert ("edgar_evidence", 0) in persisted
     assert ("attention_context_llm", 0) in persisted
     assert ("attention_context_bundle", 1) in persisted
+
+
+def test_run_news_materializes_attention_home_and_research_outputs(monkeypatch):
+    class FakeAPI:
+        def get_news(self, symbols, limit=50):
+            return pd.DataFrame(
+                {
+                    "headline": ["Apple extends rally on checkout momentum"],
+                    "summary": ["Investors are reacting to better same-day commerce commentary."],
+                    "published_at": [pd.Timestamp("2026-03-24T15:30:00Z")],
+                    "source": ["Reuters"],
+                    "url": ["https://example.com/aapl"],
+                    "symbols": [["AAPL"]],
+                }
+            )
+
+    class FakeEdgarClient:
+        def load_recent_filings(self, symbols, **kwargs):
+            return pd.DataFrame(
+                {
+                    "symbol": ["AAPL"],
+                    "company_name": ["Apple Inc."],
+                    "cik": [320193],
+                    "filing_date": [pd.Timestamp("2026-03-24T00:00:00Z")],
+                    "form": ["8-K"],
+                    "items": ["2.02"],
+                    "primary_doc_description": ["Current report"],
+                    "filing_url": ["https://example.com/aapl-8k"],
+                    "filing_excerpt": ["Apple discussed services growth."],
+                    "document_text": ["Apple discussed services growth."],
+                    "document_text_hash": ["hash-aapl-8k"],
+                }
+            )
+
+    persisted: dict[str, pd.DataFrame] = {}
+    ctx = JobContext(
+        name="news-ingest-and-features",
+        run_id="87654321-test-run",
+        asof=datetime(2026, 3, 24, 18, 0, tzinfo=timezone.utc),
+        universe_version="20260324",
+    )
+
+    latest_frames = {
+        "daily_movers": pd.DataFrame(
+            [
+                {"symbol": "AAPL", "change_pct": 4.2, "close": 205.0, "prev_close": 196.7, "volume": 10_000_000, "dollar_volume": 2_050_000_000},
+                {"symbol": "TLT", "change_pct": 1.3, "close": 96.1, "prev_close": 94.9, "volume": 6_000_000, "dollar_volume": 576_600_000},
+            ]
+        ),
+        "macro_anchor_daily_movers": pd.DataFrame(
+            [
+                {"symbol": "USO", "change_pct": -7.9, "close": 69.0, "prev_close": 74.9, "volume": 4_000_000, "dollar_volume": 276_000_000},
+            ]
+        ),
+        "positions_snapshot": pd.DataFrame({"symbol": ["AAPL"], "market_value": [100000.0]}),
+        "price_history": pd.DataFrame(
+            {
+                "symbol": ["AAPL"] * 25 + ["TLT"] * 25 + ["USO"] * 25,
+                "timestamp": list(pd.date_range("2026-02-20", periods=25, freq="B", tz="UTC")) * 3,
+                "open": [100.0] * 75,
+                "high": [101.0] * 75,
+                "low": [99.0] * 75,
+                "close": ([100.0] * 24 + [104.2]) + ([100.0] * 24 + [101.3]) + ([100.0] * 24 + [92.1]),
+                "volume": [1000] * 75,
+            }
+        ),
+        "attention_feed": pd.DataFrame({"entity_id": ["AAPL", "USO"], "attention_score": [88.0, 95.0], "observed_value": [4.2, -7.9], "severity_score": [4.0, 5.0], "asof_time_utc": [pd.Timestamp("2026-03-24T18:00:00Z")] * 2}),
+        "commodity_attention_feed": pd.DataFrame({"entity_id": ["TLT"], "attention_score": [70.0], "observed_value": [1.3], "severity_score": [2.0], "asof_time_utc": [pd.Timestamp("2026-03-24T18:00:00Z")]}),
+        "edgar_filings": pd.DataFrame(),
+        "edgar_evidence": pd.DataFrame(),
+        "attention_context_llm": pd.DataFrame(),
+    }
+
+    monkeypatch.setattr("pipeline.jobs.main._alpaca_config", lambda: object())
+    monkeypatch.setattr("pipeline.jobs.main.AlpacaAPI", lambda cfg: FakeAPI())
+    monkeypatch.setattr(
+        "pipeline.jobs.main._load_latest_attention_seed",
+        lambda limit: pd.DataFrame({"entity_id": ["AAPL", "USO", "TLT"], "attention_score": [88.0, 95.0, 70.0]}),
+    )
+    monkeypatch.setattr(
+        "pipeline.jobs.main._load_latest_materialized_frame",
+        lambda dataset_name: latest_frames.get(dataset_name, pd.DataFrame()).copy(),
+    )
+    monkeypatch.setattr("pipeline.jobs.main.EdgarClient", lambda: FakeEdgarClient())
+    monkeypatch.setattr("pipeline.jobs.main.load_llm_client", lambda: None)
+    monkeypatch.setattr("pipeline.jobs.main.load_embedding_client", lambda: None)
+    monkeypatch.setattr(
+        "pipeline.jobs.main.search_symbol_news_payload",
+        lambda symbol, max_results=8, company_name="": {
+            "articles": pd.DataFrame(
+                [
+                    {
+                        "headline": f"{symbol} search result",
+                        "summary": f"{symbol} has same-day web confirmation.",
+                        "source": "AP",
+                        "published_at": pd.Timestamp("2026-03-24T15:45:00Z"),
+                        "url": f"https://example.com/{symbol.lower()}-search",
+                    }
+                ]
+            ),
+            "fallback_summary": None,
+            "source": "search",
+        },
+    )
+    monkeypatch.setattr(
+        "pipeline.jobs.main.build_bottom_up_attention_artifacts",
+        lambda *args, **kwargs: SimpleNamespace(
+            home_payload={
+                "run_id": "87654321-test-run",
+                "top_events": [
+                    {
+                        "bundle_id": "event::oil:USO:event",
+                        "market_event_id": "oil:USO:event",
+                        "event_type": "macro_cluster",
+                        "event_title": "Oil and related assets move together today",
+                        "what_happened_text": "Oil-linked instruments fell sharply today.",
+                        "why_happened_text": "Markets are pricing lower supply-risk.",
+                        "affected_assets_summary_text": "Up: AAPL, TLT | Down: USO",
+                        "supporting_symbols": ["USO", "AAPL", "TLT"],
+                        "cause_status": "supported",
+                        "confidence_label": "High",
+                        "surface_summary_text": "Oil-linked instruments fell sharply today. Markets are pricing lower supply-risk.",
+                    }
+                ],
+                "must_read_movers": [
+                    {
+                        "bundle_id": "symbol::AAPL",
+                        "symbol": "AAPL",
+                        "headline": "Apple moves sharply today",
+                        "what_changed_text": "AAPL rose 4.2% today.",
+                        "why_now_text": "Investors are reacting to stronger checkout commentary.",
+                        "what_else_moved_text": "Related names also moved today.",
+                        "cause_status": "supported",
+                        "confidence_label": "High",
+                        "candidate_score": 95.0,
+                        "change_pct": 4.2,
+                        "expected_move_pct": 1.0,
+                        "surprise_z": 2.4,
+                        "sector": "Technology",
+                        "industry": "Consumer Electronics",
+                        "source_label": "Technology",
+                        "top_source": "Reuters",
+                        "best_authority_rank": 1,
+                        "source_count": 1,
+                        "evidence_count": 1,
+                        "same_day_evidence_count": 1,
+                        "surface_summary_text": "AAPL rose 4.2% today. Investors are reacting to stronger checkout commentary.",
+                    }
+                ],
+                "unresolved_large_moves": [],
+                "generated_at_utc": pd.Timestamp("2026-03-24T18:00:00Z").isoformat(),
+                "coverage_summary": {"candidate_count": 2, "event_count": 1, "must_read_count": 1, "unresolved_count": 0},
+                "event_candidates_1d": [
+                    {
+                        "candidate_id": "candidate::AAPL",
+                        "symbol": "AAPL",
+                        "bundle_id": "symbol::AAPL",
+                        "headline": "Apple moves sharply today",
+                        "what_changed_text": "AAPL rose 4.2% today.",
+                        "why_now_text": "Investors are reacting to stronger checkout commentary.",
+                        "cause_status": "supported",
+                        "confidence_label": "High",
+                        "candidate_score": 95.0,
+                        "change_pct": 4.2,
+                        "expected_move_pct": 1.0,
+                        "surprise_z": 2.4,
+                        "sector": "Technology",
+                        "industry": "Consumer Electronics",
+                    }
+                ],
+                "event_impacts_1d": [],
+                "entity_master": [],
+            },
+            bundle_map={
+                "event::oil:USO:event": {
+                    "bundle_id": "event::oil:USO:event",
+                    "bundle_type": "event",
+                    "run_id": "87654321-test-run",
+                    "event_title": "Oil and related assets move together today",
+                    "what_happened_text": "Oil-linked instruments fell sharply today.",
+                    "why_happened_text": "Markets are pricing lower supply-risk.",
+                    "affected_assets_summary_text": "Up: AAPL, TLT | Down: USO",
+                    "cause_status": "supported",
+                    "confidence_label": "High",
+                    "evidence_quality": "High",
+                    "freshness_quality": "High",
+                    "source_summary": "Reuters",
+                },
+                "symbol::AAPL": {
+                    "bundle_id": "symbol::AAPL",
+                    "bundle_type": "symbol",
+                    "run_id": "87654321-test-run",
+                    "symbol": "AAPL",
+                    "headline": "Apple moves sharply today",
+                    "what_changed_text": "AAPL rose 4.2% today.",
+                    "why_now_text": "Investors are reacting to stronger checkout commentary.",
+                    "what_else_moved_text": "Related names also moved today.",
+                    "cause_status": "supported",
+                    "confidence_label": "High",
+                    "evidence_quality": "High",
+                    "freshness_quality": "High",
+                    "source_summary": "Reuters",
+                },
+            },
+            frames={
+                "attention_candidates_1d": pd.DataFrame([{"run_id": "87654321-test-run", "candidate_id": "candidate::AAPL", "symbol": "AAPL"}]),
+                "attention_research_plans": pd.DataFrame([{"run_id": "87654321-test-run", "candidate_id": "candidate::AAPL"}]),
+                "attention_search_requests": pd.DataFrame([{"run_id": "87654321-test-run", "candidate_id": "candidate::AAPL", "query": "AAPL move today"}]),
+                "attention_search_results": pd.DataFrame([{"run_id": "87654321-test-run", "candidate_id": "candidate::AAPL", "title": "AAPL search result", "source": "AP", "snippet": "AAPL has same-day web confirmation.", "url": "https://example.com/aapl-search"}]),
+                "attention_source_documents": pd.DataFrame([{"run_id": "87654321-test-run", "candidate_id": "candidate::AAPL", "document_id": "doc::aapl"}]),
+                "attention_evidence_chunks": pd.DataFrame([{"run_id": "87654321-test-run", "candidate_id": "candidate::AAPL", "chunk_id": "chunk::aapl"}]),
+                "attention_claims": pd.DataFrame([{"run_id": "87654321-test-run", "candidate_id": "candidate::AAPL", "claim_id": "claim::aapl"}]),
+                "attention_candidate_graph": pd.DataFrame([{"run_id": "87654321-test-run", "left_candidate_id": "candidate::AAPL", "right_candidate_id": "candidate::USO"}]),
+                "attention_event_clusters_1d": pd.DataFrame([{"run_id": "87654321-test-run", "event_id": "oil:USO:event"}]),
+            },
+        ),
+    )
+    monkeypatch.setattr(
+        "pipeline.jobs.main._persist_dataset",
+        lambda dataset_name, frame, ctx, conn: persisted.setdefault(dataset_name, frame.copy()),
+    )
+
+    run_news(ctx, None)
+
+    assert "attention_web_search_news" in persisted
+    assert "attention_home_snapshots_1d" in persisted
+    assert "attention_bundle_snapshots" in persisted
+    assert "attention_candidates_1d" in persisted
+    assert "attention_claims" in persisted
+    assert "attention_home_1d" in persisted
+    assert "attention_research_bundles" in persisted
+    assert not persisted["attention_home_1d"].empty
+    assert not persisted["attention_research_bundles"].empty
+    assert set(persisted["attention_research_bundles"]["bundle_id"]) == {"event::oil:USO:event", "symbol::AAPL"}

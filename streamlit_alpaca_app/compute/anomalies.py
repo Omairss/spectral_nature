@@ -685,7 +685,6 @@ def _build_attention_story(row: pd.Series) -> str:
     anomaly_type = str(row.get("anomaly_type") or "").strip().lower()
     peer_group_name = str(row.get("peer_group_name") or "").strip()
     regime_label = str(row.get("regime_label") or "").strip()
-    residual_value = float(pd.to_numeric(row.get("residual_value"), errors="coerce"))
     linked_news_raw = pd.to_numeric(row.get("linked_news_count"), errors="coerce")
     linked_news_count = int(linked_news_raw) if pd.notna(linked_news_raw) else 0
     portfolio_exposure_weight = float(pd.to_numeric(row.get("portfolio_exposure_weight"), errors="coerce"))
@@ -719,12 +718,12 @@ def _build_attention_story(row: pd.Series) -> str:
         driver = "The gap versus expectation is wide enough that this looks like more than ordinary beta noise."
 
     context_parts: list[str] = []
-    if np.isfinite(residual_value):
-        context_parts.append(f"Residual over {horizon or 'the selected window'} is {_signed_percent_text(residual_value)}")
     if regime_label:
-        context_parts.append(f"technical backdrop: {regime_label.lower()}")
+        context_parts.append(f"Price action still looks like a {regime_label.lower()} setup")
+    if horizon:
+        context_parts.append(f"That separation is showing up over the {horizon} window")
     if portfolio_exposure_weight > 0:
-        context_parts.append("portfolio overlap raises the priority")
+        context_parts.append("Portfolio overlap raises the priority")
 
     if context_parts:
         return f"{lead} {driver} {'; '.join(context_parts)}."
@@ -1246,7 +1245,7 @@ def build_attention_feed(
         subtitle = f"{str(row.get('anomaly_type') or '').replace('_', ' ').title()} over {horizon}"
         story_text = _build_attention_story(row)
         expected_vs_observed_text = (
-            f"Observed {observed:.2f}% vs expected {expected:.2f}% over {horizon}; residual {residual:.2f}%."
+            f"The chart shows how the realized move separated from the model baseline over {horizon or 'the selected window'}."
         )
         rows.append(
             {

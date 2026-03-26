@@ -24,6 +24,7 @@ class LLMConfig:
     api_version: str = ""
     timeout_seconds: int = 60
     temperature: float = 0.2
+    embedding_model: str = "text-embedding-3-small"
 
 
 def _clean(value: object) -> str:
@@ -88,6 +89,7 @@ def load_llm_config() -> LLMConfig | None:
         api_version=api_version,
         timeout_seconds=timeout_seconds,
         temperature=temperature,
+        embedding_model=_clean(os.getenv("EMBEDDING_MODEL")) or "text-embedding-3-small",
     )
 
 
@@ -240,6 +242,95 @@ class AzureOpenAIChatJSONClient:
         return data
 
 
+class OpenAIEmbeddingClient:
+    def __init__(self, config: LLMConfig, *, session: requests.Session | None = None) -> None:
+        if not config.api_key:
+            raise LLMAPIError("Missing LLM API key.")
+        self.config = config
+        self.session = session or requests.Session()
+
+    def generate_embeddings(self, texts: list[str]) -> list[list[float]]:
+        clean_texts = [str(text or "").strip() for text in list(texts or []) if str(text or "").strip()]
+        if not clean_texts:
+            return []
+        response = self.session.post(
+            f"{self.config.base_url}/embeddings",
+            headers={
+                "Authorization": f"Bearer {self.config.api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": self.config.embedding_model,
+                "input": clean_texts,
+            },
+            timeout=self.config.timeout_seconds,
+        )
+        if response.status_code != 200:
+            raise LLMAPIError(f"Embedding request failed status={response.status_code}: {response.text[:400]}")
+        try:
+            parsed = response.json()
+        except Exception as exc:
+            raise LLMAPIError(f"Embedding response returned invalid JSON: {exc}") from exc
+        data = parsed.get("data") or []
+        if not isinstance(data, list):
+            raise LLMAPIError("Embedding response missing data list.")
+        vectors: list[list[float]] = []
+        for item in data:
+            if not isinstance(item, dict):
+                continue
+            embedding = item.get("embedding") or []
+            if isinstance(embedding, list):
+                vectors.append([float(value) for value in embedding])
+        return vectors
+
+
+class AzureOpenAIEmbeddingClient:
+    def __init__(self, config: LLMConfig, *, session: requests.Session | None = None) -> None:
+        if not config.api_key:
+            raise LLMAPIError("Missing LLM API key.")
+        if not config.base_url:
+            raise LLMAPIError("Missing Azure OpenAI endpoint.")
+        if not config.deployment:
+            raise LLMAPIError("Missing Azure OpenAI deployment.")
+        self.config = config
+        self.session = session or requests.Session()
+
+    def generate_embeddings(self, texts: list[str]) -> list[list[float]]:
+        clean_texts = [str(text or "").strip() for text in list(texts or []) if str(text or "").strip()]
+        if not clean_texts:
+            return []
+        response = self.session.post(
+            f"{self.config.base_url}/embeddings",
+            headers={
+                "api-key": self.config.api_key,
+                "Content-Type": "application/json",
+            },
+            params={"api-version": self.config.api_version} if self.config.api_version else None,
+            json={
+                "model": self.config.deployment,
+                "input": clean_texts,
+            },
+            timeout=self.config.timeout_seconds,
+        )
+        if response.status_code != 200:
+            raise LLMAPIError(f"Embedding request failed status={response.status_code}: {response.text[:400]}")
+        try:
+            parsed = response.json()
+        except Exception as exc:
+            raise LLMAPIError(f"Embedding response returned invalid JSON: {exc}") from exc
+        data = parsed.get("data") or []
+        if not isinstance(data, list):
+            raise LLMAPIError("Embedding response missing data list.")
+        vectors: list[list[float]] = []
+        for item in data:
+            if not isinstance(item, dict):
+                continue
+            embedding = item.get("embedding") or []
+            if isinstance(embedding, list):
+                vectors.append([float(value) for value in embedding])
+        return vectors
+
+
 def load_llm_client() -> OpenAIChatJSONClient | AzureOpenAIChatJSONClient | None:
     config = load_llm_config()
     if config is None:
@@ -251,10 +342,24 @@ def load_llm_client() -> OpenAIChatJSONClient | AzureOpenAIChatJSONClient | None
     raise LLMAPIError(f"Unsupported LLM provider: {config.provider}")
 
 
+def load_embedding_client() -> OpenAIEmbeddingClient | AzureOpenAIEmbeddingClient | None:
+    config = load_llm_config()
+    if config is None:
+        return None
+    if config.provider == "openai":
+        return OpenAIEmbeddingClient(config)
+    if config.provider == "azure_openai":
+        return AzureOpenAIEmbeddingClient(config)
+    raise LLMAPIError(f"Unsupported LLM provider: {config.provider}")
+
+
 __all__ = [
+    "AzureOpenAIEmbeddingClient",
     "AzureOpenAIChatJSONClient",
+    "OpenAIEmbeddingClient",
     "LLMAPIError",
     "LLMConfig",
     "OpenAIChatJSONClient",
+    "load_embedding_client",
     "load_llm_client",
 ]

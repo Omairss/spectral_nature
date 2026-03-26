@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
+from types import SimpleNamespace
 from tempfile import TemporaryDirectory
 
 import pandas as pd
@@ -10,6 +11,16 @@ import numpy as np
 
 from services.alpaca_api import AlpacaAPI
 from services import company as company_module
+from services.attention_agentic import build_bottom_up_attention_artifacts
+from services.attention_feed_brief import build_attention_feed_brief
+from services.attention_home_1d import (
+    build_attention_entity_master,
+    build_attention_home_1d,
+    build_attention_research_bundle,
+)
+from services.attention_live_research import build_live_attention_research_bundle, merge_news_payloads
+from services.attention_market_events import build_attention_market_events
+from services.attention_surface import attention_home_bundle_preview, attention_home_surface_summary
 from services.company import build_attention_news_narrative, build_company_description, load_recent_news, summarize_recent_news
 from services.config import AppConfig
 from services import data_cache
@@ -19,6 +30,7 @@ from services.data_cache import CacheTarget, cached_frame
 from services.edgar import EdgarClient, build_attention_context_bundle
 from services.fred import FREDClient, FredSeriesSpec, build_fred_figure, build_fred_series_summary, format_fred_value, fred_categories, load_fred_dashboard
 from services.fundamentals import load_quarterly_fundamentals
+from services.homepage_v2 import build_homepage_v2_digest, build_homepage_v2_market_digest
 from services.llm import AzureOpenAIChatJSONClient, LLMConfig, load_llm_config
 from services.market import (
     business_focus_for_symbol,
@@ -745,6 +757,987 @@ def test_commodity_dependency_graph_returns_curated_links():
     assert {"USO", "UNG", "CORN"} >= set(graph["source"]).union(set(graph["target"]))
 
 
+def test_build_attention_market_events_promotes_oil_shock_into_market_event():
+    asof = pd.Timestamp("2026-03-23T18:00:00Z")
+    feed = pd.DataFrame(
+        {
+            "event_id": ["bno", "uso", "ual", "dal", "iwm", "tlt", "aapl"],
+            "asof_time_utc": [asof] * 7,
+            "entity_id": ["BNO", "USO", "UAL", "DAL", "IWM", "TLT", "AAPL"],
+            "direction": ["down", "down", "up", "up", "up", "up", "down"],
+            "observed_value": [-10.0, -8.8, 5.1, 4.7, 2.9, 1.6, -0.8],
+            "attention_score": [86.0, 81.0, 77.0, 74.0, 72.0, 69.0, 58.0],
+            "severity_score": [90.0, 84.0, 70.0, 68.0, 66.0, 60.0, 40.0],
+            "title": [
+                "BNO is underperforming expectation",
+                "USO is underperforming expectation",
+                "UAL is outperforming expectation",
+                "DAL is outperforming expectation",
+                "IWM is outperforming expectation",
+                "TLT is outperforming expectation",
+                "AAPL is underperforming expectation",
+            ],
+            "subtitle": ["News confirmed move over 1d"] * 7,
+            "horizon": ["1d"] * 7,
+            "peer_group_name": [
+                "Energy & Oil",
+                "Energy & Oil",
+                "Travel & Mobility",
+                "Travel & Mobility",
+                "All Market",
+                "All Market",
+                "All Market",
+            ],
+            "source_label": ["Commodities", "Commodities", "Equities", "Equities", "Equities", "Equities", "Equities"],
+            "story_text": [
+                "Oil-linked instruments are breaking lower.",
+                "Oil-linked instruments are breaking lower.",
+                "Airlines are firming as fuel pressure eases.",
+                "Airlines are firming as fuel pressure eases.",
+                "Small caps are rallying with the broader risk-on move.",
+                "Treasuries are firming as inflation pressure cools.",
+                "AAPL is lagging the broader tape.",
+            ],
+            "why_now_text": [
+                "Oil is dropping sharply.",
+                "Oil is dropping sharply.",
+                "Travel is benefiting from lower fuel costs.",
+                "Travel is benefiting from lower fuel costs.",
+                "Risk appetite is improving.",
+                "Bond yields are easing.",
+                "Single-name pressure remains idiosyncratic.",
+            ],
+        }
+    )
+    news_payloads = {
+        "BNO": {
+            "articles": pd.DataFrame(
+                [
+                    {
+                        "headline": "Oil prices ease and stock markets jump as hopes rise for an end to the Iran war",
+                        "summary": "Investors read the move as lower odds of a prolonged supply disruption.",
+                        "source": "AP",
+                    }
+                ]
+            )
+        }
+    }
+
+    events = build_attention_market_events(feed, news_payloads=news_payloads, context_payloads={}, max_events=3)
+
+    assert not events.empty
+    top = events.iloc[0]
+    assert top["event_type"] == "oil"
+    assert "Oil" in top["event_title"]
+    assert "BNO -10.0%" in top["what_happened_text"]
+    assert "TLT" not in top["what_happened_text"]
+    assert "UAL" in top["affected_assets_summary_text"]
+    assert "TLT" in top["affected_assets_summary_text"]
+    assert "supply-risk" in top["why_happened_text"].lower()
+    assert set(top["supporting_event_ids"]) >= {"bno", "uso", "ual", "dal", "iwm", "tlt"}
+
+
+def test_build_attention_market_events_uses_observed_move_direction_for_event_copy():
+    asof = pd.Timestamp("2026-03-23T18:00:00Z")
+    feed = pd.DataFrame(
+        {
+            "event_id": ["bno", "uso", "ual", "tlt"],
+            "asof_time_utc": [asof] * 4,
+            "entity_id": ["BNO", "USO", "UAL", "TLT"],
+            "direction": ["up", "up", "up", "up"],
+            "observed_value": [-8.9, -7.4, 4.6, 1.5],
+            "attention_score": [92.0, 86.0, 79.0, 74.0],
+            "severity_score": [94.0, 88.0, 70.0, 62.0],
+            "title": [
+                "BNO is outperforming expectation",
+                "USO is outperforming expectation",
+                "UAL is outperforming expectation",
+                "TLT is outperforming expectation",
+            ],
+            "subtitle": ["News confirmed move over 1d"] * 4,
+            "horizon": ["1d"] * 4,
+            "peer_group_name": ["Energy & Oil", "Energy & Oil", "Travel & Mobility", "All Market"],
+            "source_label": ["Commodities", "Commodities", "Equities", "Equities"],
+            "story_text": [
+                "Oil-linked instruments are breaking lower.",
+                "Oil-linked instruments are breaking lower.",
+                "Airlines are firming as fuel pressure eases.",
+                "Treasuries are firming as inflation pressure cools.",
+            ],
+            "why_now_text": [
+                "Oil is dropping sharply.",
+                "Oil is dropping sharply.",
+                "Travel is benefiting from lower fuel costs.",
+                "Bond yields are easing.",
+            ],
+        }
+    )
+
+    events = build_attention_market_events(feed, news_payloads={}, context_payloads={}, max_events=2)
+
+    assert not events.empty
+    top = events.iloc[0]
+    assert top["event_type"] == "oil"
+    assert top["anchor_direction"] == "down"
+    assert top["event_title"] == "Energy & Oil move lower together today"
+    assert "fell sharply" in top["what_happened_text"]
+    assert "BNO -8.9%" in top["what_happened_text"]
+
+
+def test_build_attention_market_events_does_not_pull_generic_energy_names_into_oil_event():
+    asof = pd.Timestamp("2026-03-23T18:00:00Z")
+    feed = pd.DataFrame(
+        {
+            "event_id": ["bno", "uso", "ual", "tlt", "apg"],
+            "asof_time_utc": [asof] * 5,
+            "entity_id": ["BNO", "USO", "UAL", "TLT", "APG"],
+            "direction": ["down", "down", "up", "up", "up"],
+            "observed_value": [-10.0, -8.8, 5.1, 1.6, 7.4],
+            "attention_score": [86.0, 81.0, 77.0, 69.0, 93.0],
+            "severity_score": [90.0, 84.0, 70.0, 60.0, 78.0],
+            "title": [
+                "BNO is underperforming expectation",
+                "USO is underperforming expectation",
+                "UAL is outperforming expectation",
+                "TLT is outperforming expectation",
+                "APG is outperforming expectation",
+            ],
+            "subtitle": ["News confirmed move over 1d"] * 5,
+            "horizon": ["1d"] * 5,
+            "peer_group_name": [
+                "Energy & Oil",
+                "Energy & Oil",
+                "Travel & Mobility",
+                "All Market",
+                "Industrials",
+            ],
+            "source_label": ["Commodities", "Commodities", "Equities", "Equities", "Equities"],
+            "story_text": [
+                "Oil-linked instruments are breaking lower.",
+                "Oil-linked instruments are breaking lower.",
+                "Airlines are firming as fuel pressure eases.",
+                "Treasuries are firming as inflation pressure cools.",
+                "APG is rallying on better building energy-efficiency demand.",
+            ],
+            "why_now_text": [
+                "Oil is dropping sharply.",
+                "Oil is dropping sharply.",
+                "Travel is benefiting from lower fuel costs.",
+                "Bond yields are easing.",
+                "A company-specific backlog update is driving the move.",
+            ],
+        }
+    )
+    context_payloads = {
+        "APG": {
+            "llm_why_now": "The stock's recent divergence coincides with regulatory approval to produce from the Gradizza Field and year-end proved reserve data.",
+        }
+    }
+
+    events = build_attention_market_events(feed, news_payloads={}, context_payloads=context_payloads, max_events=2)
+
+    assert not events.empty
+    top = events.iloc[0]
+    assert top["event_type"] == "oil"
+    assert top["anchor_symbol"] == "BNO"
+    assert "APG" not in set(top["supporting_symbols"])
+    assert "Gradizza Field" not in top["why_happened_text"]
+
+
+def test_build_attention_feed_brief_fallback_prefers_story_over_generic_cluster_text():
+    brief = build_attention_feed_brief(
+        {
+            "symbol": "BNO",
+            "title": "BNO is underperforming expectation",
+            "story_text": "Oil-linked instruments are breaking lower as the market prices less supply risk.",
+            "news_narrative": "Coverage from benzinga is clustering around commodity prices, which helps explain why the move looks idiosyncratic.",
+            "headline_items": [],
+            "company_description": "BNO tracks Brent crude oil.",
+            "context_summary": "",
+            "watchpoint_text": "Watch whether airlines and broad equities keep confirming the move.",
+        },
+        None,
+    )
+
+    assert brief["lead_text"].startswith("Oil-linked instruments are breaking lower")
+    assert "coverage from benzinga" in brief["cluster_text"].lower()
+
+
+def test_build_attention_entity_master_leaves_unknown_equities_unclassified_for_macro_roles():
+    master = build_attention_entity_master(["APGE", "APG", "BNO", "TLT", "UAL"])
+    lookup = {str(row["symbol"]).upper(): row for _, row in master.iterrows()}
+
+    assert lookup["APGE"]["sector"] == "Unknown"
+    assert lookup["APGE"]["commodity_role"] == ""
+    assert lookup["APGE"]["rates_role"] == ""
+    assert lookup["APGE"]["macro_role_tags"] == []
+    assert lookup["APG"]["macro_role_tags"] == []
+    assert lookup["BNO"]["commodity_role"] == "oil"
+    assert "rates" in lookup["TLT"]["macro_role_tags"]
+    assert "travel" in lookup["UAL"]["macro_role_tags"]
+
+
+def test_build_attention_home_1d_promotes_oil_event_and_keeps_big_single_name_mover_in_must_read():
+    def make_bars(today_move_pct: float) -> pd.DataFrame:
+        closes = [100.0] * 24
+        closes.append(100.0 * (1.0 + float(today_move_pct) / 100.0))
+        return pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=len(closes), freq="B"),
+                "close": closes,
+            }
+        )
+
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "BNO", "change_pct": -10.0, "close": 18.0, "prev_close": 20.0, "volume": 2_500_000, "dollar_volume": 45_000_000},
+            {"symbol": "USO", "change_pct": -8.8, "close": 68.4, "prev_close": 75.0, "volume": 3_100_000, "dollar_volume": 212_040_000},
+            {"symbol": "UAL", "change_pct": 5.1, "close": 56.8, "prev_close": 54.0, "volume": 5_600_000, "dollar_volume": 318_080_000},
+            {"symbol": "DAL", "change_pct": 4.7, "close": 48.1, "prev_close": 45.9, "volume": 4_800_000, "dollar_volume": 230_880_000},
+            {"symbol": "IWM", "change_pct": 2.9, "close": 224.0, "prev_close": 217.7, "volume": 6_000_000, "dollar_volume": 1_344_000_000},
+            {"symbol": "TLT", "change_pct": 1.6, "close": 94.0, "prev_close": 92.5, "volume": 8_000_000, "dollar_volume": 752_000_000},
+            {"symbol": "PYPL", "change_pct": 8.4, "close": 78.0, "prev_close": 72.0, "volume": 12_000_000, "dollar_volume": 936_000_000},
+        ]
+    )
+    bars_by_symbol = {symbol: make_bars(move) for symbol, move in daily_movers[["symbol", "change_pct"]].itertuples(index=False, name=None)}
+    news_payloads = {
+        "BNO": {
+            "articles": pd.DataFrame(
+                [
+                    {
+                        "headline": "Oil prices ease as hopes rise for de-escalation with Iran",
+                        "summary": "Traders are pricing lower odds of a prolonged supply disruption into crude.",
+                        "source": "AP",
+                        "published_at": pd.Timestamp("2026-03-23T15:00:00Z"),
+                        "url": "https://example.com/oil",
+                    }
+                ]
+            )
+        },
+        "PYPL": {
+            "articles": pd.DataFrame(
+                [
+                    {
+                        "headline": "PayPal jumps after upbeat checkout and margin commentary",
+                        "summary": "Investors focused on better branded-checkout trends and operating leverage.",
+                        "source": "Reuters",
+                        "published_at": pd.Timestamp("2026-03-23T15:30:00Z"),
+                        "url": "https://example.com/pypl",
+                    }
+                ]
+            )
+        },
+    }
+
+    home = build_attention_home_1d(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads=news_payloads,
+        context_payloads={},
+        entity_master=build_attention_entity_master(daily_movers["symbol"].tolist()),
+        holdings=[],
+        generated_at_utc=pd.Timestamp("2026-03-23T18:00:00Z"),
+    )
+
+    assert home["top_events"]
+    top_event = home["top_events"][0]
+    assert top_event["event_type"] == "oil"
+    assert "Oil" in top_event["event_title"]
+    assert set(top_event["supporting_symbols"]) >= {"BNO", "USO", "UAL", "DAL", "IWM", "TLT"}
+
+    must_read_symbols = {str(item["symbol"]).upper() for item in home["must_read_movers"]}
+    assert "PYPL" in must_read_symbols
+    assert "BNO" not in must_read_symbols
+    assert "UAL" not in must_read_symbols
+
+
+def test_build_attention_home_1d_keeps_large_liquid_single_name_movers_in_must_read():
+    def make_bars(today_move_pct: float) -> pd.DataFrame:
+        closes = [100.0] * 24
+        closes.append(100.0 * (1.0 + float(today_move_pct) / 100.0))
+        return pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=len(closes), freq="B"),
+                "close": closes,
+            }
+        )
+
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "PYPL", "change_pct": 8.1, "close": 78.0, "prev_close": 72.2, "volume": 10_500_000, "dollar_volume": 819_000_000},
+            {"symbol": "QXO", "change_pct": 9.4, "close": 24.0, "prev_close": 21.9, "volume": 7_800_000, "dollar_volume": 187_200_000},
+            {"symbol": "MT", "change_pct": 6.7, "close": 31.9, "prev_close": 29.9, "volume": 6_200_000, "dollar_volume": 197_780_000},
+        ]
+    )
+    bars_by_symbol = {symbol: make_bars(move) for symbol, move in daily_movers[["symbol", "change_pct"]].itertuples(index=False, name=None)}
+    news_payloads = {
+        symbol: {
+            "articles": pd.DataFrame(
+                [
+                    {
+                        "headline": f"{symbol} rallies after company-specific update",
+                        "summary": f"Fresh company-specific news is behind the move in {symbol}.",
+                        "source": "Reuters",
+                        "published_at": pd.Timestamp("2026-03-23T16:00:00Z"),
+                        "url": f"https://example.com/{symbol.lower()}",
+                    }
+                ]
+            )
+        }
+        for symbol in ["PYPL", "QXO", "MT"]
+    }
+
+    home = build_attention_home_1d(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads=news_payloads,
+        context_payloads={},
+        entity_master=build_attention_entity_master(daily_movers["symbol"].tolist()),
+        holdings=[],
+        generated_at_utc=pd.Timestamp("2026-03-23T18:00:00Z"),
+    )
+
+    assert not home["top_events"]
+    must_read_symbols = {str(item["symbol"]).upper() for item in home["must_read_movers"]}
+    assert {"PYPL", "QXO", "MT"} <= must_read_symbols
+
+
+def test_build_attention_home_1d_marks_large_low_evidence_moves_as_unresolved():
+    def make_bars(today_move_pct: float) -> pd.DataFrame:
+        closes = [100.0] * 24
+        closes.append(100.0 * (1.0 + float(today_move_pct) / 100.0))
+        return pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=len(closes), freq="B"),
+                "close": closes,
+            }
+        )
+
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "APGE", "change_pct": 14.2, "close": 52.5, "prev_close": 46.0, "volume": 1_400_000, "dollar_volume": 73_500_000},
+            {"symbol": "XYZ", "change_pct": -5.4, "close": 38.0, "prev_close": 40.2, "volume": 1_800_000, "dollar_volume": 68_400_000},
+        ]
+    )
+    bars_by_symbol = {symbol: make_bars(move) for symbol, move in daily_movers[["symbol", "change_pct"]].itertuples(index=False, name=None)}
+
+    home = build_attention_home_1d(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads={},
+        context_payloads={},
+        entity_master=build_attention_entity_master(daily_movers["symbol"].tolist()),
+        holdings=[],
+        generated_at_utc=pd.Timestamp("2026-03-23T18:00:00Z"),
+    )
+
+    unresolved_symbols = {str(item["symbol"]).upper() for item in home["unresolved_large_moves"]}
+    assert "APGE" in unresolved_symbols
+    assert "APGE" not in {str(item["symbol"]).upper() for item in home["must_read_movers"]}
+    assert not home["top_events"]
+
+
+def test_build_attention_research_bundle_sorts_source_authority_and_aggregates_symbols():
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "BNO", "change_pct": -9.8, "close": 18.2, "prev_close": 20.2, "volume": 2_000_000, "dollar_volume": 36_400_000},
+            {"symbol": "USO", "change_pct": -8.1, "close": 68.0, "prev_close": 74.0, "volume": 3_000_000, "dollar_volume": 204_000_000},
+            {"symbol": "UAL", "change_pct": 4.9, "close": 56.5, "prev_close": 53.8, "volume": 4_000_000, "dollar_volume": 226_000_000},
+        ]
+    )
+    bars_by_symbol = {
+        symbol: pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=25, freq="B"),
+                "close": [100.0] * 24 + [100.0 * (1.0 + float(move) / 100.0)],
+            }
+        )
+        for symbol, move in daily_movers[["symbol", "change_pct"]].itertuples(index=False, name=None)
+    }
+    news_payloads = {
+        "BNO": {
+            "articles": pd.DataFrame(
+                [
+                    {
+                        "headline": "Oil prices fall on de-escalation hopes",
+                        "summary": "The market is pricing lower odds of a supply shock.",
+                        "source": "AP",
+                        "published_at": pd.Timestamp("2026-03-23T15:00:00Z"),
+                        "url": "https://example.com/ap-oil",
+                    },
+                    {
+                        "headline": "BNO slides with crude",
+                        "summary": "Broader web coverage echoed the move.",
+                        "source": "Benzinga",
+                        "published_at": pd.Timestamp("2026-03-23T15:30:00Z"),
+                        "url": "https://example.com/benzinga-oil",
+                    },
+                ]
+            )
+        }
+    }
+    context_payloads = {
+        "BNO": {
+            "llm_headline": "Primary-source read on oil market relief",
+            "llm_why_now": "Official market commentary points to easing supply-risk expectations.",
+            "llm_source_line": "SEC filing",
+            "top_filing_links": [{"label": "8-K filing", "url": "https://example.com/8k"}],
+        }
+    }
+
+    home = build_attention_home_1d(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads=news_payloads,
+        context_payloads=context_payloads,
+        entity_master=build_attention_entity_master(daily_movers["symbol"].tolist()),
+        holdings=[],
+        generated_at_utc=pd.Timestamp("2026-03-23T18:00:00Z"),
+    )
+
+    assert home["top_events"]
+    bundle = build_attention_research_bundle(
+        str(home["top_events"][0]["bundle_id"]),
+        home,
+        news_payloads=news_payloads,
+        context_payloads=context_payloads,
+    )
+
+    assert bundle["bundle_type"] == "event"
+    assert bundle["related_symbols"]
+    assert bundle["evidence"]
+    assert bundle["evidence"][0]["authority_bucket"] == "official"
+    assert bundle["related_symbols"][0]["symbol"] in {"BNO", "USO", "UAL"}
+
+
+def test_build_live_attention_research_bundle_prefers_same_day_news_and_separates_background_context():
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "FSLY", "change_pct": 13.7, "close": 14.2, "prev_close": 12.5, "volume": 8_000_000, "dollar_volume": 113_600_000},
+        ]
+    )
+    bars_by_symbol = {
+        "FSLY": pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=25, freq="B"),
+                "close": [100.0] * 24 + [113.7],
+            }
+        )
+    }
+    home = build_attention_home_1d(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads={},
+        context_payloads={},
+        entity_master=build_attention_entity_master(["FSLY"]),
+        holdings=[],
+        generated_at_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+    )
+    merged_news = merge_news_payloads(
+        {
+            "articles": pd.DataFrame(
+                [
+                    {
+                        "headline": "Why is Fastly (FSLY) stock rocketing higher today",
+                        "summary": "Investors are extending the post-earnings rerating in Fastly while momentum traders add to the move.",
+                        "source": "Reuters",
+                        "published_at": pd.Timestamp("2026-03-24T15:30:00Z"),
+                        "url": "https://example.com/fsly-reuters",
+                    }
+                ]
+            ),
+            "fallback_summary": None,
+            "source": "alpaca",
+        }
+    )
+    filings_frame = pd.DataFrame(
+        [
+            {
+                "symbol": "FSLY",
+                "filing_date": pd.Timestamp("2026-03-05T00:00:00Z"),
+                "form": "8-K",
+                "items": "4.01",
+                "primary_doc_description": "Auditor change",
+                "filing_url": "https://example.com/fsly-8k",
+                "filing_excerpt": "Fastly disclosed an auditor transition and related governance updates.",
+                "document_text": "Fastly disclosed an auditor transition and related governance updates.",
+            }
+        ]
+    )
+
+    bundle = build_live_attention_research_bundle(
+        "symbol::FSLY",
+        home,
+        news_payloads={"FSLY": merged_news},
+        context_payloads={"FSLY": {"llm_why_now": "Earlier SEC context pointed to an auditor change."}},
+        filings_frame=filings_frame,
+        llm_client=None,
+        asof_time_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+    )
+
+    assert bundle["bundle_type"] == "symbol"
+    assert bundle["cause_status"] == "supported"
+    assert bundle["why_today_mode"] in {"fresh_catalyst", "same_day_confirmation"}
+    assert bundle["freshness_quality"] == "High"
+    assert bundle["evidence_quality"] == "Medium"
+    assert bundle["evidence"]
+    assert bundle["evidence"][0]["source"] == "Reuters"
+    assert bundle["background_context"]
+    assert any(item["source"] == "SEC EDGAR" for item in bundle["background_context"])
+    assert "No clear same-day peer or cross-asset spillover was confirmed." in bundle["what_else_moved_text"]
+
+
+def test_build_live_attention_research_bundle_event_prefers_macro_evidence_over_symbol_context():
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "BNO", "change_pct": -9.5, "close": 18.3, "prev_close": 20.2, "volume": 2_200_000, "dollar_volume": 40_260_000},
+            {"symbol": "USO", "change_pct": -9.0, "close": 68.2, "prev_close": 75.0, "volume": 4_400_000, "dollar_volume": 300_080_000},
+            {"symbol": "UAL", "change_pct": 4.7, "close": 57.4, "prev_close": 54.8, "volume": 6_100_000, "dollar_volume": 350_140_000},
+            {"symbol": "DAL", "change_pct": 4.3, "close": 49.8, "prev_close": 47.7, "volume": 5_600_000, "dollar_volume": 278_880_000},
+            {"symbol": "IWM", "change_pct": 2.0, "close": 217.0, "prev_close": 212.7, "volume": 8_000_000, "dollar_volume": 1_736_000_000},
+            {"symbol": "TLT", "change_pct": 1.4, "close": 96.3, "prev_close": 95.0, "volume": 7_400_000, "dollar_volume": 712_620_000},
+        ]
+    )
+    bars_by_symbol = {
+        symbol: pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=25, freq="B"),
+                "close": [100.0] * 24 + [100.0 * (1.0 + float(move) / 100.0)],
+            }
+        )
+        for symbol, move in daily_movers[["symbol", "change_pct"]].itertuples(index=False, name=None)
+    }
+    news_payloads = {
+        "BNO": {
+            "articles": pd.DataFrame(
+                [
+                    {
+                        "headline": "BNO slides with crude benchmark",
+                        "summary": "The ETF tracked lower oil prices.",
+                        "source": "Benzinga",
+                        "published_at": pd.Timestamp("2026-03-24T15:20:00Z"),
+                        "url": "https://example.com/bno",
+                    }
+                ]
+            )
+        }
+    }
+    context_payloads = {
+        "BNO": {
+            "llm_why_now": "Oil participants fear fuel shortages, shifting from an oversupply outlook.",
+            "llm_source_line": "Primary source",
+        }
+    }
+
+    home = build_attention_home_1d(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads=news_payloads,
+        context_payloads=context_payloads,
+        entity_master=build_attention_entity_master(daily_movers["symbol"].tolist()),
+        holdings=[],
+        generated_at_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+    )
+    top_event = home["top_events"][0]
+    bundle_id = str(top_event["bundle_id"])
+    event_search_payload = {
+        "articles": pd.DataFrame(
+            [
+                {
+                    "headline": "Oil prices fall on Iran de-escalation hopes",
+                    "summary": "Traders are pricing lower odds of a supply disruption into crude, while airlines and bonds gain.",
+                    "source": "AP",
+                    "published_at": pd.Timestamp("2026-03-24T15:00:00Z"),
+                    "url": "https://example.com/ap-oil",
+                },
+                {
+                    "headline": "Crude drops as market relief spreads across airlines and Treasuries",
+                    "summary": "Lower oil and firmer duration suggest easing inflation pressure.",
+                    "source": "Reuters",
+                    "published_at": pd.Timestamp("2026-03-24T15:10:00Z"),
+                    "url": "https://example.com/reuters-oil",
+                },
+            ]
+        ),
+        "fallback_summary": None,
+        "source": "event-search",
+    }
+
+    bundle = build_live_attention_research_bundle(
+        bundle_id,
+        home,
+        news_payloads=news_payloads,
+        context_payloads=context_payloads,
+        search_payloads={bundle_id: event_search_payload},
+        llm_client=None,
+        asof_time_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+    )
+
+    assert bundle["bundle_type"] == "event"
+    assert bundle["cause_status"] == "supported"
+    assert bundle["freshness_quality"] == "High"
+    assert "AP" in bundle["source_summary"]
+    assert "fuel shortages" not in bundle["why_happened_text"].lower()
+    assert "the tape reads this as" not in bundle["why_happened_text"].lower()
+    assert any(token in bundle["why_happened_text"].lower() for token in ["de-escalation", "supply disruption", "supply-risk", "inflation pressure"])
+
+
+def test_build_live_attention_research_bundle_rates_event_adds_numeric_context():
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "TLT", "change_pct": 1.6, "close": 97.4, "prev_close": 95.9, "volume": 7_200_000, "dollar_volume": 701_280_000},
+            {"symbol": "IEF", "change_pct": 0.8, "close": 95.0, "prev_close": 94.2, "volume": 5_600_000, "dollar_volume": 532_000_000},
+            {"symbol": "HYG", "change_pct": 1.0, "close": 78.8, "prev_close": 78.0, "volume": 6_000_000, "dollar_volume": 472_800_000},
+            {"symbol": "IWM", "change_pct": 2.1, "close": 219.0, "prev_close": 214.5, "volume": 7_400_000, "dollar_volume": 1_620_600_000},
+            {"symbol": "GLD", "change_pct": -0.9, "close": 231.5, "prev_close": 233.6, "volume": 4_100_000, "dollar_volume": 949_150_000},
+        ]
+    )
+    bars_by_symbol = {
+        symbol: pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=25, freq="B"),
+                "close": [100.0] * 24 + [100.0 * (1.0 + float(move) / 100.0)],
+            }
+        )
+        for symbol, move in daily_movers[["symbol", "change_pct"]].itertuples(index=False, name=None)
+    }
+
+    home = build_attention_home_1d(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads={},
+        context_payloads={},
+        entity_master=build_attention_entity_master(daily_movers["symbol"].tolist()),
+        holdings=[],
+        generated_at_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+    )
+    rates_event = next(item for item in home["top_events"] if item["event_type"] == "rates")
+    bundle = build_live_attention_research_bundle(
+        str(rates_event["bundle_id"]),
+        home,
+        search_payloads={
+            str(rates_event["bundle_id"]): {
+                "articles": pd.DataFrame(
+                    [
+                        {
+                            "headline": "Treasuries rally as softer yields lift rate-sensitive stocks",
+                            "summary": "Lower yields helped credit and small caps firm with bonds.",
+                            "source": "Reuters",
+                            "published_at": pd.Timestamp("2026-03-24T15:15:00Z"),
+                            "url": "https://example.com/reuters-rates",
+                        }
+                    ]
+                ),
+                "fallback_summary": None,
+                "source": "event-search",
+            }
+        },
+        llm_client=None,
+        asof_time_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+    )
+
+    why_text = bundle["why_happened_text"].lower()
+    assert "tlt +1.6%" in why_text
+    assert "ief +0.8%" in why_text
+    assert "bps" in why_text
+    assert "the tape reads this as" not in why_text
+
+
+def test_build_live_attention_research_bundle_filters_irrelevant_roundups_and_marks_unresolved():
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "FSLY", "change_pct": 11.2, "close": 13.9, "prev_close": 12.5, "volume": 6_400_000, "dollar_volume": 88_960_000},
+        ]
+    )
+    bars_by_symbol = {
+        "FSLY": pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=25, freq="B"),
+                "close": [100.0] * 24 + [111.2],
+            }
+        )
+    }
+    home = build_attention_home_1d(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads={},
+        context_payloads={},
+        entity_master=build_attention_entity_master(["FSLY"]),
+        holdings=[],
+        generated_at_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+    )
+
+    irrelevant_roundup = {
+        "articles": pd.DataFrame(
+            [
+                {
+                    "headline": "Apogee Therapeutics, Tower Semiconductor, Norwegian Cruise Line And Other Big Stocks Moving Higher On Thursday",
+                    "summary": "APGE and several other names were among notable movers.",
+                    "source": "Benzinga",
+                    "published_at": pd.Timestamp("2026-03-24T14:45:00Z"),
+                    "url": "https://example.com/roundup",
+                }
+            ]
+        ),
+        "fallback_summary": None,
+        "source": "alpaca",
+    }
+
+    bundle = build_live_attention_research_bundle(
+        "symbol::FSLY",
+        home,
+        news_payloads={"FSLY": irrelevant_roundup},
+        context_payloads={},
+        filings_frame=pd.DataFrame(),
+        llm_client=None,
+        asof_time_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+    )
+
+    assert bundle["cause_status"] == "unresolved"
+    assert bundle["evidence"] == []
+    assert bundle["background_context"] == []
+    assert "No clear new company-specific catalyst" in bundle["why_now_text"]
+
+
+def test_bottom_up_attention_artifacts_use_dynamic_event_titles_instead_of_generic_cluster_copy():
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "BNO", "change_pct": -8.9, "close": 25.0, "prev_close": 27.44, "volume": 2_000_000, "dollar_volume": 50_000_000},
+            {"symbol": "USO", "change_pct": -7.4, "close": 70.0, "prev_close": 75.59, "volume": 4_000_000, "dollar_volume": 280_000_000},
+            {"symbol": "UAL", "change_pct": 4.6, "close": 45.0, "prev_close": 43.02, "volume": 5_000_000, "dollar_volume": 225_000_000},
+            {"symbol": "DAL", "change_pct": 4.1, "close": 53.0, "prev_close": 50.91, "volume": 4_500_000, "dollar_volume": 238_500_000},
+            {"symbol": "TLT", "change_pct": 1.5, "close": 97.0, "prev_close": 95.57, "volume": 6_000_000, "dollar_volume": 582_000_000},
+        ]
+    )
+    bars_by_symbol = {
+        symbol: pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=25, freq="B"),
+                "close": [100.0] * 24 + [100.0 * (1.0 + float(move) / 100.0)],
+            }
+        )
+        for symbol, move in daily_movers[["symbol", "change_pct"]].itertuples(index=False, name=None)
+    }
+
+    artifacts = build_bottom_up_attention_artifacts(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads={},
+        context_payloads={},
+        entity_master=build_attention_entity_master(daily_movers["symbol"].tolist()),
+        holdings=[],
+        generated_at_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+        llm_client=None,
+    )
+
+    top_event = artifacts.home_payload["top_events"][0]
+    assert "related assets move together today" not in top_event["event_title"].lower()
+    assert top_event["event_title"] == "Oil lower, Airlines higher"
+    assert "oil moved lower while airlines moved higher today" in top_event["surface_summary_text"].lower()
+
+
+def test_build_live_attention_research_bundle_generic_filing_sections_do_not_drive_continuation_copy():
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "FSLY", "change_pct": 13.7, "close": 14.2, "prev_close": 12.5, "volume": 8_000_000, "dollar_volume": 113_600_000},
+        ]
+    )
+    bars_by_symbol = {
+        "FSLY": pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=25, freq="B"),
+                "close": [100.0] * 24 + [113.7],
+            }
+        )
+    }
+    home = build_attention_home_1d(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads={},
+        context_payloads={},
+        entity_master=build_attention_entity_master(["FSLY"]),
+        holdings=[],
+        generated_at_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+    )
+
+    filings_frame = pd.DataFrame(
+        [
+            {
+                "symbol": "FSLY",
+                "filing_date": pd.Timestamp("2026-03-05T00:00:00Z"),
+                "form": "10-K",
+                "items": "7",
+                "primary_doc_description": "10-K Item 7",
+                "filing_url": "https://example.com/fsly-10k",
+                "filing_excerpt": "",
+                "document_text": "",
+            }
+        ]
+    )
+
+    bundle = build_live_attention_research_bundle(
+        "symbol::FSLY",
+        home,
+        news_payloads={},
+        context_payloads={"FSLY": {"llm_why_now": "10-K Item 7", "source_line": "Synthesized from SEC EDGAR filings and anomaly context"}},
+        filings_frame=filings_frame,
+        llm_client=None,
+        asof_time_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+    )
+
+    assert bundle["cause_status"] == "unresolved"
+    assert "10-K Item 7" not in bundle["why_now_text"]
+    assert "Item 7" not in bundle["why_now_text"]
+    assert bundle["background_context"] == []
+    assert bundle["background_context_text"] == ""
+
+
+def test_build_attention_home_1d_demotes_stale_background_names_out_of_must_read():
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "PYPL", "change_pct": 8.1, "close": 78.0, "prev_close": 72.2, "volume": 10_500_000, "dollar_volume": 819_000_000},
+            {"symbol": "MU", "change_pct": -4.4, "close": 91.0, "prev_close": 95.2, "volume": 7_200_000, "dollar_volume": 655_200_000},
+        ]
+    )
+    bars_by_symbol = {
+        symbol: pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=25, freq="B"),
+                "close": [100.0] * 24 + [100.0 * (1.0 + float(move) / 100.0)],
+            }
+        )
+        for symbol, move in daily_movers[["symbol", "change_pct"]].itertuples(index=False, name=None)
+    }
+    news_payloads = {
+        "PYPL": {
+            "articles": pd.DataFrame(
+                [
+                    {
+                        "headline": "PayPal jumps after upbeat checkout and margin commentary",
+                        "summary": "Investors focused on better branded-checkout trends and operating leverage.",
+                        "source": "Reuters",
+                        "published_at": pd.Timestamp("2026-03-24T15:30:00Z"),
+                        "url": "https://example.com/pypl",
+                    }
+                ]
+            )
+        }
+    }
+    context_payloads = {
+        "MU": {
+            "llm_why_now": "Investors are still reacting to Micron's earlier earnings and guidance update.",
+            "llm_source_line": "Primary source",
+        }
+    }
+
+    home = build_attention_home_1d(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads=news_payloads,
+        context_payloads=context_payloads,
+        entity_master=build_attention_entity_master(daily_movers["symbol"].tolist()),
+        holdings=[],
+        generated_at_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+    )
+
+    must_read_symbols = {str(item["symbol"]).upper() for item in home["must_read_movers"]}
+    unresolved_symbols = {str(item["symbol"]).upper() for item in home["unresolved_large_moves"]}
+
+    assert "PYPL" in must_read_symbols
+    assert "MU" not in must_read_symbols
+    assert "MU" in unresolved_symbols
+
+
+def test_attention_home_surface_summary_simplifies_move_vs_expectation_copy():
+    preview = attention_home_bundle_preview(
+        {
+            "what_changed_text": "FSLY rose 13.7% today versus a +1.8% 20-day baseline (2.3z away from expectation).",
+            "why_now_text": "No clear new company-specific catalyst was confirmed today. The move appears to be extending an earlier narrative.",
+            "cause_status": "continuation",
+        }
+    )
+
+    summary = attention_home_surface_summary(preview, is_event=False)
+
+    assert "20-day baseline" not in summary
+    assert "2.3z" not in summary
+    assert "well outside its recent 1d baseline" in summary
+
+
+def test_build_live_attention_research_bundle_emits_tight_display_excerpts():
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "FSLY", "change_pct": 13.7, "close": 14.2, "prev_close": 12.5, "volume": 8_000_000, "dollar_volume": 113_600_000},
+        ]
+    )
+    bars_by_symbol = {
+        "FSLY": pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=25, freq="B"),
+                "close": [100.0] * 24 + [113.7],
+            }
+        )
+    }
+    home = build_attention_home_1d(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads={},
+        context_payloads={},
+        entity_master=build_attention_entity_master(["FSLY"]),
+        holdings=[],
+        generated_at_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+    )
+
+    bundle = build_live_attention_research_bundle(
+        "symbol::FSLY",
+        home,
+        news_payloads={
+            "FSLY": {
+                "articles": pd.DataFrame(
+                    [
+                        {
+                            "headline": "Why is Fastly (FSLY) stock rocketing higher today",
+                            "summary": (
+                                "Investors are extending the post-earnings rerating in Fastly while momentum traders add to the move. "
+                                "A longer second sentence should stay out of the evidence panel."
+                            ),
+                            "source": "Reuters",
+                            "published_at": pd.Timestamp("2026-03-24T15:30:00Z"),
+                            "url": "https://example.com/fsly-reuters",
+                        }
+                    ]
+                ),
+                "fallback_summary": None,
+                "source": "alpaca",
+            }
+        },
+        context_payloads={},
+        filings_frame=pd.DataFrame(),
+        llm_client=None,
+        asof_time_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+    )
+
+    assert bundle["evidence"]
+    display_excerpt = bundle["evidence"][0]["display_excerpt"]
+    assert display_excerpt == "Investors are extending the post-earnings rerating in Fastly while momentum traders add to the move."
+    assert "longer second sentence" not in display_excerpt.lower()
+
+
+def test_attention_home_surface_summary_keeps_useful_numeric_event_context():
+    summary = attention_home_surface_summary(
+        {
+            "what_changed_text": "Treasury proxies rose today, led by TLT +1.6% and IEF +0.8%.",
+            "why_text": "Treasury proxies rallied: TLT +1.6% and IEF +0.8%, implying yields fell about 10 bps.",
+            "what_else_moved_text": "Relief showed up in IWM +2.1% and HYG +1.0%.",
+        },
+        is_event=True,
+    )
+
+    assert "1.6%" in summary
+    assert "10 bps" in summary
+    assert "tape reads this as" not in summary.lower()
+
+
 def test_scan_correlation_phase_shifts_finds_decoupling_leaders():
     out = scan_correlation_phase_shifts(
         FakePhaseShiftAPI(),
@@ -878,6 +1871,38 @@ def test_build_attention_news_narrative_surfaces_copper_ai_supply_story():
     assert "tighter supply" in narrative["narrative_text"].lower()
     assert narrative["source_labels"] == ["Financial Times", "WSJ", "Seeking Alpha"]
     assert len(narrative["headline_links"]) == 2
+
+
+def test_build_attention_feed_brief_explains_company_and_terms_without_numeric_prose():
+    brief = build_attention_feed_brief(
+        {
+            "symbol": "APGE",
+            "company_name": "Apogee Therapeutics",
+            "title": "APGE is outperforming expectation",
+            "story_text": "APGE is trading stronger than its peers implied. Price action still looks like a trend breakout setup.",
+            "news_narrative": "Coverage from Benzinga is clustering around positive Phase 2 maintenance data in atopic dermatitis.",
+            "headline_items": [
+                {
+                    "headline": "Apogee Therapeutics shares rise after positive Phase 2 maintenance data for IL-13 antibody candidate in atopic dermatitis",
+                    "summary": "The update strengthened confidence that the eczema program can hold up over time.",
+                    "source": "Benzinga",
+                }
+            ],
+            "company_description": "Apogee Therapeutics (APGE) develops antibody-based medicines for inflammatory and immunology diseases.",
+            "context_summary": "",
+            "context_narrative": "",
+            "watchpoint_text": "Watch whether the market keeps treating the update as a company-specific catalyst.",
+        },
+        None,
+    )
+
+    assert "Benzinga" in brief["headline_text"]
+    assert "Apogee Therapeutics" in brief["company_text"]
+    assert "mid-stage clinical trial" in brief["explainer_text"]
+    assert "IL-13" in brief["explainer_text"]
+    assert "atopic dermatitis" in brief["explainer_text"].lower()
+    assert "residual" not in brief["lead_text"].lower()
+    assert "observed" not in brief["lead_text"].lower()
 
 
 def test_cached_news_context_handles_array_like_symbol_payloads(monkeypatch):
@@ -1209,6 +2234,96 @@ def test_azure_openai_v1_config_does_not_default_api_version(monkeypatch):
     assert config.base_url == "https://example.cognitiveservices.azure.com/openai/v1"
     assert config.api_version == ""
     assert config.temperature == 1.0
+
+
+def test_build_homepage_v2_digest_uses_llm_mapping():
+    class FakeLLMClient:
+        def __init__(self):
+            self.calls: list[dict[str, object]] = []
+            self.config = SimpleNamespace(model="gpt-5.3-chat")
+
+        def generate_json(self, **kwargs):
+            self.calls.append(kwargs)
+            return {
+                "headline": "Markets turned into a concentrated anomaly tape.",
+                "dek": "A handful of names accounted for most of the past day's surprise moves.",
+                "beats": [
+                    {
+                        "beat_id": "beat-1",
+                        "sentence": "AAOI jumped to the front of the tape after a fresh filing sharpened the bull case.",
+                        "summary": "The stock moved above expectation and the filing context added a concrete catalyst. The tape treated it as an idiosyncratic story rather than a broad market move.",
+                        "event_ids": ["evt-aaoi"],
+                        "symbols": ["AAOI"],
+                    }
+                ],
+            }
+
+    digest = build_homepage_v2_digest(
+        [
+            {
+                "event_id": "evt-aaoi",
+                "symbol": "AAOI",
+                "title": "AAOI is outperforming expectation",
+                "story_text": "AAOI broke above expectation after a fresh catalyst.",
+                "news_summary_text": "Coverage focused on a material agreement and demand durability.",
+                "context_summary_text": "An 8-K pointed to a new material agreement.",
+            }
+        ],
+        FakeLLMClient(),
+        asof_time_utc=pd.Timestamp("2026-03-22T08:00:00Z"),
+        max_sentences=12,
+    )
+
+    assert digest["mode"] == "llm"
+    assert digest["headline"] == "Markets turned into a concentrated anomaly tape."
+    assert digest["beats"][0]["event_ids"] == ["evt-aaoi"]
+    assert digest["beats"][0]["symbols"] == ["AAOI"]
+
+
+def test_build_homepage_v2_digest_falls_back_without_llm():
+    digest = build_homepage_v2_digest(
+        [
+            {
+                "event_id": "evt-bx",
+                "symbol": "BX",
+                "title": "BX is outperforming expectation",
+                "story_text": "BX pushed above expectation on a sharp idiosyncratic move.",
+                "expected_vs_observed_text": "Observed return ran ahead of the model baseline.",
+                "news_summary_text": "News tied the move to improving private credit sentiment.",
+            }
+        ],
+        None,
+        asof_time_utc=pd.Timestamp("2026-03-22T08:00:00Z"),
+        max_sentences=12,
+    )
+
+    assert digest["mode"] == "fallback"
+    assert digest["beats"][0]["event_ids"] == ["evt-bx"]
+    assert "BX" in digest["beats"][0]["sentence"]
+
+
+def test_build_homepage_v2_market_digest_uses_market_event_titles_and_underlying_anomalies():
+    digest = build_homepage_v2_market_digest(
+        [
+            {
+                "event_title": "Energy & Oil move lower together today",
+                "what_happened_text": "Oil-linked instruments fell sharply, led by BNO and USO.",
+                "why_happened_text": "The tape reads this as easing supply-risk and lower inflation pressure.",
+                "affected_assets_summary_text": "Down: BNO, USO | Up: UAL, DAL, IWM, TLT",
+                "headline_text": "Oil prices eased as hopes rose for a de-escalation path.",
+                "anchor_symbol": "BNO",
+                "supporting_event_ids": ["bno", "uso", "ual", "tlt"],
+                "supporting_symbols": ["BNO", "USO", "UAL", "TLT"],
+            }
+        ],
+        asof_time_utc=pd.Timestamp("2026-03-23T18:00:00Z"),
+    )
+
+    assert digest["mode"] == "market_events"
+    assert digest["headline"] == "Energy & Oil move lower together today"
+    assert digest["beats"][0]["sentence"] == "Energy & Oil move lower together today"
+    assert digest["beats"][0]["event_ids"] == ["bno", "uso", "ual", "tlt"]
+    assert "easing supply-risk" in digest["beats"][0]["summary"].lower()
 
 
 def test_fred_client_parses_observations_and_builds_summary():

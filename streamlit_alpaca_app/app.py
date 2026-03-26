@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import base64
 from contextlib import contextmanager
+import html
 import importlib
 import json
 import logging
 import os
+import re
 import secrets as py_secrets
 import time
 
@@ -16,11 +19,13 @@ import streamlit as st
 from streamlit.components.v1 import html as components_html
 
 from compute.anomalies import SENSITIVITY_PRESETS, attention_preset, normalize_horizons
+from compute.fundamentals import latest_share_count
 from compute.portfolio import normalize_timeseries_view
 from data_access.layer import DataAccessLayer
 from services import auth_service
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
 from services.analytics import build_metric_bar, build_portfolio_vs_benchmarks_fig, select_signed_ranked
+from services.attention_feed_brief import build_attention_feed_brief
 from services.company import build_attention_news_narrative, build_company_description, summarize_recent_news
 from services.config import AppConfig, load_config
 from services.data_cache import cache_bundle_exists, cache_data_root, cache_policy_path, dataset_scope
@@ -38,9 +43,12 @@ from services.pipeline_store import (
     SOURCE_DATASETS,
     SOURCE_JOB_MAP,
     latest_job_status_table,
+    load_latest_dataset_frame,
     pipeline_store_configured,
     start_source_refresh_job,
 )
+from services.homepage_v2 import build_homepage_v2_digest, build_homepage_v2_market_digest
+from services.llm import LLMAPIError, load_llm_client
 from services.secrets import resolve_secret_value
 from services.fundamentals import plot_statement
 from services.market import (
@@ -111,14 +119,15 @@ LOGGER.propagate = False
 
 BASE_SECTION_OPTIONS = [
     "Home",
+    "Daily Tape",
     "Portfolio Overview",
     "Performance",
-    "FRED Macro",
-    "Pipeline Jobs",
     "Market Opportunity",
     "Technical Strategizer",
     "Option Strategizer",
     "Fundamental Strategizer",
+    "FRED Macro",
+    "Pipeline Jobs",
 ]
 ADMIN_SECTION = "Access Admin"
 
@@ -267,6 +276,13 @@ def _section_options() -> list[str]:
     if _current_user_is_admin():
         options.append(ADMIN_SECTION)
     return options
+
+
+def _normalize_workspace_section(section_name: object) -> str:
+    normalized = str(section_name or "").strip()
+    if normalized == "Homepage - v2":
+        return "Home"
+    return normalized
 
 
 def _query_param_value(name: str) -> str:
@@ -1041,6 +1057,295 @@ def _load_asset_metadata_cached(cfg: AppConfig, ticker: str, force_refresh: bool
     )
 
 
+@st.cache_data(ttl=3600, show_spinner=False)
+def _load_universe_security_name_map(force_refresh: bool = False) -> dict[str, str]:
+    frame, _ = load_latest_dataset_frame("universe_snapshot")
+    if frame.empty or "symbol" not in frame.columns or "security_name" not in frame.columns:
+        return {}
+    table = frame[["symbol", "security_name"]].copy()
+    table["symbol"] = table["symbol"].astype(str).str.upper().str.strip()
+    table["security_name"] = table["security_name"].astype(str).str.strip()
+    table = table[table["symbol"].ne("") & table["security_name"].ne("")]
+    return dict(table.drop_duplicates(subset=["symbol"], keep="first").itertuples(index=False, name=None))
+
+
+def _latest_close_from_price_history(frame: pd.DataFrame) -> float | None:
+    if frame.empty or "close" not in frame.columns:
+        return None
+    close = pd.to_numeric(frame["close"], errors="coerce").dropna()
+    if close.empty:
+        return None
+    return float(close.iloc[-1])
+
+
+def _format_market_cap_label(value: float | None) -> str:
+    if value is None or pd.isna(value):
+        return "n/a"
+    amount = float(value)
+    magnitude = abs(amount)
+    if magnitude >= 1_000_000_000_000:
+        return f"${amount / 1_000_000_000_000:.2f}T"
+    if magnitude >= 1_000_000_000:
+        return f"${amount / 1_000_000_000:.2f}B"
+    if magnitude >= 1_000_000:
+        return f"${amount / 1_000_000:.0f}M"
+    return f"${amount:,.0f}"
+
+
+def _sparkline_svg(frame: pd.DataFrame, *, width: int = 164, height: int = 56) -> str:
+    if frame.empty or "close" not in frame.columns:
+        return ""
+    series = pd.to_numeric(frame["close"], errors="coerce").dropna().tail(30)
+    if len(series) < 2:
+        return ""
+
+    values = series.astype(float).tolist()
+    minimum = min(values)
+    maximum = max(values)
+    spread = maximum - minimum
+    if spread == 0:
+        spread = max(abs(maximum), 1.0) * 0.01 or 1.0
+        minimum -= spread / 2.0
+        maximum += spread / 2.0
+        spread = maximum - minimum
+
+    x_step = width / max(len(values) - 1, 1)
+    points: list[str] = []
+    for idx, value in enumerate(values):
+        x_pos = round(idx * x_step, 2)
+        y_pos = round(height - (((value - minimum) / spread) * height), 2)
+        points.append(f"{x_pos},{y_pos}")
+
+    stroke = "#16a34a" if values[-1] >= values[0] else "#dc2626"
+    baseline = round(height - (((values[0] - minimum) / spread) * height), 2)
+    return (
+        f"<svg xmlns='http://www.w3.org/2000/svg' width='{width}' height='{height}' viewBox='0 0 {width} {height}' "
+        f"preserveAspectRatio='none' aria-hidden='true'>"
+        f"<polyline fill='none' stroke='rgba(148,163,184,0.22)' stroke-width='1' points='0,{baseline} {width},{baseline}' />"
+        f"<polyline fill='none' stroke='{stroke}' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' "
+        f"points='{' '.join(points)}' />"
+        f"</svg>"
+    )
+
+
+def _sparkline_data_uri(frame: pd.DataFrame, *, width: int = 164, height: int = 56) -> str:
+    svg = _sparkline_svg(frame, width=width, height=height)
+    if not svg:
+        return ""
+    encoded = base64.b64encode(svg.encode("utf-8")).decode("ascii")
+    return f"data:image/svg+xml;base64,{encoded}"
+
+
+def _load_ticker_snapshot_profile(
+    cfg: AppConfig | None,
+    symbol: str,
+    *,
+    force_refresh: bool = False,
+) -> dict[str, str]:
+    target = str(symbol or "").upper().strip()
+    if not target:
+        return {"symbol": "", "company_name": "", "market_cap_label": "n/a", "sparkline_svg": ""}
+
+    asset: dict[str, object] = {}
+    if cfg is not None:
+        try:
+            asset = _load_asset_metadata_cached(cfg, target, force_refresh=force_refresh)
+        except Exception:
+            asset = {}
+    universe_names = _load_universe_security_name_map(force_refresh=force_refresh)
+    company_name = str(asset.get("name") or universe_names.get(target) or target).strip()
+
+    price_history = pd.DataFrame()
+    if cfg is not None:
+        try:
+            price_history = _load_price_history_cached(cfg, target, days=60, force_refresh=force_refresh)
+        except Exception:
+            price_history = pd.DataFrame()
+    latest_close = _latest_close_from_price_history(price_history)
+    shares_outstanding, _, _ = latest_share_count(target)
+    market_cap = (latest_close * shares_outstanding) if latest_close is not None and shares_outstanding else None
+
+    return {
+        "symbol": target,
+        "company_name": company_name,
+        "market_cap_label": _format_market_cap_label(market_cap),
+        "sparkline_data_uri": _sparkline_data_uri(price_history),
+    }
+
+
+def _render_ticker_snapshot_chart(data_uri: str, *, symbol: str) -> None:
+    normalized_uri = str(data_uri or "").strip()
+    if not normalized_uri:
+        st.caption("No recent chart available.")
+        return
+    st.markdown(
+        (
+            "<img "
+            f"src=\"{normalized_uri}\" alt=\"{html.escape(symbol)} chart\" "
+            "style=\"width:100%;max-width:164px;height:auto;display:block;\" />"
+        ),
+        unsafe_allow_html=True,
+    )
+
+
+def _render_ticker_snapshot_table(
+    cfg: AppConfig | None,
+    items: list[dict[str, object]],
+    *,
+    force_refresh: bool = False,
+    show_header: bool = True,
+) -> None:
+    if not isinstance(items, list):
+        return
+    rows: list[dict[str, str]] = []
+    for item in items:
+        symbol = str((item or {}).get("symbol") or "").upper().strip()
+        if not symbol:
+            continue
+        profile = _load_ticker_snapshot_profile(cfg, symbol, force_refresh=force_refresh)
+        company_name = str(profile.get("company_name") or symbol).strip()
+        market_cap_label = str(profile.get("market_cap_label") or "n/a").strip()
+        extras = [
+            str(value).strip()
+            for value in list((item or {}).get("extras") or [])
+            if str(value).strip() and str(value).strip().lower() != "unknown"
+        ]
+        subline_parts = [f"Market cap: {market_cap_label}"] if market_cap_label else []
+        subline_parts.extend(extras)
+        rows.append(
+            {
+                "symbol": symbol,
+                "company_name": company_name,
+                "subline": " | ".join(subline_parts),
+                "sparkline_data_uri": str(profile.get("sparkline_data_uri") or "").strip(),
+                "note": str((item or {}).get("note") or "").strip(),
+                "note_secondary": str((item or {}).get("note_secondary") or "").strip(),
+            }
+        )
+    if not rows:
+        return
+    if not show_header and len(rows) == 1:
+        row = rows[0]
+        compact_cols = st.columns([0.9, 2.5, 1.45], gap="small")
+        with compact_cols[0]:
+            st.markdown(f"**{row['symbol']}**")
+        with compact_cols[1]:
+            st.markdown(f"**{row['company_name']}**")
+            if row["subline"]:
+                st.caption(row["subline"])
+            note_parts = [part for part in [row["note"], row["note_secondary"]] if part]
+            if note_parts:
+                st.caption(" | ".join(note_parts))
+        with compact_cols[2]:
+            _render_ticker_snapshot_chart(row["sparkline_data_uri"], symbol=row["symbol"])
+        return
+    if show_header:
+        header_cols = st.columns([0.9, 2.5, 1.6, 1.8], gap="small")
+        header_cols[0].caption("Ticker")
+        header_cols[1].caption("Name")
+        header_cols[2].caption("Chart")
+        header_cols[3].caption("Notes")
+    for row in rows:
+        row_container = st.container(border=show_header or len(rows) > 1)
+        with row_container:
+            row_cols = st.columns([0.9, 2.5, 1.6, 1.8], gap="small")
+            with row_cols[0]:
+                st.markdown(f"**{row['symbol']}**")
+            with row_cols[1]:
+                st.markdown(f"**{row['company_name']}**")
+                if row["subline"]:
+                    st.caption(row["subline"])
+            with row_cols[2]:
+                _render_ticker_snapshot_chart(row["sparkline_data_uri"], symbol=row["symbol"])
+            with row_cols[3]:
+                if row["note"]:
+                    st.write(row["note"])
+                if row["note_secondary"]:
+                    st.caption(row["note_secondary"])
+                elif not row["note"]:
+                    st.caption("—")
+
+
+def _ensure_inline_loading_banner_styles() -> None:
+    if st.session_state.get("_inline_loading_banner_styles_ready"):
+        return
+    st.session_state["_inline_loading_banner_styles_ready"] = True
+    st.markdown(
+        """
+        <style>
+        .sn-inline-loading-banner {
+            margin: 0.4rem 0 1rem 0;
+            padding: 0.8rem 0.95rem 0.7rem 0.95rem;
+            border-radius: 0.95rem;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background:
+                linear-gradient(180deg, rgba(15, 23, 42, 0.72), rgba(15, 23, 42, 0.56)),
+                radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 35%);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+        }
+        .sn-inline-loading-title {
+            color: #e2e8f0;
+            font-size: 0.96rem;
+            font-weight: 700;
+            line-height: 1.25;
+            margin-bottom: 0.2rem;
+        }
+        .sn-inline-loading-detail {
+            color: #94a3b8;
+            font-size: 0.78rem;
+            line-height: 1.35;
+            margin-bottom: 0.55rem;
+        }
+        .sn-inline-loading-track {
+            position: relative;
+            width: 100%;
+            height: 0.34rem;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.18);
+        }
+        .sn-inline-loading-bar {
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 42%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(56, 189, 248, 0.12), rgba(56, 189, 248, 0.92), rgba(34, 197, 94, 0.36));
+            animation: sn-inline-loading-slide 1.35s ease-in-out infinite;
+            box-shadow: 0 0 18px rgba(56, 189, 248, 0.28);
+        }
+        @keyframes sn-inline-loading-slide {
+            0% { transform: translateX(-92%); }
+            100% { transform: translateX(240%); }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+@contextmanager
+def _inline_loading_banner(title: str, detail: str = ""):
+    _ensure_inline_loading_banner_styles()
+    placeholder = st.empty()
+    safe_title = html.escape(str(title or "").strip())
+    safe_detail = html.escape(str(detail or "").strip())
+    detail_html = f"<div class='sn-inline-loading-detail'>{safe_detail}</div>" if safe_detail else ""
+    placeholder.markdown(
+        (
+            "<div class='sn-inline-loading-banner'>"
+            f"<div class='sn-inline-loading-title'>{safe_title}</div>"
+            f"{detail_html}"
+            "<div class='sn-inline-loading-track'><div class='sn-inline-loading-bar'></div></div>"
+            "</div>"
+        ),
+        unsafe_allow_html=True,
+    )
+    try:
+        yield
+    finally:
+        placeholder.empty()
+
+
 def _load_recent_news_cached(
     cfg: AppConfig,
     ticker: str,
@@ -1071,6 +1376,105 @@ def _load_attention_context_cached(
         ticker=ticker,
         force_refresh=force_refresh,
     )
+
+
+def _load_attention_home_1d_cached(
+    cfg: AppConfig,
+    force_refresh: bool = False,
+) -> dict[str, object]:
+    return _resolve_data_access_payload(
+        "resolve_attention_home_1d",
+        cfg=cfg,
+        source="equities",
+        force_refresh=force_refresh,
+    )
+
+
+def _load_attention_research_bundle_cached(
+    cfg: AppConfig,
+    bundle_id: str,
+    force_refresh: bool = False,
+) -> dict[str, object]:
+    return _resolve_data_access_payload(
+        "resolve_attention_research_bundle",
+        cfg=cfg,
+        source="news",
+        bundle_id=bundle_id,
+        force_refresh=force_refresh,
+    )
+
+
+def _safe_load_attention_research_bundle_cached(
+    cfg: AppConfig,
+    bundle_id: str,
+    force_refresh: bool = False,
+) -> dict[str, object]:
+    normalized_bundle_id = str(bundle_id or "").strip()
+    if not normalized_bundle_id:
+        return {}
+    try:
+        return _load_attention_research_bundle_cached(
+            cfg,
+            normalized_bundle_id,
+            force_refresh=force_refresh,
+        )
+    except Exception:
+        return {}
+
+
+def _load_attention_bundle_map(
+    cfg: AppConfig,
+    bundle_ids: list[str],
+    *,
+    force_refresh: bool = False,
+) -> dict[str, dict[str, object]]:
+    out: dict[str, dict[str, object]] = {}
+    for bundle_id in list(dict.fromkeys(str(item or "").strip() for item in bundle_ids if str(item or "").strip())):
+        out[bundle_id] = _safe_load_attention_research_bundle_cached(
+            cfg,
+            bundle_id,
+            force_refresh=force_refresh,
+        )
+    return out
+
+
+def _attention_session_key(prefix: str, identifier: str) -> str:
+    cleaned = re.sub(r"[^a-zA-Z0-9_]+", "_", str(identifier or "").strip())
+    return f"{prefix}_{cleaned}" if cleaned else prefix
+
+
+def _attention_bundle_session_cache_key(bundle_id: str) -> str:
+    return _attention_session_key("attention_bundle_cache", bundle_id)
+
+
+def _has_cached_attention_bundle(bundle_id: str) -> bool:
+    cache_key = _attention_bundle_session_cache_key(bundle_id)
+    cached = st.session_state.get(cache_key)
+    return isinstance(cached, dict) and bool(cached)
+
+
+def _load_attention_research_bundle_session_cached(
+    cfg: AppConfig,
+    bundle_id: str,
+    *,
+    force_refresh: bool = False,
+) -> dict[str, object]:
+    normalized_bundle_id = str(bundle_id or "").strip()
+    if not normalized_bundle_id:
+        return {}
+    cache_key = _attention_bundle_session_cache_key(normalized_bundle_id)
+    if force_refresh:
+        st.session_state.pop(cache_key, None)
+    cached = st.session_state.get(cache_key)
+    if isinstance(cached, dict) and cached:
+        return cached
+    bundle = _safe_load_attention_research_bundle_cached(
+        cfg,
+        normalized_bundle_id,
+        force_refresh=force_refresh,
+    )
+    st.session_state[cache_key] = bundle
+    return bundle
 
 
 def _load_fred_dashboard_cached(api_key: str, years: int, force_refresh: bool = False) -> dict[str, object]:
@@ -1175,6 +1579,232 @@ def _attention_snapshot_label(frame: pd.DataFrame) -> str:
     return timestamps.max().strftime("%Y-%m-%d %H:%M UTC")
 
 
+def _attention_event_key(row: pd.Series) -> str:
+    symbol = str(row.get("entity_id") or "").upper().strip()
+    horizon = str(row.get("horizon") or "").strip() or "item"
+    return str(row.get("_homepage_v2_event_id") or row.get("event_id") or f"{symbol}-{horizon}").strip()
+
+
+def _clean_attention_copy(text: object) -> str:
+    clean = " ".join(str(text or "").split())
+    if not clean:
+        return ""
+    sentences = re.split(r"(?<=[.!?])\s+", clean)
+    kept = [
+        sentence.strip()
+        for sentence in sentences
+        if sentence.strip()
+        and not re.search(
+            r"\b(observed|expected|residual|zscore|z-score|attention score|20-day baseline)\b|"
+            r"\bz away from expectation\b|"
+            r"\bversus an expected\b|"
+            r"\bleaving a residual\b",
+            sentence.lower(),
+        )
+    ]
+    trimmed = " ".join(kept[:2]).strip()
+    return trimmed or clean
+
+
+def _looks_like_low_quality_surface_summary(text: object) -> bool:
+    clean = " ".join(str(text or "").split()).lower()
+    if not clean:
+        return False
+    patterns = [
+        r"\bthe tape reads this as\b",
+        r"\bmarket is treating this as\b",
+        r"\b20-day baseline\b",
+        r"\bz away from expectation\b",
+        r"\bleaving a residual\b",
+    ]
+    return any(re.search(pattern, clean) for pattern in patterns)
+
+
+def _attention_evidence_display_text(item: dict[str, object]) -> str:
+    headline = " ".join(str(item.get("headline") or "").split()).lower()
+    for candidate in [
+        item.get("display_excerpt"),
+        item.get("excerpt"),
+        item.get("summary"),
+    ]:
+        text = _clean_attention_copy(candidate)
+        if text and text.lower() != headline:
+            return text
+    return ""
+
+
+def _surface_what_changed_text(text: object) -> str:
+    clean = _clean_attention_copy(text)
+    if not clean:
+        return ""
+    pattern = re.compile(
+        r"^(?P<symbol>[A-Z0-9.\-]+)\s+(?P<direction>rose|fell)\s+(?P<move>\d+(?:\.\d+)?)% today"
+        r"(?: versus a [+\-]?\d+(?:\.\d+)?% 20-day baseline)?"
+        r"(?: \(\d+(?:\.\d+)?z away from expectation\))?\.?$",
+        re.IGNORECASE,
+    )
+    match = pattern.match(clean)
+    if not match:
+        return clean
+    symbol = match.group("symbol").upper()
+    direction = match.group("direction").lower()
+    move = match.group("move")
+    return f"{symbol} {direction} {move}% today, well outside its recent 1d baseline."
+
+
+def _looks_like_model_math_explanation(text: object) -> bool:
+    clean = " ".join(str(text or "").split()).lower()
+    if not clean:
+        return False
+    patterns = [
+        r"\bobserved\b",
+        r"\bexpected\b",
+        r"\bresidual\b",
+        r"\bzscore\b",
+        r"\bz-score\b",
+        r"\b20-day baseline\b",
+        r"\bversus an expected\b",
+        r"\bleaving a residual\b",
+    ]
+    return any(re.search(pattern, clean) for pattern in patterns)
+
+
+def _attention_home_bundle_preview(
+    item: dict[str, object],
+    *,
+    bundle: dict[str, object] | None = None,
+) -> dict[str, str]:
+    item = item if isinstance(item, dict) else {}
+    research_bundle = bundle if isinstance(bundle, dict) else {}
+    stored_summary = str(item.get("surface_summary_text") or "").strip()
+    stored_what_changed = str(item.get("surface_what_changed_text") or "").strip()
+    stored_why = str(item.get("surface_why_text") or "").strip()
+    stored_what_else = str(item.get("surface_what_else_moved_text") or "").strip()
+    stored_cause_status = str(item.get("surface_cause_status") or item.get("cause_status") or "").strip().lower() or "unresolved"
+    stored_evidence_quality = str(item.get("surface_evidence_quality") or "").strip()
+    stored_freshness_quality = str(item.get("surface_freshness_quality") or "").strip()
+    stored_source_summary = str(item.get("surface_source_summary") or item.get("top_source") or "").strip()
+    stored_confidence = str(item.get("surface_confidence_label") or item.get("confidence_label") or "").strip()
+
+    if not research_bundle and (stored_summary or stored_what_changed or stored_why or stored_what_else):
+        return {
+            "what_changed_text": _surface_what_changed_text(stored_what_changed or item.get("what_changed_text")),
+            "why_text": _clean_attention_copy(stored_why or item.get("why_now_text") or item.get("why_happened_text")),
+            "what_else_moved_text": _clean_attention_copy(stored_what_else or item.get("what_else_moved_text") or item.get("affected_assets_summary_text")),
+            "cause_status": stored_cause_status,
+            "evidence_quality": stored_evidence_quality,
+            "freshness_quality": stored_freshness_quality,
+            "source_summary": stored_source_summary,
+            "confidence_label": stored_confidence,
+            "surface_summary_text": stored_summary,
+        }
+
+    bundle_type = str(research_bundle.get("bundle_type") or "").strip().lower()
+    is_event = bundle_type == "event" or bool(str(item.get("event_title") or "").strip())
+    cause_status = str(research_bundle.get("cause_status") or item.get("cause_status") or "").strip().lower() or "unresolved"
+
+    if is_event:
+        what_changed_text = _clean_attention_copy(
+            research_bundle.get("what_happened_text") or item.get("what_happened_text")
+        )
+        why_text = _clean_attention_copy(
+            research_bundle.get("why_happened_text") or item.get("why_happened_text")
+        )
+        if not why_text:
+            why_text = "Cause remains unresolved; the move is real but the retained evidence is still thin or conflicting."
+        what_else_moved_text = _clean_attention_copy(
+            research_bundle.get("affected_assets_summary_text") or item.get("affected_assets_summary_text")
+        )
+    else:
+        what_changed_text = _surface_what_changed_text(
+            research_bundle.get("what_changed_text") or item.get("what_changed_text")
+        )
+        bundle_why_text = _clean_attention_copy(research_bundle.get("why_now_text"))
+        item_why_text = _clean_attention_copy(item.get("why_now_text"))
+        why_text = ""
+        for candidate in [bundle_why_text, item_why_text]:
+            if candidate and not _looks_like_model_math_explanation(candidate):
+                why_text = candidate
+                break
+        if not why_text:
+            if cause_status == "continuation":
+                why_text = "No clear new company-specific catalyst was confirmed today. The move appears to be extending an earlier narrative."
+            elif cause_status == "conflicting":
+                why_text = "Coverage remains conflicting, and no single cause is clearly dominant yet."
+            else:
+                why_text = "Cause remains unresolved; the move is large enough to flag, but the retained evidence is not strong enough yet."
+        what_else_moved_text = _clean_attention_copy(research_bundle.get("what_else_moved_text"))
+
+    return {
+        "what_changed_text": what_changed_text,
+        "why_text": why_text,
+        "what_else_moved_text": what_else_moved_text,
+        "cause_status": cause_status,
+        "evidence_quality": str(research_bundle.get("evidence_quality") or stored_evidence_quality).strip(),
+        "freshness_quality": str(research_bundle.get("freshness_quality") or stored_freshness_quality).strip(),
+        "source_summary": str(research_bundle.get("source_summary") or stored_source_summary).strip(),
+        "confidence_label": str(research_bundle.get("confidence_label") or stored_confidence).strip(),
+        "surface_summary_text": stored_summary,
+    }
+
+
+def _attention_home_surface_summary(
+    preview: dict[str, str],
+    *,
+    is_event: bool,
+) -> str:
+    if str(preview.get("surface_summary_text") or "").strip() and not _looks_like_low_quality_surface_summary(preview.get("surface_summary_text")):
+        return str(preview.get("surface_summary_text") or "").strip()
+
+    parts: list[str] = []
+    what_changed_text = _clean_attention_copy(preview.get("what_changed_text"))
+    why_text = _clean_attention_copy(preview.get("why_text"))
+    what_else_moved_text = _clean_attention_copy(preview.get("what_else_moved_text"))
+
+    if what_changed_text:
+        parts.append(what_changed_text)
+    if why_text:
+        parts.append(why_text)
+    if is_event and what_else_moved_text:
+        candidate = " ".join(parts + [what_else_moved_text]).strip()
+        if len(candidate) <= 360:
+            parts.append(what_else_moved_text)
+
+    summary = " ".join(part for part in parts if part).strip()
+    if summary:
+        return summary
+    return "Large move flagged by the daily tape, but the retained evidence is still too thin to support a better surface summary."
+
+
+def _attention_mover_card_title(mover: dict[str, object]) -> str:
+    symbol = str((mover or {}).get("symbol") or "").strip().upper()
+    change_pct = pd.to_numeric((mover or {}).get("change_pct"), errors="coerce")
+    if symbol and pd.notna(change_pct):
+        verb = "rises" if float(change_pct) >= 0 else "falls"
+        return f"{symbol} {verb} on today's tape"
+    if symbol:
+        return f"{symbol} on today's tape"
+    return str((mover or {}).get("headline") or "Mover").strip()
+
+
+def _attention_bundle_title(bundle: dict[str, object], *, fallback: dict[str, object] | None = None) -> str:
+    bundle_type = str((bundle or {}).get("bundle_type") or "").strip().lower()
+    if bundle_type == "event":
+        return str((bundle or {}).get("event_title") or (fallback or {}).get("event_title") or "Market event").strip()
+
+    symbol = str((bundle or {}).get("symbol") or (fallback or {}).get("symbol") or "").strip().upper()
+    change_pct = pd.to_numeric(
+        (bundle or {}).get("change_pct", (fallback or {}).get("change_pct") if isinstance(fallback, dict) else None),
+        errors="coerce",
+    )
+    if symbol and pd.notna(change_pct):
+        verb = "rises" if float(change_pct) >= 0 else "falls"
+        return f"{symbol} {verb} on today's tape"
+    if symbol:
+        return f"{symbol} on today's tape"
+    return str((bundle or {}).get("headline") or (fallback or {}).get("headline") or "Research bundle").strip()
+
+
 def _annotate_attention_source(frame: pd.DataFrame, *, source_key: str) -> pd.DataFrame:
     if frame.empty:
         return frame
@@ -1247,10 +1877,10 @@ def _open_attention_target(section_name: str, params: dict[str, object] | None =
 
 
 def _attention_story_text(row: pd.Series) -> str:
-    story = str(row.get("story_text") or "").strip()
+    story = _clean_attention_copy(row.get("story_text"))
     if story:
         return story
-    why_now = str(row.get("why_now_text") or "").strip()
+    why_now = _clean_attention_copy(row.get("why_now_text"))
     if why_now:
         return why_now
     entity_id = str(row.get("entity_id") or "").upper().strip()
@@ -1262,14 +1892,6 @@ def _attention_key_points_text(row: pd.Series) -> str:
     horizon = str(row.get("horizon") or "").strip()
     if horizon:
         pieces.append(ATTENTION_HORIZON_LABELS.get(horizon, horizon))
-
-    residual = pd.to_numeric(row.get("residual_value"), errors="coerce")
-    if pd.notna(residual):
-        pieces.append(f"Residual {_format_scalar(residual, digits=2, suffix='%', signed=True)}")
-
-    residual_zscore = pd.to_numeric(row.get("residual_zscore"), errors="coerce")
-    if pd.notna(residual_zscore):
-        pieces.append(f"{_format_scalar(residual_zscore, digits=2, signed=True)}z")
 
     peer_group_name = str(row.get("peer_group_name") or "").strip()
     if peer_group_name and peer_group_name != "All Market":
@@ -1284,7 +1906,141 @@ def _attention_key_points_text(row: pd.Series) -> str:
         count = int(linked_news_count)
         pieces.append(f"{count} headline{'s' if count != 1 else ''}")
 
+    if float(pd.to_numeric(row.get("portfolio_exposure_weight"), errors="coerce") or 0.0) > 0:
+        pieces.append("Portfolio overlap")
+
     return " | ".join(piece for piece in pieces if piece)
+
+
+def _headline_items_from_news_payload(
+    news_payload: dict[str, object] | None,
+    *,
+    limit: int = 3,
+) -> list[dict[str, str]]:
+    articles = news_payload.get("articles") if isinstance(news_payload, dict) else pd.DataFrame()
+    if not isinstance(articles, pd.DataFrame) or articles.empty:
+        return []
+    rows: list[dict[str, str]] = []
+    for _, item in articles.head(max(int(limit), 1)).iterrows():
+        headline = str(item.get("headline") or "").strip()
+        if not headline:
+            continue
+        published_at = pd.to_datetime(item.get("published_at"), utc=True, errors="coerce")
+        rows.append(
+            {
+                "headline": headline,
+                "summary": str(item.get("summary") or item.get("description") or "").strip(),
+                "source": str(item.get("source") or "").strip(),
+                "url": str(item.get("url") or "").strip(),
+                "published_at": published_at.isoformat() if pd.notna(published_at) else "",
+            }
+        )
+    return rows
+
+
+def _build_attention_brief_input(
+    row: pd.Series,
+    *,
+    news_payload: dict[str, object] | None = None,
+    context_payload: dict[str, object] | None = None,
+    asset: dict[str, object] | None = None,
+) -> dict[str, object]:
+    symbol = str(row.get("entity_id") or "").upper().strip()
+    peer_group_name = str(row.get("peer_group_name") or "").strip()
+    active_lens = peer_group_name if peer_group_name not in {"", "All Market", "Broad Commodity Market"} else None
+    news_context = build_attention_news_narrative(symbol, news_payload, peer_group_name=peer_group_name)
+    company_description = build_company_description(
+        symbol,
+        asset or {},
+        {},
+        {"regime": str(row.get("regime_label") or "").strip()},
+        news_payload=news_payload,
+        active_lens=active_lens,
+    )
+    linked_news_raw = pd.to_numeric(row.get("linked_news_count"), errors="coerce")
+    linked_news_count = int(linked_news_raw) if pd.notna(linked_news_raw) else 0
+    context = context_payload or {}
+    return {
+        "symbol": symbol,
+        "company_name": str((asset or {}).get("name") or "").strip(),
+        "title": str(row.get("title") or symbol or "Attention item").strip(),
+        "subtitle": str(row.get("subtitle") or "").strip(),
+        "story_text": _attention_story_text(row),
+        "why_now_text": _clean_attention_copy(row.get("why_now_text")),
+        "peer_group_name": peer_group_name,
+        "regime_label": str(row.get("regime_label") or "").strip(),
+        "linked_news_count": linked_news_count,
+        "news_narrative": str(news_context.get("narrative_text") or "").strip(),
+        "headline_items": _headline_items_from_news_payload(news_payload, limit=3),
+        "company_description": company_description,
+        "context_headline": str(context.get("llm_headline") or "").strip(),
+        "context_summary": str(context.get("llm_summary_text") or context.get("context_story_text") or "").strip(),
+        "context_narrative": str(context.get("llm_narrative_text") or "").strip(),
+        "context_why_now": str(context.get("llm_why_now") or "").strip(),
+        "primary_source_excerpt": str(context.get("primary_source_excerpt") or "").strip(),
+        "watchpoint_text": str(row.get("next_best_action") or "").strip(),
+    }
+
+
+@st.cache_data(ttl=900, show_spinner=False)
+def _load_attention_feed_brief_cached(
+    brief_input_json: str,
+    *,
+    use_llm: bool,
+) -> dict[str, object]:
+    try:
+        brief_input = json.loads(brief_input_json or "{}")
+    except Exception:
+        brief_input = {}
+    try:
+        brief = build_attention_feed_brief(brief_input, load_llm_client() if use_llm else None)
+        brief["error"] = ""
+        return brief
+    except LLMAPIError as exc:
+        brief = build_attention_feed_brief(brief_input, None)
+        brief["error"] = str(exc)
+        return brief
+    except Exception as exc:
+        brief = build_attention_feed_brief(brief_input, None)
+        brief["error"] = f"{type(exc).__name__}: {exc}"
+        return brief
+
+
+def _load_attention_brief_payloads(
+    cfg: AppConfig,
+    rows: pd.DataFrame,
+    *,
+    news_payloads: dict[str, dict[str, object]],
+    context_payloads: dict[str, dict[str, object]],
+    force_refresh: bool = False,
+    use_llm: bool = True,
+) -> dict[str, dict[str, object]]:
+    payloads: dict[str, dict[str, object]] = {}
+    if rows.empty:
+        return payloads
+    asset_cache: dict[str, dict[str, object]] = {}
+    for _, row in rows.iterrows():
+        row_series = row if isinstance(row, pd.Series) else pd.Series(row)
+        symbol = str(row_series.get("entity_id") or "").upper().strip()
+        if not symbol:
+            continue
+        if symbol not in asset_cache:
+            try:
+                asset_cache[symbol] = _load_asset_metadata_cached(cfg, symbol, force_refresh=force_refresh)
+            except Exception:
+                asset_cache[symbol] = {}
+        brief_input = _build_attention_brief_input(
+            row_series,
+            news_payload=news_payloads.get(symbol),
+            context_payload=context_payloads.get(symbol),
+            asset=asset_cache.get(symbol),
+        )
+        event_key = _attention_event_key(row_series)
+        payloads[event_key] = _load_attention_feed_brief_cached(
+            json.dumps(_json_ready(brief_input), ensure_ascii=False, sort_keys=True),
+            use_llm=use_llm,
+        )
+    return payloads
 
 
 def _build_attention_micro_chart(row: pd.Series) -> go.Figure | None:
@@ -1408,12 +2164,263 @@ def _load_attention_context_payloads(
     return payloads
 
 
+def _json_ready(value: object) -> object:
+    if isinstance(value, dict):
+        return {str(key): _json_ready(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_ready(item) for item in value]
+    if isinstance(value, pd.Timestamp):
+        return value.isoformat()
+    if isinstance(value, np.generic):
+        return value.item()
+    try:
+        if pd.isna(value):
+            return None
+    except Exception:
+        pass
+    return value
+
+
+def _build_homepage_v2_event_record(
+    row: pd.Series,
+    *,
+    news_payload: dict[str, object] | None = None,
+    context_payload: dict[str, object] | None = None,
+    brief_payload: dict[str, object] | None = None,
+) -> dict[str, object]:
+    symbol = str(row.get("entity_id") or "").upper().strip()
+    news_context = build_attention_news_narrative(
+        symbol,
+        news_payload,
+        peer_group_name=str(row.get("peer_group_name") or "").strip(),
+    )
+    articles = news_payload.get("articles") if isinstance(news_payload, dict) else pd.DataFrame()
+    headline_values: list[str] = []
+    if isinstance(articles, pd.DataFrame) and not articles.empty and "headline" in articles.columns:
+        headline_values = [
+            str(headline).strip()
+            for headline in articles["headline"].dropna().astype(str).tolist()
+            if str(headline).strip()
+        ][:3]
+    context = context_payload or {}
+    return {
+        "event_id": str(
+            _attention_event_key(row)
+        ).strip(),
+        "symbol": symbol,
+        "entity_id": symbol,
+        "title": str(row.get("title") or symbol or "Untitled anomaly").strip(),
+        "subtitle": str(row.get("subtitle") or "").strip(),
+        "source_label": str(row.get("source_label") or "").strip(),
+        "horizon": str(row.get("horizon") or "").strip(),
+        "anomaly_type": str(row.get("anomaly_type") or "").strip(),
+        "attention_score": _json_ready(row.get("attention_score")),
+        "story_text": str((brief_payload or {}).get("lead_text") or _attention_story_text(row)).strip(),
+        "cluster_text": str((brief_payload or {}).get("cluster_text") or news_context.get("narrative_text") or "").strip(),
+        "headline_text": str((brief_payload or {}).get("headline_text") or "").strip(),
+        "company_text": str((brief_payload or {}).get("company_text") or "").strip(),
+        "explainer_text": str((brief_payload or {}).get("explainer_text") or "").strip(),
+        "why_now_text": str(row.get("why_now_text") or "").strip(),
+        "expected_vs_observed_text": "",
+        "next_best_action": str(row.get("next_best_action") or "").strip(),
+        "news_summary_text": str(news_context.get("narrative_text") or "").strip(),
+        "news_headlines": headline_values,
+        "context_headline": str(context.get("llm_headline") or "").strip(),
+        "context_summary_text": str(context.get("llm_summary_text") or context.get("context_story_text") or "").strip(),
+        "context_why_now": str(context.get("llm_why_now") or "").strip(),
+        "management_signal": str(context.get("llm_management_signal") or "").strip(),
+    }
+
+
+def _homepage_v2_item_summary(
+    row: pd.Series,
+    *,
+    news_payload: dict[str, object] | None = None,
+    context_payload: dict[str, object] | None = None,
+    brief_payload: dict[str, object] | None = None,
+) -> str:
+    pieces: list[str] = []
+    llm_summary = str((context_payload or {}).get("llm_summary_text") or "").strip()
+    context_story = str((context_payload or {}).get("context_story_text") or "").strip()
+    next_action = str((brief_payload or {}).get("watchpoint_text") or row.get("next_best_action") or "").strip()
+
+    for candidate in [
+        str((brief_payload or {}).get("lead_text") or "").strip(),
+        str((brief_payload or {}).get("headline_text") or "").strip(),
+        str((brief_payload or {}).get("company_text") or "").strip(),
+        str((brief_payload or {}).get("explainer_text") or "").strip(),
+        llm_summary or context_story,
+    ]:
+        text = str(candidate or "").strip()
+        if text and text not in pieces:
+            pieces.append(text)
+    if next_action:
+        pieces.append(f"Next watchpoint: {next_action}.")
+    return " ".join(pieces[:3]).strip()
+
+
+@st.cache_data(ttl=900, show_spinner=False)
+def _load_homepage_v2_digest_cached(
+    event_records_json: str,
+    *,
+    asof_time_utc: str,
+    max_sentences: int,
+) -> dict[str, object]:
+    try:
+        event_records = json.loads(event_records_json or "[]")
+    except Exception:
+        event_records = []
+    try:
+        digest = build_homepage_v2_digest(
+            event_records if isinstance(event_records, list) else [],
+            load_llm_client(),
+            asof_time_utc=asof_time_utc,
+            max_sentences=max_sentences,
+        )
+        digest["error"] = ""
+        return digest
+    except LLMAPIError as exc:
+        digest = build_homepage_v2_digest(
+            event_records if isinstance(event_records, list) else [],
+            None,
+            asof_time_utc=asof_time_utc,
+            max_sentences=max_sentences,
+        )
+        digest["error"] = str(exc)
+        return digest
+    except Exception as exc:
+        digest = build_homepage_v2_digest(
+            event_records if isinstance(event_records, list) else [],
+            None,
+            asof_time_utc=asof_time_utc,
+            max_sentences=max_sentences,
+        )
+        digest["error"] = f"{type(exc).__name__}: {exc}"
+        return digest
+
+
+def _render_homepage_v2_detail_panel(
+    row: pd.Series,
+    *,
+    news_payload: dict[str, object] | None = None,
+    context_payload: dict[str, object] | None = None,
+    brief_payload: dict[str, object] | None = None,
+) -> None:
+    title = str(row.get("title") or row.get("entity_id") or "Attention detail").strip()
+    entity_id = str(row.get("entity_id") or "").upper().strip()
+    subtitle = str(row.get("subtitle") or "").strip()
+    source_label = str(row.get("source_label") or "").strip()
+    target_section = str(row.get("drilldown_section") or "Market Opportunity").strip() or "Market Opportunity"
+    params = _parse_drilldown_params(row.get("drilldown_params_json"))
+
+    st.markdown(f"### {title}")
+    meta = [item for item in [source_label, subtitle, entity_id] if item]
+    if meta:
+        st.caption(" | ".join(meta))
+
+    metric_cols = st.columns(3)
+    with metric_cols[0]:
+        st.metric("Score", _format_scalar(row.get("attention_score"), digits=1))
+    with metric_cols[1]:
+        st.metric("Residual", _format_scalar(row.get("residual_value"), digits=2, suffix="%", signed=True))
+    with metric_cols[2]:
+        st.metric("Horizon", ATTENTION_HORIZON_LABELS.get(str(row.get("horizon") or "").strip(), str(row.get("horizon") or "n/a")))
+
+    chart = _build_attention_micro_chart(row)
+    if chart is not None:
+        st.plotly_chart(chart, use_container_width=True, config={"displayModeBar": False})
+
+    item_summary = _homepage_v2_item_summary(
+        row,
+        news_payload=news_payload,
+        context_payload=context_payload,
+        brief_payload=brief_payload,
+    )
+    if item_summary:
+        st.write(item_summary)
+
+    llm_headline = str((context_payload or {}).get("llm_headline") or "").strip()
+    llm_summary_text = str((context_payload or {}).get("llm_summary_text") or "").strip()
+    llm_narrative_text = str((context_payload or {}).get("llm_narrative_text") or "").strip()
+    llm_why_now = str((context_payload or {}).get("llm_why_now") or "").strip()
+    lead_text = str((brief_payload or {}).get("lead_text") or "").strip()
+    cluster_text = str((brief_payload or {}).get("cluster_text") or "").strip()
+    headline_text = str((brief_payload or {}).get("headline_text") or "").strip()
+    company_text = str((brief_payload or {}).get("company_text") or "").strip()
+    explainer_text = str((brief_payload or {}).get("explainer_text") or "").strip()
+    watchpoint_text = str((brief_payload or {}).get("watchpoint_text") or "").strip()
+    news_context = build_attention_news_narrative(
+        entity_id,
+        news_payload,
+        peer_group_name=str(row.get("peer_group_name") or "").strip(),
+    )
+    news_story = str(news_context.get("narrative_text") or "").strip()
+    headline_links = news_context.get("headline_links", [])
+    filing_links = (context_payload or {}).get("top_filing_links", [])
+
+    if lead_text:
+        st.markdown(f"**What Is Likely Going On**  \n{lead_text}")
+    if cluster_text:
+        st.markdown(f"**Coverage Cluster**  \n{cluster_text}")
+    if headline_text:
+        st.markdown(f"**Fresh Headline**  \n{headline_text}")
+    if company_text:
+        st.markdown(f"**Company In Plain English**  \n{company_text}")
+    if explainer_text:
+        st.markdown(f"**Term Explainer**  \n{explainer_text}")
+    if watchpoint_text:
+        st.caption(f"Watchpoint: {watchpoint_text}")
+
+    if llm_headline:
+        st.markdown(f"**Primary Source Read**  \n{llm_headline}")
+    if llm_summary_text:
+        st.write(llm_summary_text)
+    if llm_narrative_text:
+        st.caption(llm_narrative_text)
+    if llm_why_now:
+        st.caption(f"Why now: {llm_why_now}")
+
+    if news_story:
+        st.markdown(f"**News Summary**  \n{news_story}")
+    if isinstance(headline_links, list):
+        for item in headline_links[:3]:
+            headline = str((item or {}).get("headline") or "").strip()
+            url = str((item or {}).get("url") or "").strip()
+            if not headline:
+                continue
+            if url:
+                st.markdown(f"- [{headline}]({url})")
+            else:
+                st.markdown(f"- {headline}")
+
+    if isinstance(filing_links, list) and filing_links:
+        st.caption("Supporting filings")
+        for item in filing_links[:3]:
+            label = str((item or {}).get("label") or "").strip()
+            url = str((item or {}).get("url") or "").strip()
+            if not label:
+                continue
+            if url:
+                st.markdown(f"- [{label}]({url})")
+            else:
+                st.markdown(f"- {label}")
+
+    if st.button(
+        f"Open {target_section}",
+        key=f"homepage_v2_detail_open_{str(row.get('event_id') or entity_id or 'item')}",
+        use_container_width=True,
+        disabled=not target_section,
+    ):
+        _open_attention_target(target_section, params=params)
+
+
 def _render_attention_card(
     row: pd.Series,
     *,
     key_prefix: str,
     news_payload: dict[str, object] | None = None,
     context_payload: dict[str, object] | None = None,
+    brief_payload: dict[str, object] | None = None,
 ) -> None:
     params = _parse_drilldown_params(row.get("drilldown_params_json"))
     title = str(row.get("title") or row.get("entity_id") or "Untitled anomaly").strip()
@@ -1437,7 +2444,7 @@ def _render_attention_card(
         with header_cols[2]:
             st.metric("News", str(linked_news_count))
 
-        story_text = _attention_story_text(row)
+        story_text = str((brief_payload or {}).get("lead_text") or _attention_story_text(row)).strip()
         news_context = build_attention_news_narrative(
             entity_id,
             news_payload,
@@ -1446,6 +2453,11 @@ def _render_attention_card(
         news_story_text = str(news_context.get("narrative_text") or "").strip()
         news_source_line = str(news_context.get("source_line") or "").strip()
         headline_links = news_context.get("headline_links", [])
+        brief_cluster_text = str((brief_payload or {}).get("cluster_text") or news_story_text).strip()
+        brief_headline_text = str((brief_payload or {}).get("headline_text") or "").strip()
+        brief_company_text = str((brief_payload or {}).get("company_text") or "").strip()
+        brief_explainer_text = str((brief_payload or {}).get("explainer_text") or "").strip()
+        brief_watchpoint_text = str((brief_payload or {}).get("watchpoint_text") or "").strip()
         context_story_text = str((context_payload or {}).get("context_story_text") or "").strip()
         primary_source_excerpt = str((context_payload or {}).get("primary_source_excerpt") or "").strip()
         primary_source_line = str((context_payload or {}).get("source_line") or "").strip()
@@ -1458,8 +2470,8 @@ def _render_attention_card(
         llm_source_line = str((context_payload or {}).get("llm_source_line") or "").strip()
         llm_supporting_points = (context_payload or {}).get("llm_supporting_points", [])
         filing_links = (context_payload or {}).get("top_filing_links", [])
-        why_now_text = str(row.get("why_now_text") or "").strip()
-        expected_text = str(row.get("expected_vs_observed_text") or "").strip()
+        why_now_text = _clean_attention_copy(row.get("why_now_text"))
+        expected_text = _clean_attention_copy(row.get("expected_vs_observed_text"))
         key_points_text = _attention_key_points_text(row)
         chart = _build_attention_micro_chart(row)
 
@@ -1473,13 +2485,21 @@ def _render_attention_card(
                 )
         with insight_cols[1]:
             if story_text:
-                st.markdown(f"**Likely Story**  \n{story_text}")
+                st.markdown(f"**What Is Likely Going On**  \n{story_text}")
             if key_points_text:
                 st.caption(key_points_text)
-            if news_story_text:
-                st.markdown(f"**News Angle**  \n{news_story_text}")
+            if brief_cluster_text:
+                st.markdown(f"**Coverage Cluster**  \n{brief_cluster_text}")
             if news_source_line:
                 st.caption(news_source_line)
+            if brief_headline_text:
+                st.markdown(f"**Fresh Headline**  \n{brief_headline_text}")
+            if brief_company_text:
+                st.markdown(f"**Company In Plain English**  \n{brief_company_text}")
+            if brief_explainer_text:
+                st.markdown(f"**Term Explainer**  \n{brief_explainer_text}")
+            if brief_watchpoint_text:
+                st.caption(f"Watchpoint: {brief_watchpoint_text}")
             if llm_headline:
                 st.markdown(f"**EDGAR Read**  \n{llm_headline}")
             if llm_summary_text:
@@ -1550,314 +2570,683 @@ def _render_attention_card(
                 _open_attention_target(target_section, params=params)
 
 
+def _priority_attention_feed(
+    feed: pd.DataFrame,
+    market_events: pd.DataFrame,
+    *,
+    limit: int = 8,
+) -> pd.DataFrame:
+    if feed.empty:
+        return feed.copy()
+    if market_events.empty or "event_id" not in feed.columns:
+        return feed.head(max(int(limit), 1)).copy()
+
+    row_lookup = {
+        str(row.get("event_id") or "").strip(): row
+        for _, row in feed.iterrows()
+        if str(row.get("event_id") or "").strip()
+    }
+    prioritized_rows: list[pd.Series] = []
+    seen_event_ids: set[str] = set()
+
+    for _, event in market_events.iterrows():
+        for event_id in list(event.get("supporting_event_ids") or []):
+            key = str(event_id or "").strip()
+            if not key or key in seen_event_ids:
+                continue
+            row = row_lookup.get(key)
+            if row is None:
+                continue
+            prioritized_rows.append(row.copy())
+            seen_event_ids.add(key)
+            if len(prioritized_rows) >= max(int(limit), 1):
+                break
+        if len(prioritized_rows) >= max(int(limit), 1):
+            break
+
+    if len(prioritized_rows) < max(int(limit), 1):
+        for _, row in feed.iterrows():
+            key = str(row.get("event_id") or "").strip()
+            if key and key in seen_event_ids:
+                continue
+            prioritized_rows.append(row.copy())
+            if len(prioritized_rows) >= max(int(limit), 1):
+                break
+
+    return pd.DataFrame(prioritized_rows).reset_index(drop=True)
+
+
+def _render_market_event_card(
+    event: pd.Series,
+    *,
+    row_lookup: dict[str, pd.Series],
+    key_prefix: str,
+) -> None:
+    title = str(event.get("event_title") or "Market event").strip()
+    anchor_symbol = str(event.get("anchor_symbol") or "").upper().strip()
+    confidence_label = str(event.get("confidence_label") or "Developing").strip()
+    what_happened_text = str(event.get("what_happened_text") or "").strip()
+    why_happened_text = str(event.get("why_happened_text") or "").strip()
+    affected_assets_summary_text = str(event.get("affected_assets_summary_text") or "").strip()
+    headline_text = str(event.get("headline_text") or "").strip()
+    source_line = str(event.get("source_line") or "").strip()
+    supporting_ids = [str(value).strip() for value in list(event.get("supporting_event_ids") or []) if str(value).strip()]
+    supporting_symbols = [str(value).upper().strip() for value in list(event.get("supporting_symbols") or []) if str(value).strip()]
+    breadth_count = int(pd.to_numeric(event.get("breadth_count"), errors="coerce") or 0)
+
+    anchor_row = row_lookup.get(supporting_ids[0]) if supporting_ids else None
+    params = _parse_drilldown_params(anchor_row.get("drilldown_params_json")) if anchor_row is not None else {}
+    target_section = str(anchor_row.get("drilldown_section") or "Market Opportunity").strip() if anchor_row is not None else "Market Opportunity"
+
+    with st.container(border=True):
+        header_cols = st.columns([5.4, 1.3, 1.3])
+        with header_cols[0]:
+            st.markdown(f"##### {title}")
+            meta = [item for item in [anchor_symbol, confidence_label, f"{breadth_count} buckets" if breadth_count else ""] if item]
+            if meta:
+                st.caption(" | ".join(meta))
+        with header_cols[1]:
+            st.metric("Event", _format_scalar(event.get("event_score"), digits=1))
+        with header_cols[2]:
+            st.metric("Signals", str(len(supporting_ids) or len(supporting_symbols)))
+
+        if what_happened_text:
+            st.markdown(f"**What Happened**  \n{what_happened_text}")
+        if why_happened_text:
+            st.markdown(f"**Why It Happened**  \n{why_happened_text}")
+        if affected_assets_summary_text:
+            st.markdown(f"**Affected Assets**  \n{affected_assets_summary_text}")
+        if headline_text:
+            st.caption(headline_text)
+        if source_line:
+            st.caption(source_line)
+
+        supporting_rows = [row_lookup.get(event_id) for event_id in supporting_ids[:4]]
+        supporting_rows = [row for row in supporting_rows if row is not None]
+        if supporting_rows:
+            st.markdown("**Supporting anomaly items**")
+            for row in supporting_rows:
+                symbol = str(row.get("entity_id") or "").upper().strip()
+                supporting_title = str(row.get("title") or symbol or "Attention item").strip()
+                score_text = _format_scalar(row.get("attention_score"), digits=1)
+                st.markdown(f"- {supporting_title} (`{symbol}`, score {score_text})")
+
+        if anchor_row is not None and st.button(
+            "Open anchor detail",
+            key=f"{key_prefix}_{str(event.get('market_event_id') or anchor_symbol or 'event')}_open",
+            use_container_width=False,
+        ):
+            _open_attention_target(target_section, params=params)
+
+
+def _bundle_toggle_key(bundle_id: str, key_prefix: str) -> str:
+    cleaned = re.sub(r"[^a-zA-Z0-9_]+", "_", str(bundle_id or "").strip())
+    return f"{key_prefix}_{cleaned}_research_open"
+
+
+def _render_attention_research_bundle_panel(bundle: dict[str, object]) -> None:
+    bundle_type = str(bundle.get("bundle_type") or "").strip()
+    if bundle_type == "event":
+        if str(bundle.get("what_happened_text") or "").strip():
+            st.markdown(f"**What Happened**  \n{str(bundle.get('what_happened_text') or '').strip()}")
+        if str(bundle.get("why_happened_text") or "").strip():
+            st.markdown(f"**Why It Happened**  \n{str(bundle.get('why_happened_text') or '').strip()}")
+        if str(bundle.get("affected_assets_summary_text") or "").strip():
+            st.markdown(f"**Affected Assets**  \n{str(bundle.get('affected_assets_summary_text') or '').strip()}")
+    else:
+        if str(bundle.get("what_changed_text") or "").strip():
+            st.markdown(f"**What Changed Vs Expectation**  \n{str(bundle.get('what_changed_text') or '').strip()}")
+        if str(bundle.get("why_now_text") or "").strip():
+            st.markdown(f"**Why Today**  \n{str(bundle.get('why_now_text') or '').strip()}")
+        if str(bundle.get("what_else_moved_text") or "").strip():
+            st.markdown(f"**What Else Moved**  \n{str(bundle.get('what_else_moved_text') or '').strip()}")
+        meta = [part for part in [str(bundle.get("sector") or "").strip(), str(bundle.get("industry") or "").strip()] if part]
+        if meta:
+            st.caption(" | ".join(meta))
+
+    quality_parts = []
+    cause_status = str(bundle.get("cause_status") or "").strip()
+    if cause_status:
+        quality_parts.append(f"Cause status: {cause_status.replace('_', ' ').title()}")
+    evidence_quality = str(bundle.get("evidence_quality") or "").strip()
+    if evidence_quality:
+        quality_parts.append(f"Evidence quality: {evidence_quality}")
+    freshness_quality = str(bundle.get("freshness_quality") or "").strip()
+    if freshness_quality:
+        quality_parts.append(f"Freshness: {freshness_quality}")
+    source_summary = str(bundle.get("source_summary") or "").strip()
+    if source_summary:
+        quality_parts.append(f"Sources: {source_summary}")
+    if quality_parts:
+        st.caption(" | ".join(quality_parts))
+
+    evidence = bundle.get("evidence") or []
+    if isinstance(evidence, list) and evidence:
+        st.markdown("**Evidence**")
+        for item in evidence[:4]:
+            headline = str((item or {}).get("headline") or "").strip()
+            summary = _attention_evidence_display_text(item or {})
+            source = str((item or {}).get("source") or "Source").strip()
+            url = str((item or {}).get("url") or "").strip()
+            authority = str((item or {}).get("authority_bucket") or "").strip()
+            published_at = pd.to_datetime((item or {}).get("published_at"), utc=True, errors="coerce")
+            published_label = published_at.strftime("%b %d %H:%M UTC") if pd.notna(published_at) else ""
+            if headline:
+                if url:
+                    st.markdown(f"- [{headline}]({url})")
+                else:
+                    st.markdown(f"- {headline}")
+            if summary:
+                st.caption(summary)
+            meta_parts = [part for part in [source, authority.title() if authority else "", published_label] if part]
+            evidence_role = str((item or {}).get("evidence_role") or "").strip()
+            if evidence_role:
+                meta_parts.append(evidence_role.replace("_", " ").title())
+            if meta_parts:
+                st.caption(" | ".join(meta_parts))
+
+    background_context = bundle.get("background_context") or []
+    if isinstance(background_context, list) and background_context:
+        st.markdown("**Background Context**")
+        for item in background_context[:3]:
+            headline = str((item or {}).get("headline") or "").strip()
+            summary = _attention_evidence_display_text(item or {})
+            source = str((item or {}).get("source") or "Source").strip()
+            url = str((item or {}).get("url") or "").strip()
+            if headline:
+                if url:
+                    st.markdown(f"- [{headline}]({url})")
+                else:
+                    st.markdown(f"- {headline}")
+            if summary:
+                st.caption(summary)
+            if source:
+                st.caption(source)
+    elif str(bundle.get("background_context_text") or "").strip():
+        st.markdown(f"**Background Context**  \n{str(bundle.get('background_context_text') or '').strip()}")
+
+    peer_moves = bundle.get("peer_moves") or []
+    if isinstance(peer_moves, list) and peer_moves:
+        st.markdown("**Peer Moves**")
+        try:
+            snapshot_cfg = load_config()
+        except Exception:
+            snapshot_cfg = None
+        peer_rows: list[dict[str, object]] = []
+        for item in peer_moves[:6]:
+            symbol = str((item or {}).get("symbol") or "").strip()
+            change_pct = pd.to_numeric((item or {}).get("change_pct"), errors="coerce")
+            relationship = str((item or {}).get("relationship") or "").strip()
+            headline = str((item or {}).get("headline") or "").strip()
+            note_parts = []
+            if pd.notna(change_pct):
+                note_parts.append(f"{float(change_pct):+.1f}%")
+            if relationship:
+                note_parts.append(relationship)
+            peer_rows.append(
+                {
+                    "symbol": symbol,
+                    "note": " | ".join(note_parts),
+                    "note_secondary": headline,
+                }
+            )
+        _render_ticker_snapshot_table(snapshot_cfg, peer_rows, show_header=True)
+
+    related_symbols = bundle.get("related_symbols") or []
+    if isinstance(related_symbols, list) and related_symbols:
+        st.markdown("**Related Symbols**")
+        try:
+            snapshot_cfg = load_config()
+        except Exception:
+            snapshot_cfg = None
+        related_rows: list[dict[str, object]] = []
+        for item in related_symbols[:8]:
+            symbol = str((item or {}).get("symbol") or "").strip()
+            headline = str((item or {}).get("headline") or "").strip()
+            change_pct = pd.to_numeric((item or {}).get("change_pct"), errors="coerce")
+            note = f"{float(change_pct):+.1f}%" if pd.notna(change_pct) else ""
+            related_rows.append(
+                {
+                    "symbol": symbol,
+                    "note": note,
+                    "note_secondary": headline or "Linked move",
+                }
+            )
+        _render_ticker_snapshot_table(snapshot_cfg, related_rows, show_header=True)
+
+
+def _render_attention_home_event_card(
+    cfg: AppConfig,
+    event: dict[str, object],
+    *,
+    research_bundle: dict[str, object] | None = None,
+    key_prefix: str,
+    force_refresh: bool,
+) -> None:
+    bundle_id = str(event.get("bundle_id") or "").strip()
+    toggle_key = _bundle_toggle_key(bundle_id, key_prefix)
+    bundle = research_bundle if isinstance(research_bundle, dict) else {}
+    preview = _attention_home_bundle_preview(event, bundle=bundle)
+    surface_summary = _attention_home_surface_summary(preview, is_event=True)
+    with st.container(border=True):
+        header_cols = st.columns([5.2, 1.2, 1.6])
+        with header_cols[0]:
+            st.markdown(f"##### {str(event.get('event_title') or 'Market event').strip()}")
+            _render_ticker_snapshot_table(
+                cfg,
+                [
+                    {
+                        "symbol": str(event.get("anchor_symbol") or "").strip(),
+                        "extras": [
+                            str(event.get("confidence_label") or "").strip(),
+                            f"{int(pd.to_numeric(event.get('source_count'), errors='coerce') or 0)} sources",
+                            f"{int(pd.to_numeric(event.get('evidence_count'), errors='coerce') or 0)} evidence",
+                        ],
+                    }
+                ],
+                force_refresh=force_refresh,
+                show_header=False,
+            )
+        with header_cols[1]:
+            st.metric("Event", _format_scalar(event.get("event_score"), digits=1))
+        with header_cols[2]:
+            if st.button(
+                "Show research" if not st.session_state.get(toggle_key, False) else "Hide research",
+                key=f"{toggle_key}_button",
+                use_container_width=True,
+            ):
+                st.session_state[toggle_key] = not st.session_state.get(toggle_key, False)
+
+        st.write(surface_summary)
+
+        meta_line = [
+            part
+            for part in [
+                preview["confidence_label"],
+                preview["cause_status"].replace("_", " ").title() if preview["cause_status"] else "",
+                preview["evidence_quality"],
+                preview["freshness_quality"],
+                preview["source_summary"],
+            ]
+            if part
+        ]
+        if meta_line:
+            st.caption(" | ".join(meta_line))
+
+        if st.session_state.get(toggle_key, False) and bundle_id:
+            if not bundle:
+                bundle = _safe_load_attention_research_bundle_cached(cfg, bundle_id, force_refresh=force_refresh)
+            st.markdown("---")
+            _render_attention_research_bundle_panel(bundle)
+
+
+def _render_attention_home_mover_card(
+    cfg: AppConfig,
+    mover: dict[str, object],
+    *,
+    title: str,
+    research_bundle: dict[str, object] | None = None,
+    key_prefix: str,
+    force_refresh: bool,
+) -> None:
+    bundle_id = str(mover.get("bundle_id") or "").strip()
+    toggle_key = _bundle_toggle_key(bundle_id, key_prefix)
+    bundle = research_bundle if isinstance(research_bundle, dict) else {}
+    preview = _attention_home_bundle_preview(mover, bundle=bundle)
+    surface_summary = _attention_home_surface_summary(preview, is_event=False)
+    with st.container(border=True):
+        header_cols = st.columns([4.8, 1.0, 1.5])
+        with header_cols[0]:
+            st.markdown(f"##### {title}")
+            _render_ticker_snapshot_table(
+                cfg,
+                [
+                    {
+                        "symbol": str(mover.get("symbol") or "").strip(),
+                        "extras": [
+                            str(mover.get("sector") or "").strip(),
+                            str(mover.get("industry") or "").strip(),
+                        ],
+                    }
+                ],
+                force_refresh=force_refresh,
+                show_header=False,
+            )
+        with header_cols[1]:
+            st.metric("Move", _format_scalar(mover.get("change_pct"), digits=1, suffix="%", signed=True))
+        with header_cols[2]:
+            if st.button(
+                "Show research" if not st.session_state.get(toggle_key, False) else "Hide research",
+                key=f"{toggle_key}_button",
+                use_container_width=True,
+            ):
+                st.session_state[toggle_key] = not st.session_state.get(toggle_key, False)
+
+        st.write(surface_summary)
+        meta_line = [
+            part
+            for part in [
+                preview["confidence_label"],
+                preview["cause_status"].replace("_", " ").title() if preview["cause_status"] else "",
+                preview["evidence_quality"],
+                preview["freshness_quality"],
+                preview["source_summary"],
+            ]
+            if part
+        ]
+        if meta_line:
+            st.caption(" | ".join(meta_line))
+
+        if st.session_state.get(toggle_key, False) and bundle_id:
+            if not bundle:
+                bundle = _safe_load_attention_research_bundle_cached(cfg, bundle_id, force_refresh=force_refresh)
+            st.markdown("---")
+            _render_attention_research_bundle_panel(bundle)
+
+
 def _render_home_attention(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_refresh: bool) -> None:
     header_cols = st.columns([4.8, 1.4])
     with header_cols[0]:
-        st.title("Spectral Nature")
-        st.caption("Attention view: anomaly-ranked changes versus expectation, with rollups that answer where to look first.")
+        st.title("Daily Tape")
+        st.caption("Today / 1d market tape: what changed versus expectation, why it changed today, and what else moved because of it.")
     with header_cols[1]:
         force_data_refresh = _section_refresh_button("home_attention_refresh")
 
-    if not pipeline_store_configured():
-        st.write("Choose a section from the sidebar. Data-heavy views load on demand now, so the app shell renders first.")
-        st.caption("The attention layer appears here once pipeline metadata and parquet snapshots are configured.")
-        if api is None:
-            st.info("Fix the Alpaca configuration to enable portfolio, market, technical, and options views. FRED Macro uses its own API key.")
-        else:
-            st.success("Alpaca configuration loaded. Open a section when you want live data.")
+    if api is None:
+        st.info("Fix the Alpaca configuration to enable the daily tape, market context, and research bundle lookups.")
         return
 
-    filter_cols = st.columns([1.3, 2.7, 1.6])
-    with filter_cols[0]:
-        sensitivity = st.selectbox(
-            "Sensitivity",
-            ATTENTION_SENSITIVITY_ORDER,
-            index=ATTENTION_SENSITIVITY_ORDER.index("balanced"),
-            format_func=_attention_sensitivity_label,
-            key="home_attention_sensitivity",
-        )
-    with filter_cols[1]:
-        selected_horizons = st.multiselect(
-            "Lookback",
-            ATTENTION_HORIZON_OPTIONS,
-            default=ATTENTION_HORIZON_OPTIONS,
-            format_func=lambda key: ATTENTION_HORIZON_LABELS.get(key, str(key)),
-            key="home_attention_horizons",
-        )
-    preset = attention_preset(sensitivity)
-    effective_horizons = list(normalize_horizons(selected_horizons)) or ATTENTION_HORIZON_OPTIONS
-    with filter_cols[2]:
-        st.caption(
-            f"{_attention_sensitivity_label(sensitivity)} = "
-            f"{float(preset['residual_zscore_threshold']):.2f}z+ "
-            f"and {float(preset['min_attention_score']):.0f}+ score"
-        )
-
     try:
-        with st.spinner("Loading attention feed..."):
-            equities_feed = _annotate_attention_source(
-                _load_attention_feed_cached(
-                    cfg,
-                    dataset_name="attention_feed",
-                    source="derivatives",
-                    limit=36,
-                    horizons=effective_horizons,
-                    statuses=["active", "cooling"],
-                    sensitivity=sensitivity,
-                    min_attention_score=float(preset["min_attention_score"]),
-                    residual_zscore_threshold=float(preset["residual_zscore_threshold"]),
-                    force_refresh=force_data_refresh,
-                ),
-                source_key="equities",
-            )
-            commodity_feed = _annotate_attention_source(
-                _load_attention_feed_cached(
-                    cfg,
-                    dataset_name="commodity_attention_feed",
-                    source="commodities",
-                    limit=36,
-                    horizons=effective_horizons,
-                    statuses=["active", "cooling"],
-                    sensitivity=sensitivity,
-                    min_attention_score=float(preset["min_attention_score"]),
-                    residual_zscore_threshold=float(preset["residual_zscore_threshold"]),
-                    force_refresh=force_data_refresh,
-                ),
-                source_key="commodities",
-            )
-            equities_rollups = _annotate_attention_source(
-                _load_attention_rollups_cached(
-                    cfg,
-                    dataset_name="attention_rollups",
-                    source="derivatives",
-                    horizons=effective_horizons,
-                    statuses=["active", "cooling"],
-                    sensitivity=sensitivity,
-                    min_attention_score=float(preset["min_attention_score"]),
-                    residual_zscore_threshold=float(preset["residual_zscore_threshold"]),
-                    high_priority_threshold=float(preset["high_priority_threshold"]),
-                    limit=6,
-                    force_refresh=force_data_refresh,
-                ),
-                source_key="equities",
-            )
-            commodity_rollups = _annotate_attention_source(
-                _load_attention_rollups_cached(
-                    cfg,
-                    dataset_name="commodity_attention_rollups",
-                    source="commodities",
-                    horizons=effective_horizons,
-                    statuses=["active", "cooling"],
-                    sensitivity=sensitivity,
-                    min_attention_score=float(preset["min_attention_score"]),
-                    residual_zscore_threshold=float(preset["residual_zscore_threshold"]),
-                    high_priority_threshold=float(preset["high_priority_threshold"]),
-                    limit=6,
-                    force_refresh=force_data_refresh,
-                ),
-                source_key="commodities",
+        with _inline_loading_banner(
+            "Loading today's attention tape",
+            "Pulling the latest precomputed snapshot for top events, standout movers, and unresolved tape signals.",
+        ):
+            home_payload = _load_attention_home_1d_cached(
+                cfg,
+                force_refresh=force_data_refresh,
             )
     except Exception as exc:
         st.warning(f"Could not load the attention layer: {exc}")
         return
 
-    feed_parts = [frame for frame in [equities_feed, commodity_feed] if not frame.empty]
-    rollup_parts = [frame for frame in [equities_rollups, commodity_rollups] if not frame.empty]
-    feed = pd.concat(feed_parts, ignore_index=True) if feed_parts else pd.DataFrame()
-    rollups = pd.concat(rollup_parts, ignore_index=True) if rollup_parts else pd.DataFrame()
-
-    if feed.empty:
-        st.info(
-            "No attention items matched the current sensitivity/lookback settings. "
-            "Try a more aggressive sensitivity, broaden the horizon selection, or rerun the preload jobs if snapshots are stale."
-        )
-        return
-
-    feed = feed.copy()
-    feed["asof_time_utc"] = pd.to_datetime(feed.get("asof_time_utc"), utc=True, errors="coerce")
-    feed["entity_id"] = feed.get("entity_id", pd.Series(dtype=str)).astype(str).str.upper().str.strip()
-    feed["_drilldown_params"] = [
-        _parse_drilldown_params(value)
-        for value in feed.get("drilldown_params_json", pd.Series(dtype=object)).tolist()
-    ]
-
-    held_symbols: set[str] = set()
-    if api is not None:
-        try:
-            positions = _load_positions_cached(cfg, force_refresh=force_data_refresh)
-            if not positions.empty and "symbol" in positions.columns:
-                held_symbols = {
-                    str(symbol).upper().strip()
-                    for symbol in positions["symbol"].dropna().astype(str).tolist()
-                    if str(symbol).strip()
-                }
-        except Exception:
-            held_symbols = set()
-
-    feed["in_portfolio"] = feed["entity_id"].isin(held_symbols)
-    if "attention_score" in feed.columns:
-        feed["attention_score"] = pd.to_numeric(feed["attention_score"], errors="coerce")
-        feed["severity_score"] = pd.to_numeric(feed.get("severity_score"), errors="coerce")
-        feed = feed.sort_values(["attention_score", "severity_score"], ascending=[False, False], na_position="last").reset_index(drop=True)
-        feed["feed_rank"] = range(1, len(feed) + 1)
-    portfolio_feed = feed[feed["in_portfolio"]].copy()
-    if "rollup_type" in rollups.columns:
-        rollup_type_series = rollups["rollup_type"].astype(str).str.lower()
-        market_rollups = rollups[rollup_type_series.isin({"market", "commodity_market"})].copy()
-        secondary_rollups = rollups[~rollup_type_series.isin({"market", "commodity_market", "portfolio"})].copy()
-    else:
-        market_rollups = pd.DataFrame()
-        secondary_rollups = pd.DataFrame()
-
-    score_series = pd.to_numeric(feed["attention_score"], errors="coerce") if "attention_score" in feed.columns else pd.Series(dtype=float)
-    news_counts = pd.to_numeric(feed["linked_news_count"], errors="coerce").fillna(0) if "linked_news_count" in feed.columns else pd.Series(dtype=float)
-    high_priority_count = int(score_series.ge(float(preset["high_priority_threshold"])).sum()) if not score_series.empty else 0
-    news_linked_count = int(news_counts.gt(0).sum()) if not news_counts.empty else 0
+    top_events = list(home_payload.get("top_events") or [])
+    must_read = list(home_payload.get("must_read_movers") or [])
+    unresolved = list(home_payload.get("unresolved_large_moves") or [])
+    coverage_summary = dict(home_payload.get("coverage_summary") or {})
+    generated_at = pd.to_datetime(home_payload.get("generated_at_utc"), utc=True, errors="coerce")
+    snapshot_label = generated_at.strftime("%Y-%m-%d %H:%M UTC") if pd.notna(generated_at) else "just now"
 
     metric_cols = st.columns(4)
     with metric_cols[0]:
-        st.metric("Snapshot", _attention_snapshot_label(feed))
+        st.metric("Snapshot", snapshot_label)
     with metric_cols[1]:
-        st.metric("Attention Items", str(len(feed)))
+        st.metric("Top Events", str(len(top_events)))
     with metric_cols[2]:
-        st.metric("High Priority", str(high_priority_count))
+        st.metric("Must-Read Movers", str(len(must_read)))
     with metric_cols[3]:
-        if held_symbols:
-            st.metric("Portfolio Overlap", str(len(portfolio_feed)))
-        else:
-            st.metric("News Linked", str(news_linked_count))
+        st.metric("Unresolved Large Moves", str(len(unresolved)))
 
-    main_cols = st.columns([1.7, 1.1], gap="large")
+    if not pipeline_store_configured():
+        st.caption("Pipeline snapshots are not configured, so this page is running on the live on-demand fallback.")
+
+    if not top_events and not must_read and not unresolved:
+        st.info("No daily attention items were produced from the latest tape. Refresh after the market data sources update.")
+        return
+
+    st.subheader("Top Market Events Today")
+    if not top_events:
+        st.info("No market-wide events cleared the bar in the latest run.")
+    else:
+        for event in top_events:
+                _render_attention_home_event_card(
+                    cfg,
+                    event,
+                    research_bundle={},
+                    key_prefix="home_top_event",
+                    force_refresh=force_data_refresh,
+                )
+
+    st.markdown("---")
+    second_cols = st.columns(2, gap="large")
+    with second_cols[0]:
+        st.subheader("Must-Read Movers Today")
+        if not must_read:
+            st.info("No standalone movers survived after event clustering.")
+        else:
+            for mover in must_read:
+                _render_attention_home_mover_card(
+                    cfg,
+                    mover,
+                    title=_attention_mover_card_title(mover),
+                    research_bundle={},
+                    key_prefix="home_must_read",
+                    force_refresh=force_data_refresh,
+                )
+
+    with second_cols[1]:
+        st.subheader("Unresolved Large Moves")
+        if not unresolved:
+            st.info("No large unresolved moves in the latest run.")
+        else:
+            for mover in unresolved:
+                _render_attention_home_mover_card(
+                    cfg,
+                    mover,
+                    title=_attention_mover_card_title(mover),
+                    research_bundle={},
+                    key_prefix="home_unresolved",
+                    force_refresh=force_data_refresh,
+                )
+
+    with st.expander("Coverage Summary"):
+        st.write(
+            f"Universe: {int(pd.to_numeric(coverage_summary.get('equity_universe_count'), errors='coerce') or 0)} equities "
+            f"+ {int(pd.to_numeric(coverage_summary.get('macro_anchor_target_count'), errors='coerce') or 0)} macro anchors."
+        )
+        st.write(
+            f"Candidates: {int(pd.to_numeric(coverage_summary.get('candidate_count'), errors='coerce') or 0)} | "
+            f"News-backed: {int(pd.to_numeric(coverage_summary.get('news_backed_count'), errors='coerce') or 0)} | "
+            f"Portfolio overlap: {int(pd.to_numeric(coverage_summary.get('portfolio_overlap_count'), errors='coerce') or 0)}"
+        )
+        st.caption("Homepage is hard-locked to today / 1d. Multi-horizon residual anomalies remain available only as supporting datasets elsewhere.")
+
+
+@st.fragment
+def _render_homepage_v2_story_fragment(
+    cfg: AppConfig,
+    beats: list[dict[str, object]],
+    *,
+    force_data_refresh: bool,
+) -> None:
+    selected_bundle_id = str(st.session_state.get("homepage_v2_selected_bundle_id") or "").strip()
+    valid_bundle_ids = {str(beat.get("bundle_id") or "").strip() for beat in beats if str(beat.get("bundle_id") or "").strip()}
+    if selected_bundle_id not in valid_bundle_ids:
+        selected_bundle_id = str(beats[0].get("bundle_id") or "").strip() if beats else ""
+        st.session_state["homepage_v2_selected_bundle_id"] = selected_bundle_id
+
+    main_cols = st.columns([1.45, 1.05], gap="large")
     with main_cols[0]:
-        st.subheader("What Needs Attention")
-        visible_feed = feed.head(8).copy()
-        news_payloads = _load_attention_news_payloads(
-            cfg,
-            visible_feed.get("entity_id", pd.Series(dtype=str)).astype(str).tolist(),
-            force_refresh=force_data_refresh,
-        )
-        context_payloads = _load_attention_context_payloads(
-            cfg,
-            visible_feed.get("entity_id", pd.Series(dtype=str)).astype(str).tolist(),
-            force_refresh=force_data_refresh,
-        )
-        for row in visible_feed.itertuples(index=False):
-            row_series = pd.Series(row._asdict())
-            _render_attention_card(
-                row_series,
-                key_prefix="home_attention",
-                news_payload=news_payloads.get(str(row_series.get("entity_id") or "").upper().strip()),
-                context_payload=context_payloads.get(str(row_series.get("entity_id") or "").upper().strip()),
-            )
+        st.subheader("Narrative Thread")
+        for index, beat in enumerate(beats):
+            beat_sentence = str(beat.get("sentence") or "").strip()
+            bundle_id = str(beat.get("bundle_id") or "").strip()
+            if not beat_sentence:
+                continue
+            beat_summary = str(beat.get("summary") or "").strip()
+            beat_symbols = [str(symbol).upper().strip() for symbol in list(beat.get("symbols") or []) if str(symbol).strip()]
+            with st.expander(f"{index + 1}. {beat_sentence}", expanded=index == 0):
+                if beat_summary:
+                    st.write(beat_summary)
+                if beat_symbols:
+                    _render_ticker_snapshot_table(
+                        cfg,
+                        [{"symbol": symbol} for symbol in beat_symbols[:8] if str(symbol).strip()],
+                        force_refresh=force_data_refresh,
+                        show_header=True,
+                    )
+                if st.button(
+                    "Inspect research",
+                    key=f"homepage_v2_select_{bundle_id or index}",
+                    use_container_width=False,
+                ):
+                    st.session_state["homepage_v2_selected_bundle_id"] = bundle_id
+                    selected_bundle_id = bundle_id
 
     with main_cols[1]:
-        st.subheader("Where To Look First")
-        if market_rollups.empty:
-            st.info("No market-level rollups were published in the latest snapshots.")
+        st.subheader("Drilldown")
+        if not selected_bundle_id:
+            st.info("Pick a beat from the narrative thread to inspect the retained research.")
         else:
-            for row in market_rollups.sort_values(["net_attention_score", "top_attention_score"], ascending=False, na_position="last").itertuples(index=False):
-                market_row = pd.Series(row._asdict())
-                with st.container(border=True):
-                    st.markdown(f"##### {str(market_row.get('source_label') or '').strip() or 'Attention'}")
-                    st.write(str(market_row.get("summary_text") or ""))
-                    st.caption(
-                        "Breadth "
-                        f"{int(pd.to_numeric(market_row.get('breadth_positive'), errors='coerce') or 0)} up / "
-                        f"{int(pd.to_numeric(market_row.get('breadth_negative'), errors='coerce') or 0)} down"
+            if _has_cached_attention_bundle(selected_bundle_id) and not force_data_refresh:
+                bundle = _load_attention_research_bundle_session_cached(
+                    cfg,
+                    selected_bundle_id,
+                    force_refresh=False,
+                )
+            else:
+                with _inline_loading_banner(
+                    "Loading research",
+                    "Pulling the retained evidence, price context, and linked symbols for this beat.",
+                ):
+                    bundle = _load_attention_research_bundle_session_cached(
+                        cfg,
+                        selected_bundle_id,
+                        force_refresh=force_data_refresh,
                     )
-                    st.caption(
-                        "Top score "
-                        f"{_format_scalar(market_row.get('top_attention_score'), digits=1)} | "
-                        f"Net attention {_format_scalar(market_row.get('net_attention_score'), digits=1)}"
-                    )
-        if secondary_rollups.empty:
-            st.info("No lens-level rollups were published in the latest snapshots.")
-        else:
-            rollup_table = secondary_rollups.copy()
-            if "rollup_name" in rollup_table.columns:
-                rollup_table["rollup_name"] = rollup_table["rollup_name"].astype(str)
-            show_cols = [
-                col
-                for col in [
-                    "source_label",
-                    "rollup_name",
-                    "rollup_type",
-                    "active_event_count",
-                    "top_attention_score",
-                    "net_attention_score",
-                ]
-                if col in rollup_table.columns
-            ]
-            st.dataframe(
-                rollup_table.head(5)[show_cols],
-                use_container_width=True,
-                hide_index=True,
-                column_config={
-                    "source_label": "Source",
-                    "rollup_name": "Lens",
-                    "rollup_type": "Type",
-                    "active_event_count": st.column_config.NumberColumn("Events", format="%d"),
-                    "top_attention_score": st.column_config.NumberColumn("Top Score", format="%.1f"),
-                    "net_attention_score": st.column_config.NumberColumn("Net Attention", format="%.1f"),
-                },
+            fallback_item = next((beat for beat in beats if str(beat.get("bundle_id") or "").strip() == selected_bundle_id), {})
+            title = _attention_bundle_title(bundle, fallback=fallback_item)
+            st.markdown(f"### {title}")
+            _render_attention_research_bundle_panel(bundle)
+
+
+def _render_homepage_v2(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_refresh: bool) -> None:
+    header_cols = st.columns([4.5, 1.5])
+    with header_cols[0]:
+        st.title("Spectral Nature")
+        st.caption("A deterministic daily narrative built from the day-only event tape, not from mixed-horizon anomaly cards.")
+    with header_cols[1]:
+        force_data_refresh = _section_refresh_button("homepage_v2_refresh")
+
+    if api is None:
+        st.info("Fix the Alpaca configuration to enable the daily narrative view.")
+        return
+
+    try:
+        with _inline_loading_banner(
+            "Loading today's narrative home",
+            "Assembling the day-only homepage summary from the latest event tape and research snapshot.",
+        ):
+            home_payload = _load_attention_home_1d_cached(
+                cfg,
+                force_refresh=force_data_refresh,
             )
+    except Exception as exc:
+        st.warning(f"Could not build Home: {exc}")
+        return
 
-    if not portfolio_feed.empty:
-        st.markdown("---")
-        st.subheader("In Your Portfolio")
-        portfolio_table = portfolio_feed.copy()
-        show_cols = [
-            col
-            for col in [
-                "feed_rank",
-                "source_label",
-                "entity_id",
-                "title",
-                "attention_score",
-                "status",
-            ]
-            if col in portfolio_table.columns
-        ]
-        st.dataframe(
-            portfolio_table[show_cols],
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "feed_rank": st.column_config.NumberColumn("Rank", format="%d"),
-                "source_label": "Source",
-                "entity_id": "Ticker",
-                "attention_score": st.column_config.NumberColumn("Attention", format="%.1f"),
-            },
+    top_events = list(home_payload.get("top_events") or [])
+    must_read = list(home_payload.get("must_read_movers") or [])
+    unresolved = list(home_payload.get("unresolved_large_moves") or [])
+    generated_at = pd.to_datetime(home_payload.get("generated_at_utc"), utc=True, errors="coerce")
+    generated_label = generated_at.strftime("%Y-%m-%d %H:%M UTC") if pd.notna(generated_at) else "just now"
+
+    beats: list[dict[str, object]] = []
+    for event in top_events:
+        preview = _attention_home_bundle_preview(event, bundle={})
+        beats.append(
+            {
+                "bundle_id": str(event.get("bundle_id") or "").strip(),
+                "sentence": str(event.get("event_title") or "").strip(),
+                "summary": " ".join(
+                    part
+                    for part in [
+                        preview["what_changed_text"],
+                        preview["why_text"],
+                        preview["what_else_moved_text"],
+                    ]
+                    if part
+                ).strip(),
+                "symbols": [str(item).upper().strip() for item in list(event.get("supporting_symbols") or []) if str(item).strip()],
+                "kind": "event",
+            }
+        )
+    for mover in must_read:
+        preview = _attention_home_bundle_preview(mover, bundle={})
+        beats.append(
+            {
+                "bundle_id": str(mover.get("bundle_id") or "").strip(),
+                "sentence": _attention_mover_card_title(mover),
+                "summary": " ".join(
+                    part
+                    for part in [
+                        preview["what_changed_text"],
+                        preview["why_text"],
+                        preview["what_else_moved_text"],
+                    ]
+                    if part
+                ).strip(),
+                "symbols": [str(mover.get("symbol") or "").upper().strip()],
+                "kind": "mover",
+            }
+        )
+    for mover in unresolved:
+        preview = _attention_home_bundle_preview(mover, bundle={})
+        beats.append(
+            {
+                "bundle_id": str(mover.get("bundle_id") or "").strip(),
+                "sentence": _attention_mover_card_title(mover),
+                "summary": preview["what_changed_text"]
+                or preview["why_text"]
+                or "Large move with insufficient retained evidence so far.",
+                "symbols": [str(mover.get("symbol") or "").upper().strip()],
+                "kind": "unresolved",
+            }
         )
 
-    with st.expander("Show Feed Table"):
-        table = feed.copy()
-        show_cols = [
-            col
-            for col in [
-                "feed_rank",
-                "source_label",
-                "entity_id",
-                "title",
-                "subtitle",
-                "attention_score",
-                "linked_news_count",
-                "status",
+    if not beats:
+        st.info("No daily narrative beats were produced from the latest market tape.")
+        return
+
+    selected_bundle_id = str(st.session_state.get("homepage_v2_selected_bundle_id") or "").strip()
+    valid_bundle_ids = {str(beat.get("bundle_id") or "").strip() for beat in beats if str(beat.get("bundle_id") or "").strip()}
+    if selected_bundle_id not in valid_bundle_ids:
+        selected_bundle_id = str(beats[0].get("bundle_id") or "").strip()
+        st.session_state["homepage_v2_selected_bundle_id"] = selected_bundle_id
+
+    metric_cols = st.columns(4)
+    with metric_cols[0]:
+        st.metric("Snapshot", generated_label)
+    with metric_cols[1]:
+        st.metric("Narrative Beats", str(len(beats)))
+    with metric_cols[2]:
+        st.metric("Top Events", str(len(top_events)))
+    with metric_cols[3]:
+        st.metric("Mode", "Narrative Home")
+
+    with st.container(border=True):
+        headline = str(top_events[0].get("event_title") or beats[0].get("sentence") or "Top Market Events Today").strip()
+        st.markdown(f"### {headline}")
+        top_event_preview = _attention_home_bundle_preview(
+            top_events[0],
+            bundle={},
+        ) if top_events else {"what_changed_text": "", "why_text": "", "what_else_moved_text": ""}
+        dek = " ".join(
+            part
+            for part in [
+                str(top_event_preview.get("what_changed_text") or "").strip() if top_events else "",
+                str(top_event_preview.get("why_text") or "").strip() if top_events else "",
+                str(top_event_preview.get("what_else_moved_text") or "").strip() if top_events else "",
             ]
-            if col in table.columns
-        ]
-        st.dataframe(
-            table[show_cols],
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "feed_rank": st.column_config.NumberColumn("Rank", format="%d"),
-                "source_label": "Source",
-                "entity_id": "Ticker",
-                "attention_score": st.column_config.NumberColumn("Attention", format="%.1f"),
-                "linked_news_count": st.column_config.NumberColumn("News", format="%d"),
-            },
-        )
+            if part
+        ).strip()
+        if dek:
+            st.write(dek)
+        st.caption(f"Generated {generated_label} | deterministic daily tape")
+    _render_homepage_v2_story_fragment(
+        cfg,
+        beats,
+        force_data_refresh=force_data_refresh,
+    )
 
 
 def _prepare_scatter_size(df: pd.DataFrame, column: str) -> tuple[pd.DataFrame, str | None]:
@@ -3190,9 +4579,12 @@ cache_disabled = (os.getenv("APP_DISABLE_CACHE") or "").strip().lower() in {"1",
 source_refresh_flags = dict(st.session_state.get("_source_force_refresh", {}))
 st.session_state["_source_force_refresh"] = source_refresh_flags
 section_options = _section_options()
-pending_workspace_section = str(st.session_state.pop("_pending_workspace_section", "") or "").strip()
+pending_workspace_section = _normalize_workspace_section(st.session_state.pop("_pending_workspace_section", ""))
+current_workspace_section = _normalize_workspace_section(st.session_state.get("workspace_section"))
 if pending_workspace_section in section_options:
     st.session_state["workspace_section"] = pending_workspace_section
+elif current_workspace_section in section_options:
+    st.session_state["workspace_section"] = current_workspace_section
 elif st.session_state.get("workspace_section") not in section_options:
     st.session_state["workspace_section"] = section_options[0]
 
@@ -3212,7 +4604,7 @@ with st.sidebar:
     elif st.session_state.get("_ui_auth_mode") == "legacy":
         st.caption("Signed in via legacy admin login")
 
-    section = st.selectbox("Workspace", section_options, key="workspace_section")
+    section = st.selectbox("Page", section_options, key="workspace_section")
 
     with st.expander("Status & Session", expanded=False):
         if pipeline_store_configured():
@@ -3258,6 +4650,9 @@ if startup_error_summary:
 force_data_refresh = False
 
 if section == "Home":
+    _render_homepage_v2(cfg, api, force_data_refresh=force_data_refresh)
+
+elif section == "Daily Tape":
     _render_home_attention(cfg, api, force_data_refresh=force_data_refresh)
 
 elif section == "Portfolio Overview":
