@@ -52,8 +52,12 @@ def _ticker_aliases(ticker: str) -> set[str]:
     return {_normalized(alias) for alias in aliases}
 
 
-def _candidate_data_dirs() -> list[Path]:
+def _candidate_data_dirs(data_dir: str | None = None) -> list[Path]:
     roots: list[Path] = []
+
+    explicit_dir = str(data_dir or "").strip()
+    if explicit_dir:
+        roots.append(Path(explicit_dir).expanduser())
 
     env_dir = os.getenv("SIMFIN_DATA_DIR", "").strip()
     if env_dir:
@@ -71,19 +75,19 @@ def _candidate_data_dirs() -> list[Path]:
 
 
 @lru_cache(maxsize=None)
-def _statement_path(statement: str) -> Path:
+def _statement_path(statement: str, data_dir: str = "") -> Path:
     filename = STATEMENT_FILES[statement]
-    for root in _candidate_data_dirs():
+    for root in _candidate_data_dirs(data_dir or None):
         path = root / filename
         if path.exists():
             return path
-    searched = ", ".join(str(path) for path in _candidate_data_dirs())
+    searched = ", ".join(str(path) for path in _candidate_data_dirs(data_dir or None))
     raise FileNotFoundError(f"Quarterly fundamentals dataset '{filename}' not found. Checked: {searched}")
 
 
 @lru_cache(maxsize=None)
-def _load_statement(statement: str) -> pd.DataFrame:
-    return pd.read_csv(_statement_path(statement), sep=";", low_memory=False)
+def _load_statement(statement: str, data_dir: str = "") -> pd.DataFrame:
+    return pd.read_csv(_statement_path(statement, data_dir), sep=";", low_memory=False)
 
 
 def _resolve_column(columns: list[str], candidates: list[str]) -> str | None:
@@ -158,18 +162,25 @@ def _statement_to_long(frame: pd.DataFrame, ticker: str, statement: str, metric_
     return out.reset_index(drop=True)
 
 
-def load_quarterly_fundamentals(ticker: str) -> dict[str, pd.DataFrame]:
+def load_quarterly_fundamentals(ticker: str, *, data_dir: str | None = None) -> dict[str, pd.DataFrame]:
     symbol = str(ticker or "").upper().strip()
     if not symbol:
         return {"income": pd.DataFrame(), "balance": pd.DataFrame(), "cashflow": pd.DataFrame()}
 
-    income = _statement_to_long(_load_statement("income"), symbol, "income", INCOME_METRICS)
-    balance = _statement_to_long(_load_statement("balance"), symbol, "balance", BALANCE_METRICS)
-    cashflow = _statement_to_long(_load_statement("cashflow"), symbol, "cashflow", CASHFLOW_METRICS)
+    data_dir_key = str(data_dir or "").strip()
+    income = _statement_to_long(_load_statement("income", data_dir_key), symbol, "income", INCOME_METRICS)
+    balance = _statement_to_long(_load_statement("balance", data_dir_key), symbol, "balance", BALANCE_METRICS)
+    cashflow = _statement_to_long(_load_statement("cashflow", data_dir_key), symbol, "cashflow", CASHFLOW_METRICS)
     return {"income": income, "balance": balance, "cashflow": cashflow}
 
 
-def latest_share_count(ticker: str, *, diluted_preferred: bool = True) -> tuple[float | None, pd.Timestamp | None, str | None]:
+def share_count_asof(
+    ticker: str,
+    *,
+    asof_time_utc: object | None = None,
+    diluted_preferred: bool = True,
+    data_dir: str | None = None,
+) -> tuple[float | None, pd.Timestamp | None, str | None]:
     symbol = str(ticker or "").upper().strip()
     if not symbol:
         return None, None, None
@@ -178,14 +189,21 @@ def latest_share_count(ticker: str, *, diluted_preferred: bool = True) -> tuple[
     best_value: float | None = None
     best_date: pd.Timestamp | None = None
     best_metric: str | None = None
+    asof_ts = pd.to_datetime(asof_time_utc, utc=True, errors="coerce")
+    asof_cutoff = asof_ts.tz_localize(None) if pd.notna(asof_ts) else None
 
+    data_dir_key = str(data_dir or "").strip()
     for statement in ["income", "balance", "cashflow"]:
         try:
-            rows = _quarterly_rows(_load_statement(statement), symbol)
+            rows = _quarterly_rows(_load_statement(statement, data_dir_key), symbol)
         except Exception:
             rows = pd.DataFrame()
         if rows.empty:
             continue
+        if asof_cutoff is not None:
+            rows = rows[rows["Report Date"] <= asof_cutoff].copy()
+            if rows.empty:
+                continue
 
         for metric_name in metric_order:
             column = _resolve_column(list(rows.columns), SHARE_COUNT_METRICS[metric_name])
@@ -214,6 +232,15 @@ def latest_share_count(ticker: str, *, diluted_preferred: bool = True) -> tuple[
     return best_value, best_date, best_metric
 
 
+def latest_share_count(
+    ticker: str,
+    *,
+    diluted_preferred: bool = True,
+    data_dir: str | None = None,
+) -> tuple[float | None, pd.Timestamp | None, str | None]:
+    return share_count_asof(ticker, diluted_preferred=diluted_preferred, data_dir=data_dir)
+
+
 __all__ = [
     "BALANCE_METRICS",
     "CASHFLOW_METRICS",
@@ -222,4 +249,5 @@ __all__ = [
     "STATEMENT_FILES",
     "latest_share_count",
     "load_quarterly_fundamentals",
+    "share_count_asof",
 ]

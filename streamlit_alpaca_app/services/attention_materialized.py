@@ -115,6 +115,18 @@ def deserialize_attention_research_bundle_frame(frame: pd.DataFrame, bundle_id: 
     return _json_loads(scoped.iloc[0].get("payload_json"), default={})
 
 
+def deserialize_attention_ticker_snapshot_frame(frame: pd.DataFrame, symbol: str) -> dict[str, Any]:
+    from .attention_ticker_snapshots import deserialize_attention_ticker_snapshot_frame as _deserialize
+
+    return _deserialize(frame, symbol)
+
+
+def deserialize_attention_ticker_background_frame(frame: pd.DataFrame, symbol: str) -> dict[str, Any]:
+    from .attention_ticker_snapshots import deserialize_attention_ticker_background_frame as _deserialize
+
+    return _deserialize(frame, symbol)
+
+
 def flatten_search_payloads(
     search_payloads: dict[str, dict[str, Any]],
     *,
@@ -219,6 +231,8 @@ __all__ = [
     "deserialize_attention_home_payload",
     "deserialize_attention_research_bundle_frame",
     "deserialize_attention_research_bundles",
+    "deserialize_attention_ticker_background_frame",
+    "deserialize_attention_ticker_snapshot_frame",
     "flatten_search_payloads",
     "search_payloads_from_frame",
     "serialize_attention_home_payload",

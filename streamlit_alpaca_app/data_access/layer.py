@@ -13,12 +13,15 @@ from compute.fred import build_fred_dashboard_from_pipeline
 from compute.fundamentals import load_quarterly_fundamentals
 from compute.ownership import normalize_share_fraction, project_account_view, project_portfolio_timeseries, project_positions_view
 from compute.portfolio import build_portfolio_timeseries, compute_holding_roc, normalize_timeseries_view
+from compute.treasury_yields import build_treasury_yield_facts_1d, build_treasury_yield_observations, build_treasury_yield_summary
 from data_access.contracts import DataProvenance, ResolvedPayload
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
 from services.attention_agentic import build_bottom_up_attention_artifacts, search_symbol_news_payload
 from services.attention_materialized import (
     deserialize_attention_home_payload,
     deserialize_attention_research_bundle_frame,
+    deserialize_attention_ticker_background_frame,
+    deserialize_attention_ticker_snapshot_frame,
 )
 from services.attention_home_1d import (
     MACRO_ANCHOR_SYMBOLS,
@@ -43,6 +46,7 @@ from services.llm import load_embedding_client, load_llm_client
 from services.market import DEFAULT_UNIVERSE, load_price_history, scan_commodity_regimes, scan_correlation_phase_shifts, scan_daily_movers, scan_momentum_profiles
 from services.options import analyze_option_candidates, load_option_chain, load_option_surface, select_option_surface_window
 from services.pipeline_store import latest_job_status_table, load_latest_dataset_frame, pipeline_store_configured, start_source_refresh_job
+from services.treasury_yields import TreasuryYieldError, load_treasury_yield_curve
 from services.universe import build_liquidity_ranked_equity_universe
 
 try:
@@ -87,6 +91,8 @@ def _coerce_text(value: object) -> str:
 
 ATTENTION_HOME_SNAPSHOT_DATASETS = ("attention_home_snapshots_1d", "attention_home_1d")
 ATTENTION_BUNDLE_SNAPSHOT_DATASETS = ("attention_bundle_snapshots", "attention_research_bundles")
+ATTENTION_TICKER_SNAPSHOT_DATASETS = ("attention_ticker_snapshots_1d",)
+ATTENTION_TICKER_BACKGROUND_DATASETS = ("attention_ticker_background_snapshots",)
 ATTENTION_TRACE_DATASETS = (
     "attention_candidates_1d",
     "attention_research_plans",
@@ -97,6 +103,8 @@ ATTENTION_TRACE_DATASETS = (
     "attention_claims",
     "attention_candidate_graph",
     "attention_event_clusters_1d",
+    "attention_ticker_snapshots_1d",
+    "attention_ticker_background_snapshots",
     "attention_home_snapshots_1d",
     "attention_bundle_snapshots",
 )
@@ -178,7 +186,10 @@ class DataAccessLayer:
     def _try_pipeline_frame(self, dataset_name: str, *, force_refresh: bool) -> tuple[pd.DataFrame, dict[str, Any]] | None:
         if not self._should_try_pipeline(force_refresh):
             return None
-        return self._pipeline_frame(dataset_name)
+        frame, details = self._pipeline_frame(dataset_name)
+        if frame.empty and not details:
+            return None
+        return frame, details
 
     def _try_pipeline_frames(
         self,
@@ -193,6 +204,8 @@ class DataAccessLayer:
         details: dict[str, dict[str, Any]] = {}
         for dataset_name in dataset_names:
             frame, metadata = self._pipeline_frame(dataset_name)
+            if frame.empty and not metadata:
+                return None
             frames[dataset_name] = frame
             details[dataset_name] = metadata
         return frames, details
@@ -464,11 +477,16 @@ class DataAccessLayer:
 
             filings_frame = self._resolve_attention_edgar_filings(shortlist[:60], force_refresh=force_refresh)
             fred_summary_frame = pd.DataFrame()
+            yield_curve_facts_frame = pd.DataFrame()
             if pipeline_store_configured():
                 try:
                     fred_summary_frame, _ = self._pipeline_frame("fred_summary")
                 except Exception:
                     fred_summary_frame = pd.DataFrame()
+                try:
+                    yield_curve_facts_frame, _ = self._pipeline_frame("yield_curve_facts_1d")
+                except Exception:
+                    yield_curve_facts_frame = pd.DataFrame()
 
             artifacts = build_bottom_up_attention_artifacts(
                 movers,
@@ -481,6 +499,7 @@ class DataAccessLayer:
                 generated_at_utc=pd.Timestamp.utcnow(),
                 filings_frame=filings_frame,
                 fred_summary_frame=fred_summary_frame,
+                yield_curve_facts_frame=yield_curve_facts_frame,
                 llm_client=load_llm_client(),
                 embedding_client=load_embedding_client(),
                 top_events_limit=5,
@@ -1196,6 +1215,42 @@ class DataAccessLayer:
         payload["llm_supporting_points"] = supporting_points
         return self._resolved(payload, mode="materialized", datasets=("attention_context_bundle",), details=details)
 
+    def resolve_attention_ticker_snapshot(self, ticker: str, *, force_refresh: bool = False) -> ResolvedPayload:
+        target = str(ticker or "").upper().strip()
+        materialized = self._first_materialized_frame(
+            ATTENTION_TICKER_SNAPSHOT_DATASETS,
+            force_refresh=force_refresh,
+        )
+        if materialized is not None:
+            dataset_name, frame, details = materialized
+            payload = deserialize_attention_ticker_snapshot_frame(frame, target)
+            if payload:
+                return self._resolved(
+                    payload,
+                    mode="materialized",
+                    datasets=(dataset_name,),
+                    details={**details, "ticker": target},
+                )
+        return self._resolved({}, mode="on_demand", datasets=ATTENTION_TICKER_SNAPSHOT_DATASETS, details={"ticker": target})
+
+    def resolve_attention_ticker_background(self, ticker: str, *, force_refresh: bool = False) -> ResolvedPayload:
+        target = str(ticker or "").upper().strip()
+        materialized = self._first_materialized_frame(
+            ATTENTION_TICKER_BACKGROUND_DATASETS,
+            force_refresh=force_refresh,
+        )
+        if materialized is not None:
+            dataset_name, frame, details = materialized
+            payload = deserialize_attention_ticker_background_frame(frame, target)
+            if payload:
+                return self._resolved(
+                    payload,
+                    mode="materialized",
+                    datasets=(dataset_name,),
+                    details={**details, "ticker": target},
+                )
+        return self._resolved({}, mode="on_demand", datasets=ATTENTION_TICKER_BACKGROUND_DATASETS, details={"ticker": target})
+
     def resolve_attention_home_1d(self, *, force_refresh: bool = False) -> ResolvedPayload:
         materialized = self._first_materialized_frame(
             ATTENTION_HOME_SNAPSHOT_DATASETS,
@@ -1498,6 +1553,53 @@ class DataAccessLayer:
             force_refresh=force_refresh,
         )
         return self._resolved(payload, mode="on_demand", datasets=("fred_dashboard",), details={"years": years})
+
+    def resolve_yield_curve_summary(self, *, force_refresh: bool = False) -> ResolvedPayload:
+        materialized = self._try_pipeline_frame("yield_curve_summary", force_refresh=force_refresh)
+        if materialized is not None:
+            frame, details = materialized
+            return self._resolved(frame.reset_index(drop=True), mode="materialized", datasets=("yield_curve_summary",), details=details)
+
+        try:
+            wide = load_treasury_yield_curve(years=3)
+            summary = build_treasury_yield_summary(wide)
+        except TreasuryYieldError as exc:
+            raise RuntimeError(f"Treasury yield data unavailable and no materialized yield summary was found: {exc}") from exc
+        return self._resolved(summary.reset_index(drop=True), mode="on_demand", datasets=("yield_curve_summary",), details={"source": "treasury_direct"})
+
+    def resolve_yield_curve_observations(self, *, days: int = 365, force_refresh: bool = False) -> ResolvedPayload:
+        materialized = self._try_pipeline_frame("yield_curve_observations", force_refresh=force_refresh)
+        if materialized is not None:
+            frame, details = materialized
+            out = frame.copy()
+            if "date" in out.columns:
+                out["date"] = pd.to_datetime(out["date"], errors="coerce")
+                cutoff = pd.Timestamp.utcnow().tz_localize(None) - pd.Timedelta(days=max(int(days), 1))
+                out = out[out["date"] >= cutoff].copy()
+            return self._resolved(out.reset_index(drop=True), mode="materialized", datasets=("yield_curve_observations",), details={**details, "days": int(days)})
+
+        try:
+            wide = load_treasury_yield_curve(years=max(1, min(10, int(days // 365) + 1)))
+            observations = build_treasury_yield_observations(wide)
+        except TreasuryYieldError as exc:
+            raise RuntimeError(f"Treasury yield data unavailable and no materialized yield observations were found: {exc}") from exc
+        if "date" in observations.columns:
+            cutoff = pd.Timestamp.utcnow().tz_localize(None) - pd.Timedelta(days=max(int(days), 1))
+            observations = observations[observations["date"] >= cutoff].copy()
+        return self._resolved(observations.reset_index(drop=True), mode="on_demand", datasets=("yield_curve_observations",), details={"days": int(days), "source": "treasury_direct"})
+
+    def resolve_yield_curve_facts_1d(self, *, force_refresh: bool = False) -> ResolvedPayload:
+        materialized = self._try_pipeline_frame("yield_curve_facts_1d", force_refresh=force_refresh)
+        if materialized is not None:
+            frame, details = materialized
+            return self._resolved(frame.reset_index(drop=True), mode="materialized", datasets=("yield_curve_facts_1d",), details=details)
+
+        try:
+            wide = load_treasury_yield_curve(years=1)
+            facts = build_treasury_yield_facts_1d(wide, asof_time_utc=pd.Timestamp.utcnow())
+        except TreasuryYieldError as exc:
+            raise RuntimeError(f"Treasury yield facts unavailable and no materialized daily facts were found: {exc}") from exc
+        return self._resolved(facts.reset_index(drop=True), mode="on_demand", datasets=("yield_curve_facts_1d",), details={"source": "treasury_direct"})
 
     def latest_job_status(self) -> ResolvedPayload:
         return self._resolved(latest_job_status_table(), mode="materialized", datasets=("job_runs",))

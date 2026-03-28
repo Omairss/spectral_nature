@@ -7,6 +7,8 @@ import pandas as pd
 
 from pipeline.jobs.main import (
     JobContext,
+    _build_quarterly_fundamentals_snapshot,
+    _build_treasury_yield_snapshots,
     _build_equity_price_history_snapshot,
     _resolve_equity_symbols,
     _upload_frame,
@@ -58,6 +60,12 @@ def test_pipeline_store_lists_universe_snapshot_under_equities():
     assert "universe_snapshot" in equity_datasets
 
 
+def test_pipeline_store_lists_yield_datasets_under_fred():
+    fred_datasets = set(SOURCE_DATASETS["fred"])
+
+    assert {"yield_curve_observations", "yield_curve_summary", "yield_curve_facts_1d"}.issubset(fred_datasets)
+
+
 def test_pipeline_store_lists_attention_datasets_under_commodities():
     commodity_datasets = set(SOURCE_DATASETS["commodities"])
 
@@ -76,7 +84,16 @@ def test_pipeline_store_lists_attention_datasets_under_commodities():
 def test_pipeline_store_lists_attention_context_datasets_under_news():
     news_datasets = set(SOURCE_DATASETS["news"])
 
-    assert {"news_articles", "news_symbol_map", "edgar_filings", "edgar_evidence", "attention_context_llm", "attention_context_bundle"}.issubset(news_datasets)
+    assert {
+        "news_articles",
+        "news_symbol_map",
+        "edgar_filings",
+        "edgar_evidence",
+        "attention_context_llm",
+        "attention_context_bundle",
+        "attention_ticker_snapshots_1d",
+        "attention_ticker_background_snapshots",
+    }.issubset(news_datasets)
 
 
 def test_resolve_equity_symbols_prefers_large_snapshot(monkeypatch):
@@ -200,6 +217,90 @@ def test_build_equity_price_history_snapshot_fetches_incremental_updates_and_ful
     assert earliest["SPY"].startswith("2025-11-21")
     latest_aaa = frame[frame["symbol"] == "AAA"].sort_values("timestamp").iloc[-1]
     assert latest_aaa["close"] == 12.4
+
+
+def test_build_quarterly_fundamentals_snapshot_uses_local_when_simfin_not_configured(monkeypatch):
+    monkeypatch.setenv("SIMFIN_REFRESH_ENABLED", "true")
+    monkeypatch.setattr("pipeline.jobs.main.simfin_refresh_configured", lambda: False)
+
+    captured: list[tuple[list[str], bool, int]] = []
+
+    def _fake_build(symbols, *, prefer_upstream, refresh_days):
+        captured.append((list(symbols), prefer_upstream, refresh_days))
+        return (
+            pd.DataFrame(
+                {
+                    "ticker": ["RDDT"],
+                    "statement": ["income"],
+                    "metric": ["Total Revenue"],
+                    "report_date": [pd.Timestamp("2024-09-30")],
+                    "value": [348351000.0],
+                }
+            ),
+            {"provider": "local", "data_dir": "", "refresh_days": refresh_days},
+        )
+
+    monkeypatch.setattr("pipeline.jobs.main.build_quarterly_fundamentals_frame", _fake_build)
+
+    frame, details = _build_quarterly_fundamentals_snapshot(["RDDT"])
+
+    assert len(frame) == 1
+    assert details["provider"] == "local"
+    assert captured == [(["RDDT"], True, 1)]
+
+
+def test_build_quarterly_fundamentals_snapshot_prefers_upstream_when_configured(monkeypatch):
+    monkeypatch.setenv("SIMFIN_REFRESH_ENABLED", "true")
+    monkeypatch.setenv("SIMFIN_REFRESH_DAYS", "3")
+    monkeypatch.setattr("pipeline.jobs.main.simfin_refresh_configured", lambda: True)
+
+    captured: list[tuple[list[str], bool, int]] = []
+
+    def _fake_build(symbols, *, prefer_upstream, refresh_days):
+        captured.append((list(symbols), prefer_upstream, refresh_days))
+        return (
+            pd.DataFrame(
+                {
+                    "ticker": ["RDDT"],
+                    "statement": ["income"],
+                    "metric": ["Total Revenue"],
+                    "report_date": [pd.Timestamp("2024-12-31")],
+                    "value": [400000000.0],
+                }
+            ),
+            {"provider": "simfin", "data_dir": "/tmp/simfin_refresh", "refresh_days": refresh_days},
+        )
+
+    monkeypatch.setattr("pipeline.jobs.main.build_quarterly_fundamentals_frame", _fake_build)
+
+    frame, details = _build_quarterly_fundamentals_snapshot(["RDDT"])
+
+    assert len(frame) == 1
+    assert details["provider"] == "simfin"
+    assert details["data_dir"] == "/tmp/simfin_refresh"
+    assert captured == [(["RDDT"], True, 3)]
+
+
+def test_build_treasury_yield_snapshots_uses_service_payload(monkeypatch):
+    observations = pd.DataFrame({"date": pd.to_datetime(["2026-03-26"]), "series_id": ["UST_10Y"], "yield_pct": [4.13]})
+    summary = pd.DataFrame({"series_id": ["UST_10Y"], "latest_value": [4.13]})
+    facts = pd.DataFrame({"ust_10y": [4.13], "ust_10y_1d_bps": [-11.0]})
+
+    monkeypatch.setattr(
+        "pipeline.jobs.main.load_treasury_yield_datasets",
+        lambda years, end_date=None: {
+            "yield_curve_observations": observations,
+            "yield_curve_summary": summary,
+            "yield_curve_facts_1d": facts,
+        },
+    )
+    monkeypatch.setenv("TREASURY_YIELD_LOOKBACK_YEARS", "2")
+
+    obs_out, summary_out, facts_out = _build_treasury_yield_snapshots(asof_time_utc=datetime(2026, 3, 26, 16, 0, tzinfo=timezone.utc))
+
+    assert obs_out.equals(observations)
+    assert summary_out.equals(summary)
+    assert facts_out.equals(facts)
 
 
 def test_run_news_persists_attention_context(monkeypatch):
@@ -487,6 +588,22 @@ def test_run_news_materializes_attention_home_and_research_outputs(monkeypatch):
         ),
     )
     monkeypatch.setattr(
+        "pipeline.jobs.main.collect_attention_ticker_symbols",
+        lambda *args, **kwargs: ["AAPL"],
+    )
+    monkeypatch.setattr(
+        "pipeline.jobs.main.build_attention_ticker_snapshot_frame",
+        lambda *args, **kwargs: pd.DataFrame(
+            [{"symbol": "AAPL", "company_name": "Apple Inc.", "market_cap_label": "$1.00T", "run_id": ctx.run_id}]
+        ),
+    )
+    monkeypatch.setattr(
+        "pipeline.jobs.main.build_attention_ticker_background_snapshot_frame",
+        lambda *args, **kwargs: pd.DataFrame(
+            [{"symbol": "AAPL", "company_name": "Apple Inc.", "description_text": "Apple builds consumer devices.", "run_id": ctx.run_id}]
+        ),
+    )
+    monkeypatch.setattr(
         "pipeline.jobs.main._persist_dataset",
         lambda dataset_name, frame, ctx, conn: persisted.setdefault(dataset_name, frame.copy()),
     )
@@ -500,6 +617,10 @@ def test_run_news_materializes_attention_home_and_research_outputs(monkeypatch):
     assert "attention_claims" in persisted
     assert "attention_home_1d" in persisted
     assert "attention_research_bundles" in persisted
+    assert "attention_ticker_snapshots_1d" in persisted
+    assert "attention_ticker_background_snapshots" in persisted
     assert not persisted["attention_home_1d"].empty
     assert not persisted["attention_research_bundles"].empty
+    assert not persisted["attention_ticker_snapshots_1d"].empty
+    assert not persisted["attention_ticker_background_snapshots"].empty
     assert set(persisted["attention_research_bundles"]["bundle_id"]) == {"event::oil:USO:event", "symbol::AAPL"}

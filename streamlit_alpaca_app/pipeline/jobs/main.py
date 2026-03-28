@@ -34,6 +34,11 @@ from services.attention_materialized import (
     bars_by_symbol_from_price_history,
     serialize_attention_home_payload,
 )
+from services.attention_ticker_snapshots import (
+    build_attention_ticker_background_snapshot_frame,
+    build_attention_ticker_snapshot_frame,
+    collect_attention_ticker_symbols,
+)
 from services.attention_context_llm import (
     build_attention_context_narratives,
     build_edgar_evidence,
@@ -42,7 +47,6 @@ from services.attention_context_llm import (
 from services.config import AppConfig
 from services.edgar import DEFAULT_EDGAR_FORMS, EdgarAPIError, EdgarClient, build_attention_context_bundle
 from services.fred import FredAPIError, load_fred_api_key, load_fred_dashboard
-from services.fundamentals import load_quarterly_fundamentals
 from services.llm import LLMAPIError, load_embedding_client, load_llm_client
 from services.market import (
     COMMODITY_FOCUS_UNIVERSES,
@@ -56,6 +60,8 @@ from services.market import (
 from services.options import build_option_snapshot_surface, load_option_chain
 from services.pipeline_store import load_latest_dataset_frame
 from services.secrets import resolve_secret_value
+from services.simfin_refresh import build_quarterly_fundamentals_frame, simfin_refresh_configured
+from services.treasury_yields import TreasuryYieldError, load_treasury_yield_datasets
 from services.universe import build_liquidity_ranked_equity_universe
 
 try:
@@ -113,6 +119,7 @@ def _parameter_hash(ctx: JobContext) -> str:
         "phase_shift_days": (os.getenv("PHASE_SHIFT_DAYS") or "365").strip(),
         "phase_shift_benchmark": (os.getenv("PHASE_SHIFT_BENCHMARK") or "SPY").strip(),
         "fred_lookback_years": (os.getenv("FRED_LOOKBACK_YEARS") or "10").strip(),
+        "treasury_yield_lookback_years": (os.getenv("TREASURY_YIELD_LOOKBACK_YEARS") or "3").strip(),
     }
     return hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()
 
@@ -789,6 +796,7 @@ def _materialize_attention_outputs(
     news_payloads = _news_payloads_from_articles_frame(news_frame, symbols=shortlist, limit=8)
     context_payloads = _context_payloads_from_frame(attention_context_frame)
     fred_summary_frame = _load_latest_materialized_frame("fred_summary")
+    yield_curve_facts_frame = _load_latest_materialized_frame("yield_curve_facts_1d")
     embedding_client = load_embedding_client()
 
     artifacts = build_bottom_up_attention_artifacts(
@@ -802,6 +810,7 @@ def _materialize_attention_outputs(
         generated_at_utc=pd.Timestamp(ctx.asof),
         filings_frame=edgar_filings_frame,
         fred_summary_frame=fred_summary_frame,
+        yield_curve_facts_frame=yield_curve_facts_frame,
         llm_client=llm_client,
         embedding_client=embedding_client,
         run_id=ctx.run_id,
@@ -827,6 +836,25 @@ def _materialize_attention_outputs(
             artifacts.bundle_map,
             generated_at_utc=ctx.asof,
         )
+
+    universe_snapshot_frame = _load_latest_materialized_frame("universe_snapshot")
+    snapshot_symbols = collect_attention_ticker_symbols(payload, artifacts.bundle_map, max_symbols=120)
+    artifacts.frames["attention_ticker_snapshots_1d"] = build_attention_ticker_snapshot_frame(
+        snapshot_symbols,
+        price_history_frame=price_history_frame,
+        universe_snapshot_frame=universe_snapshot_frame,
+        asof_time_utc=ctx.asof,
+        run_id=ctx.run_id,
+    )
+    artifacts.frames["attention_ticker_background_snapshots"] = build_attention_ticker_background_snapshot_frame(
+        snapshot_symbols,
+        price_history_frame=price_history_frame,
+        universe_snapshot_frame=universe_snapshot_frame,
+        news_frame=news_frame,
+        attention_context_frame=attention_context_frame,
+        asof_time_utc=ctx.asof,
+        run_id=ctx.run_id,
+    )
 
     search_results = artifacts.frames.get("attention_search_results", pd.DataFrame()).copy()
     if not search_results.empty:
@@ -1059,6 +1087,29 @@ def _build_equity_price_history_snapshot(
         f"symbols={len(bars)} rows={len(merged)} incremental_lookback_days={incremental_lookback_days} history_days={history_days}"
     )
     return bars, merged
+
+
+def _build_quarterly_fundamentals_snapshot(symbols: list[str]) -> tuple[pd.DataFrame, dict[str, Any]]:
+    refresh_days = max(int(os.getenv("SIMFIN_REFRESH_DAYS", "1")), 0)
+    prefer_upstream = str(os.getenv("SIMFIN_REFRESH_ENABLED", "true")).strip().lower() not in {"0", "false", "no", "off"}
+    if prefer_upstream and not simfin_refresh_configured():
+        print("[info] fundamentals refresh falling back to local SimFin files: SIMFIN_API_KEY not configured")
+    fundamentals, details = build_quarterly_fundamentals_frame(
+        symbols,
+        prefer_upstream=prefer_upstream,
+        refresh_days=refresh_days,
+    )
+    return fundamentals, details
+
+
+def _build_treasury_yield_snapshots(*, asof_time_utc: datetime | pd.Timestamp | None = None) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    years = max(int(os.getenv("TREASURY_YIELD_LOOKBACK_YEARS", "3")), 1)
+    payload = load_treasury_yield_datasets(years=years, end_date=asof_time_utc)
+    return (
+        payload.get("yield_curve_observations", pd.DataFrame()),
+        payload.get("yield_curve_summary", pd.DataFrame()),
+        payload.get("yield_curve_facts_1d", pd.DataFrame()),
+    )
 
 
 def _primary_peer_group_snapshot(
@@ -1308,25 +1359,13 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
             if fundamentals_fresh:
                 print(f"[info] fundamentals preload skipped: latest snapshot is < {fundamentals_min_refresh_hours:g}h old")
             else:
-                fundamentals_parts: list[pd.DataFrame] = []
-                for symbol in symbols:
-                    bundle = load_quarterly_fundamentals(symbol)
-                    for statement in ("income", "balance", "cashflow"):
-                        statement_frame = bundle.get(statement, pd.DataFrame())
-                        if statement_frame is None or statement_frame.empty:
-                            continue
-                        chunk = statement_frame.copy()
-                        if "ticker" not in chunk.columns:
-                            chunk["ticker"] = symbol
-                        if "statement" not in chunk.columns:
-                            chunk["statement"] = statement
-                        fundamentals_parts.append(chunk)
-
-                fundamentals = pd.concat(fundamentals_parts, ignore_index=True) if fundamentals_parts else pd.DataFrame()
-                if not fundamentals.empty:
-                    dedupe_cols = [col for col in ["ticker", "statement", "metric", "report_date"] if col in fundamentals.columns]
-                    if dedupe_cols:
-                        fundamentals = fundamentals.drop_duplicates(subset=dedupe_cols, keep="last")
+                fundamentals, details = _build_quarterly_fundamentals_snapshot(symbols)
+                provider = str(details.get("provider") or "local").strip() or "local"
+                data_dir = str(details.get("data_dir") or "").strip()
+                if data_dir:
+                    print(f"[info] fundamentals source={provider} data_dir={data_dir}")
+                else:
+                    print(f"[info] fundamentals source={provider}")
                 _persist_dataset("quarterly_fundamentals", fundamentals, ctx, conn)
         except Exception as exc:
             print(f"[warn] fundamentals preload skipped: {type(exc).__name__}: {exc}")
@@ -1336,19 +1375,26 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
 
 def run_fred(ctx: JobContext, conn: Any | None = None) -> None:
     api_key = load_fred_api_key()
-    if not api_key:
+    if api_key:
+        try:
+            dashboard = load_fred_dashboard(api_key, years=int(os.getenv("FRED_LOOKBACK_YEARS", "10")))
+            summary = dashboard.get("summary", pd.DataFrame())
+            observations = dashboard.get("observations", pd.DataFrame())
+
+            _persist_dataset("fred_summary", summary, ctx, conn)
+            _persist_dataset("fred_observations", observations, ctx, conn)
+        except FredAPIError as exc:
+            print(f"[error] FRED preload failed: {exc}")
+    else:
         print("[warn] FRED key unavailable; skipping FRED preload")
-        return
+
     try:
-        dashboard = load_fred_dashboard(api_key, years=int(os.getenv("FRED_LOOKBACK_YEARS", "10")))
-        summary = dashboard.get("summary", pd.DataFrame())
-        observations = dashboard.get("observations", pd.DataFrame())
-
-        _persist_dataset("fred_summary", summary, ctx, conn)
-
-        _persist_dataset("fred_observations", observations, ctx, conn)
-    except FredAPIError as exc:
-        print(f"[error] FRED preload failed: {exc}")
+        yield_observations, yield_summary, yield_facts = _build_treasury_yield_snapshots(asof_time_utc=ctx.asof)
+        _persist_dataset("yield_curve_observations", yield_observations, ctx, conn)
+        _persist_dataset("yield_curve_summary", yield_summary, ctx, conn)
+        _persist_dataset("yield_curve_facts_1d", yield_facts, ctx, conn)
+    except TreasuryYieldError as exc:
+        print(f"[error] Treasury yield preload failed: {exc}")
 
 
 def run_commodities(ctx: JobContext, conn: Any | None = None) -> None:

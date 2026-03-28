@@ -9,8 +9,12 @@ from tempfile import TemporaryDirectory
 import pandas as pd
 import numpy as np
 
+from compute import fundamentals as fundamentals_compute
+from compute.treasury_yields import build_treasury_yield_facts_1d, build_treasury_yield_summary
+from data_access.layer import DataAccessLayer
 from services.alpaca_api import AlpacaAPI
 from services import company as company_module
+from services import attention_agentic as attention_agentic_module
 from services.attention_agentic import build_bottom_up_attention_artifacts
 from services.attention_feed_brief import build_attention_feed_brief
 from services.attention_home_1d import (
@@ -26,10 +30,16 @@ from services.config import AppConfig
 from services import data_cache
 from services import fred as fred_module
 from services.attention_context_llm import build_attention_context_narratives, build_edgar_evidence, merge_attention_context_with_llm
+from services.attention_ticker_snapshots import (
+    build_attention_ticker_background_snapshot_frame,
+    build_attention_ticker_snapshot_frame,
+)
 from services.data_cache import CacheTarget, cached_frame
 from services.edgar import EdgarClient, build_attention_context_bundle
 from services.fred import FREDClient, FredSeriesSpec, build_fred_figure, build_fred_series_summary, format_fred_value, fred_categories, load_fred_dashboard
 from services.fundamentals import load_quarterly_fundamentals
+from services.simfin_refresh import build_quarterly_fundamentals_frame, load_simfin_api_key
+from services import treasury_yields as treasury_module
 from services.homepage_v2 import build_homepage_v2_digest, build_homepage_v2_market_digest
 from services.llm import AzureOpenAIChatJSONClient, LLMConfig, load_llm_config
 from services.market import (
@@ -212,6 +222,42 @@ class FakeMarketAPI:
                 }
             )
         return frames
+
+
+def test_try_pipeline_frame_returns_none_when_materialized_lookup_is_empty(monkeypatch):
+    layer = DataAccessLayer()
+
+    monkeypatch.setattr(DataAccessLayer, "_should_try_pipeline", lambda self, force_refresh: True)
+    monkeypatch.setattr(DataAccessLayer, "_pipeline_frame", lambda self, dataset_name: (pd.DataFrame(), {}))
+
+    assert layer._try_pipeline_frame("yield_curve_summary", force_refresh=False) is None
+
+
+def test_resolve_yield_curve_summary_falls_back_when_materialized_lookup_is_empty(monkeypatch):
+    layer = DataAccessLayer()
+    wide = pd.DataFrame(
+        {
+            "date": pd.to_datetime(["2026-03-25", "2026-03-26"]),
+            "updated_at_utc": pd.to_datetime(["2026-03-26T15:57:18Z", "2026-03-26T15:57:18Z"]),
+            "BC_3MONTH": [3.73, 3.73],
+            "BC_6MONTH": [3.76, 3.77],
+            "BC_1YEAR": [3.77, 3.83],
+            "BC_2YEAR": [3.84, 3.96],
+            "BC_5YEAR": [3.96, 4.08],
+            "BC_10YEAR": [4.33, 4.42],
+            "BC_30YEAR": [4.89, 4.93],
+        }
+    )
+
+    monkeypatch.setattr(DataAccessLayer, "_should_try_pipeline", lambda self, force_refresh: True)
+    monkeypatch.setattr(DataAccessLayer, "_pipeline_frame", lambda self, dataset_name: (pd.DataFrame(), {}))
+    monkeypatch.setattr("data_access.layer.load_treasury_yield_curve", lambda years=3: wide)
+
+    resolved = layer.resolve_yield_curve_summary(force_refresh=False)
+
+    assert resolved.provenance.mode == "on_demand"
+    assert not resolved.payload.empty
+    assert "UST_10Y" in set(resolved.payload["series_id"])
 
 
 class FakePhaseShiftAPI:
@@ -542,6 +588,68 @@ def test_load_quarterly_fundamentals_uses_local_simfin_dataset():
     assert {"Total Revenue", "Operating Income", "Net Income"} <= set(data["income"]["metric"])
     assert {"Total Assets", "Total Liabilities", "Stockholders Equity"} <= set(data["balance"]["metric"])
     assert {"Operating Cash Flow", "Capital Expenditure", "Free Cash Flow"} <= set(data["cashflow"]["metric"])
+
+
+def test_load_quarterly_fundamentals_accepts_explicit_data_dir():
+    data_dir = "/home/azureuser/cloudfiles/code/Users/omai.r/spectral_nature/streamlit_alpaca_app/data/stock_fundamental"
+    data = load_quarterly_fundamentals("A", data_dir=data_dir)
+
+    assert not data["income"].empty
+    assert not data["balance"].empty
+    assert not data["cashflow"].empty
+
+
+def test_build_quarterly_fundamentals_frame_uses_refreshed_data_dir(monkeypatch):
+    calls: list[tuple[str, str | None]] = []
+
+    def _fake_refresh_simfin_quarterly_cache(*, refresh_days: int = 1, data_dir: str | None = None):
+        return {"provider": "simfin", "data_dir": "/tmp/simfin_refresh", "refresh_days": refresh_days}
+
+    def _fake_load_quarterly_fundamentals(ticker: str, *, data_dir: str | None = None):
+        calls.append((ticker, data_dir))
+        frame = pd.DataFrame(
+            {
+                "report_date": [pd.Timestamp("2024-12-31")],
+                "year_quarter": ["2024Q4"],
+                "metric": ["Total Revenue"],
+                "value": [123.0],
+                "ticker": [ticker],
+                "statement": ["income"],
+            }
+        )
+        return {"income": frame, "balance": pd.DataFrame(), "cashflow": pd.DataFrame()}
+
+    monkeypatch.setattr("services.simfin_refresh.simfin_refresh_configured", lambda: True)
+    monkeypatch.setattr("services.simfin_refresh.refresh_simfin_quarterly_cache", _fake_refresh_simfin_quarterly_cache)
+    monkeypatch.setattr("services.simfin_refresh.load_quarterly_fundamentals", _fake_load_quarterly_fundamentals)
+
+    frame, details = build_quarterly_fundamentals_frame(["RDDT"], prefer_upstream=True, refresh_days=2)
+
+    assert len(frame) == 1
+    assert details["provider"] == "simfin"
+    assert calls == [("RDDT", "/tmp/simfin_refresh")]
+
+
+def test_load_simfin_api_key_falls_back_to_alternate_vault(monkeypatch):
+    monkeypatch.setattr("services.simfin_refresh.resolve_secret_value", lambda *args, **kwargs: "")
+    calls: list[tuple[str, str, str]] = []
+
+    def _fake_get_secret_value_from_vault(secret_name: str, *, vault_name: str = "", vault_url: str = "") -> str:
+        calls.append((secret_name, vault_name, vault_url))
+        return "secret-token" if secret_name == "SimFinAPI" and vault_name == "spectral-nature-kvault" else ""
+
+    monkeypatch.setattr("services.simfin_refresh.get_secret_value_from_vault", _fake_get_secret_value_from_vault)
+    monkeypatch.delenv("SIMFIN_KEY_VAULT_NAME", raising=False)
+    monkeypatch.delenv("SIMFIN_VAULT_NAME", raising=False)
+    monkeypatch.delenv("SIMFIN_KEY_VAULT_URL", raising=False)
+    monkeypatch.delenv("SIMFIN_VAULT_URL", raising=False)
+    monkeypatch.delenv("SIMFIN_API_KEY_SECRET", raising=False)
+    monkeypatch.delenv("SIMFIN_SECRET_NAME", raising=False)
+
+    key = load_simfin_api_key()
+
+    assert key == "secret-token"
+    assert calls[0] == ("SimFinAPI", "spectral-nature-kvault", "")
 
 
 def test_load_option_chain_shapes_alpaca_contracts_and_snapshots():
@@ -2401,6 +2509,122 @@ def test_load_fred_dashboard_handles_bulk_observation_dates_without_timezone_con
     assert not dashboard["series_data"]["CPIAUCSL"].empty
 
 
+def test_build_treasury_yield_summary_and_facts_capture_bp_moves():
+    wide = pd.DataFrame(
+        {
+            "date": pd.to_datetime(["2026-03-24", "2026-03-25", "2026-03-26"]),
+            "updated_at_utc": pd.to_datetime(["2026-03-26T15:57:18Z"] * 3, utc=True),
+            "BC_3MONTH": [4.30, 4.25, 4.20],
+            "BC_2YEAR": [4.05, 3.98, 3.91],
+            "BC_5YEAR": [4.12, 4.04, 3.97],
+            "BC_10YEAR": [4.33, 4.24, 4.13],
+            "BC_30YEAR": [4.61, 4.52, 4.43],
+        }
+    )
+
+    summary = build_treasury_yield_summary(wide)
+    facts = build_treasury_yield_facts_1d(wide, asof_time_utc=pd.Timestamp("2026-03-26T16:00:00Z"))
+
+    ust10 = summary[summary["series_id"] == "UST_10Y"].iloc[0]
+    curve = summary[summary["series_id"] == "CURVE_2S10S"].iloc[0]
+    assert ust10["latest_value"] == 4.13
+    assert ust10["prev_delta_bps"] == -11.0
+    assert curve["latest_value"] == 0.22
+    assert curve["prev_delta_bps"] == -4.0
+    assert facts.iloc[0]["ust_10y"] == 4.13
+    assert facts.iloc[0]["ust_10y_1d_bps"] == -11.0
+    assert facts.iloc[0]["curve_2s10s"] == 0.22
+
+
+def test_load_treasury_yield_datasets_parses_official_xml(monkeypatch):
+    xml = """<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<feed xml:base="https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns="http://www.w3.org/2005/Atom">
+  <entry>
+    <updated>2026-03-26T15:57:18Z</updated>
+    <content type="application/xml">
+      <m:properties>
+        <d:NEW_DATE m:type="Edm.DateTime">2026-03-25T00:00:00</d:NEW_DATE>
+        <d:BC_3MONTH m:type="Edm.Double">4.25</d:BC_3MONTH>
+        <d:BC_6MONTH m:type="Edm.Double">4.10</d:BC_6MONTH>
+        <d:BC_1YEAR m:type="Edm.Double">4.00</d:BC_1YEAR>
+        <d:BC_2YEAR m:type="Edm.Double">3.98</d:BC_2YEAR>
+        <d:BC_5YEAR m:type="Edm.Double">4.04</d:BC_5YEAR>
+        <d:BC_10YEAR m:type="Edm.Double">4.24</d:BC_10YEAR>
+        <d:BC_30YEAR m:type="Edm.Double">4.52</d:BC_30YEAR>
+      </m:properties>
+    </content>
+  </entry>
+  <entry>
+    <updated>2026-03-26T15:57:18Z</updated>
+    <content type="application/xml">
+      <m:properties>
+        <d:NEW_DATE m:type="Edm.DateTime">2026-03-26T00:00:00</d:NEW_DATE>
+        <d:BC_3MONTH m:type="Edm.Double">4.20</d:BC_3MONTH>
+        <d:BC_6MONTH m:type="Edm.Double">4.06</d:BC_6MONTH>
+        <d:BC_1YEAR m:type="Edm.Double">3.95</d:BC_1YEAR>
+        <d:BC_2YEAR m:type="Edm.Double">3.91</d:BC_2YEAR>
+        <d:BC_5YEAR m:type="Edm.Double">3.97</d:BC_5YEAR>
+        <d:BC_10YEAR m:type="Edm.Double">4.13</d:BC_10YEAR>
+        <d:BC_30YEAR m:type="Edm.Double">4.43</d:BC_30YEAR>
+      </m:properties>
+    </content>
+  </entry>
+</feed>"""
+
+    monkeypatch.setattr(treasury_module, "_treasury_request", lambda params: xml)
+    payload = treasury_module.load_treasury_yield_datasets(years=1, end_date=pd.Timestamp("2026-03-26T16:00:00Z"))
+
+    assert len(payload["yield_curve_observations"]) >= 10
+    assert not payload["yield_curve_summary"].empty
+    assert payload["yield_curve_facts_1d"].iloc[0]["ust_2y_1d_bps"] == -7.0
+
+
+def test_candidate_context_documents_adds_treasury_yield_summary_for_rates_names():
+    candidate = {
+        "candidate_id": "candidate::TLT",
+        "symbol": "TLT",
+        "rates_role": "duration",
+        "macro_exposure_tags": ["rates", "duration"],
+    }
+    yield_facts = pd.DataFrame(
+        [
+            {
+                "latest_date": pd.Timestamp("2026-03-26"),
+                "updated_at_utc": pd.Timestamp("2026-03-26T15:57:18Z"),
+                "ust_3m": 4.20,
+                "ust_3m_1d_bps": -5.0,
+                "ust_2y": 3.91,
+                "ust_2y_1d_bps": -7.0,
+                "ust_10y": 4.13,
+                "ust_10y_1d_bps": -11.0,
+                "ust_30y": 4.43,
+                "ust_30y_1d_bps": -9.0,
+                "curve_2s10s": 0.22,
+                "curve_2s10s_1d_bps": -4.0,
+                "curve_3m10y": -0.07,
+                "curve_3m10y_1d_bps": -6.0,
+            }
+        ]
+    )
+
+    docs = attention_agentic_module._candidate_context_documents(
+        candidate,
+        news_payloads={},
+        context_payloads={},
+        filings_frame=pd.DataFrame(),
+        fred_summary_frame=pd.DataFrame(),
+        yield_curve_facts_frame=yield_facts,
+        run_id="run-1",
+        asof_time_utc=pd.Timestamp("2026-03-26T16:00:00Z"),
+        official_routes=["treasury"],
+        priority_entities=["rates", "treasury"],
+    )
+
+    treasury_docs = [doc for doc in docs if doc.get("source_kind") == "treasury"]
+    assert len(treasury_docs) == 1
+    assert "10Y 4.13% (-11 bps)" in treasury_docs[0]["raw_text"]
+
+
 def test_csv_cache_reuses_fresh_files_and_refreshes_when_stale_or_forced():
     original_root = data_cache.CACHE_ROOT
     original_data_root = data_cache.CACHE_DATA_ROOT
@@ -2473,3 +2697,135 @@ def test_load_fred_api_key_prefers_keyvault_secret_over_env():
             fred_module.os.environ.pop("FRED_API_KEY", None)
         else:
             fred_module.os.environ["FRED_API_KEY"] = original_env_key
+
+
+def test_share_count_asof_respects_asof_cutoff(monkeypatch):
+    quarterly = pd.DataFrame(
+        {
+            "Ticker": ["AAA", "AAA"],
+            "Report Date": ["2025-12-31", "2026-03-31"],
+            "Fiscal Period": ["Q4", "Q1"],
+            "Fiscal Year": [2025, 2026],
+            "Shares Diluted": [100.0, 120.0],
+            "Shares Basic": [95.0, 115.0],
+        }
+    )
+
+    monkeypatch.setattr(
+        fundamentals_compute,
+        "_load_statement",
+        lambda statement: quarterly.copy() if statement == "income" else pd.DataFrame(columns=quarterly.columns),
+    )
+
+    value_early, date_early, metric_early = fundamentals_compute.share_count_asof(
+        "AAA",
+        asof_time_utc="2026-02-01T00:00:00Z",
+    )
+    value_late, date_late, metric_late = fundamentals_compute.share_count_asof(
+        "AAA",
+        asof_time_utc="2026-04-15T00:00:00Z",
+    )
+
+    assert value_early == 100.0
+    assert str(pd.Timestamp(date_early).date()) == "2025-12-31"
+    assert metric_early == "Shares Diluted"
+    assert value_late == 120.0
+    assert str(pd.Timestamp(date_late).date()) == "2026-03-31"
+    assert metric_late == "Shares Diluted"
+
+
+def test_build_attention_ticker_snapshot_frame_includes_backtest_metadata(monkeypatch):
+    monkeypatch.setattr(
+        "services.attention_ticker_snapshots.share_count_asof",
+        lambda ticker, asof_time_utc=None: (1000.0, pd.Timestamp("2025-12-31"), "Shares Diluted"),
+    )
+
+    price_history = pd.DataFrame(
+        {
+            "symbol": ["AAA", "AAA", "AAA"],
+            "timestamp": pd.to_datetime(["2026-03-20", "2026-03-21", "2026-03-24"], utc=True),
+            "close": [10.0, 11.0, 12.0],
+        }
+    )
+    universe_snapshot = pd.DataFrame({"symbol": ["AAA"], "security_name": ["Acme Holdings"]})
+
+    frame = build_attention_ticker_snapshot_frame(
+        ["AAA"],
+        price_history_frame=price_history,
+        universe_snapshot_frame=universe_snapshot,
+        asof_time_utc="2026-03-24T18:00:00Z",
+        run_id="run-123",
+    )
+
+    assert len(frame) == 1
+    row = frame.iloc[0]
+    assert row["symbol"] == "AAA"
+    assert row["company_name"] == "Acme Holdings"
+    assert row["market_cap_label"] == "$12,000"
+    assert row["run_id"] == "run-123"
+    assert row["asof_time_utc"].startswith("2026-03-24T18:00:00")
+    assert str(row["sparkline_data_uri"]).startswith("data:image/svg+xml;base64,")
+    trace = json.loads(row["source_trace_json"])
+    assert trace["datasets"] == ["price_history", "universe_snapshot"]
+
+
+def test_build_attention_ticker_background_snapshot_frame_serializes_replay_fields(monkeypatch):
+    monkeypatch.setattr(
+        "services.attention_ticker_snapshots.share_count_asof",
+        lambda ticker, asof_time_utc=None: (2000.0, pd.Timestamp("2025-12-31"), "Shares Diluted"),
+    )
+    monkeypatch.setattr(
+        "services.attention_ticker_snapshots.load_quarterly_fundamentals",
+        lambda ticker: {"income": pd.DataFrame(), "balance": pd.DataFrame(), "cashflow": pd.DataFrame()},
+    )
+
+    price_history = pd.DataFrame(
+        {
+            "symbol": ["AAA", "AAA"],
+            "timestamp": pd.to_datetime(["2026-03-20", "2026-03-24"], utc=True),
+            "close": [10.0, 12.0],
+        }
+    )
+    universe_snapshot = pd.DataFrame({"symbol": ["AAA"], "security_name": ["Acme Holdings"]})
+    news_frame = pd.DataFrame(
+        {
+            "symbols": [["AAA"]],
+            "headline": ["Acme launches new product"],
+            "summary": ["Acme introduced a new product line."],
+            "source": ["ExampleWire"],
+            "published_at": [pd.Timestamp("2026-03-24T12:00:00Z")],
+            "url": ["https://example.com/acme"],
+        }
+    )
+    context_frame = pd.DataFrame(
+        {
+            "symbol": ["AAA"],
+            "llm_source_line": ["Synthesized from official and news context"],
+            "llm_headline": ["Management outlined a new product push"],
+            "llm_summary_text": ["The company highlighted a broader product expansion."],
+            "context_story_text": ["This follows earlier execution improvements."],
+            "top_filing_links_json": ["[]"],
+        }
+    )
+
+    frame = build_attention_ticker_background_snapshot_frame(
+        ["AAA"],
+        price_history_frame=price_history,
+        universe_snapshot_frame=universe_snapshot,
+        news_frame=news_frame,
+        attention_context_frame=context_frame,
+        asof_time_utc="2026-03-24T18:00:00Z",
+        run_id="run-123",
+    )
+
+    assert len(frame) == 1
+    row = frame.iloc[0]
+    assert row["symbol"] == "AAA"
+    assert row["company_name"] == "Acme Holdings"
+    assert row["run_id"] == "run-123"
+    assert "Acme" in row["description_text"]
+    assert json.loads(row["news_summary_lines_json"])
+    assert json.loads(row["recent_headlines_json"])[0]["headline"] == "Acme launches new product"
+    assert len(json.loads(row["price_points_json"])) == 2
+    trace = json.loads(row["source_trace_json"])
+    assert "attention_context_bundle" in trace["datasets"]

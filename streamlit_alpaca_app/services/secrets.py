@@ -47,6 +47,32 @@ def _get_secret(secret_name: str) -> str:
         return ""
 
 
+@lru_cache(maxsize=256)
+def get_secret_value_from_vault(
+    secret_name: str,
+    *,
+    vault_name: str = "",
+    vault_url: str = "",
+) -> str:
+    if not secret_name:
+        return ""
+    resolved_vault_url = (vault_url or "").strip()
+    if not resolved_vault_url:
+        cleaned_vault_name = (vault_name or "").strip()
+        if cleaned_vault_name:
+            resolved_vault_url = f"https://{cleaned_vault_name}.vault.azure.net"
+        else:
+            resolved_vault_url = _vault_url()
+    if not resolved_vault_url or DefaultAzureCredential is None or SecretClient is None:
+        return ""
+    try:
+        credential = DefaultAzureCredential()
+        client = SecretClient(vault_url=resolved_vault_url, credential=credential)
+        return str(client.get_secret(secret_name).value or "").strip()
+    except Exception:
+        return ""
+
+
 def resolve_secret_value(
     env_names: list[str],
     *,

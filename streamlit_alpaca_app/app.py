@@ -10,11 +10,13 @@ import os
 import re
 import secrets as py_secrets
 import time
+from urllib.parse import urlencode
 
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import requests
 import streamlit as st
 from streamlit.components.v1 import html as components_html
 
@@ -305,6 +307,32 @@ def _clear_auth_query_params() -> None:
         return
 
 
+def _clear_query_params(*keys: str) -> None:
+    try:
+        params = st.query_params
+        for key in keys:
+            if key in params:
+                del params[key]
+    except Exception:
+        return
+
+
+def _consume_cross_page_inspector_query_params() -> None:
+    inspect_ticker = _query_param_value("inspect_ticker").upper().strip()
+    inspect_view = _query_param_value("inspect_view").strip().lower()
+    if not inspect_ticker:
+        return
+    if inspect_view == "home":
+        st.session_state["_pending_workspace_section"] = "Home"
+        st.session_state["home_selected_ticker"] = inspect_ticker
+    elif inspect_view == "market":
+        st.session_state["_pending_workspace_section"] = "Market Opportunity"
+        st.session_state["_pending_market_view"] = "Markets"
+        st.session_state["market_selected_ticker"] = inspect_ticker
+        st.session_state["market_ticker_detail_widget"] = inspect_ticker
+    _clear_query_params("inspect_ticker", "inspect_view")
+
+
 def _request_headers() -> dict[str, str]:
     headers = getattr(st.context, "headers", {}) or {}
     if isinstance(headers, dict):
@@ -359,13 +387,33 @@ def _render_auth_cookie_sync(action: str, value: str = "") -> None:
     cookie_value = json.dumps(value)
     if action == "clear":
         cookie_script = (
-            f"document.cookie = {cookie_name} + '=; Max-Age=0; path=/; SameSite=Lax';"
+            "const docs = [document];"
+            "try { if (window.parent?.document) docs.push(window.parent.document); } catch (e) {}"
+            "try { if (window.top?.document) docs.push(window.top.document); } catch (e) {}"
+            "const seen = new Set();"
+            "const uniqueDocs = docs.filter((doc) => { if (!doc || seen.has(doc)) return false; seen.add(doc); return true; });"
+            "const secureAttr = (() => {"
+            "  try { return (window.top?.location?.protocol || window.parent?.location?.protocol || window.location.protocol) === 'https:' ? '; Secure' : ''; }"
+            "  catch (e) { return window.location.protocol === 'https:' ? '; Secure' : ''; }"
+            "})();"
+            f"const cookieStr = {cookie_name} + '=; Max-Age=0; path=/; SameSite=Lax' + secureAttr;"
+            "uniqueDocs.forEach((doc) => { try { doc.cookie = cookieStr; } catch (e) {} });"
         )
     else:
         cookie_script = (
             "const maxAge = "
             f"{_AUTH_COOKIE_TTL_SECONDS};"
-            f"document.cookie = {cookie_name} + '=' + encodeURIComponent({cookie_value}) + '; Max-Age=' + maxAge + '; path=/; SameSite=Lax';"
+            "const docs = [document];"
+            "try { if (window.parent?.document) docs.push(window.parent.document); } catch (e) {}"
+            "try { if (window.top?.document) docs.push(window.top.document); } catch (e) {}"
+            "const seen = new Set();"
+            "const uniqueDocs = docs.filter((doc) => { if (!doc || seen.has(doc)) return false; seen.add(doc); return true; });"
+            "const secureAttr = (() => {"
+            "  try { return (window.top?.location?.protocol || window.parent?.location?.protocol || window.location.protocol) === 'https:' ? '; Secure' : ''; }"
+            "  catch (e) { return window.location.protocol === 'https:' ? '; Secure' : ''; }"
+            "})();"
+            f"const cookieStr = {cookie_name} + '=' + encodeURIComponent({cookie_value}) + '; Max-Age=' + maxAge + '; path=/; SameSite=Lax' + secureAttr;"
+            "uniqueDocs.forEach((doc) => { try { doc.cookie = cookieStr; } catch (e) {} });"
         )
     components_html(f"<script>{cookie_script}</script>", height=0)
 
@@ -1078,6 +1126,71 @@ def _latest_close_from_price_history(frame: pd.DataFrame) -> float | None:
     return float(close.iloc[-1])
 
 
+def _public_chart_range(days: int) -> str:
+    lookback_days = max(int(days), 1)
+    if lookback_days <= 30:
+        return "1mo"
+    if lookback_days <= 90:
+        return "3mo"
+    if lookback_days <= 180:
+        return "6mo"
+    if lookback_days <= 365:
+        return "1y"
+    if lookback_days <= 730:
+        return "2y"
+    return "5y"
+
+
+@st.cache_data(ttl=21600, show_spinner=False)
+def _load_public_price_history_cached(
+    symbol: str,
+    *,
+    days: int,
+    force_refresh: bool = False,
+) -> pd.DataFrame:
+    target = str(symbol or "").upper().strip()
+    if not target:
+        return pd.DataFrame()
+
+    try:
+        response = requests.get(
+            f"https://query1.finance.yahoo.com/v8/finance/chart/{target}",
+            params={
+                "interval": "1d",
+                "range": _public_chart_range(days),
+                "includeAdjustedClose": "true",
+            },
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=15,
+        )
+        response.raise_for_status()
+        payload = response.json()
+    except Exception:
+        return pd.DataFrame()
+
+    result = ((payload or {}).get("chart") or {}).get("result") or []
+    if not result:
+        return pd.DataFrame()
+    first = result[0] if isinstance(result[0], dict) else {}
+    timestamps = list(first.get("timestamp") or [])
+    quote = (((first.get("indicators") or {}).get("quote") or [{}])[0] or {})
+    if not timestamps or not isinstance(quote, dict):
+        return pd.DataFrame()
+
+    frame = pd.DataFrame(
+        {
+            "timestamp": pd.to_datetime(timestamps, unit="s", utc=True, errors="coerce"),
+            "open": pd.to_numeric(quote.get("open"), errors="coerce"),
+            "high": pd.to_numeric(quote.get("high"), errors="coerce"),
+            "low": pd.to_numeric(quote.get("low"), errors="coerce"),
+            "close": pd.to_numeric(quote.get("close"), errors="coerce"),
+            "volume": pd.to_numeric(quote.get("volume"), errors="coerce"),
+        }
+    )
+    frame = frame.dropna(subset=["timestamp", "close"]).sort_values("timestamp").reset_index(drop=True)
+    return frame
+
+
 def _format_market_cap_label(value: float | None) -> str:
     if value is None or pd.isna(value):
         return "n/a"
@@ -1144,7 +1257,46 @@ def _load_ticker_snapshot_profile(
 ) -> dict[str, str]:
     target = str(symbol or "").upper().strip()
     if not target:
-        return {"symbol": "", "company_name": "", "market_cap_label": "n/a", "sparkline_svg": ""}
+        return {"symbol": "", "company_name": "", "market_cap_label": "n/a", "sparkline_data_uri": ""}
+
+    company_name_hint = ""
+    market_cap_label_hint = "n/a"
+    sparkline_hint = ""
+
+    materialized_map = _load_attention_ticker_snapshot_map_cached(force_refresh=force_refresh)
+    materialized_row = dict(materialized_map.get(target) or {})
+    if materialized_row:
+        company_name_hint = str(materialized_row.get("company_name") or target).strip()
+        market_cap_label_hint = str(materialized_row.get("market_cap_label") or "n/a").strip()
+        sparkline_hint = str(materialized_row.get("sparkline_data_uri") or "").strip()
+        if sparkline_hint:
+            return {
+                "symbol": target,
+                "company_name": company_name_hint,
+                "market_cap_label": market_cap_label_hint,
+                "sparkline_data_uri": sparkline_hint,
+            }
+
+    if cfg is not None:
+        try:
+            materialized = _load_attention_ticker_snapshot_cached(
+                cfg,
+                target,
+                force_refresh=force_refresh,
+            )
+        except Exception:
+            materialized = {}
+        if isinstance(materialized, dict) and str(materialized.get("symbol") or "").upper().strip() == target:
+            company_name_hint = company_name_hint or str(materialized.get("company_name") or target).strip()
+            market_cap_label_hint = market_cap_label_hint if market_cap_label_hint != "n/a" else str(materialized.get("market_cap_label") or "n/a").strip()
+            sparkline_hint = sparkline_hint or str(materialized.get("sparkline_data_uri") or "").strip()
+            if sparkline_hint:
+                return {
+                    "symbol": target,
+                    "company_name": company_name_hint,
+                    "market_cap_label": market_cap_label_hint,
+                    "sparkline_data_uri": sparkline_hint,
+                }
 
     asset: dict[str, object] = {}
     if cfg is not None:
@@ -1153,7 +1305,7 @@ def _load_ticker_snapshot_profile(
         except Exception:
             asset = {}
     universe_names = _load_universe_security_name_map(force_refresh=force_refresh)
-    company_name = str(asset.get("name") or universe_names.get(target) or target).strip()
+    company_name = company_name_hint or str(asset.get("name") or universe_names.get(target) or target).strip()
 
     price_history = pd.DataFrame()
     if cfg is not None:
@@ -1161,31 +1313,103 @@ def _load_ticker_snapshot_profile(
             price_history = _load_price_history_cached(cfg, target, days=60, force_refresh=force_refresh)
         except Exception:
             price_history = pd.DataFrame()
+    if price_history.empty:
+        price_history = _load_public_price_history_cached(
+            target,
+            days=60,
+            force_refresh=force_refresh,
+        )
     latest_close = _latest_close_from_price_history(price_history)
     shares_outstanding, _, _ = latest_share_count(target)
     market_cap = (latest_close * shares_outstanding) if latest_close is not None and shares_outstanding else None
+    market_cap_label = market_cap_label_hint if market_cap_label_hint != "n/a" else _format_market_cap_label(market_cap)
 
     return {
         "symbol": target,
         "company_name": company_name,
-        "market_cap_label": _format_market_cap_label(market_cap),
-        "sparkline_data_uri": _sparkline_data_uri(price_history),
+        "market_cap_label": market_cap_label,
+        "sparkline_data_uri": sparkline_hint or _sparkline_data_uri(price_history),
     }
 
 
-def _render_ticker_snapshot_chart(data_uri: str, *, symbol: str) -> None:
-    normalized_uri = str(data_uri or "").strip()
-    if not normalized_uri:
-        st.caption("No recent chart available.")
+def _filter_fundamentals_asof(
+    fundamentals: dict[str, pd.DataFrame],
+    *,
+    asof_time_utc: object | None,
+) -> dict[str, pd.DataFrame]:
+    asof_ts = pd.to_datetime(asof_time_utc, utc=True, errors="coerce")
+    if pd.isna(asof_ts):
+        return dict(fundamentals or {})
+
+    cutoff = asof_ts.tz_localize(None)
+    out: dict[str, pd.DataFrame] = {}
+    for key in ["income", "balance", "cashflow"]:
+        frame = (fundamentals or {}).get(key, pd.DataFrame())
+        if not isinstance(frame, pd.DataFrame) or frame.empty or "report_date" not in frame.columns:
+            out[key] = frame if isinstance(frame, pd.DataFrame) else pd.DataFrame()
+            continue
+        scoped = frame.copy()
+        scoped["report_date"] = pd.to_datetime(scoped["report_date"], errors="coerce")
+        scoped = scoped[scoped["report_date"].notna() & (scoped["report_date"] <= cutoff)].copy()
+        out[key] = scoped.reset_index(drop=True)
+    return out
+
+
+def _ticker_inspector_href(symbol: str, *, target: str) -> str:
+    cleaned_symbol = str(symbol or "").upper().strip()
+    cleaned_target = str(target or "").strip().lower()
+    if not cleaned_symbol or cleaned_target not in {"home", "market"}:
+        return ""
+    return "?" + urlencode({"inspect_ticker": cleaned_symbol, "inspect_view": cleaned_target})
+
+
+def _open_ticker_snapshot_target(symbol: str, *, target: str) -> None:
+    cleaned_symbol = str(symbol or "").upper().strip()
+    cleaned_target = str(target or "").strip().lower()
+    if not cleaned_symbol or cleaned_target not in {"home", "market"}:
         return
-    st.markdown(
-        (
+    if cleaned_target == "home":
+        st.session_state["home_selected_ticker"] = cleaned_symbol
+        return
+    _open_attention_target(
+        "Market Opportunity",
+        {
+            "ticker": cleaned_symbol,
+            "market_view": "Markets",
+            "business_filter": business_focus_for_symbol(cleaned_symbol) or "All Market",
+        },
+    )
+
+
+def _render_ticker_snapshot_chart(
+    data_uri: str,
+    *,
+    symbol: str,
+    click_target: str = "",
+    button_key: str = "",
+) -> None:
+    normalized_uri = str(data_uri or "").strip()
+    if normalized_uri:
+        image_html = (
             "<img "
             f"src=\"{normalized_uri}\" alt=\"{html.escape(symbol)} chart\" "
             "style=\"width:100%;max-width:164px;height:auto;display:block;\" />"
-        ),
-        unsafe_allow_html=True,
-    )
+        )
+        st.markdown(image_html, unsafe_allow_html=True)
+    else:
+        st.caption("No recent chart available.")
+
+    if not click_target:
+        return
+
+    button_label = "Inspect" if str(click_target or "").strip().lower() == "home" else "Open"
+    widget_key = str(button_key or f"ticker_snapshot_{click_target}_{symbol}").strip()
+    if st.button(
+        button_label,
+        key=widget_key,
+        use_container_width=True,
+    ):
+        _open_ticker_snapshot_target(symbol, target=click_target)
 
 
 def _render_ticker_snapshot_table(
@@ -1194,6 +1418,8 @@ def _render_ticker_snapshot_table(
     *,
     force_refresh: bool = False,
     show_header: bool = True,
+    click_target: str = "",
+    key_prefix: str = "",
 ) -> None:
     if not isinstance(items, list):
         return
@@ -1224,6 +1450,7 @@ def _render_ticker_snapshot_table(
         )
     if not rows:
         return
+    show_context_column = any(row["note"] or row["note_secondary"] for row in rows)
     if not show_header and len(rows) == 1:
         row = rows[0]
         compact_cols = st.columns([0.9, 2.5, 1.45], gap="small")
@@ -1237,18 +1464,26 @@ def _render_ticker_snapshot_table(
             if note_parts:
                 st.caption(" | ".join(note_parts))
         with compact_cols[2]:
-            _render_ticker_snapshot_chart(row["sparkline_data_uri"], symbol=row["symbol"])
+            _render_ticker_snapshot_chart(
+                row["sparkline_data_uri"],
+                symbol=row["symbol"],
+                click_target=click_target,
+                button_key=f"{key_prefix or 'ticker_snapshot'}_{row['symbol']}_inspect",
+            )
         return
     if show_header:
-        header_cols = st.columns([0.9, 2.5, 1.6, 1.8], gap="small")
+        header_spec = [0.9, 2.5, 1.6, 1.8] if show_context_column else [0.9, 2.7, 1.6]
+        header_cols = st.columns(header_spec, gap="small")
         header_cols[0].caption("Ticker")
         header_cols[1].caption("Name")
         header_cols[2].caption("Chart")
-        header_cols[3].caption("Notes")
-    for row in rows:
+        if show_context_column:
+            header_cols[3].caption("Context")
+    for index, row in enumerate(rows):
         row_container = st.container(border=show_header or len(rows) > 1)
         with row_container:
-            row_cols = st.columns([0.9, 2.5, 1.6, 1.8], gap="small")
+            row_spec = [0.9, 2.5, 1.6, 1.8] if show_context_column else [0.9, 2.7, 1.6]
+            row_cols = st.columns(row_spec, gap="small")
             with row_cols[0]:
                 st.markdown(f"**{row['symbol']}**")
             with row_cols[1]:
@@ -1256,14 +1491,18 @@ def _render_ticker_snapshot_table(
                 if row["subline"]:
                     st.caption(row["subline"])
             with row_cols[2]:
-                _render_ticker_snapshot_chart(row["sparkline_data_uri"], symbol=row["symbol"])
-            with row_cols[3]:
-                if row["note"]:
-                    st.write(row["note"])
-                if row["note_secondary"]:
-                    st.caption(row["note_secondary"])
-                elif not row["note"]:
-                    st.caption("—")
+                _render_ticker_snapshot_chart(
+                    row["sparkline_data_uri"],
+                    symbol=row["symbol"],
+                    click_target=click_target,
+                    button_key=f"{key_prefix or 'ticker_snapshot'}_{index}_{row['symbol']}_inspect",
+                )
+            if show_context_column:
+                with row_cols[3]:
+                    if row["note"]:
+                        st.write(row["note"])
+                    if row["note_secondary"]:
+                        st.caption(row["note_secondary"])
 
 
 def _ensure_inline_loading_banner_styles() -> None:
@@ -1378,6 +1617,52 @@ def _load_attention_context_cached(
     )
 
 
+@st.cache_data(ttl=900, show_spinner=False)
+def _load_attention_ticker_snapshot_map_cached(force_refresh: bool = False) -> dict[str, dict[str, object]]:
+    frame, _ = load_latest_dataset_frame("attention_ticker_snapshots_1d")
+    if frame.empty or "symbol" not in frame.columns:
+        return {}
+    rows = frame.copy()
+    rows["symbol"] = rows["symbol"].astype(str).str.upper().str.strip()
+    rows = rows[rows["symbol"].ne("")].drop_duplicates(subset=["symbol"], keep="first")
+    out: dict[str, dict[str, object]] = {}
+    for record in rows.to_dict(orient="records"):
+        symbol = str(record.get("symbol") or "").upper().strip()
+        if symbol:
+            out[symbol] = record
+    return out
+
+
+@st.cache_data(ttl=900, show_spinner=False)
+def _load_attention_ticker_snapshot_cached(
+    cfg: AppConfig,
+    ticker: str,
+    force_refresh: bool = False,
+) -> dict[str, object]:
+    return _resolve_data_access_payload(
+        "resolve_attention_ticker_snapshot",
+        cfg=cfg,
+        source="news",
+        ticker=ticker,
+        force_refresh=force_refresh,
+    )
+
+
+@st.cache_data(ttl=900, show_spinner=False)
+def _load_attention_ticker_background_cached(
+    cfg: AppConfig,
+    ticker: str,
+    force_refresh: bool = False,
+) -> dict[str, object]:
+    return _resolve_data_access_payload(
+        "resolve_attention_ticker_background",
+        cfg=cfg,
+        source="news",
+        ticker=ticker,
+        force_refresh=force_refresh,
+    )
+
+
 def _load_attention_home_1d_cached(
     cfg: AppConfig,
     force_refresh: bool = False,
@@ -1475,6 +1760,361 @@ def _load_attention_research_bundle_session_cached(
     )
     st.session_state[cache_key] = bundle
     return bundle
+
+
+def _news_row_matches_symbol(value: object, target_symbols: set[str]) -> bool:
+    if not target_symbols:
+        return False
+    if value is None:
+        return False
+    if isinstance(value, str):
+        items = [value]
+    elif isinstance(value, (list, tuple, set, pd.Series, pd.Index)):
+        items = list(value)
+    else:
+        tolist = getattr(value, "tolist", None)
+        if callable(tolist):
+            try:
+                listed = tolist()
+            except Exception:
+                listed = value
+            if isinstance(listed, list):
+                items = listed
+            elif isinstance(listed, tuple):
+                items = list(listed)
+            else:
+                items = [listed]
+        else:
+            items = [value]
+    tokens: set[str] = set()
+    for item in items:
+        for token in str(item).replace("|", ",").split(","):
+            cleaned = token.upper().strip()
+            if cleaned and cleaned.lower() != "nan":
+                tokens.add(cleaned)
+    return bool(tokens & target_symbols)
+
+
+def _load_related_news_from_database(
+    ticker: str,
+    *,
+    related_symbols: list[str] | None = None,
+    limit: int = 6,
+) -> pd.DataFrame:
+    frame, _ = load_latest_dataset_frame("news_articles")
+    if frame.empty:
+        return pd.DataFrame()
+    targets = {
+        str(symbol).upper().strip()
+        for symbol in [ticker, *(related_symbols or [])]
+        if str(symbol).strip()
+    }
+    if not targets:
+        return pd.DataFrame()
+    rows = frame.copy()
+    if "symbols" in rows.columns:
+        rows = rows[rows["symbols"].apply(lambda value: _news_row_matches_symbol(value, targets))].copy()
+    elif "symbol" in rows.columns:
+        rows["symbol"] = rows["symbol"].astype(str).str.upper().str.strip()
+        rows = rows[rows["symbol"].isin(targets)].copy()
+    else:
+        return pd.DataFrame()
+    if rows.empty:
+        return rows
+    if "published_at" in rows.columns:
+        rows["published_at"] = pd.to_datetime(rows["published_at"], utc=True, errors="coerce")
+        rows = rows.sort_values("published_at", ascending=False, na_position="last")
+    subset_cols = [col for col in ["headline", "published_at", "url"] if col in rows.columns]
+    if subset_cols:
+        rows = rows.drop_duplicates(subset=subset_cols, keep="first")
+    return rows.head(limit).reset_index(drop=True)
+
+
+def _render_related_news_database_section(
+    ticker: str,
+    *,
+    related_symbols: list[str] | None = None,
+    limit: int = 6,
+    heading: str = "Related News From Database",
+) -> None:
+    rows = _load_related_news_from_database(
+        ticker,
+        related_symbols=related_symbols,
+        limit=limit,
+    )
+    st.markdown(f"**{heading}**")
+    if rows.empty:
+        st.caption("No related database-backed news was available in the latest materialized snapshot.")
+        return
+    st.caption("Source: materialized `news_articles` dataset")
+    for _, row in rows.iterrows():
+        headline = str(row.get("headline") or "Untitled").strip()
+        source = str(row.get("source") or "News").strip()
+        published_at = pd.to_datetime(row.get("published_at"), utc=True, errors="coerce")
+        published_label = published_at.strftime("%Y-%m-%d %H:%M UTC") if pd.notna(published_at) else "n/a"
+        url = str(row.get("url") or "").strip()
+        excerpt = _clean_attention_copy(row.get("summary") or row.get("description"))
+        meta = " | ".join(part for part in [source, published_label] if part)
+        if url:
+            st.markdown(f"- [{headline}]({url})")
+        else:
+            st.markdown(f"- {headline}")
+        if excerpt:
+            st.caption(excerpt)
+        if meta:
+            st.caption(meta)
+
+
+def _render_home_ticker_background_panel(
+    cfg: AppConfig,
+    ticker: str,
+    *,
+    force_data_refresh: bool,
+) -> None:
+    target = str(ticker or "").upper().strip()
+    if not target:
+        return
+    business_lens = business_focus_for_symbol(target) or "All Market"
+    with st.container(border=True):
+        header_cols = st.columns([4.2, 1.6, 1.2])
+        with header_cols[0]:
+            st.subheader(f"{target} Background")
+            st.caption("Loaded from the Home page ticker chart interaction.")
+        with header_cols[1]:
+            if st.button("Open In Market Opportunity", key=f"home_background_open_market_{target}", use_container_width=True):
+                _open_attention_target(
+                    "Market Opportunity",
+                    {"ticker": target, "market_view": "Markets", "business_filter": business_lens},
+                )
+        with header_cols[2]:
+            if st.button("Clear", key=f"home_background_clear_{target}", use_container_width=True):
+                st.session_state.pop("home_selected_ticker", None)
+                st.rerun()
+
+        materialized_background: dict[str, object] = {}
+        try:
+            materialized_background = _load_attention_ticker_background_cached(
+                cfg,
+                target,
+                force_refresh=force_data_refresh,
+            )
+        except Exception:
+            materialized_background = {}
+
+        if str(materialized_background.get("symbol") or "").upper().strip() == target:
+            price_points = materialized_background.get("price_points")
+            price_frame = pd.DataFrame(price_points if isinstance(price_points, list) else [])
+            if not price_frame.empty and {"timestamp", "close"}.issubset(price_frame.columns):
+                price_frame["timestamp"] = pd.to_datetime(price_frame["timestamp"], utc=True, errors="coerce")
+                price_frame["close"] = pd.to_numeric(price_frame["close"], errors="coerce")
+                price_frame = price_frame.dropna(subset=["timestamp", "close"]).sort_values("timestamp")
+            if price_frame.empty:
+                price_frame = _load_public_price_history_cached(
+                    target,
+                    days=180,
+                    force_refresh=force_data_refresh,
+                )
+            if not price_frame.empty:
+                price_fig = go.Figure(
+                    go.Scatter(
+                        x=price_frame["timestamp"],
+                        y=price_frame["close"],
+                        mode="lines",
+                        name=target,
+                        line={"color": "#38bdf8", "width": 2.3},
+                    )
+                )
+                price_fig.update_layout(
+                    template="plotly_dark",
+                    height=260,
+                    margin={"l": 12, "r": 12, "t": 8, "b": 12},
+                    xaxis_title="",
+                    yaxis_title="Price",
+                    showlegend=False,
+                )
+                st.plotly_chart(price_fig, use_container_width=True)
+
+            description = str(materialized_background.get("description_text") or "").strip()
+            if description:
+                st.write(description)
+
+            summary_lines = [
+                str(item).strip()
+                for item in list(materialized_background.get("news_summary_lines") or [])
+                if str(item).strip()
+            ]
+            if summary_lines:
+                st.markdown("**Recent News Snapshot**")
+                st.markdown("\n".join(f"- {line}" for line in summary_lines))
+
+            llm_source_line = str(materialized_background.get("llm_source_line") or "").strip()
+            llm_headline = str(materialized_background.get("llm_headline") or "").strip()
+            llm_summary_text = str(materialized_background.get("llm_summary_text") or "").strip()
+            primary_context_text = str(materialized_background.get("context_story_text") or "").strip()
+            if llm_source_line:
+                st.caption(llm_source_line)
+            if llm_headline:
+                st.markdown(f"**Primary-Source Narrative**  \n{llm_headline}")
+            if llm_summary_text:
+                st.write(llm_summary_text)
+            if primary_context_text:
+                st.caption(primary_context_text)
+
+            _render_related_news_database_section(target, limit=6)
+
+            recent_headlines = list(materialized_background.get("recent_headlines") or [])
+            if recent_headlines:
+                with st.expander("Recent Headlines", expanded=False):
+                    for item in recent_headlines:
+                        if not isinstance(item, dict):
+                            continue
+                        headline = str(item.get("headline") or "Untitled").strip()
+                        source = str(item.get("source") or "News").strip()
+                        published_at = pd.to_datetime(item.get("published_at"), utc=True, errors="coerce")
+                        published_label = published_at.strftime("%Y-%m-%d") if pd.notna(published_at) else "n/a"
+                        url = str(item.get("url") or "").strip()
+                        if url:
+                            st.markdown(f"- [{headline}]({url})")
+                        else:
+                            st.markdown(f"- {headline}")
+                        st.caption(" | ".join(part for part in [source, published_label] if part))
+
+            fundamentals = _filter_fundamentals_asof(
+                _load_quarterly_fundamentals_cached(target, force_refresh=force_data_refresh),
+                asof_time_utc=materialized_background.get("asof_time_utc"),
+            )
+            income = fundamentals.get("income", pd.DataFrame())
+            balance = fundamentals.get("balance", pd.DataFrame())
+            cashflow = fundamentals.get("cashflow", pd.DataFrame())
+            if income.empty and balance.empty and cashflow.empty:
+                st.info("No quarterly fundamentals found for this ticker in the local dataset.")
+            else:
+                st.markdown("**Fundamentals**")
+                fund_left, fund_center, fund_right = st.columns(3)
+                with fund_left:
+                    st.plotly_chart(plot_statement(income, f"{target} Income"), use_container_width=True)
+                with fund_center:
+                    st.plotly_chart(plot_statement(balance, f"{target} Balance"), use_container_width=True)
+                with fund_right:
+                    st.plotly_chart(plot_statement(cashflow, f"{target} Cash Flow"), use_container_width=True)
+            return
+
+        try:
+            with st.spinner("Loading company background..."):
+                asset = _load_asset_metadata_cached(cfg, target, force_refresh=force_data_refresh)
+                news_payload = _load_recent_news_cached(
+                    cfg,
+                    target,
+                    days=14,
+                    limit=6,
+                    force_refresh=force_data_refresh,
+                )
+                attention_context = _load_attention_context_cached(
+                    cfg,
+                    target,
+                    force_refresh=force_data_refresh,
+                )
+                fundamentals = _load_quarterly_fundamentals_cached(
+                    target,
+                    force_refresh=force_data_refresh,
+                )
+                price = _load_price_history_cached(
+                    cfg,
+                    target,
+                    days=180,
+                    force_refresh=force_data_refresh,
+                )
+        except Exception as exc:
+            st.warning(f"Could not load background for {target}: {exc}")
+            return
+
+        if isinstance(price, pd.DataFrame) and price.empty:
+            price = _load_public_price_history_cached(
+                target,
+                days=180,
+                force_refresh=force_data_refresh,
+            )
+
+        if isinstance(price, pd.DataFrame) and not price.empty and {"timestamp", "close"}.issubset(price.columns):
+            price_fig = go.Figure(
+                go.Scatter(
+                    x=price["timestamp"],
+                    y=price["close"],
+                    mode="lines",
+                    name=target,
+                    line={"color": "#38bdf8", "width": 2.3},
+                )
+            )
+            price_fig.update_layout(
+                template="plotly_dark",
+                height=260,
+                margin={"l": 12, "r": 12, "t": 8, "b": 12},
+                xaxis_title="",
+                yaxis_title="Price",
+                showlegend=False,
+            )
+            st.plotly_chart(price_fig, use_container_width=True)
+
+        description = build_company_description(
+            target,
+            asset,
+            fundamentals,
+            {},
+            news_payload=news_payload,
+            active_lens=business_lens,
+        )
+        st.write(description)
+
+        news_summary = summarize_recent_news(target, news_payload)
+        summary_lines = news_summary.get("summary_lines", [])
+        if summary_lines:
+            st.markdown("**Recent News Snapshot**")
+            st.markdown("\n".join(f"- {line}" for line in summary_lines))
+
+        llm_source_line = str(attention_context.get("llm_source_line") or "").strip()
+        llm_headline = str(attention_context.get("llm_headline") or "").strip()
+        llm_summary_text = str(attention_context.get("llm_summary_text") or "").strip()
+        primary_context_text = str(attention_context.get("context_story_text") or "").strip()
+        if llm_source_line:
+            st.caption(llm_source_line)
+        if llm_headline:
+            st.markdown(f"**Primary-Source Narrative**  \n{llm_headline}")
+        if llm_summary_text:
+            st.write(llm_summary_text)
+        if primary_context_text:
+            st.caption(primary_context_text)
+
+        _render_related_news_database_section(target, limit=6)
+
+        news_articles = news_summary.get("articles", pd.DataFrame())
+        if isinstance(news_articles, pd.DataFrame) and not news_articles.empty:
+            with st.expander("Recent Headlines", expanded=False):
+                for _, row in news_articles.iterrows():
+                    headline = str(row.get("headline") or "Untitled").strip()
+                    source = str(row.get("source") or "News").strip()
+                    published_at = pd.to_datetime(row.get("published_at"), utc=True, errors="coerce")
+                    published_label = published_at.strftime("%Y-%m-%d") if pd.notna(published_at) else "n/a"
+                    url = str(row.get("url") or "").strip()
+                    if url:
+                        st.markdown(f"- [{headline}]({url})")
+                    else:
+                        st.markdown(f"- {headline}")
+                    st.caption(" | ".join(part for part in [source, published_label] if part))
+
+        income = fundamentals.get("income", pd.DataFrame())
+        balance = fundamentals.get("balance", pd.DataFrame())
+        cashflow = fundamentals.get("cashflow", pd.DataFrame())
+        if income.empty and balance.empty and cashflow.empty:
+            st.info("No quarterly fundamentals found for this ticker in the local dataset.")
+        else:
+            st.markdown("**Fundamentals**")
+            fund_left, fund_center, fund_right = st.columns(3)
+            with fund_left:
+                st.plotly_chart(plot_statement(income, f"{target} Income"), use_container_width=True)
+            with fund_center:
+                st.plotly_chart(plot_statement(balance, f"{target} Balance"), use_container_width=True)
+            with fund_right:
+                st.plotly_chart(plot_statement(cashflow, f"{target} Cash Flow"), use_container_width=True)
 
 
 def _load_fred_dashboard_cached(api_key: str, years: int, force_refresh: bool = False) -> dict[str, object]:
@@ -2684,7 +3324,12 @@ def _bundle_toggle_key(bundle_id: str, key_prefix: str) -> str:
     return f"{key_prefix}_{cleaned}_research_open"
 
 
-def _render_attention_research_bundle_panel(bundle: dict[str, object]) -> None:
+def _render_attention_research_bundle_panel(
+    bundle: dict[str, object],
+    *,
+    ticker_click_target: str = "",
+    ticker_table_key_prefix: str = "",
+) -> None:
     bundle_type = str(bundle.get("bundle_type") or "").strip()
     if bundle_type == "event":
         if str(bundle.get("what_happened_text") or "").strip():
@@ -2790,7 +3435,13 @@ def _render_attention_research_bundle_panel(bundle: dict[str, object]) -> None:
                     "note_secondary": headline,
                 }
             )
-        _render_ticker_snapshot_table(snapshot_cfg, peer_rows, show_header=True)
+        _render_ticker_snapshot_table(
+            snapshot_cfg,
+            peer_rows,
+            show_header=True,
+            click_target=ticker_click_target,
+            key_prefix=f"{ticker_table_key_prefix or 'attention_bundle'}_peer_moves",
+        )
 
     related_symbols = bundle.get("related_symbols") or []
     if isinstance(related_symbols, list) and related_symbols:
@@ -2812,7 +3463,13 @@ def _render_attention_research_bundle_panel(bundle: dict[str, object]) -> None:
                     "note_secondary": headline or "Linked move",
                 }
             )
-        _render_ticker_snapshot_table(snapshot_cfg, related_rows, show_header=True)
+        _render_ticker_snapshot_table(
+            snapshot_cfg,
+            related_rows,
+            show_header=True,
+            click_target=ticker_click_target,
+            key_prefix=f"{ticker_table_key_prefix or 'attention_bundle'}_related_symbols",
+        )
 
 
 def _render_attention_home_event_card(
@@ -2846,6 +3503,7 @@ def _render_attention_home_event_card(
                 ],
                 force_refresh=force_refresh,
                 show_header=False,
+                key_prefix=f"{key_prefix}_{bundle_id or 'event'}_anchor",
             )
         with header_cols[1]:
             st.metric("Event", _format_scalar(event.get("event_score"), digits=1))
@@ -2877,7 +3535,10 @@ def _render_attention_home_event_card(
             if not bundle:
                 bundle = _safe_load_attention_research_bundle_cached(cfg, bundle_id, force_refresh=force_refresh)
             st.markdown("---")
-            _render_attention_research_bundle_panel(bundle)
+            _render_attention_research_bundle_panel(
+                bundle,
+                ticker_table_key_prefix=f"{key_prefix}_{bundle_id or 'event'}_bundle",
+            )
 
 
 def _render_attention_home_mover_card(
@@ -2911,6 +3572,7 @@ def _render_attention_home_mover_card(
                 ],
                 force_refresh=force_refresh,
                 show_header=False,
+                key_prefix=f"{key_prefix}_{bundle_id or mover.get('symbol') or 'mover'}_anchor",
             )
         with header_cols[1]:
             st.metric("Move", _format_scalar(mover.get("change_pct"), digits=1, suffix="%", signed=True))
@@ -2941,7 +3603,10 @@ def _render_attention_home_mover_card(
             if not bundle:
                 bundle = _safe_load_attention_research_bundle_cached(cfg, bundle_id, force_refresh=force_refresh)
             st.markdown("---")
-            _render_attention_research_bundle_panel(bundle)
+            _render_attention_research_bundle_panel(
+                bundle,
+                ticker_table_key_prefix=f"{key_prefix}_{bundle_id or mover.get('symbol') or 'mover'}_bundle",
+            )
 
 
 def _render_home_attention(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_refresh: bool) -> None:
@@ -3067,6 +3732,7 @@ def _render_homepage_v2_story_fragment(
     main_cols = st.columns([1.45, 1.05], gap="large")
     with main_cols[0]:
         st.subheader("Narrative Thread")
+        st.caption("Use Inspect in the chart column to open a company background below without leaving Home.")
         for index, beat in enumerate(beats):
             beat_sentence = str(beat.get("sentence") or "").strip()
             bundle_id = str(beat.get("bundle_id") or "").strip()
@@ -3083,6 +3749,8 @@ def _render_homepage_v2_story_fragment(
                         [{"symbol": symbol} for symbol in beat_symbols[:8] if str(symbol).strip()],
                         force_refresh=force_data_refresh,
                         show_header=True,
+                        click_target="home",
+                        key_prefix=f"homepage_v2_beat_{bundle_id or index}_symbols",
                     )
                 if st.button(
                     "Inspect research",
@@ -3116,7 +3784,20 @@ def _render_homepage_v2_story_fragment(
             fallback_item = next((beat for beat in beats if str(beat.get("bundle_id") or "").strip() == selected_bundle_id), {})
             title = _attention_bundle_title(bundle, fallback=fallback_item)
             st.markdown(f"### {title}")
-            _render_attention_research_bundle_panel(bundle)
+            _render_attention_research_bundle_panel(
+                bundle,
+                ticker_click_target="home",
+                ticker_table_key_prefix=f"homepage_v2_bundle_{selected_bundle_id or 'selected'}",
+            )
+
+    selected_home_ticker = str(st.session_state.get("home_selected_ticker") or "").upper().strip()
+    if selected_home_ticker:
+        st.markdown("---")
+        _render_home_ticker_background_panel(
+            cfg,
+            selected_home_ticker,
+            force_data_refresh=force_data_refresh,
+        )
 
 
 def _render_homepage_v2(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_refresh: bool) -> None:
@@ -4578,6 +5259,7 @@ app_track = (os.getenv("APP_TRACK") or "local").strip().lower()
 cache_disabled = (os.getenv("APP_DISABLE_CACHE") or "").strip().lower() in {"1", "true", "yes", "on"}
 source_refresh_flags = dict(st.session_state.get("_source_force_refresh", {}))
 st.session_state["_source_force_refresh"] = source_refresh_flags
+_consume_cross_page_inspector_query_params()
 section_options = _section_options()
 pending_workspace_section = _normalize_workspace_section(st.session_state.pop("_pending_workspace_section", ""))
 current_workspace_section = _normalize_workspace_section(st.session_state.get("workspace_section"))
@@ -5805,6 +6487,8 @@ elif section == "Market Opportunity":
             st.markdown("\n".join(f"- {line}" for line in summary_lines))
         else:
             st.info("No recent news summary was available for this ticker.")
+
+        _render_related_news_database_section(ticker, limit=6)
 
         primary_context_text = str(attention_context.get("context_story_text") or "").strip()
         primary_excerpt = str(attention_context.get("primary_source_excerpt") or "").strip()

@@ -64,6 +64,16 @@ LOW_SIGNAL_PHRASES = (
     "market today",
     "stock market today",
 )
+YIELD_RELEVANT_TAGS = {
+    "rates",
+    "duration",
+    "credit",
+    "inflation_proxy",
+    "real_rates",
+    "treasury",
+    "yield",
+    "yields",
+}
 EXPOSURE_BRIDGE_WEIGHTS: dict[str, dict[str, float]] = {
     "oil": {
         "oil_beneficiary": 0.36,
@@ -714,10 +724,79 @@ def _generic_query_candidates(candidate: dict[str, Any], peer_symbols: list[str]
     return deduped[:4]
 
 
+def _yield_context_relevant(candidate: dict[str, Any]) -> bool:
+    if _coerce_text(candidate.get("rates_role")):
+        return True
+    tags = {
+        _coerce_text(tag).lower()
+        for tag in _safe_list(candidate.get("macro_exposure_tags")) + _safe_list(candidate.get("business_tags"))
+        if _coerce_text(tag)
+    }
+    return bool(tags & YIELD_RELEVANT_TAGS)
+
+
+def _latest_yield_facts(yield_curve_facts_frame: pd.DataFrame | None) -> dict[str, Any]:
+    if not isinstance(yield_curve_facts_frame, pd.DataFrame) or yield_curve_facts_frame.empty:
+        return {}
+    row = yield_curve_facts_frame.copy().iloc[-1].to_dict()
+    out: dict[str, Any] = {}
+    for key, value in row.items():
+        if key in {"source_dataset", "asof_time_utc", "latest_date", "updated_at_utc"}:
+            out[key] = _coerce_text(pd.to_datetime(value, utc=True, errors="coerce").isoformat() if key.endswith("_utc") and pd.notna(pd.to_datetime(value, utc=True, errors="coerce")) else value)
+            continue
+        numeric = _coerce_float(value)
+        out[key] = None if math.isnan(numeric) else round(float(numeric), 2)
+    return out
+
+
+def _yield_fact_summary_text(yield_facts: dict[str, Any]) -> str:
+    if not yield_facts:
+        return ""
+
+    def _yield_piece(level_key: str, delta_key: str, label: str) -> str:
+        level = yield_facts.get(level_key)
+        delta = yield_facts.get(delta_key)
+        if level is None:
+            return ""
+        piece = f"{label} {float(level):.2f}%"
+        if delta is not None:
+            piece += f" ({float(delta):+,.0f} bps)"
+        return piece
+
+    levels = [
+        _yield_piece("ust_3m", "ust_3m_1d_bps", "3M"),
+        _yield_piece("ust_2y", "ust_2y_1d_bps", "2Y"),
+        _yield_piece("ust_10y", "ust_10y_1d_bps", "10Y"),
+        _yield_piece("ust_30y", "ust_30y_1d_bps", "30Y"),
+    ]
+    levels = [item for item in levels if item]
+    curve_bits = []
+    for level_key, delta_key, label in (
+        ("curve_2s10s", "curve_2s10s_1d_bps", "2s10s"),
+        ("curve_3m10y", "curve_3m10y_1d_bps", "3m10y"),
+    ):
+        level = yield_facts.get(level_key)
+        delta = yield_facts.get(delta_key)
+        if level is None:
+            continue
+        bit = f"{label} {float(level) * 100.0:+,.0f} bps"
+        if delta is not None:
+            bit += f" ({float(delta):+,.0f} bps)"
+        curve_bits.append(bit)
+    parts: list[str] = []
+    if levels:
+        parts.append("Treasury yields: " + ", ".join(levels[:4]) + ".")
+    if curve_bits:
+        parts.append("Curve: " + ", ".join(curve_bits[:2]) + ".")
+    return " ".join(parts)
+
+
 def _fallback_research_plan(candidate: dict[str, Any], peer_symbols: list[str]) -> dict[str, Any]:
     routes = ["sec"] if _coerce_text(candidate.get("security_type")).lower() == "common_stock" else []
     if _safe_list(candidate.get("macro_exposure_tags")) or _coerce_text(candidate.get("rates_role")) or _coerce_text(candidate.get("commodity_role")):
         routes.append("fred")
+    if _yield_context_relevant(candidate):
+        routes.append("treasury")
     routes.append("news")
     routes = list(dict.fromkeys(route for route in routes if route))
     subject = _candidate_subject(candidate)
@@ -903,6 +982,7 @@ def _candidate_context_documents(
     context_payloads: dict[str, dict[str, Any]] | None,
     filings_frame: pd.DataFrame | None,
     fred_summary_frame: pd.DataFrame | None,
+    yield_curve_facts_frame: pd.DataFrame | None,
     run_id: str,
     asof_time_utc: pd.Timestamp,
     official_routes: list[str],
@@ -1025,6 +1105,29 @@ def _candidate_context_documents(
                     "raw_text": summary,
                     "display_excerpt": _display_excerpt(summary),
                     "source_trace": _json_dumps({"source": "fred_summary"}),
+                }
+            )
+    if "treasury" in {route.lower() for route in official_routes} and _yield_context_relevant(candidate):
+        yield_facts = _latest_yield_facts(yield_curve_facts_frame)
+        summary = _yield_fact_summary_text(yield_facts)
+        if summary:
+            documents.append(
+                {
+                    "run_id": run_id,
+                    "asof_time_utc": asof_time_utc,
+                    "candidate_id": _coerce_text(candidate.get("candidate_id")),
+                    "bundle_subject": symbol,
+                    "document_id": f"doc::{symbol}::treasury::yield_curve",
+                    "source_kind": "treasury",
+                    "source_provider": "U.S. Treasury",
+                    "source_authority_bucket": "official",
+                    "authority_rank": 0,
+                    "title": "Treasury Yield Curve",
+                    "url": "https://home.treasury.gov/treasury-daily-interest-rate-xml-feed",
+                    "published_at": pd.to_datetime(yield_facts.get("latest_date"), errors="coerce"),
+                    "raw_text": summary,
+                    "display_excerpt": _display_excerpt(summary),
+                    "source_trace": _json_dumps({"source": "yield_curve_facts_1d"}),
                 }
             )
     deduped: list[dict[str, Any]] = []
@@ -1307,6 +1410,7 @@ def _fallback_symbol_writer(
     claims: list[dict[str, Any]],
     peer_moves: list[dict[str, Any]],
     cause_status: str,
+    yield_facts: dict[str, Any] | None = None,
 ) -> dict[str, str]:
     subject = _candidate_subject(candidate) or _normalize_symbol(candidate.get("symbol"))
     title = f"{subject} moves sharply today"
@@ -1321,6 +1425,10 @@ def _fallback_symbol_writer(
         why_today = "Coverage points to multiple competing explanations today, and no single cause is clearly dominant yet."
     else:
         why_today = f"No clear same-day catalyst was identified for {_normalize_symbol(candidate.get('symbol'))}."
+    if _yield_context_relevant(candidate):
+        yield_summary = _yield_fact_summary_text(yield_facts or {})
+        if yield_summary:
+            why_today = f"{why_today.rstrip('.')} {yield_summary}".strip()
     if peer_moves:
         preview = ", ".join(f"{item['symbol']} {float(item['change_pct']):+.1f}%" for item in peer_moves[:3])
         what_else = f"Related names also moved today, including {preview}."
@@ -1345,14 +1453,15 @@ def _write_symbol_bundle(
     *,
     llm_client: LLMClient | None,
     cause_status: str,
+    yield_facts: dict[str, Any] | None = None,
 ) -> dict[str, str]:
-    fallback = _fallback_symbol_writer(candidate, claims, peer_moves, cause_status)
+    fallback = _fallback_symbol_writer(candidate, claims, peer_moves, cause_status, yield_facts=yield_facts)
     if llm_client is None:
         return fallback
     system_prompt = (
         "You write plain-language market research summaries. "
         "Use only the supplied claims and facts. Keep the surface summary to at most two sentences. "
-        "Do not invent causes. Avoid jargon."
+        "Do not invent causes. Avoid jargon. When numeric Treasury yield facts are supplied, prefer exact bp moves over vague rate language."
     )
     user_prompt = json.dumps(
         {
@@ -1369,6 +1478,7 @@ def _write_symbol_bundle(
                 }
                 for item in claims[:6]
             ],
+            "yield_facts": yield_facts or {},
             "peer_moves": peer_moves[:4],
             "fallback": fallback,
         },
@@ -1461,10 +1571,22 @@ def _infer_event_type(cluster_tokens: set[str], cluster_rows: pd.DataFrame) -> s
     return sectors[0].lower().replace(" ", "_") if sectors else "cluster"
 
 
+def _cluster_uses_yield_context(cluster_rows: pd.DataFrame) -> bool:
+    if "rates_role" in cluster_rows.columns and not cluster_rows["rates_role"].dropna().empty:
+        return True
+    raw_tags: list[str] = []
+    for value in cluster_rows.get("macro_exposure_tags", pd.Series(dtype=object)).tolist():
+        raw_tags.extend([_coerce_text(item).lower() for item in _safe_list(value) if _coerce_text(item)])
+    for value in cluster_rows.get("business_tags", pd.Series(dtype=object)).tolist():
+        raw_tags.extend([_coerce_text(item).lower() for item in _safe_list(value) if _coerce_text(item)])
+    return bool(set(raw_tags) & YIELD_RELEVANT_TAGS)
+
+
 def _fallback_event_writer(
     event_title_seed: str,
     cluster_rows: pd.DataFrame,
     retained_claims: list[dict[str, Any]],
+    yield_facts: dict[str, Any] | None = None,
 ) -> dict[str, str]:
     ranked = cluster_rows.copy()
     ranked["_change_pct"] = pd.to_numeric(ranked.get("change_pct"), errors="coerce").fillna(0.0)
@@ -1495,7 +1617,13 @@ def _fallback_event_writer(
         what_happened = "A linked group of assets moved sharply today."
     if members:
         what_happened = f"{what_happened.rstrip('.')}." + f" Led by {', '.join(members)}."
-    why_happened = _first_sentence(retained_claims[0].get("claim_text")) if retained_claims else "No single same-day explanation is clearly confirmed yet."
+    if retained_claims:
+        why_happened = _first_sentence(retained_claims[0].get("claim_text"))
+    else:
+        why_happened = "No single same-day explanation is clearly confirmed yet."
+    yield_summary = _yield_fact_summary_text(yield_facts or {})
+    if yield_summary and _cluster_uses_yield_context(cluster_rows):
+        why_happened = f"{why_happened.rstrip('.')} {yield_summary}".strip()
     up = []
     down = []
     for _, row in ranked.iterrows():
@@ -1530,14 +1658,15 @@ def _write_event_bundle(
     retained_claims: list[dict[str, Any]],
     *,
     llm_client: LLMClient | None,
+    yield_facts: dict[str, Any] | None = None,
 ) -> dict[str, str]:
-    fallback = _fallback_event_writer(event_title_seed, cluster_rows, retained_claims)
+    fallback = _fallback_event_writer(event_title_seed, cluster_rows, retained_claims, yield_facts=yield_facts)
     if llm_client is None:
         return fallback
     system_prompt = (
         "You write concise cross-asset market-event summaries. "
         "Use only the supplied facts and claims. Keep the surface summary at two sentences or less. "
-        "Do not use canned oil/rates/risk phrases."
+        "Do not use canned oil/rates/risk phrases. When numeric Treasury yield facts are supplied, use the actual bp moves."
     )
     user_prompt = json.dumps(
         {
@@ -1561,6 +1690,7 @@ def _write_event_bundle(
                 }
                 for item in retained_claims[:8]
             ],
+            "yield_facts": yield_facts or {},
             "fallback": fallback,
         },
         ensure_ascii=False,
@@ -1692,10 +1822,11 @@ def _build_candidate_bundle(
     prompt_version: str,
     model_name: str,
     run_id: str,
+    yield_facts: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     cause_status, why_today_mode = _judge_cause_status(claims)
     evidence_quality, freshness_quality = _quality_label(claims, cause_status)
-    written = _write_symbol_bundle(candidate, claims, peer_moves, llm_client=llm_client, cause_status=cause_status)
+    written = _write_symbol_bundle(candidate, claims, peer_moves, llm_client=llm_client, cause_status=cause_status, yield_facts=yield_facts)
     evidence = []
     background = []
     for doc in documents:
@@ -1745,7 +1876,11 @@ def _build_candidate_bundle(
         "peer_moves": peer_moves[:6],
         "claims": claims[:8],
         "supporting_claim_ids": top_claim_ids,
-        "source_trace": {"sources": list(dict.fromkeys(doc.get("source_kind") for doc in documents if _coerce_text(doc.get("source_kind"))))},
+        "yield_facts": dict(yield_facts or {}),
+        "source_trace": {
+            "sources": list(dict.fromkeys(doc.get("source_kind") for doc in documents if _coerce_text(doc.get("source_kind")))),
+            "macro_facts_dataset": "yield_curve_facts_1d" if yield_facts else "",
+        },
     }
 
 
@@ -1758,6 +1893,7 @@ def _build_event_bundle(
     prompt_version: str,
     model_name: str,
     run_id: str,
+    yield_facts: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     cluster_tokens = set()
     for _, row in cluster_rows.iterrows():
@@ -1773,6 +1909,7 @@ def _build_event_bundle(
         cluster_rows,
         cluster_claims,
         llm_client=llm_client,
+        yield_facts=yield_facts,
     )
     event_score = float(cluster_rows["candidate_score"].fillna(0).sum()) + len(cluster_rows["asset_class"].astype(str).dropna().unique()) * 8.0
     up_symbols = [_normalize_symbol(row.get("symbol")) for _, row in cluster_rows.iterrows() if _coerce_float(row.get("change_pct"), 0.0) >= 0]
@@ -1805,6 +1942,7 @@ def _build_event_bundle(
         "loser_symbols": list(dict.fromkeys(down_symbols[:6])),
         "claims": cluster_claims[:10],
         "supporting_claim_ids": [item["claim_id"] for item in cluster_claims[:6]],
+        "yield_facts": dict(yield_facts or {}) if _cluster_uses_yield_context(cluster_rows) else {},
         "peer_moves": [],
         "related_symbols": [
             {
@@ -2020,6 +2158,7 @@ def build_bottom_up_attention_artifacts(
     generated_at_utc: datetime | str | None = None,
     filings_frame: pd.DataFrame | None = None,
     fred_summary_frame: pd.DataFrame | None = None,
+    yield_curve_facts_frame: pd.DataFrame | None = None,
     llm_client: LLMClient | None = None,
     embedding_client: EmbeddingClient | None = None,
     run_id: str | None = None,
@@ -2128,6 +2267,7 @@ def build_bottom_up_attention_artifacts(
             context_payloads=context_payloads,
             filings_frame=filings_frame,
             fred_summary_frame=fred_summary_frame,
+            yield_curve_facts_frame=yield_curve_facts_frame,
             run_id=run_id,
             asof_time_utc=asof_time_utc,
             official_routes=[_coerce_text(route) for route in list(plan.get("official_routes") or [])],
@@ -2188,6 +2328,7 @@ def build_bottom_up_attention_artifacts(
             prompt_version=prompt_version,
             model_name=model_name,
             run_id=run_id,
+            yield_facts=_latest_yield_facts(yield_curve_facts_frame) if _yield_context_relevant(candidate) else {},
         )
         bundle_map[bundle["bundle_id"]] = bundle
 
@@ -2206,6 +2347,7 @@ def build_bottom_up_attention_artifacts(
             prompt_version=prompt_version,
             model_name="heuristic",
             run_id=run_id,
+            yield_facts=_latest_yield_facts(yield_curve_facts_frame) if _yield_context_relevant(candidate) else {},
         )
         claim_map[symbol] = []
 
@@ -2235,6 +2377,7 @@ def build_bottom_up_attention_artifacts(
             prompt_version=prompt_version,
             model_name=model_name,
             run_id=run_id,
+            yield_facts=_latest_yield_facts(yield_curve_facts_frame),
         )
         bundle_map[bundle["bundle_id"]] = bundle
         event_bundles.append(bundle)
@@ -2249,15 +2392,18 @@ def build_bottom_up_attention_artifacts(
                 "beneficiary_symbols_json": _json_dumps(bundle.get("beneficiary_symbols") or []),
                 "loser_symbols_json": _json_dumps(bundle.get("loser_symbols") or []),
                 "event_facts_json": _json_dumps(
-                    [
-                        {
-                            "symbol": _normalize_symbol(row.get("symbol")),
-                            "change_pct": _coerce_float(row.get("change_pct")),
-                            "sector": _coerce_text(row.get("sector")),
-                            "industry": _coerce_text(row.get("industry")),
-                        }
-                        for _, row in cluster_rows.iterrows()
-                    ]
+                    {
+                        "members": [
+                            {
+                                "symbol": _normalize_symbol(row.get("symbol")),
+                                "change_pct": _coerce_float(row.get("change_pct")),
+                                "sector": _coerce_text(row.get("sector")),
+                                "industry": _coerce_text(row.get("industry")),
+                            }
+                            for _, row in cluster_rows.iterrows()
+                        ],
+                        "yield_facts": bundle.get("yield_facts") or {},
+                    }
                 ),
                 "supporting_claim_ids_json": _json_dumps(bundle.get("supporting_claim_ids") or []),
                 "event_score": _coerce_float(bundle.get("event_score"), 0.0),
@@ -2305,6 +2451,7 @@ def build_bottom_up_attention_home(
     generated_at_utc: datetime | str | None = None,
     filings_frame: pd.DataFrame | None = None,
     fred_summary_frame: pd.DataFrame | None = None,
+    yield_curve_facts_frame: pd.DataFrame | None = None,
     llm_client: LLMClient | None = None,
     embedding_client: EmbeddingClient | None = None,
     run_id: str | None = None,
@@ -2323,6 +2470,7 @@ def build_bottom_up_attention_home(
         generated_at_utc=generated_at_utc,
         filings_frame=filings_frame,
         fred_summary_frame=fred_summary_frame,
+        yield_curve_facts_frame=yield_curve_facts_frame,
         llm_client=llm_client,
         embedding_client=embedding_client,
         run_id=run_id,

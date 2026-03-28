@@ -23,8 +23,13 @@ DATASET_CAPABILITIES: dict[str, dict[str, Any]] = {
     "technical_signal_summary": {"params": ["ticker", "force_refresh"], "resolution": "materialized_first_then_computed"},
     "forecast_next_week": {"params": ["ticker", "days", "horizon", "simulations", "force_refresh"], "resolution": "computed_from_signal_history"},
     "quarterly_fundamentals": {"params": ["ticker", "force_refresh"], "resolution": "materialized_first"},
+    "yield_curve_summary": {"params": ["force_refresh"], "resolution": "materialized_first"},
+    "yield_curve_observations": {"params": ["days", "force_refresh"], "resolution": "materialized_first"},
+    "yield_curve_facts_1d": {"params": ["force_refresh"], "resolution": "materialized_first"},
     "recent_news": {"params": ["ticker", "days", "limit", "force_refresh"], "resolution": "materialized_first"},
     "attention_context": {"params": ["ticker", "force_refresh"], "resolution": "materialized"},
+    "attention_ticker_snapshot": {"params": ["ticker", "force_refresh"], "resolution": "materialized_first"},
+    "attention_ticker_background": {"params": ["ticker", "force_refresh"], "resolution": "materialized_first"},
     "attention_home_1d": {"params": ["force_refresh"], "resolution": "materialized_first_then_on_demand"},
     "attention_research_bundle": {"params": ["bundle_id", "force_refresh"], "resolution": "materialized_first_then_on_demand"},
     "attention_run_trace": {"params": ["run_id", "force_refresh"], "resolution": "materialized"},
@@ -106,6 +111,15 @@ class QueryService:
         if key == "quarterly_fundamentals":
             ticker = str(params.get("ticker") or "").strip()
             return self.data_access.resolve_quarterly_fundamentals(ticker, force_refresh=bool(params.get("force_refresh", False)))
+        if key == "yield_curve_summary":
+            return self.data_access.resolve_yield_curve_summary(force_refresh=bool(params.get("force_refresh", False)))
+        if key == "yield_curve_observations":
+            return self.data_access.resolve_yield_curve_observations(
+                days=int(params.get("days") or 365),
+                force_refresh=bool(params.get("force_refresh", False)),
+            )
+        if key == "yield_curve_facts_1d":
+            return self.data_access.resolve_yield_curve_facts_1d(force_refresh=bool(params.get("force_refresh", False)))
         if key == "recent_news":
             ticker = str(params.get("ticker") or "").strip()
             return self.data_access.resolve_recent_news(
@@ -117,6 +131,18 @@ class QueryService:
         if key == "attention_context":
             ticker = str(params.get("ticker") or "").strip()
             return self.data_access.resolve_attention_context(
+                ticker,
+                force_refresh=bool(params.get("force_refresh", False)),
+            )
+        if key == "attention_ticker_snapshot":
+            ticker = str(params.get("ticker") or "").strip()
+            return self.data_access.resolve_attention_ticker_snapshot(
+                ticker,
+                force_refresh=bool(params.get("force_refresh", False)),
+            )
+        if key == "attention_ticker_background":
+            ticker = str(params.get("ticker") or "").strip()
+            return self.data_access.resolve_attention_ticker_background(
                 ticker,
                 force_refresh=bool(params.get("force_refresh", False)),
             )

@@ -130,6 +130,9 @@ The script updates the target Container App, waits for the latest revision, smok
 - Uses Alpaca paper endpoint by default.
 - If your market-data plan has limitations, some symbols may return no bars/snapshots.
 - Fundamentals load from the quarterly CSVs under `Users/omai.r/data/stock_fundamental` or `SIMFIN_DATA_DIR` if set.
+- If `SIMFIN_API_KEY` is configured, the `equities-intraday-preload` job can refresh quarterly fundamentals from upstream SimFin before materializing `quarterly_fundamentals`.
+- The `macro-fred-daily` job now also materializes official Treasury yield datasets: `yield_curve_observations`, `yield_curve_summary`, and `yield_curve_facts_1d`.
+- Treasury direct yields are used for official daily rate facts; FRED remains available for broader macro history and dashboard context.
 - Benchmarks used: `SPY, DIA, QQQ, VOO, BRK.B, ARKK`.
 - Live data loaders now persist CSV caches under `streamlit_alpaca_app/cache/data/`.
 - Cache staleness is controlled by `streamlit_alpaca_app/cache/cache_policy.json`.

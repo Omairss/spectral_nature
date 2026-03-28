@@ -4,6 +4,7 @@ numpy>=1.26,<2
 plotly>=5.24
 requests>=2.32
 alpaca-py>=0.34
+simfin>=1.0.1
 python-dotenv>=1.0
 azure-identity>=1.17
 azure-keyvault-secrets>=4.8
