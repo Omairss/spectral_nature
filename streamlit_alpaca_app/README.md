@@ -48,6 +48,13 @@ streamlit run app.py
 - Option Strategizer
 - Fundamental Strategizer
 
+## Documentation map
+
+- `PROJECT_SETUP_AND_OPERATIONS.md`: contributor setup and deployment workflow
+- `infra/README.md`: Azure deployment entrypoints and outputs
+- `ATTENTION_FEED_GUIDELINES.md`: current product rules for the attention feed
+- `plans/README.md`: index of active implementation and recovery plans
+
 ## Shared data access
 
 The app now has a shared data access layer under `data_access/`:
@@ -132,6 +139,10 @@ The script updates the target Container App, waits for the latest revision, smok
 - Fundamentals load from the quarterly CSVs under `Users/omai.r/data/stock_fundamental` or `SIMFIN_DATA_DIR` if set.
 - If `SIMFIN_API_KEY` is configured, the `equities-intraday-preload` job can refresh quarterly fundamentals from upstream SimFin before materializing `quarterly_fundamentals`.
 - The `macro-fred-daily` job now also materializes official Treasury yield datasets: `yield_curve_observations`, `yield_curve_summary`, and `yield_curve_facts_1d`.
+- The `attention-home-build` job materializes the Streamlit homepage attention datasets and research bundles from upstream snapshots; the UI is intended to read those outputs rather than compute inline.
+- The `entity-taxonomy-refresh` job materializes `us_equity_listings` and `entity_taxonomy_labels`, and it is scheduled monthly by default.
+- A flow-chart version of the taxonomy setup lives in `infra/TAXONOMY_PIPELINE_FLOW.md`.
+- Active design plans now live under `plans/` rather than the repo root.
 - Treasury direct yields are used for official daily rate facts; FRED remains available for broader macro history and dashboard context.
 - Benchmarks used: `SPY, DIA, QQQ, VOO, BRK.B, ARKK`.
 - Live data loaders now persist CSV caches under `streamlit_alpaca_app/cache/data/`.

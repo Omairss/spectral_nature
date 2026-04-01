@@ -8,7 +8,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from services.market import BUSINESS_FOCUS_UNIVERSES, COMMODITY_FOCUS_UNIVERSES, DEFAULT_UNIVERSE
+from services.entity_taxonomy import business_focus_label_from_taxonomy_row, load_entity_taxonomy_frame
 
 
 HORIZON_PERIODS: dict[str, int] = {
@@ -174,6 +174,19 @@ ATTENTION_FEED_COLUMNS = [
     "schema_version",
 ]
 
+TAXONOMY_PEER_GROUP_CATALOG_COLUMNS = [
+    "asof_time_utc",
+    "peer_group_id",
+    "peer_group_name",
+    "peer_group_type",
+    "benchmark",
+    "entity_type",
+    "member_count",
+    "sample_entity_ids_json",
+    "source",
+    "schema_version",
+]
+
 
 @dataclass(frozen=True)
 class ExpectationConfig:
@@ -211,6 +224,24 @@ def _coerce_timestamp(value: Any) -> pd.Timestamp:
 
 def _coerce_numeric(series: pd.Series) -> pd.Series:
     return pd.to_numeric(series, errors="coerce")
+
+
+def _slugify(value: Any) -> str:
+    text = str(value or "").strip().lower()
+    out = []
+    for ch in text:
+        out.append(ch if ch.isalnum() else "_")
+    slug = "".join(out).strip("_")
+    while "__" in slug:
+        slug = slug.replace("__", "_")
+    return slug
+
+
+def _humanize_slug(value: Any) -> str:
+    slug = _slugify(value)
+    if not slug:
+        return ""
+    return " ".join(token.capitalize() for token in slug.split("_") if token)
 
 
 def normalize_horizon(value: Any) -> str:
@@ -251,16 +282,14 @@ def _attention_drilldown_params(
     if normalized_horizon in HORIZON_PERIODS:
         params["horizon"] = normalized_horizon
 
-    is_commodity = normalized_entity_type == "commodity_symbol" or normalized_peer_group in COMMODITY_FOCUS_UNIVERSES
+    is_commodity = normalized_entity_type == "commodity_symbol"
     if is_commodity:
         params["market_view"] = "Commodity Section"
-        params["commodity_focus"] = (
-            normalized_peer_group if normalized_peer_group in COMMODITY_FOCUS_UNIVERSES else "Broad Commodity Market"
-        )
+        params["commodity_focus"] = normalized_peer_group or "Broad Commodity Market"
         return params
 
     params["market_view"] = "Markets"
-    if normalized_peer_group in BUSINESS_FOCUS_UNIVERSES:
+    if normalized_peer_group and normalized_peer_group not in {"All Market", "Market", "Unknown"}:
         params["business_filter"] = normalized_peer_group
     return params
 
@@ -734,45 +763,71 @@ def build_peer_group_membership(*, asof_time_utc: pd.Timestamp, symbols: list[st
     rows: list[dict[str, object]] = []
     covered: set[str] = set()
     requested_symbols = {_normalize_symbol(symbol) for symbol in (symbols or []) if _normalize_symbol(symbol)}
+    asof = pd.to_datetime(asof_time_utc, utc=True, errors="coerce")
 
-    for lens_name, symbols in BUSINESS_FOCUS_UNIVERSES.items():
-        if lens_name == "All Market":
+    taxonomy = load_entity_taxonomy_frame(sorted(requested_symbols) if requested_symbols else None)
+    if not taxonomy.empty:
+        taxonomy = taxonomy.copy()
+        taxonomy["symbol"] = taxonomy["symbol"].astype(str).str.upper().str.strip()
+        taxonomy = taxonomy[taxonomy["symbol"].ne("")].drop_duplicates(subset=["symbol"], keep="first")
+        if requested_symbols:
+            taxonomy = taxonomy[taxonomy["symbol"].isin(requested_symbols)].copy()
+
+    for _, row in taxonomy.iterrows():
+        symbol = _normalize_symbol(row.get("symbol"))
+        if not symbol:
             continue
-        for symbol in symbols:
-            normalized = _normalize_symbol(symbol)
-            if not normalized:
-                continue
-            covered.add(normalized)
-            rows.append(
-                {
-                    "asof_time_utc": pd.to_datetime(asof_time_utc, utc=True, errors="coerce"),
-                    "entity_type": "symbol",
-                    "entity_id": normalized,
-                    "peer_group_id": f"business_lens:{lens_name.lower().replace(' ', '_').replace('&', 'and')}",
-                    "peer_group_name": lens_name,
-                    "peer_group_type": "business_lens",
-                    "benchmark": "SPY",
-                    "membership_weight": 1.0,
-                    "source": "business_focus_universe_v1",
-                    "schema_version": "v1",
-                }
-            )
+        covered.add(symbol)
+        industry = str(row.get("industry") or "").strip()
+        sector = str(row.get("sector") or "").strip()
+        label = str(business_focus_label_from_taxonomy_row(row.to_dict()) or "").strip()
 
-    for symbol in sorted({*_normalize_symbol_list(DEFAULT_UNIVERSE), *requested_symbols}):
-        normalized = _normalize_symbol(symbol)
-        if not normalized or normalized in covered:
+        if industry and industry not in {"Unknown", "Market", "All Market"}:
+            peer_group_id = f"industry:{_slugify(industry)}"
+            peer_group_name = industry
+            peer_group_type = "industry"
+        elif sector and sector not in {"Unknown", "Market", "All Market"}:
+            peer_group_id = f"sector:{_slugify(sector)}"
+            peer_group_name = sector
+            peer_group_type = "sector"
+        elif label and label not in {"Unknown", "Market", "All Market"}:
+            peer_group_id = f"business_role:{_slugify(label)}"
+            peer_group_name = label
+            peer_group_type = "business_role"
+        else:
+            peer_group_id = "market:all_market"
+            peer_group_name = "All Market"
+            peer_group_type = "market"
+
+        rows.append(
+            {
+                "asof_time_utc": asof,
+                "entity_type": "symbol",
+                "entity_id": symbol,
+                "peer_group_id": peer_group_id,
+                "peer_group_name": peer_group_name,
+                "peer_group_type": peer_group_type,
+                "benchmark": "SPY",
+                "membership_weight": 1.0,
+                "source": "entity_taxonomy_v1",
+                "schema_version": "v1",
+            }
+        )
+
+    for symbol in sorted(requested_symbols):
+        if not symbol or symbol in covered:
             continue
         rows.append(
             {
-                "asof_time_utc": pd.to_datetime(asof_time_utc, utc=True, errors="coerce"),
+                "asof_time_utc": asof,
                 "entity_type": "symbol",
-                "entity_id": normalized,
-                "peer_group_id": "business_lens:all_market",
+                "entity_id": symbol,
+                "peer_group_id": "market:all_market",
                 "peer_group_name": "All Market",
-                "peer_group_type": "business_lens",
+                "peer_group_type": "market",
                 "benchmark": "SPY",
                 "membership_weight": 1.0,
-                "source": "business_focus_universe_v1",
+                "source": "entity_taxonomy_v1",
                 "schema_version": "v1",
             }
         )
@@ -791,6 +846,15 @@ def build_commodity_peer_group_membership(
     requested_symbols = {_normalize_symbol(symbol) for symbol in (symbols or []) if _normalize_symbol(symbol)}
     broad_market_name = "Broad Commodity Market"
     normalized_default_benchmark = _normalize_symbol(default_benchmark) or "DBC"
+    asof = pd.to_datetime(asof_time_utc, utc=True, errors="coerce")
+
+    taxonomy = load_entity_taxonomy_frame(sorted(requested_symbols) if requested_symbols else None)
+    if not taxonomy.empty:
+        taxonomy = taxonomy.copy()
+        taxonomy["symbol"] = taxonomy["symbol"].astype(str).str.upper().str.strip()
+        taxonomy = taxonomy[taxonomy["symbol"].ne("")].drop_duplicates(subset=["symbol"], keep="first")
+        if requested_symbols:
+            taxonomy = taxonomy[taxonomy["symbol"].isin(requested_symbols)].copy()
 
     def _benchmark_for(symbol: str) -> str:
         normalized = _normalize_symbol(symbol)
@@ -798,37 +862,84 @@ def build_commodity_peer_group_membership(
             return "PDBC"
         return normalized_default_benchmark
 
-    for focus_name, focus_symbols in COMMODITY_FOCUS_UNIVERSES.items():
-        if focus_name == broad_market_name:
-            continue
-        for symbol in focus_symbols:
-            normalized = _normalize_symbol(symbol)
-            if not normalized:
-                continue
-            covered.add(normalized)
-            rows.append(
-                {
-                    "asof_time_utc": pd.to_datetime(asof_time_utc, utc=True, errors="coerce"),
-                    "entity_type": "commodity_symbol",
-                    "entity_id": normalized,
-                    "peer_group_id": f"commodity_focus:{focus_name.lower().replace(' ', '_').replace('&', 'and')}",
-                    "peer_group_name": focus_name,
-                    "peer_group_type": "commodity_focus",
-                    "benchmark": _benchmark_for(normalized),
-                    "membership_weight": 1.0,
-                    "source": "commodity_focus_universe_v1",
-                    "schema_version": "v1",
-                }
-            )
+    def _coerce_tags(value: Any) -> list[str]:
+        if isinstance(value, list):
+            raw = value
+        elif isinstance(value, tuple):
+            raw = list(value)
+        else:
+            text = str(value or "").strip()
+            if not text:
+                return []
+            if text.startswith("[") and text.endswith("]"):
+                try:
+                    parsed = json.loads(text)
+                except Exception:
+                    parsed = [text]
+                raw = parsed if isinstance(parsed, list) else [parsed]
+            else:
+                raw = [token.strip() for token in text.split(",")]
+        out: list[str] = []
+        for item in raw:
+            tag = _slugify(item)
+            if tag:
+                out.append(tag)
+        return out
 
-    broad_symbols = COMMODITY_FOCUS_UNIVERSES.get(broad_market_name, [])
-    for symbol in sorted({*_normalize_symbol_list(broad_symbols), *requested_symbols}):
+    for _, row in taxonomy.iterrows():
+        symbol = _normalize_symbol(row.get("symbol"))
+        if not symbol:
+            continue
+        covered.add(symbol)
+        commodity_role = _slugify(row.get("commodity_role"))
+        rates_role = _slugify(row.get("rates_role"))
+        defensive_role = _slugify(row.get("defensive_role"))
+        macro_tags = _coerce_tags(row.get("macro_role_tags"))
+
+        if commodity_role:
+            peer_group_id = f"commodity_role:{commodity_role}"
+            peer_group_name = _humanize_slug(commodity_role)
+            peer_group_type = "commodity_role"
+        elif macro_tags:
+            tag = macro_tags[0]
+            peer_group_id = f"macro_role:{tag}"
+            peer_group_name = _humanize_slug(tag)
+            peer_group_type = "macro_role"
+        elif rates_role:
+            peer_group_id = f"rates_role:{rates_role}"
+            peer_group_name = _humanize_slug(rates_role)
+            peer_group_type = "rates_role"
+        elif defensive_role:
+            peer_group_id = f"defensive_role:{defensive_role}"
+            peer_group_name = _humanize_slug(defensive_role)
+            peer_group_type = "defensive_role"
+        else:
+            peer_group_id = "commodity_focus:broad_commodity_market"
+            peer_group_name = broad_market_name
+            peer_group_type = "commodity_focus"
+
+        rows.append(
+            {
+                "asof_time_utc": asof,
+                "entity_type": "commodity_symbol",
+                "entity_id": symbol,
+                "peer_group_id": peer_group_id,
+                "peer_group_name": peer_group_name or broad_market_name,
+                "peer_group_type": peer_group_type,
+                "benchmark": _benchmark_for(symbol),
+                "membership_weight": 1.0,
+                "source": "entity_taxonomy_v1",
+                "schema_version": "v1",
+            }
+        )
+
+    for symbol in sorted(requested_symbols):
         normalized = _normalize_symbol(symbol)
         if not normalized or normalized in covered:
             continue
         rows.append(
             {
-                "asof_time_utc": pd.to_datetime(asof_time_utc, utc=True, errors="coerce"),
+                "asof_time_utc": asof,
                 "entity_type": "commodity_symbol",
                 "entity_id": normalized,
                 "peer_group_id": "commodity_focus:broad_commodity_market",
@@ -836,12 +947,51 @@ def build_commodity_peer_group_membership(
                 "peer_group_type": "commodity_focus",
                 "benchmark": _benchmark_for(normalized),
                 "membership_weight": 1.0,
-                "source": "commodity_focus_universe_v1",
+                "source": "entity_taxonomy_v1",
                 "schema_version": "v1",
             }
         )
 
     return pd.DataFrame(rows)
+
+
+def build_taxonomy_peer_group_catalog(peer_group_membership: pd.DataFrame) -> pd.DataFrame:
+    required = {"peer_group_id", "peer_group_name", "peer_group_type", "entity_type", "entity_id"}
+    if peer_group_membership.empty or not required.issubset(set(peer_group_membership.columns)):
+        return _empty_frame(TAXONOMY_PEER_GROUP_CATALOG_COLUMNS)
+
+    frame = peer_group_membership.copy()
+    frame["entity_id"] = frame["entity_id"].map(_normalize_symbol)
+    frame["peer_group_id"] = frame["peer_group_id"].astype(str).str.strip()
+    frame["peer_group_name"] = frame["peer_group_name"].astype(str).str.strip()
+    frame = frame[frame["peer_group_id"].ne("") & frame["entity_id"].ne("")].copy()
+    if frame.empty:
+        return _empty_frame(TAXONOMY_PEER_GROUP_CATALOG_COLUMNS)
+
+    rows: list[dict[str, object]] = []
+    for _, chunk in frame.groupby(["peer_group_id", "peer_group_name", "peer_group_type", "entity_type"], dropna=False, sort=False):
+        ordered = chunk.sort_values("entity_id")
+        members = ordered["entity_id"].astype(str).tolist()
+        sample = members[:20]
+        benchmark = str(ordered.get("benchmark", pd.Series(dtype=str)).dropna().astype(str).iloc[0]).strip() if "benchmark" in ordered.columns and not ordered.get("benchmark", pd.Series(dtype=str)).dropna().empty else ""
+        source = str(ordered.get("source", pd.Series(dtype=str)).dropna().astype(str).iloc[0]).strip() if "source" in ordered.columns and not ordered.get("source", pd.Series(dtype=str)).dropna().empty else ""
+        asof = pd.to_datetime(ordered.get("asof_time_utc", pd.Series(dtype="datetime64[ns, UTC]")), utc=True, errors="coerce")
+        asof_value = asof.max() if isinstance(asof, pd.Series) and not asof.dropna().empty else pd.NaT
+        rows.append(
+            {
+                "asof_time_utc": asof_value,
+                "peer_group_id": str(ordered["peer_group_id"].iloc[0]),
+                "peer_group_name": str(ordered["peer_group_name"].iloc[0]),
+                "peer_group_type": str(ordered["peer_group_type"].iloc[0]),
+                "benchmark": benchmark,
+                "entity_type": str(ordered["entity_type"].iloc[0]),
+                "member_count": int(len(members)),
+                "sample_entity_ids_json": json.dumps(sample, ensure_ascii=False),
+                "source": source,
+                "schema_version": "v1",
+            }
+        )
+    return pd.DataFrame(rows, columns=TAXONOMY_PEER_GROUP_CATALOG_COLUMNS)
 
 
 def _normalize_symbol_list(values: list[str]) -> list[str]:
@@ -1300,6 +1450,7 @@ __all__ = [
     "ATTENTION_FEED_COLUMNS",
     "ATTENTION_ROLLUP_COLUMNS",
     "EXPECTATION_COLUMNS",
+    "TAXONOMY_PEER_GROUP_CATALOG_COLUMNS",
     "AttentionConfig",
     "ExpectationConfig",
     "HORIZON_PERIODS",
@@ -1311,6 +1462,7 @@ __all__ = [
     "build_commodity_peer_group_membership",
     "build_peer_group_membership",
     "build_price_expectations",
+    "build_taxonomy_peer_group_catalog",
     "detect_anomaly_events",
     "filter_attention_events",
     "normalize_horizon",

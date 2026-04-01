@@ -11,7 +11,7 @@ from typing import Any
 
 import pandas as pd
 
-from .secrets import resolve_secret_value
+from .secrets import build_azure_credential, resolve_secret_value
 
 
 try:
@@ -20,10 +20,8 @@ except Exception:
     psycopg = None
 
 try:
-    from azure.identity import DefaultAzureCredential
     from azure.storage.blob import BlobServiceClient
 except Exception:
-    DefaultAzureCredential = None
     BlobServiceClient = None
 
 
@@ -43,6 +41,8 @@ SOURCE_JOB_MAP: dict[str, str] = {
     "commodities": "commodities-regime",
     "options": "options-liquid-universe",
     "news": "news-ingest-and-features",
+    "attention": "attention-home-build",
+    "taxonomy": "entity-taxonomy-refresh",
     "fundamentals": "equities-intraday-preload",
     "derivatives": "equities-intraday-preload",
 }
@@ -68,6 +68,8 @@ SOURCE_DATASETS: dict[str, list[str]] = {
         "edgar_evidence",
         "attention_context_llm",
         "attention_context_bundle",
+    ],
+    "attention": [
         "attention_web_search_news",
         "attention_candidates_1d",
         "attention_research_plans",
@@ -85,8 +87,11 @@ SOURCE_DATASETS: dict[str, list[str]] = {
         "attention_home_1d",
         "attention_research_bundles",
     ],
+    "taxonomy": ["us_equity_listings", "entity_taxonomy_labels"],
     "fundamentals": ["quarterly_fundamentals"],
     "derivatives": [
+        "taxonomy_peer_group_membership",
+        "taxonomy_peer_group_catalog",
         "correlation_phase_shift_summary",
         "correlation_phase_shift_history",
         "technical_signals_latest",
@@ -168,6 +173,13 @@ def _blob_service_client() -> Any | None:
     if not account_url:
         return None
 
+    connection_string = _get_env("AZURE_STORAGE_CONNECTION_STRING")
+    if connection_string:
+        try:
+            return BlobServiceClient.from_connection_string(connection_string)
+        except Exception:
+            pass
+
     account_key = _get_env("AZURE_STORAGE_ACCOUNT_KEY")
     if account_key:
         try:
@@ -175,10 +187,10 @@ def _blob_service_client() -> Any | None:
         except Exception:
             pass
 
-    if DefaultAzureCredential is None:
+    credential = build_azure_credential()
+    if credential is None:
         return None
     try:
-        credential = DefaultAzureCredential()
         return BlobServiceClient(account_url=account_url, credential=credential)
     except Exception:
         return None
@@ -354,7 +366,17 @@ def start_source_refresh_job(source: str) -> tuple[bool, str]:
 
 
 def latest_job_status_table() -> pd.DataFrame:
-    columns = ["job_name", "run", "status", "start_time_utc", "end_time_utc", "message"]
+    columns = [
+        "job_name",
+        "run",
+        "status",
+        "progress_stage",
+        "progress_pct",
+        "heartbeat_time_utc",
+        "start_time_utc",
+        "end_time_utc",
+        "message",
+    ]
     job_names = sorted(set(SOURCE_JOB_MAP.values()))
 
     conn = _db_connect()
@@ -363,6 +385,43 @@ def latest_job_status_table() -> pd.DataFrame:
         try:
             with conn.cursor() as cur:
                 for job_name in job_names:
+                    try:
+                        cur.execute(
+                            """
+                            SELECT run_id, status, progress_stage, progress_pct, heartbeat_time_utc,
+                                   start_time_utc, end_time_utc, progress_message, error_summary
+                            FROM job_runs
+                            WHERE job_name = %s
+                            ORDER BY start_time_utc DESC
+                            LIMIT 1
+                            """,
+                            (job_name,),
+                        )
+                        row = cur.fetchone()
+                        if row:
+                            status = _normalize_job_status_label(row[1])
+                            progress_message = str(row[7] or "")
+                            error_summary = str(row[8] or "")
+                            message = progress_message or error_summary
+                            if status == "Failed":
+                                message = error_summary or progress_message
+                            rows.append(
+                                {
+                                    "job_name": job_name,
+                                    "run": str(row[0] or "N/A"),
+                                    "status": status,
+                                    "progress_stage": str(row[2] or ""),
+                                    "progress_pct": float(row[3]) if row[3] is not None else None,
+                                    "heartbeat_time_utc": str(row[4] or ""),
+                                    "start_time_utc": str(row[5] or ""),
+                                    "end_time_utc": str(row[6] or ""),
+                                    "message": message,
+                                }
+                            )
+                            continue
+                    except Exception:
+                        pass
+
                     cur.execute(
                         """
                         SELECT run_id, status, start_time_utc, end_time_utc, error_summary
@@ -380,6 +439,9 @@ def latest_job_status_table() -> pd.DataFrame:
                                 "job_name": job_name,
                                 "run": "N/A",
                                 "status": "NoRuns",
+                                "progress_stage": "",
+                                "progress_pct": None,
+                                "heartbeat_time_utc": "",
                                 "start_time_utc": "",
                                 "end_time_utc": "",
                                 "message": "No executions found.",
@@ -390,7 +452,10 @@ def latest_job_status_table() -> pd.DataFrame:
                         {
                             "job_name": job_name,
                             "run": str(row[0] or "N/A"),
-                            "status": str(row[1] or "Unknown"),
+                            "status": _normalize_job_status_label(row[1]),
+                            "progress_stage": "",
+                            "progress_pct": None,
+                            "heartbeat_time_utc": "",
                             "start_time_utc": str(row[2] or ""),
                             "end_time_utc": str(row[3] or ""),
                             "message": str(row[4] or ""),
@@ -403,6 +468,9 @@ def latest_job_status_table() -> pd.DataFrame:
                     "job_name": "N/A",
                     "run": "N/A",
                     "status": "Error",
+                    "progress_stage": "",
+                    "progress_pct": None,
+                    "heartbeat_time_utc": "",
                     "start_time_utc": "",
                     "end_time_utc": "",
                     "message": f"Postgres query failed: {exc}",
@@ -419,6 +487,9 @@ def latest_job_status_table() -> pd.DataFrame:
             "job_name": job_name,
             "run": "N/A",
             "status": "Unavailable",
+            "progress_stage": "",
+            "progress_pct": None,
+            "heartbeat_time_utc": "",
             "start_time_utc": "",
             "end_time_utc": "",
             "message": "Postgres job metadata unavailable. Configure Key Vault/Postgres connection for tracker.",
@@ -426,3 +497,18 @@ def latest_job_status_table() -> pd.DataFrame:
         for job_name in job_names
     ]
     return pd.DataFrame(rows, columns=columns)
+
+
+def _normalize_job_status_label(status: object) -> str:
+    text = str(status or "").strip().lower()
+    if text in {"running", "in_progress", "started"}:
+        return "Running"
+    if text in {"success", "succeeded", "completed", "complete"}:
+        return "Succeeded"
+    if text in {"failed", "failure", "error"}:
+        return "Failed"
+    if text in {"warning", "warn"}:
+        return "Warning"
+    if not text:
+        return "Unknown"
+    return str(status)

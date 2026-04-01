@@ -24,6 +24,7 @@ class LLMConfig:
     api_version: str = ""
     timeout_seconds: int = 60
     temperature: float = 0.2
+    reasoning_effort: str = ""
     embedding_model: str = "text-embedding-3-small"
 
 
@@ -55,6 +56,33 @@ def _normalize_azure_base_url(base_url: str) -> str:
     return f"{cleaned}/openai/v1"
 
 
+def _normalized_reasoning_effort(value: object) -> str:
+    effort = _clean(value).lower()
+    if effort in {"", "none", "off", "disabled", "false", "0"}:
+        return ""
+    if effort in {"minimal", "low", "medium", "high"}:
+        return effort
+    return ""
+
+
+def _supports_reasoning_effort_retry(status_code: int, response_text: str) -> bool:
+    if status_code not in {400, 422}:
+        return False
+    lowered = _clean(response_text).lower()
+    if "reasoning_effort" not in lowered:
+        return False
+    return any(
+        token in lowered
+        for token in (
+            "unknown parameter",
+            "not supported",
+            "extra inputs are not permitted",
+            "invalid",
+            "unrecognized",
+        )
+    )
+
+
 def load_llm_config() -> LLMConfig | None:
     provider = (_clean(os.getenv("LLM_PROVIDER")) or "openai").lower()
     if provider in {"", "none", "disabled", "off"}:
@@ -79,6 +107,9 @@ def load_llm_config() -> LLMConfig | None:
     timeout_seconds = max(int(_clean(os.getenv("LLM_TIMEOUT_SECONDS")) or "60"), 10)
     default_temperature = "1" if provider == "azure_openai" else "0.2"
     temperature = float(_clean(os.getenv("LLM_TEMPERATURE")) or default_temperature)
+    reasoning_effort = _normalized_reasoning_effort(
+        _clean(os.getenv("LLM_REASONING_EFFORT")) or _clean(os.getenv("OPENAI_REASONING_EFFORT"))
+    )
 
     return LLMConfig(
         provider=provider,
@@ -89,6 +120,7 @@ def load_llm_config() -> LLMConfig | None:
         api_version=api_version,
         timeout_seconds=timeout_seconds,
         temperature=temperature,
+        reasoning_effort=reasoning_effort,
         embedding_model=_clean(os.getenv("EMBEDDING_MODEL")) or "text-embedding-3-small",
     )
 
@@ -124,16 +156,29 @@ class OpenAIChatJSONClient:
                 },
             },
         }
+        if self.config.reasoning_effort:
+            payload["reasoning_effort"] = self.config.reasoning_effort
 
+        request_url = f"{self.config.base_url}/chat/completions"
+        request_headers = {
+            "Authorization": f"Bearer {self.config.api_key}",
+            "Content-Type": "application/json",
+        }
         response = self.session.post(
-            f"{self.config.base_url}/chat/completions",
-            headers={
-                "Authorization": f"Bearer {self.config.api_key}",
-                "Content-Type": "application/json",
-            },
+            request_url,
+            headers=request_headers,
             json=payload,
             timeout=self.config.timeout_seconds,
         )
+        if response.status_code != 200 and payload.get("reasoning_effort") and _supports_reasoning_effort_retry(response.status_code, response.text):
+            payload = dict(payload)
+            payload.pop("reasoning_effort", None)
+            response = self.session.post(
+                request_url,
+                headers=request_headers,
+                json=payload,
+                timeout=self.config.timeout_seconds,
+            )
         if response.status_code != 200:
             raise LLMAPIError(f"LLM request failed status={response.status_code}: {response.text[:400]}")
         try:
@@ -205,17 +250,32 @@ class AzureOpenAIChatJSONClient:
                 },
             },
         }
+        if self.config.reasoning_effort:
+            payload["reasoning_effort"] = self.config.reasoning_effort
 
+        request_url = f"{self.config.base_url}/chat/completions"
+        request_headers = {
+            "api-key": self.config.api_key,
+            "Content-Type": "application/json",
+        }
+        request_params = {"api-version": self.config.api_version} if self.config.api_version else None
         response = self.session.post(
-            f"{self.config.base_url}/chat/completions",
-            headers={
-                "api-key": self.config.api_key,
-                "Content-Type": "application/json",
-            },
-            params={"api-version": self.config.api_version} if self.config.api_version else None,
+            request_url,
+            headers=request_headers,
+            params=request_params,
             json=payload,
             timeout=self.config.timeout_seconds,
         )
+        if response.status_code != 200 and payload.get("reasoning_effort") and _supports_reasoning_effort_retry(response.status_code, response.text):
+            payload = dict(payload)
+            payload.pop("reasoning_effort", None)
+            response = self.session.post(
+                request_url,
+                headers=request_headers,
+                params=request_params,
+                json=payload,
+                timeout=self.config.timeout_seconds,
+            )
         if response.status_code != 200:
             raise LLMAPIError(f"LLM request failed status={response.status_code}: {response.text[:400]}")
         try:

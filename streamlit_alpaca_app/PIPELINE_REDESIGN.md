@@ -193,6 +193,9 @@ Indexes:
 6. **news-ingest-and-features** (intraday/daily mixed)
    - Pulls provider news deltas, deduplicates, writes immutable article parquet, and publishes optional derived sentiment/topic features.
 
+7. **entity-taxonomy-refresh** (monthly)
+   - Refreshes NASDAQ/NYSE listings, classifies the full active universe dynamically, and publishes `entity_taxonomy_labels`.
+
 ### Runtime Controls (API Politeness)
 
 - Per-provider request budgets (token bucket).

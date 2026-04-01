@@ -40,7 +40,14 @@ from services.fred import FREDClient, FredSeriesSpec, build_fred_figure, build_f
 from services.fundamentals import load_quarterly_fundamentals
 from services.simfin_refresh import build_quarterly_fundamentals_frame, load_simfin_api_key
 from services import treasury_yields as treasury_module
-from services.homepage_v2 import build_homepage_v2_digest, build_homepage_v2_market_digest
+from services.homepage_v2 import (
+    HOMEPAGE_V2_COMPANY_PANEL,
+    HOMEPAGE_V2_RESEARCH_PANEL,
+    build_homepage_v2_digest,
+    build_homepage_v2_market_digest,
+    homepage_v2_bundle_symbol_lookup,
+    normalize_homepage_v2_detail_state,
+)
 from services.llm import AzureOpenAIChatJSONClient, LLMConfig, load_llm_config
 from services.market import (
     business_focus_for_symbol,
@@ -715,7 +722,17 @@ def test_scan_momentum_profiles_returns_momentum_and_acceleration_scores():
     assert len(out.iloc[0]["sparkline_3m"]) >= 20
 
 
-def test_business_focus_universe_uses_custom_business_lenses():
+def test_business_focus_universe_uses_custom_business_lenses(monkeypatch):
+    focus_map = {
+        "All Market": ["HD", "GOOGL", "META", "BX", "KKR", "OWL", "XOM", "FCX", "MOS", "TTD", "APP", "DHI", "LEN"],
+        "Alternative Asset Managers": ["BX", "KKR", "OWL"],
+        "Housing": ["HD", "DHI", "LEN"],
+        "Advertising": ["GOOGL", "TTD", "APP"],
+        "Commodity": ["XOM", "FCX", "MOS"],
+        "Retail": ["HD", "WMT"],
+    }
+    monkeypatch.setattr("services.market._taxonomy_focus_map", lambda symbols=None: focus_map)
+
     options = business_focus_options()
     alternatives = set(business_focus_universe("Alternative Asset Managers"))
     housing = set(business_focus_universe("Housing"))
@@ -732,10 +749,17 @@ def test_business_focus_universe_uses_custom_business_lenses():
     assert {"GOOGL", "TTD", "APP"} <= advertising
     assert {"XOM", "FCX", "MOS"} <= commodity
     assert {"HD", "GOOGL", "META", "BX", "KKR", "OWL"} <= all_market
-    assert business_focus_description("Retail")
+    assert "Taxonomy-derived peer cohort" in business_focus_description("Retail")
 
 
-def test_business_focus_for_symbol_maps_curated_names_and_defaults_to_all_market():
+def test_business_focus_for_symbol_maps_taxonomy_names_and_defaults_to_all_market(monkeypatch):
+    focus_map = {
+        "All Market": ["BX", "XOM", "UNMAPPED"],
+        "Alternative Asset Managers": ["BX"],
+        "Commodity": ["XOM"],
+    }
+    monkeypatch.setattr("services.market._taxonomy_focus_map", lambda symbols=None: focus_map)
+
     assert business_focus_for_symbol("BX") == "Alternative Asset Managers"
     assert business_focus_for_symbol("XOM") == "Commodity"
     assert business_focus_for_symbol("UNMAPPED") == "All Market"
@@ -783,7 +807,7 @@ def test_load_us_equity_listings_filters_test_issues_etfs_and_non_common(monkeyp
     assert listings["exchange"].tolist() == ["NASDAQ", "NYSE"]
 
 
-def test_build_liquidity_ranked_equity_universe_keeps_pinned_symbols(monkeypatch):
+def test_build_liquidity_ranked_equity_universe_keeps_explicit_pinned_symbols(monkeypatch):
     nasdaq_text = "\n".join(
         [
             "Symbol|Security Name|Market Category|Test Issue|Financial Status|Round Lot Size|ETF|NextShares",
@@ -831,7 +855,7 @@ def test_build_liquidity_ranked_equity_universe_keeps_pinned_symbols(monkeypatch
     )
 
     assert ranked["symbol"].tolist() == ["DDDD", "AAAA"]
-    assert ranked.iloc[0]["selection_reason"] == "pinned_curated"
+    assert ranked.iloc[0]["selection_reason"] == "pinned"
     assert ranked.iloc[1]["selection_reason"] == "liquidity"
 
 
@@ -937,7 +961,8 @@ def test_build_attention_market_events_promotes_oil_shock_into_market_event():
     top = events.iloc[0]
     assert top["event_type"] == "oil"
     assert "Oil" in top["event_title"]
-    assert "BNO -10.0%" in top["what_happened_text"]
+    assert "BNO" in top["what_happened_text"]
+    assert "%" not in top["what_happened_text"]
     assert "TLT" not in top["what_happened_text"]
     assert "UAL" in top["affected_assets_summary_text"]
     assert "TLT" in top["affected_assets_summary_text"]
@@ -989,7 +1014,8 @@ def test_build_attention_market_events_uses_observed_move_direction_for_event_co
     assert top["anchor_direction"] == "down"
     assert top["event_title"] == "Energy & Oil move lower together today"
     assert "fell sharply" in top["what_happened_text"]
-    assert "BNO -8.9%" in top["what_happened_text"]
+    assert "BNO" in top["what_happened_text"]
+    assert "%" not in top["what_happened_text"]
 
 
 def test_build_attention_market_events_does_not_pull_generic_energy_names_into_oil_event():
@@ -1071,7 +1097,9 @@ def test_build_attention_feed_brief_fallback_prefers_story_over_generic_cluster_
     assert "coverage from benzinga" in brief["cluster_text"].lower()
 
 
-def test_build_attention_entity_master_leaves_unknown_equities_unclassified_for_macro_roles():
+def test_build_attention_entity_master_leaves_unknown_equities_unclassified_for_macro_roles(monkeypatch):
+    monkeypatch.setattr("services.entity_taxonomy.taxonomy_lookup_by_symbol", lambda symbols: {})
+
     master = build_attention_entity_master(["APGE", "APG", "BNO", "TLT", "UAL"])
     lookup = {str(row["symbol"]).upper(): row for _, row in master.iterrows()}
 
@@ -1080,9 +1108,9 @@ def test_build_attention_entity_master_leaves_unknown_equities_unclassified_for_
     assert lookup["APGE"]["rates_role"] == ""
     assert lookup["APGE"]["macro_role_tags"] == []
     assert lookup["APG"]["macro_role_tags"] == []
-    assert lookup["BNO"]["commodity_role"] == "oil"
-    assert "rates" in lookup["TLT"]["macro_role_tags"]
-    assert "travel" in lookup["UAL"]["macro_role_tags"]
+    assert lookup["BNO"]["commodity_role"] == ""
+    assert lookup["TLT"]["macro_role_tags"] == []
+    assert lookup["UAL"]["macro_role_tags"] == []
 
 
 def test_build_attention_home_1d_promotes_oil_event_and_keeps_big_single_name_mover_in_must_read():
@@ -1136,13 +1164,26 @@ def test_build_attention_home_1d_promotes_oil_event_and_keeps_big_single_name_mo
             )
         },
     }
+    entity_master = build_attention_entity_master(daily_movers["symbol"].tolist()).copy()
+    macro_overrides = {
+        "BNO": {"commodity_role": "oil", "macro_role_tags": ["oil"]},
+        "USO": {"commodity_role": "oil", "macro_role_tags": ["oil"]},
+        "IWM": {"macro_role_tags": ["broad_market"]},
+        "TLT": {"rates_role": "rates", "macro_role_tags": ["rates"]},
+        "UAL": {"industry": "Airlines", "business_role_tags": ["travel_mobility"], "macro_role_tags": ["travel"]},
+        "DAL": {"industry": "Airlines", "business_role_tags": ["travel_mobility"], "macro_role_tags": ["travel"]},
+    }
+    for symbol, payload in macro_overrides.items():
+        mask = entity_master["symbol"] == symbol
+        for column, value in payload.items():
+            entity_master.loc[mask, column] = [value]
 
     home = build_attention_home_1d(
         daily_movers,
         bars_by_symbol=bars_by_symbol,
         news_payloads=news_payloads,
         context_payloads={},
-        entity_master=build_attention_entity_master(daily_movers["symbol"].tolist()),
+        entity_master=entity_master,
         holdings=[],
         generated_at_utc=pd.Timestamp("2026-03-23T18:00:00Z"),
     )
@@ -1151,12 +1192,71 @@ def test_build_attention_home_1d_promotes_oil_event_and_keeps_big_single_name_mo
     top_event = home["top_events"][0]
     assert top_event["event_type"] == "oil"
     assert "Oil" in top_event["event_title"]
-    assert set(top_event["supporting_symbols"]) >= {"BNO", "USO", "UAL", "DAL", "IWM", "TLT"}
+    assert set(top_event["supporting_symbols"]) >= {"BNO", "USO"}
 
     must_read_symbols = {str(item["symbol"]).upper() for item in home["must_read_movers"]}
     assert "PYPL" in must_read_symbols
     assert "BNO" not in must_read_symbols
     assert "UAL" not in must_read_symbols
+
+
+def test_build_attention_home_1d_includes_taxonomy_multi_horizon_trend_surface():
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "BNO", "change_pct": -9.1, "close": 18.4, "prev_close": 20.2, "volume": 2_100_000, "dollar_volume": 38_640_000},
+            {"symbol": "USO", "change_pct": -8.6, "close": 68.7, "prev_close": 75.2, "volume": 3_600_000, "dollar_volume": 247_320_000},
+            {"symbol": "UAL", "change_pct": 4.8, "close": 56.9, "prev_close": 54.3, "volume": 4_200_000, "dollar_volume": 238_980_000},
+        ]
+    )
+    bars_by_symbol = {
+        symbol: pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=25, freq="B"),
+                "close": [100.0] * 24 + [100.0 * (1.0 + float(move) / 100.0)],
+            }
+        )
+        for symbol, move in daily_movers[["symbol", "change_pct"]].itertuples(index=False, name=None)
+    }
+    attention_rows = pd.DataFrame(
+        [
+            {"entity_id": "BNO", "horizon": "1w", "peer_group_name": "Energy & Oil", "attention_score": 79.0, "residual_zscore": 2.4, "direction": "down", "observed_value": -9.1},
+            {"entity_id": "USO", "horizon": "1w", "peer_group_name": "Energy & Oil", "attention_score": 76.0, "residual_zscore": 2.1, "direction": "down", "observed_value": -8.6},
+            {"entity_id": "UAL", "horizon": "1w", "peer_group_name": "Travel & Mobility", "attention_score": 68.0, "residual_zscore": 1.8, "direction": "up", "observed_value": 4.8},
+            {"entity_id": "BNO", "horizon": "1mo", "peer_group_name": "Energy & Oil", "attention_score": 73.0, "residual_zscore": 1.9, "direction": "down", "observed_value": -6.2},
+            {"entity_id": "UAL", "horizon": "1mo", "peer_group_name": "Travel & Mobility", "attention_score": 64.0, "residual_zscore": 1.6, "direction": "up", "observed_value": 3.5},
+        ]
+    )
+
+    entity_master = build_attention_entity_master(daily_movers["symbol"].tolist()).copy()
+    macro_overrides = {
+        "BNO": {"commodity_role": "oil", "macro_role_tags": ["oil"]},
+        "USO": {"commodity_role": "oil", "macro_role_tags": ["oil"]},
+        "UAL": {"industry": "Airlines", "business_role_tags": ["travel_mobility"], "macro_role_tags": ["travel"]},
+    }
+    for symbol, payload in macro_overrides.items():
+        mask = entity_master["symbol"] == symbol
+        for column, value in payload.items():
+            entity_master.loc[mask, column] = [value]
+
+    home = build_attention_home_1d(
+        daily_movers,
+        attention_rows=attention_rows,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads={},
+        context_payloads={},
+        entity_master=entity_master,
+        holdings=[],
+        generated_at_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+    )
+
+    trends = list(home.get("taxonomy_horizon_trends") or [])
+    assert trends
+    horizons = {str(item.get("horizon") or "").strip() for item in trends}
+    assert {"1w", "1mo"} <= horizons
+    first_horizon = next(item for item in trends if str(item.get("horizon") or "").strip() == "1w")
+    assert first_horizon["cohorts"]
+    assert "leader" in str(first_horizon["cohorts"][0].get("summary_text") or "").lower()
+    assert bool(home.get("coverage_summary", {}).get("supports_multi_horizon"))
 
 
 def test_build_attention_home_1d_keeps_large_liquid_single_name_movers_in_must_read():
@@ -1245,6 +1345,42 @@ def test_build_attention_home_1d_marks_large_low_evidence_moves_as_unresolved():
     assert not home["top_events"]
 
 
+def test_build_attention_home_1d_avoids_generic_tape_titles_and_canned_why_text():
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "APGE", "change_pct": 14.2, "close": 52.5, "prev_close": 46.0, "volume": 1_400_000, "dollar_volume": 73_500_000},
+        ]
+    )
+    bars_by_symbol = {
+        "APGE": pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=25, freq="B"),
+                "close": [100.0] * 24 + [114.2],
+            }
+        )
+    }
+
+    home = build_attention_home_1d(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads={},
+        context_payloads={},
+        entity_master=build_attention_entity_master(["APGE"]),
+        holdings=[],
+        generated_at_utc=pd.Timestamp("2026-03-23T18:00:00Z"),
+    )
+
+    unresolved = home["unresolved_large_moves"][0]
+    assert unresolved["headline"] == "APGE"
+    assert "today's tape" not in unresolved["headline"].lower()
+    assert "moves sharply today" not in unresolved["headline"].lower()
+    assert unresolved["why_now_text"] == ""
+
+    bundle = build_attention_research_bundle("symbol::APGE", home, news_payloads={}, context_payloads={})
+    assert bundle["headline"] == "APGE"
+    assert bundle["why_now_text"] == ""
+
+
 def test_build_attention_research_bundle_sorts_source_authority_and_aggregates_symbols():
     daily_movers = pd.DataFrame(
         [
@@ -1293,12 +1429,23 @@ def test_build_attention_research_bundle_sorts_source_authority_and_aggregates_s
         }
     }
 
+    entity_master = build_attention_entity_master(daily_movers["symbol"].tolist()).copy()
+    macro_overrides = {
+        "BNO": {"commodity_role": "oil", "macro_role_tags": ["oil"]},
+        "USO": {"commodity_role": "oil", "macro_role_tags": ["oil"]},
+        "UAL": {"industry": "Airlines", "business_role_tags": ["travel_mobility"], "macro_role_tags": ["travel"]},
+    }
+    for symbol, payload in macro_overrides.items():
+        mask = entity_master["symbol"] == symbol
+        for column, value in payload.items():
+            entity_master.loc[mask, column] = [value]
+
     home = build_attention_home_1d(
         daily_movers,
         bars_by_symbol=bars_by_symbol,
         news_payloads=news_payloads,
         context_payloads=context_payloads,
-        entity_master=build_attention_entity_master(daily_movers["symbol"].tolist()),
+        entity_master=entity_master,
         holdings=[],
         generated_at_utc=pd.Timestamp("2026-03-23T18:00:00Z"),
     )
@@ -1437,16 +1584,30 @@ def test_build_live_attention_research_bundle_event_prefers_macro_evidence_over_
         }
     }
 
+    entity_master = build_attention_entity_master(daily_movers["symbol"].tolist()).copy()
+    macro_overrides = {
+        "BNO": {"commodity_role": "oil", "macro_role_tags": ["oil"]},
+        "USO": {"commodity_role": "oil", "macro_role_tags": ["oil"]},
+        "IWM": {"macro_role_tags": ["broad_market"]},
+        "TLT": {"rates_role": "rates", "macro_role_tags": ["rates"]},
+        "UAL": {"industry": "Airlines", "business_role_tags": ["travel_mobility"], "macro_role_tags": ["travel"]},
+        "DAL": {"industry": "Airlines", "business_role_tags": ["travel_mobility"], "macro_role_tags": ["travel"]},
+    }
+    for symbol, payload in macro_overrides.items():
+        mask = entity_master["symbol"] == symbol
+        for column, value in payload.items():
+            entity_master.loc[mask, column] = [value]
+
     home = build_attention_home_1d(
         daily_movers,
         bars_by_symbol=bars_by_symbol,
         news_payloads=news_payloads,
         context_payloads=context_payloads,
-        entity_master=build_attention_entity_master(daily_movers["symbol"].tolist()),
+        entity_master=entity_master,
         holdings=[],
         generated_at_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
     )
-    top_event = home["top_events"][0]
+    top_event = next(item for item in home["top_events"] if item["event_type"] == "oil")
     bundle_id = str(top_event["bundle_id"])
     event_search_payload = {
         "articles": pd.DataFrame(
@@ -1510,12 +1671,25 @@ def test_build_live_attention_research_bundle_rates_event_adds_numeric_context()
         for symbol, move in daily_movers[["symbol", "change_pct"]].itertuples(index=False, name=None)
     }
 
+    entity_master = build_attention_entity_master(daily_movers["symbol"].tolist()).copy()
+    macro_overrides = {
+        "TLT": {"rates_role": "rates", "macro_role_tags": ["rates"]},
+        "IEF": {"rates_role": "rates", "macro_role_tags": ["rates"]},
+        "HYG": {"macro_role_tags": ["credit"]},
+        "IWM": {"macro_role_tags": ["broad_market"]},
+        "GLD": {"commodity_role": "gold", "macro_role_tags": ["gold"]},
+    }
+    for symbol, payload in macro_overrides.items():
+        mask = entity_master["symbol"] == symbol
+        for column, value in payload.items():
+            entity_master.loc[mask, column] = [value]
+
     home = build_attention_home_1d(
         daily_movers,
         bars_by_symbol=bars_by_symbol,
         news_payloads={},
         context_payloads={},
-        entity_master=build_attention_entity_master(daily_movers["symbol"].tolist()),
+        entity_master=entity_master,
         holdings=[],
         generated_at_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
     )
@@ -1545,10 +1719,427 @@ def test_build_live_attention_research_bundle_rates_event_adds_numeric_context()
     )
 
     why_text = bundle["why_happened_text"].lower()
-    assert "tlt +1.6%" in why_text
-    assert "ief +0.8%" in why_text
-    assert "bps" in why_text
+    assert "tlt +1.6%" not in why_text
+    assert "ief +0.8%" not in why_text
+    assert "bps" not in why_text
+    assert "yields" in why_text or "curve" in why_text
     assert "the tape reads this as" not in why_text
+
+
+def test_fallback_event_writer_non_rates_prefers_mechanism_claim_over_yield_stat_dump():
+    cluster_rows = pd.DataFrame(
+        [
+            {
+                "symbol": "USO",
+                "change_pct": 5.95,
+                "candidate_score": 92.0,
+                "abs_change_pct": 5.95,
+                "sector": "Energy",
+                "industry": "Oil & Gas",
+                "macro_exposure_tags": ["oil"],
+                "business_tags": [],
+            },
+            {
+                "symbol": "UAL",
+                "change_pct": -4.61,
+                "candidate_score": 88.0,
+                "abs_change_pct": 4.61,
+                "sector": "Industrials",
+                "industry": "Airlines",
+                "macro_exposure_tags": ["travel"],
+                "business_tags": ["travel_mobility"],
+            },
+        ]
+    )
+    retained_claims = [
+        {
+            "claim_text": (
+                "US Treasury yields showed mixed moves with front-end rates falling and long-end yields rising: "
+                "the 2Y dropped 8 bps to 3.88% while the 10Y rose 2 bps to 4.44% and the 30Y rose 5 bps to 4.98%."
+            ),
+            "is_same_day": True,
+            "causal_score": 0.20,
+            "confidence_score": 0.80,
+            "relevance_score": 0.80,
+        },
+        {
+            "claim_text": (
+                "Crude rose on supply-risk headlines, which raised expected jet fuel costs and pressured airline "
+                "margin assumptions while supporting energy cash-flow expectations."
+            ),
+            "is_same_day": True,
+            "causal_score": 0.92,
+            "confidence_score": 0.87,
+            "relevance_score": 0.91,
+        },
+    ]
+    yield_facts = {
+        "ust_2y": 3.88,
+        "ust_10y": 4.44,
+        "ust_30y": 4.98,
+        "ust_2y_1d_bps": -8.0,
+        "ust_10y_1d_bps": 2.0,
+        "ust_30y_1d_bps": 5.0,
+        "curve_2s10s": 0.56,
+        "curve_2s10s_1d_bps": 10.0,
+    }
+
+    bundle = attention_agentic_module._fallback_event_writer(
+        "Airlines lower, Energy higher",
+        cluster_rows,
+        retained_claims,
+        yield_facts=yield_facts,
+        event_type="oil",
+    )
+
+    why_text = bundle["why_happened_text"].lower()
+    assert "fuel" in why_text or "margin" in why_text
+    assert "2y" not in why_text
+    assert "2s10s" not in why_text
+
+
+def test_fallback_event_writer_rates_event_can_include_yield_context():
+    cluster_rows = pd.DataFrame(
+        [
+            {
+                "symbol": "TLT",
+                "change_pct": 1.6,
+                "candidate_score": 91.0,
+                "abs_change_pct": 1.6,
+                "sector": "Fixed Income",
+                "industry": "Treasury ETF",
+                "macro_exposure_tags": ["rates"],
+                "business_tags": [],
+            },
+            {
+                "symbol": "IEF",
+                "change_pct": 0.8,
+                "candidate_score": 84.0,
+                "abs_change_pct": 0.8,
+                "sector": "Fixed Income",
+                "industry": "Treasury ETF",
+                "macro_exposure_tags": ["rates"],
+                "business_tags": [],
+            },
+        ]
+    )
+    yield_facts = {
+        "ust_2y": 3.88,
+        "ust_10y": 4.44,
+        "ust_2y_1d_bps": -8.0,
+        "ust_10y_1d_bps": 2.0,
+        "curve_2s10s": 0.56,
+        "curve_2s10s_1d_bps": 10.0,
+    }
+
+    bundle = attention_agentic_module._fallback_event_writer(
+        "Rates higher",
+        cluster_rows,
+        [],
+        yield_facts=yield_facts,
+        event_type="rates",
+    )
+    why_text = bundle["why_happened_text"].lower()
+    assert "bps" not in why_text
+    assert "yields" in why_text
+
+
+def test_write_event_bundle_replaces_tape_recap_what_happened_with_directional_summary():
+    cluster_rows = pd.DataFrame(
+        [
+            {
+                "symbol": "USO",
+                "change_pct": 5.95,
+                "candidate_score": 92.0,
+                "abs_change_pct": 5.95,
+                "sector": "Energy",
+                "industry": "Oil & Gas",
+                "macro_exposure_tags": ["oil"],
+                "business_tags": [],
+            },
+            {
+                "symbol": "UAL",
+                "change_pct": -4.61,
+                "candidate_score": 88.0,
+                "abs_change_pct": 4.61,
+                "sector": "Industrials",
+                "industry": "Airlines",
+                "macro_exposure_tags": ["travel"],
+                "business_tags": ["travel_mobility"],
+            },
+        ]
+    )
+    retained_claims = [
+        {
+            "claim_text": (
+                "Crude rose on supply-risk headlines, which raised expected jet fuel costs and pressured airline "
+                "margin assumptions while supporting energy cash-flow expectations."
+            ),
+            "is_same_day": True,
+            "causal_score": 0.92,
+            "confidence_score": 0.87,
+            "relevance_score": 0.91,
+        }
+    ]
+
+    class _StatRecapLLM:
+        def generate_json(self, **kwargs):
+            return {
+                "title": "Airlines lower, Energy higher",
+                "surface_summary": "",
+                "what_happened_text": (
+                    "Energy and crude-linked products advanced with USO +5.95%, BNO +4.35%, and XOM +3.36%, "
+                    "while travel equities fell including UAL -4.61% and LUV -5.45%."
+                ),
+                "why_happened_text": "Higher crude fed into fuel-cost expectations and pressured airline margin assumptions.",
+                "affected_assets_summary_text": "Cross-asset spillover remained split between energy winners and travel laggards.",
+                "background_context_text": "",
+            }
+
+    bundle = attention_agentic_module._write_event_bundle(
+        "Airlines lower, Energy higher",
+        cluster_rows,
+        retained_claims,
+        llm_client=_StatRecapLLM(),
+        yield_facts={},
+        event_type="oil",
+    )
+
+    what_text = bundle["what_happened_text"].lower()
+    assert "%" not in what_text
+    assert "moved" in what_text
+
+
+def test_write_event_bundle_uses_mechanism_first_prompt_and_rich_payload():
+    cluster_rows = pd.DataFrame(
+        [
+            {
+                "symbol": "USO",
+                "change_pct": -5.95,
+                "candidate_score": 92.0,
+                "abs_change_pct": 5.95,
+                "sector": "Energy",
+                "industry": "Oil & Gas",
+                "asset_class": "commodity_proxy",
+                "macro_exposure_tags": ["oil"],
+                "business_tags": [],
+                "commodity_role": "oil",
+            },
+            {
+                "symbol": "UAL",
+                "change_pct": 4.61,
+                "candidate_score": 88.0,
+                "abs_change_pct": 4.61,
+                "sector": "Industrials",
+                "industry": "Airlines",
+                "asset_class": "equity",
+                "macro_exposure_tags": ["travel"],
+                "business_tags": ["travel_mobility"],
+            },
+            {
+                "symbol": "TLT",
+                "change_pct": 1.42,
+                "candidate_score": 79.0,
+                "abs_change_pct": 1.42,
+                "sector": "Fixed Income",
+                "industry": "Treasury ETF",
+                "asset_class": "fixed_income",
+                "macro_exposure_tags": ["rates"],
+                "business_tags": ["duration"],
+                "rates_role": "rates",
+            },
+        ]
+    )
+    retained_claims = [
+        {
+            "claim_text": (
+                "De-escalation headlines reduced perceived supply-disruption risk, which lowered crude and eased expected "
+                "jet fuel cost pressure for airlines."
+            ),
+            "claim_type": "mechanism",
+            "source": "Reuters",
+            "source_authority_bucket": "high",
+            "is_same_day": True,
+            "freshness_class": "same_day",
+            "supports_hypothesis": "lower fuel-cost pressure helps airlines",
+            "claim_entities": ["crude", "airlines"],
+            "relevance_score": 0.93,
+            "causal_score": 0.92,
+            "confidence_score": 0.88,
+        },
+        {
+            "claim_text": "Treasuries firmed as lower oil reduced near-term inflation pressure and improved duration sentiment.",
+            "claim_type": "cross_asset",
+            "source": "AP",
+            "source_authority_bucket": "high",
+            "is_same_day": True,
+            "freshness_class": "same_day",
+            "supports_hypothesis": "lower inflation pressure helps duration",
+            "claim_entities": ["treasuries", "inflation"],
+            "relevance_score": 0.82,
+            "causal_score": 0.71,
+            "confidence_score": 0.77,
+        },
+    ]
+
+    captured: dict[str, str] = {}
+
+    class _CapturingLLM:
+        def generate_json(self, **kwargs):
+            captured["system_prompt"] = kwargs["system_prompt"]
+            captured["user_prompt"] = kwargs["user_prompt"]
+            return {
+                "title": "Crude lower, airlines catch relief bid",
+                "surface_summary": (
+                    "Oil-linked assets fell while travel-sensitive names and Treasuries benefited. "
+                    "Lower perceived supply risk eased fuel-cost and inflation pressure."
+                ),
+                "what_happened_text": (
+                    "Oil-linked assets moved lower while airlines and Treasuries held up better as the cluster rotated away "
+                    "from crude exposure."
+                ),
+                "why_happened_text": (
+                    "De-escalation headlines reduced perceived supply-disruption risk, which lowered expected fuel-cost pressure "
+                    "and improved the market's view of airline margins and inflation-sensitive duration trades."
+                ),
+                "affected_assets_summary_text": (
+                    "The spillover reached travel and duration-sensitive assets while crude proxies led the downside."
+                ),
+                "background_context_text": "",
+            }
+
+    bundle = attention_agentic_module._write_event_bundle(
+        "Oil lower while airlines rebound",
+        cluster_rows,
+        retained_claims,
+        llm_client=_CapturingLLM(),
+        yield_facts={"ust_10y_1d_bps": -6.0},
+        event_type="oil",
+        cause_status="supported",
+        evidence_quality="High",
+        freshness_quality="High",
+    )
+
+    payload = json.loads(captured["user_prompt"])
+
+    assert "senior cross-asset strategist" in captured["system_prompt"].lower()
+    assert "catalyst -> transmission channel -> market pricing reaction" in captured["system_prompt"]
+    assert payload["cause_status"] == "supported"
+    assert payload["evidence_quality"] == "High"
+    assert payload["freshness_quality"] == "High"
+    assert payload["event_type"] == "oil"
+    assert payload["cluster_context"]["anchor_symbol"] == "USO"
+    assert "oil" in payload["cluster_context"]["dominant_tags"]
+    assert "travel" in payload["cluster_context"]["dominant_tags"]
+    assert payload["claims"][0]["causal_score"] == 0.92
+    assert payload["claims"][0]["claim_entities"] == ["crude", "airlines"]
+    assert bundle["title"] == "Crude lower, airlines catch relief bid"
+    assert "supply-disruption risk" in bundle["why_happened_text"]
+
+
+def test_documents_from_search_results_skip_provider_error_rows():
+    candidate = {"candidate_id": "candidate::HOOD", "symbol": "HOOD"}
+    docs = attention_agentic_module._documents_from_search_results(
+        candidate,
+        [
+            {
+                "result_id": "query::1::tavily::error",
+                "title": "",
+                "snippet": "Tavily request failed status=432: {\"detail\":{\"error\":\"This request exceeds your plan's set usage limit.\"}}",
+                "source": "tavily",
+                "provider": "tavily",
+                "published_at": "",
+                "authority_bucket": "web",
+                "authority_rank": 3,
+                "query_id": "query::1",
+            },
+            {
+                "result_id": "query::1::serpapi::ok",
+                "title": "Retail flows stabilize after stronger account growth",
+                "snippet": "Robinhood shares rose as investors priced better engagement and deposit momentum.",
+                "source": "Reuters",
+                "provider": "serpapi",
+                "published_at": "2026-03-31T01:00:00Z",
+                "authority_bucket": "wire",
+                "authority_rank": 1,
+                "query_id": "query::1",
+            },
+        ],
+        run_id="run-1",
+        asof_time_utc=pd.Timestamp("2026-03-31T02:00:00Z"),
+    )
+
+    assert len(docs) == 1
+    assert docs[0]["title"] == "Retail flows stabilize after stronger account growth"
+    assert "usage limit" not in docs[0]["raw_text"].lower()
+
+
+def test_fallback_claims_from_chunks_skip_provider_error_chunks():
+    chunks = pd.DataFrame(
+        [
+            {
+                "chunk_id": "chunk::1",
+                "title": "tavily error",
+                "display_excerpt": "Tavily request failed status=432: {\"detail\":{\"error\":\"This request exceeds your plan's set usage limit.\"}}",
+                "chunk_text": "Tavily request failed status=432: {\"detail\":{\"error\":\"This request exceeds your plan's set usage limit.\"}}",
+                "published_at": pd.Timestamp("2026-03-31T00:00:00Z"),
+                "authority_rank": 3,
+                "source_authority_bucket": "web",
+                "source_provider": "tavily",
+            },
+            {
+                "chunk_id": "chunk::2",
+                "title": "Customer balances grew",
+                "display_excerpt": "Customer balances grew faster than expected, which improved revenue expectations for the brokerage platform.",
+                "chunk_text": "Customer balances grew faster than expected, which improved revenue expectations for the brokerage platform.",
+                "published_at": pd.Timestamp("2026-03-31T00:00:00Z"),
+                "authority_rank": 1,
+                "source_authority_bucket": "wire",
+                "source_provider": "Reuters",
+            },
+        ]
+    )
+
+    claims = attention_agentic_module._fallback_claims_from_chunks(
+        {"symbol": "HOOD", "macro_exposure_tags": []},
+        chunks,
+        run_id="run-1",
+        asof_time_utc=pd.Timestamp("2026-03-31T02:00:00Z"),
+        hypotheses=[{"kind": "company_specific"}],
+    )
+
+    assert len(claims) == 1
+    assert claims[0]["source"] == "Reuters"
+    assert "usage limit" not in claims[0]["claim_text"].lower()
+
+
+def test_chunk_source_documents_skip_low_signal_analyst_rating_snippets():
+    chunks = attention_agentic_module._chunk_source_documents(
+        [
+            {
+                "candidate_id": "candidate::BSX",
+                "bundle_subject": "BSX",
+                "document_id": "doc::BSX::news::1",
+                "source_provider": "benzinga",
+                "source_authority_bucket": "press",
+                "authority_rank": 2,
+                "title": "Analyst roundup",
+                "url": "https://example.com/analyst-roundup",
+                "published_at": pd.Timestamp("2026-03-31T00:00:00Z"),
+                "raw_text": (
+                    "Top Wall Street analysts changed outlook on top names. "
+                    "For all changes, including upgrades/downgrades, see analyst ratings page. "
+                    "Orders recovered and margin expectations improved for the medtech supplier."
+                ),
+            }
+        ],
+        run_id="run-1",
+        asof_time_utc=pd.Timestamp("2026-03-31T02:00:00Z"),
+    )
+
+    assert len(chunks) == 1
+    assert "orders recovered" in chunks.iloc[0]["chunk_text"].lower()
+    assert "analyst ratings page" not in chunks.iloc[0]["chunk_text"].lower()
 
 
 def test_build_live_attention_research_bundle_filters_irrelevant_roundups_and_marks_unresolved():
@@ -1627,12 +2218,25 @@ def test_bottom_up_attention_artifacts_use_dynamic_event_titles_instead_of_gener
         for symbol, move in daily_movers[["symbol", "change_pct"]].itertuples(index=False, name=None)
     }
 
+    entity_master = build_attention_entity_master(daily_movers["symbol"].tolist()).copy()
+    macro_overrides = {
+        "BNO": {"commodity_role": "oil", "macro_role_tags": ["oil"]},
+        "USO": {"commodity_role": "oil", "macro_role_tags": ["oil"]},
+        "TLT": {"rates_role": "rates", "macro_role_tags": ["rates"]},
+        "UAL": {"industry": "Airlines", "business_role_tags": ["travel_mobility"], "macro_role_tags": ["travel"]},
+        "DAL": {"industry": "Airlines", "business_role_tags": ["travel_mobility"], "macro_role_tags": ["travel"]},
+    }
+    for symbol, payload in macro_overrides.items():
+        mask = entity_master["symbol"] == symbol
+        for column, value in payload.items():
+            entity_master.loc[mask, column] = [value]
+
     artifacts = build_bottom_up_attention_artifacts(
         daily_movers,
         bars_by_symbol=bars_by_symbol,
         news_payloads={},
         context_payloads={},
-        entity_master=build_attention_entity_master(daily_movers["symbol"].tolist()),
+        entity_master=entity_master,
         holdings=[],
         generated_at_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
         llm_client=None,
@@ -1640,8 +2244,9 @@ def test_bottom_up_attention_artifacts_use_dynamic_event_titles_instead_of_gener
 
     top_event = artifacts.home_payload["top_events"][0]
     assert "related assets move together today" not in top_event["event_title"].lower()
-    assert top_event["event_title"] == "Oil lower, Airlines higher"
-    assert "oil moved lower while airlines moved higher today" in top_event["surface_summary_text"].lower()
+    assert top_event["event_type"] == "oil"
+    assert top_event["event_title"].startswith("Oil lower")
+    assert "oil moved lower today" in top_event["surface_summary_text"].lower()
 
 
 def test_build_live_attention_research_bundle_generic_filing_sections_do_not_drive_continuation_copy():
@@ -1769,7 +2374,7 @@ def test_attention_home_surface_summary_simplifies_move_vs_expectation_copy():
 
     assert "20-day baseline" not in summary
     assert "2.3z" not in summary
-    assert "well outside its recent 1d baseline" in summary
+    assert "relative to its recent baseline" in summary
 
 
 def test_build_live_attention_research_bundle_emits_tight_display_excerpts():
@@ -2434,6 +3039,69 @@ def test_build_homepage_v2_market_digest_uses_market_event_titles_and_underlying
     assert "easing supply-risk" in digest["beats"][0]["summary"].lower()
 
 
+def test_homepage_v2_bundle_symbol_lookup_deduplicates_symbols_per_bundle():
+    lookup = homepage_v2_bundle_symbol_lookup(
+        [
+            {"bundle_id": "bundle-1", "symbols": ["msft", "AAPL", "MSFT"]},
+            {"bundle_id": "bundle-1", "symbols": ["NVDA", "aapl"]},
+            {"bundle_id": "bundle-2", "symbols": ["TLT"]},
+        ]
+    )
+
+    assert lookup == {
+        "bundle-1": ["MSFT", "AAPL", "NVDA"],
+        "bundle-2": ["TLT"],
+    }
+
+
+def test_normalize_homepage_v2_detail_state_defaults_to_first_bundle_and_symbol():
+    state = normalize_homepage_v2_detail_state(
+        [
+            {"bundle_id": "bundle-1", "symbols": ["msft", "aapl"]},
+            {"bundle_id": "bundle-2", "symbols": ["nvda"]},
+        ],
+        selected_bundle_id="missing",
+        selected_ticker="",
+        active_panel="",
+    )
+
+    assert state == {
+        "selected_bundle_id": "bundle-1",
+        "selected_ticker": "MSFT",
+        "active_panel": HOMEPAGE_V2_RESEARCH_PANEL,
+    }
+
+
+def test_normalize_homepage_v2_detail_state_preserves_explicit_company_selection():
+    state = normalize_homepage_v2_detail_state(
+        [{"bundle_id": "bundle-1", "symbols": ["msft", "aapl"]}],
+        selected_bundle_id="bundle-1",
+        selected_ticker="tsla",
+        active_panel=HOMEPAGE_V2_COMPANY_PANEL,
+    )
+
+    assert state == {
+        "selected_bundle_id": "bundle-1",
+        "selected_ticker": "TSLA",
+        "active_panel": HOMEPAGE_V2_COMPANY_PANEL,
+    }
+
+
+def test_normalize_homepage_v2_detail_state_falls_back_to_research_without_ticker():
+    state = normalize_homepage_v2_detail_state(
+        [{"bundle_id": "bundle-1", "symbols": []}],
+        selected_bundle_id="bundle-1",
+        selected_ticker="",
+        active_panel=HOMEPAGE_V2_COMPANY_PANEL,
+    )
+
+    assert state == {
+        "selected_bundle_id": "bundle-1",
+        "selected_ticker": "",
+        "active_panel": HOMEPAGE_V2_RESEARCH_PANEL,
+    }
+
+
 def test_fred_client_parses_observations_and_builds_summary():
     client = FakeFREDClient()
     metadata = client.get_series_metadata("CPIAUCSL")
@@ -2622,7 +3290,11 @@ def test_candidate_context_documents_adds_treasury_yield_summary_for_rates_names
 
     treasury_docs = [doc for doc in docs if doc.get("source_kind") == "treasury"]
     assert len(treasury_docs) == 1
-    assert "10Y 4.13% (-11 bps)" in treasury_docs[0]["raw_text"]
+    raw_text = str(treasury_docs[0]["raw_text"]).lower()
+    assert "yields" in raw_text
+    assert "curve" in raw_text
+    assert "%" not in raw_text
+    assert "bps" not in raw_text
 
 
 def test_csv_cache_reuses_fresh_files_and_refreshes_when_stale_or_forced():
@@ -2714,7 +3386,7 @@ def test_share_count_asof_respects_asof_cutoff(monkeypatch):
     monkeypatch.setattr(
         fundamentals_compute,
         "_load_statement",
-        lambda statement: quarterly.copy() if statement == "income" else pd.DataFrame(columns=quarterly.columns),
+        lambda statement, data_dir="": quarterly.copy() if statement == "income" else pd.DataFrame(columns=quarterly.columns),
     )
 
     value_early, date_early, metric_early = fundamentals_compute.share_count_asof(
@@ -2829,3 +3501,463 @@ def test_build_attention_ticker_background_snapshot_frame_serializes_replay_fiel
     assert len(json.loads(row["price_points_json"])) == 2
     trace = json.loads(row["source_trace_json"])
     assert "attention_context_bundle" in trace["datasets"]
+
+
+def test_augment_candidate_frame_preserves_upstream_peer_group_and_merges_tags():
+    asof = pd.Timestamp("2026-03-31T12:00:00Z")
+    frame = pd.DataFrame(
+        [
+            {
+                "symbol": "AAA",
+                "industry": "Unknown",
+                "sector": "Energy",
+                "asset_class": "commodity",
+                "peer_group_id": "commodity_role:oil_supply_shock",
+                "macro_exposure_tags": np.array(["oil"], dtype=object),
+                "macro_role_tags": np.array(["supply_tightness"], dtype=object),
+                "business_tags": np.array(["refining"], dtype=object),
+                "business_role_tags": np.array(["midstream"], dtype=object),
+            }
+        ]
+    )
+
+    out = attention_agentic_module._augment_candidate_frame(frame, asof_time_utc=asof, run_id="run-123")
+    row = out.iloc[0]
+
+    assert row["peer_group_id"] == "commodity_role:oil_supply_shock"
+    assert row["macro_exposure_tags"] == ["oil", "supply_tightness"]
+    assert row["business_tags"] == ["refining", "midstream"]
+
+
+def test_graph_edges_connect_same_industry_without_tag_overlap():
+    asof = pd.Timestamp("2026-03-31T12:00:00Z")
+    frame = pd.DataFrame(
+        [
+            {
+                "candidate_id": "cand-aaa",
+                "symbol": "AAA",
+                "industry": "Software",
+                "sector": "Information Technology",
+                "change_pct": 4.2,
+            },
+            {
+                "candidate_id": "cand-bbb",
+                "symbol": "BBB",
+                "industry": "Software",
+                "sector": "Information Technology",
+                "change_pct": 3.8,
+            },
+        ]
+    )
+
+    candidates = attention_agentic_module._augment_candidate_frame(frame, asof_time_utc=asof, run_id="run-123")
+    edges = attention_agentic_module._graph_edges(candidates, claim_map={}, run_id="run-123", asof_time_utc=asof)
+
+    assert len(edges) == 1
+    row = edges.iloc[0]
+    assert {row["left_symbol"], row["right_symbol"]} == {"AAA", "BBB"}
+    assert json.loads(row["edge_reasons_json"]) == ["taxonomy_peer"]
+    assert float(row["edge_weight"]) >= 0.42
+
+
+def test_graph_edges_use_explicit_upstream_peer_groups_without_tags():
+    asof = pd.Timestamp("2026-03-31T12:00:00Z")
+    frame = pd.DataFrame(
+        [
+            {
+                "candidate_id": "cand-gld",
+                "symbol": "GLD",
+                "industry": "Unknown",
+                "sector": "Unknown",
+                "asset_class": "commodity",
+                "peer_group_id": "macro_role:inflation_hedge",
+                "peer_group_name": "Inflation Hedge",
+                "change_pct": 1.9,
+            },
+            {
+                "candidate_id": "cand-gdx",
+                "symbol": "GDX",
+                "industry": "Unknown",
+                "sector": "Materials",
+                "asset_class": "equity",
+                "peer_group_id": "macro_role:inflation_hedge",
+                "peer_group_name": "Inflation Hedge",
+                "change_pct": 2.4,
+            },
+        ]
+    )
+
+    candidates = attention_agentic_module._augment_candidate_frame(frame, asof_time_utc=asof, run_id="run-123")
+    edges = attention_agentic_module._graph_edges(candidates, claim_map={}, run_id="run-123", asof_time_utc=asof)
+
+    assert len(edges) == 1
+    row = edges.iloc[0]
+    assert {row["left_symbol"], row["right_symbol"]} == {"GLD", "GDX"}
+    assert json.loads(row["edge_reasons_json"]) == ["taxonomy_peer"]
+    assert float(row["edge_weight"]) >= 0.42
+
+
+def test_recompute_attention_candidate_graph_prefers_effective_taxonomy_fields():
+    asof = pd.Timestamp("2026-03-31T12:00:00Z")
+    frame = pd.DataFrame(
+        [
+            {
+                "candidate_id": "cand-aaa",
+                "symbol": "AAA",
+                "industry": "Unknown",
+                "sector": "Unknown",
+                "effective_industry": "Application Software",
+                "effective_sector": "Information Technology",
+                "change_pct": 3.1,
+            },
+            {
+                "candidate_id": "cand-bbb",
+                "symbol": "BBB",
+                "industry": "Unknown",
+                "sector": "Unknown",
+                "effective_industry": "Application Software",
+                "effective_sector": "Information Technology",
+                "change_pct": 2.8,
+            },
+        ]
+    )
+
+    candidates, edges = attention_agentic_module.recompute_attention_candidate_graph(
+        frame,
+        claims_frame=pd.DataFrame(),
+        run_id="run-123",
+        asof_time_utc=asof,
+    )
+
+    assert len(candidates) == 2
+    assert len(edges) == 1
+    row = edges.iloc[0]
+    assert {row["left_symbol"], row["right_symbol"]} == {"AAA", "BBB"}
+    assert json.loads(row["edge_reasons_json"]) == ["taxonomy_peer"]
+
+
+def _price_history_frame_for_returns(symbol_starts: dict[str, float], returns: list[float]) -> pd.DataFrame:
+    timestamps = pd.date_range("2025-10-01", periods=len(returns) + 1, freq="D", tz="UTC")
+    rows: list[dict[str, object]] = []
+    for symbol, start_price in symbol_starts.items():
+        close = float(start_price)
+        closes = [close]
+        for ret in returns:
+            close *= 1.0 + float(ret)
+            closes.append(close)
+        for timestamp, close_value in zip(timestamps, closes):
+            rows.append(
+                {
+                    "symbol": symbol,
+                    "timestamp": timestamp,
+                    "open": close_value,
+                    "high": close_value,
+                    "low": close_value,
+                    "close": close_value,
+                    "volume": 1_000_000,
+                }
+            )
+    return pd.DataFrame(rows)
+
+
+def test_graph_edges_use_history_correlation_when_graph_signal_is_sparse():
+    from services.attention_materialized import bars_by_symbol_from_price_history
+
+    asof = pd.Timestamp("2026-03-31T12:00:00Z")
+    frame = pd.DataFrame(
+        [
+            {
+                "candidate_id": "cand-aaa",
+                "symbol": "AAA",
+                "industry": "Unknown",
+                "sector": "Industrials",
+                "change_pct": 3.4,
+            },
+            {
+                "candidate_id": "cand-bbb",
+                "symbol": "BBB",
+                "industry": "Unknown",
+                "sector": "Communication Services",
+                "change_pct": 2.7,
+            },
+        ]
+    )
+    returns = [0.011, -0.004, 0.009, -0.006, 0.013, -0.003, 0.008, -0.005] * 12
+    price_history = _price_history_frame_for_returns({"AAA": 100.0, "BBB": 57.0}, returns)
+    bars_by_symbol = bars_by_symbol_from_price_history(
+        price_history,
+        ["AAA", "BBB"],
+        asof_time_utc=asof,
+        lookback_days=180,
+    )
+
+    candidates = attention_agentic_module._augment_candidate_frame(frame, asof_time_utc=asof, run_id="run-123")
+    history_corr_map = attention_agentic_module._history_correlation_map(
+        bars_by_symbol,
+        ["AAA", "BBB"],
+        min_observations=attention_agentic_module.attention_graph_policy().history_corr_min_observations,
+    )
+    edges = attention_agentic_module._graph_edges(
+        candidates,
+        claim_map={},
+        history_correlation_map=history_corr_map,
+        run_id="run-123",
+        asof_time_utc=asof,
+    )
+
+    assert len(edges) == 1
+    row = edges.iloc[0]
+    assert {row["left_symbol"], row["right_symbol"]} == {"AAA", "BBB"}
+    assert json.loads(row["edge_reasons_json"]) == ["history_corr"]
+    assert float(row["history_correlation"]) >= 0.99
+    assert int(row["history_correlation_observations"]) >= 60
+    assert float(row["edge_weight"]) >= 0.42
+
+
+def test_recompute_attention_candidate_graph_uses_price_history_for_sparse_pairs():
+    asof = pd.Timestamp("2026-03-31T12:00:00Z")
+    frame = pd.DataFrame(
+        [
+            {
+                "candidate_id": "cand-aaa",
+                "symbol": "AAA",
+                "industry": "Unknown",
+                "sector": "Industrials",
+                "change_pct": 3.4,
+            },
+            {
+                "candidate_id": "cand-bbb",
+                "symbol": "BBB",
+                "industry": "Unknown",
+                "sector": "Communication Services",
+                "change_pct": 2.7,
+            },
+        ]
+    )
+    returns = [0.011, -0.004, 0.009, -0.006, 0.013, -0.003, 0.008, -0.005] * 12
+    price_history = _price_history_frame_for_returns({"AAA": 100.0, "BBB": 57.0}, returns)
+
+    candidates, edges = attention_agentic_module.recompute_attention_candidate_graph(
+        frame,
+        claims_frame=pd.DataFrame(),
+        price_history_frame=price_history,
+        run_id="run-123",
+        asof_time_utc=asof,
+    )
+
+    assert len(candidates) == 2
+    assert len(edges) == 1
+    row = edges.iloc[0]
+    assert {row["left_symbol"], row["right_symbol"]} == {"AAA", "BBB"}
+    assert json.loads(row["edge_reasons_json"]) == ["history_corr"]
+    assert float(row["history_correlation"]) >= 0.99
+    assert int(row["history_correlation_observations"]) >= 60
+
+
+def test_build_network_backbone_preserves_isolated_symbols():
+    from services.attention_graph_network import build_attention_candidate_network, build_network_backbone
+
+    candidates = pd.DataFrame(
+        [
+            {"symbol": "AAA", "sector": "Information Technology", "industry": "Software", "peer_group_name": "Software", "direction": "up", "change_pct": 4.1, "candidate_score": 91.0, "attention_score": 88.0},
+            {"symbol": "BBB", "sector": "Information Technology", "industry": "Software", "peer_group_name": "Software", "direction": "up", "change_pct": 3.7, "candidate_score": 82.0, "attention_score": 79.0},
+            {"symbol": "CCC", "sector": "Energy", "industry": "Oil & Gas", "peer_group_name": "Oil & Gas", "direction": "down", "change_pct": -2.6, "candidate_score": 64.0, "attention_score": 61.0},
+            {"symbol": "DDD", "sector": "Utilities", "industry": "Water Utilities", "peer_group_name": "Water Utilities", "direction": "up", "change_pct": 1.8, "candidate_score": 55.0, "attention_score": 53.0},
+        ]
+    )
+    edges = pd.DataFrame(
+        [
+            {
+                "left_symbol": "AAA",
+                "right_symbol": "BBB",
+                "edge_weight": 0.92,
+                "edge_reasons": ["taxonomy_peer"],
+            }
+        ]
+    )
+
+    graph = build_attention_candidate_network(candidates, edges)
+    backbone = build_network_backbone(graph, per_node_k=1, keep_quantile=0.9)
+
+    assert set(backbone.nodes()) == {"AAA", "BBB", "CCC", "DDD"}
+    assert backbone.number_of_edges() == 1
+    assert backbone.degree("CCC") == 0
+    assert backbone.degree("DDD") == 0
+
+
+def test_expand_network_bridge_nodes_adds_real_intermediate_concepts():
+    import networkx as nx
+
+    from services.attention_graph_network import (
+        build_attention_candidate_network,
+        build_network_backbone,
+        expand_network_bridge_nodes,
+    )
+
+    candidates = pd.DataFrame(
+        [
+            {"symbol": "AAA", "sector": "Information Technology", "industry": "Application Software", "peer_group_name": "Application Software", "direction": "up", "change_pct": 4.1, "candidate_score": 91.0, "attention_score": 88.0},
+            {"symbol": "BBB", "sector": "Information Technology", "industry": "Application Software", "peer_group_name": "Application Software", "direction": "up", "change_pct": 3.7, "candidate_score": 82.0, "attention_score": 79.0},
+            {"symbol": "CCC", "sector": "Information Technology", "industry": "Cybersecurity Software", "peer_group_name": "Cybersecurity Software", "direction": "down", "change_pct": -2.6, "candidate_score": 64.0, "attention_score": 61.0},
+            {"symbol": "DDD", "sector": "Information Technology", "industry": "Cybersecurity Software", "peer_group_name": "Cybersecurity Software", "direction": "down", "change_pct": -1.8, "candidate_score": 55.0, "attention_score": 53.0},
+        ]
+    )
+    edges = pd.DataFrame(
+        [
+            {
+                "left_symbol": "AAA",
+                "right_symbol": "BBB",
+                "edge_weight": 0.92,
+                "edge_reasons": ["taxonomy_peer"],
+            },
+            {
+                "left_symbol": "CCC",
+                "right_symbol": "DDD",
+                "edge_weight": 0.87,
+                "edge_reasons": ["taxonomy_peer"],
+            },
+        ]
+    )
+
+    graph = build_attention_candidate_network(candidates, edges)
+    backbone = build_network_backbone(graph, per_node_k=1, keep_quantile=0.9)
+    expanded = expand_network_bridge_nodes(backbone, max_support_share=1.0)
+
+    bridge_nodes = [
+        node
+        for node, attrs in expanded.nodes(data=True)
+        if attrs.get("node_type") == "bridge"
+    ]
+
+    assert "bridge::software" in bridge_nodes
+    assert expanded.has_edge("AAA", "bridge::software")
+    assert expanded.has_edge("CCC", "bridge::software")
+    assert not expanded.has_edge("AAA", "CCC")
+    assert nx.number_connected_components(expanded.subgraph(["AAA", "BBB", "CCC", "DDD", "bridge::software"])) == 1
+
+
+def test_pack_component_positions_prefers_landscape_layout_for_many_components():
+    from services.attention_graph_network import build_attention_candidate_network, _pack_component_positions
+
+    candidates = pd.DataFrame(
+        [
+            {
+                "symbol": f"S{i:02d}",
+                "sector": "Information Technology" if i % 2 == 0 else "Health Care",
+                "industry": f"Group {i // 2}",
+                "peer_group_name": f"Group {i // 2}",
+                "direction": "up" if i % 2 == 0 else "down",
+                "change_pct": 2.5 if i % 2 == 0 else -1.8,
+                "candidate_score": 90.0 - i,
+                "attention_score": 70.0 - i,
+            }
+            for i in range(20)
+        ]
+    )
+    edges = pd.DataFrame(
+        [
+            {
+                "left_symbol": f"S{i:02d}",
+                "right_symbol": f"S{i + 1:02d}",
+                "edge_weight": 0.8,
+                "edge_reasons": ["taxonomy_peer"],
+            }
+            for i in range(0, 20, 2)
+        ]
+    )
+
+    graph = build_attention_candidate_network(candidates, edges)
+    positions = _pack_component_positions(graph, seed=3)
+    xs = [x for x, _ in positions.values()]
+    ys = [y for _, y in positions.values()]
+
+    assert len(positions) == 20
+    assert (max(xs) - min(xs)) > (max(ys) - min(ys))
+
+
+def test_plot_attention_candidate_network_calls_out_isolated_band():
+    from services.attention_graph_network import (
+        build_attention_candidate_network,
+        build_network_backbone,
+        plot_attention_candidate_network,
+    )
+
+    candidates = pd.DataFrame(
+        [
+            {"symbol": "AAA", "sector": "Information Technology", "industry": "Software", "peer_group_name": "Software", "direction": "up", "change_pct": 4.1, "candidate_score": 91.0, "attention_score": 88.0, "headline": "AAA extends rally"},
+            {"symbol": "BBB", "sector": "Information Technology", "industry": "Software", "peer_group_name": "Software", "direction": "up", "change_pct": 3.7, "candidate_score": 82.0, "attention_score": 79.0, "headline": "BBB follows software peers"},
+            {"symbol": "CCC", "sector": "Energy", "industry": "Oil & Gas", "peer_group_name": "Oil & Gas", "direction": "down", "change_pct": -2.6, "candidate_score": 64.0, "attention_score": 61.0, "headline": "CCC fades without cluster support"},
+            {"symbol": "DDD", "sector": "Utilities", "industry": "Water Utilities", "peer_group_name": "Water Utilities", "direction": "up", "change_pct": 1.8, "candidate_score": 55.0, "attention_score": 53.0, "headline": "DDD rises on single-name news"},
+        ]
+    )
+    edges = pd.DataFrame(
+        [
+            {
+                "left_symbol": "AAA",
+                "right_symbol": "BBB",
+                "edge_weight": 0.92,
+                "edge_reasons": ["taxonomy_peer"],
+            }
+        ]
+    )
+
+    graph = build_attention_candidate_network(candidates, edges)
+    backbone = build_network_backbone(graph, per_node_k=1, keep_quantile=0.9)
+    fig = plot_attention_candidate_network(backbone, title="Attention graph", height=480, seed=3)
+
+    node_points = sum(
+        len(list(trace.x if trace.x is not None else []))
+        for trace in fig.data
+        if "markers" in str(getattr(trace, "mode", ""))
+    )
+    annotation_texts = [str(item.text) for item in list(fig.layout.annotations or [])]
+
+    assert node_points == 4
+    assert any("2 isolates" in text for text in annotation_texts)
+    assert any(text == "Isolated symbols (2)" for text in annotation_texts)
+    assert any("Energy isolates (1)" in text for text in annotation_texts)
+    assert fig.layout.height > 480
+
+
+def test_plot_attention_candidate_network_fades_bridge_concepts():
+    from services.attention_graph_network import (
+        build_attention_candidate_network,
+        build_network_backbone,
+        expand_network_bridge_nodes,
+        plot_attention_candidate_network,
+    )
+
+    candidates = pd.DataFrame(
+        [
+            {"symbol": "AAA", "sector": "Information Technology", "industry": "Application Software", "peer_group_name": "Application Software", "direction": "up", "change_pct": 4.1, "candidate_score": 91.0, "attention_score": 88.0},
+            {"symbol": "BBB", "sector": "Information Technology", "industry": "Application Software", "peer_group_name": "Application Software", "direction": "up", "change_pct": 3.7, "candidate_score": 82.0, "attention_score": 79.0},
+            {"symbol": "CCC", "sector": "Information Technology", "industry": "Cybersecurity Software", "peer_group_name": "Cybersecurity Software", "direction": "down", "change_pct": -2.6, "candidate_score": 64.0, "attention_score": 61.0},
+            {"symbol": "DDD", "sector": "Information Technology", "industry": "Cybersecurity Software", "peer_group_name": "Cybersecurity Software", "direction": "down", "change_pct": -1.8, "candidate_score": 55.0, "attention_score": 53.0},
+        ]
+    )
+    edges = pd.DataFrame(
+        [
+            {"left_symbol": "AAA", "right_symbol": "BBB", "edge_weight": 0.92, "edge_reasons": ["taxonomy_peer"]},
+            {"left_symbol": "CCC", "right_symbol": "DDD", "edge_weight": 0.87, "edge_reasons": ["taxonomy_peer"]},
+        ]
+    )
+
+    graph = build_attention_candidate_network(candidates, edges)
+    plot_graph = expand_network_bridge_nodes(
+        build_network_backbone(graph, per_node_k=1, keep_quantile=0.9),
+        max_support_share=1.0,
+    )
+    fig = plot_attention_candidate_network(plot_graph, title="Bridge graph", height=480, seed=3)
+
+    bridge_traces = [trace for trace in fig.data if getattr(trace, "name", "") == "Bridge Concepts"]
+    bridge_edge_traces = [
+        trace
+        for trace in fig.data
+        if getattr(trace, "mode", "") == "lines"
+        and "bridge concept" in "".join(getattr(trace, "text", []) or [])
+    ]
+
+    assert bridge_traces
+    assert bridge_traces[0].marker.color == "#94a3b8"
+    assert float(bridge_traces[0].marker.opacity) < 0.7
+    assert bridge_edge_traces

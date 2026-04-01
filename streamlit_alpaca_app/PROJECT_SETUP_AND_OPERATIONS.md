@@ -19,6 +19,7 @@ This guide is for new contributors/operators with **no prior project context**.
 - **Services**: `services/*` (API clients, caching, pipeline store integration, secrets)
 - **Pipeline jobs**: `pipeline/jobs/main.py`
 - **Infra scripts/docs**: `scripts/*`, `infra/*`
+- **Working plans**: `plans/*` for active refactor, recovery, and implementation notes
 
 ---
 
@@ -58,6 +59,7 @@ See current URLs/revisions in:
 - `commodities-regime`
 - `options-liquid-universe`
 - `news-ingest-and-features`
+- `attention-home-build`
 
 Deployment outputs are stored in:
 
@@ -126,6 +128,12 @@ streamlit run app.py --server.port 8505 --server.address 0.0.0.0
 ## Fundamentals refresh cadence
 
 - `FUNDAMENTALS_MIN_REFRESH_HOURS` (default `24`)
+
+## Working design docs
+
+- `plans/README.md` is the entrypoint for active implementation plans.
+- `ATTENTION_FEED_GUIDELINES.md` holds the current product standard and evidence rules.
+- Keep transient notes in `plans/` instead of adding new root-level scratch docs.
 
 ---
 
@@ -267,8 +275,12 @@ From active job schedules:
 - `commodities-regime`: `10 14,18,22 * * 1-5`
 - `options-liquid-universe`: `45 14,20 * * 1-5`
 - `news-ingest-and-features`: `5 14,16,18,20 * * 1-5`
+- `attention-home-build`: `20 14,16,18,20 * * 1-5`
+- `entity-taxonomy-refresh`: `0 9 1 * *`
 
 Fundamentals are generated inside equities preload, but throttled to once per `FUNDAMENTALS_MIN_REFRESH_HOURS` (default 24h).
+Taxonomy refresh runs once a month by default and publishes the DB-backed entity taxonomy snapshot for NASDAQ and NYSE listings.
+For setup and runtime flow charts, see `infra/TAXONOMY_PIPELINE_FLOW.md`.
 
 ---
 

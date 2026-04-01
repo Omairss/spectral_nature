@@ -40,8 +40,19 @@ This document defines the canonical architecture for cached dashboard reads.
 
 - News
   - Job: `news-ingest-and-features`
-  - Datasets: `news_articles`, `news_symbol_map`
-  - Dashboard: Market Opportunity ticker context
+  - Datasets: `news_articles`, `news_symbol_map`, `edgar_filings`, `edgar_evidence`, `attention_context_llm`, `attention_context_bundle`
+  - Dashboard: Market Opportunity ticker context, attention evidence/context inputs
+
+- Attention
+  - Job: `attention-home-build`
+  - Datasets: `attention_home_1d`, `attention_research_bundles`, `attention_candidates_1d`, `attention_claims`, `attention_event_clusters_1d`, `attention_ticker_snapshots_1d`, `attention_ticker_background_snapshots`, `attention_web_search_news`
+  - Dashboard: Home, Daily Tape, attention drilldowns, attention graph views
+
+- Taxonomy
+  - Job: `entity-taxonomy-refresh`
+  - Datasets: `us_equity_listings`, `entity_taxonomy_labels`
+  - Dashboard: Attention entity labeling, sector/industry/peer-group lookup
+  - Detailed flow: `infra/TAXONOMY_PIPELINE_FLOW.md`
 
 - Fundamentals
   - Job: `equities-intraday-preload`
@@ -62,6 +73,7 @@ Sidebar source buttons trigger pipeline jobs directly using Azure CLI via `start
 - Commodities
 - Options
 - News
+- Attention
 - Fundamentals
 - Derivatives
 

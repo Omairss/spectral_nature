@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import math
+import re
 from typing import Any
 
 import numpy as np
 import pandas as pd
 
-from .market import business_focus_for_symbol, commodity_proxy_profile
-
+from .runtime_policy import attention_candidate_policy, source_authority_policy
 
 ENTITY_MASTER_COLUMNS = [
     "symbol",
@@ -80,580 +80,6 @@ RESEARCH_EVIDENCE_COLUMNS = [
     "published_at",
 ]
 
-MACRO_ANCHOR_SYMBOLS = [
-    "USO",
-    "BNO",
-    "UGA",
-    "UNG",
-    "DBC",
-    "PDBC",
-    "XLE",
-    "XOP",
-    "XOM",
-    "CVX",
-    "COP",
-    "SLB",
-    "OXY",
-    "TLT",
-    "IEF",
-    "SHY",
-    "LQD",
-    "HYG",
-    "SPY",
-    "QQQ",
-    "IWM",
-    "DIA",
-    "GLD",
-    "SLV",
-    "PPLT",
-    "PALL",
-    "JETS",
-    "UAL",
-    "DAL",
-    "AAL",
-    "LUV",
-    "UBER",
-    "ABNB",
-    "BKNG",
-    "EXPE",
-    "MAR",
-    "HLT",
-]
-
-STRUCTURED_ENTITY_OVERRIDES: dict[str, dict[str, Any]] = {
-    "USO": {
-        "asset_class": "commodity_proxy",
-        "security_type": "etf",
-        "sector": "Commodities",
-        "industry": "WTI Crude Oil",
-        "country": "US",
-        "commodity_role": "oil",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["oil", "energy", "inflation_proxy"],
-        "business_role_tags": ["commodity_proxy"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for oil.",
-    },
-    "BNO": {
-        "asset_class": "commodity_proxy",
-        "security_type": "etf",
-        "sector": "Commodities",
-        "industry": "Brent Crude Oil",
-        "country": "US",
-        "commodity_role": "oil",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["oil", "energy", "inflation_proxy"],
-        "business_role_tags": ["commodity_proxy"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for oil.",
-    },
-    "UGA": {
-        "asset_class": "commodity_proxy",
-        "security_type": "etf",
-        "sector": "Commodities",
-        "industry": "Gasoline",
-        "country": "US",
-        "commodity_role": "refined_fuels",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["energy", "inflation_proxy"],
-        "business_role_tags": ["commodity_proxy"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for refined fuels.",
-    },
-    "UNG": {
-        "asset_class": "commodity_proxy",
-        "security_type": "etf",
-        "sector": "Commodities",
-        "industry": "Natural Gas",
-        "country": "US",
-        "commodity_role": "natural_gas",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["energy", "inflation_proxy"],
-        "business_role_tags": ["commodity_proxy"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for natural gas.",
-    },
-    "DBC": {
-        "asset_class": "commodity_proxy",
-        "security_type": "etf",
-        "sector": "Commodities",
-        "industry": "Broad Commodity Basket",
-        "country": "US",
-        "commodity_role": "broad_commodities",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["commodities", "inflation_proxy"],
-        "business_role_tags": ["commodity_proxy"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for broad commodities.",
-    },
-    "PDBC": {
-        "asset_class": "commodity_proxy",
-        "security_type": "etf",
-        "sector": "Commodities",
-        "industry": "Broad Commodity Basket",
-        "country": "US",
-        "commodity_role": "broad_commodities",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["commodities", "inflation_proxy"],
-        "business_role_tags": ["commodity_proxy"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for broad commodities.",
-    },
-    "GLD": {
-        "asset_class": "commodity_proxy",
-        "security_type": "etf",
-        "sector": "Commodities",
-        "industry": "Gold",
-        "country": "US",
-        "commodity_role": "gold",
-        "rates_role": "",
-        "defensive_role": "precious_metals",
-        "macro_role_tags": ["defensive", "gold", "real_rates"],
-        "business_role_tags": ["commodity_proxy"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for gold.",
-    },
-    "SLV": {
-        "asset_class": "commodity_proxy",
-        "security_type": "etf",
-        "sector": "Commodities",
-        "industry": "Silver",
-        "country": "US",
-        "commodity_role": "silver",
-        "rates_role": "",
-        "defensive_role": "precious_metals",
-        "macro_role_tags": ["defensive", "silver", "real_rates"],
-        "business_role_tags": ["commodity_proxy"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for silver.",
-    },
-    "PPLT": {
-        "asset_class": "commodity_proxy",
-        "security_type": "etf",
-        "sector": "Commodities",
-        "industry": "Platinum",
-        "country": "US",
-        "commodity_role": "platinum",
-        "rates_role": "",
-        "defensive_role": "precious_metals",
-        "macro_role_tags": ["defensive", "precious_metals"],
-        "business_role_tags": ["commodity_proxy"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for platinum.",
-    },
-    "PALL": {
-        "asset_class": "commodity_proxy",
-        "security_type": "etf",
-        "sector": "Commodities",
-        "industry": "Palladium",
-        "country": "US",
-        "commodity_role": "palladium",
-        "rates_role": "",
-        "defensive_role": "precious_metals",
-        "macro_role_tags": ["defensive", "precious_metals"],
-        "business_role_tags": ["commodity_proxy"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for palladium.",
-    },
-    "TLT": {
-        "asset_class": "macro_proxy",
-        "security_type": "etf",
-        "sector": "Rates",
-        "industry": "Long Duration Treasuries",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "duration",
-        "defensive_role": "duration",
-        "macro_role_tags": ["rates", "duration", "defensive"],
-        "business_role_tags": [],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for long-duration Treasuries.",
-    },
-    "IEF": {
-        "asset_class": "macro_proxy",
-        "security_type": "etf",
-        "sector": "Rates",
-        "industry": "Intermediate Treasuries",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "duration",
-        "defensive_role": "duration",
-        "macro_role_tags": ["rates", "duration", "defensive"],
-        "business_role_tags": [],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for Treasuries.",
-    },
-    "SHY": {
-        "asset_class": "macro_proxy",
-        "security_type": "etf",
-        "sector": "Rates",
-        "industry": "Short Treasuries",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "front_end",
-        "defensive_role": "cash_like",
-        "macro_role_tags": ["rates", "front_end", "defensive"],
-        "business_role_tags": [],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for the front end of rates.",
-    },
-    "LQD": {
-        "asset_class": "macro_proxy",
-        "security_type": "etf",
-        "sector": "Credit",
-        "industry": "Investment Grade Credit",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "credit",
-        "defensive_role": "",
-        "macro_role_tags": ["rates", "credit"],
-        "business_role_tags": [],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for investment-grade credit.",
-    },
-    "HYG": {
-        "asset_class": "macro_proxy",
-        "security_type": "etf",
-        "sector": "Credit",
-        "industry": "High Yield Credit",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "credit",
-        "defensive_role": "",
-        "macro_role_tags": ["rates", "credit", "risk"],
-        "business_role_tags": [],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for high-yield credit.",
-    },
-    "SPY": {
-        "asset_class": "macro_proxy",
-        "security_type": "etf",
-        "sector": "Broad Market",
-        "industry": "Large Cap Equities",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["broad_risk", "equities"],
-        "business_role_tags": [],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for broad equities.",
-    },
-    "QQQ": {
-        "asset_class": "macro_proxy",
-        "security_type": "etf",
-        "sector": "Broad Market",
-        "industry": "Growth Equities",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["broad_risk", "equities", "growth"],
-        "business_role_tags": [],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for growth equities.",
-    },
-    "IWM": {
-        "asset_class": "macro_proxy",
-        "security_type": "etf",
-        "sector": "Broad Market",
-        "industry": "Small Cap Equities",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["broad_risk", "equities", "small_caps"],
-        "business_role_tags": [],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for small-cap equities.",
-    },
-    "DIA": {
-        "asset_class": "macro_proxy",
-        "security_type": "etf",
-        "sector": "Broad Market",
-        "industry": "Large Cap Equities",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["broad_risk", "equities"],
-        "business_role_tags": [],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated macro anchor for broad equities.",
-    },
-    "JETS": {
-        "asset_class": "sector_proxy",
-        "security_type": "etf",
-        "sector": "Industrials",
-        "industry": "Airlines",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["travel", "consumer", "oil_beneficiary"],
-        "business_role_tags": ["travel_mobility"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated cross-asset beneficiary basket.",
-    },
-    "UAL": {
-        "asset_class": "equity",
-        "security_type": "common_stock",
-        "sector": "Industrials",
-        "industry": "Airlines",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["travel", "oil_beneficiary"],
-        "business_role_tags": ["travel_mobility"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated airline beneficiary mapping.",
-    },
-    "DAL": {
-        "asset_class": "equity",
-        "security_type": "common_stock",
-        "sector": "Industrials",
-        "industry": "Airlines",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["travel", "oil_beneficiary"],
-        "business_role_tags": ["travel_mobility"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated airline beneficiary mapping.",
-    },
-    "AAL": {
-        "asset_class": "equity",
-        "security_type": "common_stock",
-        "sector": "Industrials",
-        "industry": "Airlines",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["travel", "oil_beneficiary"],
-        "business_role_tags": ["travel_mobility"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated airline beneficiary mapping.",
-    },
-    "LUV": {
-        "asset_class": "equity",
-        "security_type": "common_stock",
-        "sector": "Industrials",
-        "industry": "Airlines",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["travel", "oil_beneficiary"],
-        "business_role_tags": ["travel_mobility"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated airline beneficiary mapping.",
-    },
-    "UBER": {
-        "asset_class": "equity",
-        "security_type": "common_stock",
-        "sector": "Consumer Discretionary",
-        "industry": "Mobility Platforms",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["travel", "mobility", "oil_beneficiary"],
-        "business_role_tags": ["travel_mobility"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated mobility beneficiary mapping.",
-    },
-    "ABNB": {
-        "asset_class": "equity",
-        "security_type": "common_stock",
-        "sector": "Consumer Discretionary",
-        "industry": "Travel Platforms",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["travel"],
-        "business_role_tags": ["travel_mobility"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated travel mapping.",
-    },
-    "BKNG": {
-        "asset_class": "equity",
-        "security_type": "common_stock",
-        "sector": "Consumer Discretionary",
-        "industry": "Travel Platforms",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["travel"],
-        "business_role_tags": ["travel_mobility"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated travel mapping.",
-    },
-    "EXPE": {
-        "asset_class": "equity",
-        "security_type": "common_stock",
-        "sector": "Consumer Discretionary",
-        "industry": "Travel Platforms",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["travel"],
-        "business_role_tags": ["travel_mobility"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated travel mapping.",
-    },
-    "MAR": {
-        "asset_class": "equity",
-        "security_type": "common_stock",
-        "sector": "Consumer Discretionary",
-        "industry": "Hotels",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["travel"],
-        "business_role_tags": ["travel_mobility"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated travel mapping.",
-    },
-    "HLT": {
-        "asset_class": "equity",
-        "security_type": "common_stock",
-        "sector": "Consumer Discretionary",
-        "industry": "Hotels",
-        "country": "US",
-        "commodity_role": "",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["travel"],
-        "business_role_tags": ["travel_mobility"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated travel mapping.",
-    },
-    "XLE": {
-        "asset_class": "sector_proxy",
-        "security_type": "etf",
-        "sector": "Energy",
-        "industry": "Integrated Energy",
-        "country": "US",
-        "commodity_role": "oil_equities",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["oil", "energy"],
-        "business_role_tags": ["commodity"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated energy sector proxy.",
-    },
-    "XOP": {
-        "asset_class": "sector_proxy",
-        "security_type": "etf",
-        "sector": "Energy",
-        "industry": "Oil & Gas Exploration",
-        "country": "US",
-        "commodity_role": "oil_equities",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["oil", "energy"],
-        "business_role_tags": ["commodity"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated oil exploration proxy.",
-    },
-    "XOM": {
-        "asset_class": "equity",
-        "security_type": "common_stock",
-        "sector": "Energy",
-        "industry": "Integrated Oil & Gas",
-        "country": "US",
-        "commodity_role": "oil_equities",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["oil", "energy"],
-        "business_role_tags": ["commodity"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated energy producer mapping.",
-    },
-    "CVX": {
-        "asset_class": "equity",
-        "security_type": "common_stock",
-        "sector": "Energy",
-        "industry": "Integrated Oil & Gas",
-        "country": "US",
-        "commodity_role": "oil_equities",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["oil", "energy"],
-        "business_role_tags": ["commodity"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated energy producer mapping.",
-    },
-    "COP": {
-        "asset_class": "equity",
-        "security_type": "common_stock",
-        "sector": "Energy",
-        "industry": "Oil & Gas Exploration",
-        "country": "US",
-        "commodity_role": "oil_equities",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["oil", "energy"],
-        "business_role_tags": ["commodity"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated energy producer mapping.",
-    },
-    "SLB": {
-        "asset_class": "equity",
-        "security_type": "common_stock",
-        "sector": "Energy",
-        "industry": "Oilfield Services",
-        "country": "US",
-        "commodity_role": "oil_services",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["oil", "energy"],
-        "business_role_tags": ["commodity"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated oilfield services mapping.",
-    },
-    "OXY": {
-        "asset_class": "equity",
-        "security_type": "common_stock",
-        "sector": "Energy",
-        "industry": "Oil & Gas Exploration",
-        "country": "US",
-        "commodity_role": "oil_equities",
-        "rates_role": "",
-        "defensive_role": "",
-        "macro_role_tags": ["oil", "energy"],
-        "business_role_tags": ["commodity"],
-        "source_of_truth": "structured_override",
-        "override_reason": "Curated energy producer mapping.",
-    },
-}
-
-BUSINESS_ROLE_STRUCTURED_MAP: dict[str, tuple[str, str]] = {
-    "Alternative Asset Managers": ("Financials", "Alternative Asset Managers"),
-    "Housing": ("Consumer Discretionary", "Housing"),
-    "Retail": ("Consumer Discretionary", "Retail"),
-    "Media": ("Communication Services", "Media"),
-    "Social Media & Entertainment": ("Communication Services", "Social Media & Entertainment"),
-    "Advertising": ("Communication Services", "Advertising"),
-    "Commodity": ("Materials", "Commodity Producers"),
-    "Payments & Commerce": ("Financials", "Payments & Commerce"),
-    "Travel & Mobility": ("Consumer Discretionary", "Travel & Mobility"),
-    "Healthcare & Life Sciences": ("Health Care", "Healthcare & Life Sciences"),
-}
-
 LOW_SIGNAL_TEXT_FRAGMENTS = (
     "coverage from",
     "clustering around",
@@ -662,32 +88,17 @@ LOW_SIGNAL_TEXT_FRAGMENTS = (
     "looks idiosyncratic",
 )
 
-OFFICIAL_SOURCE_TOKENS = (
-    "sec",
-    "edgar",
-    "investor relations",
-    "press release",
-    "company filing",
-    "federal reserve",
-    "treasury",
-    "department of labor",
-    "bureau of labor statistics",
-    "census bureau",
-    "bea",
-    "bls",
+_MODEL_MATH_PATTERNS = (
+    r"\bobserved\b",
+    r"\bexpected\b",
+    r"\bresidual\b",
+    r"\bzscore\b",
+    r"\bz-score\b",
+    r"\battention score\b",
+    r"\b20-day baseline\b",
+    r"\bversus an expected\b",
+    r"\bleaving a residual\b",
 )
-WIRE_SOURCE_TOKENS = ("associated press", "ap", "reuters", "bloomberg", "dow jones")
-PRESS_SOURCE_TOKENS = (
-    "wall street journal",
-    "wsj",
-    "financial times",
-    "marketwatch",
-    "cnbc",
-    "yahoo finance",
-    "barron",
-    "fortune",
-)
-
 
 def _coerce_text(value: object) -> str:
     text = str(value or "").strip()
@@ -744,6 +155,40 @@ def _ordered_unique(values: list[str]) -> list[str]:
     return out
 
 
+def _is_macro_anchor_taxonomy_row(row: dict[str, Any] | pd.Series | None) -> bool:
+    payload = row if isinstance(row, dict) else (row.to_dict() if isinstance(row, pd.Series) else {})
+    if _coerce_text(payload.get("commodity_role")):
+        return True
+    if _coerce_text(payload.get("rates_role")):
+        return True
+    if _coerce_text(payload.get("defensive_role")):
+        return True
+    return len(_safe_list(payload.get("macro_role_tags"))) > 0
+
+
+def resolve_macro_anchor_symbols(
+    symbols: list[str],
+    *,
+    taxonomy_lookup: dict[str, dict[str, Any]] | None = None,
+) -> list[str]:
+    ordered_symbols = _ordered_unique(symbols)
+    if not ordered_symbols:
+        return []
+    lookup = taxonomy_lookup
+    if lookup is None:
+        try:
+            from .entity_taxonomy import taxonomy_lookup_by_symbol
+
+            lookup = taxonomy_lookup_by_symbol(ordered_symbols)
+        except Exception:
+            lookup = {}
+    return [
+        symbol
+        for symbol in ordered_symbols
+        if _is_macro_anchor_taxonomy_row((lookup or {}).get(symbol, {}))
+    ]
+
+
 def _abs_change_sort(frame: pd.DataFrame) -> pd.DataFrame:
     if frame.empty:
         return frame.copy()
@@ -762,15 +207,72 @@ def _is_low_signal_text(value: object) -> bool:
     return any(fragment in text for fragment in LOW_SIGNAL_TEXT_FRAGMENTS)
 
 
+def _sentence_split(text: object) -> list[str]:
+    clean = " ".join(str(text or "").split())
+    if not clean:
+        return []
+    return [part.strip() for part in re.split(r"(?<=[.!?])\s+", clean) if part.strip()]
+
+
+def _looks_like_model_math_text(text: object) -> bool:
+    clean = _coerce_text(text).lower()
+    if not clean:
+        return False
+    return any(re.search(pattern, clean) for pattern in _MODEL_MATH_PATTERNS)
+
+
+def _looks_like_numeric_tape_sentence(text: object) -> bool:
+    clean = _coerce_text(text)
+    if not clean:
+        return False
+    lowered = clean.lower()
+    pct_count = len(re.findall(r"[+\-]?\d+(?:\.\d+)?%", clean))
+    ticker_pct_pairs = len(re.findall(r"\b[A-Z]{2,5}\s*[+\-]?\d+(?:\.\d+)?%", clean))
+    if "20-day baseline" in lowered:
+        return True
+    if re.search(r"\bup:\b|\bdown:\b", lowered):
+        return True
+    if ticker_pct_pairs >= 2:
+        return True
+    return pct_count >= 4
+
+
+def _clean_source_explanation(text: object, *, limit: int = 240) -> str:
+    sentences = _sentence_split(text)
+    kept: list[str] = []
+    for sentence in sentences:
+        if _looks_like_model_math_text(sentence):
+            continue
+        if _looks_like_numeric_tape_sentence(sentence):
+            continue
+        kept.append(sentence)
+    if kept:
+        return _trim(" ".join(kept[:2]), limit)
+    clean = _trim(text, limit)
+    return "" if _looks_like_model_math_text(clean) else clean
+
+
+def _clean_source_title(text: object, *, limit: int = 120) -> str:
+    clean = _trim(text, limit)
+    if not clean:
+        return ""
+    if _is_low_signal_text(clean):
+        return ""
+    if _looks_like_model_math_text(clean):
+        return ""
+    return clean
+
+
 def _source_authority_bucket(source: object) -> tuple[str, int]:
     text = _coerce_text(source).lower()
     if not text:
         return "unknown", 4
-    if any(token in text for token in OFFICIAL_SOURCE_TOKENS):
+    policy = source_authority_policy()
+    if any(token in text for token in policy.official_tokens):
         return "official", 0
-    if any(token == text or token in text for token in WIRE_SOURCE_TOKENS):
+    if any(token == text or token in text for token in policy.wire_tokens):
         return "wire", 1
-    if any(token in text for token in PRESS_SOURCE_TOKENS):
+    if any(token in text for token in policy.press_tokens):
         return "press", 2
     return "web", 3
 
@@ -916,12 +418,12 @@ def _best_explanation_text(
 ) -> str:
     attention_series = attention_row if isinstance(attention_row, pd.Series) else pd.Series(dtype=object)
     for item in evidence_rows:
-        summary = _coerce_text(item.get("summary"))
+        summary = _clean_source_explanation(item.get("summary"), limit=240)
         if summary and not _is_low_signal_text(summary):
-            return _trim(summary, 240)
-        headline = _coerce_text(item.get("headline"))
+            return summary
+        headline = _clean_source_explanation(item.get("headline"), limit=240)
         if headline and not _is_low_signal_text(headline):
-            return _trim(headline, 240)
+            return headline
 
     for candidate in [
         _coerce_text((context_payload or {}).get("llm_why_now")),
@@ -930,18 +432,33 @@ def _best_explanation_text(
         _coerce_text(attention_series.get("why_now_text")),
         _coerce_text(attention_series.get("story_text")),
     ]:
-        if candidate and not _is_low_signal_text(candidate):
-            return _trim(candidate, 240)
+        cleaned = _clean_source_explanation(candidate, limit=240)
+        if cleaned and not _is_low_signal_text(cleaned):
+            return cleaned
     return ""
 
 
-def _headline_text_from_evidence(symbol: str, move: float, evidence_rows: list[dict[str, Any]]) -> str:
+def _headline_text_from_evidence(
+    symbol: str,
+    evidence_rows: list[dict[str, Any]],
+    *,
+    attention_row: pd.Series | None = None,
+    context_payload: dict[str, Any] | None = None,
+) -> str:
     for item in evidence_rows:
-        headline = _coerce_text(item.get("headline"))
+        headline = _clean_source_title(item.get("headline"), limit=120)
         if headline:
-            return _trim(headline, 120)
-    direction = "jumps" if move >= 0 else "drops"
-    return f"{symbol} {direction} on today's tape"
+            return headline
+    attention_series = attention_row if isinstance(attention_row, pd.Series) else pd.Series(dtype=object)
+    for candidate in [
+        (context_payload or {}).get("llm_headline"),
+        attention_series.get("headline"),
+        attention_series.get("title"),
+    ]:
+        headline = _clean_source_title(candidate, limit=120)
+        if headline:
+            return headline
+    return symbol
 
 
 def _peer_group_name(row: pd.Series) -> str:
@@ -958,26 +475,34 @@ def _peer_group_name(row: pd.Series) -> str:
 
 
 def _confidence_from_candidate(evidence_rows: list[dict[str, Any]], surprise_z: float, change_pct: float) -> str:
+    policy = attention_candidate_policy()
     best_rank = min((int(item.get("authority_rank", 9)) for item in evidence_rows), default=9)
     evidence_count = len(evidence_rows)
-    if abs(change_pct) >= 6.0 and abs(surprise_z) >= 2.0 and best_rank <= 1 and evidence_count >= 2:
+    if (
+        abs(change_pct) >= policy.confidence_high_abs_change_pct
+        and abs(surprise_z) >= policy.confidence_high_abs_surprise_z
+        and best_rank <= policy.confidence_high_best_authority_rank_max
+        and evidence_count >= policy.confidence_high_evidence_min
+    ):
         return "High"
-    if abs(change_pct) >= 4.0 and (abs(surprise_z) >= 1.2 or evidence_count >= 1):
+    if (
+        abs(change_pct) >= policy.confidence_medium_abs_change_pct
+        and (abs(surprise_z) >= policy.confidence_medium_abs_surprise_z or evidence_count >= 1)
+    ):
         return "Medium"
     return "Developing"
 
 
 def _move_vs_expectation_text(symbol: str, change_pct: float, expected_move_pct: float, surprise_z: float) -> str:
     direction = "rose" if change_pct >= 0 else "fell"
+    intensity = "modestly"
+    if (np.isfinite(surprise_z) and abs(surprise_z) >= 2.5) or abs(change_pct) >= 4.0:
+        intensity = "sharply"
+    elif (np.isfinite(surprise_z) and abs(surprise_z) >= 1.4) or abs(change_pct) >= 2.0:
+        intensity = "meaningfully"
     if np.isfinite(expected_move_pct):
-        baseline = f"{expected_move_pct:+.1f}%"
-        if np.isfinite(surprise_z):
-            return (
-                f"{symbol} {direction} {abs(change_pct):.1f}% today versus a {baseline} 20-day baseline "
-                f"({abs(surprise_z):.1f}z away from expectation)."
-            )
-        return f"{symbol} {direction} {abs(change_pct):.1f}% today versus a {baseline} 20-day baseline."
-    return f"{symbol} {direction} {abs(change_pct):.1f}% today."
+        return f"{symbol} {direction} {intensity} today relative to its recent baseline."
+    return f"{symbol} {direction} {intensity} today."
 
 
 def _compute_expectation_stats(frame: pd.DataFrame | None) -> tuple[float, float, float]:
@@ -1005,65 +530,53 @@ def _compute_expectation_stats(frame: pd.DataFrame | None) -> tuple[float, float
     return expected, surprise, surprise / std
 
 
-def _build_entity_row(symbol: str, asset_metadata: dict[str, Any] | None = None) -> dict[str, Any]:
+def _build_entity_row(
+    symbol: str,
+    asset_metadata: dict[str, Any] | None = None,
+    *,
+    taxonomy_row: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     normalized = _normalize_symbol(symbol)
-    override = STRUCTURED_ENTITY_OVERRIDES.get(normalized)
-    if override is not None:
-        return {"symbol": normalized, **override}
-
-    commodity_profile = commodity_proxy_profile(normalized)
-    commodity_name = _coerce_text(commodity_profile.get("commodity"))
-    if commodity_name and commodity_name != "Commodity proxy":
-        lowered = commodity_name.lower()
-        commodity_role = "oil" if "oil" in lowered or "brent" in lowered or "wti" in lowered else lowered.replace(" ", "_")
-        return {
-            "symbol": normalized,
-            "asset_class": "commodity_proxy",
-            "security_type": "etf",
-            "sector": "Commodities",
-            "industry": commodity_name,
-            "country": "US",
-            "commodity_role": commodity_role,
-            "rates_role": "",
-            "defensive_role": "precious_metals" if any(token in lowered for token in ["gold", "silver", "platinum", "palladium"]) else "",
-            "macro_role_tags": ["commodities"],
-            "business_role_tags": ["commodity_proxy"],
-            "source_of_truth": "commodity_proxy_profile",
-            "override_reason": "Commodity proxy metadata.",
-        }
+    if taxonomy_row is not None:
+        try:
+            from .entity_taxonomy import informative_taxonomy_row
+        except Exception:
+            informative_taxonomy_row = None
+        if informative_taxonomy_row is not None and informative_taxonomy_row(taxonomy_row):
+            return {
+                "symbol": normalized,
+                "asset_class": _coerce_text(taxonomy_row.get("asset_class")) or "equity",
+                "security_type": _coerce_text(taxonomy_row.get("security_type")) or "common_stock",
+                "sector": _coerce_text(taxonomy_row.get("sector")) or "Unknown",
+                "industry": _coerce_text(taxonomy_row.get("industry")) or "Unknown",
+                "country": _coerce_text(taxonomy_row.get("country")) or "US",
+                "commodity_role": _coerce_text(taxonomy_row.get("commodity_role")),
+                "rates_role": _coerce_text(taxonomy_row.get("rates_role")),
+                "defensive_role": _coerce_text(taxonomy_row.get("defensive_role")),
+                "macro_role_tags": _safe_list(taxonomy_row.get("macro_role_tags")),
+                "business_role_tags": _safe_list(taxonomy_row.get("business_role_tags")),
+                "source_of_truth": _coerce_text(taxonomy_row.get("source_of_truth")) or "entity_taxonomy",
+                "override_reason": _coerce_text(taxonomy_row.get("override_reason")) or "Loaded from entity taxonomy store.",
+            }
 
     asset = asset_metadata or {}
     name = _coerce_text(asset.get("name"))
     asset_class = _coerce_text(asset.get("class")) or "equity"
     security_type = "etf" if any(token in name.lower() for token in ["etf", "trust", "fund"]) else "common_stock"
-    business_focus = business_focus_for_symbol(normalized)
-    business_role_tags: list[str] = []
-    sector = "Unknown"
-    industry = "Unknown"
-    source_of_truth = "default"
-    override_reason = "Safe fallback classification; unknown symbols are left unassigned for macro roles."
-    if business_focus and business_focus != "All Market":
-        business_role_tags = [business_focus.lower().replace(" & ", "_").replace(" ", "_")]
-        mapped_sector, mapped_industry = BUSINESS_ROLE_STRUCTURED_MAP.get(business_focus, ("Unknown", business_focus))
-        sector = mapped_sector
-        industry = mapped_industry
-        source_of_truth = "business_focus_map"
-        override_reason = f"Curated business focus membership: {business_focus}."
-
     return {
         "symbol": normalized,
         "asset_class": asset_class,
         "security_type": security_type,
-        "sector": sector,
-        "industry": industry,
+        "sector": "Unknown",
+        "industry": "Unknown",
         "country": "US",
         "commodity_role": "",
         "rates_role": "",
         "defensive_role": "",
         "macro_role_tags": [],
-        "business_role_tags": business_role_tags,
-        "source_of_truth": source_of_truth,
-        "override_reason": override_reason,
+        "business_role_tags": [],
+        "source_of_truth": "listing_metadata",
+        "override_reason": "No dynamic taxonomy row was available for this symbol at build time.",
     }
 
 
@@ -1072,9 +585,22 @@ def build_attention_entity_master(
     *,
     asset_metadata_by_symbol: dict[str, dict[str, Any]] | None = None,
 ) -> pd.DataFrame:
+    ordered_symbols = _ordered_unique(symbols)
+    taxonomy_lookup: dict[str, dict[str, Any]] = {}
+    if ordered_symbols:
+        try:
+            from .entity_taxonomy import taxonomy_lookup_by_symbol
+
+            taxonomy_lookup = taxonomy_lookup_by_symbol(ordered_symbols)
+        except Exception:
+            taxonomy_lookup = {}
     rows = [
-        _build_entity_row(symbol, (asset_metadata_by_symbol or {}).get(_normalize_symbol(symbol), {}))
-        for symbol in _ordered_unique(symbols)
+        _build_entity_row(
+            symbol,
+            (asset_metadata_by_symbol or {}).get(_normalize_symbol(symbol), {}),
+            taxonomy_row=taxonomy_lookup.get(_normalize_symbol(symbol)),
+        )
+        for symbol in ordered_symbols
     ]
     out = pd.DataFrame(rows)
     if out.empty:
@@ -1089,8 +615,9 @@ def shortlist_attention_symbols_1d(
     *,
     holdings: list[str] | None = None,
     attention_rows: pd.DataFrame | None = None,
-    max_count: int = 100,
+    max_count: int | None = None,
 ) -> list[str]:
+    policy = attention_candidate_policy()
     movers = daily_movers.copy() if isinstance(daily_movers, pd.DataFrame) else pd.DataFrame()
     if movers.empty and (attention_rows is None or attention_rows.empty):
         return []
@@ -1113,20 +640,32 @@ def shortlist_attention_symbols_1d(
                 continue
             ordered.append(item)
 
+    macro_anchor_symbols: set[str] = set()
+    if not movers.empty:
+        macro_anchor_symbols.update(
+            resolve_macro_anchor_symbols(
+                movers["symbol"].dropna().astype(str).tolist(),
+            )
+        )
+
     if not movers.empty:
         liquid = movers[
-            movers["dollar_volume"].fillna(0).ge(25_000_000) | movers["symbol"].isin(MACRO_ANCHOR_SYMBOLS)
+            movers["dollar_volume"].fillna(0).ge(policy.shortlist_liquidity_min_dollar_volume)
+            | movers["symbol"].isin(macro_anchor_symbols)
         ].copy()
         if liquid.empty:
             liquid = movers.copy()
 
         gainers = liquid[liquid["change_pct"] > 0].sort_values(["change_pct", "dollar_volume"], ascending=[False, False], na_position="last")
         losers = liquid[liquid["change_pct"] < 0].sort_values(["change_pct", "dollar_volume"], ascending=[True, False], na_position="last")
-        macro = _abs_change_sort(liquid[liquid["symbol"].isin(MACRO_ANCHOR_SYMBOLS)].copy())
+        macro = _abs_change_sort(liquid[liquid["symbol"].isin(macro_anchor_symbols)].copy())
         large = _abs_change_sort(
             liquid[
-                liquid["change_pct"].abs().ge(4.0)
-                | (liquid["symbol"].isin(MACRO_ANCHOR_SYMBOLS) & liquid["change_pct"].abs().ge(1.0))
+                liquid["change_pct"].abs().ge(policy.confidence_medium_abs_change_pct)
+                | (
+                    liquid["symbol"].isin(macro_anchor_symbols)
+                    & liquid["change_pct"].abs().ge(policy.shortlist_macro_anchor_min_abs_change_pct)
+                )
             ].copy()
         )
         _extend(macro["symbol"].head(20).tolist())
@@ -1146,7 +685,8 @@ def shortlist_attention_symbols_1d(
         rows = rows.sort_values(["attention_score", "entity_id"], ascending=[False, True], na_position="last")
         _extend(rows["entity_id"].head(25).tolist())
 
-    return ordered[: max(int(max_count), 1)]
+    effective_max = policy.shortlist_default_max_count if max_count is None else max_count
+    return ordered[: max(int(effective_max), 1)]
 
 
 def _candidate_score(
@@ -1160,24 +700,32 @@ def _candidate_score(
     is_macro_anchor: bool,
     in_portfolio: bool,
 ) -> float:
-    move_score = min(abs(change_pct) * 6.0, 75.0)
-    surprise_score = min(abs(surprise_z) * 11.0, 45.0) if np.isfinite(surprise_z) else min(abs(change_pct) * 2.5, 18.0)
+    policy = attention_candidate_policy()
+    move_score = min(abs(change_pct) * policy.move_score_mult, policy.move_score_cap)
+    surprise_score = (
+        min(abs(surprise_z) * policy.surprise_score_mult, policy.surprise_score_cap)
+        if np.isfinite(surprise_z)
+        else min(abs(change_pct) * policy.surprise_fallback_mult, policy.surprise_fallback_cap)
+    )
     if np.isfinite(dollar_volume) and dollar_volume > 0:
-        liquidity_score = min(max(math.log10(dollar_volume) - 6.0, 0.0) * 6.5, 26.0)
+        liquidity_score = min(
+            max(math.log10(dollar_volume) - policy.liquidity_log10_offset, 0.0) * policy.liquidity_score_mult,
+            policy.liquidity_score_cap,
+        )
     else:
         liquidity_score = 0.0
     evidence_score = 0.0
     if evidence_count > 0:
-        evidence_score = 6.0 + min(evidence_count * 2.0, 8.0)
+        evidence_score = policy.evidence_score_base + min(evidence_count * policy.evidence_score_per_item, policy.evidence_score_cap)
         if best_authority_rank <= 0:
-            evidence_score += 8.0
+            evidence_score += policy.authority_bonus_official
         elif best_authority_rank <= 1:
-            evidence_score += 6.0
+            evidence_score += policy.authority_bonus_wire
         elif best_authority_rank <= 2:
-            evidence_score += 3.0
-    attention_bonus = min(attention_score * 0.15, 18.0) if np.isfinite(attention_score) else 0.0
-    macro_bonus = 10.0 if is_macro_anchor else 0.0
-    portfolio_bonus = 6.0 if in_portfolio else 0.0
+            evidence_score += policy.authority_bonus_press
+    attention_bonus = min(attention_score * policy.attention_bonus_mult, policy.attention_bonus_cap) if np.isfinite(attention_score) else 0.0
+    macro_bonus = policy.macro_bonus if is_macro_anchor else 0.0
+    portfolio_bonus = policy.portfolio_bonus if in_portfolio else 0.0
     return round(move_score + surprise_score + liquidity_score + evidence_score + attention_bonus + macro_bonus + portfolio_bonus, 1)
 
 
@@ -1217,6 +765,11 @@ def build_attention_event_candidates_1d(
     symbols = shortlist_attention_symbols_1d(movers, holdings=holdings, attention_rows=attention)
     if entity_master is None:
         entity_master = build_attention_entity_master(symbols)
+    macro_anchor_symbols = {
+        _normalize_symbol(row.get("symbol"))
+        for _, row in entity_master.iterrows()
+        if _normalize_symbol(row.get("symbol")) and _is_macro_anchor_taxonomy_row(row)
+    }
     entity_lookup = {
         _normalize_symbol(row.get("symbol")): row
         for _, row in entity_master.iterrows()
@@ -1279,17 +832,22 @@ def build_attention_event_candidates_1d(
             best_authority_rank=best_authority_rank,
             evidence_count=len(evidence_rows),
             attention_score=attention_score,
-            is_macro_anchor=symbol in MACRO_ANCHOR_SYMBOLS,
+            is_macro_anchor=symbol in macro_anchor_symbols,
             in_portfolio=in_portfolio,
         )
-        source_label = "Macro anchor" if symbol in MACRO_ANCHOR_SYMBOLS else _coerce_text(entity_row.get("sector")) or "Equities"
+        source_label = "Macro anchor" if symbol in macro_anchor_symbols else _coerce_text(entity_row.get("sector")) or "Equities"
         what_changed_text = _move_vs_expectation_text(
             symbol,
             change_pct,
             expected_move_pct if np.isfinite(expected_move_pct) else 0.0,
             surprise_z,
         )
-        headline = _headline_text_from_evidence(symbol, change_pct, evidence_rows)
+        headline = _headline_text_from_evidence(
+            symbol,
+            evidence_rows,
+            attention_row=attention_row,
+            context_payload=(context_payloads or {}).get(symbol),
+        )
         story_text = what_changed_text
         rows.append(
             {
@@ -1487,9 +1045,9 @@ def build_attention_research_bundle(
             "bundle_id": normalized_bundle_id,
             "bundle_type": "symbol",
             "symbol": symbol,
-            "headline": _coerce_text(candidate.get("headline")) or f"{symbol} research",
+            "headline": _coerce_text(candidate.get("headline")) or symbol,
             "what_changed_text": _coerce_text(candidate.get("what_changed_text")),
-            "why_now_text": _coerce_text(candidate.get("why_now_text")) or "Cause remains unresolved.",
+            "why_now_text": _coerce_text(candidate.get("why_now_text")),
             "cause_status": _coerce_text(candidate.get("cause_status")) or "unresolved",
             "confidence_label": _coerce_text(candidate.get("confidence_label")) or "Developing",
             "sector": _coerce_text(candidate.get("sector")),
@@ -1522,9 +1080,9 @@ def build_attention_research_bundle(
     return {
         "bundle_id": normalized_bundle_id,
         "bundle_type": "event",
-        "event_title": _coerce_text(event.get("event_title")) or "Market event research",
+        "event_title": _coerce_text(event.get("event_title")) or "Market event",
         "what_happened_text": _coerce_text(event.get("what_happened_text")),
-        "why_happened_text": _coerce_text(event.get("why_happened_text")) or "Cause remains unresolved.",
+        "why_happened_text": _coerce_text(event.get("why_happened_text")),
         "affected_assets_summary_text": _coerce_text(event.get("affected_assets_summary_text")),
         "cause_status": _coerce_text(event.get("cause_status")) or "unresolved",
         "confidence_label": _coerce_text(event.get("confidence_label")) or "Developing",
@@ -1560,11 +1118,11 @@ def build_attention_research_bundle(
 __all__ = [
     "CANDIDATE_COLUMNS",
     "ENTITY_MASTER_COLUMNS",
-    "MACRO_ANCHOR_SYMBOLS",
     "RESEARCH_EVIDENCE_COLUMNS",
     "build_attention_entity_master",
     "build_attention_event_candidates_1d",
     "build_attention_home_1d",
     "build_attention_research_bundle",
+    "resolve_macro_anchor_symbols",
     "shortlist_attention_symbols_1d",
 ]

@@ -112,6 +112,89 @@ def _matches_theme_text(theme: str, text_blob: str) -> bool:
     return any(keyword in blob for keyword in _THEME_KEYWORDS.get(str(theme or ""), ()))
 
 
+def _has_causal_language(text: object) -> bool:
+    clean = _coerce_text(text).lower()
+    if not clean:
+        return False
+    patterns = (
+        r"\bbecause\b",
+        r"\bdue to\b",
+        r"\bafter\b",
+        r"\bamid\b",
+        r"\bdriven by\b",
+        r"\bsuggest(?:s|ing)\b",
+        r"\bimply(?:s|ing)\b",
+        r"\bmargins?\b",
+        r"\bdemand\b",
+        r"\binflation\b",
+        r"\bsupply\b",
+    )
+    return any(re.search(pattern, clean) for pattern in patterns)
+
+
+def _looks_like_stat_dump_text(text: object) -> bool:
+    clean = _coerce_text(text)
+    if not clean:
+        return False
+    lowered = clean.lower()
+    pct_count = len(re.findall(r"[+\-]?\d+(?:\.\d+)?%", clean))
+    bps_count = len(re.findall(r"[+\-]?\d+(?:\.\d+)?\s*bps\b", lowered))
+    ticker_count = len(re.findall(r"\b[A-Z]{2,5}\b", clean))
+    ticker_pct_pairs = len(re.findall(r"\b[A-Z]{2,5}\s*[+\-]\d+(?:\.\d+)?%", clean))
+    if ticker_pct_pairs >= 2:
+        return True
+    if pct_count + bps_count >= 4:
+        return True
+    if ticker_count >= 4 and pct_count + bps_count >= 3:
+        return True
+    if re.search(r"\bup:\b|\bdown:\b", lowered):
+        return True
+    return False
+
+
+def _narrative_or_fallback(text: object, *, fallback: str, limit: int = 280) -> str:
+    clean = _trim(text, limit)
+    if not clean:
+        return _trim(fallback, limit)
+    if _looks_like_stat_dump_text(clean) and not _has_causal_language(clean):
+        return _trim(fallback, limit)
+    return clean
+
+
+def _join_symbols(symbols: list[str], *, limit: int = 5) -> str:
+    unique = list(dict.fromkeys([_coerce_text(item).upper() for item in symbols if _coerce_text(item)]))
+    scoped = unique[: max(int(limit), 1)]
+    if not scoped:
+        return ""
+    if len(scoped) == 1:
+        return scoped[0]
+    if len(scoped) == 2:
+        return f"{scoped[0]} and {scoped[1]}"
+    return ", ".join(scoped[:-1]) + f", and {scoped[-1]}"
+
+
+def _theme_tape_why(theme: str, direction: str) -> str:
+    theme = _coerce_text(theme).lower()
+    direction = _coerce_text(direction).lower() or "down"
+    if theme == "oil":
+        if direction == "down":
+            return "Oil is lower, which points to less supply-risk and less inflation pressure across the tape."
+        return "Oil is higher, which points to more supply-risk and more inflation pressure across the tape."
+    if theme == "rates":
+        if direction == "up":
+            return "Treasuries are rallying, which points to lower yields and a relief move in rate-sensitive assets."
+        return "Treasuries are falling, which points to higher yields and more pressure on risk assets."
+    if theme == "defensives":
+        if direction == "up":
+            return "Defensive assets are rising, which points to a more cautious tone."
+        return "Defensive demand is easing, which lines up with a broader relief move."
+    if theme == "risk":
+        if direction == "up":
+            return "Risk assets are rising together, which points to a broader risk-on move."
+        return "Risk assets are weakening together, which points to a broader risk-off move."
+    return "Cross-asset spillover is still developing and the causal picture is not yet clear."
+
+
 def _observed_direction(row: pd.Series) -> str:
     observed = _coerce_float(row.get("observed_value"))
     if np.isfinite(observed):
@@ -387,9 +470,6 @@ def _direction_label(direction: str) -> str:
 
 def _move_snippet(row: pd.Series) -> str:
     symbol = _coerce_text(row.get("entity_id")).upper()
-    observed = _coerce_float(row.get("observed_value"))
-    if np.isfinite(observed):
-        return f"{symbol} {observed:+.1f}%"
     return symbol
 
 
@@ -420,7 +500,11 @@ def _what_happened_text(anchor: pd.Series, members: pd.DataFrame, theme: str) ->
         return _trim(f"Defensive proxies {_direction_label(anchor_direction)} today, led by {examples}.", 280)
     if theme == "risk":
         return _trim(f"Risk proxies {_direction_label(anchor_direction)} together today, with {examples} leading the move.", 280)
-    return _trim(_coerce_text(anchor.get("story_text")) or _coerce_text(anchor.get("title")) or examples, 280)
+    return _narrative_or_fallback(
+        _coerce_text(anchor.get("story_text")) or _coerce_text(anchor.get("title")) or examples,
+        fallback=f"{_coerce_text(anchor.get('entity_id')).upper()} is driving a broader peer move today.",
+        limit=280,
+    )
 
 
 def _why_happened_text(
@@ -529,15 +613,21 @@ def _affected_assets_summary(theme: str, anchor: pd.Series, members: pd.DataFram
                 losers.append(symbol) if anchor_direction == "down" else winners.append(symbol)
         winners = list(dict.fromkeys(symbol for symbol in winners if symbol))
         losers = list(dict.fromkeys(symbol for symbol in losers if symbol))
-        pieces: list[str] = []
-        if losers:
-            pieces.append("Down: " + ", ".join(losers[:5]))
-        if winners:
-            pieces.append("Up: " + ", ".join(winners[:5]))
-        return " | ".join(pieces) if pieces else "Cross-asset spillover is still developing.", winners, losers
+        loser_text = _join_symbols(losers, limit=5)
+        winner_text = _join_symbols(winners, limit=5)
+        if loser_text and winner_text:
+            return f"Pressure showed up in {loser_text}, while relative strength showed up in {winner_text}.", winners, losers
+        if loser_text:
+            return f"Pressure showed up in {loser_text}.", winners, losers
+        if winner_text:
+            return f"Relative strength showed up in {winner_text}.", winners, losers
+        return "Cross-asset spillover is still developing.", winners, losers
 
     symbols = list(dict.fromkeys(_coerce_text(symbol).upper() for symbol in members.get("entity_id", pd.Series(dtype=str)).tolist() if _coerce_text(symbol)))
-    return "Affected: " + ", ".join(symbols[:6]), [], symbols[:6]
+    symbol_text = _join_symbols(symbols, limit=6)
+    if symbol_text:
+        return f"Spillover was concentrated in {symbol_text}.", [], symbols[:6]
+    return "Cross-asset spillover is still developing.", [], symbols[:6]
 
 
 def _event_title(theme: str, anchor: pd.Series) -> str:
@@ -587,6 +677,20 @@ def _build_theme_event(
         context_payloads=context_payloads,
     )
     affected_text, winners, losers = _affected_assets_summary(theme, anchor, members)
+    anchor_symbol = _coerce_text(anchor.get("entity_id")).upper()
+    anchor_direction = _observed_direction(anchor)
+    what_happened_text = _narrative_or_fallback(
+        _what_happened_text(anchor, members, theme),
+        fallback=f"{_coerce_text(anchor.get('peer_group_name')) or anchor_symbol} moved together today.",
+    )
+    why_happened_text = _narrative_or_fallback(
+        why_text,
+        fallback=_theme_tape_why(theme, anchor_direction),
+    )
+    affected_assets_summary_text = _narrative_or_fallback(
+        affected_text,
+        fallback="Cross-asset spillover is still developing.",
+    )
     score = _event_score(anchor, members, headline_text)
     confidence = _event_confidence_label(theme, breadth_count, headline_text)
     supporting_event_ids = [
@@ -599,7 +703,6 @@ def _build_theme_event(
         for value in members.get("entity_id", pd.Series(dtype=str)).tolist()
         if _coerce_text(value)
     ]
-    anchor_symbol = _coerce_text(anchor.get("entity_id")).upper()
     return {
         "market_event_id": f"{theme}:{anchor_symbol}:{_coerce_text(anchor.get('horizon')) or 'event'}",
         "event_type": theme,
@@ -608,12 +711,12 @@ def _build_theme_event(
         "confidence_label": confidence,
         "asof_time_utc": pd.to_datetime(anchor.get("asof_time_utc"), utc=True, errors="coerce"),
         "anchor_symbol": anchor_symbol,
-        "anchor_direction": _observed_direction(anchor),
+        "anchor_direction": anchor_direction,
         "anchor_move_pct": _coerce_float(anchor.get("observed_value")),
         "anchor_attention_score": _coerce_float(anchor.get("attention_score")),
-        "what_happened_text": _what_happened_text(anchor, members, theme),
-        "why_happened_text": why_text,
-        "affected_assets_summary_text": affected_text,
+        "what_happened_text": what_happened_text,
+        "why_happened_text": why_happened_text,
+        "affected_assets_summary_text": affected_assets_summary_text,
         "headline_text": headline_text,
         "source_line": source_line,
         "driver_symbols": list(dict.fromkeys(losers[:6] if theme == "oil" and _observed_direction(anchor) == "down" else supporting_symbols[:6])),
@@ -640,9 +743,15 @@ def _build_fallback_event(rows: pd.DataFrame) -> dict[str, object] | None:
         "anchor_direction": _observed_direction(anchor),
         "anchor_move_pct": _coerce_float(anchor.get("observed_value")),
         "anchor_attention_score": _coerce_float(anchor.get("attention_score")),
-        "what_happened_text": _trim(_coerce_text(anchor.get("story_text")) or _coerce_text(anchor.get("title")), 280),
-        "why_happened_text": _trim(_coerce_text(anchor.get("why_now_text")) or _coerce_text(anchor.get("story_text")), 280),
-        "affected_assets_summary_text": "Affected: " + symbol,
+        "what_happened_text": _narrative_or_fallback(
+            _coerce_text(anchor.get("story_text")) or _coerce_text(anchor.get("title")),
+            fallback=f"{symbol} is driving the latest attention move.",
+        ),
+        "why_happened_text": _narrative_or_fallback(
+            _coerce_text(anchor.get("why_now_text")) or _coerce_text(anchor.get("story_text")),
+            fallback="Cause remains unresolved; retained evidence is still thin.",
+        ),
+        "affected_assets_summary_text": f"Spillover is currently concentrated in {symbol}.",
         "headline_text": "",
         "source_line": "",
         "driver_symbols": [symbol],

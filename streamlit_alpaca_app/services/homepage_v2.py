@@ -10,6 +10,13 @@ import pandas as pd
 from .llm import OpenAIChatJSONClient
 
 
+HOMEPAGE_V2_RESEARCH_PANEL = "research"
+HOMEPAGE_V2_COMPANY_PANEL = "company"
+HOMEPAGE_V2_DETAIL_PANELS = (
+    HOMEPAGE_V2_RESEARCH_PANEL,
+    HOMEPAGE_V2_COMPANY_PANEL,
+)
+
 HOMEPAGE_V2_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
@@ -170,6 +177,66 @@ def _unique_texts(values: list[object], *, limit: int | None = None) -> list[str
         if limit is not None and len(out) >= int(limit):
             break
     return out
+
+
+def homepage_v2_bundle_symbol_lookup(beats: list[dict[str, Any]] | None) -> dict[str, list[str]]:
+    lookup: dict[str, list[str]] = {}
+    for beat in beats or []:
+        if not isinstance(beat, dict):
+            continue
+        bundle_id = _coerce_text(beat.get("bundle_id"))
+        if not bundle_id:
+            continue
+        existing = lookup.setdefault(bundle_id, [])
+        raw_symbols = [
+            _coerce_text(symbol).upper()
+            for symbol in list(beat.get("symbols") or [])
+            if _coerce_text(symbol)
+        ]
+        if not raw_symbols:
+            continue
+        seen = {symbol.lower() for symbol in existing}
+        for symbol in raw_symbols:
+            if symbol.lower() in seen:
+                continue
+            existing.append(symbol)
+            seen.add(symbol.lower())
+    return lookup
+
+
+def normalize_homepage_v2_detail_state(
+    beats: list[dict[str, Any]] | None,
+    *,
+    selected_bundle_id: str = "",
+    selected_ticker: str = "",
+    active_panel: str = HOMEPAGE_V2_RESEARCH_PANEL,
+) -> dict[str, str]:
+    bundle_symbol_lookup = homepage_v2_bundle_symbol_lookup(beats)
+    valid_bundle_ids = list(bundle_symbol_lookup.keys())
+
+    normalized_bundle_id = _coerce_text(selected_bundle_id)
+    if normalized_bundle_id not in bundle_symbol_lookup:
+        normalized_bundle_id = valid_bundle_ids[0] if valid_bundle_ids else ""
+
+    normalized_ticker = _coerce_text(selected_ticker).upper()
+    if not normalized_ticker and normalized_bundle_id:
+        bundle_symbols = bundle_symbol_lookup.get(normalized_bundle_id, [])
+        normalized_ticker = bundle_symbols[0] if bundle_symbols else ""
+
+    normalized_panel = _coerce_text(active_panel).lower()
+    if normalized_panel not in HOMEPAGE_V2_DETAIL_PANELS:
+        normalized_panel = HOMEPAGE_V2_RESEARCH_PANEL if normalized_bundle_id else HOMEPAGE_V2_COMPANY_PANEL
+
+    if normalized_panel == HOMEPAGE_V2_RESEARCH_PANEL and not normalized_bundle_id:
+        normalized_panel = HOMEPAGE_V2_COMPANY_PANEL if normalized_ticker else HOMEPAGE_V2_RESEARCH_PANEL
+    if normalized_panel == HOMEPAGE_V2_COMPANY_PANEL and not normalized_ticker:
+        normalized_panel = HOMEPAGE_V2_RESEARCH_PANEL
+
+    return {
+        "selected_bundle_id": normalized_bundle_id,
+        "selected_ticker": normalized_ticker,
+        "active_panel": normalized_panel,
+    }
 
 
 def build_homepage_v2_market_digest(
@@ -350,5 +417,13 @@ def build_homepage_v2_digest(
         "input_hash": input_hash,
     }
 
-
-__all__ = ["build_homepage_v2_digest", "build_homepage_v2_market_digest", "HOMEPAGE_V2_SCHEMA"]
+__all__ = [
+    "HOMEPAGE_V2_COMPANY_PANEL",
+    "HOMEPAGE_V2_DETAIL_PANELS",
+    "HOMEPAGE_V2_RESEARCH_PANEL",
+    "HOMEPAGE_V2_SCHEMA",
+    "build_homepage_v2_digest",
+    "build_homepage_v2_market_digest",
+    "homepage_v2_bundle_symbol_lookup",
+    "normalize_homepage_v2_detail_state",
+]

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+import json
 
 import numpy as np
 import pandas as pd
@@ -8,11 +9,7 @@ import pandas as pd
 from .alpaca_api import AlpacaAPI
 
 
-DEFAULT_UNIVERSE = [
-    "AAPL", "MSFT", "NVDA", "AMZN", "META", "GOOGL", "TSLA", "NFLX", "AMD", "INTC",
-    "JPM", "BAC", "WFC", "GS", "MS", "V", "MA", "PYPL", "SHOP", "UBER",
-    "XOM", "CVX", "SLB", "COP", "PFE", "JNJ", "LLY", "UNH", "MRK", "ABBV",
-]
+DEFAULT_UNIVERSE: list[str] = []
 
 
 def _unique_symbols(values: list[str]) -> list[str]:
@@ -27,53 +24,112 @@ def _unique_symbols(values: list[str]) -> list[str]:
     return out
 
 
-BUSINESS_FOCUS_UNIVERSES: dict[str, list[str]] = {
-    "All Market": DEFAULT_UNIVERSE,
-    "Alternative Asset Managers": [
-        "BX", "KKR", "OWL", "APO", "ARES", "BAM", "CG", "TPG",
-    ],
-    "Housing": [
-        "HD", "LOW", "DHI", "LEN", "PHM", "TOL", "NVR", "KBH", "BLD", "SHW", "WHR", "Z", "RDFN",
-    ],
-    "Retail": [
-        "AMZN", "WMT", "COST", "TGT", "TJX", "ROST", "BURL", "DG", "DLTR", "BBY", "FIVE", "ETSY", "SHOP",
-    ],
-    "Media": [
-        "DIS", "CMCSA", "CHTR", "WBD", "PARA", "FOXA", "NYT", "ROKU",
-    ],
-    "Social Media & Entertainment": [
-        "META", "NFLX", "SNAP", "PINS", "SPOT", "RBLX", "EA", "TTWO", "DIS",
-    ],
-    "Advertising": [
-        "GOOGL", "META", "TTD", "APP", "ROKU", "SNAP", "PINS", "OMC", "IPG", "MGNI", "CRTO",
-    ],
-    "Commodity": [
-        "XOM", "CVX", "COP", "SLB", "FCX", "NEM", "AA", "MOS", "CF", "MP",
-    ],
-    "Payments & Commerce": [
-        "V", "MA", "PYPL", "SHOP", "AMZN", "SQ", "COIN", "AFRM",
-    ],
-    "Travel & Mobility": [
-        "UBER", "ABNB", "BKNG", "EXPE", "DAL", "UAL", "MAR", "HLT",
-    ],
-    "Healthcare & Life Sciences": [
-        "PFE", "JNJ", "LLY", "UNH", "MRK", "ABBV", "ISRG", "TMO",
-    ],
-}
+def _humanize_tag(value: object) -> str:
+    text = str(value or "").strip().replace("_", " ")
+    return " ".join(token.capitalize() for token in text.split() if token)
 
-BUSINESS_FOCUS_DESCRIPTIONS: dict[str, str] = {
-    "All Market": "Broad liquid universe across major consumer, technology, finance, energy, and healthcare names.",
-    "Alternative Asset Managers": "Private capital, credit, and alternative-asset managers that often move together through fundraising, fee-related earnings, deployment pace, and financing conditions.",
-    "Housing": "Homebuilding, renovation, housing transactions, and home-linked product businesses.",
-    "Retail": "Businesses that primarily sell goods to end consumers through stores or digital storefronts.",
-    "Media": "Content distribution, cable, studios, streaming platforms, and broad media networks.",
-    "Social Media & Entertainment": "Audience attention businesses driven by social graphs, streaming, music, and interactive entertainment.",
-    "Advertising": "Businesses monetizing demand generation, ad spend, ad software, or audience targeting.",
-    "Commodity": "Commodity-linked businesses spanning energy, mining, metals, fertilizer, and strategic-material supply.",
-    "Payments & Commerce": "Transaction rails, merchant tooling, checkout, and adjacent commerce enablement.",
-    "Travel & Mobility": "Ride-sharing, travel booking, airlines, hotels, and travel demand platforms.",
-    "Healthcare & Life Sciences": "Drug makers, managed care, medical tools, and life-science suppliers.",
-}
+
+def _load_latest_universe_snapshot_symbols(*, limit: int | None = None) -> list[str]:
+    try:
+        from .pipeline_store import load_latest_dataset_frame
+    except Exception:
+        return []
+    try:
+        frame, _ = load_latest_dataset_frame("universe_snapshot")
+    except Exception:
+        return []
+    if not isinstance(frame, pd.DataFrame) or frame.empty or "symbol" not in frame.columns:
+        return []
+    symbols = _unique_symbols(frame["symbol"].astype(str).tolist())
+    if limit is not None and limit > 0:
+        return symbols[:limit]
+    return symbols
+
+
+def _load_taxonomy_universe_symbols(*, limit: int | None = None) -> list[str]:
+    try:
+        from .entity_taxonomy import load_entity_taxonomy_frame
+    except Exception:
+        return []
+    try:
+        frame = load_entity_taxonomy_frame()
+    except Exception:
+        frame = pd.DataFrame()
+    if not isinstance(frame, pd.DataFrame) or frame.empty or "symbol" not in frame.columns:
+        return []
+    if "asset_class" in frame.columns:
+        frame = frame[frame["asset_class"].astype(str).str.lower().eq("equity")].copy()
+    symbols = _unique_symbols(frame["symbol"].astype(str).tolist())
+    if limit is not None and limit > 0:
+        return symbols[:limit]
+    return symbols
+
+
+def default_universe_symbols(*, limit: int | None = None) -> list[str]:
+    snapshot = _load_latest_universe_snapshot_symbols(limit=limit)
+    if snapshot:
+        return snapshot
+    taxonomy_symbols = _load_taxonomy_universe_symbols(limit=limit)
+    if taxonomy_symbols:
+        return taxonomy_symbols
+    return []
+
+
+def _resolved_market_universe(symbols: list[str] | None) -> list[str]:
+    explicit = _unique_symbols(list(symbols or []))
+    if explicit:
+        return explicit
+    return default_universe_symbols()
+
+
+def _taxonomy_focus_map(symbols: list[str] | None = None) -> dict[str, list[str]]:
+    requested = _resolved_market_universe(symbols)
+    requested_set = set(requested)
+
+    try:
+        from .entity_taxonomy import business_focus_label_from_taxonomy_row, load_entity_taxonomy_frame
+    except Exception:
+        business_focus_label_from_taxonomy_row = None
+        load_entity_taxonomy_frame = None
+
+    taxonomy = pd.DataFrame()
+    if load_entity_taxonomy_frame is not None:
+        try:
+            taxonomy = load_entity_taxonomy_frame(requested if requested else None)
+        except Exception:
+            taxonomy = pd.DataFrame()
+
+    grouped: dict[str, list[str]] = {}
+    all_market = requested[:]
+    if isinstance(taxonomy, pd.DataFrame) and not taxonomy.empty and "symbol" in taxonomy.columns:
+        taxonomy = taxonomy.copy()
+        taxonomy["symbol"] = taxonomy["symbol"].astype(str).str.upper().str.strip()
+        taxonomy = taxonomy[taxonomy["symbol"].ne("")].drop_duplicates(subset=["symbol"], keep="first")
+        if requested_set:
+            taxonomy = taxonomy[taxonomy["symbol"].isin(requested_set)].copy()
+        if not all_market:
+            all_market = _unique_symbols(taxonomy["symbol"].tolist())
+        for _, row in taxonomy.iterrows():
+            symbol = str(row.get("symbol") or "").upper().strip()
+            if not symbol:
+                continue
+            label = ""
+            if callable(business_focus_label_from_taxonomy_row):
+                label = str(business_focus_label_from_taxonomy_row(row.to_dict()) or "").strip()
+            if not label:
+                label = str(row.get("industry") or row.get("peer_group_name") or row.get("sector") or "").strip()
+            label = label if label and label not in {"Unknown", "Market"} else "All Market"
+            grouped.setdefault(label, []).append(symbol)
+
+    grouped["All Market"] = _unique_symbols(all_market)
+    ordered: dict[str, list[str]] = {"All Market": grouped.get("All Market", [])}
+    for label in sorted(name for name in grouped if name != "All Market"):
+        ordered[label] = _unique_symbols(grouped[label])
+    return ordered
+
+
+BUSINESS_FOCUS_UNIVERSES: dict[str, list[str]] = {}
+BUSINESS_FOCUS_DESCRIPTIONS: dict[str, str] = {}
 
 COMMODITY_PROXY_METADATA: dict[str, dict[str, str]] = {
     "DBC": {
@@ -392,37 +448,41 @@ COMMODITY_DEPENDENCY_EDGES: list[dict[str, object]] = [
     },
 ]
 
-_all_market_symbols = _unique_symbols(
-    DEFAULT_UNIVERSE + [symbol for name, symbols in BUSINESS_FOCUS_UNIVERSES.items() if name != "All Market" for symbol in symbols]
-)
-BUSINESS_FOCUS_UNIVERSES["All Market"] = _all_market_symbols
-
-
 def business_focus_options() -> list[str]:
-    return list(BUSINESS_FOCUS_UNIVERSES.keys())
+    return list(_taxonomy_focus_map().keys())
 
 
 def business_focus_description(name: str) -> str:
-    return BUSINESS_FOCUS_DESCRIPTIONS.get(str(name), "")
+    label = str(name or "").strip() or "All Market"
+    mapping = _taxonomy_focus_map()
+    symbols = mapping.get(label, [])
+    if label == "All Market":
+        if symbols:
+            return f"Dynamic taxonomy-backed liquid universe ({len(symbols)} symbols)."
+        return "Dynamic taxonomy-backed liquid universe."
+    if symbols:
+        return f"Taxonomy-derived peer cohort ({len(symbols)} symbols)."
+    return "Taxonomy-derived peer cohort."
 
 
 def business_focus_for_symbol(symbol: str) -> str:
     normalized = str(symbol or "").upper().strip()
     if not normalized:
         return "All Market"
-    for name, symbols in BUSINESS_FOCUS_UNIVERSES.items():
+    for name, values in _taxonomy_focus_map([normalized]).items():
         if name == "All Market":
             continue
-        if normalized in {str(value).upper().strip() for value in symbols if str(value).strip()}:
+        if normalized in set(values):
             return name
     return "All Market"
 
 
 def business_focus_universe(name: str) -> list[str]:
-    label = str(name or "All Market")
-    if label not in BUSINESS_FOCUS_UNIVERSES:
+    mapping = _taxonomy_focus_map()
+    label = str(name or "All Market").strip()
+    if label not in mapping:
         label = "All Market"
-    return list(BUSINESS_FOCUS_UNIVERSES[label])
+    return list(mapping.get(label, []))
 
 
 def commodity_focus_options() -> list[str]:
@@ -446,6 +506,62 @@ def extend_symbol_universe(symbols: list[str] | None, extra_symbols: list[str] |
 
 def commodity_reference_universe() -> list[str]:
     return list(COMMODITY_REFERENCE_SYMBOLS)
+
+
+def default_commodity_universe_symbols(*, limit: int | None = None) -> list[str]:
+    try:
+        from .entity_taxonomy import load_entity_taxonomy_frame
+    except Exception:
+        return []
+
+    try:
+        frame = load_entity_taxonomy_frame()
+    except Exception:
+        frame = pd.DataFrame()
+    if not isinstance(frame, pd.DataFrame) or frame.empty or "symbol" not in frame.columns:
+        return []
+
+    scoped = frame.copy()
+    scoped["symbol"] = scoped["symbol"].astype(str).str.upper().str.strip()
+    scoped = scoped[scoped["symbol"].ne("")].drop_duplicates(subset=["symbol"], keep="first")
+    if scoped.empty:
+        return []
+
+    def _tag_items(value: object) -> list[str]:
+        if isinstance(value, list):
+            raw = value
+        elif isinstance(value, tuple):
+            raw = list(value)
+        else:
+            text = str(value or "").strip()
+            if not text:
+                return []
+            if text.startswith("[") and text.endswith("]"):
+                try:
+                    parsed = json.loads(text)
+                except Exception:
+                    parsed = [text]
+                raw = parsed if isinstance(parsed, list) else [parsed]
+            else:
+                raw = [token.strip() for token in text.split(",")]
+        return [str(item).strip().lower() for item in raw if str(item).strip()]
+
+    scoped["commodity_role"] = scoped.get("commodity_role", pd.Series(dtype=str)).astype(str).str.lower().str.strip()
+    scoped["sector"] = scoped.get("sector", pd.Series(dtype=str)).astype(str).str.lower().str.strip()
+    scoped["peer_group_name"] = scoped.get("peer_group_name", pd.Series(dtype=str)).astype(str).str.lower().str.strip()
+    scoped["macro_role_tags_norm"] = scoped.get("macro_role_tags", pd.Series(dtype=object)).apply(_tag_items)
+
+    commodity_tag_tokens = {"commodity", "oil", "gold", "silver", "metals", "agriculture", "uranium", "natural_gas", "gas"}
+    mask = (
+        scoped["commodity_role"].ne("")
+        | scoped["sector"].eq("commodities")
+        | scoped["peer_group_name"].str.contains("commodity", na=False)
+        | scoped["macro_role_tags_norm"].apply(lambda values: bool(set(values) & commodity_tag_tokens))
+    )
+    symbols = _unique_symbols(scoped[mask]["symbol"].astype(str).tolist())
+    if limit is not None and limit > 0:
+        return symbols[:limit]
+    return symbols
 
 
 def commodity_proxy_profile(symbol: str) -> dict[str, str]:
@@ -623,7 +739,9 @@ def _commodity_regime(transmission_gap_pct: float, beta_now: float, beta_roc: fl
 
 
 def scan_daily_movers(api: AlpacaAPI, symbols: list[str] | None = None) -> pd.DataFrame:
-    universe = symbols or DEFAULT_UNIVERSE
+    universe = _resolved_market_universe(symbols)
+    if not universe:
+        return pd.DataFrame()
     snapshots = api.get_snapshots(universe, feed="iex")
 
     rows = []
@@ -672,7 +790,9 @@ def build_momentum_profiles_from_bars(
     *,
     symbols: list[str] | None = None,
 ) -> pd.DataFrame:
-    universe = symbols or DEFAULT_UNIVERSE
+    universe = _resolved_market_universe(symbols)
+    if not universe:
+        return pd.DataFrame()
     rows: list[dict[str, float | str]] = []
     for symbol in universe:
         normalized_symbol = AlpacaAPI._normalize_symbol(symbol)
@@ -734,7 +854,9 @@ def scan_momentum_profiles(
     symbols: list[str] | None = None,
     days: int = 3650,
 ) -> pd.DataFrame:
-    universe = [AlpacaAPI._normalize_symbol(symbol) for symbol in (symbols or DEFAULT_UNIVERSE) if str(symbol).strip()]
+    universe = [AlpacaAPI._normalize_symbol(symbol) for symbol in _resolved_market_universe(symbols) if str(symbol).strip()]
+    if not universe:
+        return pd.DataFrame()
     end = datetime.now(timezone.utc)
     start = end - timedelta(days=days)
     bars = api.get_stock_bars(universe, start=start, end=end, timeframe="1Day", feed="iex")
@@ -751,7 +873,7 @@ def build_correlation_phase_shifts_from_bars(
     roc_window: int = 10,
     momentum_window: int = 63,
 ) -> dict[str, pd.DataFrame | str]:
-    universe = [AlpacaAPI._normalize_symbol(symbol) for symbol in (symbols or DEFAULT_UNIVERSE) if str(symbol).strip()]
+    universe = [AlpacaAPI._normalize_symbol(symbol) for symbol in _resolved_market_universe(symbols) if str(symbol).strip()]
     benchmark_symbol = AlpacaAPI._normalize_symbol(benchmark or "SPY")
     universe = [symbol for symbol in universe if symbol != benchmark_symbol]
     if not universe:
@@ -895,7 +1017,7 @@ def scan_correlation_phase_shifts(
     roc_window: int = 10,
     momentum_window: int = 63,
 ) -> dict[str, pd.DataFrame | str]:
-    universe = [AlpacaAPI._normalize_symbol(symbol) for symbol in (symbols or DEFAULT_UNIVERSE) if str(symbol).strip()]
+    universe = [AlpacaAPI._normalize_symbol(symbol) for symbol in _resolved_market_universe(symbols) if str(symbol).strip()]
     benchmark_symbol = AlpacaAPI._normalize_symbol(benchmark or "SPY")
     universe = [symbol for symbol in universe if symbol != benchmark_symbol]
     if not universe:

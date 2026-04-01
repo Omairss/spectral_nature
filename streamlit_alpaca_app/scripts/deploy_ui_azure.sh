@@ -328,6 +328,14 @@ if [[ -n "$PROMOTE_FROM" && "$PROMOTE_FROM" == "$TARGET" ]]; then
 fi
 
 TARGET_APP="$(target_app_name "$TARGET")"
+TARGET_TRACK_VALUE="development"
+TARGET_CACHE_DISABLED_VALUE="true"
+TARGET_FORCE_REFRESH_DEFAULT_VALUE="true"
+if [[ "$TARGET" == "prod" ]]; then
+  TARGET_TRACK_VALUE="production"
+  TARGET_CACHE_DISABLED_VALUE="false"
+  TARGET_FORCE_REFRESH_DEFAULT_VALUE="false"
+fi
 
 if [[ -n "$PROMOTE_FROM" ]]; then
   log "[1/5] Resolving image from $(target_app_name "$PROMOTE_FROM")"
@@ -346,7 +354,12 @@ az containerapp update \
   -n "$TARGET_APP" \
   -g "$RESOURCE_GROUP" \
   --image "$IMAGE_TO_DEPLOY" \
-  --set-env-vars APP_RELEASE_TS="$RELEASE_TS" AZURE_STORAGE_CONTAINER="$AZURE_STORAGE_CONTAINER" \
+  --set-env-vars \
+    APP_TRACK="$TARGET_TRACK_VALUE" \
+    APP_DISABLE_CACHE="$TARGET_CACHE_DISABLED_VALUE" \
+    APP_FORCE_DATA_REFRESH_DEFAULT="$TARGET_FORCE_REFRESH_DEFAULT_VALUE" \
+    APP_RELEASE_TS="$RELEASE_TS" \
+    AZURE_STORAGE_CONTAINER="$AZURE_STORAGE_CONTAINER" \
   >/dev/null
 
 log "[3/5] Waiting for latest revision to become ready"

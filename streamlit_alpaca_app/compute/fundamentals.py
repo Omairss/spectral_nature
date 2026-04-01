@@ -63,7 +63,13 @@ def _candidate_data_dirs(data_dir: str | None = None) -> list[Path]:
     if env_dir:
         roots.append(Path(env_dir).expanduser())
 
+    refresh_dir = os.getenv("SIMFIN_REFRESH_DATA_DIR", "").strip()
+    if refresh_dir:
+        roots.append(Path(refresh_dir).expanduser())
+
     here = Path(__file__).resolve()
+    app_root = here.parents[1]
+    roots.append(app_root / "cache" / "data" / "simfin_refresh")
     for parent in here.parents:
         roots.append(parent / "data" / "stock_fundamental")
 

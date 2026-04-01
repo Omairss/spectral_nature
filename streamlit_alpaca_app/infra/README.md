@@ -30,6 +30,26 @@ Optional environment overrides:
 - `ALPACA_DATA_BASE_URL`
 - `FRED_API_KEY`
 
+Cron schedules live in:
+
+- `infra/job_schedules.env`
+
+The taxonomy refresh job is deployed as:
+
+- `entity-taxonomy-refresh`
+
+Attention homepage materialization is deployed as:
+
+- `attention-home-build`
+
+Default cadence:
+
+- once per month at `0 9 1 * *` UTC
+
+Taxonomy flow charts and setup notes live in:
+
+- `infra/TAXONOMY_PIPELINE_FLOW.md`
+
 ## Output
 
 Deployment details are written to:

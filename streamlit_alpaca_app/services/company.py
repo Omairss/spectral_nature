@@ -8,7 +8,7 @@ import re
 import pandas as pd
 
 from .alpaca_api import AlpacaAPI, AlpacaAPIError
-from .market import BUSINESS_FOCUS_UNIVERSES, commodity_proxy_profile
+from .market import business_focus_for_symbol, commodity_proxy_profile
 
 
 COMPANY_ROLE_HINTS: dict[str, str] = {
@@ -277,13 +277,10 @@ def _matched_business_lenses(symbol: str) -> list[str]:
     target = str(symbol or "").upper().strip()
     if not target:
         return []
-    matches: list[str] = []
-    for lens, symbols in BUSINESS_FOCUS_UNIVERSES.items():
-        if lens == "All Market":
-            continue
-        if target in {str(item).upper().strip() for item in symbols}:
-            matches.append(lens)
-    return matches
+    focus = str(business_focus_for_symbol(target) or "").strip()
+    if not focus or focus == "All Market":
+        return []
+    return [focus]
 
 
 def _join_phrases(values: list[str]) -> str:
@@ -399,7 +396,7 @@ def _compose_attention_news_story(
             theme_text = _join_phrases([theme.lower() for theme in themes[:2]])
             return f"{source_prefix} is clustering around {theme_text}, which fits the current {lowered_group} move."
 
-    matched_lenses = [normalized_peer_group] if normalized_peer_group and normalized_peer_group not in {"All Market", "Broad Commodity Market"} else _matched_business_lenses(normalized_symbol)
+    matched_lenses = [normalized_peer_group] if normalized_peer_group and normalized_peer_group not in {"All Market", "Broad Commodity Market"} else []
     if matched_lenses and themes:
         theme_text = _join_phrases([theme.lower() for theme in themes[:2]])
         return f"{source_prefix} is clustering around {theme_text}, which lines up with the {matched_lenses[0].lower()} narrative."
@@ -459,11 +456,10 @@ def build_company_description(
     signal_summary = signal_summary or {}
 
     name = str(asset.get("name") or symbol).strip()
-    matched_lenses = _matched_business_lenses(symbol)
     if active_lens and active_lens not in {"", "All Market"}:
-        ordered_lenses = [active_lens] + [lens for lens in matched_lenses if lens != active_lens]
+        ordered_lenses = [active_lens]
     else:
-        ordered_lenses = matched_lenses
+        ordered_lenses = _matched_business_lenses(symbol)
 
     role_hint = COMPANY_ROLE_HINTS.get(symbol)
     if not role_hint and ordered_lenses:

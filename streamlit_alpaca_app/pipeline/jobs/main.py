@@ -20,25 +20,13 @@ from compute.anomalies import (
     build_commodity_peer_group_membership,
     build_peer_group_membership,
     build_price_expectations,
+    build_taxonomy_peer_group_catalog,
     filter_attention_events,
     normalize_horizons,
 )
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
-from services.attention_home_1d import (
-    MACRO_ANCHOR_SYMBOLS,
-    build_attention_entity_master,
-    shortlist_attention_symbols_1d,
-)
-from services.attention_agentic import build_bottom_up_attention_artifacts, search_symbol_news_payload
-from services.attention_materialized import (
-    bars_by_symbol_from_price_history,
-    serialize_attention_home_payload,
-)
-from services.attention_ticker_snapshots import (
-    build_attention_ticker_background_snapshot_frame,
-    build_attention_ticker_snapshot_frame,
-    collect_attention_ticker_symbols,
-)
+from pipeline.jobs.attention_home_build import run_attention_home_build as run_attention_home_build_job
+from services.attention_home_1d import resolve_macro_anchor_symbols
 from services.attention_context_llm import (
     build_attention_context_narratives,
     build_edgar_evidence,
@@ -46,13 +34,19 @@ from services.attention_context_llm import (
 )
 from services.config import AppConfig
 from services.edgar import DEFAULT_EDGAR_FORMS, EdgarAPIError, EdgarClient, build_attention_context_bundle
+from services.entity_taxonomy import (
+    bootstrap_entity_taxonomy_tables,
+    build_entity_taxonomy_snapshot,
+    deactivate_missing_taxonomy_symbols,
+    fetch_entity_taxonomy_frame,
+    upsert_entity_taxonomy_frame,
+)
 from services.fred import FredAPIError, load_fred_api_key, load_fred_dashboard
-from services.llm import LLMAPIError, load_embedding_client, load_llm_client
+from services.llm import LLMAPIError, load_llm_client
 from services.market import (
-    COMMODITY_FOCUS_UNIVERSES,
-    DEFAULT_UNIVERSE,
     build_correlation_phase_shifts_from_bars,
     build_momentum_profiles_from_bars,
+    default_commodity_universe_symbols,
     scan_commodity_regimes,
     scan_daily_movers,
     scan_momentum_profiles,
@@ -62,7 +56,7 @@ from services.pipeline_store import load_latest_dataset_frame
 from services.secrets import resolve_secret_value
 from services.simfin_refresh import build_quarterly_fundamentals_frame, simfin_refresh_configured
 from services.treasury_yields import TreasuryYieldError, load_treasury_yield_datasets
-from services.universe import build_liquidity_ranked_equity_universe
+from services.universe import build_liquidity_ranked_equity_universe, load_us_equity_listings
 
 try:
     from services.signals import build_signal_frame, summarize_signal_frame
@@ -193,12 +187,41 @@ def _db_bootstrap(conn: Any) -> None:
                 status TEXT NOT NULL,
                 retries INTEGER NOT NULL DEFAULT 0,
                 error_summary TEXT,
+                progress_stage TEXT,
+                progress_message TEXT,
+                progress_pct DOUBLE PRECISION,
+                heartbeat_time_utc TIMESTAMPTZ,
                 universe_version TEXT,
                 asof_time_utc TIMESTAMPTZ
             )
             """
         )
+        cur.execute(
+            """
+            ALTER TABLE job_runs
+            ADD COLUMN IF NOT EXISTS progress_stage TEXT
+            """
+        )
+        cur.execute(
+            """
+            ALTER TABLE job_runs
+            ADD COLUMN IF NOT EXISTS progress_message TEXT
+            """
+        )
+        cur.execute(
+            """
+            ALTER TABLE job_runs
+            ADD COLUMN IF NOT EXISTS progress_pct DOUBLE PRECISION
+            """
+        )
+        cur.execute(
+            """
+            ALTER TABLE job_runs
+            ADD COLUMN IF NOT EXISTS heartbeat_time_utc TIMESTAMPTZ
+            """
+        )
     conn.commit()
+    bootstrap_entity_taxonomy_tables(conn)
 
 
 def _db_mark_job_start(conn: Any, ctx: JobContext) -> None:
@@ -207,14 +230,19 @@ def _db_mark_job_start(conn: Any, ctx: JobContext) -> None:
             """
             INSERT INTO job_runs (
                 run_id, job_name, schedule_slot, start_time_utc,
-                status, retries, universe_version, asof_time_utc
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                status, retries, progress_stage, progress_message, progress_pct,
+                heartbeat_time_utc, universe_version, asof_time_utc
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (run_id) DO UPDATE SET
                 job_name = EXCLUDED.job_name,
                 schedule_slot = EXCLUDED.schedule_slot,
                 start_time_utc = EXCLUDED.start_time_utc,
                 status = EXCLUDED.status,
                 retries = EXCLUDED.retries,
+                progress_stage = EXCLUDED.progress_stage,
+                progress_message = EXCLUDED.progress_message,
+                progress_pct = EXCLUDED.progress_pct,
+                heartbeat_time_utc = EXCLUDED.heartbeat_time_utc,
                 universe_version = EXCLUDED.universe_version,
                 asof_time_utc = EXCLUDED.asof_time_utc
             """,
@@ -223,8 +251,12 @@ def _db_mark_job_start(conn: Any, ctx: JobContext) -> None:
                 ctx.name,
                 (os.getenv("SCHEDULE_SLOT") or "").strip() or None,
                 _utc_now(),
-                "running",
+                "Running",
                 0,
+                "starting",
+                "Job started.",
+                0.0,
+                _utc_now(),
                 ctx.universe_version,
                 ctx.asof,
             ),
@@ -233,18 +265,92 @@ def _db_mark_job_start(conn: Any, ctx: JobContext) -> None:
 
 
 def _db_mark_job_end(conn: Any, ctx: JobContext, status: str, error_summary: str | None = None) -> None:
+    normalized = _normalize_job_status(status)
+    stage = "completed" if normalized == "Succeeded" else "failed"
+    progress_pct = 100.0 if normalized == "Succeeded" else None
+    progress_message = "Completed successfully." if normalized == "Succeeded" else (error_summary or "Job failed.")
     with conn.cursor() as cur:
         cur.execute(
             """
             UPDATE job_runs
             SET end_time_utc = %s,
                 status = %s,
-                error_summary = %s
+                error_summary = %s,
+                progress_stage = %s,
+                progress_message = %s,
+                progress_pct = COALESCE(%s, progress_pct),
+                heartbeat_time_utc = %s
             WHERE run_id = %s
             """,
-            (_utc_now(), status, error_summary, ctx.run_id),
+            (_utc_now(), normalized, error_summary, stage, progress_message, progress_pct, _utc_now(), ctx.run_id),
         )
     conn.commit()
+
+
+def _normalize_job_status(status: object) -> str:
+    text = str(status or "").strip().lower()
+    if text in {"running", "in_progress", "started"}:
+        return "Running"
+    if text in {"success", "succeeded", "completed", "complete"}:
+        return "Succeeded"
+    if text in {"failed", "failure", "error"}:
+        return "Failed"
+    if text in {"warning", "warn"}:
+        return "Warning"
+    if not text:
+        return "Unknown"
+    return str(status).strip()
+
+
+def _db_update_job_progress(
+    conn: Any,
+    ctx: JobContext,
+    *,
+    stage: str,
+    message: str,
+    progress_pct: float | None = None,
+    status: str = "Running",
+) -> None:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            UPDATE job_runs
+            SET status = %s,
+                progress_stage = %s,
+                progress_message = %s,
+                progress_pct = COALESCE(%s, progress_pct),
+                heartbeat_time_utc = %s
+            WHERE run_id = %s
+            """,
+            (_normalize_job_status(status), stage, message[:4000], progress_pct, _utc_now(), ctx.run_id),
+        )
+    conn.commit()
+
+
+def _job_progress(
+    ctx: JobContext,
+    conn: Any | None,
+    *,
+    stage: str,
+    message: str,
+    progress_pct: float | None = None,
+    status: str = "Running",
+) -> None:
+    suffix = f" progress={progress_pct:.1f}%" if isinstance(progress_pct, (int, float)) else ""
+    print(f"[info] job_progress stage={stage}{suffix} message={message}")
+    if conn is None:
+        return
+    try:
+        _db_update_job_progress(
+            conn,
+            ctx,
+            stage=stage,
+            message=message,
+            progress_pct=progress_pct,
+            status=status,
+        )
+    except Exception as exc:
+        print(f"[warn] failed to record job progress stage={stage}: {exc}")
 
 
 def _db_upsert_dataset_version(conn: Any, manifest: dict, ctx: JobContext) -> None:
@@ -377,6 +483,12 @@ def _persist_dataset(dataset_name: str, frame: pd.DataFrame, ctx: JobContext, co
     manifest = _upload_manifest(dataset_name, path, frame, ctx)
     if manifest and conn is not None:
         _db_upsert_dataset_version(conn, manifest, ctx)
+    _job_progress(
+        ctx,
+        conn,
+        stage="persist_dataset",
+        message=f"Persisted dataset `{dataset_name}` rows={len(frame)}.",
+    )
 
 
 def _alpaca_config() -> AppConfig | None:
@@ -400,11 +512,11 @@ def _alpaca_config() -> AppConfig | None:
     )
 
 
-def _symbols_from_env(limit_default: int = 100) -> list[str]:
+def _symbols_from_env() -> list[str]:
     raw = (os.getenv("UNIVERSE_SYMBOLS") or "").strip()
     if raw:
         return [item.strip().upper() for item in raw.split(",") if item.strip()]
-    return DEFAULT_UNIVERSE[:limit_default]
+    return []
 
 
 def _edgar_forms_from_env() -> list[str]:
@@ -437,7 +549,7 @@ def _parse_float_env(name: str, default: float, *, minimum: float = 0.0) -> floa
 
 
 def _equity_universe_target_size(default: int = 1000) -> int:
-    return _parse_int_env("EQUITY_UNIVERSE_TARGET_SIZE", default, minimum=len(DEFAULT_UNIVERSE))
+    return _parse_int_env("EQUITY_UNIVERSE_TARGET_SIZE", default, minimum=1)
 
 
 def _symbols_from_snapshot(frame: pd.DataFrame, *, limit: int | None = None) -> list[str]:
@@ -465,7 +577,11 @@ def _load_latest_equity_universe_snapshot(target_size: int) -> pd.DataFrame:
         return pd.DataFrame()
 
     snapshot_symbols = _symbols_from_snapshot(frame)
-    minimum_acceptable_size = max(int(target_size * 0.5), len(DEFAULT_UNIVERSE))
+    minimum_acceptable_size = _parse_int_env(
+        "EQUITY_UNIVERSE_MIN_ACCEPTABLE_SIZE",
+        max(int(target_size * 0.5), 100),
+        minimum=1,
+    )
     if len(snapshot_symbols) < minimum_acceptable_size:
         print(
             f"[info] latest universe_snapshot is too small for target_size={target_size}: "
@@ -500,7 +616,7 @@ def _build_equity_universe_snapshot(api: AlpacaAPI, *, target_size: int) -> pd.D
 
 
 def _resolve_equity_symbols(api: AlpacaAPI, ctx: JobContext, conn: Any | None = None) -> list[str]:
-    explicit = _symbols_from_env(limit_default=len(DEFAULT_UNIVERSE))
+    explicit = _symbols_from_env()
     if (os.getenv("UNIVERSE_SYMBOLS") or "").strip():
         print(f"[info] using explicit UNIVERSE_SYMBOLS override with {len(explicit)} symbol(s)")
         return explicit
@@ -528,9 +644,13 @@ def _resolve_equity_symbols(api: AlpacaAPI, ctx: JobContext, conn: Any | None = 
             print(f"[warn] failed to persist rebuilt universe_snapshot: {type(exc).__name__}: {exc}")
         return rebuilt_symbols
 
-    fallback = DEFAULT_UNIVERSE[:]
-    print(f"[warn] falling back to DEFAULT_UNIVERSE with {len(fallback)} symbol(s)")
-    return fallback
+    raise RuntimeError("unable to resolve any equity universe symbols from explicit env, snapshot, or live rebuild")
+
+
+def _symbols_from_latest_universe(limit: int) -> list[str]:
+    target_limit = max(int(limit), 1)
+    snapshot = _load_latest_equity_universe_snapshot(target_limit)
+    return _symbols_from_snapshot(snapshot, limit=target_limit) if not snapshot.empty else []
 
 
 def _news_symbol_map_from_frame(news: pd.DataFrame) -> pd.DataFrame:
@@ -588,7 +708,7 @@ def _load_latest_attention_seed(limit: int) -> pd.DataFrame:
             out = out.sort_values("attention_score", ascending=False, na_position="last")
         return out.head(target_limit).reset_index(drop=True)
 
-    fallback_symbols = _symbols_from_env(limit_default=min(target_limit, len(DEFAULT_UNIVERSE)))
+    fallback_symbols = _symbols_from_latest_universe(target_limit)
     if not fallback_symbols:
         return pd.DataFrame(columns=["entity_id"])
     return pd.DataFrame({"entity_id": fallback_symbols})
@@ -616,277 +736,6 @@ def _load_attention_positions(api: AlpacaAPI) -> pd.DataFrame:
 def _normalize_symbol(value: object) -> str:
     text = str(value or "").upper().strip()
     return "" if not text or text == "NAN" else text
-
-
-def _normalize_symbol_list(value: object) -> list[str]:
-    if isinstance(value, list):
-        raw_items = value
-    elif isinstance(value, tuple):
-        raw_items = list(value)
-    else:
-        text = str(value or "").strip()
-        if not text:
-            return []
-        raw_items = [item.strip() for item in text.split(",")]
-    normalized = [
-        _normalize_symbol(item)
-        for item in raw_items
-        if str(item or "").strip()
-    ]
-    return [item for item in normalized if item]
-
-
-def _news_payloads_from_articles_frame(
-    news_frame: pd.DataFrame,
-    *,
-    symbols: list[str],
-    limit: int,
-) -> dict[str, dict[str, Any]]:
-    normalized_symbols = [
-        _normalize_symbol(symbol)
-        for symbol in symbols
-        if str(symbol or "").strip()
-    ]
-    normalized_symbols = [symbol for symbol in normalized_symbols if symbol]
-    if not isinstance(news_frame, pd.DataFrame) or news_frame.empty or not normalized_symbols:
-        return {}
-
-    rows_by_symbol: dict[str, list[dict[str, Any]]] = {symbol: [] for symbol in normalized_symbols}
-    frame = news_frame.copy()
-    if "published_at" in frame.columns:
-        frame["published_at"] = pd.to_datetime(frame["published_at"], utc=True, errors="coerce")
-
-    for _, row in frame.iterrows():
-        row_symbols = _normalize_symbol_list(row.get("symbols"))
-        if not row_symbols:
-            continue
-        article = {
-            "headline": str(row.get("headline") or "").strip(),
-            "summary": str(row.get("summary") or row.get("description") or "").strip(),
-            "description": str(row.get("description") or row.get("summary") or "").strip(),
-            "source": str(row.get("source") or "").strip(),
-            "published_at": pd.to_datetime(row.get("published_at"), utc=True, errors="coerce"),
-            "url": str(row.get("url") or "").strip(),
-        }
-        for symbol in row_symbols:
-            if symbol in rows_by_symbol:
-                rows_by_symbol[symbol].append(article)
-
-    payloads: dict[str, dict[str, Any]] = {}
-    for symbol, rows in rows_by_symbol.items():
-        if not rows:
-            payloads[symbol] = {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
-            continue
-        articles = pd.DataFrame(rows)
-        if "published_at" in articles.columns:
-            articles["published_at"] = pd.to_datetime(articles["published_at"], utc=True, errors="coerce")
-            articles = articles.sort_values("published_at", ascending=False, na_position="last")
-        articles = articles.drop_duplicates(subset=["headline", "url"], keep="first").head(max(int(limit), 1)).reset_index(drop=True)
-        payloads[symbol] = {"articles": articles, "fallback_summary": None, "source": "pipeline"}
-    return payloads
-
-
-def _context_payloads_from_frame(frame: pd.DataFrame) -> dict[str, dict[str, Any]]:
-    if not isinstance(frame, pd.DataFrame) or frame.empty or "symbol" not in frame.columns:
-        return {}
-    payloads: dict[str, dict[str, Any]] = {}
-    rows = frame.copy()
-    rows["symbol"] = rows["symbol"].astype(str).str.upper().str.strip()
-    for _, row in rows.iterrows():
-        symbol = str(row.get("symbol") or "").upper().strip()
-        if not symbol:
-            continue
-        payload = row.to_dict()
-        for json_column, default in [("top_filing_links_json", []), ("llm_supporting_points_json", [])]:
-            raw = payload.get(json_column)
-            if isinstance(raw, str) and raw.strip():
-                try:
-                    parsed = json.loads(raw)
-                    payload[json_column[:-5]] = parsed if isinstance(parsed, type(default)) else default
-                except Exception:
-                    payload[json_column[:-5]] = default
-            else:
-                payload[json_column[:-5]] = default
-        payloads[symbol] = payload
-    return payloads
-
-
-def _bundle_ids_from_home_payload(payload: dict[str, Any]) -> list[str]:
-    return [
-        str(item.get("bundle_id") or "").strip()
-        for item in list(payload.get("top_events") or [])
-        + list(payload.get("must_read_movers") or [])
-        + list(payload.get("unresolved_large_moves") or [])
-        if str(item.get("bundle_id") or "").strip()
-    ]
-
-
-def _bundle_symbols_from_home_payload(payload: dict[str, Any]) -> list[str]:
-    symbols = {
-        str(item.get("symbol") or "").upper().strip()
-        for item in list(payload.get("must_read_movers") or []) + list(payload.get("unresolved_large_moves") or [])
-        if str(item.get("symbol") or "").strip()
-    }
-    symbols |= {
-        str(symbol).upper().strip()
-        for event in list(payload.get("top_events") or [])
-        for symbol in list(event.get("supporting_symbols") or [])
-        if str(symbol or "").strip()
-    }
-    return sorted(symbols)
-
-
-def _materialize_attention_outputs(
-    *,
-    ctx: JobContext,
-    conn: Any | None,
-    daily_movers: pd.DataFrame,
-    macro_movers: pd.DataFrame,
-    positions_frame: pd.DataFrame,
-    price_history_frame: pd.DataFrame,
-    attention_feed_frame: pd.DataFrame,
-    commodity_attention_feed_frame: pd.DataFrame,
-    news_frame: pd.DataFrame,
-    attention_context_frame: pd.DataFrame,
-    edgar_filings_frame: pd.DataFrame,
-    llm_client: Any | None,
-) -> None:
-    movers = pd.concat(
-        [frame for frame in [daily_movers, macro_movers] if isinstance(frame, pd.DataFrame) and not frame.empty],
-        ignore_index=True,
-        sort=False,
-    ) if any(isinstance(frame, pd.DataFrame) and not frame.empty for frame in [daily_movers, macro_movers]) else pd.DataFrame()
-    if movers.empty or "symbol" not in movers.columns:
-        print("[warn] attention_home_1d materialization skipped: missing mover inputs")
-        return
-    movers["symbol"] = movers["symbol"].astype(str).str.upper().str.strip()
-    movers = movers.drop_duplicates(subset=["symbol"], keep="first").reset_index(drop=True)
-
-    attention_parts = [
-        frame.copy()
-        for frame in [attention_feed_frame, commodity_attention_feed_frame]
-        if isinstance(frame, pd.DataFrame) and not frame.empty
-    ]
-    attention_rows = pd.concat(attention_parts, ignore_index=True, sort=False) if attention_parts else pd.DataFrame()
-    holdings = [
-        _normalize_symbol(value)
-        for value in positions_frame.get("symbol", pd.Series(dtype=str)).dropna().astype(str).tolist()
-        if str(value).strip()
-    ] if isinstance(positions_frame, pd.DataFrame) and not positions_frame.empty and "symbol" in positions_frame.columns else []
-    holdings = [symbol for symbol in holdings if symbol]
-
-    shortlist = shortlist_attention_symbols_1d(
-        movers,
-        holdings=holdings,
-        attention_rows=attention_rows,
-        max_count=100,
-    )
-    if not shortlist:
-        print("[warn] attention_home_1d materialization skipped: shortlist empty")
-        return
-
-    entity_master = build_attention_entity_master(shortlist)
-    bars_by_symbol = bars_by_symbol_from_price_history(
-        price_history_frame,
-        shortlist,
-        asof_time_utc=ctx.asof,
-        lookback_days=120,
-    )
-    research_symbols = shortlist[:40]
-    news_payloads = _news_payloads_from_articles_frame(news_frame, symbols=shortlist, limit=8)
-    context_payloads = _context_payloads_from_frame(attention_context_frame)
-    fred_summary_frame = _load_latest_materialized_frame("fred_summary")
-    yield_curve_facts_frame = _load_latest_materialized_frame("yield_curve_facts_1d")
-    embedding_client = load_embedding_client()
-
-    artifacts = build_bottom_up_attention_artifacts(
-        movers,
-        attention_rows=attention_rows,
-        bars_by_symbol=bars_by_symbol,
-        news_payloads=news_payloads,
-        context_payloads=context_payloads,
-        entity_master=entity_master,
-        holdings=holdings,
-        generated_at_utc=pd.Timestamp(ctx.asof),
-        filings_frame=edgar_filings_frame,
-        fred_summary_frame=fred_summary_frame,
-        yield_curve_facts_frame=yield_curve_facts_frame,
-        llm_client=llm_client,
-        embedding_client=embedding_client,
-        run_id=ctx.run_id,
-        top_events_limit=5,
-        must_read_limit=10,
-        unresolved_limit=5,
-    )
-    payload = dict(artifacts.home_payload or {})
-    coverage = dict(payload.get("coverage_summary") or {})
-    coverage.update(
-        {
-            "equity_universe_count": int(movers[~movers["symbol"].isin(set(MACRO_ANCHOR_SYMBOLS))]["symbol"].nunique()),
-            "macro_anchor_target_count": len(MACRO_ANCHOR_SYMBOLS),
-            "research_symbol_count": len(research_symbols),
-        }
-    )
-    payload["coverage_summary"] = coverage
-    artifacts.frames["attention_home_snapshots_1d"] = serialize_attention_home_payload(payload)
-    if "attention_bundle_snapshots" not in artifacts.frames:
-        from services.attention_materialized import serialize_attention_research_bundles
-
-        artifacts.frames["attention_bundle_snapshots"] = serialize_attention_research_bundles(
-            artifacts.bundle_map,
-            generated_at_utc=ctx.asof,
-        )
-
-    universe_snapshot_frame = _load_latest_materialized_frame("universe_snapshot")
-    snapshot_symbols = collect_attention_ticker_symbols(payload, artifacts.bundle_map, max_symbols=120)
-    artifacts.frames["attention_ticker_snapshots_1d"] = build_attention_ticker_snapshot_frame(
-        snapshot_symbols,
-        price_history_frame=price_history_frame,
-        universe_snapshot_frame=universe_snapshot_frame,
-        asof_time_utc=ctx.asof,
-        run_id=ctx.run_id,
-    )
-    artifacts.frames["attention_ticker_background_snapshots"] = build_attention_ticker_background_snapshot_frame(
-        snapshot_symbols,
-        price_history_frame=price_history_frame,
-        universe_snapshot_frame=universe_snapshot_frame,
-        news_frame=news_frame,
-        attention_context_frame=attention_context_frame,
-        asof_time_utc=ctx.asof,
-        run_id=ctx.run_id,
-    )
-
-    search_results = artifacts.frames.get("attention_search_results", pd.DataFrame()).copy()
-    if not search_results.empty:
-        search_results["symbol"] = search_results["candidate_id"].astype(str).map(
-            lambda value: _normalize_symbol(str(value).split("candidate::", 1)[1]) if "candidate::" in str(value) else ""
-        )
-        legacy_search_news = pd.DataFrame(
-            {
-                "symbol": search_results.get("symbol", pd.Series(dtype=str)),
-                "row_type": "article",
-                "headline": search_results.get("title", pd.Series(dtype=str)),
-                "summary": search_results.get("snippet", pd.Series(dtype=str)),
-                "source": search_results.get("source", pd.Series(dtype=str)),
-                "published_at": search_results.get("published_at", pd.Series(dtype=str)),
-                "url": search_results.get("url", pd.Series(dtype=str)),
-                "payload_source": search_results.get("provider", pd.Series(dtype=str)),
-                "fallback_summary": "",
-                "asof_time_utc": pd.Timestamp(ctx.asof).isoformat(),
-            }
-        )
-        legacy_search_news = legacy_search_news[legacy_search_news["symbol"].astype(str).ne("")].reset_index(drop=True)
-    else:
-        legacy_search_news = pd.DataFrame()
-
-    persist_frames = {
-        **artifacts.frames,
-        "attention_home_1d": artifacts.frames.get("attention_home_snapshots_1d", pd.DataFrame()),
-        "attention_research_bundles": artifacts.frames.get("attention_bundle_snapshots", pd.DataFrame()),
-        "attention_web_search_news": legacy_search_news,
-    }
-    for dataset_name, frame in persist_frames.items():
-        _persist_dataset(dataset_name, frame.copy() if isinstance(frame, pd.DataFrame) else pd.DataFrame(), ctx, conn)
 
 
 def _parse_attention_horizons_env() -> tuple[str, ...]:
@@ -1203,17 +1052,27 @@ def _decorate_commodity_attention_rollups(attention_rollups: pd.DataFrame) -> pd
 
 
 def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
+    _job_progress(ctx, conn, stage="starting", message="Starting equities preload.", progress_pct=1.0)
     cfg = _alpaca_config()
     if cfg is None:
         print("[warn] APCA credentials missing; skipping equities preload")
         return
     api = AlpacaAPI(cfg)
     symbols = AlpacaAPI._normalize_symbols(_resolve_equity_symbols(api, ctx, conn))
+    _job_progress(
+        ctx,
+        conn,
+        stage="equity_universe_ready",
+        message=f"Resolved equity universe symbols={len(symbols)}.",
+        progress_pct=8.0,
+    )
 
     try:
+        _job_progress(ctx, conn, stage="scan_movers", message="Scanning daily movers and positions.", progress_pct=12.0)
         movers = scan_daily_movers(api, symbols=symbols)
         _persist_dataset("daily_movers", movers, ctx, conn)
-        macro_movers = scan_daily_movers(api, symbols=list(MACRO_ANCHOR_SYMBOLS))
+        macro_symbols = resolve_macro_anchor_symbols(symbols)
+        macro_movers = scan_daily_movers(api, symbols=macro_symbols) if macro_symbols else pd.DataFrame()
         _persist_dataset("macro_anchor_daily_movers", macro_movers, ctx, conn)
         positions = _load_attention_positions(api)
         _persist_dataset("positions_snapshot", positions, ctx, conn)
@@ -1231,6 +1090,13 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
         phase_history_days = max(phase_days, phase_momentum_window + phase_corr_window + phase_roc_window + 30)
         effective_history_days = max(price_lookback_days, momentum_lookback_days, phase_history_days)
 
+        _job_progress(
+            ctx,
+            conn,
+            stage="price_history",
+            message=f"Building equity price history snapshot days={effective_history_days} benchmark={phase_benchmark}.",
+            progress_pct=28.0,
+        )
         bars, bars_frame = _build_equity_price_history_snapshot(
             api,
             symbols,
@@ -1241,6 +1107,7 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
         )
         _persist_dataset("price_history", bars_frame, ctx, conn)
 
+        _job_progress(ctx, conn, stage="market_derivatives", message="Building momentum and phase-shift derivatives.", progress_pct=45.0)
         momentum = build_momentum_profiles_from_bars(bars, symbols=symbols)
         _persist_dataset("momentum_profiles", momentum, ctx, conn)
 
@@ -1270,6 +1137,7 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
 
         technical_history = pd.DataFrame()
         technical_latest = pd.DataFrame()
+        _job_progress(ctx, conn, stage="technical_signals", message="Building technical signal derivatives.", progress_pct=58.0)
         if build_signal_frame is not None and summarize_signal_frame is not None:
             technical_history_parts: list[pd.DataFrame] = []
             technical_latest_rows: list[dict[str, object]] = []
@@ -1298,7 +1166,9 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
             print("[warn] signals module unavailable; skipping technical derivatives preload")
 
         try:
+            _job_progress(ctx, conn, stage="attention_derivatives", message="Building attention and anomaly datasets.", progress_pct=72.0)
             peer_group_membership = build_peer_group_membership(asof_time_utc=pd.Timestamp(ctx.asof), symbols=symbols)
+            taxonomy_peer_group_catalog = build_taxonomy_peer_group_catalog(peer_group_membership)
             expectation_config = ExpectationConfig(
                 horizons=_parse_attention_horizons_env(),
                 min_history_rows=max(int(os.getenv("ATTENTION_MIN_HISTORY_ROWS", "21")), 5),
@@ -1345,6 +1215,8 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
             )
 
             _persist_dataset("peer_group_membership", peer_group_membership, ctx, conn)
+            _persist_dataset("taxonomy_peer_group_membership", peer_group_membership, ctx, conn)
+            _persist_dataset("taxonomy_peer_group_catalog", taxonomy_peer_group_catalog, ctx, conn)
             _persist_dataset("price_expectations", price_expectations, ctx, conn)
             _persist_dataset("attention_candidates", attention_candidates, ctx, conn)
             _persist_dataset("anomaly_events", anomaly_events, ctx, conn)
@@ -1354,6 +1226,7 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
             print(f"[warn] anomaly layer skipped: {type(exc).__name__}: {exc}")
 
         try:
+            _job_progress(ctx, conn, stage="fundamentals", message="Refreshing quarterly fundamentals when stale.", progress_pct=90.0)
             fundamentals_min_refresh_hours = max(float(os.getenv("FUNDAMENTALS_MIN_REFRESH_HOURS", "24")), 1.0)
             fundamentals_fresh = bool(conn is not None and _db_dataset_is_fresh(conn, "quarterly_fundamentals", fundamentals_min_refresh_hours))
             if fundamentals_fresh:
@@ -1374,9 +1247,11 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
 
 
 def run_fred(ctx: JobContext, conn: Any | None = None) -> None:
+    _job_progress(ctx, conn, stage="starting", message="Starting FRED and Treasury yield preload.", progress_pct=1.0)
     api_key = load_fred_api_key()
     if api_key:
         try:
+            _job_progress(ctx, conn, stage="fred_dashboard", message="Loading FRED dashboard snapshots.", progress_pct=15.0)
             dashboard = load_fred_dashboard(api_key, years=int(os.getenv("FRED_LOOKBACK_YEARS", "10")))
             summary = dashboard.get("summary", pd.DataFrame())
             observations = dashboard.get("observations", pd.DataFrame())
@@ -1389,6 +1264,7 @@ def run_fred(ctx: JobContext, conn: Any | None = None) -> None:
         print("[warn] FRED key unavailable; skipping FRED preload")
 
     try:
+        _job_progress(ctx, conn, stage="treasury_yields", message="Loading Treasury yield datasets.", progress_pct=65.0)
         yield_observations, yield_summary, yield_facts = _build_treasury_yield_snapshots(asof_time_utc=ctx.asof)
         _persist_dataset("yield_curve_observations", yield_observations, ctx, conn)
         _persist_dataset("yield_curve_summary", yield_summary, ctx, conn)
@@ -1398,13 +1274,18 @@ def run_fred(ctx: JobContext, conn: Any | None = None) -> None:
 
 
 def run_commodities(ctx: JobContext, conn: Any | None = None) -> None:
+    _job_progress(ctx, conn, stage="starting", message="Starting commodities regime preload.", progress_pct=1.0)
     cfg = _alpaca_config()
     if cfg is None:
         print("[warn] APCA credentials missing; skipping commodity preload")
         return
     api = AlpacaAPI(cfg)
-    symbols = COMMODITY_FOCUS_UNIVERSES.get("Broad Commodity Market", [])
+    symbols = default_commodity_universe_symbols()
+    if not symbols:
+        print("[warn] commodity preload skipped: taxonomy did not return any commodity symbols")
+        return
     try:
+        _job_progress(ctx, conn, stage="commodity_regimes", message=f"Scanning commodity regimes symbols={len(symbols)}.", progress_pct=12.0)
         payload = scan_commodity_regimes(api, symbols=symbols, commodity_symbols=symbols, days=252)
         summary = payload.get("summary", pd.DataFrame())
         history = payload.get("history", pd.DataFrame())
@@ -1413,6 +1294,7 @@ def run_commodities(ctx: JobContext, conn: Any | None = None) -> None:
         _persist_dataset("commodity_regime_history", history, ctx, conn)
 
         try:
+            _job_progress(ctx, conn, stage="commodity_attention", message="Building commodity attention derivatives.", progress_pct=55.0)
             peer_group_membership = build_commodity_peer_group_membership(asof_time_utc=pd.Timestamp(ctx.asof), symbols=symbols)
             primary_membership = _primary_peer_group_snapshot(
                 peer_group_membership,
@@ -1512,15 +1394,35 @@ def run_commodities(ctx: JobContext, conn: Any | None = None) -> None:
 
 
 def run_options(ctx: JobContext, conn: Any | None = None) -> None:
+    _job_progress(ctx, conn, stage="starting", message="Starting options preload.", progress_pct=1.0)
     cfg = _alpaca_config()
     if cfg is None:
         print("[warn] APCA credentials missing; skipping options preload")
         return
     api = AlpacaAPI(cfg)
-    symbols = _symbols_from_env(limit_default=25)
+    symbols = _symbols_from_env() or _symbols_from_latest_universe(25)
+    if not symbols:
+        try:
+            symbols = _resolve_equity_symbols(api, ctx, conn)[:25]
+        except Exception as exc:
+            print(f"[warn] options preload could not resolve dynamic symbols: {type(exc).__name__}: {exc}")
+            symbols = []
+    if not symbols:
+        print("[warn] options preload skipped: no symbols available")
+        _persist_dataset("option_expirations", pd.DataFrame(columns=["symbol", "expiration"]), ctx, conn)
+        _persist_dataset("option_contract_snapshots", pd.DataFrame(), ctx, conn)
+        return
     rows: list[dict[str, str]] = []
     snapshot_parts: list[pd.DataFrame] = []
-    for symbol in symbols:
+    total_symbols = max(len(symbols), 1)
+    for index, symbol in enumerate(symbols, start=1):
+        _job_progress(
+            ctx,
+            conn,
+            stage="option_symbol",
+            message=f"Loading option chain for {symbol} ({index}/{total_symbols}).",
+            progress_pct=round(5.0 + 70.0 * (index - 1) / total_symbols, 1),
+        )
         try:
             expirations, _, _ = load_option_chain(api, symbol)
             for expiration in expirations[:8]:
@@ -1541,13 +1443,28 @@ def run_options(ctx: JobContext, conn: Any | None = None) -> None:
 
 
 def run_news(ctx: JobContext, conn: Any | None = None) -> None:
+    _job_progress(ctx, conn, stage="starting", message="Starting news and attention preload.", progress_pct=1.0)
     cfg = _alpaca_config()
     if cfg is None:
         print("[warn] APCA credentials missing; skipping news preload")
         return
     api = AlpacaAPI(cfg)
-    symbols = _symbols_from_env(limit_default=50)
+    symbols = _symbols_from_env() or _symbols_from_latest_universe(50)
+    if not symbols:
+        seed_symbols = _load_latest_attention_seed(50)
+        symbols = [
+            _normalize_symbol(value)
+            for value in seed_symbols.get("entity_id", pd.Series(dtype=str)).tolist()
+            if _normalize_symbol(value)
+        ]
+    if not symbols:
+        try:
+            symbols = _resolve_equity_symbols(api, ctx, conn)[:50]
+        except Exception as exc:
+            print(f"[warn] news preload could not resolve dynamic symbols: {type(exc).__name__}: {exc}")
+            symbols = []
     try:
+        _job_progress(ctx, conn, stage="news_ingest", message=f"Fetching news for symbols={len(symbols)}.", progress_pct=10.0)
         news = api.get_news(symbols=symbols, limit=50)
         if not news.empty:
             if "symbols" in news.columns:
@@ -1587,6 +1504,13 @@ def run_news(ctx: JobContext, conn: Any | None = None) -> None:
             asof_time_utc=ctx.asof,
         )
         try:
+            _job_progress(
+                ctx,
+                conn,
+                stage="news_llm_enrichment",
+                message=f"Building attention context for symbols={len(context_symbols)}.",
+                progress_pct=48.0,
+            )
             llm_client = load_llm_client()
             if llm_client is None:
                 print("[warn] attention LLM enrichment skipped: missing LLM configuration")
@@ -1609,47 +1533,285 @@ def run_news(ctx: JobContext, conn: Any | None = None) -> None:
         except LLMAPIError as exc:
             print(f"[warn] attention LLM enrichment skipped: {exc}")
 
+        _job_progress(ctx, conn, stage="persist_attention_context", message="Persisting attention context datasets.", progress_pct=72.0)
         _persist_dataset("edgar_filings", edgar_filings, ctx, conn)
         _persist_dataset("edgar_evidence", edgar_evidence, ctx, conn)
         _persist_dataset("attention_context_llm", attention_context_llm, ctx, conn)
         _persist_dataset("attention_context_bundle", attention_context, ctx, conn)
-
-        _materialize_attention_outputs(
-            ctx=ctx,
-            conn=conn,
-            daily_movers=_load_latest_materialized_frame("daily_movers"),
-            macro_movers=_load_latest_materialized_frame("macro_anchor_daily_movers"),
-            positions_frame=_load_latest_materialized_frame("positions_snapshot"),
-            price_history_frame=_load_latest_materialized_frame("price_history"),
-            attention_feed_frame=_load_latest_materialized_frame("attention_feed"),
-            commodity_attention_feed_frame=_load_latest_materialized_frame("commodity_attention_feed"),
-            news_frame=news,
-            attention_context_frame=attention_context,
-            edgar_filings_frame=edgar_filings,
-            llm_client=llm_client if "llm_client" in locals() else None,
-        )
     except AlpacaAPIError as exc:
         print(f"[error] news preload failed: {exc}")
     except EdgarAPIError as exc:
         print(f"[error] EDGAR attention context failed: {exc}")
 
 
+def run_attention_home(ctx: JobContext, conn: Any | None = None) -> None:
+    run_attention_home_build_job(
+        ctx,
+        conn,
+        persist_dataset_fn=_persist_dataset,
+        job_progress_fn=_job_progress,
+        load_materialized_frame_fn=_load_latest_materialized_frame,
+    )
+
+
+def _build_us_equity_listings_snapshot() -> pd.DataFrame:
+    listings = load_us_equity_listings(
+        include_etfs=_parse_bool_env("TAXONOMY_INCLUDE_ETFS", True),
+        include_non_common=_parse_bool_env("TAXONOMY_INCLUDE_NON_COMMON", False),
+        timeout=_parse_int_env("TAXONOMY_LISTINGS_TIMEOUT_SECONDS", 30, minimum=5),
+    )
+    if not listings.empty:
+        return listings
+    fallback = _load_latest_materialized_frame("us_equity_listings")
+    if not fallback.empty:
+        print(f"[warn] using fallback us_equity_listings snapshot rows={len(fallback)}")
+    return fallback
+
+
+def _taxonomy_progress_pct(payload: dict[str, Any]) -> float | None:
+    event = str(payload.get("event") or "").strip()
+    allow_unknown = bool(payload.get("allow_unknown"))
+    total_batches = max(int(payload.get("total_batches") or 0), 0)
+    batch_index = max(int(payload.get("batch_index") or 0), 0)
+    retry_total = max(int(payload.get("retry_total") or 0), 0)
+    retry_index = max(int(payload.get("retry_index") or 0), 0)
+
+    if event == "snapshot_prepare":
+        return 5.0
+    if event == "repair_prepare":
+        return 82.0
+    if event in {"repair_retry_prepare", "repair_retry_complete"} and retry_total > 0:
+        ratio = min(max(retry_index / retry_total, 0.0), 1.0)
+        if event == "repair_retry_prepare":
+            ratio = min(max((retry_index - 1) / retry_total, 0.0), 1.0)
+        return round(95.0 + ratio * 3.0, 1)
+    if event == "snapshot_finalize":
+        return 96.0
+    if event == "snapshot_complete":
+        return 99.0
+    if event in {"classify_start", "batch_start", "batch_complete", "classify_complete"} and total_batches > 0:
+        ratio = min(max(batch_index / total_batches, 0.0), 1.0)
+        if event == "classify_complete":
+            ratio = 1.0
+        if allow_unknown:
+            return round(10.0 + ratio * 70.0, 1)
+        return round(82.0 + ratio * 13.0, 1)
+    return None
+
+
+def _taxonomy_progress_message(payload: dict[str, Any]) -> tuple[str, str]:
+    event = str(payload.get("event") or "").strip()
+    allow_unknown = bool(payload.get("allow_unknown"))
+    pass_label = "initial_llm_pass" if allow_unknown else "repair_llm_pass"
+    batch_index = int(payload.get("batch_index") or 0)
+    total_batches = int(payload.get("total_batches") or 0)
+    total_classified = int(payload.get("total_classified") or 0)
+    total_symbols = int(payload.get("total_symbols") or 0)
+    first_symbol = str(payload.get("first_symbol") or "").strip()
+    last_symbol = str(payload.get("last_symbol") or "").strip()
+
+    if event == "snapshot_prepare":
+        return (
+            "prepare_snapshot",
+            "Prepared taxonomy snapshot "
+            f"listings={int(payload.get('listing_count') or 0)} "
+            f"existing_dynamic={int(payload.get('existing_dynamic_count') or 0)} "
+            f"unresolved={int(payload.get('unresolved_count') or 0)}.",
+        )
+    if event == "classify_start":
+        return (
+            pass_label,
+            f"Starting {'initial' if allow_unknown else 'repair'} taxonomy LLM pass "
+            f"symbols={total_symbols} batches={total_batches}.",
+        )
+    if event == "batch_start":
+        return (
+            pass_label,
+            f"Running {'initial' if allow_unknown else 'repair'} taxonomy LLM batch "
+            f"{batch_index}/{total_batches} first={first_symbol or 'n/a'} last={last_symbol or 'n/a'}.",
+        )
+    if event == "batch_complete":
+        return (
+            pass_label,
+            f"Completed {'initial' if allow_unknown else 'repair'} taxonomy LLM batch "
+            f"{batch_index}/{total_batches}; classified={total_classified}/{total_symbols}.",
+        )
+    if event == "batch_failed":
+        return (
+            pass_label,
+            f"Failed {'initial' if allow_unknown else 'repair'} taxonomy LLM batch "
+            f"{batch_index}/{total_batches}: {str(payload.get('error') or 'unknown error')[:300]}",
+        )
+    if event == "classify_complete":
+        return (
+            pass_label,
+            f"Completed {'initial' if allow_unknown else 'repair'} taxonomy LLM pass "
+            f"rows={int(payload.get('row_count') or 0)}.",
+        )
+    if event == "repair_prepare":
+        return (
+            "repair_prepare",
+            f"Preparing repair pass for {int(payload.get('repair_target_count') or 0)} unresolved symbols.",
+        )
+    if event == "repair_retry_prepare":
+        return (
+            "repair_retry",
+            "Retrying repair taxonomy classification "
+            f"pass={int(payload.get('retry_index') or 0)}/{int(payload.get('retry_total') or 0)} "
+            f"batch_size={int(payload.get('batch_size') or 0)} "
+            f"targets={int(payload.get('repair_target_count') or 0)}.",
+        )
+    if event == "repair_retry_complete":
+        return (
+            "repair_retry",
+            "Completed repair retry pass "
+            f"{int(payload.get('retry_index') or 0)}/{int(payload.get('retry_total') or 0)}; "
+            f"retry_rows={int(payload.get('retry_rows') or 0)} "
+            f"remaining_unresolved={int(payload.get('unresolved_count') or 0)}.",
+        )
+    if event == "snapshot_finalize":
+        return (
+            "finalize_snapshot",
+            "Finalizing taxonomy snapshot "
+            f"initial_rows={int(payload.get('initial_llm_rows') or 0)} "
+            f"repair_rows={int(payload.get('repair_rows') or 0)} "
+            f"repair_retry_rows={int(payload.get('repair_retry_rows') or 0)}.",
+        )
+    if event == "snapshot_complete":
+        return (
+            "snapshot_complete",
+            f"Built taxonomy snapshot rows={int(payload.get('row_count') or 0)}.",
+        )
+    if event == "snapshot_failed":
+        return (
+            "snapshot_failed",
+            f"Taxonomy snapshot failed reason={str(payload.get('reason') or 'unknown')} "
+            f"unresolved={int(payload.get('unresolved_count') or 0)}.",
+        )
+    return ("running", f"Taxonomy progress update: {json.dumps(payload, default=str)}")
+
+
+def _make_taxonomy_progress_callback(ctx: JobContext, conn: Any | None):
+    def _callback(payload: dict[str, Any]) -> None:
+        stage, message = _taxonomy_progress_message(payload)
+        _job_progress(
+            ctx,
+            conn,
+            stage=stage,
+            message=message,
+            progress_pct=_taxonomy_progress_pct(payload),
+        )
+
+    return _callback
+
+
+def run_entity_taxonomy(ctx: JobContext, conn: Any | None = None) -> None:
+    _job_progress(ctx, conn, stage="starting", message="Starting entity taxonomy refresh.", progress_pct=1.0)
+    listings = _build_us_equity_listings_snapshot()
+    if listings.empty:
+        print("[warn] taxonomy refresh skipped: no NASDAQ/NYSE listings available")
+        _persist_dataset("us_equity_listings", listings, ctx, conn)
+        _persist_dataset("entity_taxonomy_labels", pd.DataFrame(), ctx, conn)
+        return
+
+    listings["symbol"] = listings.get("symbol", pd.Series(dtype=str)).astype(str).str.upper().str.strip()
+    listings = listings[listings["symbol"].ne("")].drop_duplicates(subset=["symbol"], keep="first").reset_index(drop=True)
+    print(f"[info] taxonomy refresh listings={len(listings)}")
+    _job_progress(
+        ctx,
+        conn,
+        stage="listings_ready",
+        message=f"Built NASDAQ/NYSE listing universe rows={len(listings)}.",
+        progress_pct=4.0,
+    )
+    _persist_dataset("us_equity_listings", listings, ctx, conn)
+
+    existing = fetch_entity_taxonomy_frame()
+    print(f"[info] taxonomy refresh existing_rows={len(existing)}")
+    llm_client = None
+    try:
+        llm_client = load_llm_client()
+    except LLMAPIError as exc:
+        print(f"[warn] taxonomy LLM classification unavailable: {exc}")
+
+    llm_batch_size = _parse_int_env("TAXONOMY_LLM_BATCH_SIZE", 25, minimum=1)
+    llm_max_symbols_env = (os.getenv("TAXONOMY_LLM_MAX_SYMBOLS") or "").strip()
+    try:
+        llm_max_symbols = int(llm_max_symbols_env) if llm_max_symbols_env else None
+    except Exception:
+        llm_max_symbols = None
+    print(
+        f"[info] taxonomy refresh llm_enabled={llm_client is not None} "
+        f"batch_size={llm_batch_size} max_symbols={llm_max_symbols if llm_max_symbols is not None else 'all'}"
+    )
+    _job_progress(
+        ctx,
+        conn,
+        stage="classification_setup",
+        message=(
+            f"Preparing taxonomy classification existing_rows={len(existing)} "
+            f"llm_enabled={llm_client is not None} batch_size={llm_batch_size}."
+        ),
+        progress_pct=8.0,
+    )
+
+    snapshot = build_entity_taxonomy_snapshot(
+        listings,
+        existing_frame=existing,
+        llm_client=llm_client,
+        llm_batch_size=llm_batch_size,
+        llm_max_symbols=llm_max_symbols,
+        progress_callback=_make_taxonomy_progress_callback(ctx, conn),
+    )
+    source_counts = (
+        snapshot["source_of_truth"].fillna("unknown").astype(str).value_counts().sort_index().to_dict()
+        if isinstance(snapshot, pd.DataFrame) and not snapshot.empty and "source_of_truth" in snapshot.columns
+        else {}
+    )
+    print(
+        f"[info] taxonomy refresh snapshot_rows={len(snapshot)} "
+        f"llm_rows={int(snapshot['source_of_truth'].eq('llm_taxonomy').sum()) if 'source_of_truth' in snapshot.columns else 0} "
+        f"sources={json.dumps(source_counts, sort_keys=True)}"
+    )
+    _job_progress(
+        ctx,
+        conn,
+        stage="persist_taxonomy_snapshot",
+        message=f"Persisting final taxonomy snapshot rows={len(snapshot)}.",
+        progress_pct=99.0,
+    )
+    _persist_dataset("entity_taxonomy_labels", snapshot, ctx, conn)
+
+    if conn is not None:
+        upsert_entity_taxonomy_frame(conn, snapshot)
+        deactivate_missing_taxonomy_symbols(conn, snapshot["symbol"].tolist())
+
+
 def run_universe_builder(ctx: JobContext, conn: Any | None = None) -> None:
+    _job_progress(ctx, conn, stage="starting", message="Starting universe builder.", progress_pct=1.0)
     cfg = _alpaca_config()
     if cfg is None:
-        default = pd.DataFrame({"symbol": DEFAULT_UNIVERSE, "rank": list(range(1, len(DEFAULT_UNIVERSE) + 1))})
-        _persist_dataset("universe_snapshot", default, ctx, conn)
+        existing = _load_latest_equity_universe_snapshot(_equity_universe_target_size())
+        if existing.empty:
+            print("[warn] APCA credentials missing and no existing universe snapshot found; persisting empty universe snapshot")
+            _persist_dataset("universe_snapshot", pd.DataFrame(columns=["symbol", "rank"]), ctx, conn)
+            return
+        _persist_dataset("universe_snapshot", existing, ctx, conn)
         return
 
     api = AlpacaAPI(cfg)
     try:
         universe = _build_equity_universe_snapshot(api, target_size=_equity_universe_target_size())
     except Exception as exc:
-        print(f"[warn] expanded universe build failed; falling back to default: {type(exc).__name__}: {exc}")
+        print(f"[warn] expanded universe build failed; attempting latest snapshot fallback: {type(exc).__name__}: {exc}")
         universe = pd.DataFrame()
 
     if universe.empty:
-        universe = pd.DataFrame({"symbol": DEFAULT_UNIVERSE, "rank": list(range(1, len(DEFAULT_UNIVERSE) + 1))})
+        universe = _load_latest_equity_universe_snapshot(_equity_universe_target_size())
+    if universe.empty:
+        print("[warn] no universe data available; persisting empty universe snapshot")
+        universe = pd.DataFrame(columns=["symbol", "rank"])
+    _job_progress(ctx, conn, stage="persist_universe", message=f"Persisting universe snapshot rows={len(universe)}.", progress_pct=90.0)
     _persist_dataset("universe_snapshot", universe, ctx, conn)
 
 
@@ -1670,6 +1832,8 @@ def main() -> None:
         "commodities-regime": run_commodities,
         "options-liquid-universe": run_options,
         "news-ingest-and-features": run_news,
+        "attention-home-build": run_attention_home,
+        "entity-taxonomy-refresh": run_entity_taxonomy,
     }
 
     handler = dispatch.get(ctx.name)
@@ -1690,12 +1854,12 @@ def main() -> None:
                 pass
             db_conn = None
 
-    status = "success"
+    status = "Succeeded"
     error_summary: str | None = None
     try:
         handler(ctx, db_conn)
     except Exception as exc:
-        status = "failed"
+        status = "Failed"
         error_summary = f"{type(exc).__name__}: {exc}"[:4000]
         raise
     finally:

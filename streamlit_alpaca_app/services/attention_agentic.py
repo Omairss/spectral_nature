@@ -5,9 +5,10 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import math
+import os
 import re
 import uuid
-from typing import Any
+from typing import Any, Callable
 
 import numpy as np
 import pandas as pd
@@ -26,37 +27,14 @@ from .web_research import (
     load_serpapi_config,
     load_tavily_config,
 )
+from .runtime_policy import attention_graph_policy, source_authority_policy
 
 
 LLMClient = OpenAIChatJSONClient | AzureOpenAIChatJSONClient
 EmbeddingClient = OpenAIEmbeddingClient | AzureOpenAIEmbeddingClient
 
-DEFAULT_PROMPT_VERSION = "attention-bottom-up-v1"
+DEFAULT_PROMPT_VERSION = (os.getenv("ATTENTION_PROMPT_VERSION") or "attention-bottom-up-v1").strip() or "attention-bottom-up-v1"
 DEFAULT_WRITER_MODEL = "planner"
-OFFICIAL_SOURCE_TOKENS = (
-    "sec",
-    "edgar",
-    "federal reserve",
-    "bureau of labor statistics",
-    "bls",
-    "u.s. treasury",
-    "treasury",
-    "fred",
-    "st. louis fed",
-    "investor relations",
-    "press release",
-    "company ir",
-)
-WIRE_SOURCE_TOKENS = ("reuters", "associated press", "ap", "dow jones")
-PRESS_SOURCE_TOKENS = (
-    "benzinga",
-    "marketwatch",
-    "cnbc",
-    "barrons",
-    "seeking alpha",
-    "yahoo finance",
-    "investing.com",
-)
 LOW_SIGNAL_PHRASES = (
     "other big stocks moving",
     "stocks moving higher",
@@ -74,31 +52,64 @@ YIELD_RELEVANT_TAGS = {
     "yield",
     "yields",
 }
-EXPOSURE_BRIDGE_WEIGHTS: dict[str, dict[str, float]] = {
-    "oil": {
-        "oil_beneficiary": 0.36,
-        "travel": 0.24,
-        "duration": 0.14,
-        "rates": 0.12,
-        "broad_risk": 0.16,
-    },
-    "inflation_proxy": {
-        "duration": 0.34,
-        "rates": 0.28,
-        "credit": 0.18,
-        "broad_risk": 0.22,
-        "oil_beneficiary": 0.18,
-        "travel": 0.14,
-    },
-    "rates": {
-        "duration": 0.26,
-        "credit": 0.2,
-        "real_rates": 0.16,
-        "broad_risk": 0.12,
-    },
-    "duration": {
-        "broad_risk": 0.12,
-    },
+CAUSAL_LANGUAGE_PATTERNS = (
+    r"\bbecause\b",
+    r"\bdue to\b",
+    r"\bafter\b",
+    r"\bamid\b",
+    r"\bdriven by\b",
+    r"\bsuggest(?:s|ing)\b",
+    r"\bimply(?:s|ing)\b",
+    r"\btherefore\b",
+    r"\bwhich (?:lifted|helped|pressured|hurt|weighed|boosted)\b",
+    r"\bpressure on\b",
+    r"\bmargins?\b",
+    r"\bdemand\b",
+    r"\binflation\b",
+    r"\binput costs?\b",
+)
+RATE_TRANSMISSION_PATTERNS = (
+    r"\bborrow(?:ing|ed)? costs?\b",
+    r"\bfinanc(?:e|ing|ed)\b",
+    r"\bdiscount rates?\b",
+    r"\bvaluation(?:s)?\b",
+    r"\brisk appetite\b",
+    r"\bcredit conditions?\b",
+    r"\bmargins?\b",
+    r"\bdemand\b",
+    r"\bfuel costs?\b",
+    r"\binput costs?\b",
+)
+RESEARCH_PROVIDER_ERROR_MARKERS = (
+    "request failed status=",
+    "exceeds your plan's set usage limit",
+    "please upgrade your plan",
+    "contact support@",
+    "invalid api key",
+    "unauthorized",
+    "forbidden",
+    "rate limit",
+    "quota exceeded",
+)
+LOW_SIGNAL_CLAIM_MARKERS = (
+    "top wall street analysts changed outlook on top names",
+    "for all changes, including upgrades/downgrades",
+    "see analyst ratings page",
+    "analyst ratings page",
+    "other analysts' views on",
+    "other analysts&#39; views on",
+    "other analysts views on",
+)
+GENERIC_GRAPH_BUCKETS = {
+    "unknown",
+    "market",
+    "all market",
+    "broad commodity market",
+    "cluster",
+    "macro anchor",
+    "equities",
+    "commodities",
+    "assets",
 }
 
 PLANNER_SCHEMA: dict[str, Any] = {
@@ -234,6 +245,24 @@ EVENT_WRITER_SCHEMA: dict[str, Any] = {
     ],
 }
 
+EVENT_WRITER_SYSTEM_PROMPT = (
+    "You are a senior cross-asset strategist writing for PMs. "
+    "Return concise JSON only. Use only supplied facts and claims; do not invent facts. "
+    "Write institutional-quality event summaries that are specific and mechanism-first. "
+    "Keep surface_summary to at most two sentences. "
+    "Critical rule for why_happened_text: lead with a causal chain in plain English before any numbers. "
+    "Use this structure when evidence supports it: catalyst -> transmission channel -> market pricing reaction. "
+    "Transmission channels must be concrete, such as input costs, margins, volumes, funding costs, duration, policy, operations, demand, or risk appetite. "
+    "Do not write generic tape titles or generic cluster copy. Keep the title anchored to the strongest supported event theme. "
+    "Avoid ticker and percentage tape recaps across all text fields. "
+    "Do not list more than two tickers in why_happened_text. "
+    "Never open why_happened_text with Treasury, yield, ticker, or percentage statistics. "
+    "What_happened_text should summarize the directional relationship across the cluster, not enumerate the tape. "
+    "Affected_assets_summary_text should focus on second-order spillover and cross-asset breadth, not restate what_happened_text. "
+    "If causality is mixed, say what is uncertain and why in plain language. "
+    "When Treasury yield context is relevant, summarize direction and transmission in plain language without quoting bp numbers unless the rate move itself is the event."
+)
+
 
 @dataclass
 class AgenticAttentionArtifacts:
@@ -258,6 +287,8 @@ def _safe_list(value: object) -> list[Any]:
         return value
     if isinstance(value, tuple):
         return list(value)
+    if isinstance(value, (set, frozenset, pd.Series, pd.Index, np.ndarray)):
+        return list(value)
     return [value]
 
 
@@ -280,6 +311,166 @@ def _normalized_text(text: object) -> str:
     return re.sub(r"[^a-z0-9]+", " ", _coerce_text(text).lower()).strip()
 
 
+def _token_set(text: object, *, min_len: int = 3) -> set[str]:
+    tokens: set[str] = set()
+    for token in re.split(r"[^a-z0-9]+", _coerce_text(text).lower()):
+        if len(token) >= min_len:
+            tokens.add(token)
+    return tokens
+
+
+def _text_overlap(left: object, right: object) -> float:
+    left_tokens = _token_set(left)
+    right_tokens = _token_set(right)
+    if not left_tokens or not right_tokens:
+        return 0.0
+    return len(left_tokens & right_tokens) / max(len(left_tokens | right_tokens), 1)
+
+
+def _stat_marker_count(text: object) -> int:
+    clean = _coerce_text(text)
+    if not clean:
+        return 0
+    pct = len(re.findall(r"[+\-]?\d+(?:\.\d+)?%", clean))
+    bps = len(re.findall(r"[+\-]?\d+(?:\.\d+)?\s*bps\b", clean.lower()))
+    return pct + bps
+
+
+def _ticker_like_count(text: object) -> int:
+    clean = _coerce_text(text)
+    if not clean:
+        return 0
+    tokens = re.findall(r"\b[A-Z]{2,5}\b", clean)
+    return len(tokens)
+
+
+def _has_causal_language(text: object) -> bool:
+    clean = _coerce_text(text).lower()
+    if not clean:
+        return False
+    return any(re.search(pattern, clean) for pattern in CAUSAL_LANGUAGE_PATTERNS)
+
+
+def _looks_like_stat_dump(text: object) -> bool:
+    clean = _coerce_text(text)
+    if not clean:
+        return False
+    lowered = clean.lower()
+    stat_count = _stat_marker_count(clean)
+    ticker_count = _ticker_like_count(clean)
+    ticker_pct_pairs = len(re.findall(r"\b[A-Z]{2,5}\s*[+\-]\d+(?:\.\d+)?%", clean))
+    if re.search(r"\bup:\b|\bdown:\b", lowered):
+        return True
+    if stat_count >= 6:
+        return True
+    if ticker_pct_pairs >= 3:
+        return True
+    if ticker_count >= 4 and stat_count >= 4:
+        return True
+    if ticker_count >= 6 and stat_count >= 3:
+        return True
+    if lowered.count(",") >= 6 and ticker_count >= 4:
+        return True
+    if "treasury yields:" in lowered and stat_count >= 4 and not _has_causal_language(clean):
+        return True
+    return False
+
+
+def _is_yield_only_explanation(text: object) -> bool:
+    clean = _coerce_text(text)
+    if not clean:
+        return False
+    lowered = clean.lower()
+    has_rates_markers = any(
+        token in lowered
+        for token in ("treasury", "yield", "2y", "10y", "30y", "2s10s", "curve", "bps")
+    )
+    if not has_rates_markers:
+        return False
+    return not any(re.search(pattern, lowered) for pattern in RATE_TRANSMISSION_PATTERNS)
+
+
+def _best_why_claim_sentence(claims: list[dict[str, Any]]) -> str:
+    if not claims:
+        return ""
+    ordered = sorted(
+        claims,
+        key=lambda item: (
+            -int(bool(item.get("is_same_day"))),
+            -_coerce_float(item.get("causal_score"), 0.0),
+            -_coerce_float(item.get("confidence_score"), 0.0),
+            -_coerce_float(item.get("relevance_score"), 0.0),
+        ),
+    )
+    scored: list[tuple[float, str]] = []
+    for item in ordered:
+        sentence = _first_sentence(item.get("claim_text"))
+        if not sentence:
+            continue
+        if _is_provider_error_text(sentence) or _is_low_signal_claim_text(sentence):
+            continue
+        score = 0.0
+        if bool(item.get("is_same_day")):
+            score += 2.0
+        if _has_causal_language(sentence):
+            score += 2.0
+        if not _looks_like_stat_dump(sentence):
+            score += 1.0
+        if _is_yield_only_explanation(sentence):
+            score -= 2.0
+        score += _coerce_float(item.get("causal_score"), 0.0)
+        score += 0.5 * _coerce_float(item.get("confidence_score"), 0.0)
+        scored.append((score, sentence))
+    if not scored:
+        return ""
+    scored.sort(key=lambda pair: pair[0], reverse=True)
+    return scored[0][1]
+
+
+def _specific_why_fallback(
+    retained_claims: list[dict[str, Any]],
+    *,
+    default_text: str = "",
+) -> str:
+    claim_seed = _best_why_claim_sentence(retained_claims)
+    if not claim_seed:
+        return _coerce_text(default_text)
+    if _looks_like_stat_dump(claim_seed) and not _has_causal_language(claim_seed):
+        return _coerce_text(default_text)
+    return claim_seed
+
+
+def _looks_like_generic_tape_title(text: object) -> bool:
+    clean = _coerce_text(text).lower()
+    if not clean:
+        return False
+    patterns = (
+        r"\bmoves? sharply today\b",
+        r"\bmoved sharply today\b",
+        r"\brises on today'?s tape\b",
+        r"\bfalls on today'?s tape\b",
+        r"\bon today'?s tape\b",
+        r"\bmarket move today\b",
+    )
+    return any(re.search(pattern, clean) for pattern in patterns)
+
+
+def _compose_surface_summary(what_changed: object, why_text: object, what_else: object = "", *, include_what_else: bool = False) -> str:
+    first = _coerce_text(what_changed)
+    second = _coerce_text(why_text)
+    spillover = _coerce_text(what_else)
+    parts = [part for part in [first, second] if part]
+    if include_what_else and spillover and _text_overlap(" ".join(parts), spillover) < 0.62:
+        parts.append(spillover)
+    summary = " ".join(parts).strip()
+    if not summary:
+        return ""
+    if _looks_like_stat_dump(summary) and _has_causal_language(second):
+        compact = " ".join(part for part in [first, second] if part).strip()
+        return compact or summary
+    return summary
+
+
 def _coerce_float(value: object, default: float = math.nan) -> float:
     try:
         number = float(value)
@@ -294,11 +485,12 @@ def _json_dumps(value: Any) -> str:
 
 def _source_authority_bucket(source: object, url: object = "") -> tuple[str, int]:
     blob = f"{_coerce_text(source)} {_coerce_text(url)}".lower()
-    if any(token in blob for token in OFFICIAL_SOURCE_TOKENS):
+    policy = source_authority_policy()
+    if any(token in blob for token in policy.official_tokens):
         return "official", 0
-    if any(token in blob for token in WIRE_SOURCE_TOKENS):
+    if any(token in blob for token in policy.wire_tokens):
         return "wire", 1
-    if any(token in blob for token in PRESS_SOURCE_TOKENS):
+    if any(token in blob for token in policy.press_tokens):
         return "press", 2
     return "web", 3
 
@@ -321,7 +513,32 @@ def _is_low_signal(headline: object, snippet: object) -> bool:
     return any(token in blob for token in LOW_SIGNAL_PHRASES)
 
 
+def _is_provider_error_text(text: object) -> bool:
+    clean = _coerce_text(text).lower()
+    if not clean:
+        return False
+    if clean.startswith(("tavily request failed", "serpapi request failed", "web research request failed")):
+        return True
+    return any(marker in clean for marker in RESEARCH_PROVIDER_ERROR_MARKERS)
+
+
+def _is_low_signal_claim_text(text: object) -> bool:
+    clean = _coerce_text(text).lower()
+    if not clean:
+        return False
+    if _is_provider_error_text(clean):
+        return True
+    return any(marker in clean for marker in LOW_SIGNAL_CLAIM_MARKERS)
+
+
 def _display_excerpt(text: object, headline: object = "", *, limit: int = 180) -> str:
+    if (
+        _is_provider_error_text(text)
+        or _is_provider_error_text(headline)
+        or _is_low_signal_claim_text(text)
+        or _is_low_signal_claim_text(headline)
+    ):
+        return ""
     sentence = _trim(_first_sentence(text), limit=limit)
     if not sentence:
         return ""
@@ -339,12 +556,172 @@ def _tag_tokens(tags: list[str]) -> set[str]:
     return tokens
 
 
-def _raw_tag_set(values: list[Any]) -> set[str]:
+def _merge_text_values(*values: object) -> list[str]:
+    out: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        for item in _safe_list(value):
+            text = _coerce_text(item).strip()
+            if not text:
+                continue
+            lowered = text.lower()
+            if lowered in seen:
+                continue
+            seen.add(lowered)
+            out.append(text)
+    return out
+
+
+def _candidate_text_value(candidate: dict[str, Any], *fields: str) -> str:
+    for field in fields:
+        text = _coerce_text(candidate.get(field)).strip()
+        if text:
+            return text
+    return ""
+
+
+def _is_generic_graph_bucket(value: object) -> bool:
+    text = _coerce_text(value).strip().lower()
+    if not text:
+        return True
+    candidates = {text}
+    tail = re.split(r"[:/]", text)[-1].replace("_", " ").strip()
+    if tail:
+        candidates.add(tail)
+    return any(candidate in GENERIC_GRAPH_BUCKETS for candidate in candidates)
+
+
+def _informative_graph_label(value: object) -> str:
+    text = _coerce_text(value).strip()
+    return "" if _is_generic_graph_bucket(text) else text
+
+
+def _candidate_taxonomy_context(candidate: dict[str, Any]) -> dict[str, str]:
+    industry = _informative_graph_label(
+        _candidate_text_value(candidate, "effective_industry", "taxonomy_industry", "industry")
+    )
+    sector = _informative_graph_label(
+        _candidate_text_value(candidate, "effective_sector", "taxonomy_sector", "sector")
+    )
+    asset_class = _informative_graph_label(
+        _candidate_text_value(candidate, "effective_asset_class", "taxonomy_asset_class", "asset_class")
+    )
+    peer_group_name = _informative_graph_label(
+        _candidate_text_value(candidate, "effective_peer_group_name", "taxonomy_peer_group_name", "peer_group_name")
+    )
+    peer_group_id = _candidate_text_value(
+        candidate,
+        "effective_peer_group_id",
+        "taxonomy_peer_group_id",
+        "peer_group_id",
+    ).strip()
+    if _is_generic_graph_bucket(peer_group_id):
+        peer_group_id = ""
+    specific_peer_group = ""
+    if peer_group_id and peer_group_id not in {industry, sector, asset_class}:
+        specific_peer_group = peer_group_id
+    elif peer_group_name and peer_group_name not in {industry, sector, asset_class}:
+        specific_peer_group = peer_group_name
     return {
-        _coerce_text(value).lower()
-        for value in values
-        if _coerce_text(value)
+        "industry": industry,
+        "sector": sector,
+        "asset_class": asset_class,
+        "peer_group": specific_peer_group,
     }
+
+
+def _candidate_graph_tags(candidate: dict[str, Any]) -> set[str]:
+    return _tag_tokens(
+        _merge_text_values(
+            candidate.get("macro_exposure_tags"),
+            candidate.get("macro_role_tags"),
+            candidate.get("taxonomy_macro_role_tags"),
+            candidate.get("business_tags"),
+            candidate.get("business_role_tags"),
+            candidate.get("taxonomy_business_role_tags"),
+            candidate.get("commodity_role"),
+            candidate.get("rates_role"),
+            candidate.get("defensive_role"),
+        )
+    )
+
+
+def _candidate_claim_entities(candidate: dict[str, Any]) -> list[str]:
+    taxonomy = _candidate_taxonomy_context(candidate)
+    return _merge_text_values(
+        _normalize_symbol(candidate.get("symbol")),
+        candidate.get("company_name"),
+        candidate.get("security_name"),
+        taxonomy.get("industry"),
+        taxonomy.get("peer_group"),
+        taxonomy.get("sector"),
+        candidate.get("macro_exposure_tags"),
+        candidate.get("macro_role_tags"),
+        candidate.get("taxonomy_macro_role_tags"),
+        candidate.get("business_tags"),
+        candidate.get("business_role_tags"),
+        candidate.get("taxonomy_business_role_tags"),
+        candidate.get("commodity_role"),
+        candidate.get("rates_role"),
+        candidate.get("defensive_role"),
+    )
+
+
+def _return_series_from_bars(frame: pd.DataFrame | None) -> pd.Series:
+    if not isinstance(frame, pd.DataFrame) or frame.empty or "timestamp" not in frame.columns or "close" not in frame.columns:
+        return pd.Series(dtype=float)
+    out = frame.copy()
+    out["timestamp"] = pd.to_datetime(out["timestamp"], utc=True, errors="coerce")
+    out["close"] = pd.to_numeric(out["close"], errors="coerce")
+    out = out[out["timestamp"].notna() & out["close"].notna()].sort_values("timestamp")
+    if out.empty:
+        return pd.Series(dtype=float)
+    returns = out["close"].pct_change()
+    series = pd.Series(returns.values, index=out["timestamp"])
+    return series.dropna()
+
+
+def _history_correlation_map(
+    bars_by_symbol: dict[str, pd.DataFrame] | None,
+    symbols: list[str],
+    *,
+    min_observations: int,
+) -> dict[tuple[str, str], dict[str, float | int]]:
+    if not isinstance(bars_by_symbol, dict) or not bars_by_symbol:
+        return {}
+    normalized_symbols = [
+        _normalize_symbol(symbol)
+        for symbol in list(symbols or [])
+        if _normalize_symbol(symbol)
+    ]
+    if len(normalized_symbols) < 2:
+        return {}
+    series_by_symbol: dict[str, pd.Series] = {}
+    min_obs = max(int(min_observations), 2)
+    for symbol in normalized_symbols:
+        series = _return_series_from_bars(bars_by_symbol.get(symbol))
+        if len(series) >= min_obs:
+            series_by_symbol[symbol] = series.rename(symbol)
+    if len(series_by_symbol) < 2:
+        return {}
+    returns_wide = pd.concat(series_by_symbol.values(), axis=1, join="outer").sort_index()
+    if returns_wide.empty:
+        return {}
+    observations = returns_wide.notna().astype(int).T.dot(returns_wide.notna().astype(int))
+    correlations = returns_wide.corr(min_periods=min_obs)
+    out: dict[tuple[str, str], dict[str, float | int]] = {}
+    ordered = [column for column in correlations.columns if column in series_by_symbol]
+    for index, left in enumerate(ordered):
+        for right in ordered[index + 1 :]:
+            corr_value = pd.to_numeric(correlations.at[left, right], errors="coerce")
+            obs_value = int(pd.to_numeric(observations.at[left, right], errors="coerce") or 0)
+            if pd.isna(corr_value) or obs_value < min_obs:
+                continue
+            out[tuple(sorted((left, right)))] = {
+                "correlation": float(corr_value),
+                "observations": obs_value,
+            }
+    return out
 
 
 def _jaccard(left: set[str], right: set[str]) -> float:
@@ -354,21 +731,6 @@ def _jaccard(left: set[str], right: set[str]) -> float:
     if not overlap:
         return 0.0
     return len(overlap) / max(len(left | right), 1)
-
-
-def _exposure_bridge_weight(left_tags: set[str], right_tags: set[str]) -> float:
-    if not left_tags or not right_tags:
-        return 0.0
-    total = 0.0
-    for left in left_tags:
-        linked = EXPOSURE_BRIDGE_WEIGHTS.get(left, {})
-        for right in right_tags:
-            total += float(linked.get(right, 0.0))
-    for right in right_tags:
-        linked = EXPOSURE_BRIDGE_WEIGHTS.get(right, {})
-        for left in left_tags:
-            total += float(linked.get(left, 0.0))
-    return min(total, 0.45)
 
 
 def _move_direction(value: object) -> str:
@@ -388,14 +750,12 @@ def _move_label(value: object) -> str:
 def _what_changed_fallback(candidate: dict[str, Any]) -> str:
     symbol = _normalize_symbol(candidate.get("symbol"))
     move = _coerce_float(candidate.get("change_pct"), 0.0)
-    expected = _coerce_float(candidate.get("expected_move_pct"))
-    surprise_z = _coerce_float(candidate.get("surprise_z"))
-    sentence = f"{symbol} moved {_move_label(move)} today."
-    if np.isfinite(expected):
-        sentence = f"{symbol} moved {_move_label(move)} today versus a typical 1d move of {expected:+.1f}%."
-    if np.isfinite(surprise_z):
-        sentence += f" That was roughly {abs(surprise_z):.1f} standard deviations from its recent baseline."
-    return sentence
+    direction = _move_direction(move)
+    if direction == "up":
+        return f"{symbol} moved higher today."
+    if direction == "down":
+        return f"{symbol} moved lower today."
+    return f"{symbol} was little changed today."
 
 
 def _quality_label(claims: list[dict[str, Any]], cause_status: str) -> tuple[str, str]:
@@ -591,7 +951,8 @@ def search_symbol_news_payload(
             errors.append(str(exc))
 
     frame = _to_article_frame(article_rows).head(max(int(max_results), 1))
-    fallback_summary = errors[0] if errors and frame.empty else None
+    sanitized_errors = [error for error in errors if not _is_provider_error_text(error)]
+    fallback_summary = sanitized_errors[0] if sanitized_errors and frame.empty else None
     return {"articles": frame, "fallback_summary": fallback_summary, "source": "+".join(sources) if sources else None}
 
 
@@ -753,42 +1114,24 @@ def _yield_fact_summary_text(yield_facts: dict[str, Any]) -> str:
     if not yield_facts:
         return ""
 
-    def _yield_piece(level_key: str, delta_key: str, label: str) -> str:
-        level = yield_facts.get(level_key)
-        delta = yield_facts.get(delta_key)
-        if level is None:
-            return ""
-        piece = f"{label} {float(level):.2f}%"
-        if delta is not None:
-            piece += f" ({float(delta):+,.0f} bps)"
-        return piece
+    two_delta = _coerce_float(yield_facts.get("ust_2y_1d_bps"))
+    ten_delta = _coerce_float(yield_facts.get("ust_10y_1d_bps"))
+    curve_2s10s_delta = _coerce_float(yield_facts.get("curve_2s10s_1d_bps"))
 
-    levels = [
-        _yield_piece("ust_3m", "ust_3m_1d_bps", "3M"),
-        _yield_piece("ust_2y", "ust_2y_1d_bps", "2Y"),
-        _yield_piece("ust_10y", "ust_10y_1d_bps", "10Y"),
-        _yield_piece("ust_30y", "ust_30y_1d_bps", "30Y"),
-    ]
-    levels = [item for item in levels if item]
-    curve_bits = []
-    for level_key, delta_key, label in (
-        ("curve_2s10s", "curve_2s10s_1d_bps", "2s10s"),
-        ("curve_3m10y", "curve_3m10y_1d_bps", "3m10y"),
-    ):
-        level = yield_facts.get(level_key)
-        delta = yield_facts.get(delta_key)
-        if level is None:
-            continue
-        bit = f"{label} {float(level) * 100.0:+,.0f} bps"
-        if delta is not None:
-            bit += f" ({float(delta):+,.0f} bps)"
-        curve_bits.append(bit)
     parts: list[str] = []
-    if levels:
-        parts.append("Treasury yields: " + ", ".join(levels[:4]) + ".")
-    if curve_bits:
-        parts.append("Curve: " + ", ".join(curve_bits[:2]) + ".")
-    return " ".join(parts)
+    if np.isfinite(two_delta) and np.isfinite(ten_delta):
+        if two_delta < 0 and ten_delta > 0:
+            parts.append("Rates context: front-end yields fell while long-end yields rose.")
+        elif two_delta > 0 and ten_delta < 0:
+            parts.append("Rates context: front-end yields rose while long-end yields fell.")
+        else:
+            direction = "higher" if (two_delta + ten_delta) / 2.0 > 0 else "lower"
+            parts.append(f"Rates context: yields moved {direction}.")
+
+    if np.isfinite(curve_2s10s_delta):
+        slope_word = "steepened" if curve_2s10s_delta > 0 else ("flattened" if curve_2s10s_delta < 0 else "was little changed")
+        parts.append(f"The curve {slope_word}.")
+    return " ".join(parts).strip()
 
 
 def _fallback_research_plan(candidate: dict[str, Any], peer_symbols: list[str]) -> dict[str, Any]:
@@ -933,6 +1276,7 @@ def _search_query_results(
             else:
                 results = client.search(query, max_results=max(min(int(budget), 4), 1), topic="news")
         except Exception as exc:
+            error_text = _trim(str(exc), 180)
             result_rows.append(
                 {
                     "run_id": run_id,
@@ -943,7 +1287,9 @@ def _search_query_results(
                     "result_id": f"{query_id}::{provider_name}::error",
                     "title": "",
                     "url": "",
-                    "snippet": _trim(str(exc), 180),
+                    "snippet": "",
+                    "error_text": error_text,
+                    "result_kind": "error",
                     "source": provider_name,
                     "published_at": "",
                     "authority_bucket": "web",
@@ -966,6 +1312,8 @@ def _search_query_results(
                     "title": _coerce_text(item.title),
                     "url": _coerce_text(item.url),
                     "snippet": _coerce_text(item.snippet),
+                    "error_text": "",
+                    "result_kind": "result",
                     "source": _coerce_text(item.source) or provider_name,
                     "published_at": _coerce_text(item.published_at),
                     "authority_bucket": authority_bucket,
@@ -1154,6 +1502,8 @@ def _documents_from_search_results(
         snippet = _coerce_text(row.get("snippet"))
         if not title and not snippet:
             continue
+        if _is_provider_error_text(title) or _is_provider_error_text(snippet):
+            continue
         if _is_low_signal(title, snippet) and not _normalize_symbol(candidate.get("symbol")) in f"{title} {snippet}".upper():
             continue
         doc_id = f"doc::{_coerce_text(row.get('result_id'))}"
@@ -1200,7 +1550,7 @@ def _chunk_source_documents(
             chunk_id = f"{_coerce_text(doc.get('document_id'))}::chunk::{idx + 1}"
             display_excerpt = _display_excerpt(piece, doc.get("title"))
             chunk_text = _trim(piece, 700)
-            if not chunk_text:
+            if not chunk_text or _is_low_signal_claim_text(chunk_text):
                 continue
             chunk_rows.append(
                 {
@@ -1252,6 +1602,13 @@ def _fallback_claims_from_chunks(
         if not text:
             continue
         title = _coerce_text(row.get("title"))
+        if (
+            _is_provider_error_text(text)
+            or _is_provider_error_text(title)
+            or _is_low_signal_claim_text(text)
+            or _is_low_signal_claim_text(title)
+        ):
+            continue
         title_blob = f"{title} {text}".upper()
         published_at = pd.to_datetime(row.get("published_at"), utc=True, errors="coerce")
         freshness = _freshness_score(published_at, asof_time_utc)
@@ -1280,7 +1637,7 @@ def _fallback_claims_from_chunks(
                 "bundle_subject": symbol,
                 "claim_text": text,
                 "claim_type": claim_type,
-                "claim_entities": [entity for entity in dict.fromkeys([symbol] + _safe_list(candidate.get("macro_exposure_tags"))[:3]) if _coerce_text(entity)],
+                "claim_entities": _candidate_claim_entities(candidate),
                 "supports_hypothesis": hypothesis_names[0] if hypothesis_names else "unresolved",
                 "freshness_class": "same_day" if freshness >= 0.95 else "background",
                 "relevance_score": round(min(max(relevance, 0.0), 1.0), 3),
@@ -1358,7 +1715,12 @@ def _extract_claims(
         if not isinstance(item, dict):
             continue
         claim_text = _trim(item.get("claim_text"), 260)
-        if not claim_text or re.match(r"^(?:form\s+)?(?:8-k|10-k|10-q|20-f|6-k)\b", claim_text, flags=re.IGNORECASE):
+        if (
+            not claim_text
+            or _is_provider_error_text(claim_text)
+            or _is_low_signal_claim_text(claim_text)
+            or re.match(r"^(?:form\s+)?(?:8-k|10-k|10-q|20-f|6-k)\b", claim_text, flags=re.IGNORECASE)
+        ):
             continue
         linked_chunk_id = next(iter(chunk_lookup.keys()), "")
         linked_chunk = chunk_lookup.get(linked_chunk_id, {})
@@ -1369,7 +1731,7 @@ def _extract_claims(
                 "bundle_subject": _normalize_symbol(candidate.get("symbol")),
                 "claim_text": claim_text,
                 "claim_type": _coerce_text(item.get("claim_type")) or "cause",
-                "claim_entities": [entity for entity in _safe_list(item.get("claim_entities")) if _coerce_text(entity)],
+                "claim_entities": _merge_text_values(item.get("claim_entities"), _candidate_claim_entities(candidate)),
                 "supports_hypothesis": _coerce_text(item.get("supports_hypothesis")) or "unresolved",
                 "freshness_class": _coerce_text(item.get("freshness_class")) or ("same_day" if item.get("is_same_day") else "background"),
                 "relevance_score": round(min(max(float(item.get("relevance_score") or 0.0), 0.0), 1.0), 3),
@@ -1405,6 +1767,35 @@ def _claim_entities(claims: list[dict[str, Any]]) -> set[str]:
     return entities
 
 
+def _claim_entities_from_value(value: object) -> list[str]:
+    parsed = value
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return []
+        try:
+            maybe = json.loads(text)
+        except Exception:
+            maybe = text
+        parsed = maybe
+    return [entity for entity in _merge_text_values(parsed) if _coerce_text(entity)]
+
+
+def _claim_map_from_frame(claims_frame: pd.DataFrame | None) -> dict[str, list[dict[str, Any]]]:
+    if not isinstance(claims_frame, pd.DataFrame) or claims_frame.empty:
+        return {}
+    claim_map: dict[str, list[dict[str, Any]]] = {}
+    for _, row in claims_frame.iterrows():
+        symbol = _normalize_symbol(row.get("bundle_subject") or row.get("symbol"))
+        if not symbol:
+            continue
+        entities = _claim_entities_from_value(row.get("claim_entities"))
+        if not entities:
+            entities = _claim_entities_from_value(row.get("claim_entities_json"))
+        claim_map.setdefault(symbol, []).append({"claim_entities": entities})
+    return claim_map
+
+
 def _fallback_symbol_writer(
     candidate: dict[str, Any],
     claims: list[dict[str, Any]],
@@ -1413,29 +1804,37 @@ def _fallback_symbol_writer(
     yield_facts: dict[str, Any] | None = None,
 ) -> dict[str, str]:
     subject = _candidate_subject(candidate) or _normalize_symbol(candidate.get("symbol"))
-    title = f"{subject} moves sharply today"
+    title = _coerce_text(candidate.get("headline")) or subject or _normalize_symbol(candidate.get("symbol"))
     what_changed = _coerce_text(candidate.get("what_changed_text")) or _what_changed_fallback(candidate)
     retained = [item for item in claims if bool(item.get("is_same_day"))]
     background = [item for item in claims if not bool(item.get("is_same_day"))]
-    if cause_status == "supported" and retained:
-        why_today = _first_sentence(retained[0].get("claim_text"))
-    elif cause_status == "continuation" and background:
-        why_today = f"No clear new same-day catalyst was identified. The move appears to extend earlier context: {_first_sentence(background[0].get('claim_text'))}"
-    elif cause_status == "conflicting":
-        why_today = "Coverage points to multiple competing explanations today, and no single cause is clearly dominant yet."
+    retained_why = _specific_why_fallback(retained, default_text="")
+    background_why = _specific_why_fallback(background, default_text="")
+    if cause_status == "supported":
+        why_today = retained_why or background_why
+    elif cause_status == "continuation":
+        why_today = background_why or retained_why
     else:
-        why_today = f"No clear same-day catalyst was identified for {_normalize_symbol(candidate.get('symbol'))}."
+        why_today = retained_why or background_why
     if _yield_context_relevant(candidate):
         yield_summary = _yield_fact_summary_text(yield_facts or {})
         if yield_summary:
-            why_today = f"{why_today.rstrip('.')} {yield_summary}".strip()
+            why_today = f"{why_today.rstrip('.')} {yield_summary}".strip() if why_today else yield_summary
     if peer_moves:
-        preview = ", ".join(f"{item['symbol']} {float(item['change_pct']):+.1f}%" for item in peer_moves[:3])
-        what_else = f"Related names also moved today, including {preview}."
+        preview = ", ".join(_normalize_symbol(item.get("symbol")) for item in peer_moves[:3] if _normalize_symbol(item.get("symbol")))
+        same_direction = sum(
+            1
+            for item in peer_moves[:3]
+            if _move_direction(item.get("change_pct")) == _move_direction(candidate.get("change_pct"))
+        )
+        if same_direction >= 2:
+            what_else = f"Peers moved in the same direction, suggesting spillover across related names ({preview})." if preview else "Peers moved in the same direction, suggesting spillover across related names."
+        else:
+            what_else = f"Peer reactions were mixed across related names ({preview})." if preview else "Peer reactions were mixed across related names."
     else:
-        what_else = "No clear same-day peer or cross-asset spillover was confirmed."
+        what_else = ""
     background_text = _first_sentence(background[0].get("claim_text")) if background else ""
-    surface_summary = " ".join(part for part in [what_changed, why_today] if part).strip()
+    surface_summary = _compose_surface_summary(what_changed, why_today)
     return {
         "title": title,
         "surface_summary": surface_summary,
@@ -1461,7 +1860,14 @@ def _write_symbol_bundle(
     system_prompt = (
         "You write plain-language market research summaries. "
         "Use only the supplied claims and facts. Keep the surface summary to at most two sentences. "
-        "Do not invent causes. Avoid jargon. When numeric Treasury yield facts are supplied, prefer exact bp moves over vague rate language."
+        "Do not invent causes. Avoid jargon. "
+        "Do not write generic tape titles like 'moves sharply today' or 'rises on today's tape'. "
+        "Use the most specific company or catalyst title supported by the supplied evidence. "
+        "Avoid ticker/percent tape recaps across all text fields. "
+        "Explain mechanism, not tape recap: state why the move happened and how that transmits to prices, margins, demand, or risk appetite. "
+        "Do not use ticker/percent lists as the main why-today explanation. "
+        "What-else-moved text should describe spillover and avoid repeating what-changed text verbatim. "
+        "When Treasury yield context is relevant, summarize direction and transmission in plain language without quoting bp numbers."
     )
     user_prompt = json.dumps(
         {
@@ -1481,6 +1887,10 @@ def _write_symbol_bundle(
             "yield_facts": yield_facts or {},
             "peer_moves": peer_moves[:4],
             "fallback": fallback,
+            "narrative_requirements": {
+                "why_today_text": "causal chain first, numbers second; avoid pure move recaps",
+                "what_else_moved_text": "spillover pattern, not a duplicated ticker tape",
+            },
         },
         ensure_ascii=False,
         default=str,
@@ -1492,13 +1902,34 @@ def _write_symbol_bundle(
             schema_name="attention_symbol_writer",
             schema=SYMBOL_WRITER_SCHEMA,
         )
+        title = _coerce_text(data.get("title")) or fallback["title"]
+        if _looks_like_generic_tape_title(title):
+            title = fallback["title"]
+        what_changed = _coerce_text(data.get("what_changed_text")) or fallback["what_changed_text"]
+        why_today = _coerce_text(data.get("why_today_text")) or fallback["why_today_text"]
+        what_else = _coerce_text(data.get("what_else_moved_text")) or fallback["what_else_moved_text"]
+        background_text = _coerce_text(data.get("background_context_text")) or fallback["background_context_text"]
+        if _looks_like_stat_dump(what_changed):
+            what_changed = fallback["what_changed_text"]
+        if _looks_like_stat_dump(why_today) and not _has_causal_language(why_today):
+            why_today = fallback["why_today_text"]
+        if _looks_like_stat_dump(what_else):
+            what_else = fallback["what_else_moved_text"]
+        if _text_overlap(what_changed, what_else) >= 0.62:
+            fallback_what_else = _coerce_text(fallback.get("what_else_moved_text"))
+            what_else = fallback_what_else if _text_overlap(what_changed, fallback_what_else) < 0.62 else ""
+        surface_summary = _coerce_text(data.get("surface_summary"))
+        if not surface_summary or _looks_like_stat_dump(surface_summary):
+            surface_summary = _compose_surface_summary(what_changed, why_today)
+        elif _text_overlap(surface_summary, what_changed) >= 0.9 and _text_overlap(surface_summary, why_today) < 0.35:
+            surface_summary = _compose_surface_summary(what_changed, why_today)
         return {
-            "title": _coerce_text(data.get("title")) or fallback["title"],
-            "surface_summary": _coerce_text(data.get("surface_summary")) or fallback["surface_summary"],
-            "what_changed_text": _coerce_text(data.get("what_changed_text")) or fallback["what_changed_text"],
-            "why_today_text": _coerce_text(data.get("why_today_text")) or fallback["why_today_text"],
-            "what_else_moved_text": _coerce_text(data.get("what_else_moved_text")) or fallback["what_else_moved_text"],
-            "background_context_text": _coerce_text(data.get("background_context_text")) or fallback["background_context_text"],
+            "title": title,
+            "surface_summary": surface_summary,
+            "what_changed_text": what_changed,
+            "why_today_text": why_today,
+            "what_else_moved_text": what_else,
+            "background_context_text": background_text,
         }
     except Exception:
         return fallback
@@ -1582,11 +2013,149 @@ def _cluster_uses_yield_context(cluster_rows: pd.DataFrame) -> bool:
     return bool(set(raw_tags) & YIELD_RELEVANT_TAGS)
 
 
+def _top_ranked_values(series: pd.Series, *, limit: int = 4) -> list[str]:
+    if not isinstance(series, pd.Series):
+        return []
+    cleaned = [_coerce_text(value) for value in series.tolist() if _coerce_text(value)]
+    if not cleaned:
+        return []
+    counts = pd.Series(cleaned).value_counts()
+    return [_coerce_text(index) for index in counts.index[: max(int(limit), 1)] if _coerce_text(index)]
+
+
+def _cluster_tag_summary(cluster_rows: pd.DataFrame, *, limit: int = 6) -> list[str]:
+    counts: dict[str, int] = {}
+    for column in ("macro_exposure_tags", "business_tags"):
+        for value in cluster_rows.get(column, pd.Series(dtype=object)).tolist():
+            for item in _safe_list(value):
+                tag = _coerce_text(item).lower()
+                if not tag:
+                    continue
+                counts[tag] = counts.get(tag, 0) + 1
+    ordered = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    return [tag for tag, _ in ordered[: max(int(limit), 1)]]
+
+
+def _ordered_event_claims(claims: list[dict[str, Any]], *, limit: int = 8) -> list[dict[str, Any]]:
+    prioritized = sorted(
+        claims or [],
+        key=lambda item: (
+            0 if bool(item.get("is_same_day")) else 1,
+            -_coerce_float(item.get("causal_score"), 0.0),
+            -_coerce_float(item.get("confidence_score"), 0.0),
+            -_coerce_float(item.get("relevance_score"), 0.0),
+            _coerce_text(item.get("claim_text")),
+        ),
+    )
+    return [dict(item) for item in prioritized[: max(int(limit), 1)]]
+
+
+def _build_event_writer_payload(
+    event_title_seed: str,
+    cluster_rows: pd.DataFrame,
+    retained_claims: list[dict[str, Any]],
+    *,
+    fallback: dict[str, str],
+    yield_facts: dict[str, Any] | None = None,
+    event_type: str = "",
+    cause_status: str = "",
+    evidence_quality: str = "",
+    freshness_quality: str = "",
+) -> dict[str, Any]:
+    ranked = cluster_rows.copy()
+    ranked["change_pct"] = pd.to_numeric(ranked.get("change_pct"), errors="coerce").fillna(0.0)
+    ranked["candidate_score"] = pd.to_numeric(ranked.get("candidate_score"), errors="coerce").fillna(0.0)
+    ranked["abs_change_pct"] = pd.to_numeric(ranked.get("abs_change_pct"), errors="coerce")
+    ranked["abs_change_pct"] = ranked["abs_change_pct"].fillna(ranked["change_pct"].abs())
+    ranked = ranked.sort_values(["candidate_score", "abs_change_pct"], ascending=[False, False]).reset_index(drop=True)
+
+    anchor_row = ranked.iloc[0] if not ranked.empty else pd.Series(dtype=object)
+    up_rows = ranked[ranked["change_pct"] >= 0].copy()
+    down_rows = ranked[ranked["change_pct"] < 0].copy()
+    ordered_claims = _ordered_event_claims(retained_claims, limit=8)
+    event_label = _dominant_cluster_label(ranked)
+
+    return {
+        "event_title_seed": event_title_seed,
+        "event_type": event_type,
+        "cause_status": cause_status,
+        "evidence_quality": evidence_quality,
+        "freshness_quality": freshness_quality,
+        "cluster_context": {
+            "event_label": event_label,
+            "anchor_symbol": _normalize_symbol(anchor_row.get("symbol")),
+            "anchor_direction": _move_direction(anchor_row.get("change_pct")),
+            "supporting_symbols": [
+                _normalize_symbol(row.get("symbol"))
+                for _, row in ranked.head(8).iterrows()
+                if _normalize_symbol(row.get("symbol"))
+            ],
+            "driver_symbols": [
+                _normalize_symbol(row.get("symbol"))
+                for _, row in down_rows.head(4).iterrows()
+                if _normalize_symbol(row.get("symbol"))
+            ],
+            "beneficiary_symbols": [
+                _normalize_symbol(row.get("symbol"))
+                for _, row in up_rows.head(4).iterrows()
+                if _normalize_symbol(row.get("symbol"))
+            ],
+            "dominant_sectors": _top_ranked_values(ranked.get("sector", pd.Series(dtype=str))),
+            "dominant_industries": _top_ranked_values(ranked.get("industry", pd.Series(dtype=str))),
+            "dominant_tags": _cluster_tag_summary(ranked),
+            "asset_classes": _top_ranked_values(ranked.get("asset_class", pd.Series(dtype=str))),
+            "source_summary": _top_sources(ordered_claims),
+            "same_day_claim_count": sum(1 for item in ordered_claims if bool(item.get("is_same_day"))),
+            "claim_count": len(ordered_claims),
+        },
+        "members": [
+            {
+                "symbol": _normalize_symbol(row.get("symbol")),
+                "sector": _coerce_text(row.get("sector")),
+                "industry": _coerce_text(row.get("industry")),
+                "asset_class": _coerce_text(row.get("asset_class")),
+                "change_pct": _coerce_float(row.get("change_pct"), 0.0),
+                "candidate_score": _coerce_float(row.get("candidate_score"), 0.0),
+                "macro_exposure_tags": [_coerce_text(item) for item in _safe_list(row.get("macro_exposure_tags")) if _coerce_text(item)],
+                "business_tags": [_coerce_text(item) for item in _safe_list(row.get("business_tags")) if _coerce_text(item)],
+                "rates_role": _coerce_text(row.get("rates_role")),
+                "commodity_role": _coerce_text(row.get("commodity_role")),
+            }
+            for _, row in ranked.head(8).iterrows()
+        ],
+        "claims": [
+            {
+                "claim_text": _coerce_text(item.get("claim_text")),
+                "claim_type": _coerce_text(item.get("claim_type")),
+                "source": _coerce_text(item.get("source")),
+                "source_authority_bucket": _coerce_text(item.get("source_authority_bucket")),
+                "is_same_day": bool(item.get("is_same_day")),
+                "freshness_class": _coerce_text(item.get("freshness_class")),
+                "supports_hypothesis": _coerce_text(item.get("supports_hypothesis")),
+                "claim_entities": [_coerce_text(entity) for entity in _safe_list(item.get("claim_entities")) if _coerce_text(entity)],
+                "relevance_score": round(_coerce_float(item.get("relevance_score"), 0.0), 3),
+                "causal_score": round(_coerce_float(item.get("causal_score"), 0.0), 3),
+                "confidence_score": round(_coerce_float(item.get("confidence_score"), 0.0), 3),
+            }
+            for item in ordered_claims
+        ],
+        "yield_facts": yield_facts or {},
+        "fallback": fallback,
+        "narrative_requirements": {
+            "title": "specific supported event theme, not generic tape or cluster copy",
+            "what_happened_text": "one or two sentences on the directional relationship across the cluster; summarize the split, do not enumerate the tape",
+            "why_happened_text": "lead with catalyst -> transmission channel -> market pricing reaction; if evidence is mixed, state the uncertainty explicitly",
+            "affected_assets_summary_text": "one sentence on second-order spillover and breadth without repeating what_happened_text",
+        },
+    }
+
+
 def _fallback_event_writer(
     event_title_seed: str,
     cluster_rows: pd.DataFrame,
     retained_claims: list[dict[str, Any]],
     yield_facts: dict[str, Any] | None = None,
+    event_type: str = "",
 ) -> dict[str, str]:
     ranked = cluster_rows.copy()
     ranked["_change_pct"] = pd.to_numeric(ranked.get("change_pct"), errors="coerce").fillna(0.0)
@@ -1595,12 +2164,6 @@ def _fallback_event_writer(
     lower_label = _dominant_cluster_label(lower_rows)
     higher_label = _dominant_cluster_label(higher_rows)
     cluster_label = _dominant_cluster_label(ranked)
-    members = []
-    for _, row in ranked.head(4).iterrows():
-        symbol = _normalize_symbol(row.get("symbol"))
-        move = _coerce_float(row.get("change_pct"), 0.0)
-        if symbol:
-            members.append(f"{symbol} {_move_label(move)}")
     if lower_label and higher_label and lower_label != higher_label:
         what_happened = f"{lower_label} moved lower while {higher_label} moved higher today."
     elif cluster_label:
@@ -1615,14 +2178,41 @@ def _fallback_event_writer(
             what_happened = f"{cluster_label} were active today."
     else:
         what_happened = "A linked group of assets moved sharply today."
-    if members:
-        what_happened = f"{what_happened.rstrip('.')}." + f" Led by {', '.join(members)}."
-    if retained_claims:
-        why_happened = _first_sentence(retained_claims[0].get("claim_text"))
+    ranked["_abs_change"] = ranked["_change_pct"].abs()
+    ranked_ordered = ranked.sort_values(["_abs_change", "candidate_score"], ascending=[False, False])
+    leading_down = [
+        _normalize_symbol(row.get("symbol"))
+        for _, row in ranked_ordered.iterrows()
+        if _coerce_float(row.get("_change_pct"), 0.0) < 0 and _normalize_symbol(row.get("symbol"))
+    ][:2]
+    leading_up = [
+        _normalize_symbol(row.get("symbol"))
+        for _, row in ranked_ordered.iterrows()
+        if _coerce_float(row.get("_change_pct"), 0.0) >= 0 and _normalize_symbol(row.get("symbol"))
+    ][:2]
+    if leading_down and leading_up:
+        what_happened = (
+            f"{what_happened.rstrip('.')} "
+            f"Leaders included declines in {', '.join(leading_down)} and gains in {', '.join(leading_up)}."
+        )
+    elif leading_down:
+        what_happened = f"{what_happened.rstrip('.')} Largest declines included {', '.join(leading_down)}."
+    elif leading_up:
+        what_happened = f"{what_happened.rstrip('.')} Largest gains included {', '.join(leading_up)}."
+    claim_seed = _best_why_claim_sentence(retained_claims)
+    if claim_seed and (_has_causal_language(claim_seed) or event_type == "rates"):
+        why_happened = claim_seed
+        if _looks_like_stat_dump(why_happened) and not _has_causal_language(why_happened):
+            why_happened = _specific_why_fallback(
+                retained_claims,
+                default_text="",
+            )
+    elif claim_seed:
+        why_happened = _specific_why_fallback(retained_claims)
     else:
-        why_happened = "No single same-day explanation is clearly confirmed yet."
+        why_happened = ""
     yield_summary = _yield_fact_summary_text(yield_facts or {})
-    if yield_summary and _cluster_uses_yield_context(cluster_rows):
+    if yield_summary and event_type == "rates" and _cluster_uses_yield_context(cluster_rows):
         why_happened = f"{why_happened.rstrip('.')} {yield_summary}".strip()
     up = []
     down = []
@@ -1632,18 +2222,23 @@ def _fallback_event_writer(
         if not symbol:
             continue
         if move >= 0:
-            up.append(f"{symbol} {_move_label(move)}")
+            up.append(symbol)
         else:
-            down.append(f"{symbol} {_move_label(move)}")
-    parts = []
-    if up:
-        parts.append("Up: " + ", ".join(up[:5]))
-    if down:
-        parts.append("Down: " + ", ".join(down[:5]))
-    affected = " | ".join(parts) if parts else "Cross-asset spillover is still developing."
-    surface_summary = " ".join(part for part in [what_happened, why_happened] if part).strip()
+            down.append(symbol)
+    if up and down:
+        affected = (
+            "Spillover was split across the tape: "
+            f"gainers included {', '.join(up[:3])}, while laggards included {', '.join(down[:3])}."
+        )
+    elif up:
+        affected = f"Spillover was mostly on the upside, including {', '.join(up[:4])}."
+    elif down:
+        affected = f"Spillover was mostly on the downside, including {', '.join(down[:4])}."
+    else:
+        affected = ""
+    surface_summary = _compose_surface_summary(what_happened, why_happened)
     return {
-        "title": event_title_seed or "Market move today",
+        "title": event_title_seed or cluster_label or "Market event",
         "surface_summary": surface_summary,
         "what_happened_text": what_happened,
         "why_happened_text": why_happened,
@@ -1659,57 +2254,86 @@ def _write_event_bundle(
     *,
     llm_client: LLMClient | None,
     yield_facts: dict[str, Any] | None = None,
+    event_type: str = "",
+    cause_status: str = "",
+    evidence_quality: str = "",
+    freshness_quality: str = "",
 ) -> dict[str, str]:
-    fallback = _fallback_event_writer(event_title_seed, cluster_rows, retained_claims, yield_facts=yield_facts)
+    fallback = _fallback_event_writer(
+        event_title_seed,
+        cluster_rows,
+        retained_claims,
+        yield_facts=yield_facts,
+        event_type=event_type,
+    )
     if llm_client is None:
         return fallback
-    system_prompt = (
-        "You write concise cross-asset market-event summaries. "
-        "Use only the supplied facts and claims. Keep the surface summary at two sentences or less. "
-        "Do not use canned oil/rates/risk phrases. When numeric Treasury yield facts are supplied, use the actual bp moves."
-    )
     user_prompt = json.dumps(
-        {
-            "event_title_seed": event_title_seed,
-            "members": [
-                {
-                    "symbol": _normalize_symbol(row.get("symbol")),
-                    "sector": _coerce_text(row.get("sector")),
-                    "industry": _coerce_text(row.get("industry")),
-                    "change_pct": _coerce_float(row.get("change_pct")),
-                    "candidate_score": _coerce_float(row.get("candidate_score")),
-                }
-                for _, row in cluster_rows.head(8).iterrows()
-            ],
-            "claims": [
-                {
-                    "claim_text": item.get("claim_text"),
-                    "claim_type": item.get("claim_type"),
-                    "source": item.get("source"),
-                    "is_same_day": item.get("is_same_day"),
-                }
-                for item in retained_claims[:8]
-            ],
-            "yield_facts": yield_facts or {},
-            "fallback": fallback,
-        },
+        _build_event_writer_payload(
+            event_title_seed,
+            cluster_rows,
+            retained_claims,
+            fallback=fallback,
+            yield_facts=yield_facts,
+            event_type=event_type,
+            cause_status=cause_status,
+            evidence_quality=evidence_quality,
+            freshness_quality=freshness_quality,
+        ),
         ensure_ascii=False,
         default=str,
     )
     try:
         data = llm_client.generate_json(
-            system_prompt=system_prompt,
+            system_prompt=EVENT_WRITER_SYSTEM_PROMPT,
             user_prompt=user_prompt,
             schema_name="attention_event_writer",
             schema=EVENT_WRITER_SCHEMA,
         )
+        title = _coerce_text(data.get("title")) or fallback["title"]
+        if _looks_like_generic_tape_title(title):
+            title = fallback["title"]
+        what_happened = _coerce_text(data.get("what_happened_text")) or fallback["what_happened_text"]
+        why_happened = _coerce_text(data.get("why_happened_text")) or fallback["why_happened_text"]
+        affected = _coerce_text(data.get("affected_assets_summary_text")) or fallback["affected_assets_summary_text"]
+        background_text = _coerce_text(data.get("background_context_text")) or fallback["background_context_text"]
+        if _looks_like_stat_dump(what_happened):
+            what_happened = fallback["what_happened_text"]
+        if _looks_like_stat_dump(why_happened) and not _has_causal_language(why_happened):
+            why_happened = fallback["why_happened_text"]
+        if event_type != "rates" and not _has_causal_language(why_happened):
+            why_happened = fallback["why_happened_text"]
+        if event_type != "rates" and _is_yield_only_explanation(why_happened):
+            why_happened = fallback["why_happened_text"]
+        if event_type != "rates" and (_looks_like_stat_dump(why_happened) or _is_yield_only_explanation(why_happened)):
+            claim_seed = _best_why_claim_sentence(retained_claims)
+            if (
+                claim_seed
+                and (_has_causal_language(claim_seed) or event_type == "rates")
+                and not (_looks_like_stat_dump(claim_seed) and not _has_causal_language(claim_seed))
+            ):
+                why_happened = claim_seed
+            else:
+                why_happened = _specific_why_fallback(retained_claims)
+        if event_type != "rates" and why_happened and not _has_causal_language(why_happened):
+            why_happened = _specific_why_fallback(retained_claims)
+        if _looks_like_stat_dump(affected):
+            affected = fallback["affected_assets_summary_text"]
+        if _text_overlap(what_happened, affected) >= 0.62:
+            fallback_affected = _coerce_text(fallback.get("affected_assets_summary_text"))
+            affected = fallback_affected if _text_overlap(what_happened, fallback_affected) < 0.62 else ""
+        surface_summary = _coerce_text(data.get("surface_summary"))
+        if not surface_summary or _looks_like_stat_dump(surface_summary):
+            surface_summary = _compose_surface_summary(what_happened, why_happened)
+        elif _text_overlap(surface_summary, what_happened) >= 0.9 and _text_overlap(surface_summary, why_happened) < 0.35:
+            surface_summary = _compose_surface_summary(what_happened, why_happened)
         return {
-            "title": _coerce_text(data.get("title")) or fallback["title"],
-            "surface_summary": _coerce_text(data.get("surface_summary")) or fallback["surface_summary"],
-            "what_happened_text": _coerce_text(data.get("what_happened_text")) or fallback["what_happened_text"],
-            "why_happened_text": _coerce_text(data.get("why_happened_text")) or fallback["why_happened_text"],
-            "affected_assets_summary_text": _coerce_text(data.get("affected_assets_summary_text")) or fallback["affected_assets_summary_text"],
-            "background_context_text": _coerce_text(data.get("background_context_text")) or fallback["background_context_text"],
+            "title": title,
+            "surface_summary": surface_summary,
+            "what_happened_text": what_happened,
+            "why_happened_text": why_happened,
+            "affected_assets_summary_text": affected,
+            "background_context_text": background_text,
         }
     except Exception:
         return fallback
@@ -1727,14 +2351,28 @@ def _augment_candidate_frame(
     out["run_id"] = run_id
     out["asof_time_utc"] = asof_time_utc
     out["entity_type"] = out.get("security_type", pd.Series(dtype=str)).fillna("").astype(str).replace("", "symbol")
-    out["price"] = pd.to_numeric(out.get("close"), errors="coerce")
-    out["liquidity_rank"] = pd.to_numeric(out.get("dollar_volume"), errors="coerce").rank(ascending=False, method="dense")
+    out["price"] = pd.to_numeric(out.get("close", pd.Series(index=out.index, dtype=float)), errors="coerce")
+    out["liquidity_rank"] = pd.to_numeric(
+        out.get("dollar_volume", pd.Series(index=out.index, dtype=float)),
+        errors="coerce",
+    ).rank(ascending=False, method="dense")
     out["peer_group_id"] = out.apply(
-        lambda row: _coerce_text(row.get("industry")) if _coerce_text(row.get("industry")) and _coerce_text(row.get("industry")) != "Unknown" else _coerce_text(row.get("sector")) or _coerce_text(row.get("asset_class")),
+        lambda row: _coerce_text(row.get("peer_group_id"))
+        or (
+            _coerce_text(row.get("industry"))
+            if _coerce_text(row.get("industry")) and _coerce_text(row.get("industry")) != "Unknown"
+            else _coerce_text(row.get("sector")) or _coerce_text(row.get("asset_class"))
+        ),
         axis=1,
     )
-    out["macro_exposure_tags"] = out.get("macro_role_tags", pd.Series(dtype=object)).map(lambda value: [str(item) for item in _safe_list(value) if _coerce_text(item)])
-    out["business_tags"] = out.get("business_role_tags", pd.Series(dtype=object)).map(lambda value: [str(item) for item in _safe_list(value) if _coerce_text(item)])
+    out["macro_exposure_tags"] = out.apply(
+        lambda row: _merge_text_values(row.get("macro_exposure_tags"), row.get("macro_role_tags")),
+        axis=1,
+    )
+    out["business_tags"] = out.apply(
+        lambda row: _merge_text_values(row.get("business_tags"), row.get("business_role_tags")),
+        axis=1,
+    )
     return out
 
 
@@ -1910,6 +2548,10 @@ def _build_event_bundle(
         cluster_claims,
         llm_client=llm_client,
         yield_facts=yield_facts,
+        event_type=event_type,
+        cause_status=cause_status,
+        evidence_quality=evidence_quality,
+        freshness_quality=freshness_quality,
     )
     event_score = float(cluster_rows["candidate_score"].fillna(0).sum()) + len(cluster_rows["asset_class"].astype(str).dropna().unique()) * 8.0
     up_symbols = [_normalize_symbol(row.get("symbol")) for _, row in cluster_rows.iterrows() if _coerce_float(row.get("change_pct"), 0.0) >= 0]
@@ -1960,7 +2602,15 @@ def _build_event_bundle(
     return bundle
 
 
-def _graph_edges(candidates: pd.DataFrame, claim_map: dict[str, list[dict[str, Any]]], *, run_id: str, asof_time_utc: pd.Timestamp) -> pd.DataFrame:
+def _graph_edges(
+    candidates: pd.DataFrame,
+    claim_map: dict[str, list[dict[str, Any]]],
+    *,
+    history_correlation_map: dict[tuple[str, str], dict[str, float | int]] | None = None,
+    run_id: str,
+    asof_time_utc: pd.Timestamp,
+) -> pd.DataFrame:
+    policy = attention_graph_policy()
     rows: list[dict[str, Any]] = []
     records = candidates.to_dict(orient="records")
     for idx, left in enumerate(records):
@@ -1971,33 +2621,59 @@ def _graph_edges(candidates: pd.DataFrame, claim_map: dict[str, list[dict[str, A
                 continue
             weight = 0.0
             reasons: list[str] = []
-            if _coerce_text(left.get("peer_group_id")) and _coerce_text(left.get("peer_group_id")) == _coerce_text(right.get("peer_group_id")):
-                weight += 0.34
-                reasons.append("peer_group")
-            elif _coerce_text(left.get("sector")) and _coerce_text(left.get("sector")) == _coerce_text(right.get("sector")) and _coerce_text(left.get("sector")) != "Unknown":
-                weight += 0.18
-                reasons.append("sector")
-            raw_left = _safe_list(left.get("macro_exposure_tags")) + _safe_list(left.get("business_tags"))
-            raw_right = _safe_list(right.get("macro_exposure_tags")) + _safe_list(right.get("business_tags"))
-            left_tags = _tag_tokens(raw_left)
-            right_tags = _tag_tokens(raw_right)
+            left_taxonomy = _candidate_taxonomy_context(left)
+            right_taxonomy = _candidate_taxonomy_context(right)
+            shared_taxonomy = False
+            if left_taxonomy["industry"] and left_taxonomy["industry"] == right_taxonomy["industry"]:
+                weight += policy.peer_group_weight
+                reasons.append("taxonomy_peer")
+                shared_taxonomy = True
+            elif left_taxonomy["peer_group"] and left_taxonomy["peer_group"] == right_taxonomy["peer_group"]:
+                weight += policy.peer_group_weight
+                reasons.append("taxonomy_peer")
+                shared_taxonomy = True
+            elif left_taxonomy["sector"] and left_taxonomy["sector"] == right_taxonomy["sector"]:
+                weight += policy.sector_weight
+                reasons.append("taxonomy_sector")
+                shared_taxonomy = True
+            left_tags = _candidate_graph_tags(left)
+            right_tags = _candidate_graph_tags(right)
             tag_overlap = _jaccard(left_tags, right_tags)
             if tag_overlap > 0:
-                weight += min(tag_overlap * 0.45, 0.3)
+                weight += min(tag_overlap * policy.tag_overlap_mult, policy.tag_overlap_cap)
                 reasons.append("tags")
-            bridge_weight = _exposure_bridge_weight(_raw_tag_set(raw_left), _raw_tag_set(raw_right))
-            if bridge_weight > 0:
-                weight += bridge_weight
-                reasons.append("macro_bridge")
             claim_overlap = _jaccard(_claim_entities(claim_map.get(left_symbol, [])), _claim_entities(claim_map.get(right_symbol, [])))
             if claim_overlap > 0:
-                weight += min(claim_overlap * 0.55, 0.35)
+                weight += min(claim_overlap * policy.claim_overlap_mult, policy.claim_overlap_cap)
                 reasons.append("claims")
+            history_corr = math.nan
+            history_corr_obs = 0
+            history_candidate = (
+                (not shared_taxonomy and tag_overlap <= 0 and claim_overlap <= 0)
+                or reasons == ["taxonomy_sector"]
+            )
+            history_info = (history_correlation_map or {}).get(tuple(sorted((left_symbol, right_symbol))))
+            if history_candidate and isinstance(history_info, dict):
+                history_corr = _coerce_float(history_info.get("correlation"), math.nan)
+                history_corr_obs = int(history_info.get("observations") or 0)
+                if (
+                    history_corr_obs >= int(policy.history_corr_min_observations)
+                    and math.isfinite(history_corr)
+                    and history_corr >= float(policy.history_corr_min)
+                ):
+                    history_weight = min(
+                        (history_corr - float(policy.history_corr_min)) * float(policy.history_corr_mult),
+                        float(policy.history_corr_cap),
+                    )
+                    if history_weight > 0:
+                        weight += history_weight
+                        reasons.append("history_corr")
+            has_relationship_signal = shared_taxonomy or tag_overlap > 0 or claim_overlap > 0 or "history_corr" in reasons
             if _move_direction(left.get("change_pct")) != _move_direction(right.get("change_pct")):
-                weight += 0.06 if (tag_overlap > 0 or claim_overlap > 0 or bridge_weight > 0) else 0.0
+                weight += policy.opposite_direction_bonus if has_relationship_signal else 0.0
             else:
-                weight += 0.04 if (tag_overlap > 0 or claim_overlap > 0 or bridge_weight > 0) else 0.0
-            if weight < 0.42:
+                weight += policy.same_direction_bonus if has_relationship_signal else 0.0
+            if weight < policy.min_edge_weight:
                 continue
             rows.append(
                 {
@@ -2009,9 +2685,58 @@ def _graph_edges(candidates: pd.DataFrame, claim_map: dict[str, list[dict[str, A
                     "right_symbol": right_symbol,
                     "edge_weight": round(weight, 3),
                     "edge_reasons_json": _json_dumps(reasons),
+                    "history_correlation": round(history_corr, 3) if math.isfinite(history_corr) else math.nan,
+                    "history_correlation_observations": int(history_corr_obs),
                 }
             )
     return pd.DataFrame(rows)
+
+
+def recompute_attention_candidate_graph(
+    candidate_frame: pd.DataFrame,
+    claims_frame: pd.DataFrame | None = None,
+    *,
+    bars_by_symbol: dict[str, pd.DataFrame] | None = None,
+    price_history_frame: pd.DataFrame | None = None,
+    run_id: str = "analysis",
+    asof_time_utc: object | None = None,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    candidates = candidate_frame.copy() if isinstance(candidate_frame, pd.DataFrame) else pd.DataFrame()
+    if candidates.empty:
+        return candidates, pd.DataFrame()
+    asof = pd.to_datetime(asof_time_utc, utc=True, errors="coerce")
+    if pd.isna(asof):
+        asof = pd.Timestamp.utcnow()
+    normalized_run_id = _coerce_text(run_id) or f"analysis::{asof.strftime('%Y%m%dT%H%M%SZ')}"
+    augmented = _augment_candidate_frame(
+        candidates,
+        asof_time_utc=asof,
+        run_id=normalized_run_id,
+    )
+    claim_map = _claim_map_from_frame(claims_frame)
+    history_bars = bars_by_symbol
+    if history_bars is None and isinstance(price_history_frame, pd.DataFrame) and not price_history_frame.empty:
+        from .attention_materialized import bars_by_symbol_from_price_history
+
+        history_bars = bars_by_symbol_from_price_history(
+            price_history_frame,
+            augmented.get("symbol", pd.Series(dtype=str)).dropna().astype(str).tolist(),
+            asof_time_utc=asof,
+            lookback_days=180,
+        )
+    history_corr_map = _history_correlation_map(
+        history_bars,
+        augmented.get("symbol", pd.Series(dtype=str)).dropna().astype(str).tolist(),
+        min_observations=attention_graph_policy().history_corr_min_observations,
+    )
+    edges = _graph_edges(
+        augmented,
+        claim_map,
+        history_correlation_map=history_corr_map,
+        run_id=normalized_run_id,
+        asof_time_utc=asof,
+    )
+    return augmented, edges.reset_index(drop=True)
 
 
 def _cluster_candidates(candidates: pd.DataFrame, edges: pd.DataFrame) -> list[list[str]]:
@@ -2045,11 +2770,165 @@ def _cluster_candidates(candidates: pd.DataFrame, edges: pd.DataFrame) -> list[l
     return clusters
 
 
+_TREND_HORIZON_LABELS = {
+    "1d": "1 Day",
+    "1w": "1 Week",
+    "1mo": "1 Month",
+    "3mo": "3 Month",
+    "1yr": "1 Year",
+}
+
+_TREND_HORIZON_ALIASES = {
+    "1d": "1d",
+    "1day": "1d",
+    "1w": "1w",
+    "1wk": "1w",
+    "1week": "1w",
+    "1m": "1mo",
+    "1mo": "1mo",
+    "1mon": "1mo",
+    "1month": "1mo",
+    "3m": "3mo",
+    "3mo": "3mo",
+    "3mon": "3mo",
+    "3month": "3mo",
+    "3months": "3mo",
+    "1y": "1yr",
+    "1yr": "1yr",
+    "1year": "1yr",
+}
+
+_TREND_HORIZON_ORDER = {"1d": 0, "1w": 1, "1mo": 2, "3mo": 3, "1yr": 4}
+
+
+def _normalize_horizon_token(value: object) -> str:
+    token = _coerce_text(value).lower()
+    return _TREND_HORIZON_ALIASES.get(token, "")
+
+
+def _taxonomy_horizon_trends(
+    attention_rows: pd.DataFrame | None,
+    candidates: pd.DataFrame,
+    *,
+    max_cohorts_per_horizon: int = 5,
+) -> list[dict[str, Any]]:
+    if not isinstance(attention_rows, pd.DataFrame) or attention_rows.empty:
+        return []
+    symbol_column = "entity_id" if "entity_id" in attention_rows.columns else ("symbol" if "symbol" in attention_rows.columns else "")
+    if not symbol_column or "horizon" not in attention_rows.columns:
+        return []
+
+    frame = attention_rows.copy()
+    frame["symbol"] = frame[symbol_column].map(_normalize_symbol)
+    frame["horizon"] = frame["horizon"].map(_normalize_horizon_token)
+    frame["peer_group_name"] = frame.get("peer_group_name", pd.Series(dtype=str)).map(
+        lambda value: _coerce_text(value) or "All Market"
+    )
+    frame["attention_score"] = pd.to_numeric(frame.get("attention_score"), errors="coerce")
+    frame["residual_zscore"] = pd.to_numeric(frame.get("residual_zscore"), errors="coerce")
+    frame["observed_value"] = pd.to_numeric(frame.get("observed_value"), errors="coerce")
+    frame["direction"] = frame.get("direction", pd.Series(dtype=str)).astype(str).str.lower().str.strip()
+    frame["direction_score"] = frame["direction"].map({"up": 1, "down": -1}).fillna(0).astype(int)
+    frame["abs_residual_zscore"] = frame["residual_zscore"].abs()
+
+    candidate_symbols = {
+        _normalize_symbol(value)
+        for value in candidates.get("symbol", pd.Series(dtype=str)).tolist()
+        if _normalize_symbol(value)
+    }
+    candidate_move_lookup = {
+        _normalize_symbol(row.get("symbol")): _coerce_float(row.get("change_pct"))
+        for _, row in candidates.iterrows()
+        if _normalize_symbol(row.get("symbol"))
+    }
+    if candidate_symbols:
+        frame = frame[frame["symbol"].isin(candidate_symbols)].copy()
+    frame = frame[frame["symbol"].ne("") & frame["horizon"].ne("")].copy()
+    if frame.empty:
+        return []
+
+    rows: list[dict[str, Any]] = []
+    grouped = frame.groupby(["horizon", "peer_group_name"], dropna=False, sort=False)
+    for (horizon, peer_group_name), group in grouped:
+        ordered = group.sort_values(
+            ["attention_score", "abs_residual_zscore", "symbol"],
+            ascending=[False, False, True],
+            na_position="last",
+        )
+        members = ordered["symbol"].dropna().astype(str).tolist()
+        unique_members = list(dict.fromkeys([value for value in members if value]))
+        if not unique_members:
+            continue
+        leader_symbol = unique_members[0]
+        leader_row = ordered.iloc[0]
+        leader_move = candidate_move_lookup.get(leader_symbol, _coerce_float(leader_row.get("observed_value")))
+        breadth_up = int((ordered["direction_score"] > 0).sum())
+        breadth_down = int((ordered["direction_score"] < 0).sum())
+        mean_attention = float(pd.to_numeric(ordered["attention_score"], errors="coerce").mean(skipna=True))
+        mean_abs_residual = float(pd.to_numeric(ordered["abs_residual_zscore"], errors="coerce").mean(skipna=True))
+        if not np.isfinite(mean_attention):
+            mean_attention = 0.0
+        if not np.isfinite(mean_abs_residual):
+            mean_abs_residual = 0.0
+        ranking_score = mean_attention + mean_abs_residual * 8.0 + math.log1p(len(unique_members)) * 2.0
+        rows.append(
+            {
+                "horizon": horizon,
+                "peer_group_name": peer_group_name,
+                "member_count": int(len(unique_members)),
+                "breadth_up": breadth_up,
+                "breadth_down": breadth_down,
+                "mean_attention_score": round(mean_attention, 1),
+                "mean_abs_residual_zscore": round(mean_abs_residual, 2),
+                "leader_symbol": leader_symbol,
+                "leader_move_pct": round(leader_move, 2) if np.isfinite(leader_move) else None,
+                "ranking_score": ranking_score,
+                "summary_text": (
+                    f"{peer_group_name}: {len(unique_members)} names, "
+                    f"{breadth_up} up / {breadth_down} down; leader {leader_symbol}"
+                    + "."
+                ),
+            }
+        )
+    if not rows:
+        return []
+
+    trends = pd.DataFrame(rows)
+    output: list[dict[str, Any]] = []
+    for horizon in sorted(trends["horizon"].dropna().astype(str).unique().tolist(), key=lambda value: _TREND_HORIZON_ORDER.get(value, 99)):
+        scoped = trends[trends["horizon"].astype(str) == horizon].copy()
+        scoped = scoped.sort_values(["ranking_score", "member_count", "peer_group_name"], ascending=[False, False, True], na_position="last")
+        scoped_rows = scoped.head(max(int(max_cohorts_per_horizon), 1)).copy()
+        output.append(
+            {
+                "horizon": horizon,
+                "horizon_label": _TREND_HORIZON_LABELS.get(horizon, horizon),
+                "cohort_count": int(len(scoped_rows)),
+                "cohorts": [
+                    {
+                        "peer_group_name": _coerce_text(row.get("peer_group_name")),
+                        "member_count": int(row.get("member_count") or 0),
+                        "breadth_up": int(row.get("breadth_up") or 0),
+                        "breadth_down": int(row.get("breadth_down") or 0),
+                        "mean_attention_score": float(row.get("mean_attention_score") or 0.0),
+                        "mean_abs_residual_zscore": float(row.get("mean_abs_residual_zscore") or 0.0),
+                        "leader_symbol": _coerce_text(row.get("leader_symbol")),
+                        "leader_move_pct": row.get("leader_move_pct"),
+                        "summary_text": _coerce_text(row.get("summary_text")),
+                    }
+                    for _, row in scoped_rows.iterrows()
+                ],
+            }
+        )
+    return output
+
+
 def _build_home_payload(
     candidates: pd.DataFrame,
     bundle_map: dict[str, dict[str, Any]],
     event_bundles: list[dict[str, Any]],
     *,
+    attention_rows: pd.DataFrame | None,
     generated_at_utc: pd.Timestamp,
     run_id: str,
     entity_master: pd.DataFrame,
@@ -2057,8 +2936,6 @@ def _build_home_payload(
     must_read_limit: int,
     unresolved_limit: int,
 ) -> dict[str, Any]:
-    from .attention_home_1d import MACRO_ANCHOR_SYMBOLS
-
     top_event_items = [
         _event_item(
             bundle,
@@ -2097,6 +2974,7 @@ def _build_home_payload(
         unresolved,
         key=lambda item: (-_coerce_float(item.get("candidate_score"), 0.0), -abs(_coerce_float(item.get("change_pct"), 0.0))),
     )[: max(int(unresolved_limit), 1)]
+    taxonomy_horizon_trends = _taxonomy_horizon_trends(attention_rows, candidates)
     event_impacts = []
     for event in top_event_items:
         for symbol in _safe_list(event.get("supporting_symbols")):
@@ -2127,10 +3005,13 @@ def _build_home_payload(
         "event_count": int(len(top_event_items)),
         "must_read_count": int(len(must_read)),
         "unresolved_count": int(len(unresolved)),
-        "macro_anchor_count": int(candidates["symbol"].isin(MACRO_ANCHOR_SYMBOLS).sum()) if "symbol" in candidates.columns else 0,
+        "macro_anchor_count": int(candidates["source_label"].astype(str).str.lower().eq("macro anchor").sum()) if "source_label" in candidates.columns else 0,
         "news_backed_count": int(sum(1 for bundle in bundle_map.values() if int(bundle.get("same_day_evidence_count") or 0) > 0)),
         "portfolio_overlap_count": int(candidates.get("in_portfolio", pd.Series(dtype=bool)).fillna(False).sum()) if "in_portfolio" in candidates.columns else 0,
-        "today_only": True,
+        "today_only": len(taxonomy_horizon_trends) == 0,
+        "supports_multi_horizon": len(taxonomy_horizon_trends) > 0,
+        "taxonomy_trend_horizon_count": int(len(taxonomy_horizon_trends)),
+        "taxonomy_trend_cohort_count": int(sum(len(item.get("cohorts") or []) for item in taxonomy_horizon_trends)),
         "run_id": run_id,
     }
     return {
@@ -2139,6 +3020,7 @@ def _build_home_payload(
         "unresolved_large_moves": unresolved,
         "generated_at_utc": generated_at_utc.isoformat(),
         "coverage_summary": coverage_summary,
+        "taxonomy_horizon_trends": taxonomy_horizon_trends,
         "event_candidates_1d": candidates.to_dict(orient="records"),
         "event_impacts_1d": event_impacts,
         "entity_master": entity_master.to_dict(orient="records") if isinstance(entity_master, pd.DataFrame) else [],
@@ -2167,6 +3049,7 @@ def build_bottom_up_attention_artifacts(
     must_read_limit: int = 10,
     unresolved_limit: int = 5,
     research_limit: int = 40,
+    progress_callback: Callable[[int, int, dict[str, Any]], None] | None = None,
 ) -> AgenticAttentionArtifacts:
     from .attention_home_1d import build_attention_entity_master, build_attention_event_candidates_1d
     from .attention_materialized import serialize_attention_home_payload, serialize_attention_research_bundles
@@ -2194,6 +3077,7 @@ def build_bottom_up_attention_artifacts(
             "unresolved_large_moves": [],
             "generated_at_utc": asof_time_utc.isoformat(),
             "coverage_summary": {"candidate_count": 0, "event_count": 0, "must_read_count": 0, "unresolved_count": 0, "run_id": run_id},
+            "taxonomy_horizon_trends": [],
             "event_candidates_1d": [],
             "event_impacts_1d": [],
             "entity_master": entity_rows.to_dict(orient="records") if isinstance(entity_rows, pd.DataFrame) else [],
@@ -2227,7 +3111,13 @@ def build_bottom_up_attention_artifacts(
     bundle_map: dict[str, dict[str, Any]] = {}
     claim_map: dict[str, list[dict[str, Any]]] = {}
 
-    for candidate in research_candidates:
+    research_total = len(research_candidates)
+    for index, candidate in enumerate(research_candidates, start=1):
+        if progress_callback is not None:
+            try:
+                progress_callback(index, research_total, candidate)
+            except Exception:
+                pass
         peer_symbols = _peer_candidates(candidate, candidates, limit=5)
         plan = _plan_candidate_research(candidate, peer_symbols, llm_client)
         plan_rows.append(
@@ -2351,7 +3241,18 @@ def build_bottom_up_attention_artifacts(
         )
         claim_map[symbol] = []
 
-    graph = _graph_edges(candidates, claim_map, run_id=run_id, asof_time_utc=asof_time_utc)
+    history_corr_map = _history_correlation_map(
+        bars_by_symbol,
+        candidates.get("symbol", pd.Series(dtype=str)).dropna().astype(str).tolist(),
+        min_observations=attention_graph_policy().history_corr_min_observations,
+    )
+    graph = _graph_edges(
+        candidates,
+        claim_map,
+        history_correlation_map=history_corr_map,
+        run_id=run_id,
+        asof_time_utc=asof_time_utc,
+    )
     clusters = _cluster_candidates(candidates, graph)
     event_bundles: list[dict[str, Any]] = []
     event_cluster_rows: list[dict[str, Any]] = []
@@ -2416,6 +3317,7 @@ def build_bottom_up_attention_artifacts(
         candidates,
         bundle_map,
         event_bundles,
+        attention_rows=attention_rows,
         generated_at_utc=asof_time_utc,
         run_id=run_id,
         entity_master=entity_rows,
@@ -2541,5 +3443,6 @@ __all__ = [
     "build_bottom_up_attention_artifacts",
     "build_bottom_up_attention_bundle",
     "build_bottom_up_attention_home",
+    "recompute_attention_candidate_graph",
     "search_symbol_news_payload",
 ]

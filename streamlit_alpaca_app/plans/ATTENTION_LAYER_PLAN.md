@@ -1,5 +1,7 @@
 # Attention Layer Implementation Plan
 
+Implementation note: use `ATTENTION_FEED_IMPLEMENTATION_PLAN.md` as the canonical build plan. This file is retained as historical layer-design context.
+
 ## Goal
 
 Move the platform from "many charts and tables" to "what needs attention now".

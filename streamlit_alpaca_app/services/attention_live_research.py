@@ -10,6 +10,7 @@ import pandas as pd
 from .attention_agentic import build_bottom_up_attention_bundle
 from .attention_home_1d import build_attention_research_bundle
 from .llm import AzureOpenAIChatJSONClient, OpenAIChatJSONClient
+from .runtime_policy import source_authority_policy
 from .web_research import (
     SerpAPISearchClient,
     TavilySearchClient,
@@ -21,16 +22,6 @@ from .web_research import (
 
 LLMClient = OpenAIChatJSONClient | AzureOpenAIChatJSONClient
 
-OFFICIAL_SOURCE_TOKENS = [
-    "sec",
-    "edgar",
-    "investor relations",
-    "investors",
-    "press release",
-    "company release",
-]
-WIRE_SOURCE_TOKENS = ["reuters", "associated press", "ap", "dow jones", "bloomberg"]
-PRESS_SOURCE_TOKENS = ["benzinga", "marketwatch", "seeking alpha", "yahoo finance", "investing.com", "tipranks", "fool"]
 MOVE_WORD_TOKENS = [
     "stock",
     "shares",
@@ -198,11 +189,12 @@ def _source_authority_bucket(source: object) -> tuple[str, int]:
     text = _coerce_text(source).lower()
     if not text:
         return "unknown", 4
-    if any(token in text for token in OFFICIAL_SOURCE_TOKENS):
+    policy = source_authority_policy()
+    if any(token in text for token in policy.official_tokens):
         return "official", 0
-    if any(token == text or token in text for token in WIRE_SOURCE_TOKENS):
+    if any(token == text or token in text for token in policy.wire_tokens):
         return "wire", 1
-    if any(token in text for token in PRESS_SOURCE_TOKENS):
+    if any(token in text for token in policy.press_tokens):
         return "press", 2
     return "web", 3
 
@@ -445,14 +437,31 @@ def _format_move_value(move: float) -> str:
     return f"{float(move):+.1f}%"
 
 
+def _looks_like_numeric_tape_recap(text: object) -> bool:
+    clean = _coerce_text(text)
+    if not clean:
+        return False
+    pct_count = len(re.findall(r"[+\-]?\d+(?:\.\d+)?%", clean))
+    bps_count = len(re.findall(r"[+\-]?\d+(?:\.\d+)?\s*bps\b", clean.lower()))
+    ticker_count = len(re.findall(r"\b[A-Z]{2,5}\b", clean))
+    ticker_pct_pairs = len(re.findall(r"\b[A-Z]{2,5}\s*[+\-]\d+(?:\.\d+)?%", clean))
+    if ticker_pct_pairs >= 2:
+        return True
+    if pct_count + bps_count >= 4:
+        return True
+    if ticker_count >= 4 and (pct_count + bps_count) >= 3:
+        return True
+    return False
+
+
 def _join_move_examples(rows: list[dict[str, Any]], *, limit: int = 2) -> str:
     examples = []
     for row in rows[:limit]:
         symbol = _normalize_symbol(row.get("symbol"))
-        move = pd.to_numeric(row.get("change_pct"), errors="coerce")
-        if not symbol or pd.isna(move):
+        if not symbol:
             continue
-        examples.append(f"{symbol} {_format_move_value(float(move))}")
+        examples.append(symbol)
+    examples = list(dict.fromkeys(examples))
     if not examples:
         return ""
     if len(examples) == 1:
@@ -501,24 +510,19 @@ def _event_market_context_text(event: dict[str, Any], home_payload: dict[str, An
     if theme == "rates":
         rate_rows = _sorted_rows(RATE_PROXY_SYMBOLS, positive=True if direction == "up" else False)
         proxy_text = _join_move_examples(rate_rows)
-        yield_bps = _approx_yield_move_bps(rate_rows)
         if direction == "up":
-            sentence = "Treasury proxies rallied"
+            sentence = "Treasury proxies rallied, pointing to lower yields"
             if proxy_text:
                 sentence += f": {proxy_text}"
-            if yield_bps is not None and yield_bps < 0:
-                sentence += f", implying yields fell about {abs(yield_bps)} bps"
             sentence += "."
             spill_rows = _sorted_rows(RISK_PROXY_SYMBOLS, positive=True)
             spill_text = _join_move_examples(spill_rows)
             if spill_text:
                 sentence += f" Rate-sensitive assets also rose, including {spill_text}."
             return sentence
-        sentence = "Treasury proxies fell"
+        sentence = "Treasury proxies fell, pointing to higher yields"
         if proxy_text:
             sentence += f": {proxy_text}"
-        if yield_bps is not None and yield_bps > 0:
-            sentence += f", implying yields rose about {yield_bps} bps"
         sentence += "."
         spill_rows = _sorted_rows(DEFENSIVE_PROXY_SYMBOLS, positive=True)
         spill_text = _join_move_examples(spill_rows)
@@ -1318,7 +1322,7 @@ def _fallback_what_else_moved(symbol: str, candidate: dict[str, Any], home_paylo
     if affected_summary:
         return affected_summary
     if peer_moves:
-        preview = ", ".join(f"{item['symbol']} ({float(item['change_pct']):+.1f}%)" for item in peer_moves[:3])
+        preview = ", ".join(_normalize_symbol(item.get("symbol")) for item in peer_moves[:3] if _normalize_symbol(item.get("symbol")))
         return f"Related names also moved today, including {preview}."
     return "No clear same-day peer or cross-asset spillover was confirmed."
 
@@ -1353,6 +1357,7 @@ def _synthesize_with_llm(
     system_prompt = (
         "You write concise market drilldown copy. Use only the supplied evidence. "
         "Do not invent catalysts. Distinguish same-day evidence from older background context. "
+        "Avoid ticker/percent tape recaps in all text fields. "
         "If there is no clear same-day catalyst, say so plainly."
     )
     user_prompt = json.dumps(
@@ -1405,9 +1410,15 @@ def _synthesize_with_llm(
             "what_else_moved_text": fallback_what_else_moved_text,
             "background_context_text": _background_context_text(background),
         }
+    why_now_text = _coerce_text(data.get("why_now_text")) or fallback_why_text
+    what_else_moved_text = _coerce_text(data.get("what_else_moved_text")) or fallback_what_else_moved_text
+    if _looks_like_numeric_tape_recap(why_now_text):
+        why_now_text = fallback_why_text
+    if _looks_like_numeric_tape_recap(what_else_moved_text):
+        what_else_moved_text = fallback_what_else_moved_text
     return {
-        "why_now_text": _coerce_text(data.get("why_now_text")) or fallback_why_text,
-        "what_else_moved_text": _coerce_text(data.get("what_else_moved_text")) or fallback_what_else_moved_text,
+        "why_now_text": why_now_text,
+        "what_else_moved_text": what_else_moved_text,
         "background_context_text": _coerce_text(data.get("background_context_text")) or _background_context_text(background),
     }
 

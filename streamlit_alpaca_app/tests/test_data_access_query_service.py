@@ -50,6 +50,34 @@ def test_data_access_layer_prefers_materialized_price_history_when_available(mon
     assert resolved.payload["close"].tolist() == [100.0, 102.0]
 
 
+def test_data_access_layer_materialized_only_does_not_fallback_for_price_history(monkeypatch):
+    import data_access.layer as layer_module
+
+    monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
+    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", lambda dataset_name: (pd.DataFrame(), None))
+    monkeypatch.setattr(layer_module, "load_price_history", lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("live fetch should not run")))
+
+    resolved = DataAccessLayer(materialized_only=True).resolve_price_history("AAPL", days=30)
+
+    assert resolved.provenance.mode == "materialized"
+    assert resolved.payload.empty
+    assert resolved.provenance.details["materialized_only"] is True
+
+
+def test_data_access_layer_materialized_only_does_not_fallback_for_attention_home(monkeypatch):
+    import data_access.layer as layer_module
+
+    monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
+    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", lambda dataset_name: (pd.DataFrame(), None))
+    monkeypatch.setattr(DataAccessLayer, "_resolve_live_attention_artifacts", lambda self, force_refresh: (_ for _ in ()).throw(AssertionError("live attention build should not run")))
+
+    resolved = DataAccessLayer(materialized_only=True).resolve_attention_home_1d()
+
+    assert resolved.provenance.mode == "materialized"
+    assert resolved.payload == {}
+    assert resolved.provenance.details["materialized_only"] is True
+
+
 def test_data_access_layer_builds_materialized_fred_dashboard_when_available(monkeypatch):
     import data_access.layer as layer_module
 
@@ -220,6 +248,133 @@ def test_data_access_layer_resolves_attention_datasets_when_available(monkeypatc
     assert resolved_commodity_rollups.payload["rollup_name"].tolist() == ["Precious Metals"]
 
 
+def test_resolve_attention_home_1d_rejects_stat_dump_materialized_payload(monkeypatch):
+    bad_what = (
+        "Energy and crude-linked products advanced with USO +5.95%, BNO +4.35%, and XOM +3.36%. "
+        "Travel-related equities fell at the same time, including ABNB -6.28%, LUV -5.45%, UAL -4.61%, and BKNG -3.68%."
+    )
+    bad_why = (
+        "US Treasury yields showed mixed moves with front-end rates falling and long-end yields rising: "
+        "the 2Y dropped 8 bps to 3.88% while the 10Y rose 2 bps to 4.44%."
+    )
+    materialized_home = pd.DataFrame(
+        [
+            {
+                "run_id": "materialized-run",
+                "generated_at_utc": "2026-03-30T02:36:02Z",
+                "coverage_summary_json": json.dumps({"candidate_count": 1}),
+                "taxonomy_horizon_trends_json": json.dumps([]),
+                "top_events_json": json.dumps(
+                    [
+                        {
+                            "bundle_id": "event::cluster-02-067808a0a0",
+                            "event_title": "Airlines lower, Energy higher",
+                            "what_happened_text": bad_what,
+                            "why_happened_text": bad_why,
+                            "affected_assets_summary_text": bad_what,
+                        }
+                    ]
+                ),
+                "must_read_movers_json": json.dumps([]),
+                "unresolved_large_moves_json": json.dumps([]),
+                "event_candidates_1d_json": json.dumps([]),
+                "event_impacts_1d_json": json.dumps([]),
+                "entity_master_json": json.dumps([]),
+            }
+        ]
+    )
+    live_payload = {
+        "run_id": "live-run",
+        "generated_at_utc": "2026-03-30T03:15:00Z",
+        "top_events": [
+            {
+                "bundle_id": "event::cluster-02-067808a0a0",
+                "event_title": "Airlines lower while energy names hold up",
+                "what_happened_text": "Airline and travel names moved lower while energy-linked names were relatively firm.",
+                "why_happened_text": "Higher fuel-cost expectations can pressure airline margins and sentiment around discretionary travel demand.",
+                "affected_assets_summary_text": "The move spilled into travel-adjacent names while integrated energy equities held up better.",
+            }
+        ],
+        "must_read_movers": [],
+        "unresolved_large_moves": [],
+        "coverage_summary": {"candidate_count": 1},
+        "taxonomy_horizon_trends": [],
+        "event_candidates_1d": [],
+        "event_impacts_1d": [],
+        "entity_master": [],
+    }
+
+    monkeypatch.setattr(DataAccessLayer, "_should_try_pipeline", lambda self, force_refresh: True)
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_pipeline_frame",
+        lambda self, dataset_name: (materialized_home.copy(), {"dataset_name": dataset_name}),
+    )
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_resolve_live_attention_artifacts",
+        lambda self, force_refresh: {"home_payload": live_payload, "bundle_map": {}, "run_id": "live-run"},
+    )
+
+    resolved = DataAccessLayer().resolve_attention_home_1d()
+
+    assert resolved.provenance.mode == "on_demand"
+    assert resolved.payload["run_id"] == "live-run"
+    assert resolved.payload["top_events"][0]["event_title"] == "Airlines lower while energy names hold up"
+
+
+def test_resolve_attention_research_bundle_rejects_stat_dump_materialized_payload(monkeypatch):
+    bundle_id = "event::cluster-02-067808a0a0"
+    bad_bundle_payload = {
+        "bundle_id": bundle_id,
+        "bundle_type": "event",
+        "event_title": "Airlines lower, Energy higher",
+        "what_happened_text": (
+            "Energy and crude-linked products advanced with USO +5.95%, BNO +4.35%, and XOM +3.36%. "
+            "Travel-related equities fell including ABNB -6.28%, LUV -5.45%, UAL -4.61%, and BKNG -3.68%."
+        ),
+        "why_happened_text": (
+            "US Treasury yields showed mixed moves with front-end rates falling and long-end yields rising: "
+            "the 2Y dropped 8 bps and the 10Y rose 2 bps."
+        ),
+        "affected_assets_summary_text": "USO +5.95%, BNO +4.35%, XOM +3.36%, ABNB -6.28%, LUV -5.45%, UAL -4.61%.",
+    }
+    materialized_bundle = pd.DataFrame(
+        [
+            {
+                "bundle_id": bundle_id,
+                "payload_json": json.dumps(bad_bundle_payload),
+            }
+        ]
+    )
+    live_bundle = {
+        "bundle_id": bundle_id,
+        "bundle_type": "event",
+        "event_title": "Airlines lower while energy names hold up",
+        "what_happened_text": "Airline and travel names moved lower while energy-linked names remained comparatively firm.",
+        "why_happened_text": "Higher expected fuel costs can compress airline margins and weigh on travel demand expectations.",
+        "affected_assets_summary_text": "Spillover stayed concentrated in travel-adjacent names while integrated energy held up better.",
+    }
+
+    monkeypatch.setattr(DataAccessLayer, "_should_try_pipeline", lambda self, force_refresh: True)
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_pipeline_frame",
+        lambda self, dataset_name: (materialized_bundle.copy(), {"dataset_name": dataset_name}),
+    )
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_resolve_live_attention_artifacts",
+        lambda self, force_refresh: {"home_payload": {}, "bundle_map": {bundle_id: live_bundle}, "run_id": "live-run"},
+    )
+
+    resolved = DataAccessLayer().resolve_attention_research_bundle(bundle_id)
+
+    assert resolved.provenance.mode == "on_demand"
+    assert resolved.payload["event_title"] == "Airlines lower while energy names hold up"
+    assert "USO +5.95%" not in resolved.payload["what_happened_text"]
+
+
 def test_data_access_layer_builds_tuned_attention_feed_from_candidate_snapshot(monkeypatch):
     import data_access.layer as layer_module
 
@@ -299,6 +454,7 @@ def test_data_access_layer_builds_tuned_attention_feed_from_candidate_snapshot(m
         "horizon": "1yr",
         "market_view": "Markets",
         "ticker": "NVDA",
+        "business_filter": "AI",
     }
     assert resolved_rollups.provenance.datasets == ("attention_candidates",)
     assert resolved_rollups.payload["rollup_type"].tolist() == ["market", "business_lens"]
@@ -331,6 +487,126 @@ def test_data_access_layer_recent_news_handles_array_symbols(monkeypatch):
 
     assert resolved.provenance.datasets == ("news_articles",)
     assert resolved.payload["articles"]["headline"].tolist() == ["Oklo signs supply agreement"]
+
+
+def test_data_access_layer_recent_news_falls_back_to_attention_web_search_news(monkeypatch):
+    import data_access.layer as layer_module
+
+    search_news = pd.DataFrame(
+        {
+            "symbol": ["VRDN", "VRDN"],
+            "row_type": ["article", "summary"],
+            "headline": ["Viridian shares jump on trial coverage", ""],
+            "summary": ["Coverage highlighted progress in the thyroid eye disease program.", "Search backfill summary"],
+            "source": ["SerpApi", "SerpApi"],
+            "payload_source": ["serpapi", "serpapi"],
+            "published_at": [pd.Timestamp("2026-03-30T11:00:00Z"), pd.NaT],
+            "url": ["https://example.com/vrdn-search", ""],
+            "fallback_summary": ["", "Search backfill summary"],
+        }
+    )
+    metadata = {
+        "news_articles": None,
+        "attention_web_search_news": SimpleNamespace(
+            dataset_name="attention_web_search_news",
+            dataset_version_id="attention_web_search_news__20260330T120000Z__abcd1234",
+            blob_path="datasets/attention_web_search_news/example.parquet",
+            asof_time_utc="2026-03-30T12:00:00Z",
+            ingested_at_utc="2026-03-30T12:05:00Z",
+            row_count=2,
+        ),
+    }
+
+    def _load(dataset_name: str):
+        if dataset_name == "news_articles":
+            return pd.DataFrame(), metadata["news_articles"]
+        if dataset_name == "attention_web_search_news":
+            return search_news.copy(), metadata[dataset_name]
+        return pd.DataFrame(), None
+
+    monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
+    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", _load)
+
+    resolved = DataAccessLayer(materialized_only=True).resolve_recent_news("VRDN", limit=5)
+
+    assert resolved.provenance.datasets == ("attention_web_search_news",)
+    assert resolved.payload["articles"]["headline"].tolist() == ["Viridian shares jump on trial coverage"]
+    assert resolved.payload["fallback_summary"] == "Search backfill summary"
+    assert resolved.payload["source"] == "serpapi+SerpApi"
+
+
+def test_data_access_layer_asset_metadata_falls_back_to_universe_snapshot(monkeypatch):
+    import data_access.layer as layer_module
+
+    universe_snapshot = pd.DataFrame(
+        {
+            "symbol": ["VRDN"],
+            "security_name": ["Viridian Therapeutics"],
+        }
+    )
+    metadata = SimpleNamespace(
+        dataset_name="universe_snapshot",
+        dataset_version_id="universe_snapshot__20260330T120000Z__abcd1234",
+        blob_path="datasets/universe_snapshot/example.parquet",
+        asof_time_utc="2026-03-30T12:00:00Z",
+        ingested_at_utc="2026-03-30T12:05:00Z",
+        row_count=1,
+    )
+
+    def _load(dataset_name: str):
+        if dataset_name == "universe_snapshot":
+            return universe_snapshot.copy(), metadata
+        return pd.DataFrame(), None
+
+    monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
+    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", _load)
+
+    resolved = DataAccessLayer(materialized_only=True).resolve_asset_metadata("VRDN")
+
+    assert resolved.provenance.datasets == ("universe_snapshot",)
+    assert resolved.payload["name"] == "Viridian Therapeutics"
+    assert resolved.payload["symbol"] == "VRDN"
+
+
+def test_data_access_layer_materialized_only_forecast_uses_materialized_signal_history(monkeypatch):
+    import data_access.layer as layer_module
+    from services.signals import build_signal_frame
+
+    raw = pd.DataFrame(
+        {
+            "timestamp": pd.date_range("2024-01-02", periods=420, freq="B", tz="UTC"),
+            "open": np.linspace(10.0, 28.0, 420),
+            "high": np.linspace(10.3, 28.5, 420),
+            "low": np.linspace(9.7, 27.7, 420),
+            "close": np.linspace(10.0, 28.0, 420) + np.sin(np.linspace(0.0, 20.0, 420)),
+            "volume": np.linspace(100000.0, 240000.0, 420),
+        }
+    )
+    signal_history = build_signal_frame(raw)
+    signal_history["symbol"] = "VRDN"
+    metadata = SimpleNamespace(
+        dataset_name="technical_signal_history",
+        dataset_version_id="technical_signal_history__20260330T120000Z__abcd1234",
+        blob_path="datasets/technical_signal_history/example.parquet",
+        asof_time_utc="2026-03-30T12:00:00Z",
+        ingested_at_utc="2026-03-30T12:05:00Z",
+        row_count=len(signal_history),
+    )
+
+    def _load(dataset_name: str):
+        if dataset_name == "technical_signal_history":
+            return signal_history.copy(), metadata
+        return pd.DataFrame(), None
+
+    monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
+    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", _load)
+
+    resolved = DataAccessLayer(materialized_only=True).resolve_forecast_next_week("VRDN", days=365)
+
+    assert resolved.provenance.datasets == ("technical_signal_history", "technical_forecast")
+    assert resolved.provenance.mode == "computed"
+    assert resolved.payload["analog_count"] > 0
+    assert 0.0 <= resolved.payload["up_probability"] <= 1.0
 
 
 def test_data_access_layer_attention_context_uses_materialized_bundle(monkeypatch):

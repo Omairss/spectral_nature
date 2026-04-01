@@ -3,18 +3,23 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from types import SimpleNamespace
 
+import numpy as np
 import pandas as pd
 
+from pipeline.jobs.attention_home_build import _news_payloads_from_articles_frame, build_attention_home_output_frames
 from pipeline.jobs.main import (
     JobContext,
     _build_quarterly_fundamentals_snapshot,
     _build_treasury_yield_snapshots,
     _build_equity_price_history_snapshot,
+    _db_mark_job_start,
     _resolve_equity_symbols,
     _upload_frame,
+    run_attention_home,
+    run_entity_taxonomy,
     run_news,
 )
-from services.pipeline_store import SOURCE_DATASETS
+from services.pipeline_store import SOURCE_DATASETS, SOURCE_JOB_MAP
 
 
 def test_upload_frame_persists_empty_frames(monkeypatch):
@@ -91,9 +96,177 @@ def test_pipeline_store_lists_attention_context_datasets_under_news():
         "edgar_evidence",
         "attention_context_llm",
         "attention_context_bundle",
+    }.issubset(news_datasets)
+
+
+def test_pipeline_store_lists_attention_job_and_datasets():
+    assert SOURCE_JOB_MAP["attention"] == "attention-home-build"
+
+    attention_datasets = set(SOURCE_DATASETS["attention"])
+    assert {
+        "attention_home_1d",
+        "attention_research_bundles",
         "attention_ticker_snapshots_1d",
         "attention_ticker_background_snapshots",
-    }.issubset(news_datasets)
+    }.issubset(attention_datasets)
+
+
+def test_attention_home_news_payloads_accept_array_symbols():
+    news_frame = pd.DataFrame(
+        {
+            "headline": ["Array-backed symbols work"],
+            "summary": ["Regression coverage for materialized attention inputs."],
+            "source": ["UnitTest"],
+            "symbols": [np.array(["AAA", "BBB"])],
+            "published_at": [pd.Timestamp("2026-03-30T18:00:00Z")],
+            "url": ["https://example.com/array-symbols"],
+        }
+    )
+
+    payloads = _news_payloads_from_articles_frame(news_frame, symbols=["AAA", "BBB"], limit=8)
+
+    assert payloads["AAA"]["source"] == "pipeline"
+    assert payloads["BBB"]["source"] == "pipeline"
+    assert payloads["AAA"]["articles"]["headline"].tolist() == ["Array-backed symbols work"]
+    assert payloads["BBB"]["articles"]["headline"].tolist() == ["Array-backed symbols work"]
+
+
+def test_build_attention_home_output_frames_backfills_missing_news_with_search(monkeypatch):
+    import pipeline.jobs.attention_home_build as attention_home_build_module
+
+    captured: dict[str, pd.DataFrame] = {}
+    ctx = SimpleNamespace(asof=pd.Timestamp("2026-03-30T18:00:00Z"), run_id="run-123")
+
+    monkeypatch.setattr(attention_home_build_module, "shortlist_attention_symbols_1d", lambda *args, **kwargs: ["VRDN"])
+    monkeypatch.setattr(attention_home_build_module, "load_embedding_client", lambda: None)
+    monkeypatch.setattr(attention_home_build_module, "search_symbol_news_payload", lambda *args, **kwargs: {
+        "articles": pd.DataFrame(
+            [
+                {
+                    "headline": "Viridian posts trial update",
+                    "summary": "Coverage focused on the company's thyroid eye disease program.",
+                    "description": "Coverage focused on the company's thyroid eye disease program.",
+                    "source": "SerpApi",
+                    "published_at": pd.Timestamp("2026-03-30T12:00:00Z"),
+                    "url": "https://example.com/vrdn-news",
+                }
+            ]
+        ),
+        "fallback_summary": None,
+        "source": "serpapi",
+    })
+    monkeypatch.setattr(
+        attention_home_build_module,
+        "build_bottom_up_attention_artifacts",
+        lambda *args, **kwargs: SimpleNamespace(
+            home_payload={
+                "run_id": ctx.run_id,
+                "top_events": [],
+                "must_read_movers": [{"symbol": "VRDN", "bundle_id": "symbol::VRDN"}],
+                "unresolved_large_moves": [],
+                "coverage_summary": {},
+            },
+            bundle_map={"symbol::VRDN": {"bundle_id": "symbol::VRDN", "related_symbols": [], "peer_moves": []}},
+            frames={"attention_search_results": pd.DataFrame()},
+        ),
+    )
+    monkeypatch.setattr(attention_home_build_module, "collect_attention_ticker_symbols", lambda *args, **kwargs: ["VRDN"])
+    monkeypatch.setattr(
+        attention_home_build_module,
+        "build_attention_ticker_snapshot_frame",
+        lambda *args, **kwargs: pd.DataFrame([{"symbol": "VRDN", "run_id": ctx.run_id}]),
+    )
+
+    def _background_snapshot(*args, news_frame: pd.DataFrame, **kwargs) -> pd.DataFrame:
+        captured["news_frame"] = news_frame.copy()
+        return pd.DataFrame([{"symbol": "VRDN", "company_name": "Viridian Therapeutics", "run_id": ctx.run_id}])
+
+    monkeypatch.setattr(attention_home_build_module, "build_attention_ticker_background_snapshot_frame", _background_snapshot)
+
+    outputs = build_attention_home_output_frames(
+        ctx=ctx,
+        daily_movers=pd.DataFrame(
+            [{"symbol": "VRDN", "change_pct": 8.4, "close": 21.3, "prev_close": 19.7, "volume": 1000000, "dollar_volume": 21300000.0}]
+        ),
+        macro_movers=pd.DataFrame(),
+        positions_frame=pd.DataFrame(),
+        price_history_frame=pd.DataFrame(
+            {
+                "symbol": ["VRDN"] * 5,
+                "timestamp": pd.date_range("2026-03-20", periods=5, freq="B", tz="UTC"),
+                "open": [18.0, 18.5, 19.0, 20.0, 20.8],
+                "high": [18.5, 19.0, 19.8, 20.6, 21.6],
+                "low": [17.8, 18.2, 18.8, 19.7, 20.4],
+                "close": [18.3, 18.9, 19.6, 20.4, 21.3],
+                "volume": [100000] * 5,
+            }
+        ),
+        attention_feed_frame=pd.DataFrame(),
+        commodity_attention_feed_frame=pd.DataFrame(),
+        news_frame=pd.DataFrame(),
+        attention_context_frame=pd.DataFrame(),
+        edgar_filings_frame=pd.DataFrame(),
+        llm_client=None,
+        load_materialized_frame_fn=lambda dataset_name: pd.DataFrame(
+            {"symbol": ["VRDN"], "security_name": ["Viridian Therapeutics"]}
+        )
+        if dataset_name == "universe_snapshot"
+        else pd.DataFrame(),
+    )
+
+    assert "attention_web_search_news" in outputs
+    assert not outputs["attention_web_search_news"].empty
+    assert outputs["attention_web_search_news"]["symbol"].tolist() == ["VRDN"]
+    assert outputs["attention_web_search_news"]["headline"].tolist() == ["Viridian posts trial update"]
+    assert "news_frame" in captured
+    assert captured["news_frame"]["headline"].tolist() == ["Viridian posts trial update"]
+
+
+def test_db_mark_job_start_uses_matching_parameter_count():
+    class _Cursor:
+        def __init__(self, calls: list[tuple[str, tuple[object, ...]]]):
+            self._calls = calls
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def execute(self, query: str, params: tuple[object, ...]) -> None:
+            self._calls.append((query, params))
+
+    class _Conn:
+        def __init__(self):
+            self.calls: list[tuple[str, tuple[object, ...]]] = []
+            self.commits = 0
+
+        def cursor(self):
+            return _Cursor(self.calls)
+
+        def commit(self) -> None:
+            self.commits += 1
+
+    ctx = JobContext(
+        name="attention-home-build",
+        run_id="12345678-test-run",
+        asof=datetime(2026, 3, 30, 18, 0, tzinfo=timezone.utc),
+        universe_version="20260330",
+    )
+    conn = _Conn()
+
+    _db_mark_job_start(conn, ctx)
+
+    assert conn.commits == 1
+    assert len(conn.calls) == 1
+    query, params = conn.calls[0]
+    assert query.count("%s") == 12
+    assert len(params) == 12
+
+
+def test_pipeline_store_lists_taxonomy_job_and_datasets():
+    assert SOURCE_JOB_MAP["taxonomy"] == "entity-taxonomy-refresh"
+    assert {"us_equity_listings", "entity_taxonomy_labels"}.issubset(set(SOURCE_DATASETS["taxonomy"]))
 
 
 def test_resolve_equity_symbols_prefers_large_snapshot(monkeypatch):
@@ -281,6 +454,156 @@ def test_build_quarterly_fundamentals_snapshot_prefers_upstream_when_configured(
     assert captured == [(["RDDT"], True, 3)]
 
 
+def test_run_entity_taxonomy_persists_listing_and_taxonomy_datasets(monkeypatch):
+    ctx = JobContext(
+        name="entity-taxonomy-refresh",
+        run_id="12345678-test-run",
+        asof=datetime(2026, 3, 20, 12, 0, tzinfo=timezone.utc),
+        universe_version="20260320",
+    )
+    listings = pd.DataFrame(
+        [
+            {"symbol": "AAL", "exchange": "NASDAQ", "security_name": "American Airlines Group Inc.", "is_etf": False, "source_file": "nasdaqlisted"},
+        ]
+    )
+    snapshot = pd.DataFrame(
+        [
+            {
+                "symbol": "AAL",
+                "exchange": "NASDAQ",
+                "security_name": "American Airlines Group Inc.",
+                "listing_source": "nasdaqlisted",
+                "is_active": True,
+                "is_etf": False,
+                "asset_class": "equity",
+                "security_type": "common_stock",
+                "sector": "Industrials",
+                "industry": "Airlines",
+                "peer_group_name": "Airlines",
+                "peer_group_id": "Airlines",
+                "country": "US",
+                "commodity_role": "",
+                "rates_role": "",
+                "defensive_role": "",
+                "macro_role_tags": ["travel"],
+                "business_role_tags": ["travel_mobility"],
+                "source_of_truth": "llm_taxonomy",
+                "label_provider": "llm",
+                "label_confidence": "medium",
+                "is_curated": False,
+                "override_reason": "Dynamic taxonomy classification.",
+                "classifier_model": "gpt-5-mini",
+                "classifier_version": "llm_taxonomy_v2",
+                "updated_at_utc": pd.Timestamp("2026-03-20T12:00:00Z"),
+            }
+        ]
+    )
+    persisted: list[tuple[str, int]] = []
+    db_events: list[object] = []
+
+    monkeypatch.setattr("pipeline.jobs.main._build_us_equity_listings_snapshot", lambda: listings)
+    monkeypatch.setattr("pipeline.jobs.main.fetch_entity_taxonomy_frame", lambda: pd.DataFrame())
+    monkeypatch.setattr("pipeline.jobs.main.load_llm_client", lambda: None)
+    monkeypatch.setattr("pipeline.jobs.main.build_entity_taxonomy_snapshot", lambda *args, **kwargs: snapshot)
+    monkeypatch.setattr(
+        "pipeline.jobs.main._persist_dataset",
+        lambda dataset_name, frame, ctx, conn: persisted.append((dataset_name, len(frame))),
+    )
+    monkeypatch.setattr(
+        "pipeline.jobs.main.upsert_entity_taxonomy_frame",
+        lambda conn, frame: db_events.append(("upsert", len(frame))),
+    )
+    monkeypatch.setattr(
+        "pipeline.jobs.main.deactivate_missing_taxonomy_symbols",
+        lambda conn, symbols: db_events.append(("deactivate", list(symbols))),
+    )
+
+    run_entity_taxonomy(ctx, conn=object())
+
+    assert persisted == [("us_equity_listings", 1), ("entity_taxonomy_labels", 1)]
+    assert db_events == [("upsert", 1), ("deactivate", ["AAL"])]
+
+
+def test_run_entity_taxonomy_records_progress_updates(monkeypatch):
+    ctx = JobContext(
+        name="entity-taxonomy-refresh",
+        run_id="12345678-test-run",
+        asof=datetime(2026, 3, 20, 12, 0, tzinfo=timezone.utc),
+        universe_version="20260320",
+    )
+    listings = pd.DataFrame(
+        [
+            {"symbol": "AAL", "exchange": "NASDAQ", "security_name": "American Airlines Group Inc.", "is_etf": False, "source_file": "nasdaqlisted"},
+        ]
+    )
+    snapshot = pd.DataFrame(
+        [
+            {
+                "symbol": "AAL",
+                "exchange": "NASDAQ",
+                "security_name": "American Airlines Group Inc.",
+                "listing_source": "nasdaqlisted",
+                "is_active": True,
+                "is_etf": False,
+                "asset_class": "equity",
+                "security_type": "common_stock",
+                "sector": "Industrials",
+                "industry": "Airlines",
+                "peer_group_name": "Airlines",
+                "peer_group_id": "Airlines",
+                "country": "US",
+                "commodity_role": "",
+                "rates_role": "",
+                "defensive_role": "",
+                "macro_role_tags": [],
+                "business_role_tags": ["travel_mobility"],
+                "source_of_truth": "llm_taxonomy",
+                "label_provider": "llm",
+                "label_confidence": "medium",
+                "is_curated": False,
+                "override_reason": "Dynamic taxonomy classification.",
+                "classifier_model": "gpt-5-mini",
+                "classifier_version": "llm_taxonomy_v2",
+                "updated_at_utc": pd.Timestamp("2026-03-20T12:00:00Z"),
+            }
+        ]
+    )
+    progress_updates: list[tuple[str, str, float | None]] = []
+
+    monkeypatch.setattr("pipeline.jobs.main._build_us_equity_listings_snapshot", lambda: listings)
+    monkeypatch.setattr("pipeline.jobs.main.fetch_entity_taxonomy_frame", lambda: pd.DataFrame())
+    monkeypatch.setattr("pipeline.jobs.main.load_llm_client", lambda: None)
+
+    def _fake_build_snapshot(*args, **kwargs):
+        callback = kwargs.get("progress_callback")
+        assert callback is not None
+        callback({"event": "snapshot_prepare", "listing_count": 1, "existing_dynamic_count": 0, "unresolved_count": 1})
+        callback({"event": "classify_start", "allow_unknown": True, "total_symbols": 1, "total_batches": 1, "batch_size": 1})
+        callback({"event": "batch_complete", "allow_unknown": True, "batch_index": 1, "total_batches": 1, "batch_size": 1, "classified_in_batch": 1, "total_symbols": 1, "total_classified": 1, "first_symbol": "AAL", "last_symbol": "AAL"})
+        callback({"event": "snapshot_complete", "row_count": 1})
+        return snapshot
+
+    monkeypatch.setattr("pipeline.jobs.main.build_entity_taxonomy_snapshot", _fake_build_snapshot)
+    monkeypatch.setattr("pipeline.jobs.main._persist_dataset", lambda *args, **kwargs: None)
+    monkeypatch.setattr("pipeline.jobs.main.upsert_entity_taxonomy_frame", lambda conn, frame: None)
+    monkeypatch.setattr("pipeline.jobs.main.deactivate_missing_taxonomy_symbols", lambda conn, symbols: None)
+    monkeypatch.setattr(
+        "pipeline.jobs.main._job_progress",
+        lambda ctx, conn, *, stage, message, progress_pct=None, status="Running": progress_updates.append((stage, message, progress_pct)),
+    )
+
+    run_entity_taxonomy(ctx, conn=object())
+
+    stages = [item[0] for item in progress_updates]
+    assert "starting" in stages
+    assert "listings_ready" in stages
+    assert "classification_setup" in stages
+    assert "prepare_snapshot" in stages
+    assert "initial_llm_pass" in stages
+    assert "snapshot_complete" in stages
+    assert "persist_taxonomy_snapshot" in stages
+
+
 def test_build_treasury_yield_snapshots_uses_service_payload(monkeypatch):
     observations = pd.DataFrame({"date": pd.to_datetime(["2026-03-26"]), "series_id": ["UST_10Y"], "yield_pct": [4.13]})
     summary = pd.DataFrame({"series_id": ["UST_10Y"], "latest_value": [4.13]})
@@ -372,41 +695,10 @@ def test_run_news_persists_attention_context(monkeypatch):
     assert ("attention_context_bundle", 1) in persisted
 
 
-def test_run_news_materializes_attention_home_and_research_outputs(monkeypatch):
-    class FakeAPI:
-        def get_news(self, symbols, limit=50):
-            return pd.DataFrame(
-                {
-                    "headline": ["Apple extends rally on checkout momentum"],
-                    "summary": ["Investors are reacting to better same-day commerce commentary."],
-                    "published_at": [pd.Timestamp("2026-03-24T15:30:00Z")],
-                    "source": ["Reuters"],
-                    "url": ["https://example.com/aapl"],
-                    "symbols": [["AAPL"]],
-                }
-            )
-
-    class FakeEdgarClient:
-        def load_recent_filings(self, symbols, **kwargs):
-            return pd.DataFrame(
-                {
-                    "symbol": ["AAPL"],
-                    "company_name": ["Apple Inc."],
-                    "cik": [320193],
-                    "filing_date": [pd.Timestamp("2026-03-24T00:00:00Z")],
-                    "form": ["8-K"],
-                    "items": ["2.02"],
-                    "primary_doc_description": ["Current report"],
-                    "filing_url": ["https://example.com/aapl-8k"],
-                    "filing_excerpt": ["Apple discussed services growth."],
-                    "document_text": ["Apple discussed services growth."],
-                    "document_text_hash": ["hash-aapl-8k"],
-                }
-            )
-
+def test_run_attention_home_materializes_attention_home_and_research_outputs(monkeypatch):
     persisted: dict[str, pd.DataFrame] = {}
     ctx = JobContext(
-        name="news-ingest-and-features",
+        name="attention-home-build",
         run_id="87654321-test-run",
         asof=datetime(2026, 3, 24, 18, 0, tzinfo=timezone.utc),
         universe_version="20260324",
@@ -441,41 +733,20 @@ def test_run_news_materializes_attention_home_and_research_outputs(monkeypatch):
         "edgar_filings": pd.DataFrame(),
         "edgar_evidence": pd.DataFrame(),
         "attention_context_llm": pd.DataFrame(),
+        "attention_context_bundle": pd.DataFrame(
+            [{"symbol": "AAPL", "llm_summary_text": "Apple context summary."}]
+        ),
+        "universe_snapshot": pd.DataFrame({"symbol": ["AAPL", "USO", "TLT"]}),
     }
 
-    monkeypatch.setattr("pipeline.jobs.main._alpaca_config", lambda: object())
-    monkeypatch.setattr("pipeline.jobs.main.AlpacaAPI", lambda cfg: FakeAPI())
-    monkeypatch.setattr(
-        "pipeline.jobs.main._load_latest_attention_seed",
-        lambda limit: pd.DataFrame({"entity_id": ["AAPL", "USO", "TLT"], "attention_score": [88.0, 95.0, 70.0]}),
-    )
     monkeypatch.setattr(
         "pipeline.jobs.main._load_latest_materialized_frame",
         lambda dataset_name: latest_frames.get(dataset_name, pd.DataFrame()).copy(),
     )
-    monkeypatch.setattr("pipeline.jobs.main.EdgarClient", lambda: FakeEdgarClient())
-    monkeypatch.setattr("pipeline.jobs.main.load_llm_client", lambda: None)
-    monkeypatch.setattr("pipeline.jobs.main.load_embedding_client", lambda: None)
+    monkeypatch.setattr("pipeline.jobs.attention_home_build.load_llm_client", lambda: None)
+    monkeypatch.setattr("pipeline.jobs.attention_home_build.load_embedding_client", lambda: None)
     monkeypatch.setattr(
-        "pipeline.jobs.main.search_symbol_news_payload",
-        lambda symbol, max_results=8, company_name="": {
-            "articles": pd.DataFrame(
-                [
-                    {
-                        "headline": f"{symbol} search result",
-                        "summary": f"{symbol} has same-day web confirmation.",
-                        "source": "AP",
-                        "published_at": pd.Timestamp("2026-03-24T15:45:00Z"),
-                        "url": f"https://example.com/{symbol.lower()}-search",
-                    }
-                ]
-            ),
-            "fallback_summary": None,
-            "source": "search",
-        },
-    )
-    monkeypatch.setattr(
-        "pipeline.jobs.main.build_bottom_up_attention_artifacts",
+        "pipeline.jobs.attention_home_build.build_bottom_up_attention_artifacts",
         lambda *args, **kwargs: SimpleNamespace(
             home_payload={
                 "run_id": "87654321-test-run",
@@ -588,17 +859,17 @@ def test_run_news_materializes_attention_home_and_research_outputs(monkeypatch):
         ),
     )
     monkeypatch.setattr(
-        "pipeline.jobs.main.collect_attention_ticker_symbols",
+        "pipeline.jobs.attention_home_build.collect_attention_ticker_symbols",
         lambda *args, **kwargs: ["AAPL"],
     )
     monkeypatch.setattr(
-        "pipeline.jobs.main.build_attention_ticker_snapshot_frame",
+        "pipeline.jobs.attention_home_build.build_attention_ticker_snapshot_frame",
         lambda *args, **kwargs: pd.DataFrame(
             [{"symbol": "AAPL", "company_name": "Apple Inc.", "market_cap_label": "$1.00T", "run_id": ctx.run_id}]
         ),
     )
     monkeypatch.setattr(
-        "pipeline.jobs.main.build_attention_ticker_background_snapshot_frame",
+        "pipeline.jobs.attention_home_build.build_attention_ticker_background_snapshot_frame",
         lambda *args, **kwargs: pd.DataFrame(
             [{"symbol": "AAPL", "company_name": "Apple Inc.", "description_text": "Apple builds consumer devices.", "run_id": ctx.run_id}]
         ),
@@ -608,7 +879,7 @@ def test_run_news_materializes_attention_home_and_research_outputs(monkeypatch):
         lambda dataset_name, frame, ctx, conn: persisted.setdefault(dataset_name, frame.copy()),
     )
 
-    run_news(ctx, None)
+    run_attention_home(ctx, None)
 
     assert "attention_web_search_news" in persisted
     assert "attention_home_snapshots_1d" in persisted

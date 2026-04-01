@@ -9,7 +9,6 @@ import pandas as pd
 import requests
 
 from .alpaca_api import AlpacaAPI
-from .market import BUSINESS_FOCUS_UNIVERSES
 
 
 NASDAQ_LISTED_URL = "https://www.nasdaqtrader.com/dynamic/symdir/nasdaqlisted.txt"
@@ -61,19 +60,6 @@ def _normalize_symbol(symbol: object) -> str:
 def _is_supported_equity_symbol(symbol: object) -> bool:
     normalized = _normalize_symbol(symbol)
     return bool(normalized and SUPPORTED_EQUITY_SYMBOL_RE.fullmatch(normalized))
-
-
-def _curated_equity_symbols() -> list[str]:
-    seen: set[str] = set()
-    ordered: list[str] = []
-    for symbols in BUSINESS_FOCUS_UNIVERSES.values():
-        for symbol in symbols:
-            normalized = _normalize_symbol(symbol)
-            if not normalized or normalized in seen:
-                continue
-            seen.add(normalized)
-            ordered.append(normalized)
-    return ordered
 
 
 def _empty_listings() -> pd.DataFrame:
@@ -233,10 +219,10 @@ def build_liquidity_ranked_equity_universe(
         na_position="last",
     ).reset_index(drop=True)
 
-    pinned = [_normalize_symbol(symbol) for symbol in (pinned_symbols or _curated_equity_symbols()) if _normalize_symbol(symbol)]
+    pinned = [_normalize_symbol(symbol) for symbol in (pinned_symbols or []) if _normalize_symbol(symbol)]
     pinned_frame = ranked[ranked["symbol"].isin(pinned)].copy()
     if not pinned_frame.empty:
-        pinned_frame["selection_reason"] = "pinned_curated"
+        pinned_frame["selection_reason"] = "pinned"
         pinned_frame = pinned_frame.sort_values(
             ["dollar_volume", "volume", "close", "symbol"],
             ascending=[False, False, False, True],
@@ -254,7 +240,7 @@ def build_liquidity_ranked_equity_universe(
             fallback["volume"] = pd.NA
             fallback["dollar_volume"] = pd.NA
             fallback["liquidity_rank"] = pd.NA
-            fallback["selection_reason"] = "pinned_curated"
+            fallback["selection_reason"] = "pinned"
             pinned_frame = pd.concat([pinned_frame, fallback], ignore_index=True, sort=False)
 
     remaining = liquid[~liquid["symbol"].isin(set(pinned))].copy()

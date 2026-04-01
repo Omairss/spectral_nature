@@ -1,5 +1,7 @@
 # Attention Feed Redesign Plan
 
+Implementation note: use `ATTENTION_FEED_IMPLEMENTATION_PLAN.md` as the canonical build plan. This file is retained as product/background context.
+
 ## Product Goal
 
 Rebuild the attention feed as a strict `today / 1d` market-intelligence system.

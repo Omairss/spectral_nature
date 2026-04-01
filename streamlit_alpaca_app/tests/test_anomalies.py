@@ -86,7 +86,34 @@ def test_build_price_expectations_blends_trend_peer_and_benchmark_components():
     assert bbb_1w["residual_zscore"] < 0
 
 
-def test_build_commodity_peer_group_membership_assigns_focus_groups_and_benchmarks():
+def test_build_commodity_peer_group_membership_assigns_focus_groups_and_benchmarks(monkeypatch):
+    taxonomy = pd.DataFrame(
+        [
+            {
+                "symbol": "DBC",
+                "commodity_role": "",
+                "rates_role": "",
+                "defensive_role": "",
+                "macro_role_tags": [],
+            },
+            {
+                "symbol": "GLD",
+                "commodity_role": "gold",
+                "rates_role": "",
+                "defensive_role": "",
+                "macro_role_tags": [],
+            },
+            {
+                "symbol": "CPER",
+                "commodity_role": "copper",
+                "rates_role": "",
+                "defensive_role": "",
+                "macro_role_tags": ["industrial_metals"],
+            },
+        ]
+    )
+    monkeypatch.setattr("compute.anomalies.load_entity_taxonomy_frame", lambda symbols=None: taxonomy)
+
     out = build_commodity_peer_group_membership(
         asof_time_utc=pd.Timestamp("2026-03-20T00:00:00Z"),
         symbols=["DBC", "GLD", "CPER"],
@@ -94,7 +121,7 @@ def test_build_commodity_peer_group_membership_assigns_focus_groups_and_benchmar
 
     assert not out.empty
     assert set(out["entity_type"]) == {"commodity_symbol"}
-    assert set(out["peer_group_type"]) == {"commodity_focus"}
+    assert set(out["peer_group_type"]) == {"commodity_focus", "commodity_role"}
 
     dbc_row = out[out["entity_id"] == "DBC"].iloc[0]
     assert dbc_row["peer_group_name"] == "Broad Commodity Market"
@@ -315,7 +342,12 @@ def test_build_attention_rollups_and_feed_surface_top_anomalies():
     assert "Price action still looks like a trend breakout setup" in feed.iloc[0]["story_text"]
     assert "Residual over" not in feed.iloc[0]["story_text"]
     assert "AAA" in feed.iloc[0]["next_best_action"]
-    assert json.loads(feed.iloc[0]["drilldown_params_json"]) == {"horizon": "1w", "market_view": "Markets", "ticker": "AAA"}
+    assert json.loads(feed.iloc[0]["drilldown_params_json"]) == {
+        "horizon": "1w",
+        "market_view": "Markets",
+        "ticker": "AAA",
+        "business_filter": "Test Lens",
+    }
 
 
 def test_build_attention_feed_preserves_commodity_drilldown_context():

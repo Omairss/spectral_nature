@@ -8,7 +8,8 @@ import pandas as pd
 
 from compute.fundamentals import load_quarterly_fundamentals, share_count_asof
 from services.company import build_company_description, summarize_recent_news
-from services.market import business_focus_for_symbol, commodity_proxy_profile
+from services.entity_taxonomy import business_focus_label_from_taxonomy_row, taxonomy_lookup_by_symbol
+from services.market import commodity_proxy_profile
 
 
 def _coerce_text(value: object) -> str:
@@ -329,8 +330,10 @@ def build_attention_ticker_background_snapshot_frame(
     rows: list[dict[str, Any]] = []
     asof_ts = pd.to_datetime(asof_time_utc, utc=True, errors="coerce")
     asof_label = _coerce_text(asof_ts.isoformat() if pd.notna(asof_ts) else asof_time_utc)
+    ordered_symbols = [symbol for symbol in dict.fromkeys(_normalize_symbol(item) for item in symbols if _normalize_symbol(item))]
+    taxonomy_lookup = taxonomy_lookup_by_symbol(ordered_symbols)
 
-    for symbol in dict.fromkeys(_normalize_symbol(item) for item in symbols if _normalize_symbol(item)):
+    for symbol in ordered_symbols:
         company_name = _company_name(symbol, universe_snapshot_frame)
         price_history = _price_window(price_history_frame, symbol, asof_time_utc=asof_time_utc, lookback_days=180)
         latest_close = _latest_close_from_price_history(price_history)
@@ -342,7 +345,7 @@ def build_attention_ticker_background_snapshot_frame(
             load_quarterly_fundamentals(symbol),
             asof_time_utc=asof_time_utc,
         )
-        business_lens = business_focus_for_symbol(symbol) or "All Market"
+        business_lens = business_focus_label_from_taxonomy_row(taxonomy_lookup.get(symbol)) or "All Market"
         description_text = build_company_description(
             symbol,
             {"name": company_name},

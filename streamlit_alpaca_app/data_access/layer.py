@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import json
+import re
 from typing import Any
 
 import pandas as pd
@@ -24,8 +25,8 @@ from services.attention_materialized import (
     deserialize_attention_ticker_snapshot_frame,
 )
 from services.attention_home_1d import (
-    MACRO_ANCHOR_SYMBOLS,
     build_attention_entity_master,
+    resolve_macro_anchor_symbols,
     build_attention_home_1d,
     shortlist_attention_symbols_1d,
 )
@@ -43,7 +44,7 @@ from services.data_cache import (
 from services.edgar import EdgarClient
 from services.fred import load_fred_api_key, load_fred_dashboard
 from services.llm import load_embedding_client, load_llm_client
-from services.market import DEFAULT_UNIVERSE, load_price_history, scan_commodity_regimes, scan_correlation_phase_shifts, scan_daily_movers, scan_momentum_profiles
+from services.market import load_price_history, scan_commodity_regimes, scan_correlation_phase_shifts, scan_daily_movers, scan_momentum_profiles
 from services.options import analyze_option_candidates, load_option_chain, load_option_surface, select_option_surface_window
 from services.pipeline_store import latest_job_status_table, load_latest_dataset_frame, pipeline_store_configured, start_source_refresh_job
 from services.treasury_yields import TreasuryYieldError, load_treasury_yield_curve
@@ -120,11 +121,40 @@ LEGACY_ATTENTION_TEXT_SNIPPETS = (
     "broad risk-off move takes hold",
 )
 
+_ATTENTION_STAT_FIELDS = (
+    "what_happened_text",
+    "why_happened_text",
+    "affected_assets_summary_text",
+    "what_changed_text",
+    "why_now_text",
+    "what_else_moved_text",
+    "surface_summary_text",
+    "surface_what_changed_text",
+    "surface_why_text",
+    "surface_what_else_moved_text",
+)
+
+_ATTENTION_CAUSAL_PATTERNS = (
+    r"\bbecause\b",
+    r"\bdue to\b",
+    r"\bafter\b",
+    r"\bamid\b",
+    r"\bdriven by\b",
+    r"\bwhich (?:lifted|helped|pressured|hurt|weighed|boosted)\b",
+    r"\bmargins?\b",
+    r"\bdemand\b",
+    r"\binflation\b",
+    r"\bsupply\b",
+    r"\bpricing\b",
+    r"\bguidance\b",
+)
+
 
 @dataclass(frozen=True)
 class DataAccessLayer:
     cfg: AppConfig | None = None
     fred_api_key: str | None = None
+    materialized_only: bool = False
 
     @classmethod
     def from_environment(cls) -> "DataAccessLayer":
@@ -136,6 +166,20 @@ class DataAccessLayer:
     def _pipeline_frame(self, dataset_name: str) -> tuple[pd.DataFrame, dict[str, Any]]:
         frame, metadata = load_latest_dataset_frame(dataset_name)
         return frame, _pipeline_details(metadata)
+
+    def _materialized_only_result(
+        self,
+        payload: Any,
+        *,
+        datasets: tuple[str, ...],
+        details: dict[str, Any] | None = None,
+    ) -> ResolvedPayload | None:
+        if not self.materialized_only:
+            return None
+        merged = dict(details or {})
+        merged.setdefault("materialized_only", True)
+        merged.setdefault("warning", "materialized_only_presentation_layer")
+        return self._resolved(payload, mode="materialized", datasets=datasets, details=merged)
 
     def _attention_candidate_dataset_name(self, dataset_name: str) -> str | None:
         dataset_key = str(dataset_name or "").strip()
@@ -231,6 +275,45 @@ class DataAccessLayer:
             return False
         return any(snippet in text for snippet in LEGACY_ATTENTION_TEXT_SNIPPETS)
 
+    def _has_causal_language(self, value: Any) -> bool:
+        text = str(value or "").strip().lower()
+        if not text:
+            return False
+        return any(re.search(pattern, text) for pattern in _ATTENTION_CAUSAL_PATTERNS)
+
+    def _looks_like_attention_stat_dump(self, value: Any) -> bool:
+        text = str(value or "").strip()
+        if not text:
+            return False
+        lowered = text.lower()
+        pct_count = len(re.findall(r"[+\-]?\d+(?:\.\d+)?%", text))
+        bps_count = len(re.findall(r"[+\-]?\d+(?:\.\d+)?\s*bps\b", lowered))
+        ticker_count = len(re.findall(r"\b[A-Z]{2,5}\b", text))
+        ticker_pct_pairs = len(re.findall(r"\b[A-Z]{2,5}\s*[+\-]\d+(?:\.\d+)?%", text))
+        if re.search(r"\bup:\b|\bdown:\b", lowered):
+            return True
+        if ticker_pct_pairs >= 2:
+            return True
+        if pct_count + bps_count >= 4:
+            return True
+        if ticker_count >= 4 and pct_count + bps_count >= 3:
+            return True
+        if "treasury yields" in lowered and pct_count + bps_count >= 4 and not self._has_causal_language(text):
+            return True
+        return False
+
+    def _payload_uses_stat_dump_copy(self, payload: dict[str, Any]) -> bool:
+        if not isinstance(payload, dict) or not payload:
+            return False
+        for section in ("top_events", "must_read_movers", "unresolved_large_moves"):
+            for item in list(payload.get(section) or []):
+                if not isinstance(item, dict):
+                    continue
+                for key in _ATTENTION_STAT_FIELDS:
+                    if self._looks_like_attention_stat_dump(item.get(key)):
+                        return True
+        return False
+
     def _payload_uses_legacy_attention_titles(self, payload: dict[str, Any]) -> bool:
         if not isinstance(payload, dict) or not payload:
             return False
@@ -251,6 +334,11 @@ class DataAccessLayer:
             self._contains_legacy_attention_text(payload.get(key))
             for key in ("event_title", "headline", "surface_summary_text", "why_happened_text", "why_now_text")
         )
+
+    def _bundle_uses_stat_dump_copy(self, payload: dict[str, Any]) -> bool:
+        if not isinstance(payload, dict) or not payload:
+            return False
+        return any(self._looks_like_attention_stat_dump(payload.get(key)) for key in _ATTENTION_STAT_FIELDS)
 
     def _user_share_fraction(self, user_context: Any | None) -> float:
         if isinstance(user_context, dict):
@@ -280,8 +368,10 @@ class DataAccessLayer:
                 if values:
                     return list(dict.fromkeys(values))[:1500]
 
+        if self.materialized_only:
+            return []
         if self.cfg is None:
-            return list(DEFAULT_UNIVERSE)
+            return []
 
         frame = cached_frame(
             "attention_home_equity_universe",
@@ -301,7 +391,7 @@ class DataAccessLayer:
             ]
             if values:
                 return list(dict.fromkeys(values))[:1500]
-        return list(DEFAULT_UNIVERSE)
+        return []
 
     def _resolve_web_search_news(self, ticker: str, *, company_name: str = "", force_refresh: bool = False) -> dict[str, Any]:
         target = str(ticker or "").upper().strip()
@@ -315,6 +405,164 @@ class DataAccessLayer:
             lambda: search_symbol_news_payload(target, company_name=company_name, max_results=8),
             force_refresh=force_refresh,
             version=1,
+        )
+
+    def _resolve_materialized_asset_metadata(self, ticker: str, *, force_refresh: bool = False) -> ResolvedPayload | None:
+        target = str(ticker or "").upper().strip()
+        if not target:
+            return None
+
+        universe_materialized = self._try_pipeline_frame("universe_snapshot", force_refresh=force_refresh)
+        if universe_materialized is not None:
+            frame, details = universe_materialized
+            if not frame.empty and "symbol" in frame.columns:
+                name_column = ""
+                for candidate in ("security_name", "company_name", "name"):
+                    if candidate in frame.columns:
+                        name_column = candidate
+                        break
+                if name_column:
+                    rows = frame.copy()
+                    rows["symbol"] = rows["symbol"].astype(str).str.upper().str.strip()
+                    match = rows[rows["symbol"] == target].head(1)
+                    if not match.empty:
+                        name = _coerce_text(match.iloc[0].get(name_column))
+                        if name:
+                            return self._resolved(
+                                {"symbol": target, "name": name},
+                                mode="materialized",
+                                datasets=("universe_snapshot",),
+                                details={**details, "ticker": target},
+                            )
+
+        background = self.resolve_attention_ticker_background(target, force_refresh=force_refresh)
+        company_name = _coerce_text((background.payload or {}).get("company_name"))
+        if company_name:
+            return self._resolved(
+                {"symbol": target, "name": company_name},
+                mode=background.provenance.mode,
+                datasets=background.provenance.datasets,
+                details={**background.provenance.details, "ticker": target},
+            )
+        return None
+
+    def _resolve_materialized_recent_news_from_search(
+        self,
+        ticker: str,
+        *,
+        limit: int,
+        force_refresh: bool = False,
+    ) -> ResolvedPayload | None:
+        target = str(ticker or "").upper().strip()
+        materialized = self._try_pipeline_frame("attention_web_search_news", force_refresh=force_refresh)
+        if materialized is None:
+            return None
+        frame, details = materialized
+        if frame.empty or "symbol" not in frame.columns:
+            return None
+
+        rows = frame.copy()
+        rows["symbol"] = rows["symbol"].astype(str).str.upper().str.strip()
+        rows = rows[rows["symbol"] == target].copy()
+        if rows.empty:
+            return None
+
+        if "published_at" in rows.columns:
+            rows["published_at"] = pd.to_datetime(rows["published_at"], utc=True, errors="coerce")
+            rows = rows.sort_values("published_at", ascending=False, na_position="last")
+
+        row_types = rows.get("row_type", pd.Series(dtype=str)).astype(str).str.lower()
+        article_rows = rows[row_types.ne("summary")].copy() if "row_type" in rows.columns else rows.copy()
+        summary_rows = rows[row_types.eq("summary")].copy() if "row_type" in rows.columns else pd.DataFrame()
+        fallback_summary = ""
+        if not summary_rows.empty:
+            for _, row in summary_rows.iterrows():
+                candidate = _coerce_text(row.get("fallback_summary")) or _coerce_text(row.get("summary"))
+                if candidate:
+                    fallback_summary = candidate
+                    break
+
+        keep = [col for col in ["headline", "summary", "description", "published_at", "source", "url", "sentiment", "symbols"] if col in article_rows.columns]
+        articles = article_rows[keep].head(limit).reset_index(drop=True) if keep else pd.DataFrame()
+        if not articles.empty and "symbols" not in articles.columns:
+            articles["symbols"] = [[target]] * len(articles)
+
+        source_values = [
+            _coerce_text(value)
+            for value in rows.get("payload_source", pd.Series(dtype=object)).tolist()
+            + rows.get("source", pd.Series(dtype=object)).tolist()
+            if _coerce_text(value)
+        ]
+        source = "+".join(dict.fromkeys(source_values)) if source_values else "attention_web_search_news"
+        if articles.empty and not fallback_summary:
+            return None
+        return self._resolved(
+            {
+                "articles": articles,
+                "fallback_summary": fallback_summary or None,
+                "source": source,
+            },
+            mode="materialized",
+            datasets=("attention_web_search_news",),
+            details={**details, "ticker": target, "limit": limit},
+        )
+
+    def _resolve_materialized_recent_news_from_background(
+        self,
+        ticker: str,
+        *,
+        limit: int,
+        force_refresh: bool = False,
+    ) -> ResolvedPayload | None:
+        target = str(ticker or "").upper().strip()
+        background = self.resolve_attention_ticker_background(target, force_refresh=force_refresh)
+        payload = background.payload if isinstance(background.payload, dict) else {}
+        recent_headlines = payload.get("recent_headlines", [])
+        news_summary_lines = payload.get("news_summary_lines", [])
+
+        article_rows: list[dict[str, Any]] = []
+        if isinstance(recent_headlines, list):
+            for item in recent_headlines[: max(int(limit), 1)]:
+                if not isinstance(item, dict):
+                    continue
+                headline = _coerce_text(item.get("headline"))
+                if not headline:
+                    continue
+                article_rows.append(
+                    {
+                        "headline": headline,
+                        "summary": headline,
+                        "description": headline,
+                        "published_at": pd.to_datetime(item.get("published_at"), utc=True, errors="coerce"),
+                        "source": _coerce_text(item.get("source")),
+                        "url": _coerce_text(item.get("url")),
+                        "symbols": [target],
+                    }
+                )
+        fallback_summary = ""
+        if isinstance(news_summary_lines, list):
+            fallback_summary = "\n".join(
+                str(item).strip()
+                for item in news_summary_lines
+                if str(item).strip()
+            ).strip()
+
+        articles = pd.DataFrame(article_rows)
+        if isinstance(articles, pd.DataFrame) and not articles.empty and "published_at" in articles.columns:
+            articles["published_at"] = pd.to_datetime(articles["published_at"], utc=True, errors="coerce")
+            articles = articles.sort_values("published_at", ascending=False, na_position="last").reset_index(drop=True)
+
+        if articles.empty and not fallback_summary:
+            return None
+        return self._resolved(
+            {
+                "articles": articles,
+                "fallback_summary": fallback_summary or None,
+                "source": "attention_ticker_background_snapshots",
+            },
+            mode=background.provenance.mode,
+            datasets=background.provenance.datasets,
+            details={**background.provenance.details, "ticker": target, "limit": limit},
         )
 
     def _resolve_attention_edgar_filings(
@@ -347,7 +595,7 @@ class DataAccessLayer:
             version=1,
         )
 
-    def _combine_mover_frames(self, *frames: pd.DataFrame) -> pd.DataFrame:
+    def _combine_mover_frames(self, *frames: pd.DataFrame, macro_anchor_symbols: list[str] | None = None) -> pd.DataFrame:
         non_empty = [frame.copy() for frame in frames if isinstance(frame, pd.DataFrame) and not frame.empty]
         if not non_empty:
             return pd.DataFrame()
@@ -360,7 +608,8 @@ class DataAccessLayer:
         if "dollar_volume" not in out.columns and {"close", "volume"}.issubset(set(out.columns)):
             out["dollar_volume"] = pd.to_numeric(out["close"], errors="coerce") * pd.to_numeric(out["volume"], errors="coerce")
         if "symbol" in out.columns:
-            out["_priority"] = out["symbol"].isin(set(MACRO_ANCHOR_SYMBOLS)).astype(int)
+            anchors = {str(symbol).upper().strip() for symbol in list(macro_anchor_symbols or []) if str(symbol).strip()}
+            out["_priority"] = out["symbol"].isin(anchors).astype(int)
             out["_abs_move"] = pd.to_numeric(out.get("change_pct"), errors="coerce").abs()
             out = out.sort_values(
                 ["_priority", "_abs_move", "dollar_volume", "symbol"],
@@ -372,6 +621,8 @@ class DataAccessLayer:
         return out
 
     def _resolve_live_attention_artifacts(self, *, force_refresh: bool) -> dict[str, Any]:
+        if self.materialized_only:
+            return {}
         cache_scope = (
             f"{_alpaca_cache_scope(self.cfg)}__{pd.Timestamp.utcnow().date().isoformat()}"
             if self.cfg is not None
@@ -391,6 +642,7 @@ class DataAccessLayer:
                     "unresolved_count": 0,
                     "today_only": True,
                 },
+                "taxonomy_horizon_trends": [],
                 "event_candidates_1d": [],
                 "event_impacts_1d": [],
                 "entity_master": [],
@@ -400,6 +652,7 @@ class DataAccessLayer:
                 return {"home_payload": empty_payload, "bundle_map": {}, "run_id": ""}
 
             equity_universe = self._attention_home_equity_universe(force_refresh=force_refresh)
+            macro_anchor_symbols = resolve_macro_anchor_symbols(equity_universe) if equity_universe else []
             holdings: list[str] = []
             try:
                 positions = self.resolve_positions(force_refresh=force_refresh).payload
@@ -413,16 +666,17 @@ class DataAccessLayer:
                 holdings = []
 
             equity_movers = self.resolve_daily_movers(symbols=equity_universe, force_refresh=force_refresh).payload
-            macro_movers = self.resolve_daily_movers(symbols=list(MACRO_ANCHOR_SYMBOLS), force_refresh=force_refresh).payload
-            movers = self._combine_mover_frames(equity_movers, macro_movers)
+            macro_movers = self.resolve_daily_movers(symbols=macro_anchor_symbols, force_refresh=force_refresh).payload if macro_anchor_symbols else pd.DataFrame()
+            movers = self._combine_mover_frames(equity_movers, macro_movers, macro_anchor_symbols=macro_anchor_symbols)
 
             attention_parts: list[pd.DataFrame] = []
+            trend_horizons = list(normalize_horizons(["1d", "1w", "1mo", "3mo", "1yr"]))
             for dataset_name in ("attention_feed", "commodity_attention_feed"):
                 try:
                     resolved = self.resolve_attention_feed(
                         dataset_name=dataset_name,
                         limit=80,
-                        horizons=["1d"],
+                        horizons=trend_horizons,
                         statuses=["active", "cooling"],
                         sensitivity="aggressive",
                         force_refresh=force_refresh,
@@ -511,7 +765,7 @@ class DataAccessLayer:
             coverage.update(
                 {
                     "equity_universe_count": len(equity_universe),
-                    "macro_anchor_target_count": len(MACRO_ANCHOR_SYMBOLS),
+                    "macro_anchor_target_count": len(macro_anchor_symbols),
                     "research_symbol_count": len(research_symbols),
                 }
             )
@@ -531,6 +785,24 @@ class DataAccessLayer:
         )
 
     def resolve_account(self, *, force_refresh: bool = False) -> ResolvedPayload:
+        materialized_positions = self._try_pipeline_frame("positions_snapshot", force_refresh=force_refresh)
+        if materialized_positions is not None:
+            positions_frame, details = materialized_positions
+            if isinstance(positions_frame, pd.DataFrame) and not positions_frame.empty:
+                market_value = pd.to_numeric(positions_frame.get("market_value"), errors="coerce").fillna(0.0)
+                payload = {
+                    "status": "materialized",
+                    "equity": float(market_value.sum()),
+                    "cash": 0.0,
+                    "portfolio_value": float(market_value.sum()),
+                    "buying_power": 0.0,
+                    "daytrade_count": 0,
+                    "position_count": int(len(positions_frame)),
+                }
+                return self._resolved(payload, mode="materialized", datasets=("positions_snapshot",), details=details)
+        materialized_only = self._materialized_only_result({}, datasets=("account",))
+        if materialized_only is not None:
+            return materialized_only
         frame = cached_scalar_dict(
             "account",
             _alpaca_cache_scope(self.cfg) if self.cfg is not None else "missing-config",
@@ -549,6 +821,14 @@ class DataAccessLayer:
         return self._resolved(projected, mode=resolved.provenance.mode, datasets=resolved.provenance.datasets + ("ownership_projection",), details=details)
 
     def resolve_positions(self, *, force_refresh: bool = False) -> ResolvedPayload:
+        materialized_positions = self._try_pipeline_frame("positions_snapshot", force_refresh=force_refresh)
+        if materialized_positions is not None:
+            frame, details = materialized_positions
+            if isinstance(frame, pd.DataFrame) and not frame.empty:
+                return self._resolved(frame.reset_index(drop=True), mode="materialized", datasets=("positions_snapshot",), details=details)
+        materialized_only = self._materialized_only_result(pd.DataFrame(), datasets=("positions",))
+        if materialized_only is not None:
+            return materialized_only
         frame = cached_frame(
             "positions",
             _alpaca_cache_scope(self.cfg) if self.cfg is not None else "missing-config",
@@ -567,6 +847,13 @@ class DataAccessLayer:
         return self._resolved(projected, mode=resolved.provenance.mode, datasets=resolved.provenance.datasets + ("ownership_projection",), details=details)
 
     def resolve_portfolio_timeseries(self, period: str, *, force_refresh: bool = False) -> ResolvedPayload:
+        materialized_only = self._materialized_only_result(
+            pd.DataFrame(),
+            datasets=("portfolio_timeseries",),
+            details={"period": period},
+        )
+        if materialized_only is not None:
+            return materialized_only
         frame = cached_frame(
             "portfolio_timeseries",
             f"{_alpaca_cache_scope(self.cfg)}__period_{period}" if self.cfg is not None else f"missing-config__period_{period}",
@@ -600,6 +887,13 @@ class DataAccessLayer:
 
     def resolve_holding_roc(self, symbols: list[str], *, days: int = 365, force_refresh: bool = False) -> ResolvedPayload:
         normalized_symbols = sorted({str(symbol).upper().strip() for symbol in symbols if str(symbol).strip()})
+        materialized_only = self._materialized_only_result(
+            pd.DataFrame(),
+            datasets=("holding_roc",),
+            details={"days": days, "symbols": normalized_symbols},
+        )
+        if materialized_only is not None:
+            return materialized_only
         symbol_scope = dataset_scope("symbols", ",".join(normalized_symbols))
         frame = cached_frame(
             "holding_roc",
@@ -619,7 +913,22 @@ class DataAccessLayer:
                     pipeline = pipeline[pipeline["symbol"].astype(str).str.upper().isin(allowed)].copy()
                 return self._resolved(pipeline.reset_index(drop=True), mode="materialized", datasets=("daily_movers",), details=details)
 
-        universe = symbols or DEFAULT_UNIVERSE
+        universe = symbols if symbols is not None else self._attention_home_equity_universe(force_refresh=force_refresh)
+        universe = sorted({str(symbol).upper().strip() for symbol in universe if str(symbol).strip()})
+        if not universe:
+            return self._resolved(
+                pd.DataFrame(),
+                mode="on_demand",
+                datasets=("daily_movers",),
+                details={"symbols": [], "warning": "empty_universe"},
+            )
+        materialized_only = self._materialized_only_result(
+            pd.DataFrame(),
+            datasets=("daily_movers",),
+            details={"symbols": sorted(universe)},
+        )
+        if materialized_only is not None:
+            return materialized_only
         symbol_scope = dataset_scope("market-universe", ",".join(sorted({str(symbol).upper() for symbol in universe})))
         frame = cached_frame(
             "daily_movers",
@@ -639,7 +948,22 @@ class DataAccessLayer:
                     pipeline = pipeline[pipeline["symbol"].astype(str).str.upper().isin(allowed)].copy()
                 return self._resolved(pipeline.reset_index(drop=True), mode="materialized", datasets=("momentum_profiles",), details=details)
 
-        universe = symbols or DEFAULT_UNIVERSE
+        universe = symbols if symbols is not None else self._attention_home_equity_universe(force_refresh=force_refresh)
+        universe = sorted({str(symbol).upper().strip() for symbol in universe if str(symbol).strip()})
+        if not universe:
+            return self._resolved(
+                pd.DataFrame(),
+                mode="on_demand",
+                datasets=("momentum_profiles",),
+                details={"days": days, "symbols": [], "warning": "empty_universe"},
+            )
+        materialized_only = self._materialized_only_result(
+            pd.DataFrame(),
+            datasets=("momentum_profiles",),
+            details={"days": days, "symbols": sorted(universe)},
+        )
+        if materialized_only is not None:
+            return materialized_only
         symbol_scope = dataset_scope("market-universe", ",".join(sorted({str(symbol).upper() for symbol in universe})))
         frame = cached_frame(
             "momentum_profiles",
@@ -696,7 +1020,37 @@ class DataAccessLayer:
                     },
                 )
 
-        universe = symbols or DEFAULT_UNIVERSE
+        universe = symbols if symbols is not None else self._attention_home_equity_universe(force_refresh=force_refresh)
+        universe = sorted({str(symbol).upper().strip() for symbol in universe if str(symbol).strip()})
+        if not universe:
+            return self._resolved(
+                {"summary": pd.DataFrame(), "history": pd.DataFrame()},
+                mode="on_demand",
+                datasets=("correlation_phase_shift_summary", "correlation_phase_shift_history"),
+                details={
+                    "benchmark": benchmark,
+                    "days": days,
+                    "corr_window": corr_window,
+                    "roc_window": roc_window,
+                    "momentum_window": momentum_window,
+                    "symbols": [],
+                    "warning": "empty_universe",
+                },
+            )
+        materialized_only = self._materialized_only_result(
+            {"summary": pd.DataFrame(), "history": pd.DataFrame()},
+            datasets=("correlation_phase_shift_summary", "correlation_phase_shift_history"),
+            details={
+                "benchmark": benchmark,
+                "days": days,
+                "corr_window": corr_window,
+                "roc_window": roc_window,
+                "momentum_window": momentum_window,
+                "symbols": sorted(universe),
+            },
+        )
+        if materialized_only is not None:
+            return materialized_only
         symbol_scope = dataset_scope("phase-shift-universe", ",".join(sorted({str(symbol).upper() for symbol in universe})))
         payload = cached_frame_dict(
             "correlation_phase_shift",
@@ -767,7 +1121,37 @@ class DataAccessLayer:
                     },
                 )
 
-        universe = symbols or DEFAULT_UNIVERSE
+        universe = symbols if symbols is not None else self._attention_home_equity_universe(force_refresh=force_refresh)
+        universe = sorted({str(symbol).upper().strip() for symbol in universe if str(symbol).strip()})
+        if not universe:
+            return self._resolved(
+                {"summary": pd.DataFrame(), "history": pd.DataFrame()},
+                mode="on_demand",
+                datasets=("commodity_regime_summary", "commodity_regime_history"),
+                details={
+                    "days": days,
+                    "corr_window": corr_window,
+                    "roc_window": roc_window,
+                    "momentum_window": momentum_window,
+                    "symbols": [],
+                    "commodity_symbols": sorted(commodity_symbols),
+                    "warning": "empty_universe",
+                },
+            )
+        materialized_only = self._materialized_only_result(
+            {"summary": pd.DataFrame(), "history": pd.DataFrame()},
+            datasets=("commodity_regime_summary", "commodity_regime_history"),
+            details={
+                "days": days,
+                "corr_window": corr_window,
+                "roc_window": roc_window,
+                "momentum_window": momentum_window,
+                "symbols": sorted(universe),
+                "commodity_symbols": sorted(commodity_symbols),
+            },
+        )
+        if materialized_only is not None:
+            return materialized_only
         symbol_scope = dataset_scope("commodity-universe", ",".join(sorted({str(symbol).upper() for symbol in universe})))
         commodity_scope = dataset_scope("commodity-basket", ",".join(sorted({str(symbol).upper() for symbol in commodity_symbols})))
         payload = cached_frame_dict(
@@ -823,6 +1207,13 @@ class DataAccessLayer:
                         out = out[out["timestamp"] >= cutoff].copy()
                     return self._resolved(out.reset_index(drop=True), mode="materialized", datasets=("price_history",), details=details)
 
+        materialized_only = self._materialized_only_result(
+            pd.DataFrame(),
+            datasets=("price_history",),
+            details={"ticker": ticker.upper(), "days": days},
+        )
+        if materialized_only is not None:
+            return materialized_only
         frame = cached_frame(
             "price_history",
             f"{_alpaca_cache_scope(self.cfg)}__{ticker.upper()}__{days}d" if self.cfg is not None else f"missing-config__{ticker.upper()}__{days}d",
@@ -845,6 +1236,13 @@ class DataAccessLayer:
                         out = out[out["timestamp"] >= cutoff].copy()
                     return self._resolved(out.reset_index(drop=True), mode="materialized", datasets=("technical_signal_history",), details=details)
 
+        materialized_only = self._materialized_only_result(
+            pd.DataFrame(),
+            datasets=("technical_signal_history",),
+            details={"ticker": ticker.upper(), "days": days},
+        )
+        if materialized_only is not None:
+            return materialized_only
         if build_signal_frame is None:
             return self._resolved(pd.DataFrame(), mode="on_demand", datasets=("technical_signal_history",), details={"warning": "signals module unavailable"})
 
@@ -895,6 +1293,13 @@ class DataAccessLayer:
                     }
                     return self._resolved(payload, mode="materialized", datasets=("technical_signals_latest",), details=details)
 
+        materialized_only = self._materialized_only_result(
+            {},
+            datasets=("technical_signals_latest",),
+            details={"ticker": ticker.upper()},
+        )
+        if materialized_only is not None:
+            return materialized_only
         if summarize_signal_frame is None:
             return self._resolved({}, mode="on_demand", datasets=("technical_signals_latest",), details={"warning": "signals module unavailable"})
 
@@ -923,10 +1328,34 @@ class DataAccessLayer:
         details: dict[str, Any] = {"ticker": ticker.upper(), "days": days, "horizon": horizon, "simulations": simulations}
         resolved_mode = "computed"
         if frame is None:
-            resolved = self.resolve_technical_signal_history(ticker, days=days, force_refresh=force_refresh)
-            frame = resolved.payload
-            details = {**details, **resolved.provenance.details}
-            resolved_mode = resolved.provenance.mode
+            materialized = self._try_pipeline_frame("technical_signal_history", force_refresh=force_refresh)
+            if materialized is not None:
+                pipeline, pipeline_details = materialized
+                if not pipeline.empty and "symbol" in pipeline.columns:
+                    rows = pipeline.copy()
+                    rows["symbol"] = rows["symbol"].astype(str).str.upper().str.strip()
+                    rows = rows[rows["symbol"] == ticker.upper()].copy()
+                    if not rows.empty:
+                        if "timestamp" in rows.columns:
+                            rows["timestamp"] = pd.to_datetime(rows["timestamp"], utc=True, errors="coerce")
+                            rows = rows.sort_values("timestamp", ascending=True, na_position="last")
+                        frame = rows.reset_index(drop=True)
+                        details = {**details, **pipeline_details}
+                        resolved_mode = "materialized"
+            if frame is None and not self.materialized_only:
+                resolved = self.resolve_technical_signal_history(ticker, days=days, force_refresh=force_refresh)
+                frame = resolved.payload
+                details = {**details, **resolved.provenance.details}
+                resolved_mode = resolved.provenance.mode
+        if not isinstance(frame, pd.DataFrame) or frame.empty:
+            materialized_only = self._materialized_only_result(
+                {},
+                datasets=("technical_signal_history", "technical_forecast"),
+                details=details,
+            )
+            if materialized_only is not None:
+                return materialized_only
+            return self._resolved({}, mode=resolved_mode, datasets=("technical_signal_history", "technical_forecast"), details=details)
         forecast = forecast_next_week(frame, horizon=horizon, simulations=simulations) if isinstance(frame, pd.DataFrame) and not frame.empty else {}
         return self._resolved(
             forecast,
@@ -966,6 +1395,13 @@ class DataAccessLayer:
                     if expirations:
                         return self._resolved((expirations, pd.DataFrame(), pd.DataFrame()), mode="materialized", datasets=("option_expirations",), details=exp_details)
 
+        materialized_only = self._materialized_only_result(
+            ([], pd.DataFrame(), pd.DataFrame()),
+            datasets=("option_contract_snapshots",),
+            details={"ticker": ticker.upper(), "expiration": expiration},
+        )
+        if materialized_only is not None:
+            return materialized_only
         expiration_scope = expiration or "expirations"
         payload = cached_option_chain(
             "option_chain",
@@ -1000,6 +1436,13 @@ class DataAccessLayer:
                     if not windowed.empty:
                         return self._resolved(windowed.reset_index(drop=True), mode="materialized", datasets=("option_contract_snapshots",), details=details)
 
+        materialized_only = self._materialized_only_result(
+            pd.DataFrame(),
+            datasets=("option_contract_snapshots",),
+            details={"ticker": ticker.upper(), "expected_price": expected_price, "horizon_days": horizon_days, "underlying_price": underlying_price},
+        )
+        if materialized_only is not None:
+            return materialized_only
         frame = cached_frame(
             "option_surface",
             (
@@ -1034,6 +1477,18 @@ class DataAccessLayer:
         underlying_price: float,
         force_refresh: bool = False,
     ) -> ResolvedPayload:
+        materialized_only = self._materialized_only_result(
+            {"candidates": pd.DataFrame(), "summary": {}},
+            datasets=("option_surface", "option_candidates"),
+            details={
+                "ticker": ticker.upper(),
+                "expected_price": expected_price,
+                "horizon_days": horizon_days,
+                "underlying_price": underlying_price,
+            },
+        )
+        if materialized_only is not None:
+            return materialized_only
         details = {
             "ticker": ticker.upper(),
             "expected_price": expected_price,
@@ -1085,6 +1540,13 @@ class DataAccessLayer:
                     if any(not part.empty for part in out.values()):
                         return self._resolved(out, mode="materialized", datasets=("quarterly_fundamentals",), details=details)
 
+        materialized_only = self._materialized_only_result(
+            {"income": pd.DataFrame(), "balance": pd.DataFrame(), "cashflow": pd.DataFrame()},
+            datasets=("quarterly_fundamentals",),
+            details={"ticker": ticker.upper()},
+        )
+        if materialized_only is not None:
+            return materialized_only
         payload = cached_frame_dict(
             "quarterly_fundamentals",
             ticker.upper(),
@@ -1095,6 +1557,12 @@ class DataAccessLayer:
         return self._resolved(payload, mode="on_demand", datasets=("quarterly_fundamentals",), details={"ticker": ticker.upper()})
 
     def resolve_asset_metadata(self, ticker: str, *, force_refresh: bool = False) -> ResolvedPayload:
+        materialized = self._resolve_materialized_asset_metadata(ticker, force_refresh=force_refresh)
+        if materialized is not None:
+            return materialized
+        materialized_only = self._materialized_only_result({}, datasets=("asset_metadata",), details={"ticker": ticker.upper()})
+        if materialized_only is not None:
+            return materialized_only
         payload = cached_scalar_dict(
             "asset_metadata",
             f"{_alpaca_cache_scope(self.cfg)}__{ticker.upper()}" if self.cfg is not None else f"missing-config__{ticker.upper()}",
@@ -1151,6 +1619,29 @@ class DataAccessLayer:
                     rows = rows.head(limit).reset_index(drop=True)
                     return self._resolved({"articles": rows, "fallback_summary": None, "source": "pipeline"}, mode="materialized", datasets=("news_articles",), details=details)
 
+        search_materialized = self._resolve_materialized_recent_news_from_search(
+            ticker,
+            limit=limit,
+            force_refresh=force_refresh,
+        )
+        if search_materialized is not None:
+            return search_materialized
+
+        background_materialized = self._resolve_materialized_recent_news_from_background(
+            ticker,
+            limit=limit,
+            force_refresh=force_refresh,
+        )
+        if background_materialized is not None:
+            return background_materialized
+
+        materialized_only = self._materialized_only_result(
+            {"articles": pd.DataFrame(), "fallback_summary": None, "source": "pipeline"},
+            datasets=("news_articles",),
+            details={"ticker": ticker.upper(), "days": days, "limit": limit},
+        )
+        if materialized_only is not None:
+            return materialized_only
         payload = cached_news_payload(
             "recent_news",
             f"{_alpaca_cache_scope(self.cfg)}__{ticker.upper()}__{days}d__{limit}" if self.cfg is not None else f"missing-config__{ticker.upper()}__{days}d__{limit}",
@@ -1231,7 +1722,7 @@ class DataAccessLayer:
                     datasets=(dataset_name,),
                     details={**details, "ticker": target},
                 )
-        return self._resolved({}, mode="on_demand", datasets=ATTENTION_TICKER_SNAPSHOT_DATASETS, details={"ticker": target})
+        return self._resolved({}, mode="materialized" if self.materialized_only else "on_demand", datasets=ATTENTION_TICKER_SNAPSHOT_DATASETS, details={"ticker": target, **({"materialized_only": True} if self.materialized_only else {})})
 
     def resolve_attention_ticker_background(self, ticker: str, *, force_refresh: bool = False) -> ResolvedPayload:
         target = str(ticker or "").upper().strip()
@@ -1249,7 +1740,7 @@ class DataAccessLayer:
                     datasets=(dataset_name,),
                     details={**details, "ticker": target},
                 )
-        return self._resolved({}, mode="on_demand", datasets=ATTENTION_TICKER_BACKGROUND_DATASETS, details={"ticker": target})
+        return self._resolved({}, mode="materialized" if self.materialized_only else "on_demand", datasets=ATTENTION_TICKER_BACKGROUND_DATASETS, details={"ticker": target, **({"materialized_only": True} if self.materialized_only else {})})
 
     def resolve_attention_home_1d(self, *, force_refresh: bool = False) -> ResolvedPayload:
         materialized = self._first_materialized_frame(
@@ -1259,7 +1750,11 @@ class DataAccessLayer:
         if materialized is not None:
             dataset_name, frame, details = materialized
             payload = deserialize_attention_home_payload(frame)
-            if payload and not self._payload_uses_legacy_attention_titles(payload):
+            if (
+                payload
+                and not self._payload_uses_legacy_attention_titles(payload)
+                and not self._payload_uses_stat_dump_copy(payload)
+            ):
                 return self._resolved(
                     payload,
                     mode="materialized",
@@ -1267,6 +1762,9 @@ class DataAccessLayer:
                     details=details,
                 )
 
+        materialized_only = self._materialized_only_result({}, datasets=ATTENTION_HOME_SNAPSHOT_DATASETS, details={"today_only": True})
+        if materialized_only is not None:
+            return materialized_only
         payload = self._resolve_live_attention_artifacts(force_refresh=force_refresh).get("home_payload") or {}
         return self._resolved(
             payload,
@@ -1293,7 +1791,11 @@ class DataAccessLayer:
         if materialized is not None:
             dataset_name, frame, details = materialized
             payload = deserialize_attention_research_bundle_frame(frame, normalized_bundle_id)
-            if payload and not self._bundle_uses_legacy_attention_titles(payload):
+            if (
+                payload
+                and not self._bundle_uses_legacy_attention_titles(payload)
+                and not self._bundle_uses_stat_dump_copy(payload)
+            ):
                 return self._resolved(
                     payload,
                     mode="materialized",
@@ -1301,6 +1803,9 @@ class DataAccessLayer:
                     details={**details, "bundle_id": normalized_bundle_id},
                 )
 
+        materialized_only = self._materialized_only_result({}, datasets=ATTENTION_BUNDLE_SNAPSHOT_DATASETS, details={"bundle_id": normalized_bundle_id})
+        if materialized_only is not None:
+            return materialized_only
         live = self._resolve_live_attention_artifacts(force_refresh=force_refresh)
         bundle_map = dict(live.get("bundle_map") or {})
         payload = dict(bundle_map.get(normalized_bundle_id) or {})
@@ -1543,6 +2048,9 @@ class DataAccessLayer:
                     },
                 )
 
+        materialized_only = self._materialized_only_result({}, datasets=("fred_summary", "fred_observations"), details={"years": years})
+        if materialized_only is not None:
+            return materialized_only
         if not api_key:
             raise RuntimeError("FRED API key unavailable and no materialized FRED datasets were found.")
 
@@ -1560,6 +2068,9 @@ class DataAccessLayer:
             frame, details = materialized
             return self._resolved(frame.reset_index(drop=True), mode="materialized", datasets=("yield_curve_summary",), details=details)
 
+        materialized_only = self._materialized_only_result(pd.DataFrame(), datasets=("yield_curve_summary",))
+        if materialized_only is not None:
+            return materialized_only
         try:
             wide = load_treasury_yield_curve(years=3)
             summary = build_treasury_yield_summary(wide)
@@ -1578,6 +2089,9 @@ class DataAccessLayer:
                 out = out[out["date"] >= cutoff].copy()
             return self._resolved(out.reset_index(drop=True), mode="materialized", datasets=("yield_curve_observations",), details={**details, "days": int(days)})
 
+        materialized_only = self._materialized_only_result(pd.DataFrame(), datasets=("yield_curve_observations",), details={"days": int(days)})
+        if materialized_only is not None:
+            return materialized_only
         try:
             wide = load_treasury_yield_curve(years=max(1, min(10, int(days // 365) + 1)))
             observations = build_treasury_yield_observations(wide)
@@ -1594,6 +2108,9 @@ class DataAccessLayer:
             frame, details = materialized
             return self._resolved(frame.reset_index(drop=True), mode="materialized", datasets=("yield_curve_facts_1d",), details=details)
 
+        materialized_only = self._materialized_only_result(pd.DataFrame(), datasets=("yield_curve_facts_1d",))
+        if materialized_only is not None:
+            return materialized_only
         try:
             wide = load_treasury_yield_curve(years=1)
             facts = build_treasury_yield_facts_1d(wide, asof_time_utc=pd.Timestamp.utcnow())
