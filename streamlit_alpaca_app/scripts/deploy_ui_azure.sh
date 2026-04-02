@@ -369,11 +369,18 @@ fi
 TARGET_APP="$(target_app_name "$TARGET")"
 TARGET_TRACK_VALUE="development"
 TARGET_CACHE_DISABLED_VALUE="true"
-TARGET_FORCE_REFRESH_DEFAULT_VALUE="true"
+#
+# Keep force refresh disabled by default in both dev and prod. For snapshot-first
+# surfaces such as Home, enabling this changes runtime semantics and bypasses the
+# precomputed views in favor of the on-demand builders.
+#
+# Only flip this on intentionally for targeted runtime testing, and do it via an
+# explicit rollout override so we do not accidentally regress the default UX on
+# every subsequent deploy.
+TARGET_FORCE_REFRESH_DEFAULT_VALUE="${APP_FORCE_DATA_REFRESH_DEFAULT_OVERRIDE:-false}"
 if [[ "$TARGET" == "prod" ]]; then
   TARGET_TRACK_VALUE="production"
   TARGET_CACHE_DISABLED_VALUE="false"
-  TARGET_FORCE_REFRESH_DEFAULT_VALUE="false"
 fi
 
 TARGET_FQDN="$(app_fqdn "$TARGET_APP")"

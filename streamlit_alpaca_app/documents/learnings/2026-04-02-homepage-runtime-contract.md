@@ -61,6 +61,7 @@ If we need hybrid behavior for some surfaces, it must be explicit and scoped. It
 5. When diagnosing slowness, first answer:
    - Are we reading a materialized dataset?
    - Or did we accidentally trigger the on-demand builder?
+6. Do not let routine dev deploys rewrite this contract. `scripts/deploy_ui_azure.sh` must keep `APP_FORCE_DATA_REFRESH_DEFAULT=false` by default, with overrides reserved for targeted debugging only.
 
 ## Immediate Fix Applied
 
@@ -69,3 +70,13 @@ Dev was corrected by setting:
 - `APP_FORCE_DATA_REFRESH_DEFAULT=false`
 
 That restored the expected default behavior: Home reads the precomputed attention views instead of recomputing them during page load.
+
+## Follow-up Guardrail
+
+The recurrence mechanism was operational, not just conceptual: `scripts/deploy_ui_azure.sh` was writing `APP_FORCE_DATA_REFRESH_DEFAULT=true` on every dev deploy.
+
+That script now pins `APP_FORCE_DATA_REFRESH_DEFAULT=false` for normal rollouts in both environments. If a future task needs to test the on-demand path explicitly, it must do so with a one-off override:
+
+- `APP_FORCE_DATA_REFRESH_DEFAULT_OVERRIDE=true ./scripts/deploy_ui_azure.sh --target dev ...`
+
+That override should be treated as temporary debugging state, not the default runtime contract.

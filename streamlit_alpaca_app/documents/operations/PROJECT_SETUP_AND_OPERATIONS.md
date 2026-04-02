@@ -201,6 +201,12 @@ Useful flags:
 - `--image-ref <repo:tag|repo@sha256:...>` to deploy an existing image
 - `--refresh-tracker-only` to rewrite `documents/infra/UI_DEPLOYMENT_STATUS.md` without deploying
 
+Warning:
+
+- Keep `APP_FORCE_DATA_REFRESH_DEFAULT=false` for normal dev and prod rollouts.
+- For Home and other snapshot-first surfaces, setting it to `true` is not a harmless performance toggle. It changes behavior and can bypass precomputed views in favor of on-demand rebuilds.
+- `scripts/deploy_ui_azure.sh` now pins the default to `false` for both environments. Only override it intentionally with `APP_FORCE_DATA_REFRESH_DEFAULT_OVERRIDE=true` for targeted debugging, and revert immediately after.
+
 ### Custom domains and managed TLS
 
 Current Development custom domains are bound on `sn-streamlit-ui-dev` in:
