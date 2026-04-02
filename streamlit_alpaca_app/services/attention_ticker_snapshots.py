@@ -8,7 +8,7 @@ import pandas as pd
 
 from compute.fundamentals import load_quarterly_fundamentals, share_count_asof
 from services.company import build_company_description, summarize_recent_news
-from services.entity_taxonomy import business_focus_label_from_taxonomy_row, taxonomy_lookup_by_symbol
+from services.entity_taxonomy import dashboard_business_lens_from_taxonomy_row, taxonomy_lookup_by_symbol
 from services.market import commodity_proxy_profile
 
 
@@ -345,7 +345,7 @@ def build_attention_ticker_background_snapshot_frame(
             load_quarterly_fundamentals(symbol),
             asof_time_utc=asof_time_utc,
         )
-        business_lens = business_focus_label_from_taxonomy_row(taxonomy_lookup.get(symbol)) or "All Market"
+        business_lens = dashboard_business_lens_from_taxonomy_row(taxonomy_lookup.get(symbol))
         description_text = build_company_description(
             symbol,
             {"name": company_name},

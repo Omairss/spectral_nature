@@ -2,6 +2,7 @@ streamlit>=1.39
 pandas>=2.2
 numpy>=1.26,<2
 plotly>=5.24
+networkx>=3.2
 requests>=2.32
 alpaca-py>=0.34
 simfin>=1.0.1

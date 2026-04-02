@@ -6,7 +6,7 @@ This guide is for new contributors/operators with **no prior project context**.
 
 ## 1) What this project is
 
-`streamlit_alpaca_app` is a Streamlit analytics/trading dashboard that:
+`streamlit_alpaca_app` is the Spectral Nature UI application. It:
 
 - serves UI views (portfolio, performance, FRED macro, market/technical/options/fundamentals)
 - reads mostly from **precomputed pipeline snapshots** (Blob parquet + Postgres metadata)
@@ -18,8 +18,8 @@ This guide is for new contributors/operators with **no prior project context**.
 - **Compute layer**: `compute/*` (pure transforms and derived-data logic)
 - **Services**: `services/*` (API clients, caching, pipeline store integration, secrets)
 - **Pipeline jobs**: `pipeline/jobs/main.py`
-- **Infra scripts/docs**: `scripts/*`, `infra/*`
-- **Working plans**: `plans/*` for active refactor, recovery, and implementation notes
+- **Infra scripts/docs**: `scripts/*`, `infra/*`, `documents/infra/*`
+- **Working plans**: `documents/plans/*` for active refactor, recovery, and implementation notes
 
 ---
 
@@ -36,7 +36,7 @@ This guide is for new contributors/operators with **no prior project context**.
 
 - Azure Container Apps + ACR + Managed Identity
 - Key Vault for secrets
-- Streamlit login gate before UI access
+- authentication gate before UI access
 
 ---
 
@@ -49,7 +49,7 @@ This guide is for new contributors/operators with **no prior project context**.
 
 See current URLs/revisions in:
 
-- `infra/UI_DEPLOYMENT_STATUS.md`
+- `documents/infra/UI_DEPLOYMENT_STATUS.md`
 
 ### Pipeline jobs
 
@@ -99,7 +99,7 @@ source infra/deployment.outputs.env
 ## Run locally
 
 ```bash
-streamlit run app.py --server.port 8505 --server.address 0.0.0.0
+./scripts/run_ui_local.sh
 ```
 
 ---
@@ -111,7 +111,19 @@ streamlit run app.py --server.port 8505 --server.address 0.0.0.0
 - `DASHBOARD_AUTH_ENABLED=true|false`
 - `DASHBOARD_AUTH_USERNAME_SECRET`
 - `DASHBOARD_AUTH_PASSWORD_SECRET`
+- `DASHBOARD_AUTH_MODE=legacy|database|auto`
+- `APP_PUBLIC_BASE_URL`
 - `AZURE_KEY_VAULT_NAME` / `KEY_VAULT_NAME`
+
+## Email delivery
+
+- `APP_SMTP_HOST` (ACS SMTP: `smtp.azurecomm.net`)
+- `APP_SMTP_PORT` (ACS SMTP: `587`)
+- `APP_SMTP_USE_TLS=true|false`
+- `APP_SMTP_USE_SSL=true|false`
+- `APP_SMTP_USERNAME_SECRET` (default secret: `app-smtp-username`)
+- `APP_SMTP_PASSWORD_SECRET` (default secret: `app-smtp-password`)
+- `APP_EMAIL_FROM_SECRET` (default secret: `app-email-from`)
 
 ## Pipeline store access
 
@@ -131,9 +143,9 @@ streamlit run app.py --server.port 8505 --server.address 0.0.0.0
 
 ## Working design docs
 
-- `plans/README.md` is the entrypoint for active implementation plans.
-- `ATTENTION_FEED_GUIDELINES.md` holds the current product standard and evidence rules.
-- Keep transient notes in `plans/` instead of adding new root-level scratch docs.
+- `documents/plans/README.md` is the entrypoint for active implementation plans.
+- `documents/reference/ATTENTION_FEED_GUIDELINES.md` holds the current product standard and evidence rules.
+- Keep transient notes in `documents/plans/` instead of adding new root-level scratch docs.
 
 ---
 
@@ -176,7 +188,7 @@ Default behavior:
 2. Deploy the digest-pinned image to `sn-streamlit-ui-dev`.
 3. Wait for the latest revision to become ready.
 4. Run endpoint smoke checks.
-5. Rewrite `infra/UI_DEPLOYMENT_STATUS.md` from live Azure state.
+5. Rewrite `documents/infra/UI_DEPLOYMENT_STATUS.md` from live Azure state.
 
 Promote the currently running Development image to Production:
 
@@ -187,7 +199,7 @@ Promote the currently running Development image to Production:
 Useful flags:
 
 - `--image-ref <repo:tag|repo@sha256:...>` to deploy an existing image
-- `--refresh-tracker-only` to rewrite `infra/UI_DEPLOYMENT_STATUS.md` without deploying
+- `--refresh-tracker-only` to rewrite `documents/infra/UI_DEPLOYMENT_STATUS.md` without deploying
 
 ### Custom domains and managed TLS
 
@@ -243,6 +255,25 @@ az containerapp hostname bind \
   --validation-method CNAME
 ```
 
+### Email delivery setup
+
+Use the Azure setup script when enabling password reset and invite emails for a UI app:
+
+```bash
+./scripts/setup_ui_email_delivery_azure.sh --target dev --test-to you@example.com
+```
+
+What it does:
+
+1. Creates or reuses Azure Communication Services Email and Communication resources in the UI resource group.
+2. Creates an Azure-managed domain plus a sender username for outbound mail.
+3. Creates or reuses an Entra app registration for SMTP auth and stores the client secret in Key Vault.
+4. Writes the UI-facing mail secrets to the Key Vault used by the selected Container App.
+5. Updates the target Container App with `APP_SMTP_*` and `APP_EMAIL_FROM_SECRET`.
+6. Waits for the new revision, smoke-checks the app, and optionally sends a test message.
+
+Non-secret outputs are written to `infra/email_delivery.outputs.env`.
+
 Operational notes:
 
 - The managed certificate creation step can stay in `Pending` for several minutes before Azure binds it.
@@ -280,7 +311,7 @@ From active job schedules:
 
 Fundamentals are generated inside equities preload, but throttled to once per `FUNDAMENTALS_MIN_REFRESH_HOURS` (default 24h).
 Taxonomy refresh runs once a month by default and publishes the DB-backed entity taxonomy snapshot for NASDAQ and NYSE listings.
-For setup and runtime flow charts, see `infra/TAXONOMY_PIPELINE_FLOW.md`.
+For setup and runtime flow charts, see `documents/infra/TAXONOMY_PIPELINE_FLOW.md`.
 
 ---
 
@@ -339,13 +370,13 @@ These are high-impact and low-risk improvements:
      - UI endpoint health
 
 6. **Standardize status tracker updates**
-   - Auto-update `infra/UI_DEPLOYMENT_STATUS.md` in deploy script after successful rollout.
+   - Auto-update `documents/infra/UI_DEPLOYMENT_STATUS.md` in deploy script after successful rollout.
 
 ---
 
 ## 12) First-day checklist for a new engineer
 
-1. Read this file and `infra/UI_DEPLOYMENT_STATUS.md`.
+1. Read this file and `documents/infra/UI_DEPLOYMENT_STATUS.md`.
 2. Run app locally with `.env` + `infra/deployment.outputs.env`.
 3. Verify login and Pipeline Jobs page.
 4. Trigger one source refresh and confirm `job_runs` updates.

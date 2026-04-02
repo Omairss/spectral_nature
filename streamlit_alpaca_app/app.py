@@ -18,19 +18,17 @@ import plotly.graph_objects as go
 import streamlit as st
 from streamlit.components.v1 import html as components_html
 
-from compute.anomalies import SENSITIVITY_PRESETS, attention_preset, normalize_horizons
 from compute.portfolio import normalize_timeseries_view
 from data_access.layer import DataAccessLayer
-from presentation import dashboard_loaders
+from presentation import attention_content, dashboard_loaders
 from services import auth_service
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
 from services.analytics import build_metric_bar, build_portfolio_vs_benchmarks_fig, select_signed_ranked
 from services import attention_surface as attention_surface_module
-from services.attention_feed_brief import build_attention_feed_brief
 from services.company import build_attention_news_narrative, build_company_description, summarize_recent_news
 from services.config import AppConfig, load_config
 from services.data_cache import cache_bundle_exists, cache_data_root, cache_policy_path, dataset_scope
-from services.entity_taxonomy import business_focus_label_from_taxonomy_row, taxonomy_lookup_by_symbol
+from services.entity_taxonomy import business_focus_label_from_taxonomy_row, dashboard_business_lens_from_taxonomy_row, taxonomy_lookup_by_symbol
 from services.fred import (
     FredAPIError,
     FredSeriesSpec,
@@ -52,13 +50,11 @@ from services.pipeline_store import (
 from services.homepage_v2 import (
     HOMEPAGE_V2_COMPANY_PANEL,
     HOMEPAGE_V2_RESEARCH_PANEL,
-    build_homepage_v2_digest,
     build_homepage_v2_market_digest,
     homepage_v2_bundle_symbol_lookup,
     normalize_homepage_v2_detail_state,
 )
-from services.llm import LLMAPIError, load_llm_client
-from services.runtime_policy import attention_ui_policy
+from services.runtime_policy import attention_ui_policy, presentation_layer_only_enabled, section_data_available
 from services.secrets import resolve_secret_value
 from services.fundamentals import plot_statement
 from services.market import (
@@ -110,9 +106,9 @@ except ModuleNotFoundError as exc:
         return fig
 
 
-st.set_page_config(page_title="Spectral Nature - Alpaca + Streamlit", page_icon="chart_with_upwards_trend", layout="wide")
+st.set_page_config(page_title="Spectral Nature", page_icon="chart_with_upwards_trend", layout="wide")
 
-LOGGER = logging.getLogger("spectral_nature.streamlit_app")
+LOGGER = logging.getLogger("spectral_nature.ui_app")
 if not LOGGER.handlers:
     formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
 
@@ -120,7 +116,7 @@ if not LOGGER.handlers:
     stream_handler.setFormatter(formatter)
     LOGGER.addHandler(stream_handler)
 
-    file_handler = logging.FileHandler("/tmp/spectral_streamlit.log")
+    file_handler = logging.FileHandler("/tmp/spectral_nature_ui.log")
     file_handler.setFormatter(formatter)
     LOGGER.addHandler(file_handler)
 LOGGER.setLevel(logging.INFO)
@@ -186,6 +182,262 @@ ATTENTION_SENSITIVITY_ORDER = list(_ATTENTION_UI_POLICY.sensitivity_order)
 
 _AUTH_COOKIE_NAME = "spectral_nature_ui_session"
 _AUTH_COOKIE_TTL_SECONDS = 7 * 24 * 60 * 60
+APP_BRAND_NAME = "Spectral Nature"
+APP_BRAND_KICKER = "Private Market Intelligence"
+APP_BRAND_SUBTITLE = "Research, portfolio context, and market structure in one refined workspace."
+
+
+def _environment_label(app_track: str) -> str:
+    normalized = str(app_track or "").strip().lower()
+    if normalized in {"prod", "production"}:
+        return "Live"
+    if normalized in {"dev", "development"}:
+        return "Preview"
+    if normalized:
+        return normalized.title()
+    return "Local"
+
+
+def _ensure_app_shell_styles() -> None:
+    if st.session_state.get("_sn_app_shell_styles_ready"):
+        return
+    st.session_state["_sn_app_shell_styles_ready"] = True
+    st.markdown(
+        """
+        <style>
+        :root {
+            --sn-bg-0: #0a0d12;
+            --sn-bg-1: #11161d;
+            --sn-bg-2: #171d25;
+            --sn-card: rgba(17, 22, 29, 0.94);
+            --sn-card-strong: rgba(22, 28, 37, 0.98);
+            --sn-line: rgba(148, 163, 184, 0.12);
+            --sn-line-strong: rgba(148, 163, 184, 0.22);
+            --sn-ink: #f3f5f7;
+            --sn-muted: #9aa4b2;
+            --sn-muted-strong: #c7d0db;
+            --sn-accent: #a8b8c9;
+            --sn-accent-strong: #d8e1ea;
+            --sn-shadow: 0 18px 42px rgba(5, 8, 12, 0.22);
+            --sn-shadow-soft: 0 12px 26px rgba(5, 8, 12, 0.16);
+        }
+        .stApp {
+            background: linear-gradient(180deg, var(--sn-bg-0) 0%, var(--sn-bg-1) 100%);
+            color: var(--sn-ink);
+            font-family: "Avenir Next", "Plus Jakarta Sans", "IBM Plex Sans", "Segoe UI", sans-serif;
+        }
+        #MainMenu, footer {
+            visibility: hidden;
+        }
+        [data-testid="stToolbar"] {
+            display: none;
+        }
+        [data-testid="stHeader"] {
+            background: rgba(10, 13, 18, 0.9);
+            border-bottom: 1px solid var(--sn-line);
+            backdrop-filter: blur(10px);
+        }
+        .block-container {
+            padding-top: 1.5rem;
+            padding-bottom: 2.5rem;
+            max-width: 1440px;
+        }
+        h1, h2, h3 {
+            color: var(--sn-ink);
+            font-family: "Avenir Next", "Plus Jakarta Sans", "IBM Plex Sans", "Segoe UI", sans-serif;
+            letter-spacing: -0.035em;
+            font-weight: 650;
+        }
+        p, label, .stCaption {
+            color: var(--sn-muted);
+        }
+        strong, b {
+            color: var(--sn-ink);
+        }
+        .stApp a {
+            color: var(--sn-accent-strong);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .stApp a:hover {
+            text-decoration: underline;
+        }
+        [data-testid="stSidebar"] {
+            background: #0f1319;
+            border-right: 1px solid var(--sn-line);
+        }
+        [data-testid="stSidebar"] * {
+            color: var(--sn-ink);
+        }
+        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+        [data-testid="stSidebar"] label,
+        [data-testid="stSidebar"] .stCaption {
+            color: var(--sn-muted-strong);
+        }
+        .sn-sidebar-brand {
+            margin: 0 0 1rem 0;
+            padding: 1rem 1rem 0.95rem 1rem;
+            border-radius: 0.95rem;
+            border: 1px solid var(--sn-line-strong);
+            background: var(--sn-card-strong);
+            box-shadow: var(--sn-shadow-soft);
+        }
+        .sn-sidebar-kicker {
+            margin-bottom: 0.35rem;
+            color: var(--sn-accent);
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+        .sn-sidebar-wordmark {
+            margin-bottom: 0.35rem;
+            color: var(--sn-ink);
+            font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+            font-size: 1.55rem;
+            font-weight: 700;
+            line-height: 1.05;
+        }
+        .sn-sidebar-subtitle {
+            margin-bottom: 0.8rem;
+            color: var(--sn-muted);
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+        .sn-sidebar-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+        }
+        .sn-sidebar-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.24rem 0.58rem;
+            border-radius: 0.55rem;
+            border: 1px solid var(--sn-line);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--sn-muted-strong);
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+        .sn-page-intro {
+            margin-bottom: 0.9rem;
+            padding: 1.15rem 1.25rem 1.05rem 1.25rem;
+            border-radius: 0.95rem;
+            border: 1px solid var(--sn-line);
+            background: var(--sn-card);
+            box-shadow: var(--sn-shadow-soft);
+        }
+        .sn-page-kicker {
+            margin-bottom: 0.35rem;
+            color: var(--sn-accent);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+        .sn-page-title {
+            margin-bottom: 0.38rem;
+            color: var(--sn-ink);
+            font-size: clamp(1.75rem, 2vw, 2.35rem);
+            font-weight: 680;
+            line-height: 1.02;
+        }
+        .sn-page-copy {
+            max-width: 58rem;
+            color: var(--sn-muted-strong);
+            font-size: 0.94rem;
+            line-height: 1.6;
+        }
+        div[data-testid="stMetric"] {
+            padding: 0.9rem 1rem;
+            border-radius: 0.9rem;
+            border: 1px solid var(--sn-line);
+            background: var(--sn-card);
+            box-shadow: var(--sn-shadow-soft);
+        }
+        div[data-testid="stVerticalBlockBorderWrapper"] > div {
+            border-radius: 1rem;
+            border: 1px solid var(--sn-line);
+            background: var(--sn-card);
+            box-shadow: var(--sn-shadow-soft);
+        }
+        .stButton > button,
+        .stFormSubmitButton > button {
+            padding: 0.56rem 0.96rem;
+            border-radius: 0.72rem;
+            border: 1px solid var(--sn-line-strong);
+            background: #1a2029;
+            color: var(--sn-ink);
+            font-weight: 650;
+            box-shadow: none;
+            transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+        }
+        .stButton > button:hover,
+        .stFormSubmitButton > button:hover {
+            border-color: rgba(216, 225, 234, 0.28);
+            background: #202733;
+        }
+        div[data-baseweb="tab-list"] {
+            gap: 0.45rem;
+            padding: 0.2rem;
+            border-radius: 0.95rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--sn-line);
+        }
+        button[data-baseweb="tab"] {
+            padding: 0.38rem 0.85rem;
+            border-radius: 0.72rem;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--sn-muted-strong);
+        }
+        button[data-baseweb="tab"][aria-selected="true"] {
+            border-color: var(--sn-line);
+            background: var(--sn-card-strong);
+            color: var(--sn-ink);
+        }
+        [data-testid="stExpander"] details {
+            border-radius: 0.95rem;
+            border: 1px solid var(--sn-line);
+            background: var(--sn-card);
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _render_sidebar_brand_panel(app_track: str) -> None:
+    pills = [
+        _environment_label(app_track),
+        "Research Workspace",
+    ]
+    pills_html = "".join(f"<span class='sn-sidebar-pill'>{html.escape(label)}</span>" for label in pills if label)
+    st.markdown(
+        (
+            "<div class='sn-sidebar-brand'>"
+            f"<div class='sn-sidebar-kicker'>{html.escape(APP_BRAND_KICKER)}</div>"
+            f"<div class='sn-sidebar-wordmark'>{html.escape(APP_BRAND_NAME)}</div>"
+            f"<div class='sn-sidebar-subtitle'>{html.escape(APP_BRAND_SUBTITLE)}</div>"
+            f"<div class='sn-sidebar-pills'>{pills_html}</div>"
+            "</div>"
+        ),
+        unsafe_allow_html=True,
+    )
+
+
+def _render_page_intro(kicker: str, title: str, body: str) -> None:
+    st.markdown(
+        (
+            "<div class='sn-page-intro'>"
+            f"<div class='sn-page-kicker'>{html.escape(kicker)}</div>"
+            f"<div class='sn-page-title'>{html.escape(title)}</div>"
+            f"<div class='sn-page-copy'>{html.escape(body)}</div>"
+            "</div>"
+        ),
+        unsafe_allow_html=True,
+    )
 
 
 def _log_event(message: str, **fields: object) -> None:
@@ -235,6 +487,11 @@ def _market_business_filter_for_symbol(symbol: str) -> str:
     return label or "All Market"
 
 
+def _company_narrative_lens_for_symbol(symbol: str) -> str:
+    row = _taxonomy_row_for_symbol(symbol)
+    return str(dashboard_business_lens_from_taxonomy_row(row) or "").strip()
+
+
 def _taxonomy_summary_text(symbol: str) -> str:
     row = _taxonomy_row_for_symbol(symbol)
     if not row:
@@ -269,10 +526,7 @@ def _make_api(cfg: AppConfig) -> AlpacaAPI:
 
 
 def _presentation_layer_only() -> bool:
-    raw = os.getenv("APP_PRESENTATION_LAYER_ONLY")
-    if raw is None or not str(raw).strip():
-        return True
-    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+    return presentation_layer_only_enabled(os.getenv("APP_PRESENTATION_LAYER_ONLY"))
 
 
 def _data_access_layer(cfg: AppConfig | None = None, fred_api_key: str | None = None) -> DataAccessLayer:
@@ -335,7 +589,6 @@ _load_option_surface_cached = dashboard_loaders._load_option_surface_cached
 _load_option_candidates_cached = dashboard_loaders._load_option_candidates_cached
 _load_quarterly_fundamentals_cached = dashboard_loaders._load_quarterly_fundamentals_cached
 _load_asset_metadata_cached = dashboard_loaders._load_asset_metadata_cached
-_resolve_data_access_payload = dashboard_loaders._resolve_data_access_payload
 _load_public_price_history_cached = dashboard_loaders._load_public_price_history_cached
 _load_ticker_snapshot_profile = dashboard_loaders._load_ticker_snapshot_profile
 _load_recent_news_cached = dashboard_loaders._load_recent_news_cached
@@ -344,6 +597,28 @@ _load_attention_ticker_snapshot_map_cached = dashboard_loaders._load_attention_t
 _load_attention_ticker_snapshot_cached = dashboard_loaders._load_attention_ticker_snapshot_cached
 _load_attention_ticker_background_cached = dashboard_loaders._load_attention_ticker_background_cached
 _load_attention_home_1d_cached = dashboard_loaders._load_attention_home_1d_cached
+_load_attention_research_bundle_cached = dashboard_loaders._load_attention_research_bundle_cached
+_safe_load_attention_research_bundle_cached = dashboard_loaders._safe_load_attention_research_bundle_cached
+_load_fred_dashboard_cached = dashboard_loaders._load_fred_dashboard_cached
+_load_attention_feed_cached = dashboard_loaders._load_attention_feed_cached
+_load_attention_rollups_cached = dashboard_loaders._load_attention_rollups_cached
+_load_attention_feed_brief_cached = dashboard_loaders._load_attention_feed_brief_cached
+_load_homepage_v2_digest_cached = dashboard_loaders._load_homepage_v2_digest_cached
+
+_attention_event_key = attention_content._attention_event_key
+_clean_attention_copy = attention_content._clean_attention_copy
+_raw_attention_copy = attention_content._raw_attention_copy
+_attention_evidence_display_text = attention_content._attention_evidence_display_text
+_attention_story_text = attention_content._attention_story_text
+_headline_items_from_news_payload = attention_content._headline_items_from_news_payload
+_build_attention_brief_input = attention_content._build_attention_brief_input
+_load_attention_brief_payloads = attention_content._load_attention_brief_payloads
+_build_attention_micro_chart = attention_content._build_attention_micro_chart
+_load_attention_news_payloads = attention_content._load_attention_news_payloads
+_load_attention_context_payloads = attention_content._load_attention_context_payloads
+_json_ready = attention_content._json_ready
+_build_homepage_v2_event_record = attention_content._build_homepage_v2_event_record
+_homepage_v2_item_summary = attention_content._homepage_v2_item_summary
 
 
 def _current_user_share_fraction() -> float:
@@ -571,7 +846,11 @@ def _restore_database_login_from_cookie() -> bool:
 def _render_legacy_login_gate() -> None:
     username_expected = _auth_username()
     password_expected = _auth_password()
-    st.title("Spectral Nature Login")
+    _render_page_intro(
+        "Secure Access",
+        "Welcome back",
+        "Private client access to the Spectral Nature workspace for market intelligence, portfolio context, and daily research.",
+    )
 
     if not username_expected or not password_expected:
         st.error("Dashboard authentication is enabled, but legacy login credentials are not configured.")
@@ -608,14 +887,18 @@ def _render_legacy_login_gate() -> None:
 
 def _render_database_login_gate() -> None:
     auth_state = auth_service.initialize_auth_system()
-    st.title("Spectral Nature Login")
+    _render_page_intro(
+        "Secure Access",
+        "Welcome back",
+        "Private client access to the Spectral Nature workspace for market intelligence, portfolio context, and daily research.",
+    )
 
     if not auth_state.get("available"):
         st.error("Database-backed authentication is enabled, but the auth store is unavailable.")
         st.code(
             "export DASHBOARD_AUTH_MODE='database'\n"
             "export POSTGRES_CONNECTION_STRING='postgresql://...'\n"
-            "streamlit run app.py",
+            "./scripts/run_ui_local.sh",
             language="bash",
         )
         st.stop()
@@ -627,7 +910,7 @@ def _render_database_login_gate() -> None:
             "export POSTGRES_CONNECTION_STRING='postgresql://...'\n"
             "export DASHBOARD_AUTH_BOOTSTRAP_ADMIN_EMAIL='admin@example.com'\n"
             "export DASHBOARD_AUTH_BOOTSTRAP_ADMIN_PASSWORD='ChangeMe1234'\n"
-            "streamlit run app.py",
+            "./scripts/run_ui_local.sh",
             language="bash",
         )
         st.stop()
@@ -859,9 +1142,12 @@ def _render_access_admin_section() -> None:
 
 
 def _has_live_api(api: AlpacaAPI | None, message: str, *, allow_pipeline: bool = False) -> bool:
-    if _presentation_layer_only() and pipeline_store_configured():
-        return True
-    if api is not None or (allow_pipeline and pipeline_store_configured()):
+    if section_data_available(
+        api_available=api is not None,
+        pipeline_available=pipeline_store_configured(),
+        presentation_only=_presentation_layer_only(),
+        allow_pipeline=allow_pipeline,
+    ):
         return True
     st.warning(message)
     return False
@@ -957,12 +1243,8 @@ def _render_fundamental_statement_charts(
         if not isinstance(frame, pd.DataFrame) or frame.empty:
             continue
         title = f"{normalized_ticker} - {title_suffix}" if quarterly_titles else f"{normalized_ticker} {title_suffix}"
-        fig = plot_statement(frame, title)
-        if bottom_labels:
-            fig.update_layout(title=None, margin=dict(t=20))
+        fig = plot_statement(frame, title, legend_bottom=bottom_labels)
         st.plotly_chart(fig, use_container_width=True)
-        if bottom_labels:
-            st.caption(title_suffix)
 
 
 def _ticker_inspector_href(symbol: str, *, target: str) -> str:
@@ -1035,6 +1317,7 @@ def _render_ticker_snapshot_table(
     show_header: bool = True,
     click_target: str = "",
     key_prefix: str = "",
+    allow_live_profile_fallback: bool = True,
 ) -> None:
     if not isinstance(items, list):
         return
@@ -1043,7 +1326,12 @@ def _render_ticker_snapshot_table(
         symbol = str((item or {}).get("symbol") or "").upper().strip()
         if not symbol:
             continue
-        profile = _load_ticker_snapshot_profile(cfg, symbol, force_refresh=force_refresh)
+        profile = _load_ticker_snapshot_profile(
+            cfg,
+            symbol,
+            force_refresh=force_refresh,
+            allow_live_fallback=allow_live_profile_fallback,
+        )
         company_name = str(profile.get("company_name") or symbol).strip()
         market_cap_label = str(profile.get("market_cap_label") or "n/a").strip()
         extras = [
@@ -1129,16 +1417,14 @@ def _ensure_inline_loading_banner_styles() -> None:
         <style>
         .sn-inline-loading-banner {
             margin: 0.4rem 0 1rem 0;
-            padding: 0.8rem 0.95rem 0.7rem 0.95rem;
-            border-radius: 0.95rem;
-            border: 1px solid rgba(148, 163, 184, 0.22);
-            background:
-                linear-gradient(180deg, rgba(15, 23, 42, 0.72), rgba(15, 23, 42, 0.56)),
-                radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 35%);
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+            padding: 0.82rem 0.95rem 0.74rem 0.95rem;
+            border-radius: 0.85rem;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            background: rgba(22, 28, 37, 0.92);
+            box-shadow: 0 12px 26px rgba(5, 8, 12, 0.14);
         }
         .sn-inline-loading-title {
-            color: #e2e8f0;
+            color: #f3f5f7;
             font-size: 0.96rem;
             font-weight: 700;
             line-height: 1.25;
@@ -1156,20 +1442,19 @@ def _ensure_inline_loading_banner_styles() -> None:
             height: 0.34rem;
             overflow: hidden;
             border-radius: 999px;
-            background: rgba(148, 163, 184, 0.18);
+            background: rgba(148, 163, 184, 0.12);
         }
         .sn-inline-loading-bar {
             position: absolute;
             inset: 0 auto 0 0;
-            width: 42%;
+            width: 38%;
             border-radius: 999px;
-            background: linear-gradient(90deg, rgba(56, 189, 248, 0.12), rgba(56, 189, 248, 0.92), rgba(34, 197, 94, 0.36));
+            background: #a8b8c9;
             animation: sn-inline-loading-slide 1.35s ease-in-out infinite;
-            box-shadow: 0 0 18px rgba(56, 189, 248, 0.28);
         }
         @keyframes sn-inline-loading-slide {
-            0% { transform: translateX(-92%); }
-            100% { transform: translateX(240%); }
+            0% { transform: translateX(-108%); }
+            100% { transform: translateX(250%); }
         }
         </style>
         """,
@@ -1198,37 +1483,6 @@ def _inline_loading_banner(title: str, detail: str = ""):
         yield
     finally:
         placeholder.empty()
-
-def _load_attention_research_bundle_cached(
-    cfg: AppConfig,
-    bundle_id: str,
-    force_refresh: bool = False,
-) -> dict[str, object]:
-    return _resolve_data_access_payload(
-        "resolve_attention_research_bundle",
-        cfg=cfg,
-        source="news",
-        bundle_id=bundle_id,
-        force_refresh=force_refresh,
-    )
-
-
-def _safe_load_attention_research_bundle_cached(
-    cfg: AppConfig,
-    bundle_id: str,
-    force_refresh: bool = False,
-) -> dict[str, object]:
-    normalized_bundle_id = str(bundle_id or "").strip()
-    if not normalized_bundle_id:
-        return {}
-    try:
-        return _load_attention_research_bundle_cached(
-            cfg,
-            normalized_bundle_id,
-            force_refresh=force_refresh,
-        )
-    except Exception:
-        return {}
 
 
 def _load_attention_bundle_map(
@@ -1404,14 +1658,16 @@ def _render_home_ticker_background_panel(
     clear_mode_value: str = HOMEPAGE_V2_RESEARCH_PANEL,
     panel_title: str = "",
     panel_caption: str = "Loaded from the Home page ticker chart interaction.",
+    open_button_label: str = "Open Market View",
     clear_button_label: str = "Clear",
 ) -> None:
     target = str(ticker or "").upper().strip()
     if not target:
         return
-    business_lens = _market_business_filter_for_symbol(target)
+    business_filter = _market_business_filter_for_symbol(target)
+    narrative_lens = _company_narrative_lens_for_symbol(target)
     with st.container(border=True):
-        header_cols = st.columns([4.2, 1.6, 1.2])
+        header_cols = st.columns([5.2, 1.8], gap="small")
         with header_cols[0]:
             st.subheader(panel_title or f"{target} Background")
             st.caption(panel_caption)
@@ -1419,12 +1675,11 @@ def _render_home_ticker_background_panel(
             if taxonomy_summary:
                 st.caption(taxonomy_summary)
         with header_cols[1]:
-            if st.button("Open In Market Opportunity", key=f"home_background_open_market_{target}", use_container_width=True):
+            if st.button(open_button_label, key=f"home_background_open_market_{target}", use_container_width=True):
                 _open_attention_target(
                     "Market Opportunity",
-                    {"ticker": target, "market_view": "Markets", "business_filter": business_lens},
+                    {"ticker": target, "market_view": "Markets", "business_filter": business_filter},
                 )
-        with header_cols[2]:
             if st.button(clear_button_label, key=f"home_background_clear_{target}_{session_key or 'home'}", use_container_width=True):
                 st.session_state.pop(session_key or "home_selected_ticker", None)
                 if clear_mode_key == "homepage_v2_active_panel":
@@ -1597,7 +1852,7 @@ def _render_home_ticker_background_panel(
             fundamentals,
             {},
             news_payload=news_payload,
-            active_lens=business_lens,
+            active_lens=narrative_lens,
         )
         st.write(description)
 
@@ -1646,79 +1901,6 @@ def _render_home_ticker_background_panel(
             st.markdown("**Fundamentals**")
             _render_fundamental_statement_charts(target, fundamentals, bottom_labels=True)
 
-
-def _load_fred_dashboard_cached(api_key: str, years: int, force_refresh: bool = False) -> dict[str, object]:
-    return _resolve_data_access_payload(
-        "resolve_fred_dashboard",
-        fred_api_key=api_key,
-        source="fred",
-        years=years,
-        force_refresh=force_refresh,
-    )
-
-
-def _load_attention_feed_cached(
-    cfg: AppConfig | None = None,
-    *,
-    dataset_name: str = "attention_feed",
-    source: str = "derivatives",
-    limit: int = 10,
-    entity_ids: list[str] | None = None,
-    horizons: list[str] | None = None,
-    statuses: list[str] | None = None,
-    sensitivity: str | None = None,
-    min_attention_score: float | None = None,
-    residual_zscore_threshold: float | None = None,
-    force_refresh: bool = False,
-) -> pd.DataFrame:
-    return _resolve_data_access_payload(
-        "resolve_attention_feed",
-        cfg=cfg,
-        source=source,
-        dataset_name=dataset_name,
-        limit=limit,
-        entity_ids=entity_ids,
-        horizons=horizons,
-        statuses=statuses,
-        sensitivity=sensitivity,
-        min_attention_score=min_attention_score,
-        residual_zscore_threshold=residual_zscore_threshold,
-        force_refresh=force_refresh,
-    )
-
-
-def _load_attention_rollups_cached(
-    cfg: AppConfig | None = None,
-    *,
-    dataset_name: str = "attention_rollups",
-    source: str = "derivatives",
-    rollup_type: str | None = None,
-    horizons: list[str] | None = None,
-    statuses: list[str] | None = None,
-    sensitivity: str | None = None,
-    min_attention_score: float | None = None,
-    residual_zscore_threshold: float | None = None,
-    high_priority_threshold: float | None = None,
-    limit: int = 10,
-    force_refresh: bool = False,
-) -> pd.DataFrame:
-    return _resolve_data_access_payload(
-        "resolve_attention_rollups",
-        cfg=cfg,
-        source=source,
-        dataset_name=dataset_name,
-        rollup_type=rollup_type,
-        horizons=horizons,
-        statuses=statuses,
-        sensitivity=sensitivity,
-        min_attention_score=min_attention_score,
-        residual_zscore_threshold=residual_zscore_threshold,
-        high_priority_threshold=high_priority_threshold,
-        limit=limit,
-        force_refresh=force_refresh,
-    )
-
-
 def _parse_drilldown_params(raw: object) -> dict[str, object]:
     if isinstance(raw, dict):
         return raw
@@ -1747,61 +1929,6 @@ def _attention_snapshot_label(frame: pd.DataFrame) -> str:
     if timestamps.empty:
         return "n/a"
     return timestamps.max().strftime("%Y-%m-%d %H:%M UTC")
-
-
-def _attention_event_key(row: pd.Series) -> str:
-    symbol = str(row.get("entity_id") or "").upper().strip()
-    horizon = str(row.get("horizon") or "").strip() or "item"
-    return str(row.get("_homepage_v2_event_id") or row.get("event_id") or f"{symbol}-{horizon}").strip()
-
-
-def _clean_attention_copy(text: object) -> str:
-    return attention_surface_module.clean_attention_copy(text)
-
-
-def _looks_like_low_quality_surface_summary(text: object) -> bool:
-    return attention_surface_module.looks_like_low_quality_surface_summary(text)
-
-
-def _raw_attention_copy(text: object) -> str:
-    clean = " ".join(str(text or "").split())
-    return "" if clean.lower() == "nan" else clean
-
-
-def _attention_evidence_display_text(item: dict[str, object]) -> str:
-    headline = " ".join(str(item.get("headline") or "").split()).lower()
-    for candidate in [
-        item.get("display_excerpt"),
-        item.get("excerpt"),
-        item.get("summary"),
-    ]:
-        text = _clean_attention_copy(candidate)
-        if text and text.lower() != headline:
-            return text
-    return ""
-
-
-def _surface_what_changed_text(text: object) -> str:
-    clean = _clean_attention_copy(text)
-    if not clean:
-        return ""
-    pattern = re.compile(
-        r"^(?P<symbol>[A-Z0-9.\-]+)\s+(?P<direction>rose|fell)\s+(?P<move>\d+(?:\.\d+)?)% today"
-        r"(?: versus a [+\-]?\d+(?:\.\d+)?% 20-day baseline)?"
-        r"(?: \(\d+(?:\.\d+)?z away from expectation\))?\.?$",
-        re.IGNORECASE,
-    )
-    match = pattern.match(clean)
-    if not match:
-        return clean
-    symbol = match.group("symbol").upper()
-    direction = match.group("direction").lower()
-    move = match.group("move")
-    return f"{symbol} {direction} {move}% today, well outside its recent 1d baseline."
-
-
-def _looks_like_model_math_explanation(text: object) -> bool:
-    return attention_surface_module.looks_like_model_math_explanation(text)
 
 
 def _attention_home_bundle_preview(
@@ -1848,20 +1975,6 @@ def _attention_bundle_title(bundle: dict[str, object], *, fallback: dict[str, ob
     if symbol:
         return symbol
     return "Research bundle"
-
-
-def _annotate_attention_source(frame: pd.DataFrame, *, source_key: str) -> pd.DataFrame:
-    if frame.empty:
-        return frame
-    out = frame.copy()
-    out["attention_source"] = source_key
-    out["source_label"] = SOURCE_LABELS.get(source_key, source_key.replace("_", " ").title())
-    return out
-
-
-def _attention_sensitivity_label(key: str) -> str:
-    preset = SENSITIVITY_PRESETS.get(str(key).strip().lower(), {})
-    return str(preset.get("label") or str(key).replace("_", " ").title())
 
 
 def _prime_widget_choice(
@@ -1934,17 +2047,6 @@ def _open_attention_target(section_name: str, params: dict[str, object] | None =
     st.rerun()
 
 
-def _attention_story_text(row: pd.Series) -> str:
-    story = _clean_attention_copy(row.get("story_text"))
-    if story:
-        return story
-    why_now = _clean_attention_copy(row.get("why_now_text"))
-    if why_now:
-        return why_now
-    entity_id = str(row.get("entity_id") or "").upper().strip()
-    return f"{entity_id} is moving away from expectation." if entity_id else ""
-
-
 def _attention_key_points_text(row: pd.Series) -> str:
     pieces: list[str] = []
     horizon = str(row.get("horizon") or "").strip()
@@ -1968,393 +2070,6 @@ def _attention_key_points_text(row: pd.Series) -> str:
         pieces.append("Portfolio overlap")
 
     return " | ".join(piece for piece in pieces if piece)
-
-
-def _headline_items_from_news_payload(
-    news_payload: dict[str, object] | None,
-    *,
-    limit: int = 3,
-) -> list[dict[str, str]]:
-    articles = news_payload.get("articles") if isinstance(news_payload, dict) else pd.DataFrame()
-    if not isinstance(articles, pd.DataFrame) or articles.empty:
-        return []
-    rows: list[dict[str, str]] = []
-    for _, item in articles.head(max(int(limit), 1)).iterrows():
-        headline = str(item.get("headline") or "").strip()
-        if not headline:
-            continue
-        published_at = pd.to_datetime(item.get("published_at"), utc=True, errors="coerce")
-        rows.append(
-            {
-                "headline": headline,
-                "summary": str(item.get("summary") or item.get("description") or "").strip(),
-                "source": str(item.get("source") or "").strip(),
-                "url": str(item.get("url") or "").strip(),
-                "published_at": published_at.isoformat() if pd.notna(published_at) else "",
-            }
-        )
-    return rows
-
-
-def _build_attention_brief_input(
-    row: pd.Series,
-    *,
-    news_payload: dict[str, object] | None = None,
-    context_payload: dict[str, object] | None = None,
-    asset: dict[str, object] | None = None,
-) -> dict[str, object]:
-    symbol = str(row.get("entity_id") or "").upper().strip()
-    peer_group_name = str(row.get("peer_group_name") or "").strip()
-    active_lens = peer_group_name if peer_group_name not in {"", "All Market", "Broad Commodity Market"} else None
-    news_context = build_attention_news_narrative(symbol, news_payload, peer_group_name=peer_group_name)
-    company_description = build_company_description(
-        symbol,
-        asset or {},
-        {},
-        {"regime": str(row.get("regime_label") or "").strip()},
-        news_payload=news_payload,
-        active_lens=active_lens,
-    )
-    linked_news_raw = pd.to_numeric(row.get("linked_news_count"), errors="coerce")
-    linked_news_count = int(linked_news_raw) if pd.notna(linked_news_raw) else 0
-    context = context_payload or {}
-    return {
-        "symbol": symbol,
-        "company_name": str((asset or {}).get("name") or "").strip(),
-        "title": str(row.get("title") or symbol or "Attention item").strip(),
-        "subtitle": str(row.get("subtitle") or "").strip(),
-        "story_text": _attention_story_text(row),
-        "why_now_text": _clean_attention_copy(row.get("why_now_text")),
-        "peer_group_name": peer_group_name,
-        "regime_label": str(row.get("regime_label") or "").strip(),
-        "linked_news_count": linked_news_count,
-        "news_narrative": str(news_context.get("narrative_text") or "").strip(),
-        "headline_items": _headline_items_from_news_payload(news_payload, limit=3),
-        "company_description": company_description,
-        "context_headline": str(context.get("llm_headline") or "").strip(),
-        "context_summary": str(context.get("llm_summary_text") or context.get("context_story_text") or "").strip(),
-        "context_narrative": str(context.get("llm_narrative_text") or "").strip(),
-        "context_why_now": str(context.get("llm_why_now") or "").strip(),
-        "primary_source_excerpt": str(context.get("primary_source_excerpt") or "").strip(),
-        "watchpoint_text": str(row.get("next_best_action") or "").strip(),
-    }
-
-
-@st.cache_data(ttl=900, show_spinner=False)
-def _load_attention_feed_brief_cached(
-    brief_input_json: str,
-    *,
-    use_llm: bool,
-) -> dict[str, object]:
-    try:
-        brief_input = json.loads(brief_input_json or "{}")
-    except Exception:
-        brief_input = {}
-    try:
-        brief = build_attention_feed_brief(brief_input, load_llm_client() if use_llm else None)
-        brief["error"] = ""
-        return brief
-    except LLMAPIError as exc:
-        brief = build_attention_feed_brief(brief_input, None)
-        brief["error"] = str(exc)
-        return brief
-    except Exception as exc:
-        brief = build_attention_feed_brief(brief_input, None)
-        brief["error"] = f"{type(exc).__name__}: {exc}"
-        return brief
-
-
-def _load_attention_brief_payloads(
-    cfg: AppConfig,
-    rows: pd.DataFrame,
-    *,
-    news_payloads: dict[str, dict[str, object]],
-    context_payloads: dict[str, dict[str, object]],
-    force_refresh: bool = False,
-    use_llm: bool = True,
-) -> dict[str, dict[str, object]]:
-    payloads: dict[str, dict[str, object]] = {}
-    if rows.empty:
-        return payloads
-    asset_cache: dict[str, dict[str, object]] = {}
-    for _, row in rows.iterrows():
-        row_series = row if isinstance(row, pd.Series) else pd.Series(row)
-        symbol = str(row_series.get("entity_id") or "").upper().strip()
-        if not symbol:
-            continue
-        if symbol not in asset_cache:
-            try:
-                asset_cache[symbol] = _load_asset_metadata_cached(cfg, symbol, force_refresh=force_refresh)
-            except Exception:
-                asset_cache[symbol] = {}
-        brief_input = _build_attention_brief_input(
-            row_series,
-            news_payload=news_payloads.get(symbol),
-            context_payload=context_payloads.get(symbol),
-            asset=asset_cache.get(symbol),
-        )
-        event_key = _attention_event_key(row_series)
-        payloads[event_key] = _load_attention_feed_brief_cached(
-            json.dumps(_json_ready(brief_input), ensure_ascii=False, sort_keys=True),
-            use_llm=use_llm,
-        )
-    return payloads
-
-
-def _build_attention_micro_chart(row: pd.Series) -> go.Figure | None:
-    expected = pd.to_numeric(row.get("expected_value"), errors="coerce")
-    observed = pd.to_numeric(row.get("observed_value"), errors="coerce")
-    residual = pd.to_numeric(row.get("residual_value"), errors="coerce")
-
-    if pd.isna(expected) or pd.isna(observed):
-        return None
-
-    expected_value = float(expected)
-    observed_value = float(observed)
-    accent = "#34d399" if observed_value >= expected_value else "#f87171"
-    neutral = "#94a3b8"
-    max_abs = max(abs(expected_value), abs(observed_value), 0.5)
-    padding = max(0.75, max_abs * 0.25)
-
-    fig = go.Figure()
-    fig.add_trace(
-        go.Bar(
-            x=[expected_value, observed_value],
-            y=["Expected", "Observed"],
-            orientation="h",
-            marker_color=[neutral, accent],
-            text=[f"{expected_value:+.1f}%", f"{observed_value:+.1f}%"],
-            textposition="auto",
-            hovertemplate="%{y}: %{x:+.2f}%<extra></extra>",
-        )
-    )
-    fig.add_vline(x=0.0, line_color="rgba(148, 163, 184, 0.45)", line_width=1, line_dash="dot")
-    annotations: list[dict[str, object]] = []
-    if pd.notna(residual):
-        annotations.append(
-            {
-                "x": 0.99,
-                "xref": "paper",
-                "y": 1.12,
-                "yref": "paper",
-                "text": f"Gap {float(residual):+.2f}%",
-                "showarrow": False,
-                "font": {"size": 11, "color": accent},
-                "xanchor": "right",
-            }
-        )
-    fig.update_layout(
-        template="plotly_dark",
-        height=155,
-        margin=dict(l=8, r=8, t=28, b=8),
-        showlegend=False,
-        bargap=0.35,
-        annotations=annotations,
-        xaxis=dict(
-            title=None,
-            ticksuffix="%",
-            range=[-(max_abs + padding), max_abs + padding],
-            showgrid=True,
-            gridcolor="rgba(148, 163, 184, 0.12)",
-            zeroline=False,
-            fixedrange=True,
-        ),
-        yaxis=dict(title=None, fixedrange=True, automargin=True),
-    )
-    return fig
-
-
-def _load_attention_news_payloads(
-    cfg: AppConfig,
-    symbols: list[str],
-    *,
-    force_refresh: bool = False,
-) -> dict[str, dict[str, object]]:
-    payloads: dict[str, dict[str, object]] = {}
-    for symbol in dict.fromkeys(str(value or "").upper().strip() for value in symbols):
-        if not symbol:
-            continue
-        try:
-            payloads[symbol] = _load_recent_news_cached(
-                cfg,
-                symbol,
-                days=14,
-                limit=6,
-                force_refresh=force_refresh,
-            )
-        except Exception:
-            payloads[symbol] = {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
-    return payloads
-
-
-def _load_attention_context_payloads(
-    cfg: AppConfig,
-    symbols: list[str],
-    *,
-    force_refresh: bool = False,
-) -> dict[str, dict[str, object]]:
-    payloads: dict[str, dict[str, object]] = {}
-    for symbol in dict.fromkeys(str(value or "").upper().strip() for value in symbols):
-        if not symbol:
-            continue
-        try:
-            payloads[symbol] = _load_attention_context_cached(
-                cfg,
-                symbol,
-                force_refresh=force_refresh,
-            )
-        except Exception:
-            payloads[symbol] = {
-                "symbol": symbol,
-                "context_story_text": "",
-                "primary_source_excerpt": "",
-                "source_line": "",
-                "llm_headline": "",
-                "llm_summary_text": "",
-                "llm_narrative_text": "",
-                "llm_why_now": "",
-                "llm_management_signal": "",
-                "llm_confidence": "",
-                "llm_source_line": "",
-                "llm_supporting_points": [],
-                "top_filing_links": [],
-            }
-    return payloads
-
-
-def _json_ready(value: object) -> object:
-    if isinstance(value, dict):
-        return {str(key): _json_ready(item) for key, item in value.items()}
-    if isinstance(value, (list, tuple)):
-        return [_json_ready(item) for item in value]
-    if isinstance(value, pd.Timestamp):
-        return value.isoformat()
-    if isinstance(value, np.generic):
-        return value.item()
-    try:
-        if pd.isna(value):
-            return None
-    except Exception:
-        pass
-    return value
-
-
-def _build_homepage_v2_event_record(
-    row: pd.Series,
-    *,
-    news_payload: dict[str, object] | None = None,
-    context_payload: dict[str, object] | None = None,
-    brief_payload: dict[str, object] | None = None,
-) -> dict[str, object]:
-    symbol = str(row.get("entity_id") or "").upper().strip()
-    news_context = build_attention_news_narrative(
-        symbol,
-        news_payload,
-        peer_group_name=str(row.get("peer_group_name") or "").strip(),
-    )
-    articles = news_payload.get("articles") if isinstance(news_payload, dict) else pd.DataFrame()
-    headline_values: list[str] = []
-    if isinstance(articles, pd.DataFrame) and not articles.empty and "headline" in articles.columns:
-        headline_values = [
-            str(headline).strip()
-            for headline in articles["headline"].dropna().astype(str).tolist()
-            if str(headline).strip()
-        ][:3]
-    context = context_payload or {}
-    return {
-        "event_id": str(
-            _attention_event_key(row)
-        ).strip(),
-        "symbol": symbol,
-        "entity_id": symbol,
-        "title": str(row.get("title") or symbol or "Untitled anomaly").strip(),
-        "subtitle": str(row.get("subtitle") or "").strip(),
-        "source_label": str(row.get("source_label") or "").strip(),
-        "horizon": str(row.get("horizon") or "").strip(),
-        "anomaly_type": str(row.get("anomaly_type") or "").strip(),
-        "attention_score": _json_ready(row.get("attention_score")),
-        "story_text": str((brief_payload or {}).get("lead_text") or _attention_story_text(row)).strip(),
-        "cluster_text": str((brief_payload or {}).get("cluster_text") or news_context.get("narrative_text") or "").strip(),
-        "headline_text": str((brief_payload or {}).get("headline_text") or "").strip(),
-        "company_text": str((brief_payload or {}).get("company_text") or "").strip(),
-        "explainer_text": str((brief_payload or {}).get("explainer_text") or "").strip(),
-        "why_now_text": str(row.get("why_now_text") or "").strip(),
-        "expected_vs_observed_text": "",
-        "next_best_action": str(row.get("next_best_action") or "").strip(),
-        "news_summary_text": str(news_context.get("narrative_text") or "").strip(),
-        "news_headlines": headline_values,
-        "context_headline": str(context.get("llm_headline") or "").strip(),
-        "context_summary_text": str(context.get("llm_summary_text") or context.get("context_story_text") or "").strip(),
-        "context_why_now": str(context.get("llm_why_now") or "").strip(),
-        "management_signal": str(context.get("llm_management_signal") or "").strip(),
-    }
-
-
-def _homepage_v2_item_summary(
-    row: pd.Series,
-    *,
-    news_payload: dict[str, object] | None = None,
-    context_payload: dict[str, object] | None = None,
-    brief_payload: dict[str, object] | None = None,
-) -> str:
-    pieces: list[str] = []
-    llm_summary = str((context_payload or {}).get("llm_summary_text") or "").strip()
-    context_story = str((context_payload or {}).get("context_story_text") or "").strip()
-    next_action = str((brief_payload or {}).get("watchpoint_text") or row.get("next_best_action") or "").strip()
-
-    for candidate in [
-        str((brief_payload or {}).get("lead_text") or "").strip(),
-        str((brief_payload or {}).get("headline_text") or "").strip(),
-        str((brief_payload or {}).get("company_text") or "").strip(),
-        str((brief_payload or {}).get("explainer_text") or "").strip(),
-        llm_summary or context_story,
-    ]:
-        text = str(candidate or "").strip()
-        if text and text not in pieces:
-            pieces.append(text)
-    if next_action:
-        pieces.append(f"Next watchpoint: {next_action}.")
-    return " ".join(pieces[:3]).strip()
-
-
-@st.cache_data(ttl=900, show_spinner=False)
-def _load_homepage_v2_digest_cached(
-    event_records_json: str,
-    *,
-    asof_time_utc: str,
-    max_sentences: int,
-) -> dict[str, object]:
-    try:
-        event_records = json.loads(event_records_json or "[]")
-    except Exception:
-        event_records = []
-    try:
-        digest = build_homepage_v2_digest(
-            event_records if isinstance(event_records, list) else [],
-            load_llm_client(),
-            asof_time_utc=asof_time_utc,
-            max_sentences=max_sentences,
-        )
-        digest["error"] = ""
-        return digest
-    except LLMAPIError as exc:
-        digest = build_homepage_v2_digest(
-            event_records if isinstance(event_records, list) else [],
-            None,
-            asof_time_utc=asof_time_utc,
-            max_sentences=max_sentences,
-        )
-        digest["error"] = str(exc)
-        return digest
-    except Exception as exc:
-        digest = build_homepage_v2_digest(
-            event_records if isinstance(event_records, list) else [],
-            None,
-            asof_time_utc=asof_time_utc,
-            max_sentences=max_sentences,
-        )
-        digest["error"] = f"{type(exc).__name__}: {exc}"
-        return digest
 
 
 def _render_homepage_v2_detail_panel(
@@ -3089,7 +2804,7 @@ def _render_home_attention(
         )
 
     if require_api and api is None:
-        st.info("Fix the Alpaca configuration to enable the daily tape, market context, and research bundle lookups.")
+        st.info("Configure the live market connection to enable the daily tape, market context, and research bundle lookups.")
         return
 
     try:
@@ -3324,6 +3039,7 @@ def _render_homepage_v2_story_fragment(
                         show_header=True,
                         click_target="home_v2",
                         key_prefix=f"homepage_v2_beat_{bundle_id or index}_symbols",
+                        allow_live_profile_fallback=False,
                     )
 
     with main_cols[1]:
@@ -3355,7 +3071,7 @@ def _render_homepage_v2_story_fragment(
                         clear_mode_value=HOMEPAGE_V2_RESEARCH_PANEL,
                         panel_title=f"{selected_ticker} Company Background",
                         panel_caption="Loaded from the narrative rail ticker inspect action.",
-                        clear_button_label="Close company",
+                        clear_button_label="Close",
                     )
             elif not selected_bundle_id:
                 st.info("Pick a beat from the narrative thread to inspect the retained research.")
@@ -3388,11 +3104,31 @@ def _render_homepage_v2_story_fragment(
                 )
 
 
+def _render_homepage_v2_graph_banner(home_payload: dict[str, object]) -> None:
+    homepage_graph = dict(home_payload.get("homepage_graph") or {}) if isinstance(home_payload, dict) else {}
+    figure_json = homepage_graph.get("figure")
+    if not isinstance(figure_json, dict) or not figure_json:
+        return
+    try:
+        figure = go.Figure(figure_json)
+    except Exception:
+        return
+    with st.container(border=True):
+        st.plotly_chart(
+            figure,
+            use_container_width=True,
+            config={"displayModeBar": False, "displaylogo": False, "scrollZoom": False},
+        )
+
+
 def _render_homepage_v2(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_refresh: bool) -> None:
     header_cols = st.columns([4.5, 1.5])
     with header_cols[0]:
-        st.title("Spectral Nature")
-        st.caption("A deterministic daily narrative built from the day-only event tape, not from mixed-horizon anomaly cards.")
+        _render_page_intro(
+            "Narrative Home",
+            APP_BRAND_NAME,
+            "A calm daily market briefing built from the latest event tape, primary-source research, and retained company context.",
+        )
     with header_cols[1]:
         force_data_refresh = force_data_refresh or _section_refresh_button(
             "homepage_v2_refresh",
@@ -3481,7 +3217,8 @@ def _render_homepage_v2(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_ref
         dek = _attention_home_surface_summary(top_event_preview, is_event=True) if top_events else ""
         if dek:
             st.write(dek)
-        st.caption(f"Generated {generated_label} | deterministic daily tape")
+        st.caption(f"Refreshed {generated_label} | disciplined daily brief")
+    _render_homepage_v2_graph_banner(home_payload)
     _render_homepage_v2_story_fragment(
         cfg,
         beats,
@@ -3593,7 +3330,7 @@ def _prepare_momentum_table(
     if "company_name" in table.columns:
         column_config["company_name"] = st.column_config.TextColumn(
             "Company",
-            help="Company name shown directly because Streamlit's native selectable dataframe does not support per-row hover tooltips reliably.",
+            help="Company name is shown directly because the current selectable table does not keep row hover tooltips reliable across refreshes.",
             width="medium",
         )
     if "sparkline_3m" in table.columns:
@@ -4757,6 +4494,7 @@ Strong momentum with a shallow pullback usually signals leadership. Weak momentu
         )
 
 
+_ensure_app_shell_styles()
 with _timed("load_config"):
     _enforce_login_gate()
     cfg = load_config()
@@ -4774,12 +4512,12 @@ if cfg is None:
         "export APCA_API_KEY='...'\n"
         "export APCA_API_SECRET_KEY='...'\n"
         "export APCA_API_BASE_URL='https://paper-api.alpaca.markets'\n"
-        "streamlit run app.py"
+        "./scripts/run_ui_local.sh"
     )
 
     if key_raw.lower() == "your_key_here" or (secret_raw and secret_raw.lower() == "your_secret_here"):
         startup_error_summary = (
-            "Alpaca credentials are incomplete: placeholder value detected. Replace your_key_here and your_secret_here."
+            "Market data credentials are incomplete: placeholder values were detected. Replace `your_key_here` and `your_secret_here`."
         )
     else:
         missing = []
@@ -4789,27 +4527,27 @@ if cfg is None:
             missing.append("APCA_API_SECRET_KEY")
 
         if missing:
-            startup_error_summary = "Alpaca credentials are missing or incomplete."
+            startup_error_summary = "Market data credentials are missing or incomplete."
             startup_error_details = "Missing: " + ", ".join(missing)
         else:
             startup_error_summary = (
-                "Alpaca credentials are missing or incomplete. Set APCA_API_KEY and APCA_API_SECRET_KEY."
+                "Market data credentials are missing or incomplete. Set APCA_API_KEY and APCA_API_SECRET_KEY."
             )
 
 elif cfg.alpaca_trading_base_url.startswith("hhttps://") or not cfg.alpaca_trading_base_url.startswith(("http://", "https://")):
     _log_event("config_invalid_base_url", base_url=cfg.alpaca_trading_base_url)
     startup_error_summary = (
-        "Invalid APCA_API_BASE_URL value. Expected https://paper-api.alpaca.markets or https://api.alpaca.markets."
+        "Invalid APCA_API_BASE_URL value. Expected the paper or live trading endpoint."
     )
     startup_setup_code = "APCA_API_BASE_URL=https://api.alpaca.markets"
 
 elif cfg.alpaca_api_key.strip().lower() in {"your_key_here", ""}:
     _log_event("config_placeholder_key")
-    startup_error_summary = "APCA_API_KEY is still a placeholder. Set your real Alpaca API key."
+    startup_error_summary = "APCA_API_KEY is still a placeholder. Set your real market data API key."
 
 elif cfg.alpaca_secret_key.strip().lower() == "your_secret_here":
     _log_event("config_placeholder_secret")
-    startup_error_summary = "APCA_API_SECRET_KEY is a placeholder. Set your real Alpaca API secret key."
+    startup_error_summary = "APCA_API_SECRET_KEY is a placeholder. Set your real market data API secret key."
 
 else:
     with _timed("create_api_client"):
@@ -4819,7 +4557,7 @@ app_track = (os.getenv("APP_TRACK") or "local").strip().lower()
 cache_disabled = (os.getenv("APP_DISABLE_CACHE") or "").strip().lower() in {"1", "true", "yes", "on"}
 force_refresh_default_raw = os.getenv("APP_FORCE_DATA_REFRESH_DEFAULT")
 if force_refresh_default_raw is None or not str(force_refresh_default_raw).strip():
-    force_refresh_default = False if _presentation_layer_only() else app_track in {"development", "dev"}
+    force_refresh_default = False
 else:
     force_refresh_default = str(force_refresh_default_raw).strip().lower() in {"1", "true", "yes", "on"}
 source_refresh_flags = dict(st.session_state.get("_source_force_refresh", {}))
@@ -4838,10 +4576,9 @@ elif st.session_state.get("workspace_section") not in section_options:
 current_user = _current_user_context()
 
 with st.sidebar:
-    st.title("Spectral Nature")
-    st.caption("Alpaca + Streamlit")
+    _render_sidebar_brand_panel(app_track)
     if app_track:
-        st.caption(f"Environment: {app_track}")
+        st.caption(f"Environment: {_environment_label(app_track)}")
     if current_user is not None:
         st.caption(f"Signed in as {current_user.label}")
         if current_user.can_view_full_portfolio:
@@ -4851,9 +4588,9 @@ with st.sidebar:
     elif st.session_state.get("_ui_auth_mode") == "legacy":
         st.caption("Signed in via legacy admin login")
 
-    section = st.selectbox("Page", section_options, key="workspace_section")
+    section = st.selectbox("Workspace", section_options, key="workspace_section")
 
-    with st.expander("Status & Session", expanded=False):
+    with st.expander("Workspace Status", expanded=False):
         if pipeline_store_configured():
             if _presentation_layer_only():
                 st.caption("Data mode: Presentation-only pipeline snapshots")
@@ -4883,13 +4620,38 @@ with st.sidebar:
 _log_event("ui_sidebar_ready")
 _log_event("section_selected", section=section)
 
-sidebar_connection.metric("Connection", "Configured" if api is not None else "Unavailable")
+sidebar_connection.metric(
+    "Live Data",
+    "Snapshot Mode" if _presentation_layer_only() else ("Connected" if api is not None else "Unavailable"),
+)
 if current_user is not None and not current_user.can_view_full_portfolio:
     sidebar_status.metric("Access", "Investor")
     sidebar_buying_power.metric("Portfolio Share", f"{_current_user_share_fraction() * 100:.2f}%")
+elif _presentation_layer_only():
+    sidebar_status.metric("Account Status", "SNAPSHOT MODE")
+    sidebar_buying_power.metric("Buying Power", "Unavailable")
 else:
     sidebar_status.metric("Account Status", "NOT LOADED" if api is not None else "UNAVAILABLE")
     sidebar_buying_power.metric("Buying Power", "Not loaded" if api is not None else "Unavailable")
+
+if (
+    not _presentation_layer_only()
+    and api is not None
+    and not (current_user is not None and not current_user.can_view_full_portfolio)
+):
+    try:
+        sidebar_account = _load_account_cached(cfg, force_refresh=False)
+    except AlpacaAPIError as exc:
+        _log_event("sidebar_account_failed", error=str(exc)[:200])
+        sidebar_status.metric("Account Status", "ERROR")
+        sidebar_buying_power.metric("Buying Power", "Unavailable")
+    except Exception as exc:
+        _log_event("sidebar_account_failed", error=f"{type(exc).__name__}: {str(exc)[:200]}")
+        sidebar_status.metric("Account Status", "ERROR")
+        sidebar_buying_power.metric("Buying Power", "Unavailable")
+    else:
+        sidebar_status.metric("Account Status", str(sidebar_account.get("status", "unknown")).upper())
+        sidebar_buying_power.metric("Buying Power", f"${_to_float(sidebar_account, 'buying_power'):,.2f}")
 
 if startup_error_summary:
     _render_connection_issue(
@@ -4924,8 +4686,8 @@ elif section == "Portfolio Overview":
             source="equities",
             label="Run equities refresh job",
         )
-    if not _has_live_api(api, "Portfolio Overview requires a working Alpaca connection."):
-        st.info("Fix the Alpaca connection to load positions, portfolio history, and benchmark comparisons.")
+    if not _has_live_api(api, "Portfolio Overview requires a working live account connection."):
+        st.info("Restore the live account connection to load positions, portfolio history, and benchmark comparisons.")
     else:
         try:
             with st.spinner("Loading account summary..."):
@@ -5066,8 +4828,12 @@ elif section == "Performance":
             source="equities",
             label="Run equities refresh job",
         )
-    if not _has_live_api(api, "Performance requires a working Alpaca connection."):
-        st.info("Fix the Alpaca connection to compute portfolio and benchmark performance.")
+    if not _has_live_api(
+        api,
+        "Performance requires a working portfolio history snapshot or live account connection.",
+        allow_pipeline=True,
+    ):
+        st.info("Restore the live account connection or portfolio history snapshot to compute portfolio and benchmark performance.")
     else:
         try:
             with st.spinner("Loading performance data..."):
@@ -5128,7 +4894,7 @@ elif section == "FRED Macro":
             "export AZURE_KEY_VAULT_NAME='spectral-nature-kvault'\n"
             "# or fallback:\n"
             "export FRED_API_KEY='...'\n"
-            "streamlit run app.py",
+            "./scripts/run_ui_local.sh",
             language="bash",
         )
     else:
@@ -5456,10 +5222,10 @@ elif section == "Market Opportunity":
         )
     if not _has_live_api(
         api,
-        "Market Opportunity requires a working Alpaca connection or pipeline snapshots.",
+        "Market Opportunity requires a working live market connection or pipeline snapshots.",
         allow_pipeline=True,
     ):
-        st.info("Fix the Alpaca connection or configure pipeline snapshots to scan movers and load price history.")
+        st.info("Restore the live market connection or configure pipeline snapshots to scan movers and load price history.")
     else:
         market_view_options = ["Markets", "Broad Markets", "Commodity Section"]
         _prime_widget_choice("market_view", market_view_options, fallback="Markets", pending_key="_pending_market_view")
@@ -6066,7 +5832,7 @@ elif section == "Market Opportunity":
             market_fundamentals,
             signal_summary,
             news_payload=news_payload,
-            active_lens=business_filter,
+            active_lens=_company_narrative_lens_for_symbol(ticker),
         )
         st.write(description)
 
@@ -6169,7 +5935,7 @@ elif section == "Technical Strategizer":
 
     if ticker and _has_live_api(
         api,
-        "Technical Strategizer requires a working Alpaca connection or pipeline snapshots.",
+        "Technical Strategizer requires a working live market connection or pipeline snapshots.",
         allow_pipeline=True,
     ):
         try:
@@ -6226,7 +5992,7 @@ elif section == "Option Strategizer":
 
     if ticker and _has_live_api(
         api,
-        "Option Strategizer requires a working Alpaca connection or pipeline snapshots.",
+        "Option Strategizer requires a working live market connection or pipeline snapshots.",
         allow_pipeline=True,
     ):
         spot_price = np.nan

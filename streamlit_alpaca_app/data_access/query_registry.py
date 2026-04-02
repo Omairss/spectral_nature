@@ -484,15 +484,15 @@ def _build_fundamental_statement_chart(data_access: Any, params: dict[str, Any])
 
 DATASET_SPECS: dict[str, DatasetSpec] = {
     "account": DatasetSpec(params=(), resolution="live_cached", handler=_resolve_account),
-    "positions": DatasetSpec(params=(), resolution="live_cached", handler=_resolve_positions),
+    "positions": DatasetSpec(params=(), resolution="materialized_first", handler=_resolve_positions),
     "portfolio_timeseries": DatasetSpec(
         params=("period", "force_refresh"),
-        resolution="live_cached",
+        resolution="materialized_first",
         handler=_resolve_portfolio_timeseries,
     ),
     "performance_table": DatasetSpec(
         params=("period", "force_refresh"),
-        resolution="computed_from_live_cached",
+        resolution="computed_from_materialized_first",
         handler=_resolve_performance_table,
     ),
     "daily_movers": DatasetSpec(

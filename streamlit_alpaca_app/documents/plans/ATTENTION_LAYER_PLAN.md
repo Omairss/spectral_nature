@@ -64,7 +64,7 @@ New materialized datasets:
 4. `attention_feed`
 5. `attention_rollups`
 
-These datasets must follow the same append-only, versioned semantics already described in `PIPELINE_REDESIGN.md`.
+These datasets must follow the same append-only, versioned semantics already described in `documents/architecture/PIPELINE_REDESIGN.md`.
 
 ## Exact Dataset Schemas
 

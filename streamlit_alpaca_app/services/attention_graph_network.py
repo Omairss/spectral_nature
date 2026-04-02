@@ -24,6 +24,7 @@ STREAMLIT_DARK = {
 
 SECTOR_COLORS = {
     "Bridge Concepts": "#94a3b8",
+    "Path Nodes": "#94a3b8",
     "Communication Services": "#2dd4bf",
     "Consumer Discretionary": "#60a5fa",
     "Consumer Staples": "#818cf8",
@@ -106,6 +107,8 @@ def _direction_symbol(direction: object, change_pct: object) -> str:
     text = _text(direction).lower()
     if text == "bridge":
         return "diamond"
+    if text == "path":
+        return "circle-open"
     change = _float(change_pct)
     if text == "up" or change > 0:
         return "triangle-up"
@@ -237,6 +240,183 @@ def _bridge_label(token: str) -> str:
     return " ".join(part.capitalize() for part in parts)
 
 
+def _topology_edge_reason(edge_type: object) -> str:
+    text = _text(edge_type) or "path"
+    return f"topology_{text}"
+
+
+def _topology_plot_weight(edge_type: object) -> float:
+    text = _text(edge_type)
+    if text == "event":
+        return 0.44
+    if text == "tag":
+        return 0.34
+    if text == "membership":
+        return 0.30
+    if text == "taxonomy":
+        return 0.26
+    return 0.28
+
+
+def _path_node_attrs(node: str, attrs: dict[str, Any]) -> dict[str, Any]:
+    topology_type = _text(attrs.get("node_type")) or "path"
+    label = _text(attrs.get("label")) or node
+    actual_sector = _text(attrs.get("sector")) or "Unknown"
+    actual_peer_group = _text(attrs.get("peer_group")) or ""
+    actual_industry = _text(attrs.get("industry")) or ""
+    if topology_type == "symbol":
+        return {
+            "symbol": label,
+            "node_type": "security",
+            "sector": "Path Nodes",
+            "industry": actual_industry or "Intermediate Symbol",
+            "peer_group": actual_peer_group or actual_industry or label,
+            "direction": "path",
+            "change_pct": _float(attrs.get("change_pct")),
+            "candidate_score": max(16.0, _float(attrs.get("candidate_score"), 0.0)),
+            "attention_score": 0.0,
+            "headline": f"Intermediate symbol from topology path",
+            "source_label": "intermediate path",
+            "security_name": label,
+            "topology_node_type": topology_type,
+            "topology_sector": actual_sector,
+            "topology_peer_group": actual_peer_group,
+            "topology_industry": actual_industry,
+            "is_intermediate_path": True,
+        }
+    return {
+        "symbol": label,
+        "node_type": "path",
+        "sector": "Path Nodes",
+        "industry": label,
+        "peer_group": label,
+        "direction": "path",
+        "change_pct": 0.0,
+        "candidate_score": 18.0,
+        "attention_score": 0.0,
+        "headline": f"Intermediate {topology_type} node from topology path",
+        "source_label": "intermediate path",
+        "security_name": label,
+        "topology_node_type": topology_type,
+        "topology_sector": actual_sector,
+        "topology_peer_group": actual_peer_group,
+        "topology_industry": actual_industry,
+        "is_intermediate_path": True,
+    }
+
+
+def expand_network_real_paths(
+    graph: nx.Graph,
+    topology_graph: nx.Graph,
+    *,
+    max_path_length: int = 8,
+    max_paths: int | None = None,
+) -> nx.Graph:
+    expanded = graph.copy()
+    if graph.number_of_nodes() == 0 or topology_graph.number_of_nodes() == 0:
+        return expanded
+
+    candidate_nodes = [
+        node
+        for node, attrs in graph.nodes(data=True)
+        if not bool(attrs.get("is_intermediate_path"))
+        and _text(attrs.get("node_type")) != "bridge"
+        and int(graph.degree(node)) > 0
+    ]
+    if not candidate_nodes:
+        return expanded
+
+    component_graph = graph.subgraph(candidate_nodes).copy()
+    components = [
+        sorted(nodes)
+        for nodes in nx.connected_components(component_graph)
+        if nodes
+    ]
+    if len(components) <= 1:
+        return expanded
+
+    pair_candidates: list[dict[str, Any]] = []
+    for left_index, left_nodes in enumerate(components):
+        sources = [node for node in left_nodes if node in topology_graph]
+        if not sources:
+            continue
+        try:
+            distances, paths = nx.multi_source_dijkstra(topology_graph, sources, weight=None)
+        except Exception:
+            continue
+        for right_index in range(left_index + 1, len(components)):
+            targets = [node for node in components[right_index] if node in distances]
+            if not targets:
+                continue
+            best_target = min(targets, key=lambda node: (distances[node], node))
+            path = list(paths.get(best_target, []))
+            if len(path) <= 2:
+                continue
+            hop_count = len(path) - 1
+            if hop_count > max(int(max_path_length), 1):
+                continue
+            pair_candidates.append(
+                {
+                    "left_component": left_index,
+                    "right_component": right_index,
+                    "hop_count": hop_count,
+                    "path": path,
+                }
+            )
+
+    if not pair_candidates:
+        return expanded
+
+    parent = {index: index for index in range(len(components))}
+
+    def find(index: int) -> int:
+        while parent[index] != index:
+            parent[index] = parent[parent[index]]
+            index = parent[index]
+        return index
+
+    def union(left: int, right: int) -> bool:
+        left_root = find(left)
+        right_root = find(right)
+        if left_root == right_root:
+            return False
+        parent[right_root] = left_root
+        return True
+
+    selected_paths: list[list[str]] = []
+    path_limit = max_paths if max_paths is not None else max(len(components) - 1, 0)
+    for item in sorted(pair_candidates, key=lambda entry: (int(entry["hop_count"]), len(entry["path"]))):
+        if len(selected_paths) >= max(int(path_limit), 0):
+            break
+        if not union(int(item["left_component"]), int(item["right_component"])):
+            continue
+        selected_paths.append(list(item["path"]))
+
+    for path in selected_paths:
+        for node in path:
+            if node in expanded:
+                continue
+            if node not in topology_graph:
+                continue
+            expanded.add_node(node, **_path_node_attrs(str(node), dict(topology_graph.nodes[node])))
+        for left, right in zip(path, path[1:]):
+            if expanded.has_edge(left, right):
+                continue
+            if not topology_graph.has_edge(left, right):
+                continue
+            edge_attrs = dict(topology_graph.edges[left, right])
+            edge_type = _text(edge_attrs.get("edge_type")) or "path"
+            expanded.add_edge(
+                left,
+                right,
+                edge_weight=_topology_plot_weight(edge_type),
+                edge_reasons=[_topology_edge_reason(edge_type)],
+                edge_reason_text=f"topology path ({edge_type})",
+                is_intermediate_path=True,
+            )
+    return expanded
+
+
 def expand_network_bridge_nodes(
     graph: nx.Graph,
     *,
@@ -363,6 +543,58 @@ def connected_candidate_subgraph(graph: nx.Graph) -> nx.Graph:
     return graph.subgraph(nodes).copy()
 
 
+def build_homepage_attention_graph_payload(
+    candidate_frame: pd.DataFrame,
+    edge_frame: pd.DataFrame,
+    cluster_frame: pd.DataFrame | None = None,
+    *,
+    universe_frame: pd.DataFrame | None = None,
+    height: int = 320,
+    seed: int = 7,
+    label_top_n: int = 8,
+) -> dict[str, Any]:
+    if not isinstance(candidate_frame, pd.DataFrame) or candidate_frame.empty:
+        return {}
+    if not isinstance(edge_frame, pd.DataFrame) or edge_frame.empty:
+        return {}
+
+    from .attention_graph_topology import build_attention_topology_graph
+
+    candidate_network = build_attention_candidate_network(candidate_frame, edge_frame)
+    if candidate_network.number_of_edges() == 0:
+        return {}
+    backbone = build_network_backbone(candidate_network)
+    topology_graph = build_attention_topology_graph(
+        candidate_frame,
+        cluster_frame,
+        universe_frame=universe_frame,
+    )
+    plot_graph = expand_network_real_paths(backbone, topology_graph)
+    display_graph = connected_candidate_subgraph(plot_graph)
+    if display_graph.number_of_nodes() == 0 or display_graph.number_of_edges() == 0:
+        return {}
+
+    fig = plot_attention_candidate_network(
+        display_graph,
+        title="",
+        height=height,
+        seed=seed,
+        label_top_n=label_top_n,
+        show_isolates=False,
+        show_legend=False,
+        show_summary=False,
+        show_footer=False,
+        compact=True,
+    )
+    return {
+        "figure": fig.to_plotly_json(),
+        "summary": network_graph_summary(display_graph),
+        "height": int(height),
+        "label_top_n": int(label_top_n),
+        "seed": int(seed),
+    }
+
+
 def build_network_backbone(
     graph: nx.Graph,
     *,
@@ -445,7 +677,8 @@ def _component_layout(subgraph: nx.Graph, seed: int) -> dict[str, tuple[float, f
             iterations=400,
             scale=1.0,
         )
-    scale = 1.4 + min(subgraph.number_of_nodes(), 12) * 0.18
+    density = nx.density(subgraph) if subgraph.number_of_nodes() > 1 else 0.0
+    scale = (1.4 + min(subgraph.number_of_nodes(), 12) * 0.18) * (1.0 + min(density, 0.85) * 1.1)
     return {
         node: (point[0] * scale, point[1] * scale)
         for node, point in base.items()
@@ -602,16 +835,58 @@ def _layout_isolated_band(
 def _sector_groups(graph: nx.Graph) -> dict[str, list[str]]:
     groups: dict[str, list[str]] = defaultdict(list)
     for node, attrs in graph.nodes(data=True):
-        sector = _text(attrs.get("sector")) or "Unknown"
+        sector = "Path Nodes" if bool(attrs.get("is_intermediate_path")) else (_text(attrs.get("sector")) or "Unknown")
         groups[sector].append(node)
     return dict(sorted(groups.items(), key=lambda item: (item[0] == "Unknown", item[0])))
 
 
-def _label_nodes(graph: nx.Graph, show_labels: bool | str, label_top_n: int) -> set[str]:
+def _label_priority(graph: nx.Graph, node: str) -> float:
+    attrs = graph.nodes[node]
+    degree = int(graph.degree(node))
+    if bool(attrs.get("is_intermediate_path")):
+        topology_type = _text(attrs.get("topology_node_type")) or _text(attrs.get("node_type"))
+        topology_bonus = {
+            "sector": 30.0,
+            "peer": 24.0,
+            "event": 22.0,
+            "tag": 18.0,
+            "symbol": 16.0,
+        }.get(topology_type, 14.0)
+        return 26.0 + topology_bonus + (degree * 14.0)
+    if _text(attrs.get("node_type")) == "bridge":
+        return 24.0 + (degree * 12.0)
+    return (
+        _float(attrs.get("candidate_score"))
+        + (_float(attrs.get("attention_score")) * 0.08)
+        + (degree * 8.0)
+    )
+
+
+def _label_spacing_radius(graph: nx.Graph, node: str) -> float:
+    attrs = graph.nodes[node]
+    degree = int(graph.degree(node))
+    if bool(attrs.get("is_intermediate_path")):
+        return 1.7 + min(degree, 4) * 0.18
+    if _text(attrs.get("node_type")) == "bridge":
+        return 1.55 + min(degree, 4) * 0.14
+    return 1.15 + min(degree, 5) * 0.10
+
+
+def _label_nodes(
+    graph: nx.Graph,
+    positions: dict[str, tuple[float, float]],
+    show_labels: bool | str,
+    label_top_n: int,
+) -> set[str]:
     bridge_nodes = {
         node
         for node, attrs in graph.nodes(data=True)
         if _text(attrs.get("node_type")) == "bridge"
+    }
+    path_nodes = {
+        node
+        for node, attrs in graph.nodes(data=True)
+        if bool(attrs.get("is_intermediate_path"))
     }
     if show_labels is True:
         return set(graph.nodes())
@@ -619,19 +894,104 @@ def _label_nodes(graph: nx.Graph, show_labels: bool | str, label_top_n: int) -> 
         return set()
     if graph.number_of_nodes() <= 16:
         return set(graph.nodes())
+    target_count = max(int(label_top_n), 0)
+    if target_count == 0:
+        return set()
     ranked = sorted(
         [
             node
             for node in graph.nodes()
-            if node not in bridge_nodes
+            if node in positions
         ],
         key=lambda node: (
-            -_float(graph.nodes[node].get("candidate_score")),
+            -_label_priority(graph, node),
             -int(graph.degree(node)),
             node,
         ),
     )
-    return bridge_nodes | set(ranked[: max(int(label_top_n), 0)])
+    selected: list[str] = []
+    selected_path_labels = 0
+    max_path_labels = max(1, min(4, target_count // 3 or 1))
+    for node in ranked:
+        attrs = graph.nodes[node]
+        is_path_node = bool(attrs.get("is_intermediate_path"))
+        if is_path_node and selected_path_labels >= max_path_labels:
+            continue
+        node_radius = _label_spacing_radius(graph, node)
+        if any(
+            math.dist(positions[node], positions[existing]) < max(node_radius, _label_spacing_radius(graph, existing))
+            for existing in selected
+        ):
+            continue
+        selected.append(node)
+        if is_path_node:
+            selected_path_labels += 1
+        if len(selected) >= target_count:
+            break
+
+    if path_nodes and selected_path_labels == 0:
+        top_path = max(
+            [node for node in path_nodes if node in positions],
+            key=lambda node: (_label_priority(graph, node), node),
+            default="",
+        )
+        if top_path:
+            if len(selected) < target_count:
+                selected.append(top_path)
+            elif selected:
+                selected[-1] = top_path
+    if bridge_nodes and not any(node in bridge_nodes for node in selected):
+        top_bridge = max(
+            [node for node in bridge_nodes if node in positions],
+            key=lambda node: (_label_priority(graph, node), node),
+            default="",
+        )
+        if top_bridge:
+            if len(selected) < target_count:
+                selected.append(top_bridge)
+            elif selected:
+                selected[-1] = top_bridge
+    return set(selected[: max(target_count, 1)])
+
+
+def _label_text_position(
+    graph: nx.Graph,
+    node: str,
+    positions: dict[str, tuple[float, float]],
+) -> str:
+    if node not in positions:
+        return "top center"
+    x_pos, y_pos = positions[node]
+    nearest_dx = 0.0
+    nearest_dy = 0.0
+    nearest_dist = math.inf
+    for other, (other_x, other_y) in positions.items():
+        if other == node:
+            continue
+        distance = math.dist((x_pos, y_pos), (other_x, other_y))
+        if distance < nearest_dist:
+            nearest_dist = distance
+            nearest_dx = x_pos - other_x
+            nearest_dy = y_pos - other_y
+    if not math.isfinite(nearest_dist) or nearest_dist > 2.6:
+        component_nodes = list(nx.node_connected_component(graph, node)) if node in graph else [node]
+        center_x = sum(positions[item][0] for item in component_nodes if item in positions) / max(
+            len([item for item in component_nodes if item in positions]),
+            1,
+        )
+        center_y = sum(positions[item][1] for item in component_nodes if item in positions) / max(
+            len([item for item in component_nodes if item in positions]),
+            1,
+        )
+        nearest_dx = x_pos - center_x
+        nearest_dy = y_pos - center_y
+    horizontal = "center"
+    if abs(nearest_dx) >= 0.25:
+        horizontal = "right" if nearest_dx >= 0 else "left"
+    vertical = "middle"
+    if abs(nearest_dy) >= 0.2:
+        vertical = "top" if nearest_dy >= 0 else "bottom"
+    return f"{vertical} {horizontal}"
 
 
 def _marker_size(score: float, min_score: float, score_span: float) -> float:
@@ -647,29 +1007,44 @@ def plot_attention_candidate_network(
     seed: int = 7,
     show_labels: bool | str = "auto",
     label_top_n: int = 14,
+    show_isolates: bool = True,
+    show_legend: bool = True,
+    show_summary: bool = True,
+    show_footer: bool = True,
+    compact: bool = False,
 ) -> go.Figure:
-    connected_positions = _pack_component_positions(graph, seed=seed)
-    isolate_positions, isolate_annotations, isolate_separator, extra_height = _layout_isolated_band(
-        graph,
-        connected_positions,
-    )
+    plot_graph = graph.copy() if show_isolates else connected_candidate_subgraph(graph)
+    connected_positions = _pack_component_positions(plot_graph, seed=seed)
+    if show_isolates:
+        isolate_positions, isolate_annotations, isolate_separator, extra_height = _layout_isolated_band(
+            plot_graph,
+            connected_positions,
+        )
+    else:
+        isolate_positions = {}
+        isolate_annotations = []
+        isolate_separator = None
+        extra_height = 0
     positions = {
         **connected_positions,
         **isolate_positions,
     }
-    label_nodes = _label_nodes(graph, show_labels, label_top_n)
+    label_nodes = _label_nodes(plot_graph, positions, show_labels, label_top_n)
 
-    weights = [_float(attrs.get("edge_weight")) for _, _, attrs in graph.edges(data=True)]
+    weights = [_float(attrs.get("edge_weight")) for _, _, attrs in plot_graph.edges(data=True)]
     min_weight = min(weights) if weights else 0.0
     max_weight = max(weights) if weights else 1.0
     weight_span = max(max_weight - min_weight, 1e-6)
-    scores = [_float(attrs.get("candidate_score")) for _, attrs in graph.nodes(data=True)]
+    scores = [_float(attrs.get("candidate_score")) for _, attrs in plot_graph.nodes(data=True)]
     min_score = min(scores) if scores else 0.0
     max_score = max(scores) if scores else 1.0
     score_span = max(max_score - min_score, 1e-6)
+    marker_scale = 0.92 if compact else 1.0
+    security_text_size = 10 if compact else 11
+    context_text_size = 9 if compact else 10
 
     edge_traces: list[go.Scatter] = []
-    for left, right, attrs in sorted(graph.edges(data=True), key=lambda item: _float(item[2].get("edge_weight"))):
+    for left, right, attrs in sorted(plot_graph.edges(data=True), key=lambda item: _float(item[2].get("edge_weight"))):
         if left not in positions or right not in positions:
             continue
         x0, y0 = positions[left]
@@ -678,12 +1053,21 @@ def plot_attention_candidate_network(
         scaled = (weight - min_weight) / weight_span
         edge_reasons = _listify(attrs.get("edge_reasons"))
         is_bridge_edge = "bridge_concept" in edge_reasons
+        is_topology_path_edge = any(str(reason).startswith("topology_") for reason in edge_reasons)
         edge_color = (
-            f"rgba(148, 163, 184, {0.14 + 0.26 * scaled:.3f})"
-            if is_bridge_edge
-            else f"rgba(203, 213, 225, {0.18 + 0.62 * scaled:.3f})"
+            f"rgba(148, 163, 184, {0.22 + 0.18 * scaled:.3f})"
+            if is_topology_path_edge
+            else (
+                f"rgba(148, 163, 184, {0.14 + 0.26 * scaled:.3f})"
+                if is_bridge_edge
+                else f"rgba(203, 213, 225, {0.18 + 0.62 * scaled:.3f})"
+            )
         )
-        edge_width = (0.8 + 1.9 * scaled) if is_bridge_edge else (1.0 + 4.0 * scaled)
+        edge_width = (
+            (0.9 + 1.2 * scaled)
+            if is_topology_path_edge
+            else ((0.8 + 1.9 * scaled) if is_bridge_edge else (1.0 + 4.0 * scaled))
+        )
         edge_traces.append(
             go.Scatter(
                 x=[x0, x1],
@@ -697,11 +1081,13 @@ def plot_attention_candidate_network(
         )
 
     node_traces: list[go.Scatter] = []
-    for sector, nodes in _sector_groups(graph).items():
+    for sector, nodes in _sector_groups(plot_graph).items():
         is_bridge_sector = sector == "Bridge Concepts"
+        is_path_sector = sector == "Path Nodes"
         x_values: list[float] = []
         y_values: list[float] = []
         text: list[str] = []
+        textpositions: list[str] = []
         hovertext: list[str] = []
         sizes: list[float] = []
         symbols: list[str] = []
@@ -716,11 +1102,14 @@ def plot_attention_candidate_network(
             if node not in positions:
                 continue
             attrs = graph.nodes[node]
+            is_path_node = bool(attrs.get("is_intermediate_path"))
             x_pos, y_pos = positions[node]
             x_values.append(x_pos)
             y_values.append(y_pos)
             display_label = _text(attrs.get("symbol")) or node
-            text.append(display_label if node in label_nodes else "")
+            has_label = node in label_nodes
+            text.append(display_label if has_label else "")
+            textpositions.append(_label_text_position(plot_graph, node, positions) if has_label else "top center")
             if _text(attrs.get("node_type")) == "bridge":
                 hovertext.append(
                     "<br>".join(
@@ -730,7 +1119,21 @@ def plot_attention_candidate_network(
                             f"components={int(_float(attrs.get('bridge_component_count')))}",
                             f"supporting_symbols={int(_float(attrs.get('bridge_support_count')))}",
                             f"members={', '.join(_listify(attrs.get('bridge_members'))[:8]) or 'n/a'}",
-                            f"degree={graph.degree(node)}",
+                            f"degree={plot_graph.degree(node)}",
+                        ]
+                    )
+                )
+            elif is_path_node:
+                hovertext.append(
+                    "<br>".join(
+                        [
+                            f"<b>{display_label}</b>",
+                            f"type={_text(attrs.get('topology_node_type')) or _text(attrs.get('node_type')) or 'path'}",
+                            f"sector={_text(attrs.get('topology_sector')) or _text(attrs.get('sector')) or 'Unknown'}",
+                            f"peer_group={_text(attrs.get('topology_peer_group')) or _text(attrs.get('peer_group')) or 'Unknown'}",
+                            f"industry={_text(attrs.get('topology_industry')) or _text(attrs.get('industry')) or 'Unknown'}",
+                            f"degree={plot_graph.degree(node)}",
+                            f"source={_text(attrs.get('source_label')) or 'intermediate path'}",
                         ]
                     )
                 )
@@ -746,47 +1149,58 @@ def plot_attention_candidate_network(
                             f"candidate_score={_float(attrs.get('candidate_score')):.1f}",
                             f"attention_score={_float(attrs.get('attention_score')):.1f}",
                             f"node_size={_marker_size(_float(attrs.get('candidate_score')), min_score, score_span):.1f}",
-                            f"degree={graph.degree(node)}",
+                            f"degree={plot_graph.degree(node)}",
                             *([f"source={_text(attrs.get('source_label'))}"] if _text(attrs.get("source_label")) else []),
                             *([f"headline={_text(attrs.get('headline'))}"] if _text(attrs.get("headline")) else []),
                         ]
                     )
                 )
-            sizes.append(_marker_size(_float(attrs.get("candidate_score")), min_score, score_span))
-            symbols.append(_direction_symbol(attrs.get("direction"), attrs.get("change_pct")))
+            sizes.append((11.0 if is_path_node else _marker_size(_float(attrs.get("candidate_score")), min_score, score_span)) * marker_scale)
+            symbols.append(
+                "circle-open"
+                if is_path_node and _text(attrs.get("topology_node_type")) == "symbol"
+                else ("diamond-open" if is_path_node else _direction_symbol(attrs.get("direction"), attrs.get("change_pct")))
+            )
         node_traces.append(
             go.Scatter(
                 x=x_values,
                 y=y_values,
                 mode="markers+text",
                 text=text,
-                textposition="top center",
+                textposition=textpositions,
                 hoverinfo="text",
                 hovertext=hovertext,
                 name=sector,
-                textfont=dict(color=STREAMLIT_DARK["muted"] if is_bridge_sector else STREAMLIT_DARK["text"], size=10 if is_bridge_sector else 11),
+                textfont=dict(
+                    color=STREAMLIT_DARK["muted"] if (is_bridge_sector or is_path_sector) else STREAMLIT_DARK["text"],
+                    size=context_text_size if (is_bridge_sector or is_path_sector) else security_text_size,
+                ),
                 marker=dict(
                     size=sizes,
                     symbol=symbols,
                     color=SECTOR_COLORS.get(sector, SECTOR_COLORS["Unknown"]),
-                    line=dict(width=0.8 if is_bridge_sector else 1.0, color=STREAMLIT_DARK["grid"] if is_bridge_sector else STREAMLIT_DARK["outline"]),
-                    opacity=0.52 if is_bridge_sector else 0.92,
+                    line=dict(
+                        width=0.8 if (is_bridge_sector or is_path_sector) else 1.0,
+                        color=STREAMLIT_DARK["grid"] if (is_bridge_sector or is_path_sector) else STREAMLIT_DARK["outline"],
+                    ),
+                    opacity=0.44 if is_path_sector else (0.52 if is_bridge_sector else 0.76),
                 ),
             )
         )
 
     fig = go.Figure(data=[*edge_traces, *node_traces])
-    connected_nodes = [node for node, degree in graph.degree() if int(degree) > 0]
+    connected_nodes = [node for node, degree in plot_graph.degree() if int(degree) > 0]
     connected_components = (
-        nx.number_connected_components(graph.subgraph(connected_nodes).copy())
+        nx.number_connected_components(plot_graph.subgraph(connected_nodes).copy())
         if connected_nodes
         else 0
     )
-    isolate_count = int(graph.number_of_nodes() - len(connected_nodes))
+    isolate_count = int(plot_graph.number_of_nodes() - len(connected_nodes))
+    margin = dict(l=12, r=12, t=26, b=12) if compact else dict(l=20, r=20, t=95, b=52)
     fig.update_layout(
         title=title,
         template="plotly_dark",
-        showlegend=True,
+        showlegend=show_legend,
         paper_bgcolor=STREAMLIT_DARK["paper"],
         plot_bgcolor=STREAMLIT_DARK["paper"],
         font=dict(color=STREAMLIT_DARK["text"]),
@@ -805,25 +1219,34 @@ def plot_attention_candidate_network(
         ),
         xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, showline=False),
         yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, showline=False),
-        margin=dict(l=20, r=20, t=95, b=52),
+        margin=margin,
         height=height + extra_height,
     )
-    fig.add_annotation(
-        x=0.0,
-        y=1.05,
-        xref="paper",
-        yref="paper",
-        showarrow=False,
-        align="left",
-        font=dict(color=STREAMLIT_DARK["muted"], size=12),
-        text=(
-            f"{graph.number_of_nodes()} symbols | "
-            f"{graph.number_of_edges()} edges | "
-            f"{connected_components} connected component{'s' if connected_components != 1 else ''} | "
-            f"{isolate_count} isolate{'s' if isolate_count != 1 else ''}"
-        ),
-    )
-    if isolate_count:
+    if show_summary:
+        fig.add_annotation(
+            x=0.0,
+            y=1.05,
+            xref="paper",
+            yref="paper",
+            showarrow=False,
+            align="left",
+            font=dict(color=STREAMLIT_DARK["muted"], size=12),
+            text=(
+                (
+                    f"{plot_graph.number_of_nodes()} visible symbols | "
+                    f"{plot_graph.number_of_edges()} edges | "
+                    f"{connected_components} connected component{'s' if connected_components != 1 else ''}"
+                )
+                if not show_isolates
+                else (
+                    f"{plot_graph.number_of_nodes()} symbols | "
+                    f"{plot_graph.number_of_edges()} edges | "
+                    f"{connected_components} connected component{'s' if connected_components != 1 else ''} | "
+                    f"{isolate_count} isolate{'s' if isolate_count != 1 else ''}"
+                )
+            ),
+        )
+    if show_isolates and isolate_count:
         fig.add_annotation(
             x=0.5,
             y=0.0,
@@ -834,7 +1257,7 @@ def plot_attention_candidate_network(
             font=dict(color=STREAMLIT_DARK["text"], size=12),
             text=f"Isolated symbols ({isolate_count})",
         )
-    if isolate_separator:
+    if show_isolates and isolate_separator:
         fig.add_shape(
             type="line",
             x0=float(isolate_separator["x0"]),
@@ -843,35 +1266,43 @@ def plot_attention_candidate_network(
             y1=float(isolate_separator["y"]),
             line=dict(color="rgba(148, 163, 184, 0.32)", width=1.0, dash="dot"),
         )
-    for annotation in isolate_annotations:
+    if show_isolates:
+        for annotation in isolate_annotations:
+            fig.add_annotation(
+                x=float(annotation["x"]),
+                y=float(annotation["y"]),
+                xref="x",
+                yref="y",
+                showarrow=False,
+                align="center",
+                font=dict(annotation["font"]),
+                text=str(annotation["text"]),
+            )
+    if show_footer:
         fig.add_annotation(
-            x=float(annotation["x"]),
-            y=float(annotation["y"]),
-            xref="x",
-            yref="y",
+            x=0.0,
+            y=-0.08,
+            xref="paper",
+            yref="paper",
             showarrow=False,
-            align="center",
-            font=dict(annotation["font"]),
-            text=str(annotation["text"]),
+            align="left",
+            font=dict(color=STREAMLIT_DARK["muted"], size=11),
+            text=(
+                "Edge width/opacity = edge weight | Node size = candidate score or path role | "
+                "Node shape = move direction | gray nodes/edges = intermediate real path nodes or bridge concepts"
+                + (" | isolate band keeps single-name coverage visible" if show_isolates else "")
+            ),
         )
-    fig.add_annotation(
-        x=0.0,
-        y=-0.08,
-        xref="paper",
-        yref="paper",
-        showarrow=False,
-        align="left",
-        font=dict(color=STREAMLIT_DARK["muted"], size=11),
-        text="Edge width/opacity = edge weight | Node size = candidate score or bridge support | Node shape = move direction | diamond = shared bridge concept | isolate band keeps single-name coverage visible",
-    )
     return fig
 
 
 __all__ = [
     "build_attention_candidate_network",
+    "build_homepage_attention_graph_payload",
     "build_network_backbone",
     "connected_candidate_subgraph",
     "expand_network_bridge_nodes",
+    "expand_network_real_paths",
     "focus_ego_network",
     "network_graph_summary",
     "plot_attention_candidate_network",

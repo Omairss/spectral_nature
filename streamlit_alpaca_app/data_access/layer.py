@@ -13,7 +13,13 @@ from compute.anomalies import AttentionConfig, attention_preset, build_attention
 from compute.fred import build_fred_dashboard_from_pipeline
 from compute.fundamentals import load_quarterly_fundamentals
 from compute.ownership import normalize_share_fraction, project_account_view, project_portfolio_timeseries, project_positions_view
-from compute.portfolio import build_portfolio_timeseries, compute_holding_roc, normalize_timeseries_view
+from compute.portfolio import (
+    build_portfolio_timeseries,
+    compute_holding_roc,
+    filter_portfolio_timeseries_period,
+    normalize_timeseries_view,
+    select_holding_roc_view,
+)
 from compute.treasury_yields import build_treasury_yield_facts_1d, build_treasury_yield_observations, build_treasury_yield_summary
 from data_access.contracts import DataProvenance, ResolvedPayload
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
@@ -646,6 +652,7 @@ class DataAccessLayer:
                 "event_candidates_1d": [],
                 "event_impacts_1d": [],
                 "entity_master": [],
+                "homepage_graph": {},
                 "run_id": "",
             }
             if self.cfg is None:
@@ -732,6 +739,7 @@ class DataAccessLayer:
             filings_frame = self._resolve_attention_edgar_filings(shortlist[:60], force_refresh=force_refresh)
             fred_summary_frame = pd.DataFrame()
             yield_curve_facts_frame = pd.DataFrame()
+            topology_universe_frame = pd.DataFrame()
             if pipeline_store_configured():
                 try:
                     fred_summary_frame, _ = self._pipeline_frame("fred_summary")
@@ -741,6 +749,10 @@ class DataAccessLayer:
                     yield_curve_facts_frame, _ = self._pipeline_frame("yield_curve_facts_1d")
                 except Exception:
                     yield_curve_facts_frame = pd.DataFrame()
+                try:
+                    topology_universe_frame, _ = self._pipeline_frame("entity_taxonomy_labels")
+                except Exception:
+                    topology_universe_frame = pd.DataFrame()
 
             artifacts = build_bottom_up_attention_artifacts(
                 movers,
@@ -749,6 +761,7 @@ class DataAccessLayer:
                 news_payloads=news_payloads,
                 context_payloads=context_payloads,
                 entity_master=entity_master,
+                topology_universe_frame=topology_universe_frame,
                 holdings=holdings,
                 generated_at_utc=pd.Timestamp.utcnow(),
                 filings_frame=filings_frame,
@@ -785,23 +798,23 @@ class DataAccessLayer:
         )
 
     def resolve_account(self, *, force_refresh: bool = False) -> ResolvedPayload:
-        materialized_positions = self._try_pipeline_frame("positions_snapshot", force_refresh=force_refresh)
-        if materialized_positions is not None:
-            positions_frame, details = materialized_positions
-            if isinstance(positions_frame, pd.DataFrame) and not positions_frame.empty:
-                market_value = pd.to_numeric(positions_frame.get("market_value"), errors="coerce").fillna(0.0)
-                payload = {
-                    "status": "materialized",
-                    "equity": float(market_value.sum()),
-                    "cash": 0.0,
-                    "portfolio_value": float(market_value.sum()),
-                    "buying_power": 0.0,
-                    "daytrade_count": 0,
-                    "position_count": int(len(positions_frame)),
-                }
-                return self._resolved(payload, mode="materialized", datasets=("positions_snapshot",), details=details)
         materialized_only = self._materialized_only_result({}, datasets=("account",))
         if materialized_only is not None:
+            materialized_positions = self._try_pipeline_frame("positions_snapshot", force_refresh=force_refresh)
+            if materialized_positions is not None:
+                positions_frame, details = materialized_positions
+                if isinstance(positions_frame, pd.DataFrame) and not positions_frame.empty:
+                    market_value = pd.to_numeric(positions_frame.get("market_value"), errors="coerce").fillna(0.0)
+                    payload = {
+                        "status": "materialized",
+                        "equity": float(market_value.sum()),
+                        "cash": 0.0,
+                        "portfolio_value": float(market_value.sum()),
+                        "buying_power": 0.0,
+                        "daytrade_count": 0,
+                        "position_count": int(len(positions_frame)),
+                    }
+                    return self._resolved(payload, mode="materialized", datasets=("positions_snapshot",), details=details)
             return materialized_only
         frame = cached_scalar_dict(
             "account",
@@ -847,6 +860,14 @@ class DataAccessLayer:
         return self._resolved(projected, mode=resolved.provenance.mode, datasets=resolved.provenance.datasets + ("ownership_projection",), details=details)
 
     def resolve_portfolio_timeseries(self, period: str, *, force_refresh: bool = False) -> ResolvedPayload:
+        materialized_timeseries = self._try_pipeline_frame("portfolio_timeseries_snapshot", force_refresh=force_refresh)
+        if materialized_timeseries is not None:
+            frame, details = materialized_timeseries
+            if isinstance(frame, pd.DataFrame) and not frame.empty:
+                filtered = filter_portfolio_timeseries_period(frame, period)
+                materialized_details = dict(details)
+                materialized_details["period"] = period
+                return self._resolved(filtered.reset_index(drop=True), mode="materialized", datasets=("portfolio_timeseries_snapshot",), details=materialized_details)
         materialized_only = self._materialized_only_result(
             pd.DataFrame(),
             datasets=("portfolio_timeseries",),
@@ -887,6 +908,14 @@ class DataAccessLayer:
 
     def resolve_holding_roc(self, symbols: list[str], *, days: int = 365, force_refresh: bool = False) -> ResolvedPayload:
         normalized_symbols = sorted({str(symbol).upper().strip() for symbol in symbols if str(symbol).strip()})
+        materialized_profiles = self._try_pipeline_frame("momentum_profiles", force_refresh=force_refresh)
+        if materialized_profiles is not None:
+            frame, details = materialized_profiles
+            if isinstance(frame, pd.DataFrame):
+                payload = select_holding_roc_view(frame, normalized_symbols)
+                materialized_details = dict(details)
+                materialized_details.update({"days": days, "symbols": normalized_symbols})
+                return self._resolved(payload, mode="materialized", datasets=("momentum_profiles",), details=materialized_details)
         materialized_only = self._materialized_only_result(
             pd.DataFrame(),
             datasets=("holding_roc",),

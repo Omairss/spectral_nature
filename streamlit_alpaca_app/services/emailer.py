@@ -30,6 +30,7 @@ def _smtp_username() -> str:
     return resolve_secret_value(
         ["APP_SMTP_USERNAME", "SMTP_USERNAME"],
         secret_name_env="APP_SMTP_USERNAME_SECRET",
+        default_secret_name="app-smtp-username",
     )
 
 
@@ -37,6 +38,7 @@ def _smtp_password() -> str:
     return resolve_secret_value(
         ["APP_SMTP_PASSWORD", "SMTP_PASSWORD"],
         secret_name_env="APP_SMTP_PASSWORD_SECRET",
+        default_secret_name="app-smtp-password",
     )
 
 
@@ -54,6 +56,7 @@ def _from_address() -> str:
     return resolve_secret_value(
         ["APP_EMAIL_FROM", "EMAIL_FROM"],
         secret_name_env="APP_EMAIL_FROM_SECRET",
+        default_secret_name="app-email-from",
     )
 
 

@@ -13,7 +13,12 @@ if str(APP_ROOT) not in sys.path:
 
 from compute.analytics import select_signed_ranked
 from compute.fred import build_fred_dashboard_from_pipeline
-from compute.portfolio import build_portfolio_timeseries, normalize_timeseries_view
+from compute.portfolio import (
+    build_portfolio_timeseries,
+    filter_portfolio_timeseries_period,
+    normalize_timeseries_view,
+    select_holding_roc_view,
+)
 
 
 def test_normalize_timeseries_view_scales_each_series_independently():
@@ -73,6 +78,57 @@ def test_build_portfolio_timeseries_trims_leading_zero_equity_rows():
 
     assert out["timestamp"].dt.strftime("%Y-%m-%d").tolist() == ["2026-03-12", "2026-03-13"]
     assert out["portfolio"].tolist() == [50.0, 55.0]
+
+
+def test_build_portfolio_timeseries_degrades_to_portfolio_only_when_benchmarks_fail():
+    timestamps = pd.to_datetime(
+        ["2026-03-10T20:00:00Z", "2026-03-11T20:00:00Z", "2026-03-12T20:00:00Z"],
+        utc=True,
+    )
+
+    class FakeAPI:
+        def get_portfolio_history(self, *, period: str, timeframe: str) -> pd.DataFrame:
+            return pd.DataFrame({"timestamp": timestamps, "equity": [50.0, 52.0, 55.0]})
+
+        def get_stock_bars(self, symbols, *, start, timeframe: str, feed: str) -> dict[str, pd.DataFrame]:
+            raise RuntimeError("benchmark fetch failed")
+
+    out = build_portfolio_timeseries(FakeAPI(), "1Y")
+
+    assert out.columns.tolist() == ["timestamp", "portfolio"]
+    assert out["portfolio"].tolist() == [50.0, 52.0, 55.0]
+
+
+def test_filter_portfolio_timeseries_period_trims_to_requested_window():
+    frame = pd.DataFrame(
+        {
+            "timestamp": pd.to_datetime(["2025-01-01", "2025-06-01", "2025-12-15", "2025-12-31"], utc=True),
+            "portfolio": [90.0, 95.0, 100.0, 101.0],
+        }
+    )
+
+    out = filter_portfolio_timeseries_period(frame, "1M")
+
+    assert out["timestamp"].dt.strftime("%Y-%m-%d").tolist() == ["2025-12-15", "2025-12-31"]
+
+
+def test_select_holding_roc_view_shapes_materialized_momentum_profiles():
+    frame = pd.DataFrame(
+        {
+            "symbol": ["AAPL", "MSFT"],
+            "roc_1d_to_1w": [0.1, 0.2],
+            "roc_1w_to_1m": [0.3, 0.4],
+            "roc_1m_to_3m": [0.5, 0.6],
+            "momentum_1w": [0.01, 0.02],
+            "momentum_1m": [0.03, 0.04],
+            "momentum_3m": [0.05, 0.06],
+        }
+    )
+
+    out = select_holding_roc_view(frame, ["msft"])
+
+    assert out["symbol"].tolist() == ["MSFT"]
+    assert out["roc_1w_to_1m"].tolist() == [0.4]
 
 
 def test_build_fred_dashboard_from_pipeline_shapes_materialized_payload():

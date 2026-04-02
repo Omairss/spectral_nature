@@ -64,6 +64,101 @@ def test_data_access_layer_materialized_only_does_not_fallback_for_price_history
     assert resolved.provenance.details["materialized_only"] is True
 
 
+def test_data_access_layer_prefers_materialized_positions_when_available(monkeypatch):
+    positions = pd.DataFrame(
+        {
+            "symbol": ["AAPL"],
+            "qty": [10.0],
+            "market_value": [1800.0],
+        }
+    )
+
+    monkeypatch.setattr(DataAccessLayer, "_try_pipeline_frame", lambda self, dataset_name, force_refresh: (positions.copy(), {"dataset_name": dataset_name}))
+
+    resolved = DataAccessLayer().resolve_positions()
+
+    assert resolved.provenance.mode == "materialized"
+    assert resolved.provenance.datasets == ("positions_snapshot",)
+    assert resolved.payload["symbol"].tolist() == ["AAPL"]
+
+
+def test_data_access_layer_empty_materialized_positions_fall_back_to_live_cache(monkeypatch):
+    import data_access.layer as layer_module
+
+    live_positions = pd.DataFrame({"symbol": ["AAPL"], "market_value": [1800.0]})
+    cfg = SimpleNamespace(alpaca_api_key="key")
+
+    monkeypatch.setattr(DataAccessLayer, "_try_pipeline_frame", lambda self, dataset_name, force_refresh: (pd.DataFrame(), {"dataset_name": dataset_name}))
+    monkeypatch.setattr(layer_module, "cached_frame", lambda *args, **kwargs: live_positions.copy())
+
+    resolved = DataAccessLayer(cfg=cfg).resolve_positions()
+
+    assert resolved.provenance.mode == "on_demand"
+    assert resolved.provenance.datasets == ("positions",)
+    assert resolved.payload["symbol"].tolist() == ["AAPL"]
+
+
+def test_data_access_layer_prefers_materialized_portfolio_timeseries_when_available(monkeypatch):
+    history = pd.DataFrame(
+        {
+            "timestamp": pd.to_datetime(["2025-01-15", "2025-11-15", "2025-12-20", "2025-12-31"], utc=True),
+            "portfolio": [90.0, 95.0, 100.0, 101.0],
+            "SPY": [100.0, 110.0, 111.0, 112.0],
+        }
+    )
+
+    monkeypatch.setattr(DataAccessLayer, "_try_pipeline_frame", lambda self, dataset_name, force_refresh: (history.copy(), {"dataset_name": dataset_name}))
+
+    resolved = DataAccessLayer().resolve_portfolio_timeseries("1M")
+
+    assert resolved.provenance.mode == "materialized"
+    assert resolved.provenance.datasets == ("portfolio_timeseries_snapshot",)
+    assert resolved.payload["timestamp"].dt.strftime("%Y-%m-%d").tolist() == ["2025-12-20", "2025-12-31"]
+
+
+def test_data_access_layer_empty_materialized_portfolio_timeseries_fall_back_to_live_cache(monkeypatch):
+    import data_access.layer as layer_module
+
+    live_history = pd.DataFrame(
+        {
+            "timestamp": pd.to_datetime(["2025-12-20", "2025-12-31"], utc=True),
+            "portfolio": [100.0, 101.0],
+        }
+    )
+    cfg = SimpleNamespace(alpaca_api_key="key")
+
+    monkeypatch.setattr(DataAccessLayer, "_try_pipeline_frame", lambda self, dataset_name, force_refresh: (pd.DataFrame(), {"dataset_name": dataset_name}))
+    monkeypatch.setattr(layer_module, "cached_frame", lambda *args, **kwargs: live_history.copy())
+
+    resolved = DataAccessLayer(cfg=cfg).resolve_portfolio_timeseries("1M")
+
+    assert resolved.provenance.mode == "on_demand"
+    assert resolved.provenance.datasets == ("portfolio_timeseries",)
+    assert resolved.payload["portfolio"].tolist() == [100.0, 101.0]
+
+
+def test_data_access_layer_holding_roc_uses_materialized_momentum_profiles(monkeypatch):
+    momentum = pd.DataFrame(
+        {
+            "symbol": ["AAPL", "MSFT"],
+            "roc_1d_to_1w": [0.1, 0.2],
+            "roc_1w_to_1m": [0.3, 0.4],
+            "roc_1m_to_3m": [0.5, 0.6],
+            "momentum_1w": [0.01, 0.02],
+            "momentum_1m": [0.03, 0.04],
+            "momentum_3m": [0.05, 0.06],
+        }
+    )
+
+    monkeypatch.setattr(DataAccessLayer, "_try_pipeline_frame", lambda self, dataset_name, force_refresh: (momentum.copy(), {"dataset_name": dataset_name}))
+
+    resolved = DataAccessLayer().resolve_holding_roc(["MSFT"])
+
+    assert resolved.provenance.mode == "materialized"
+    assert resolved.provenance.datasets == ("momentum_profiles",)
+    assert resolved.payload["symbol"].tolist() == ["MSFT"]
+
+
 def test_data_access_layer_materialized_only_does_not_fallback_for_attention_home(monkeypatch):
     import data_access.layer as layer_module
 
@@ -76,6 +171,43 @@ def test_data_access_layer_materialized_only_does_not_fallback_for_attention_hom
     assert resolved.provenance.mode == "materialized"
     assert resolved.payload == {}
     assert resolved.provenance.details["materialized_only"] is True
+
+
+def test_data_access_layer_resolves_materialized_attention_home_with_homepage_graph(monkeypatch):
+    import data_access.layer as layer_module
+
+    materialized_home = pd.DataFrame(
+        [
+            {
+                "run_id": "materialized-run",
+                "generated_at_utc": "2026-04-01T18:00:00Z",
+                "coverage_summary_json": json.dumps({"candidate_count": 4}),
+                "taxonomy_horizon_trends_json": json.dumps([]),
+                "top_events_json": json.dumps([]),
+                "must_read_movers_json": json.dumps([]),
+                "unresolved_large_moves_json": json.dumps([]),
+                "event_candidates_1d_json": json.dumps([]),
+                "event_impacts_1d_json": json.dumps([]),
+                "entity_master_json": json.dumps([]),
+                "homepage_graph_json": json.dumps({"figure": {"data": [], "layout": {"height": 320}}, "summary": {"connected_components": 1}}),
+            }
+        ]
+    )
+
+    monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
+    monkeypatch.setattr(DataAccessLayer, "_should_try_pipeline", lambda self, force_refresh: True)
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_pipeline_frame",
+        lambda self, dataset_name: (materialized_home.copy(), {"dataset_name": dataset_name}),
+    )
+
+    resolved = DataAccessLayer().resolve_attention_home_1d()
+
+    assert resolved.provenance.mode == "materialized"
+    assert resolved.payload["run_id"] == "materialized-run"
+    assert resolved.payload["homepage_graph"]["figure"]["layout"]["height"] == 320
+    assert resolved.payload["homepage_graph"]["summary"]["connected_components"] == 1
 
 
 def test_data_access_layer_builds_materialized_fred_dashboard_when_available(monkeypatch):
@@ -784,7 +916,7 @@ def test_query_service_capabilities_include_resolution_hints():
     capabilities = QueryService(data_access=object()).list_capabilities()
 
     assert capabilities["datasets"]["daily_movers"]["resolution"] == "materialized_first"
-    assert capabilities["datasets"]["portfolio_timeseries"]["resolution"] == "live_cached"
+    assert capabilities["datasets"]["portfolio_timeseries"]["resolution"] == "materialized_first"
     assert capabilities["datasets"]["attention_feed"]["resolution"] == "materialized"
     assert capabilities["datasets"]["attention_context"]["resolution"] == "materialized"
     assert capabilities["datasets"]["commodity_attention_feed"]["resolution"] == "materialized"

@@ -8,6 +8,7 @@ from services.entity_taxonomy import (
     build_entity_taxonomy_snapshot,
     business_focus_label_from_taxonomy_row,
     classify_listings_with_llm,
+    dashboard_business_lens_from_taxonomy_row,
 )
 
 
@@ -179,6 +180,21 @@ def test_business_focus_label_from_taxonomy_row_maps_generated_tags():
     }
 
     assert business_focus_label_from_taxonomy_row(row) == "Payments & Commerce"
+
+
+def test_dashboard_business_lens_from_taxonomy_row_prefers_structured_dashboard_tags():
+    row = {
+        "business_role_tags": ["payments_and_commerce", "merchant_software"],
+        "sector": "Information Technology",
+        "commodity_role": "",
+    }
+
+    assert dashboard_business_lens_from_taxonomy_row(row) == "Payments & Commerce"
+
+
+def test_dashboard_business_lens_from_taxonomy_row_maps_energy_and_commodity_roles():
+    assert dashboard_business_lens_from_taxonomy_row({"commodity_role": "oil", "sector": "Energy"}) == "Commodity"
+    assert dashboard_business_lens_from_taxonomy_row({"commodity_role": "", "sector": "Energy", "business_role_tags": ["offshore_operator"]}) == "Commodity"
 
 
 def test_classify_listings_with_llm_maps_response_into_taxonomy_rows():

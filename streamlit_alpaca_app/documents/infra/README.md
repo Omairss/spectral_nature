@@ -48,7 +48,7 @@ Default cadence:
 
 Taxonomy flow charts and setup notes live in:
 
-- `infra/TAXONOMY_PIPELINE_FLOW.md`
+- `documents/infra/TAXONOMY_PIPELINE_FLOW.md`
 
 ## Output
 
@@ -60,7 +60,7 @@ This file includes resource names, DB endpoint details, and image reference.
 
 ## UI App Deployment
 
-The Streamlit UI app uses a separate deployment entrypoint:
+The Spectral Nature UI app uses a separate deployment entrypoint:
 
 ```bash
 ./scripts/deploy_ui_azure.sh
@@ -81,5 +81,11 @@ The UI deploy script:
 - builds `Dockerfile.app` into ACR when deploying to Development
 - pins the deployed image by digest
 - waits for the latest revision to become ready
-- smoke-checks the Streamlit endpoint
-- rewrites `infra/UI_DEPLOYMENT_STATUS.md` from live Azure state
+- smoke-checks the UI endpoint
+- rewrites `documents/infra/UI_DEPLOYMENT_STATUS.md` from live Azure state
+
+Email delivery for password resets and invites is provisioned separately:
+
+```bash
+./scripts/setup_ui_email_delivery_azure.sh --target dev --test-to you@example.com
+```

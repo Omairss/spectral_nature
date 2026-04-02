@@ -4,9 +4,10 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from io import BytesIO
 import json
-from pathlib import Path
 import os
+from pathlib import Path
 import subprocess
+import time
 from typing import Any
 
 import pandas as pd
@@ -23,6 +24,11 @@ try:
     from azure.storage.blob import BlobServiceClient
 except Exception:
     BlobServiceClient = None
+
+
+APP_ROOT = Path(__file__).resolve().parents[1]
+PIPELINE_CACHE_ROOT = APP_ROOT / "cache" / "pipeline_store"
+PIPELINE_METADATA_CACHE_SECONDS = max(int((os.getenv("PIPELINE_METADATA_CACHE_SECONDS") or "30").strip() or "30"), 0)
 
 
 @dataclass(frozen=True)
@@ -48,7 +54,15 @@ SOURCE_JOB_MAP: dict[str, str] = {
 }
 
 SOURCE_DATASETS: dict[str, list[str]] = {
-    "equities": ["universe_snapshot", "daily_movers", "macro_anchor_daily_movers", "positions_snapshot", "momentum_profiles", "price_history"],
+    "equities": [
+        "universe_snapshot",
+        "daily_movers",
+        "macro_anchor_daily_movers",
+        "positions_snapshot",
+        "portfolio_timeseries_snapshot",
+        "momentum_profiles",
+        "price_history",
+    ],
     "fred": ["fred_summary", "fred_observations", "yield_curve_observations", "yield_curve_summary", "yield_curve_facts_1d"],
     "commodities": [
         "commodity_regime_summary",
@@ -118,6 +132,55 @@ def _load_deployment_env() -> dict[str, str]:
         key, value = clean.split("=", 1)
         values[key.strip()] = value.strip()
     return values
+
+
+def _pipeline_cache_dir(dataset_name: str, dataset_version_id: str) -> Path:
+    safe_dataset = "".join(ch if ch.isalnum() or ch in {"-", "_"} else "_" for ch in str(dataset_name or "").strip())
+    safe_version = "".join(ch if ch.isalnum() or ch in {"-", "_"} else "_" for ch in str(dataset_version_id or "").strip())
+    return PIPELINE_CACHE_ROOT / safe_dataset / safe_version
+
+
+def _metadata_cache_path(dataset_name: str) -> Path:
+    safe_dataset = "".join(ch if ch.isalnum() or ch in {"-", "_"} else "_" for ch in str(dataset_name or "").strip())
+    return PIPELINE_CACHE_ROOT / "_metadata" / f"{safe_dataset}.json"
+
+
+def _read_cached_metadata(dataset_name: str) -> PipelineDataset | None:
+    if PIPELINE_METADATA_CACHE_SECONDS <= 0:
+        return None
+    path = _metadata_cache_path(dataset_name)
+    if not path.exists():
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    cached_at = float(payload.get("cached_at_epoch") or 0.0)
+    if cached_at <= 0 or (time.time() - cached_at) > PIPELINE_METADATA_CACHE_SECONDS:
+        return None
+    dataset = _coerce_manifest_dataset(dict(payload.get("dataset") or {}))
+    if dataset is None or dataset.dataset_name != dataset_name:
+        return None
+    return dataset
+
+
+def _write_cached_metadata(dataset_name: str, dataset: PipelineDataset | None) -> None:
+    if PIPELINE_METADATA_CACHE_SECONDS <= 0 or dataset is None:
+        return
+    path = _metadata_cache_path(dataset_name)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "cached_at_epoch": time.time(),
+        "dataset": {
+            "dataset_name": dataset.dataset_name,
+            "dataset_version_id": dataset.dataset_version_id,
+            "blob_path": dataset.blob_path,
+            "asof_time_utc": dataset.asof_time_utc,
+            "ingested_at_utc": dataset.ingested_at_utc,
+            "row_count": dataset.row_count,
+        },
+    }
+    path.write_text(json.dumps(payload), encoding="utf-8")
 
 
 def _get_env(name: str, default: str = "") -> str:
@@ -211,6 +274,27 @@ def _read_blob_parquet(blob_path: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 
+def _local_frame_cache_path(dataset: PipelineDataset) -> Path:
+    return _pipeline_cache_dir(dataset.dataset_name, dataset.dataset_version_id) / "frame.pkl"
+
+
+def _read_local_frame_cache(dataset: PipelineDataset) -> pd.DataFrame | None:
+    path = _local_frame_cache_path(dataset)
+    if not path.exists():
+        return None
+    try:
+        frame = pd.read_pickle(path)
+    except Exception:
+        return None
+    return frame if isinstance(frame, pd.DataFrame) else None
+
+
+def _write_local_frame_cache(dataset: PipelineDataset, frame: pd.DataFrame) -> None:
+    path = _local_frame_cache_path(dataset)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    frame.to_pickle(path)
+
+
 def _read_blob_json(blob_path: str) -> dict[str, Any] | None:
     client = _blob_service_client()
     if client is None:
@@ -282,9 +366,15 @@ def _latest_manifest_metadata(dataset_name: str) -> PipelineDataset | None:
 
 
 def latest_dataset_metadata(dataset_name: str) -> PipelineDataset | None:
+    cached = _read_cached_metadata(dataset_name)
+    if cached is not None:
+        return cached
+
     conn = _db_connect()
     if conn is None:
-        return _latest_manifest_metadata(dataset_name)
+        dataset = _latest_manifest_metadata(dataset_name)
+        _write_cached_metadata(dataset_name, dataset)
+        return dataset
     try:
         with conn.cursor() as cur:
             cur.execute(
@@ -300,8 +390,10 @@ def latest_dataset_metadata(dataset_name: str) -> PipelineDataset | None:
             )
             row = cur.fetchone()
             if not row:
-                return _latest_manifest_metadata(dataset_name)
-            return PipelineDataset(
+                dataset = _latest_manifest_metadata(dataset_name)
+                _write_cached_metadata(dataset_name, dataset)
+                return dataset
+            dataset = PipelineDataset(
                 dataset_name=str(row[0]),
                 dataset_version_id=str(row[1]),
                 blob_path=str(row[2]),
@@ -309,8 +401,12 @@ def latest_dataset_metadata(dataset_name: str) -> PipelineDataset | None:
                 ingested_at_utc=str(row[4]),
                 row_count=int(row[5] or 0),
             )
+            _write_cached_metadata(dataset_name, dataset)
+            return dataset
     except Exception:
-        return _latest_manifest_metadata(dataset_name)
+        dataset = _latest_manifest_metadata(dataset_name)
+        _write_cached_metadata(dataset_name, dataset)
+        return dataset
     finally:
         try:
             conn.close()
@@ -322,7 +418,15 @@ def load_latest_dataset_frame(dataset_name: str) -> tuple[pd.DataFrame, Pipeline
     metadata = latest_dataset_metadata(dataset_name)
     if metadata is None:
         return pd.DataFrame(), None
+    cached = _read_local_frame_cache(metadata)
+    if cached is not None:
+        return cached, metadata
     frame = _read_blob_parquet(metadata.blob_path)
+    if isinstance(frame, pd.DataFrame):
+        try:
+            _write_local_frame_cache(metadata, frame)
+        except Exception:
+            pass
     return frame, metadata
 
 

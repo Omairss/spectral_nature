@@ -8,7 +8,7 @@ import re
 import pandas as pd
 
 from .alpaca_api import AlpacaAPI, AlpacaAPIError
-from .market import business_focus_for_symbol, commodity_proxy_profile
+from .market import commodity_proxy_profile, narrative_business_lens_for_symbol
 
 
 COMPANY_ROLE_HINTS: dict[str, str] = {
@@ -277,8 +277,8 @@ def _matched_business_lenses(symbol: str) -> list[str]:
     target = str(symbol or "").upper().strip()
     if not target:
         return []
-    focus = str(business_focus_for_symbol(target) or "").strip()
-    if not focus or focus == "All Market":
+    focus = str(narrative_business_lens_for_symbol(target) or "").strip()
+    if not focus:
         return []
     return [focus]
 
@@ -475,10 +475,14 @@ def build_company_description(
             BUSINESS_NARRATIVE_HINTS.get(lens, "")
             for lens in ordered_lenses[:2]
         ]
-        details.append(
-            f"In this dashboard it maps most naturally to the {lens_text} narrative, where investors usually watch "
-            f"{_join_phrases([value for value in narrative_inputs if value])}."
-        )
+        narrative_text = _join_phrases([value for value in narrative_inputs if value])
+        if narrative_text:
+            details.append(
+                f"In this dashboard it maps most naturally to the {lens_text} narrative, where investors usually watch "
+                f"{narrative_text}."
+            )
+        else:
+            details.append(f"In this dashboard it maps most naturally to the {lens_text} narrative.")
 
     theme_hits = _extract_news_themes(news_payload)
     if theme_hits:
@@ -521,9 +525,18 @@ def summarize_recent_news(ticker: str, payload: dict[str, object]) -> dict[str, 
             span_days = max(int((published.max() - published.min()).days), 0)
         sentiment = "mixed"
         if "sentiment" in articles.columns:
-            modes = articles["sentiment"].dropna().astype(str)
+            modes = pd.Series(
+                [
+                    str(value).strip().lower()
+                    for value in articles["sentiment"].dropna().astype(str).tolist()
+                    if str(value).strip()
+                ],
+                dtype="object",
+            )
             if not modes.empty:
-                sentiment = modes.mode().iloc[0].lower()
+                dominant = str(modes.mode().iloc[0] or "").strip().lower()
+                if dominant:
+                    sentiment = dominant
 
         summary_lines.append(
             f"{len(articles)} recent article(s) over roughly the last {span_days + 1} day(s); tone is {sentiment}."

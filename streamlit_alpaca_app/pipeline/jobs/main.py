@@ -24,6 +24,7 @@ from compute.anomalies import (
     filter_attention_events,
     normalize_horizons,
 )
+from compute.portfolio import build_portfolio_timeseries
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
 from pipeline.jobs.attention_home_build import run_attention_home_build as run_attention_home_build_job
 from services.attention_home_1d import resolve_macro_anchor_symbols
@@ -733,6 +734,17 @@ def _load_attention_positions(api: AlpacaAPI) -> pd.DataFrame:
         return pd.DataFrame(columns=["symbol", "market_value"])
 
 
+def _build_portfolio_timeseries_snapshot(api: AlpacaAPI, *, period: str = "5Y") -> pd.DataFrame:
+    try:
+        frame = build_portfolio_timeseries(api, period)
+        if not frame.empty:
+            print(f"[info] built portfolio_timeseries_snapshot rows={len(frame)} period={period}")
+        return frame
+    except Exception as exc:
+        print(f"[warn] portfolio history unavailable for snapshot: {type(exc).__name__}: {exc}")
+        return pd.DataFrame(columns=["timestamp", "portfolio"])
+
+
 def _normalize_symbol(value: object) -> str:
     text = str(value or "").upper().strip()
     return "" if not text or text == "NAN" else text
@@ -1076,6 +1088,15 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
         _persist_dataset("macro_anchor_daily_movers", macro_movers, ctx, conn)
         positions = _load_attention_positions(api)
         _persist_dataset("positions_snapshot", positions, ctx, conn)
+        _job_progress(
+            ctx,
+            conn,
+            stage="portfolio_history",
+            message="Building portfolio history snapshot.",
+            progress_pct=18.0,
+        )
+        portfolio_timeseries = _build_portfolio_timeseries_snapshot(api, period="5Y")
+        _persist_dataset("portfolio_timeseries_snapshot", portfolio_timeseries, ctx, conn)
 
         momentum_lookback_days = max(int(os.getenv("MOMENTUM_LOOKBACK_DAYS", "3650")), 365)
         phase_days = max(int(os.getenv("PHASE_SHIFT_DAYS", "365")), 120)

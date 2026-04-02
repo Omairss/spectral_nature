@@ -20,8 +20,8 @@ This document defines the canonical architecture for cached dashboard reads.
 
 - Equities
   - Job: `equities-intraday-preload`
-  - Datasets: `daily_movers`, `momentum_profiles`, `price_history`
-  - Dashboard: Market Opportunity, Technical Strategizer, Option Strategizer (spot reference)
+  - Datasets: `daily_movers`, `positions_snapshot`, `portfolio_timeseries_snapshot`, `momentum_profiles`, `price_history`
+  - Dashboard: Market Opportunity, Portfolio Overview holdings/history blocks, Performance, Technical Strategizer, Option Strategizer (spot reference)
 
 - FRED
   - Job: `macro-fred-daily`
@@ -52,7 +52,7 @@ This document defines the canonical architecture for cached dashboard reads.
   - Job: `entity-taxonomy-refresh`
   - Datasets: `us_equity_listings`, `entity_taxonomy_labels`
   - Dashboard: Attention entity labeling, sector/industry/peer-group lookup
-  - Detailed flow: `infra/TAXONOMY_PIPELINE_FLOW.md`
+  - Detailed flow: `documents/infra/TAXONOMY_PIPELINE_FLOW.md`
 
 - Fundamentals
   - Job: `equities-intraday-preload`
@@ -82,4 +82,5 @@ These controls are operational triggers, not data readers. Readers still use sna
 ## Notes
 
 - Option snapshot datasets now back expiration discovery, quote tables, and scenario surface inputs.
-- Portfolio/account/positions/timeseries remain live-backed until dedicated pipeline datasets are introduced.
+- Account remains live-backed.
+- Portfolio positions, portfolio history, and holding momentum are snapshot-first via `positions_snapshot`, `portfolio_timeseries_snapshot`, and `momentum_profiles`.

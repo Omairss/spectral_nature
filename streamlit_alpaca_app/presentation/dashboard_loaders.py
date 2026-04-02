@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import json
 from typing import Any, Callable
 
 import pandas as pd
@@ -8,7 +9,10 @@ import requests
 import streamlit as st
 
 from compute.fundamentals import latest_share_count
+from services.attention_feed_brief import build_attention_feed_brief
 from services.config import AppConfig
+from services.homepage_v2 import build_homepage_v2_digest
+from services.llm import LLMAPIError, load_llm_client
 from services.pipeline_store import load_latest_dataset_frame
 
 _CurrentUserContextProvider = Callable[[], Any]
@@ -542,6 +546,7 @@ def _load_ticker_snapshot_profile(
     symbol: str,
     *,
     force_refresh: bool = False,
+    allow_live_fallback: bool = True,
 ) -> dict[str, str]:
     target = str(symbol or "").upper().strip()
     if not target:
@@ -564,6 +569,15 @@ def _load_ticker_snapshot_profile(
                 "market_cap_label": market_cap_label_hint,
                 "sparkline_data_uri": sparkline_hint,
             }
+
+    universe_names = _load_universe_security_name_map(force_refresh=force_refresh)
+    if not allow_live_fallback:
+        return {
+            "symbol": target,
+            "company_name": company_name_hint or str(universe_names.get(target) or target).strip(),
+            "market_cap_label": market_cap_label_hint,
+            "sparkline_data_uri": sparkline_hint,
+        }
 
     if cfg is not None:
         try:
@@ -592,7 +606,6 @@ def _load_ticker_snapshot_profile(
             asset = _load_asset_metadata_cached(cfg, target, force_refresh=force_refresh)
         except Exception:
             asset = {}
-    universe_names = _load_universe_security_name_map(force_refresh=force_refresh)
     company_name = company_name_hint or str(asset.get("name") or universe_names.get(target) or target).strip()
 
     price_history = pd.DataFrame()
@@ -791,3 +804,170 @@ def _load_attention_home_1d(
         force_refresh=force_refresh,
     )
 
+
+def _load_attention_research_bundle_cached(
+    cfg: AppConfig,
+    bundle_id: str,
+    force_refresh: bool = False,
+) -> dict[str, object]:
+    return _resolve_data_access_payload(
+        "resolve_attention_research_bundle",
+        cfg=cfg,
+        source="news",
+        bundle_id=bundle_id,
+        force_refresh=force_refresh,
+    )
+
+
+def _safe_load_attention_research_bundle_cached(
+    cfg: AppConfig,
+    bundle_id: str,
+    force_refresh: bool = False,
+) -> dict[str, object]:
+    normalized_bundle_id = str(bundle_id or "").strip()
+    if not normalized_bundle_id:
+        return {}
+    try:
+        return _load_attention_research_bundle_cached(
+            cfg,
+            normalized_bundle_id,
+            force_refresh=force_refresh,
+        )
+    except Exception:
+        return {}
+
+
+def _load_fred_dashboard_cached(api_key: str, years: int, force_refresh: bool = False) -> dict[str, object]:
+    return _resolve_data_access_payload(
+        "resolve_fred_dashboard",
+        fred_api_key=api_key,
+        source="fred",
+        years=years,
+        force_refresh=force_refresh,
+    )
+
+
+def _load_attention_feed_cached(
+    cfg: AppConfig | None = None,
+    *,
+    dataset_name: str = "attention_feed",
+    source: str = "derivatives",
+    limit: int = 10,
+    entity_ids: list[str] | None = None,
+    horizons: list[str] | None = None,
+    statuses: list[str] | None = None,
+    sensitivity: str | None = None,
+    min_attention_score: float | None = None,
+    residual_zscore_threshold: float | None = None,
+    force_refresh: bool = False,
+) -> pd.DataFrame:
+    return _resolve_data_access_payload(
+        "resolve_attention_feed",
+        cfg=cfg,
+        source=source,
+        dataset_name=dataset_name,
+        limit=limit,
+        entity_ids=entity_ids,
+        horizons=horizons,
+        statuses=statuses,
+        sensitivity=sensitivity,
+        min_attention_score=min_attention_score,
+        residual_zscore_threshold=residual_zscore_threshold,
+        force_refresh=force_refresh,
+    )
+
+
+def _load_attention_rollups_cached(
+    cfg: AppConfig | None = None,
+    *,
+    dataset_name: str = "attention_rollups",
+    source: str = "derivatives",
+    rollup_type: str | None = None,
+    horizons: list[str] | None = None,
+    statuses: list[str] | None = None,
+    sensitivity: str | None = None,
+    min_attention_score: float | None = None,
+    residual_zscore_threshold: float | None = None,
+    high_priority_threshold: float | None = None,
+    limit: int = 10,
+    force_refresh: bool = False,
+) -> pd.DataFrame:
+    return _resolve_data_access_payload(
+        "resolve_attention_rollups",
+        cfg=cfg,
+        source=source,
+        dataset_name=dataset_name,
+        rollup_type=rollup_type,
+        horizons=horizons,
+        statuses=statuses,
+        sensitivity=sensitivity,
+        min_attention_score=min_attention_score,
+        residual_zscore_threshold=residual_zscore_threshold,
+        high_priority_threshold=high_priority_threshold,
+        limit=limit,
+        force_refresh=force_refresh,
+    )
+
+
+@st.cache_data(ttl=900, show_spinner=False)
+def _load_attention_feed_brief_cached(
+    brief_input_json: str,
+    *,
+    use_llm: bool,
+) -> dict[str, object]:
+    try:
+        brief_input = json.loads(brief_input_json or "{}")
+    except Exception:
+        brief_input = {}
+    try:
+        brief = build_attention_feed_brief(brief_input, load_llm_client() if use_llm else None)
+        brief["error"] = ""
+        return brief
+    except LLMAPIError as exc:
+        brief = build_attention_feed_brief(brief_input, None)
+        brief["error"] = str(exc)
+        return brief
+    except Exception as exc:
+        brief = build_attention_feed_brief(brief_input, None)
+        brief["error"] = f"{type(exc).__name__}: {exc}"
+        return brief
+
+
+@st.cache_data(ttl=900, show_spinner=False)
+def _load_homepage_v2_digest_cached(
+    event_records_json: str,
+    *,
+    asof_time_utc: str,
+    max_sentences: int,
+) -> dict[str, object]:
+    try:
+        event_records = json.loads(event_records_json or "[]")
+    except Exception:
+        event_records = []
+    try:
+        digest = build_homepage_v2_digest(
+            event_records if isinstance(event_records, list) else [],
+            load_llm_client(),
+            asof_time_utc=asof_time_utc,
+            max_sentences=max_sentences,
+        )
+        digest["error"] = ""
+        return digest
+    except LLMAPIError as exc:
+        digest = build_homepage_v2_digest(
+            event_records if isinstance(event_records, list) else [],
+            None,
+            asof_time_utc=asof_time_utc,
+            max_sentences=max_sentences,
+        )
+        digest["error"] = str(exc)
+        return digest
+    except Exception as exc:
+        digest = build_homepage_v2_digest(
+            event_records if isinstance(event_records, list) else [],
+            None,
+            asof_time_utc=asof_time_utc,
+            max_sentences=max_sentences,
+        )
+        digest["error"] = f"{type(exc).__name__}: {exc}"
+        return digest

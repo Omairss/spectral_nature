@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 DEPLOYMENT_ENV_FILE="${DEPLOYMENT_ENV_FILE:-infra/deployment.outputs.env}"
-STATUS_FILE="${STATUS_FILE:-infra/UI_DEPLOYMENT_STATUS.md}"
+STATUS_FILE="${STATUS_FILE:-documents/infra/UI_DEPLOYMENT_STATUS.md}"
 TARGET="dev"
 PROMOTE_FROM=""
 IMAGE_REF=""
@@ -34,7 +34,7 @@ Options:
   --promote-from dev|prod    Reuse the current image from another UI app
   --image-ref REF            Deploy an existing image ref or repo:tag
   --image-tag REPO:TAG       Override the tag used when building a new image
-  --refresh-tracker-only     Skip deployment and rewrite infra/UI_DEPLOYMENT_STATUS.md
+  --refresh-tracker-only     Skip deployment and rewrite documents/infra/UI_DEPLOYMENT_STATUS.md
   --help                     Show this message
 
 Examples:
@@ -56,6 +56,14 @@ log() {
 
 require_command() {
   command -v "$1" >/dev/null 2>&1 || die "Required command not found: $1"
+}
+
+maybe_append_env() {
+  local key="$1"
+  local value="$2"
+  if [[ -n "$value" ]]; then
+    UPDATE_ENV_VARS+=("${key}=${value}")
+  fi
 }
 
 target_app_name() {
@@ -94,6 +102,37 @@ ensure_registry_context() {
   if [[ -z "$REGISTRY_SERVER" ]]; then
     REGISTRY_SERVER="$(az acr show -n "$ACR_NAME" -g "$RESOURCE_GROUP" --query loginServer -o tsv)"
   fi
+}
+
+app_env_value() {
+  local app_name="$1"
+  local key="$2"
+  az containerapp show \
+    -n "$app_name" \
+    -g "$RESOURCE_GROUP" \
+    --query "properties.template.containers[0].env[?name=='${key}'].value | [0]" \
+    -o tsv 2>/dev/null || true
+}
+
+existing_or_override_env() {
+  local app_name="$1"
+  local key="$2"
+  local override="$3"
+  local fallback="${4:-}"
+  local current=""
+
+  if [[ -n "$override" ]]; then
+    echo "$override"
+    return 0
+  fi
+
+  current="$(app_env_value "$app_name" "$key")"
+  if [[ -n "$current" && "$current" != "null" ]]; then
+    echo "$current"
+    return 0
+  fi
+
+  echo "$fallback"
 }
 
 resolve_image_ref() {
@@ -337,6 +376,16 @@ if [[ "$TARGET" == "prod" ]]; then
   TARGET_FORCE_REFRESH_DEFAULT_VALUE="false"
 fi
 
+TARGET_FQDN="$(app_fqdn "$TARGET_APP")"
+TARGET_PUBLIC_BASE_URL_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_PUBLIC_BASE_URL" "${APP_PUBLIC_BASE_URL:-}" "${TARGET_FQDN:+https://${TARGET_FQDN}}")"
+TARGET_SMTP_HOST_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_SMTP_HOST" "${APP_SMTP_HOST:-}")"
+TARGET_SMTP_PORT_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_SMTP_PORT" "${APP_SMTP_PORT:-}")"
+TARGET_SMTP_USE_TLS_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_SMTP_USE_TLS" "${APP_SMTP_USE_TLS:-}")"
+TARGET_SMTP_USE_SSL_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_SMTP_USE_SSL" "${APP_SMTP_USE_SSL:-}")"
+TARGET_SMTP_USERNAME_SECRET_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_SMTP_USERNAME_SECRET" "${APP_SMTP_USERNAME_SECRET:-}")"
+TARGET_SMTP_PASSWORD_SECRET_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_SMTP_PASSWORD_SECRET" "${APP_SMTP_PASSWORD_SECRET:-}")"
+TARGET_EMAIL_FROM_SECRET_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_EMAIL_FROM_SECRET" "${APP_EMAIL_FROM_SECRET:-}")"
+
 if [[ -n "$PROMOTE_FROM" ]]; then
   log "[1/5] Resolving image from $(target_app_name "$PROMOTE_FROM")"
   IMAGE_TO_DEPLOY="$(image_from_app "$PROMOTE_FROM")"
@@ -350,16 +399,27 @@ else
 fi
 
 log "[2/5] Updating ${TARGET_APP}"
+UPDATE_ENV_VARS=(
+  "APP_TRACK=${TARGET_TRACK_VALUE}"
+  "APP_DISABLE_CACHE=${TARGET_CACHE_DISABLED_VALUE}"
+  "APP_FORCE_DATA_REFRESH_DEFAULT=${TARGET_FORCE_REFRESH_DEFAULT_VALUE}"
+  "APP_RELEASE_TS=${RELEASE_TS}"
+  "AZURE_STORAGE_CONTAINER=${AZURE_STORAGE_CONTAINER}"
+)
+maybe_append_env "APP_PUBLIC_BASE_URL" "$TARGET_PUBLIC_BASE_URL_VALUE"
+maybe_append_env "APP_SMTP_HOST" "$TARGET_SMTP_HOST_VALUE"
+maybe_append_env "APP_SMTP_PORT" "$TARGET_SMTP_PORT_VALUE"
+maybe_append_env "APP_SMTP_USE_TLS" "$TARGET_SMTP_USE_TLS_VALUE"
+maybe_append_env "APP_SMTP_USE_SSL" "$TARGET_SMTP_USE_SSL_VALUE"
+maybe_append_env "APP_SMTP_USERNAME_SECRET" "$TARGET_SMTP_USERNAME_SECRET_VALUE"
+maybe_append_env "APP_SMTP_PASSWORD_SECRET" "$TARGET_SMTP_PASSWORD_SECRET_VALUE"
+maybe_append_env "APP_EMAIL_FROM_SECRET" "$TARGET_EMAIL_FROM_SECRET_VALUE"
+
 az containerapp update \
   -n "$TARGET_APP" \
   -g "$RESOURCE_GROUP" \
   --image "$IMAGE_TO_DEPLOY" \
-  --set-env-vars \
-    APP_TRACK="$TARGET_TRACK_VALUE" \
-    APP_DISABLE_CACHE="$TARGET_CACHE_DISABLED_VALUE" \
-    APP_FORCE_DATA_REFRESH_DEFAULT="$TARGET_FORCE_REFRESH_DEFAULT_VALUE" \
-    APP_RELEASE_TS="$RELEASE_TS" \
-    AZURE_STORAGE_CONTAINER="$AZURE_STORAGE_CONTAINER" \
+  --set-env-vars "${UPDATE_ENV_VARS[@]}" \
   >/dev/null
 
 log "[3/5] Waiting for latest revision to become ready"

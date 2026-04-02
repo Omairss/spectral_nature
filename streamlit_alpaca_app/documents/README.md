@@ -1,14 +1,14 @@
-# Spectral Nature (Alpaca + Streamlit)
+# Spectral Nature
 
-This is a Streamlit rewrite of the Robinhood/Dash app using Alpaca as the brokerage/data backend.
+Spectral Nature is a market intelligence workspace for portfolio context, macro tracking, and idea discovery.
 
 ## What was migrated
 
-- `Current Portfolio` -> Alpaca account + open positions + portfolio history
+- `Current Portfolio` -> live account + open positions + portfolio history
 - `Past Performance` -> Portfolio vs benchmark performance metrics (annual return, Sharpe, beta, alpha, max drawdown)
-- `Market Opportunity` -> Daily mover scan from Alpaca snapshots + price chart
+- `Market Opportunity` -> Daily mover scan from market snapshots + price chart
 - `Strategizer - Technical` -> Candlestick + SMA(20/50), RSI(14), MACD
-- `Strategizer - Option` -> Option chain explorer/ranking (via Alpaca option contracts + snapshots)
+- `Strategizer - Option` -> Option chain explorer/ranking (via live option contracts + snapshots)
 - `Strategizer - Fundamental` -> Quarterly income/balance/cashflow charts (via local SimFin quarterly dataset)
 
 ## Setup
@@ -36,7 +36,7 @@ cp .env.example .env
 set -a
 source .env
 set +a
-streamlit run app.py
+./scripts/run_ui_local.sh
 ```
 
 ## App sections
@@ -50,10 +50,10 @@ streamlit run app.py
 
 ## Documentation map
 
-- `PROJECT_SETUP_AND_OPERATIONS.md`: contributor setup and deployment workflow
-- `infra/README.md`: Azure deployment entrypoints and outputs
-- `ATTENTION_FEED_GUIDELINES.md`: current product rules for the attention feed
-- `plans/README.md`: index of active implementation and recovery plans
+- `documents/operations/PROJECT_SETUP_AND_OPERATIONS.md`: contributor setup and deployment workflow
+- `documents/infra/README.md`: Azure deployment entrypoints and outputs
+- `documents/reference/ATTENTION_FEED_GUIDELINES.md`: current product rules for the attention feed
+- `documents/plans/README.md`: index of active implementation and recovery plans
 
 ## Shared data access
 
@@ -76,7 +76,7 @@ That means Plotly JSON is treated as an output format, not the primary shared ar
 
 ## Agent / query access
 
-Agents and other non-Streamlit consumers should call the shared query entrypoint instead of importing `app.py`.
+Agents and other non-UI consumers should call the shared query entrypoint instead of importing `app.py`.
 
 List supported dataset and chart operations:
 
@@ -130,19 +130,39 @@ Use the dedicated UI deploy script from repo root:
 ./scripts/deploy_ui_azure.sh --target prod --promote-from dev
 ```
 
-The script updates the target Container App, waits for the latest revision, smoke-checks the Streamlit endpoint, and refreshes `infra/UI_DEPLOYMENT_STATUS.md`.
+The script updates the target Container App, waits for the latest revision, smoke-checks the UI endpoint, and refreshes `documents/infra/UI_DEPLOYMENT_STATUS.md`.
+
+## Azure email delivery
+
+Password resets and invite emails use the SMTP path in `services/emailer.py`.
+
+For the Azure-hosted UI, provision and wire the mail resources with:
+
+```bash
+./scripts/setup_ui_email_delivery_azure.sh --target dev --test-to you@example.com
+```
+
+That workflow:
+
+- creates or reuses Azure Communication Services Email + Communication resources
+- creates an Azure-managed sender domain and sender username
+- creates or reuses an Entra app for SMTP auth
+- stores SMTP secrets in the UI Key Vault
+- updates the selected Container App with the expected SMTP env vars
+
+The setup script writes non-secret outputs to `infra/email_delivery.outputs.env`.
 
 ## Notes
 
-- Uses Alpaca paper endpoint by default.
+- Uses the paper trading endpoint by default.
 - If your market-data plan has limitations, some symbols may return no bars/snapshots.
 - Fundamentals load from the quarterly CSVs under `Users/omai.r/data/stock_fundamental` or `SIMFIN_DATA_DIR` if set.
 - If `SIMFIN_API_KEY` is configured, the `equities-intraday-preload` job can refresh quarterly fundamentals from upstream SimFin before materializing `quarterly_fundamentals`.
 - The `macro-fred-daily` job now also materializes official Treasury yield datasets: `yield_curve_observations`, `yield_curve_summary`, and `yield_curve_facts_1d`.
-- The `attention-home-build` job materializes the Streamlit homepage attention datasets and research bundles from upstream snapshots; the UI is intended to read those outputs rather than compute inline.
+- The `attention-home-build` job materializes the homepage attention datasets and research bundles from upstream snapshots; the UI is intended to read those outputs rather than compute inline.
 - The `entity-taxonomy-refresh` job materializes `us_equity_listings` and `entity_taxonomy_labels`, and it is scheduled monthly by default.
-- A flow-chart version of the taxonomy setup lives in `infra/TAXONOMY_PIPELINE_FLOW.md`.
-- Active design plans now live under `plans/` rather than the repo root.
+- A flow-chart version of the taxonomy setup lives in `documents/infra/TAXONOMY_PIPELINE_FLOW.md`.
+- Active design plans now live under `documents/plans/` rather than the repo root.
 - Treasury direct yields are used for official daily rate facts; FRED remains available for broader macro history and dashboard context.
 - Benchmarks used: `SPY, DIA, QQQ, VOO, BRK.B, ARKK`.
 - Live data loaders now persist CSV caches under `streamlit_alpaca_app/cache/data/`.

@@ -385,6 +385,7 @@ def build_attention_home_output_frames(
     search_backfill_limit = _attention_home_search_backfill_limit()
 
     universe_snapshot_frame = load_materialized_frame_fn("universe_snapshot")
+    taxonomy_labels_frame = load_materialized_frame_fn("entity_taxonomy_labels")
     company_name_by_symbol = _company_name_map(universe_snapshot_frame)
     entity_master = build_attention_entity_master(shortlist)
     bars_by_symbol = bars_by_symbol_from_price_history(
@@ -418,6 +419,7 @@ def build_attention_home_output_frames(
         news_payloads=news_payloads,
         context_payloads=context_payloads,
         entity_master=entity_master,
+        topology_universe_frame=taxonomy_labels_frame,
         holdings=holdings,
         generated_at_utc=pd.Timestamp(ctx.asof),
         filings_frame=edgar_filings_frame,

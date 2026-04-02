@@ -19,6 +19,7 @@ from services.attention_agentic import build_bottom_up_attention_artifacts
 from services.attention_feed_brief import build_attention_feed_brief
 from services.attention_home_1d import (
     build_attention_entity_master,
+    build_attention_event_candidates_1d,
     build_attention_home_1d,
     build_attention_research_bundle,
 )
@@ -1198,6 +1199,51 @@ def test_build_attention_home_1d_promotes_oil_event_and_keeps_big_single_name_mo
     assert "PYPL" in must_read_symbols
     assert "BNO" not in must_read_symbols
     assert "UAL" not in must_read_symbols
+
+
+def test_build_attention_event_candidates_1d_uses_macro_roles_for_generic_peer_groups():
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "BNO", "change_pct": -9.1, "close": 18.4, "prev_close": 20.2, "volume": 2_100_000, "dollar_volume": 38_640_000},
+            {"symbol": "USO", "change_pct": -8.6, "close": 68.7, "prev_close": 75.2, "volume": 3_600_000, "dollar_volume": 247_320_000},
+            {"symbol": "TLT", "change_pct": 1.3, "close": 96.8, "prev_close": 95.6, "volume": 6_800_000, "dollar_volume": 658_240_000},
+        ]
+    )
+    bars_by_symbol = {
+        symbol: pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=25, freq="B"),
+                "close": [100.0] * 24 + [100.0 * (1.0 + float(move) / 100.0)],
+            }
+        )
+        for symbol, move in daily_movers[["symbol", "change_pct"]].itertuples(index=False, name=None)
+    }
+
+    entity_master = build_attention_entity_master(daily_movers["symbol"].tolist()).copy()
+    macro_overrides = {
+        "BNO": {"commodity_role": "oil", "macro_role_tags": ["oil"]},
+        "USO": {"commodity_role": "oil", "macro_role_tags": ["oil"]},
+        "TLT": {"rates_role": "rates", "macro_role_tags": ["rates"]},
+    }
+    for symbol, payload in macro_overrides.items():
+        mask = entity_master["symbol"] == symbol
+        for column, value in payload.items():
+            entity_master.loc[mask, column] = [value]
+
+    candidates = build_attention_event_candidates_1d(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads={},
+        context_payloads={},
+        entity_master=entity_master,
+        holdings=[],
+        asof_time_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+    )
+
+    lookup = candidates.set_index("symbol")
+    assert lookup.loc["BNO", "peer_group_name"] == "Oil"
+    assert lookup.loc["USO", "peer_group_name"] == "Oil"
+    assert lookup.loc["TLT", "peer_group_name"] == "Rates"
 
 
 def test_build_attention_home_1d_includes_taxonomy_multi_horizon_trend_surface():
@@ -2536,6 +2582,36 @@ def test_build_company_description_uses_company_role_and_narrative_themes():
     assert "latest quarterly results" not in description.lower()
 
 
+def test_build_company_description_uses_canonical_symbol_narrative_lens(monkeypatch):
+    monkeypatch.setattr("services.company.narrative_business_lens_for_symbol", lambda symbol: "Commodity" if symbol == "SOC" else "")
+
+    description = build_company_description(
+        "SOC",
+        {"name": "Sable Offshore Corp. Common Stock"},
+        {},
+        {},
+        news_payload={"articles": pd.DataFrame()},
+    )
+
+    assert "commodity narrative" in description.lower()
+    assert "commodity prices" in description.lower()
+
+
+def test_build_company_description_omits_empty_watch_clause_for_unmapped_business_lens():
+    description = build_company_description(
+        "SOC",
+        {"name": "Sable Offshore Corp. Common Stock"},
+        {},
+        {},
+        news_payload={"articles": pd.DataFrame()},
+        active_lens="Offshore Operator",
+    )
+
+    assert "watch ." not in description
+    assert "offshore operator narrative" in description.lower()
+    assert "commodity prices" not in description.lower()
+
+
 def test_load_recent_news_and_summary_use_recent_articles():
     payload = load_recent_news(FakeCompanyAPI(), "AAPL", days=14, limit=4)
     summary = summarize_recent_news("AAPL", payload)
@@ -2544,6 +2620,35 @@ def test_load_recent_news_and_summary_use_recent_articles():
     assert not payload["articles"].empty
     assert summary["summary_lines"]
     assert "tone is positive" in summary["summary_lines"][0].lower()
+
+
+def test_summarize_recent_news_uses_mixed_when_sentiment_is_blank():
+    payload = {
+        "articles": pd.DataFrame(
+            [
+                {
+                    "headline": "Restart update",
+                    "summary": "Production restart remains the main watchpoint.",
+                    "published_at": pd.Timestamp("2026-03-30", tz="UTC"),
+                    "sentiment": "",
+                },
+                {
+                    "headline": "Offering update",
+                    "summary": "The market is digesting a new equity filing.",
+                    "published_at": pd.Timestamp("2026-03-31", tz="UTC"),
+                    "sentiment": "   ",
+                },
+            ]
+        ),
+        "fallback_summary": None,
+        "source": "alpaca",
+    }
+
+    summary = summarize_recent_news("SOC", payload)
+
+    assert summary["summary_lines"]
+    assert "tone is mixed" in summary["summary_lines"][0].lower()
+    assert "tone is ." not in summary["summary_lines"][0].lower()
 
 
 def test_build_attention_news_narrative_surfaces_copper_ai_supply_story():
@@ -3597,6 +3702,46 @@ def test_graph_edges_use_explicit_upstream_peer_groups_without_tags():
     assert float(row["edge_weight"]) >= 0.42
 
 
+def test_graph_edges_use_shared_macro_roles_when_taxonomy_is_broad():
+    asof = pd.Timestamp("2026-03-31T12:00:00Z")
+    frame = pd.DataFrame(
+        [
+            {
+                "candidate_id": "cand-tlt",
+                "symbol": "TLT",
+                "industry": "Long Duration US Treasury ETF",
+                "sector": "Rates",
+                "peer_group_name": "Rates",
+                "rates_role": "rates",
+                "macro_role_tags": ["rates"],
+                "change_pct": 1.6,
+            },
+            {
+                "candidate_id": "cand-ief",
+                "symbol": "IEF",
+                "industry": "US Treasury Bond ETF",
+                "sector": "Rates",
+                "peer_group_name": "Rates",
+                "rates_role": "rates",
+                "macro_role_tags": ["rates"],
+                "change_pct": 0.8,
+            },
+        ]
+    )
+
+    candidates = attention_agentic_module._augment_candidate_frame(frame, asof_time_utc=asof, run_id="run-123")
+    edges = attention_agentic_module._graph_edges(candidates, claim_map={}, run_id="run-123", asof_time_utc=asof)
+
+    assert len(edges) == 1
+    row = edges.iloc[0]
+    assert {row["left_symbol"], row["right_symbol"]} == {"TLT", "IEF"}
+    reasons = json.loads(row["edge_reasons_json"])
+    assert "taxonomy_sector" in reasons
+    assert "role_match" in reasons
+    assert "tags" in reasons
+    assert float(row["edge_weight"]) >= 0.42
+
+
 def test_recompute_attention_candidate_graph_prefers_effective_taxonomy_fields():
     asof = pd.Timestamp("2026-03-31T12:00:00Z")
     frame = pd.DataFrame(
@@ -3836,6 +3981,77 @@ def test_expand_network_bridge_nodes_adds_real_intermediate_concepts():
     assert nx.number_connected_components(expanded.subgraph(["AAA", "BBB", "CCC", "DDD", "bridge::software"])) == 1
 
 
+def test_build_attention_topology_graph_adds_real_tag_routes_from_universe_taxonomy():
+    import networkx as nx
+
+    from services.attention_graph_topology import build_attention_topology_graph
+
+    candidates = pd.DataFrame(
+        [
+            {"symbol": "AAA", "sector": "Information Technology", "industry": "Application Software", "peer_group_id": "software", "candidate_score": 91.0, "change_pct": 4.1},
+            {"symbol": "CCC", "sector": "Communication Services", "industry": "Interactive Media", "peer_group_id": "interactive_media", "candidate_score": 64.0, "change_pct": -2.6},
+        ]
+    )
+    universe = pd.DataFrame(
+        [
+            {"symbol": "AAA", "sector": "Information Technology", "industry": "Application Software", "peer_group_id": "software", "business_role_tags": ["shared_platform"]},
+            {"symbol": "CCC", "sector": "Communication Services", "industry": "Interactive Media", "peer_group_id": "interactive_media", "business_role_tags": ["shared_platform"]},
+        ]
+    )
+
+    graph = build_attention_topology_graph(candidates, universe_frame=universe)
+
+    assert "tag::shared_platform" in graph
+    assert nx.has_path(graph, "AAA", "CCC")
+    assert nx.shortest_path(graph, "AAA", "CCC") == ["AAA", "tag::shared_platform", "CCC"]
+
+
+def test_expand_network_real_paths_connects_components_via_real_topology_nodes():
+    import networkx as nx
+
+    from services.attention_graph_network import (
+        build_attention_candidate_network,
+        build_network_backbone,
+        expand_network_real_paths,
+    )
+
+    candidates = pd.DataFrame(
+        [
+            {"symbol": "AAA", "sector": "Information Technology", "industry": "Software", "peer_group_name": "Software", "direction": "up", "change_pct": 4.1, "candidate_score": 91.0, "attention_score": 88.0},
+            {"symbol": "BBB", "sector": "Information Technology", "industry": "Software", "peer_group_name": "Software", "direction": "up", "change_pct": 3.7, "candidate_score": 82.0, "attention_score": 79.0},
+            {"symbol": "CCC", "sector": "Communication Services", "industry": "Interactive Media", "peer_group_name": "Interactive Media", "direction": "down", "change_pct": -2.6, "candidate_score": 64.0, "attention_score": 61.0},
+            {"symbol": "DDD", "sector": "Communication Services", "industry": "Interactive Media", "peer_group_name": "Interactive Media", "direction": "down", "change_pct": -1.8, "candidate_score": 55.0, "attention_score": 53.0},
+        ]
+    )
+    edges = pd.DataFrame(
+        [
+            {"left_symbol": "AAA", "right_symbol": "BBB", "edge_weight": 0.92, "edge_reasons": ["taxonomy_peer"]},
+            {"left_symbol": "CCC", "right_symbol": "DDD", "edge_weight": 0.87, "edge_reasons": ["taxonomy_peer"]},
+        ]
+    )
+
+    topology = nx.Graph()
+    topology.add_node("AAA", node_type="symbol", label="AAA", sector="Information Technology", peer_group="Software", industry="Software")
+    topology.add_node("CCC", node_type="symbol", label="CCC", sector="Communication Services", peer_group="Interactive Media", industry="Interactive Media")
+    topology.add_node("tag::shared_platform", node_type="tag", label="Shared Platform", sector="Unclassified")
+    topology.add_edge("AAA", "tag::shared_platform", edge_type="tag", weight=1.0)
+    topology.add_edge("tag::shared_platform", "CCC", edge_type="tag", weight=1.0)
+
+    graph = build_attention_candidate_network(candidates, edges)
+    expanded = expand_network_real_paths(
+        build_network_backbone(graph, per_node_k=1, keep_quantile=0.9),
+        topology,
+        max_path_length=4,
+    )
+
+    assert "tag::shared_platform" in expanded
+    assert expanded.nodes["tag::shared_platform"]["is_intermediate_path"] is True
+    assert expanded.has_edge("AAA", "tag::shared_platform")
+    assert expanded.has_edge("tag::shared_platform", "CCC")
+    assert not expanded.has_edge("AAA", "CCC")
+    assert nx.has_path(expanded, "BBB", "DDD")
+
+
 def test_pack_component_positions_prefers_landscape_layout_for_many_components():
     from services.attention_graph_network import build_attention_candidate_network, _pack_component_positions
 
@@ -3919,6 +4135,265 @@ def test_plot_attention_candidate_network_calls_out_isolated_band():
     assert fig.layout.height > 480
 
 
+def test_plot_attention_candidate_network_can_hide_isolates_and_soften_node_overlap():
+    from services.attention_graph_network import (
+        build_attention_candidate_network,
+        plot_attention_candidate_network,
+    )
+
+    candidates = pd.DataFrame(
+        [
+            {"symbol": "AAA", "sector": "Information Technology", "industry": "Software", "peer_group_name": "Software", "direction": "up", "change_pct": 4.1, "candidate_score": 91.0, "attention_score": 88.0},
+            {"symbol": "BBB", "sector": "Information Technology", "industry": "Software", "peer_group_name": "Software", "direction": "up", "change_pct": 3.7, "candidate_score": 82.0, "attention_score": 79.0},
+            {"symbol": "CCC", "sector": "Energy", "industry": "Oil & Gas", "peer_group_name": "Oil & Gas", "direction": "down", "change_pct": -2.6, "candidate_score": 64.0, "attention_score": 61.0},
+        ]
+    )
+    edges = pd.DataFrame(
+        [
+            {
+                "left_symbol": "AAA",
+                "right_symbol": "BBB",
+                "edge_weight": 0.92,
+                "edge_reasons": ["taxonomy_peer"],
+            }
+        ]
+    )
+
+    graph = build_attention_candidate_network(candidates, edges)
+    fig = plot_attention_candidate_network(
+        graph,
+        title="Attention graph",
+        height=480,
+        seed=3,
+        show_isolates=False,
+    )
+
+    node_points = sum(
+        len(list(trace.x if trace.x is not None else []))
+        for trace in fig.data
+        if "markers" in str(getattr(trace, "mode", ""))
+    )
+    annotation_texts = [str(item.text) for item in list(fig.layout.annotations or [])]
+    primary_trace = next(trace for trace in fig.data if getattr(trace, "name", "") == "Information Technology")
+
+    assert node_points == 2
+    assert any("visible symbols" in text for text in annotation_texts)
+    assert not any(text == "Isolated symbols (1)" for text in annotation_texts)
+    assert float(primary_trace.marker.opacity) < 0.85
+
+
+def test_serialize_attention_home_payload_preserves_homepage_graph():
+    from services.attention_materialized import deserialize_attention_home_payload, serialize_attention_home_payload
+
+    payload = {
+        "run_id": "run-123",
+        "generated_at_utc": "2026-04-01T18:00:00Z",
+        "coverage_summary": {"candidate_count": 4},
+        "homepage_graph": {
+            "figure": {"data": [], "layout": {"height": 320, "showlegend": False}},
+            "summary": {"connected_components": 1},
+        },
+    }
+
+    frame = serialize_attention_home_payload(payload)
+    restored = deserialize_attention_home_payload(frame)
+
+    assert restored["run_id"] == "run-123"
+    assert restored["homepage_graph"]["figure"]["layout"]["height"] == 320
+    assert restored["homepage_graph"]["summary"]["connected_components"] == 1
+
+
+def test_build_homepage_attention_graph_payload_returns_compact_banner_figure():
+    import plotly.graph_objects as go
+
+    from services.attention_graph_network import build_homepage_attention_graph_payload
+
+    candidates = pd.DataFrame(
+        [
+            {
+                "symbol": "AAA",
+                "sector": "Information Technology",
+                "industry": "Application Software",
+                "peer_group_name": "Application Software",
+                "direction": "up",
+                "change_pct": 4.1,
+                "candidate_score": 91.0,
+                "attention_score": 88.0,
+                "business_role_tags": ["creator economy"],
+            },
+            {
+                "symbol": "BBB",
+                "sector": "Information Technology",
+                "industry": "Application Software",
+                "peer_group_name": "Application Software",
+                "direction": "up",
+                "change_pct": 3.7,
+                "candidate_score": 82.0,
+                "attention_score": 79.0,
+            },
+            {
+                "symbol": "CCC",
+                "sector": "Communication Services",
+                "industry": "Interactive Media",
+                "peer_group_name": "Interactive Media",
+                "direction": "down",
+                "change_pct": -2.6,
+                "candidate_score": 64.0,
+                "attention_score": 61.0,
+                "business_role_tags": ["creator economy"],
+            },
+            {
+                "symbol": "DDD",
+                "sector": "Communication Services",
+                "industry": "Interactive Media",
+                "peer_group_name": "Interactive Media",
+                "direction": "down",
+                "change_pct": -1.8,
+                "candidate_score": 55.0,
+                "attention_score": 53.0,
+            },
+        ]
+    )
+    edges = pd.DataFrame(
+        [
+            {"left_symbol": "AAA", "right_symbol": "BBB", "edge_weight": 0.92, "edge_reasons": ["taxonomy_peer"]},
+            {"left_symbol": "CCC", "right_symbol": "DDD", "edge_weight": 0.87, "edge_reasons": ["taxonomy_peer"]},
+        ]
+    )
+
+    payload = build_homepage_attention_graph_payload(
+        candidates,
+        edges,
+        height=320,
+        label_top_n=6,
+    )
+    figure = go.Figure(payload["figure"])
+    path_trace = next(trace for trace in figure.data if getattr(trace, "name", "") == "Path Nodes")
+
+    assert payload["summary"]["connected_components"] == 1
+    assert figure.layout.showlegend is False
+    assert figure.layout.height == 320
+    assert not list(figure.layout.annotations or [])
+    assert float(path_trace.marker.opacity) < 0.6
+
+
+def test_plot_attention_candidate_network_auto_labels_reduce_dense_path_clutter():
+    import networkx as nx
+
+    import services.attention_graph_network as attention_graph_network
+
+    graph = nx.Graph()
+    for symbol, score, change, attention in [
+        ("AAA", 96.0, 4.1, 88.0),
+        ("BBB", 88.0, 3.4, 79.0),
+        ("CCC", 84.0, -2.2, 73.0),
+    ]:
+        graph.add_node(
+            symbol,
+            symbol=symbol,
+            node_type="security",
+            sector="Information Technology",
+            industry="Software",
+            peer_group="Software",
+            direction="up" if change > 0 else "down",
+            change_pct=change,
+            candidate_score=score,
+            attention_score=attention,
+        )
+    for node, label, degree_hint in [
+        ("peer::software", "Software", "peer"),
+        ("tag::shared_platform", "Shared Platform", "tag"),
+        ("sector::it", "Information Technology", "sector"),
+    ]:
+        graph.add_node(
+            node,
+            symbol=label,
+            node_type="path",
+            sector="Path Nodes",
+            industry=label,
+            peer_group=label,
+            direction="path",
+            change_pct=0.0,
+            candidate_score=18.0,
+            attention_score=0.0,
+            source_label="intermediate path",
+            topology_node_type=degree_hint,
+            topology_sector="Information Technology",
+            topology_peer_group="Software",
+            topology_industry="Software",
+            is_intermediate_path=True,
+        )
+    for index in range(11):
+        symbol = f"F{index:02d}"
+        graph.add_node(
+            symbol,
+            symbol=symbol,
+            node_type="security",
+            sector="Industrials",
+            industry="Capital Goods",
+            peer_group="Capital Goods",
+            direction="up",
+            change_pct=1.0,
+            candidate_score=22.0 - index,
+            attention_score=0.0,
+        )
+
+    for left, right, weight, reason in [
+        ("AAA", "BBB", 0.86, "taxonomy_peer"),
+        ("BBB", "CCC", 0.82, "taxonomy_peer"),
+        ("peer::software", "AAA", 0.32, "topology_membership"),
+        ("peer::software", "BBB", 0.32, "topology_membership"),
+        ("tag::shared_platform", "BBB", 0.34, "topology_tag"),
+        ("tag::shared_platform", "CCC", 0.34, "topology_tag"),
+        ("sector::it", "AAA", 0.26, "topology_taxonomy"),
+        ("sector::it", "CCC", 0.26, "topology_taxonomy"),
+    ]:
+        graph.add_edge(left, right, edge_weight=weight, edge_reasons=[reason], edge_reason_text=reason)
+    graph.add_edge("CCC", "F00", edge_weight=0.58, edge_reasons=["theme"], edge_reason_text="theme")
+    for index in range(10):
+        left = f"F{index:02d}"
+        right = f"F{index + 1:02d}"
+        graph.add_edge(left, right, edge_weight=0.52, edge_reasons=["theme"], edge_reason_text="theme")
+
+    fixed_positions = {
+        "AAA": (0.00, 0.00),
+        "BBB": (0.38, 0.08),
+        "CCC": (2.95, 0.12),
+        "peer::software": (0.18, 0.22),
+        "tag::shared_platform": (0.56, 0.16),
+        "sector::it": (3.22, 0.02),
+    }
+    for index in range(11):
+        fixed_positions[f"F{index:02d}"] = (5.0 + (index * 0.9), 0.25 + ((index % 2) * 0.2))
+    original_pack = attention_graph_network._pack_component_positions
+    attention_graph_network._pack_component_positions = lambda _graph, seed=7: dict(fixed_positions)
+    try:
+        fig = attention_graph_network.plot_attention_candidate_network(
+            graph,
+            title="Crowded graph",
+            height=480,
+            seed=3,
+            label_top_n=6,
+            show_isolates=False,
+        )
+    finally:
+        attention_graph_network._pack_component_positions = original_pack
+
+    path_trace = next(trace for trace in fig.data if getattr(trace, "name", "") == "Path Nodes")
+    path_labels = [str(text) for text in list(path_trace.text or []) if str(text).strip()]
+    all_label_positions = []
+    for trace in fig.data:
+        if getattr(trace, "mode", "") != "markers+text":
+            continue
+        trace_positions = list(getattr(trace, "textposition", []) or [])
+        for text, position in zip(list(getattr(trace, "text", []) or []), trace_positions):
+            if str(text).strip():
+                all_label_positions.append(str(position))
+
+    assert 0 < len(path_labels) < 3
+    assert len(set(all_label_positions)) >= 2
+
+
 def test_plot_attention_candidate_network_fades_bridge_concepts():
     from services.attention_graph_network import (
         build_attention_candidate_network,
@@ -3961,3 +4436,56 @@ def test_plot_attention_candidate_network_fades_bridge_concepts():
     assert bridge_traces[0].marker.color == "#94a3b8"
     assert float(bridge_traces[0].marker.opacity) < 0.7
     assert bridge_edge_traces
+
+
+def test_plot_attention_candidate_network_fades_real_path_nodes():
+    import networkx as nx
+
+    from services.attention_graph_network import (
+        build_attention_candidate_network,
+        build_network_backbone,
+        expand_network_real_paths,
+        plot_attention_candidate_network,
+    )
+
+    candidates = pd.DataFrame(
+        [
+            {"symbol": "AAA", "sector": "Information Technology", "industry": "Software", "peer_group_name": "Software", "direction": "up", "change_pct": 4.1, "candidate_score": 91.0, "attention_score": 88.0},
+            {"symbol": "BBB", "sector": "Information Technology", "industry": "Software", "peer_group_name": "Software", "direction": "up", "change_pct": 3.7, "candidate_score": 82.0, "attention_score": 79.0},
+            {"symbol": "CCC", "sector": "Communication Services", "industry": "Interactive Media", "peer_group_name": "Interactive Media", "direction": "down", "change_pct": -2.6, "candidate_score": 64.0, "attention_score": 61.0},
+            {"symbol": "DDD", "sector": "Communication Services", "industry": "Interactive Media", "peer_group_name": "Interactive Media", "direction": "down", "change_pct": -1.8, "candidate_score": 55.0, "attention_score": 53.0},
+        ]
+    )
+    edges = pd.DataFrame(
+        [
+            {"left_symbol": "AAA", "right_symbol": "BBB", "edge_weight": 0.92, "edge_reasons": ["taxonomy_peer"]},
+            {"left_symbol": "CCC", "right_symbol": "DDD", "edge_weight": 0.87, "edge_reasons": ["taxonomy_peer"]},
+        ]
+    )
+    topology = nx.Graph()
+    topology.add_node("AAA", node_type="symbol", label="AAA", sector="Information Technology", peer_group="Software", industry="Software")
+    topology.add_node("CCC", node_type="symbol", label="CCC", sector="Communication Services", peer_group="Interactive Media", industry="Interactive Media")
+    topology.add_node("tag::shared_platform", node_type="tag", label="Shared Platform", sector="Unclassified")
+    topology.add_edge("AAA", "tag::shared_platform", edge_type="tag", weight=1.0)
+    topology.add_edge("tag::shared_platform", "CCC", edge_type="tag", weight=1.0)
+
+    graph = build_attention_candidate_network(candidates, edges)
+    plot_graph = expand_network_real_paths(
+        build_network_backbone(graph, per_node_k=1, keep_quantile=0.9),
+        topology,
+        max_path_length=4,
+    )
+    fig = plot_attention_candidate_network(plot_graph, title="Real path graph", height=480, seed=3)
+
+    path_traces = [trace for trace in fig.data if getattr(trace, "name", "") == "Path Nodes"]
+    path_edge_traces = [
+        trace
+        for trace in fig.data
+        if getattr(trace, "mode", "") == "lines"
+        and "topology path" in "".join(getattr(trace, "text", []) or [])
+    ]
+
+    assert path_traces
+    assert path_traces[0].marker.color == "#94a3b8"
+    assert float(path_traces[0].marker.opacity) < 0.6
+    assert path_edge_traces

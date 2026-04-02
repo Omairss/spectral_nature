@@ -2358,6 +2358,7 @@ def _augment_candidate_frame(
     ).rank(ascending=False, method="dense")
     out["peer_group_id"] = out.apply(
         lambda row: _coerce_text(row.get("peer_group_id"))
+        or _informative_graph_label(row.get("peer_group_name"))
         or (
             _coerce_text(row.get("industry"))
             if _coerce_text(row.get("industry")) and _coerce_text(row.get("industry")) != "Unknown"
@@ -2636,6 +2637,15 @@ def _graph_edges(
                 weight += policy.sector_weight
                 reasons.append("taxonomy_sector")
                 shared_taxonomy = True
+            shared_roles = [
+                field
+                for field in ["commodity_role", "rates_role", "defensive_role"]
+                if _coerce_text(left.get(field))
+                and _coerce_text(left.get(field)).lower() == _coerce_text(right.get(field)).lower()
+            ]
+            if shared_roles:
+                weight += policy.role_match_weight
+                reasons.append("role_match")
             left_tags = _candidate_graph_tags(left)
             right_tags = _candidate_graph_tags(right)
             tag_overlap = _jaccard(left_tags, right_tags)
@@ -3036,6 +3046,7 @@ def build_bottom_up_attention_artifacts(
     news_payloads: dict[str, dict[str, Any]] | None = None,
     context_payloads: dict[str, dict[str, Any]] | None = None,
     entity_master: pd.DataFrame | None = None,
+    topology_universe_frame: pd.DataFrame | None = None,
     holdings: list[str] | None = None,
     generated_at_utc: datetime | str | None = None,
     filings_frame: pd.DataFrame | None = None,
@@ -3053,6 +3064,7 @@ def build_bottom_up_attention_artifacts(
 ) -> AgenticAttentionArtifacts:
     from .attention_home_1d import build_attention_entity_master, build_attention_event_candidates_1d
     from .attention_materialized import serialize_attention_home_payload, serialize_attention_research_bundles
+    from .attention_graph_network import build_homepage_attention_graph_payload
 
     asof_time_utc = pd.to_datetime(generated_at_utc or datetime.now(timezone.utc), utc=True, errors="coerce")
     if pd.isna(asof_time_utc):
@@ -3081,6 +3093,7 @@ def build_bottom_up_attention_artifacts(
             "event_candidates_1d": [],
             "event_impacts_1d": [],
             "entity_master": entity_rows.to_dict(orient="records") if isinstance(entity_rows, pd.DataFrame) else [],
+            "homepage_graph": {},
             "run_id": run_id,
         }
         frames = {
@@ -3325,6 +3338,18 @@ def build_bottom_up_attention_artifacts(
         must_read_limit=must_read_limit,
         unresolved_limit=unresolved_limit,
     )
+    topology_universe = (
+        topology_universe_frame.copy()
+        if isinstance(topology_universe_frame, pd.DataFrame) and not topology_universe_frame.empty
+        else entity_rows.copy()
+    )
+    cluster_frame = pd.DataFrame(event_cluster_rows)
+    home_payload["homepage_graph"] = build_homepage_attention_graph_payload(
+        candidates,
+        graph,
+        cluster_frame,
+        universe_frame=topology_universe,
+    )
     frames = {
         "attention_candidates_1d": candidates.reset_index(drop=True),
         "attention_research_plans": pd.DataFrame(plan_rows),
@@ -3334,7 +3359,7 @@ def build_bottom_up_attention_artifacts(
         "attention_evidence_chunks": pd.concat(chunk_frames, ignore_index=True, sort=False) if chunk_frames else pd.DataFrame(),
         "attention_claims": pd.concat(claim_frames, ignore_index=True, sort=False) if claim_frames else pd.DataFrame(),
         "attention_candidate_graph": graph.reset_index(drop=True) if isinstance(graph, pd.DataFrame) else pd.DataFrame(),
-        "attention_event_clusters_1d": pd.DataFrame(event_cluster_rows),
+        "attention_event_clusters_1d": cluster_frame,
         "attention_home_snapshots_1d": serialize_attention_home_payload(home_payload),
         "attention_bundle_snapshots": serialize_attention_research_bundles(bundle_map, generated_at_utc=asof_time_utc),
     }

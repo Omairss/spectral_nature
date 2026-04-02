@@ -6,6 +6,9 @@ import os
 from typing import Callable
 
 
+_TRUTHY_ENV_VALUES = {"1", "true", "yes", "on"}
+
+
 def _env_text(name: str, default: str) -> str:
     value = (os.getenv(name) or default).strip()
     return value if value else default
@@ -73,6 +76,32 @@ def _env_int_csv(
     return tuple(values)
 
 
+def env_flag_enabled(raw: object, *, default: bool = False) -> bool:
+    text = str(raw or "").strip().lower()
+    if not text:
+        return bool(default)
+    return text in _TRUTHY_ENV_VALUES
+
+
+def presentation_layer_only_enabled(raw: object) -> bool:
+    # Presentation-only mode should be an explicit opt-in. When the env var is
+    # unset, keep live account views active instead of silently fabricating zero
+    # portfolio/account payloads from snapshots.
+    return env_flag_enabled(raw, default=False)
+
+
+def section_data_available(
+    *,
+    api_available: bool,
+    pipeline_available: bool,
+    presentation_only: bool,
+    allow_pipeline: bool = False,
+) -> bool:
+    if presentation_only:
+        return bool(allow_pipeline and pipeline_available)
+    return bool(api_available or (allow_pipeline and pipeline_available))
+
+
 @dataclass(frozen=True)
 class AttentionCandidatePolicy:
     shortlist_default_max_count: int
@@ -109,6 +138,7 @@ class AttentionCandidatePolicy:
 class AttentionGraphPolicy:
     peer_group_weight: float
     sector_weight: float
+    role_match_weight: float
     tag_overlap_mult: float
     tag_overlap_cap: float
     claim_overlap_mult: float
@@ -194,6 +224,7 @@ def attention_graph_policy() -> AttentionGraphPolicy:
     return AttentionGraphPolicy(
         peer_group_weight=_env_float("ATTENTION_GRAPH_PEER_GROUP_WEIGHT", 0.40, minimum=0.0),
         sector_weight=_env_float("ATTENTION_GRAPH_SECTOR_WEIGHT", 0.18, minimum=0.0),
+        role_match_weight=_env_float("ATTENTION_GRAPH_ROLE_MATCH_WEIGHT", 0.10, minimum=0.0),
         tag_overlap_mult=_env_float("ATTENTION_GRAPH_TAG_OVERLAP_MULT", 0.45, minimum=0.0),
         tag_overlap_cap=_env_float("ATTENTION_GRAPH_TAG_OVERLAP_CAP", 0.30, minimum=0.0),
         claim_overlap_mult=_env_float("ATTENTION_GRAPH_CLAIM_OVERLAP_MULT", 0.55, minimum=0.0),
@@ -264,8 +295,10 @@ def taxonomy_classifier_policy() -> TaxonomyClassifierPolicy:
             (
                 "You classify US-listed securities into a lightweight internal taxonomy. "
                 "Use only the provided symbol, exchange, ETF flag, and security name. "
-                "Return a short readable industry, 1-4 reusable business_role_tags in snake_case for what the security is or does, "
-                "and 0-4 reusable macro_role_tags in snake_case for cross-asset exposure channels only when they are genuinely material. "
+                "Return a short readable industry and 1-4 reusable business_role_tags in snake_case for what the security is or does. "
+                "Include one top-level dashboard lens tag when it clearly applies from this set: housing, retail, media, social_media_entertainment, advertising, payments_and_commerce, travel_mobility, healthcare_life_sciences. "
+                "For commodity-linked businesses, prefer using commodity_role rather than forcing a dashboard business_role_tag. "
+                "Return 0-4 reusable macro_role_tags in snake_case for cross-asset exposure channels only when they are genuinely material. "
                 "Use commodity_role, rates_role, and defensive_role only when clearly applicable, otherwise return ''. "
                 "If you are not confident, set sector to 'Unknown', industry to 'Unknown', business_role_tags to [], macro_role_tags to [], "
                 "and leave the role fields blank."
@@ -278,6 +311,8 @@ def taxonomy_classifier_policy() -> TaxonomyClassifierPolicy:
                 "Use only the provided symbol, exchange, ETF flag, and security name. "
                 "You must choose the closest best-fit sector from the allowed list, provide a non-empty readable industry, "
                 "and provide at least one reusable business_role_tag in snake_case. "
+                "Include one top-level dashboard lens tag when it clearly applies from this set: housing, retail, media, social_media_entertainment, advertising, payments_and_commerce, travel_mobility, healthcare_life_sciences. "
+                "For commodity-linked businesses, prefer using commodity_role rather than forcing a dashboard business_role_tag. "
                 "Use 0-4 macro_role_tags in snake_case only when they are clearly useful for cross-asset reasoning. "
                 "Use commodity_role, rates_role, and defensive_role only when clearly applicable, otherwise return ''. "
                 "Do not use 'Unknown' for sector or industry in this pass. Use low confidence when uncertain."
@@ -387,6 +422,9 @@ __all__ = [
     "attention_candidate_policy",
     "attention_graph_policy",
     "attention_ui_policy",
+    "env_flag_enabled",
+    "presentation_layer_only_enabled",
+    "section_data_available",
     "source_authority_policy",
     "taxonomy_classifier_policy",
 ]

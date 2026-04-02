@@ -464,13 +464,22 @@ def _headline_text_from_evidence(
 def _peer_group_name(row: pd.Series) -> str:
     industry = _coerce_text(row.get("industry"))
     sector = _coerce_text(row.get("sector"))
+    commodity_role = _coerce_text(row.get("commodity_role"))
+    rates_role = _coerce_text(row.get("rates_role"))
+    defensive_role = _coerce_text(row.get("defensive_role"))
     business_tags = _safe_list(row.get("business_role_tags"))
+    macro_tags = _safe_list(row.get("macro_role_tags"))
+    for role in [commodity_role, rates_role, defensive_role]:
+        if role:
+            return role.replace("_", " ").title()
     if industry and industry != "Unknown":
         return industry
     if sector and sector != "Unknown":
         return sector
     if business_tags:
         return business_tags[0].replace("_", " ").title()
+    if macro_tags:
+        return macro_tags[0].replace("_", " ").title()
     return "Market"
 
 

@@ -24,6 +24,10 @@ Narrative generation hardening status as of 2026-03-31:
 - the network plotter now packs many connected components more horizontally, which cuts the tall-column whitespace that was making the global graph feel sparse even after edge coverage improved
 - the plotted network now adds muted bridge-concept nodes derived from live taxonomy and tag text, so disconnected security clusters can be connected through real intermediate concepts instead of fake direct edges
 - the graph edge builder can now use 180-day historical return correlation from `price_history` as a secondary edge signal when taxonomy, tags, and claims are too sparse, and the explorer notebook loads that dataset explicitly so correlation-backed edges are visible during inspection
+- the explorer now prefers real topology-path expansion over concept bridges: it builds a broader taxonomy/tag/event supergraph, finds shortest paths between disconnected plotted components, and injects those actual intermediate nodes back into the candidate plot as faded `Path Nodes`
+- the explorer now renders only the main global graph by default, hides isolate-only rows from that view, and uses slightly translucent candidate markers so dense clusters remain readable when nodes overlap
+- the network plotter now picks labels with local crowding in mind and varies label anchors away from nearby nodes, which cuts the dense path-node pileups that made the main graph hard to scan
+- the homepage path now stores a compact banner-ready graph figure inside `attention_home_1d`, so Streamlit renders the precomputed relationship graph under the hero without recomputing topology or carrying notebook-only legends and titles into production
 
 ## Why the current shape feels messy
 

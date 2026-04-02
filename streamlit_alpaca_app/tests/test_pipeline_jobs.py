@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import json
 from types import SimpleNamespace
 
 import numpy as np
@@ -12,6 +13,7 @@ from pipeline.jobs.main import (
     _build_quarterly_fundamentals_snapshot,
     _build_treasury_yield_snapshots,
     _build_equity_price_history_snapshot,
+    _build_portfolio_timeseries_snapshot,
     _db_mark_job_start,
     _resolve_equity_symbols,
     _upload_frame,
@@ -63,6 +65,7 @@ def test_pipeline_store_lists_universe_snapshot_under_equities():
     equity_datasets = set(SOURCE_DATASETS["equities"])
 
     assert "universe_snapshot" in equity_datasets
+    assert "portfolio_timeseries_snapshot" in equity_datasets
 
 
 def test_pipeline_store_lists_yield_datasets_under_fred():
@@ -813,6 +816,10 @@ def test_run_attention_home_materializes_attention_home_and_research_outputs(mon
                 ],
                 "event_impacts_1d": [],
                 "entity_master": [],
+                "homepage_graph": {
+                    "figure": {"data": [], "layout": {"height": 320, "showlegend": False}},
+                    "summary": {"connected_components": 1},
+                },
             },
             bundle_map={
                 "event::oil:USO:event": {
@@ -895,3 +902,20 @@ def test_run_attention_home_materializes_attention_home_and_research_outputs(mon
     assert not persisted["attention_ticker_snapshots_1d"].empty
     assert not persisted["attention_ticker_background_snapshots"].empty
     assert set(persisted["attention_research_bundles"]["bundle_id"]) == {"event::oil:USO:event", "symbol::AAPL"}
+    assert json.loads(persisted["attention_home_1d"].iloc[0]["homepage_graph_json"])["figure"]["layout"]["height"] == 320
+
+
+def test_build_portfolio_timeseries_snapshot_uses_shared_portfolio_builder(monkeypatch):
+    expected = pd.DataFrame(
+        {
+            "timestamp": pd.to_datetime(["2026-03-30T00:00:00Z"], utc=True),
+            "portfolio": [100.0],
+            "SPY": [101.0],
+        }
+    )
+
+    monkeypatch.setattr("pipeline.jobs.main.build_portfolio_timeseries", lambda api, period: expected.copy())
+
+    out = _build_portfolio_timeseries_snapshot(object(), period="5Y")
+
+    assert out.equals(expected)

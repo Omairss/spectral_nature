@@ -175,6 +175,24 @@ def _humanize_slug(value: object) -> str:
     return " ".join(words).replace(" & ", " & ").strip()
 
 
+DASHBOARD_BUSINESS_LENS_TAGS: dict[str, str] = {
+    "housing": "Housing",
+    "retail": "Retail",
+    "media": "Media",
+    "social_media_entertainment": "Social Media & Entertainment",
+    "advertising": "Advertising",
+    "payments_and_commerce": "Payments & Commerce",
+    "travel_mobility": "Travel & Mobility",
+    "healthcare_life_sciences": "Healthcare & Life Sciences",
+}
+
+DASHBOARD_BUSINESS_LENS_SECTORS: dict[str, str] = {
+    "Energy": "Commodity",
+    "Materials": "Commodity",
+    "Health Care": "Healthcare & Life Sciences",
+}
+
+
 def _utc_now_ts() -> pd.Timestamp:
     return pd.Timestamp(datetime.now(timezone.utc))
 
@@ -699,6 +717,21 @@ def business_focus_label_from_taxonomy_row(row: dict[str, Any] | None) -> str:
         if label:
             return label
     return ""
+
+
+def dashboard_business_lens_from_taxonomy_row(row: dict[str, Any] | None) -> str:
+    payload = row or {}
+
+    if _coerce_text(payload.get("commodity_role")):
+        return "Commodity"
+
+    for candidate in _normalize_tag_list(payload.get("business_role_tags")):
+        label = DASHBOARD_BUSINESS_LENS_TAGS.get(candidate)
+        if label:
+            return label
+
+    sector = _coerce_text(payload.get("sector"))
+    return DASHBOARD_BUSINESS_LENS_SECTORS.get(sector, "")
 
 
 def build_listing_default_taxonomy_frame(listings: pd.DataFrame) -> pd.DataFrame:
@@ -1251,6 +1284,7 @@ __all__ = [
     "ENTITY_TAXONOMY_COLUMNS",
     "bootstrap_entity_taxonomy_tables",
     "business_focus_label_from_taxonomy_row",
+    "dashboard_business_lens_from_taxonomy_row",
     "build_entity_taxonomy_snapshot",
     "build_listing_default_taxonomy_frame",
     "build_seed_entity_taxonomy_frame",

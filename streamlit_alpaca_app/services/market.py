@@ -477,6 +477,28 @@ def business_focus_for_symbol(symbol: str) -> str:
     return "All Market"
 
 
+def narrative_business_lens_for_symbol(symbol: str) -> str:
+    normalized = str(symbol or "").upper().strip()
+    if not normalized:
+        return ""
+    try:
+        from .entity_taxonomy import dashboard_business_lens_from_taxonomy_row, load_entity_taxonomy_frame
+    except Exception:
+        return ""
+    try:
+        frame = load_entity_taxonomy_frame([normalized])
+    except Exception:
+        frame = pd.DataFrame()
+    if not isinstance(frame, pd.DataFrame) or frame.empty or "symbol" not in frame.columns:
+        return ""
+    frame = frame.copy()
+    frame["symbol"] = frame["symbol"].astype(str).str.upper().str.strip()
+    row_frame = frame[frame["symbol"].eq(normalized)]
+    if row_frame.empty:
+        return ""
+    return str(dashboard_business_lens_from_taxonomy_row(row_frame.iloc[0].to_dict()) or "").strip()
+
+
 def business_focus_universe(name: str) -> list[str]:
     mapping = _taxonomy_focus_map()
     label = str(name or "All Market").strip()
@@ -804,6 +826,7 @@ def build_momentum_profiles_from_bars(
         if len(close) < 63:
             continue
 
+        slope_1d = _log_slope(close, 2)
         slope_1w = _log_slope(close, 5)
         slope_1m = _log_slope(close, 21)
         slope_3m = _log_slope(close, 63)
@@ -811,6 +834,7 @@ def build_momentum_profiles_from_bars(
         if pd.isna(slope_1m) or pd.isna(slope_3m):
             continue
 
+        roc_1d_to_1w = _ratio_minus_one(slope_1w, slope_1d)
         roc_1w_to_1m = _ratio_minus_one(slope_1m, slope_1w)
         roc_1m_to_3m = _ratio_minus_one(slope_3m, slope_1m)
 
@@ -829,6 +853,7 @@ def build_momentum_profiles_from_bars(
                 "momentum_1w": slope_1w,
                 "momentum_1m": slope_1m,
                 "momentum_3m": slope_3m,
+                "roc_1d_to_1w": roc_1d_to_1w,
                 "roc_1w_to_1m": roc_1w_to_1m,
                 "roc_1m_to_3m": roc_1m_to_3m,
                 "trend_r2_3m": trend_r2_3m,

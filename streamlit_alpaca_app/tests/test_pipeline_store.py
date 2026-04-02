@@ -135,3 +135,78 @@ def test_load_latest_dataset_frame_reads_parquet_via_manifest_fallback(monkeypat
     assert metadata.dataset_version_id == manifest["dataset_version_id"]
     assert loaded["entity_id"].tolist() == ["ABBV", "TSLA"]
     assert loaded["attention_score"].tolist() == [63.6, 53.7]
+
+
+def test_latest_dataset_metadata_uses_local_metadata_cache(monkeypatch, tmp_path):
+    manifest = {
+        "dataset_name": "attention_feed",
+        "dataset_version_id": "attention_feed__20260320T012554Z__16918b7a",
+        "blob_path": "datasets/attention_feed/part-16918b7a.parquet",
+        "asof_time_utc": "2026-03-20T01:25:54Z",
+        "ingested_at_utc": "2026-03-20T01:26:02Z",
+        "row_count": 3,
+    }
+    manifest_path = "manifests/attention_feed/attention_feed__20260320T012554Z__16918b7a.json"
+    blob_items = [
+        SimpleNamespace(
+            name=manifest_path,
+            last_modified=datetime(2026, 3, 20, 1, 26, 2, tzinfo=timezone.utc),
+        )
+    ]
+    payloads = {manifest_path: json.dumps(manifest).encode("utf-8")}
+
+    monkeypatch.setattr(pipeline_store, "PIPELINE_CACHE_ROOT", tmp_path)
+    monkeypatch.setattr(pipeline_store, "PIPELINE_METADATA_CACHE_SECONDS", 3600)
+    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: None)
+    monkeypatch.setattr(pipeline_store, "_blob_service_client", lambda: _FakeBlobServiceClient(payloads, blob_items))
+
+    first = pipeline_store.latest_dataset_metadata("attention_feed")
+
+    monkeypatch.setattr(
+        pipeline_store,
+        "_blob_service_client",
+        lambda: (_ for _ in ()).throw(AssertionError("metadata cache should avoid blob lookup")),
+    )
+
+    second = pipeline_store.latest_dataset_metadata("attention_feed")
+
+    assert first is not None
+    assert second is not None
+    assert second.dataset_version_id == first.dataset_version_id
+
+
+def test_load_latest_dataset_frame_uses_local_frame_cache(monkeypatch, tmp_path):
+    metadata = pipeline_store.PipelineDataset(
+        dataset_name="attention_feed",
+        dataset_version_id="attention_feed__20260320T012554Z__16918b7a",
+        blob_path="datasets/attention_feed/part-16918b7a.parquet",
+        asof_time_utc="2026-03-20T01:25:54Z",
+        ingested_at_utc="2026-03-20T01:26:02Z",
+        row_count=2,
+    )
+    frame = pd.DataFrame(
+        {
+            "feed_rank": [1, 2],
+            "entity_id": ["ABBV", "TSLA"],
+            "attention_score": [63.6, 53.7],
+        }
+    )
+
+    monkeypatch.setattr(pipeline_store, "PIPELINE_CACHE_ROOT", tmp_path)
+    monkeypatch.setattr(pipeline_store, "latest_dataset_metadata", lambda dataset_name: metadata)
+    monkeypatch.setattr(pipeline_store, "_read_blob_parquet", lambda blob_path: frame.copy())
+
+    first, first_meta = pipeline_store.load_latest_dataset_frame("attention_feed")
+
+    monkeypatch.setattr(
+        pipeline_store,
+        "_read_blob_parquet",
+        lambda blob_path: (_ for _ in ()).throw(AssertionError("frame cache should avoid blob download")),
+    )
+
+    second, second_meta = pipeline_store.load_latest_dataset_frame("attention_feed")
+
+    assert first_meta == metadata
+    assert second_meta == metadata
+    assert first["entity_id"].tolist() == ["ABBV", "TSLA"]
+    assert second["entity_id"].tolist() == ["ABBV", "TSLA"]
