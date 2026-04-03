@@ -51,3 +51,71 @@ def test_load_ticker_snapshot_profile_can_skip_live_fallback(monkeypatch):
         "market_cap_label": "n/a",
         "sparkline_data_uri": "",
     }
+
+
+def test_is_stale_fallback_background_payload_true_when_fallback_has_hidden_headlines():
+    payload = {
+        "description_text": "No relevant catalyst found in web coverage for BMY in the latest agentic run.",
+        "recent_headlines": [],
+        "source_trace": {
+            "headline_count": 6,
+            "relevant_news_count": 0,
+        },
+    }
+    assert dashboard_loaders._is_stale_fallback_background_payload(payload) is True
+
+
+def test_is_stale_fallback_background_payload_false_for_legit_no_news():
+    payload = {
+        "description_text": "No relevant catalyst found in web coverage for IRDM in the latest agentic run.",
+        "recent_headlines": [],
+        "source_trace": {
+            "headline_count": 0,
+            "relevant_news_count": 0,
+        },
+    }
+    assert dashboard_loaders._is_stale_fallback_background_payload(payload) is False
+
+
+def test_load_attention_ticker_background_cached_bypasses_stale_memoized_payload(monkeypatch):
+    stale_payload = {
+        "description_text": "No relevant catalyst found in web coverage for BMY in the latest agentic run.",
+        "recent_headlines": [],
+        "source_trace": {"headline_count": 6, "relevant_news_count": 0},
+    }
+    refreshed_payload = {
+        "description_text": "BMY materialized context text",
+        "recent_headlines": [{"headline": "BMY item", "url": "https://example.com/bmy"}],
+        "source_trace": {"headline_count": 6, "relevant_news_count": 1},
+    }
+    calls: list[bool] = []
+    monkeypatch.setattr(dashboard_loaders, "_load_attention_ticker_background_memoized", lambda cfg, ticker: stale_payload)
+
+    def _fake_uncached(cfg, ticker, *, force_refresh=True):
+        calls.append(bool(force_refresh))
+        return refreshed_payload
+
+    monkeypatch.setattr(dashboard_loaders, "_load_attention_ticker_background_uncached", _fake_uncached)
+
+    payload = dashboard_loaders._load_attention_ticker_background_cached(object(), "BMY", force_refresh=False)
+
+    assert payload == refreshed_payload
+    assert calls == [False]
+
+
+def test_load_attention_ticker_background_cached_keeps_memoized_for_non_stale_payload(monkeypatch):
+    memoized_payload = {
+        "description_text": "No relevant catalyst found in web coverage for IRDM in the latest agentic run.",
+        "recent_headlines": [],
+        "source_trace": {"headline_count": 0, "relevant_news_count": 0},
+    }
+    monkeypatch.setattr(dashboard_loaders, "_load_attention_ticker_background_memoized", lambda cfg, ticker: memoized_payload)
+    monkeypatch.setattr(
+        dashboard_loaders,
+        "_load_attention_ticker_background_uncached",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("uncached background loader should not run")),
+    )
+
+    payload = dashboard_loaders._load_attention_ticker_background_cached(object(), "IRDM", force_refresh=False)
+
+    assert payload == memoized_payload

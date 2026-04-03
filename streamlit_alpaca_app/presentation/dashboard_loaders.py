@@ -728,16 +728,35 @@ def _load_attention_ticker_snapshot_cached(
     return _load_attention_ticker_snapshot_memoized(cfg, ticker)
 
 
+def _is_stale_fallback_background_payload(payload: dict[str, object] | None) -> bool:
+    if not isinstance(payload, dict):
+        return False
+    description_text = str(payload.get("description_text") or "").strip().lower()
+    if not description_text.startswith("no relevant catalyst found"):
+        return False
+    recent_headlines = list(payload.get("recent_headlines") or [])
+    if recent_headlines:
+        return False
+    source_trace = payload.get("source_trace")
+    if not isinstance(source_trace, dict):
+        return False
+    headline_count = int(source_trace.get("headline_count") or 0)
+    relevant_news_count = int(source_trace.get("relevant_news_count") or 0)
+    return headline_count > 0 and relevant_news_count <= 0
+
+
 def _load_attention_ticker_background_uncached(
     cfg: AppConfig,
     ticker: str,
+    *,
+    force_refresh: bool = True,
 ) -> dict[str, object]:
     return _resolve_data_access_payload(
         "resolve_attention_ticker_background",
         cfg=cfg,
         source="news",
         ticker=ticker,
-        force_refresh=True,
+        force_refresh=force_refresh,
     )
 
 
@@ -762,7 +781,14 @@ def _load_attention_ticker_background_cached(
 ) -> dict[str, object]:
     if force_refresh:
         return _load_attention_ticker_background_uncached(cfg, ticker)
-    return _load_attention_ticker_background_memoized(cfg, ticker)
+    payload = _load_attention_ticker_background_memoized(cfg, ticker)
+    if _is_stale_fallback_background_payload(payload):
+        return _load_attention_ticker_background_uncached(
+            cfg,
+            ticker,
+            force_refresh=False,
+        )
+    return payload
 
 
 def _load_attention_home_1d_uncached(

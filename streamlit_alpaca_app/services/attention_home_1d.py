@@ -12,6 +12,7 @@ from .runtime_policy import attention_candidate_policy, source_authority_policy
 
 ENTITY_MASTER_COLUMNS = [
     "symbol",
+    "security_name",
     "asset_class",
     "security_type",
     "sector",
@@ -29,6 +30,7 @@ ENTITY_MASTER_COLUMNS = [
 CANDIDATE_COLUMNS = [
     "candidate_id",
     "symbol",
+    "security_name",
     "headline",
     "source_label",
     "peer_group_name",
@@ -552,8 +554,14 @@ def _build_entity_row(
         except Exception:
             informative_taxonomy_row = None
         if informative_taxonomy_row is not None and informative_taxonomy_row(taxonomy_row):
+            security_name = (
+                _coerce_text(taxonomy_row.get("security_name"))
+                or _coerce_text(taxonomy_row.get("company_name"))
+                or _coerce_text(taxonomy_row.get("name"))
+            )
             return {
                 "symbol": normalized,
+                "security_name": security_name,
                 "asset_class": _coerce_text(taxonomy_row.get("asset_class")) or "equity",
                 "security_type": _coerce_text(taxonomy_row.get("security_type")) or "common_stock",
                 "sector": _coerce_text(taxonomy_row.get("sector")) or "Unknown",
@@ -574,6 +582,7 @@ def _build_entity_row(
     security_type = "etf" if any(token in name.lower() for token in ["etf", "trust", "fund"]) else "common_stock"
     return {
         "symbol": normalized,
+        "security_name": name,
         "asset_class": asset_class,
         "security_type": security_type,
         "sector": "Unknown",
@@ -862,6 +871,12 @@ def build_attention_event_candidates_1d(
             {
                 "candidate_id": f"candidate::{symbol}",
                 "symbol": symbol,
+                "security_name": (
+                    _coerce_text(entity_row.get("security_name"))
+                    or _coerce_text(mover_row.get("security_name"))
+                    or _coerce_text(mover_row.get("company_name"))
+                    or _coerce_text(mover_row.get("name"))
+                ),
                 "headline": headline,
                 "source_label": source_label,
                 "peer_group_name": _peer_group_name(pd.Series(entity_row)),

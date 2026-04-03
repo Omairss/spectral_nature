@@ -57,6 +57,25 @@ BRIDGE_STOPWORDS = {
 }
 
 
+COMPANY_SUFFIXES = {
+    "co",
+    "co.",
+    "company",
+    "corp",
+    "corp.",
+    "corporation",
+    "group",
+    "holding",
+    "holdings",
+    "inc",
+    "inc.",
+    "limited",
+    "ltd",
+    "ltd.",
+    "plc",
+}
+
+
 def _text(value: object) -> str:
     text = str(value or "").strip()
     return "" if text.lower() == "nan" else text
@@ -985,11 +1004,20 @@ def _label_text_position(
         )
         nearest_dx = x_pos - center_x
         nearest_dy = y_pos - center_y
+    min_x, max_x, min_y, max_y = _position_bounds(positions)
     horizontal = "center"
-    if abs(nearest_dx) >= 0.25:
+    if x_pos <= (min_x + 0.65):
+        horizontal = "right"
+    elif x_pos >= (max_x - 0.65):
+        horizontal = "left"
+    elif abs(nearest_dx) >= 0.25:
         horizontal = "right" if nearest_dx >= 0 else "left"
     vertical = "middle"
-    if abs(nearest_dy) >= 0.2:
+    if y_pos <= (min_y + 0.45):
+        vertical = "top"
+    elif y_pos >= (max_y - 0.45):
+        vertical = "bottom"
+    elif abs(nearest_dy) >= 0.2:
         vertical = "top" if nearest_dy >= 0 else "bottom"
     return f"{vertical} {horizontal}"
 
@@ -997,6 +1025,256 @@ def _label_text_position(
 def _marker_size(score: float, min_score: float, score_span: float) -> float:
     scaled = (score - min_score) / score_span if score_span > 0 else 0.5
     return 13.0 + 15.0 * scaled
+
+
+def _short_company_name(value: object, max_chars: int = 24) -> str:
+    text = _text(value)
+    if not text:
+        return ""
+    words = [part for part in re.split(r"\s+", text) if part]
+    while len(words) > 1:
+        trailing = words[-1].lower().strip(",.()")
+        if trailing in COMPANY_SUFFIXES:
+            words.pop()
+            continue
+        break
+    compact = " ".join(words).strip(", ")
+    if len(compact) <= max_chars:
+        return compact
+    truncated = compact[: max(max_chars - 1, 1)].rstrip()
+    if " " in truncated:
+        truncated = truncated.rsplit(" ", 1)[0]
+    return f"{truncated}..."
+
+
+def _security_label(node: str, attrs: dict[str, Any], *, include_company: bool) -> str:
+    symbol = _text(attrs.get("symbol")) or node
+    if not include_company:
+        return symbol
+    company_name = _short_company_name(attrs.get("security_name"))
+    if not company_name or company_name.upper() == symbol.upper():
+        return symbol
+    return f"{symbol}<br>{company_name}"
+
+
+def _connected_component_cluster_label(graph: nx.Graph, nodes: list[str]) -> str:
+    security_nodes = [
+        node
+        for node in nodes
+        if _text(graph.nodes[node].get("node_type")) != "bridge"
+        and not bool(graph.nodes[node].get("is_intermediate_path"))
+    ]
+    if not security_nodes:
+        return ""
+
+    def ranked_counts(field: str) -> list[tuple[str, int]]:
+        counts: dict[str, int] = defaultdict(int)
+        for node in security_nodes:
+            value = _text(graph.nodes[node].get(field))
+            if not value or value.lower() == "unknown":
+                continue
+            counts[value] += 1
+        return sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+
+    peer_counts = ranked_counts("peer_group")
+    industry_counts = ranked_counts("industry")
+    sector_counts = ranked_counts("sector")
+
+    labels: list[str] = []
+    for value, count in peer_counts[:2]:
+        if count >= 2 and value not in labels:
+            labels.append(value)
+    if not labels:
+        for value, count in industry_counts[:2]:
+            if count >= 2 and value not in labels:
+                labels.append(value)
+    if not labels and sector_counts:
+        labels.append(sector_counts[0][0])
+    if not labels and peer_counts:
+        labels.append(peer_counts[0][0])
+    if not labels and industry_counts:
+        labels.append(industry_counts[0][0])
+    if not labels:
+        return ""
+    return " + ".join(labels[:2])
+
+
+def _component_subcluster_annotations(
+    graph: nx.Graph,
+    component_nodes: list[str],
+    positions: dict[str, tuple[float, float]],
+    *,
+    compact: bool,
+    max_labels: int,
+    used_points: list[tuple[float, float]] | None = None,
+) -> list[dict[str, object]]:
+    security_nodes = [
+        node
+        for node in component_nodes
+        if node in positions
+        and _text(graph.nodes[node].get("node_type")) != "bridge"
+        and not bool(graph.nodes[node].get("is_intermediate_path"))
+    ]
+    if len(security_nodes) < 5 or max_labels <= 0:
+        return []
+
+    groups: dict[str, list[str]] = defaultdict(list)
+    for node in security_nodes:
+        attrs = graph.nodes[node]
+        label = _first_informative(
+            attrs.get("peer_group"),
+            attrs.get("industry"),
+            attrs.get("sector"),
+        )
+        if not label:
+            continue
+        label_text = _text(label)
+        if not label_text:
+            continue
+        groups[label_text].append(node)
+
+    ranked_groups = sorted(
+        [
+            (label, members)
+            for label, members in groups.items()
+            if len(members) >= 2
+        ],
+        key=lambda item: (-len(item[1]), item[0]),
+    )
+    # Dense components can still be informative even when peer groups are sparse.
+    # In that case, allow a few single-name buckets as muted context labels.
+    if len(ranked_groups) < max_labels and len(security_nodes) >= 10:
+        fallback_groups = sorted(
+            [
+                (label, members)
+                for label, members in groups.items()
+                if len(members) == 1
+            ],
+            key=lambda item: (
+                -max((_float(graph.nodes[node].get("candidate_score")) for node in item[1]), default=0.0),
+                item[0],
+            ),
+        )
+        ranked_groups.extend(fallback_groups)
+    if not ranked_groups:
+        return []
+
+    selected: list[dict[str, object]] = []
+    spacing = 1.0 if compact else 1.2
+    occupied = list(used_points or [])
+    node_spacing = 1.05 if compact else 1.25
+    for label, members in ranked_groups:
+        if len(selected) >= max_labels:
+            break
+        xs = [positions[node][0] for node in members]
+        ys = [positions[node][1] for node in members]
+        if not xs or not ys:
+            continue
+        center_x = sum(xs) / len(xs)
+        center_y = sum(ys) / len(ys)
+        min_x, max_x = min(xs), max(xs)
+        min_y, max_y = min(ys), max(ys)
+        x_pad = 0.55 if compact else 0.68
+        y_pad = 0.48 if compact else 0.62
+        candidate_points = [
+            (center_x, max_y + y_pad),
+            (center_x, min_y - y_pad),
+            (max_x + x_pad, center_y),
+            (min_x - x_pad, center_y),
+        ]
+        anchor: tuple[float, float] | None = None
+        for point in candidate_points:
+            if any(math.dist(point, existing) < spacing for existing in occupied):
+                continue
+            if any(math.dist(point, positions[node]) < node_spacing for node in members):
+                continue
+            anchor = point
+            break
+        if anchor is None:
+            anchor = (center_x, max_y + y_pad)
+            if any(math.dist(anchor, existing) < spacing for existing in occupied):
+                continue
+        selected.append(
+            {
+                "x": anchor[0],
+                "y": anchor[1],
+                "text": label,
+                "font": {"color": "rgba(148, 163, 184, 0.64)", "size": 8 if compact else 9},
+                "bgcolor": "rgba(15, 23, 42, 0.74)",
+                "bordercolor": "rgba(148, 163, 184, 0.18)",
+                "borderpad": 2,
+            }
+        )
+        occupied.append(anchor)
+    return selected
+
+
+def _component_cluster_annotations(
+    graph: nx.Graph,
+    positions: dict[str, tuple[float, float]],
+    *,
+    compact: bool,
+) -> list[dict[str, object]]:
+    connected_nodes = [
+        node
+        for node, degree in graph.degree()
+        if int(degree) > 0 and node in positions
+    ]
+    if not connected_nodes:
+        return []
+    connected_subgraph = graph.subgraph(connected_nodes).copy()
+    components = sorted(
+        nx.connected_components(connected_subgraph),
+        key=len,
+        reverse=True,
+    )
+    if not components:
+        return []
+
+    max_labels = 4 if compact else 8
+    subcluster_budget = 3 if compact else (8 if len(components) <= 2 else 6)
+    per_component_subcluster_limit = 2 if compact else (4 if len(components) == 1 else 2)
+    annotations: list[dict[str, object]] = []
+    used_points: list[tuple[float, float]] = []
+    for index, component_nodes in enumerate(components[:max_labels], start=1):
+        nodes = sorted(component_nodes)
+        if len(nodes) <= 1:
+            continue
+        label = _connected_component_cluster_label(graph, nodes)
+        if not label:
+            continue
+        xs = [positions[node][0] for node in nodes if node in positions]
+        ys = [positions[node][1] for node in nodes if node in positions]
+        if not xs or not ys:
+            continue
+        annotations.append(
+            {
+                "x": sum(xs) / len(xs),
+                "y": max(ys) + (0.72 if compact else 0.95),
+                "text": f"CC{index}: {label}",
+                "font": {"color": "rgba(148, 163, 184, 0.78)", "size": 9 if compact else 10},
+                "bgcolor": "rgba(15, 23, 42, 0.62)",
+                "bordercolor": "rgba(148, 163, 184, 0.20)",
+                "borderpad": 2,
+            }
+        )
+        used_points.append((sum(xs) / len(xs), max(ys) + (0.72 if compact else 0.95)))
+
+        if subcluster_budget <= 0:
+            continue
+        subcluster_annotations = _component_subcluster_annotations(
+            graph,
+            nodes,
+            positions,
+            compact=compact,
+            max_labels=min(per_component_subcluster_limit, subcluster_budget),
+            used_points=used_points,
+        )
+        for item in subcluster_annotations:
+            used_points.append((float(item["x"]), float(item["y"])))
+        annotations.extend(subcluster_annotations)
+        subcluster_budget -= len(subcluster_annotations)
+    return annotations
 
 
 def plot_attention_candidate_network(
@@ -1012,6 +1290,7 @@ def plot_attention_candidate_network(
     show_summary: bool = True,
     show_footer: bool = True,
     compact: bool = False,
+    show_component_labels: bool | str = "auto",
 ) -> go.Figure:
     plot_graph = graph.copy() if show_isolates else connected_candidate_subgraph(graph)
     connected_positions = _pack_component_positions(plot_graph, seed=seed)
@@ -1029,6 +1308,12 @@ def plot_attention_candidate_network(
         **connected_positions,
         **isolate_positions,
     }
+    render_component_labels = (not compact) if show_component_labels == "auto" else bool(show_component_labels)
+    component_annotations = (
+        _component_cluster_annotations(plot_graph, positions, compact=compact)
+        if render_component_labels
+        else []
+    )
     label_nodes = _label_nodes(plot_graph, positions, show_labels, label_top_n)
 
     weights = [_float(attrs.get("edge_weight")) for _, _, attrs in plot_graph.edges(data=True)]
@@ -1091,6 +1376,7 @@ def plot_attention_candidate_network(
         hovertext: list[str] = []
         sizes: list[float] = []
         symbols: list[str] = []
+        marker_opacity = 0.44 if is_path_sector else (0.52 if is_bridge_sector else 0.74)
         for node in sorted(
             nodes,
             key=lambda value: (
@@ -1106,11 +1392,16 @@ def plot_attention_candidate_network(
             x_pos, y_pos = positions[node]
             x_values.append(x_pos)
             y_values.append(y_pos)
-            display_label = _text(attrs.get("symbol")) or node
+            is_bridge_node = _text(attrs.get("node_type")) == "bridge"
+            display_label = (
+                _security_label(node, attrs, include_company=True)
+                if not is_path_node and not is_bridge_node
+                else (_text(attrs.get("symbol")) or node)
+            )
             has_label = node in label_nodes
             text.append(display_label if has_label else "")
             textpositions.append(_label_text_position(plot_graph, node, positions) if has_label else "top center")
-            if _text(attrs.get("node_type")) == "bridge":
+            if is_bridge_node:
                 hovertext.append(
                     "<br>".join(
                         [
@@ -1142,6 +1433,12 @@ def plot_attention_candidate_network(
                     "<br>".join(
                         [
                             f"<b>{node}</b>",
+                            *(
+                                [f"company={_text(attrs.get('security_name'))}"]
+                                if _text(attrs.get("security_name"))
+                                and _text(attrs.get("security_name")).upper() != node.upper()
+                                else []
+                            ),
                             f"sector={_text(attrs.get('sector')) or 'Unknown'}",
                             f"industry={_text(attrs.get('industry')) or 'Unknown'}",
                             f"peer_group={_text(attrs.get('peer_group')) or 'Unknown'}",
@@ -1161,11 +1458,21 @@ def plot_attention_candidate_network(
                 if is_path_node and _text(attrs.get("topology_node_type")) == "symbol"
                 else ("diamond-open" if is_path_node else _direction_symbol(attrs.get("direction"), attrs.get("change_pct")))
             )
+        if not is_bridge_sector and not is_path_sector:
+            visible_count = len(x_values)
+            marker_opacity = 0.74
+            if visible_count >= 18:
+                marker_opacity = 0.52
+            elif visible_count >= 10:
+                marker_opacity = 0.60
+            elif visible_count >= 6:
+                marker_opacity = 0.68
         node_traces.append(
             go.Scatter(
                 x=x_values,
                 y=y_values,
                 mode="markers+text",
+                cliponaxis=False,
                 text=text,
                 textposition=textpositions,
                 hoverinfo="text",
@@ -1183,7 +1490,7 @@ def plot_attention_candidate_network(
                         width=0.8 if (is_bridge_sector or is_path_sector) else 1.0,
                         color=STREAMLIT_DARK["grid"] if (is_bridge_sector or is_path_sector) else STREAMLIT_DARK["outline"],
                     ),
-                    opacity=0.44 if is_path_sector else (0.52 if is_bridge_sector else 0.76),
+                    opacity=marker_opacity,
                 ),
             )
         )
@@ -1266,6 +1573,21 @@ def plot_attention_candidate_network(
             y1=float(isolate_separator["y"]),
             line=dict(color="rgba(148, 163, 184, 0.32)", width=1.0, dash="dot"),
         )
+    for annotation in component_annotations:
+        annotation_kwargs: dict[str, object] = {
+            "x": float(annotation["x"]),
+            "y": float(annotation["y"]),
+            "xref": "x",
+            "yref": "y",
+            "showarrow": False,
+            "align": "center",
+            "font": dict(annotation["font"]),
+            "text": str(annotation["text"]),
+        }
+        for key in ("bgcolor", "bordercolor", "borderpad", "opacity"):
+            if key in annotation:
+                annotation_kwargs[key] = annotation[key]
+        fig.add_annotation(**annotation_kwargs)
     if show_isolates:
         for annotation in isolate_annotations:
             fig.add_annotation(

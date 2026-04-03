@@ -100,6 +100,16 @@ LOW_SIGNAL_CLAIM_MARKERS = (
     "other analysts&#39; views on",
     "other analysts views on",
 )
+IRRELEVANT_NEWS_PATTERNS = (
+    r"\bdividend[- ]equivalent\b",
+    r"\brsu rights?\b",
+    r"\bform\s*4\b",
+    r"\bbeneficial ownership\b",
+    r"\btrust holdings?\b",
+    r"\bdirector\b.*\b(adds?|gets?|gains?|disclos(?:e|es|ed)|holds?)\b.*\bshares?\b",
+    r"\binsider\b.*\b(holdings?|transactions?|buys?|sells?)\b",
+    r"\bspousal share stakes?\b",
+)
 GENERIC_GRAPH_BUCKETS = {
     "unknown",
     "market",
@@ -201,6 +211,28 @@ CLAIM_SCHEMA: dict[str, Any] = {
         }
     },
     "required": ["claims"],
+}
+
+SEARCH_ROUTER_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "use_tavily": {"type": "boolean"},
+        "tavily_topic": {"type": "string", "enum": ["news", "general"]},
+        "tavily_query": {"type": "string"},
+        "reason": {"type": "string"},
+    },
+    "required": ["use_tavily", "tavily_topic", "tavily_query", "reason"],
+}
+
+SEARCH_RELEVANCE_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "relevant_indices": {"type": "array", "items": {"type": "integer"}},
+        "reason": {"type": "string"},
+    },
+    "required": ["relevant_indices", "reason"],
 }
 
 SYMBOL_WRITER_SCHEMA: dict[str, Any] = {
@@ -523,11 +555,20 @@ def _is_provider_error_text(text: object) -> bool:
     return any(marker in clean for marker in RESEARCH_PROVIDER_ERROR_MARKERS)
 
 
+def _is_irrelevant_news_text(headline: object, snippet: object = "") -> bool:
+    blob = f"{_coerce_text(headline)} {_coerce_text(snippet)}".lower()
+    if not blob.strip():
+        return False
+    return any(re.search(pattern, blob) for pattern in IRRELEVANT_NEWS_PATTERNS)
+
+
 def _is_low_signal_claim_text(text: object) -> bool:
     clean = _coerce_text(text).lower()
     if not clean:
         return False
     if _is_provider_error_text(clean):
+        return True
+    if _is_irrelevant_news_text(clean):
         return True
     return any(marker in clean for marker in LOW_SIGNAL_CLAIM_MARKERS)
 
@@ -815,6 +856,33 @@ def _top_sources(claims: list[dict[str, Any]], *, limit: int = 4) -> str:
     return ", ".join(out)
 
 
+def _document_importance_map(claims: list[dict[str, Any]]) -> dict[str, float]:
+    scores: dict[str, float] = {}
+    for item in claims:
+        relevance = _coerce_float(item.get("relevance_score"), 0.0)
+        causal = _coerce_float(item.get("causal_score"), 0.0)
+        confidence = _coerce_float(item.get("confidence_score"), 0.0)
+        same_day_bonus = 0.08 if bool(item.get("is_same_day")) else 0.0
+        score = min(max((0.45 * confidence) + (0.3 * relevance) + (0.25 * causal) + same_day_bonus, 0.0), 1.0)
+        for chunk_id in _safe_list(item.get("evidence_chunk_ids")):
+            chunk_text = _coerce_text(chunk_id)
+            if not chunk_text:
+                continue
+            document_id = chunk_text.split("::chunk::", 1)[0]
+            if not document_id:
+                continue
+            scores[document_id] = max(scores.get(document_id, 0.0), score)
+    return scores
+
+
+def _importance_label(score: float) -> str:
+    if score >= 0.72:
+        return "high"
+    if score >= 0.58:
+        return "medium"
+    return "low"
+
+
 def _load_search_clients() -> tuple[SerpAPISearchClient | None, TavilySearchClient | None]:
     serp_cfg = load_serpapi_config()
     tavily_cfg = load_tavily_config()
@@ -835,6 +903,14 @@ def _candidate_subject(candidate: dict[str, Any]) -> str:
     company_name = _candidate_company_name(candidate)
     symbol = _normalize_symbol(candidate.get("symbol"))
     return f"{company_name} ({symbol})".strip() if company_name and symbol else company_name or symbol
+
+
+def _evidence_text(snippet: object, headline: object) -> str:
+    """Use snippet when present, otherwise fall back to headline so evidence survives chunking."""
+    body = _coerce_text(snippet)
+    if body:
+        return body
+    return _coerce_text(headline)
 
 
 def _search_mention_score(text: str, symbol: str, company_name: str) -> float:
@@ -859,6 +935,153 @@ def _passes_symbol_search_gate(headline: str, snippet: str, symbol: str, company
     return True
 
 
+def _search_result_is_relevant(
+    headline: str,
+    snippet: str,
+    *,
+    symbol: str,
+    company_name: str,
+) -> bool:
+    if not headline and not snippet:
+        return False
+    if _is_irrelevant_news_text(headline, snippet):
+        return False
+    if _is_provider_error_text(headline) or _is_provider_error_text(snippet):
+        return False
+    if symbol and not _passes_symbol_search_gate(headline, snippet, symbol, company_name):
+        return False
+    if _is_low_signal(headline, snippet):
+        if not symbol:
+            return False
+        if _search_mention_score(headline, symbol, company_name) < 0.75:
+            return False
+    return True
+
+
+def _default_tavily_general_query(query: str, symbol: str, company_name: str) -> str:
+    company = _coerce_text(company_name)
+    subject = f"{company} ({symbol})" if company and symbol else company or symbol or query
+    return f"{subject} latest developments pipeline approvals clinical trial FDA partnership guidance"
+
+
+def _llm_search_relevance_flags(
+    *,
+    query: str,
+    symbol: str,
+    company_name: str,
+    items: list[dict[str, str]],
+    llm_client: LLMClient | None,
+) -> list[bool]:
+    if not items:
+        return []
+    fallback = [
+        _search_result_is_relevant(
+            _coerce_text(item.get("title")),
+            _coerce_text(item.get("snippet")),
+            symbol=symbol,
+            company_name=company_name,
+        )
+        for item in items
+    ]
+    if llm_client is None:
+        return fallback
+    try:
+        data = llm_client.generate_json(
+            system_prompt=(
+                "You are a relevance gate for company news research. "
+                "Select only indices that are materially relevant to the target company and likely catalysts, "
+                "including trials, approvals, guidance, partnerships, product/commercial updates, management actions, "
+                "or major financial/company developments. Exclude noisy insider/form-4/dividend-equivalent chatter, "
+                "routine ex-dividend notices, isolated analyst target tweaks, and generic stock-up/stock-down recaps "
+                "that do not identify a concrete business catalyst."
+            ),
+            user_prompt=json.dumps(
+                {
+                    "query": query,
+                    "symbol": symbol,
+                    "company_name": company_name,
+                    "results": [
+                        {
+                            "index": index,
+                            "title": _coerce_text(item.get("title")),
+                            "snippet": _coerce_text(item.get("snippet")),
+                            "source": _coerce_text(item.get("source")),
+                            "url": _coerce_text(item.get("url")),
+                        }
+                        for index, item in enumerate(items)
+                    ],
+                },
+                ensure_ascii=False,
+                default=str,
+            ),
+            schema_name="attention_search_relevance",
+            schema=SEARCH_RELEVANCE_SCHEMA,
+        )
+        selected = {
+            int(value)
+            for value in list(data.get("relevant_indices") or [])
+            if isinstance(value, (int, float)) and 0 <= int(value) < len(items)
+        }
+        return [index in selected for index in range(len(items))]
+    except Exception:
+        return fallback
+
+
+def _llm_tavily_route_decision(
+    *,
+    query: str,
+    symbol: str,
+    company_name: str,
+    serp_preview: list[dict[str, str]],
+    heuristic_serp_relevant: bool,
+    llm_client: LLMClient | None,
+) -> tuple[bool, str, str, str]:
+    default_tavily_query = _default_tavily_general_query(query, symbol, company_name)
+    if llm_client is None:
+        if heuristic_serp_relevant:
+            return False, "news", query, "serp_results_relevant"
+        return True, "general", default_tavily_query, "serp_results_not_relevant"
+    try:
+        data = llm_client.generate_json(
+            system_prompt=(
+                "You are a research-router for market analysis. "
+                "Decide if SerpApi results are relevant enough to explain the move. "
+                "If not relevant, call Tavily as fallback using topic='general' for broader RAG retrieval. "
+                "Prefer Tavily when Serp results are sparse or mostly low-signal (insider/form-4, ex-dividend, "
+                "analyst target-only notes, or generic price-action recaps without concrete company catalysts). "
+                "When using Tavily, output a high-recall query that includes company identity and likely catalysts."
+            ),
+            user_prompt=json.dumps(
+                {
+                    "query": query,
+                    "symbol": symbol,
+                    "company_name": company_name,
+                    "serp_preview": serp_preview[:4],
+                    "heuristic_serp_relevant": bool(heuristic_serp_relevant),
+                    "policy": "Use Tavily fallback when SerpApi evidence is sparse, generic, or off-topic.",
+                    "default_tavily_query": default_tavily_query,
+                },
+                ensure_ascii=False,
+                default=str,
+            ),
+            schema_name="attention_search_router",
+            schema=SEARCH_ROUTER_SCHEMA,
+        )
+        use_tavily = bool(data.get("use_tavily"))
+        topic = _coerce_text(data.get("tavily_topic")).lower() or "general"
+        if topic not in {"news", "general"}:
+            topic = "general"
+        tavily_query = _coerce_text(data.get("tavily_query")) or (default_tavily_query if topic == "general" else query)
+        reason = _trim(data.get("reason"), 140)
+        if not reason:
+            reason = "llm_router_decision"
+        return use_tavily, topic, tavily_query, reason
+    except Exception:
+        if heuristic_serp_relevant:
+            return False, "news", query, "serp_results_relevant_fallback"
+        return True, "general", default_tavily_query, "serp_results_not_relevant_fallback"
+
+
 def _to_article_frame(rows: list[dict[str, Any]]) -> pd.DataFrame:
     if not rows:
         return pd.DataFrame(columns=["headline", "summary", "description", "source", "published_at", "url"])
@@ -881,6 +1104,7 @@ def search_symbol_news_payload(
     max_results: int = 8,
     serp_client: SerpAPISearchClient | None = None,
     tavily_client: TavilySearchClient | None = None,
+    llm_client: LLMClient | None = None,
 ) -> dict[str, Any]:
     normalized_symbol = _normalize_symbol(symbol)
     if not normalized_symbol:
@@ -900,51 +1124,123 @@ def search_symbol_news_payload(
     article_rows: list[dict[str, Any]] = []
     sources: list[str] = []
     errors: list[str] = []
+    serp_preview: list[dict[str, str]] = []
+    serp_relevant_count = 0
+    serp_candidates: list[dict[str, str]] = []
 
     if serp_client is not None:
         try:
             for item in serp_client.search(query_base, news=True, num=max(max_results, 3)):
                 title = _coerce_text(item.title)
                 snippet = _coerce_text(item.snippet)
-                if not title:
+                if not title and not snippet:
                     continue
-                if not _passes_symbol_search_gate(title, snippet, normalized_symbol, company_name):
+                serp_candidates.append(
+                    {
+                        "title": title,
+                        "snippet": snippet,
+                        "source": _coerce_text(item.source) or "SerpApi",
+                        "url": _coerce_text(item.url),
+                        "published_at": _coerce_text(item.published_at),
+                    }
+                )
+            if hasattr(serp_client, "search_ai_overview"):
+                try:
+                    ai_overview = serp_client.search_ai_overview(query_base)  # type: ignore[attr-defined]
+                except Exception:
+                    ai_overview = None
+                if isinstance(ai_overview, WebSearchResult):
+                    serp_candidates.append(
+                        {
+                            "title": _coerce_text(ai_overview.title) or f"{normalized_symbol} AI Overview",
+                            "snippet": _coerce_text(ai_overview.snippet),
+                            "source": _coerce_text(ai_overview.source) or "Google AI Overview",
+                            "url": _coerce_text(ai_overview.url),
+                            "published_at": _coerce_text(ai_overview.published_at),
+                        }
+                    )
+            serp_flags = _llm_search_relevance_flags(
+                query=query_base,
+                symbol=normalized_symbol,
+                company_name=company_name,
+                items=serp_candidates,
+                llm_client=llm_client,
+            )
+            for row, keep in zip(serp_candidates, serp_flags):
+                serp_preview.append({"title": row.get("title", ""), "snippet": row.get("snippet", ""), "source": row.get("source", "")})
+                if not bool(keep):
                     continue
-                if _is_low_signal(title, snippet) and _search_mention_score(title, normalized_symbol, company_name) < 0.75:
+                if _is_irrelevant_news_text(row.get("title"), row.get("snippet")):
                     continue
+                serp_relevant_count += 1
                 article_rows.append(
                     {
-                        "headline": title,
-                        "summary": snippet,
-                        "description": snippet,
-                        "source": _coerce_text(item.source) or "SerpApi",
-                        "published_at": pd.to_datetime(item.published_at, utc=True, errors="coerce"),
-                        "url": _coerce_text(item.url),
+                        "headline": _coerce_text(row.get("title")),
+                        "summary": _evidence_text(row.get("snippet"), row.get("title")),
+                        "description": _evidence_text(row.get("snippet"), row.get("title")),
+                        "source": _coerce_text(row.get("source")) or "SerpApi",
+                        "provider": "serpapi",
+                        "published_at": pd.to_datetime(row.get("published_at"), utc=True, errors="coerce"),
+                        "url": _coerce_text(row.get("url")),
                     }
                 )
             sources.append("serpapi")
         except WebResearchError as exc:
             errors.append(str(exc))
 
-    if tavily_client is not None:
+    use_tavily = bool(tavily_client is not None and serp_client is None)
+    tavily_topic = "news"
+    tavily_query = query_base
+    if tavily_client is not None and serp_client is not None:
+        use_tavily, tavily_topic, tavily_query, _ = _llm_tavily_route_decision(
+            query=query_base,
+            symbol=normalized_symbol,
+            company_name=company_name,
+            serp_preview=serp_preview,
+            heuristic_serp_relevant=serp_relevant_count > 0,
+            llm_client=llm_client,
+        )
+        if serp_relevant_count <= 0:
+            use_tavily = True
+
+    if tavily_client is not None and use_tavily:
         try:
-            for item in tavily_client.search(query_base, max_results=max(max_results // 2, 3), topic="news"):
+            tavily_candidates: list[dict[str, str]] = []
+            for item in tavily_client.search(tavily_query, max_results=max(max_results // 2, 3), topic=tavily_topic):
                 title = _coerce_text(item.title)
                 snippet = _coerce_text(item.snippet)
                 if not title and not snippet:
                     continue
-                if not _passes_symbol_search_gate(title, snippet, normalized_symbol, company_name):
+                tavily_candidates.append(
+                    {
+                        "title": title,
+                        "snippet": snippet,
+                        "source": _coerce_text(item.source) or "Tavily",
+                        "url": _coerce_text(item.url),
+                        "published_at": _coerce_text(item.published_at),
+                    }
+                )
+            tavily_flags = _llm_search_relevance_flags(
+                query=tavily_query,
+                symbol=normalized_symbol,
+                company_name=company_name,
+                items=tavily_candidates,
+                llm_client=llm_client,
+            )
+            for row, keep in zip(tavily_candidates, tavily_flags):
+                if not bool(keep):
                     continue
-                if _is_low_signal(title, snippet) and _search_mention_score(title, normalized_symbol, company_name) < 0.75:
+                if _is_irrelevant_news_text(row.get("title"), row.get("snippet")):
                     continue
                 article_rows.append(
                     {
-                        "headline": title or f"{normalized_symbol} web result",
-                        "summary": snippet,
-                        "description": snippet,
-                        "source": _coerce_text(item.source) or "Tavily",
-                        "published_at": pd.to_datetime(item.published_at, utc=True, errors="coerce"),
-                        "url": _coerce_text(item.url),
+                        "headline": _coerce_text(row.get("title")) or f"{normalized_symbol} web result",
+                        "summary": _evidence_text(row.get("snippet"), row.get("title")),
+                        "description": _evidence_text(row.get("snippet"), row.get("title")),
+                        "source": _coerce_text(row.get("source")) or "Tavily",
+                        "provider": "tavily",
+                        "published_at": pd.to_datetime(row.get("published_at"), utc=True, errors="coerce"),
+                        "url": _coerce_text(row.get("url")),
                     }
                 )
             sources.append("tavily")
@@ -1246,36 +1542,37 @@ def _search_query_results(
     query: str,
     *,
     candidate_id: str,
+    symbol: str,
+    company_name: str,
     run_id: str,
     asof_time_utc: pd.Timestamp,
     serp_client: SerpAPISearchClient | None,
     tavily_client: TavilySearchClient | None,
+    llm_client: LLMClient | None,
     budget: int,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     request_rows: list[dict[str, Any]] = []
     result_rows: list[dict[str, Any]] = []
     query_id = f"query::{hashlib.sha1(f'{candidate_id}|{query}'.encode('utf-8')).hexdigest()[:16]}"
-    providers: list[tuple[str, Any]] = []
+    normalized_symbol = _normalize_symbol(symbol)
+    normalized_company = _coerce_text(company_name)
+    serp_preview: list[dict[str, str]] = []
+    serp_relevant_count = 0
+
     if serp_client is not None:
-        providers.append(("serpapi", serp_client))
-    if tavily_client is not None:
-        providers.append(("tavily", tavily_client))
-    for provider_name, client in providers:
         request_rows.append(
             {
                 "run_id": run_id,
                 "asof_time_utc": asof_time_utc,
                 "candidate_id": candidate_id,
                 "query_id": query_id,
-                "provider": provider_name,
+                "provider": "serpapi",
                 "query": query,
+                "route_mode": "primary",
             }
         )
         try:
-            if provider_name == "serpapi":
-                results = client.search(query, news=True, num=max(min(int(budget), 6), 1))
-            else:
-                results = client.search(query, max_results=max(min(int(budget), 4), 1), topic="news")
+            results = serp_client.search(query, news=True, num=max(min(int(budget), 6), 1))
         except Exception as exc:
             error_text = _trim(str(exc), 180)
             result_rows.append(
@@ -1284,39 +1581,170 @@ def _search_query_results(
                     "asof_time_utc": asof_time_utc,
                     "candidate_id": candidate_id,
                     "query_id": query_id,
-                    "provider": provider_name,
-                    "result_id": f"{query_id}::{provider_name}::error",
+                    "provider": "serpapi",
+                    "result_id": f"{query_id}::serpapi::error",
                     "title": "",
                     "url": "",
                     "snippet": "",
                     "error_text": error_text,
                     "result_kind": "error",
-                    "source": provider_name,
+                    "source": "serpapi",
                     "published_at": "",
                     "authority_bucket": "web",
                     "authority_rank": 3,
                 }
             )
-            continue
+            results = []
+        serp_candidates: list[dict[str, str]] = []
         for item in list(results or [])[: max(min(int(budget), 6), 1)]:
             if not isinstance(item, WebSearchResult):
                 continue
-            authority_bucket, authority_rank = _source_authority_bucket(item.source, item.url)
+            serp_candidates.append(
+                {
+                    "title": _coerce_text(item.title),
+                    "snippet": _coerce_text(item.snippet),
+                    "source": _coerce_text(item.source),
+                    "url": _coerce_text(item.url),
+                    "published_at": _coerce_text(item.published_at),
+                }
+            )
+        serp_flags = _llm_search_relevance_flags(
+            query=query,
+            symbol=normalized_symbol,
+            company_name=normalized_company,
+            items=serp_candidates,
+            llm_client=llm_client,
+        )
+        for row, keep in zip(serp_candidates, serp_flags):
+            title = _coerce_text(row.get("title"))
+            snippet = _coerce_text(row.get("snippet"))
+            serp_preview.append(
+                {
+                    "title": title,
+                    "snippet": snippet,
+                    "source": _coerce_text(row.get("source")),
+                }
+            )
+            if bool(keep) and not _is_irrelevant_news_text(title, snippet):
+                serp_relevant_count += 1
+            authority_bucket, authority_rank = _source_authority_bucket(row.get("source"), row.get("url"))
             result_rows.append(
                 {
                     "run_id": run_id,
                     "asof_time_utc": asof_time_utc,
                     "candidate_id": candidate_id,
                     "query_id": query_id,
-                    "provider": provider_name,
-                    "result_id": f"{query_id}::{provider_name}::{hashlib.sha1((item.url or item.title).encode('utf-8')).hexdigest()[:12]}",
-                    "title": _coerce_text(item.title),
-                    "url": _coerce_text(item.url),
-                    "snippet": _coerce_text(item.snippet),
+                    "provider": "serpapi",
+                    "result_id": f"{query_id}::serpapi::{hashlib.sha1((_coerce_text(row.get('url')) or title).encode('utf-8')).hexdigest()[:12]}",
+                    "title": title,
+                    "url": _coerce_text(row.get("url")),
+                    "snippet": snippet,
                     "error_text": "",
                     "result_kind": "result",
-                    "source": _coerce_text(item.source) or provider_name,
+                    "source": _coerce_text(row.get("source")) or "serpapi",
+                    "published_at": _coerce_text(row.get("published_at")),
+                    "authority_bucket": authority_bucket,
+                    "authority_rank": authority_rank,
+                }
+            )
+
+    use_tavily = bool(tavily_client is not None and serp_client is None)
+    tavily_topic = "news"
+    tavily_query = query
+    route_reason = "serp_unavailable" if use_tavily else "serp_results_relevant"
+    if tavily_client is not None and serp_client is not None:
+        use_tavily, tavily_topic, tavily_query, route_reason = _llm_tavily_route_decision(
+            query=query,
+            symbol=normalized_symbol,
+            company_name=normalized_company,
+            serp_preview=serp_preview,
+            heuristic_serp_relevant=serp_relevant_count > 0,
+            llm_client=llm_client,
+        )
+        if serp_relevant_count <= 0:
+            use_tavily = True
+
+    if tavily_client is not None and use_tavily:
+        request_rows.append(
+            {
+                "run_id": run_id,
+                "asof_time_utc": asof_time_utc,
+                "candidate_id": candidate_id,
+                "query_id": query_id,
+                "provider": "tavily",
+                "query": tavily_query,
+                "route_mode": "rag_fallback" if serp_client is not None else "primary",
+                "route_reason": route_reason,
+                "topic": tavily_topic,
+            }
+        )
+        try:
+            results = tavily_client.search(tavily_query, max_results=max(min(int(budget), 4), 1), topic=tavily_topic)
+        except Exception as exc:
+            error_text = _trim(str(exc), 180)
+            result_rows.append(
+                {
+                    "run_id": run_id,
+                    "asof_time_utc": asof_time_utc,
+                    "candidate_id": candidate_id,
+                    "query_id": query_id,
+                    "provider": "tavily",
+                    "result_id": f"{query_id}::tavily::error",
+                    "title": "",
+                    "url": "",
+                    "snippet": "",
+                    "error_text": error_text,
+                    "result_kind": "error",
+                    "source": "tavily",
+                    "published_at": "",
+                    "authority_bucket": "web",
+                    "authority_rank": 3,
+                }
+            )
+            results = []
+        tavily_candidates: list[dict[str, str]] = []
+        for item in list(results or [])[: max(min(int(budget), 6), 1)]:
+            if not isinstance(item, WebSearchResult):
+                continue
+            tavily_candidates.append(
+                {
+                    "title": _coerce_text(item.title),
+                    "snippet": _coerce_text(item.snippet),
+                    "source": _coerce_text(item.source),
+                    "url": _coerce_text(item.url),
                     "published_at": _coerce_text(item.published_at),
+                }
+            )
+        tavily_flags = _llm_search_relevance_flags(
+            query=tavily_query,
+            symbol=normalized_symbol,
+            company_name=normalized_company,
+            items=tavily_candidates,
+            llm_client=llm_client,
+        )
+        for row, keep in zip(tavily_candidates, tavily_flags):
+            if not bool(keep):
+                continue
+            title = _coerce_text(row.get("title"))
+            snippet = _coerce_text(row.get("snippet"))
+            if _is_irrelevant_news_text(title, snippet):
+                continue
+            authority_bucket, authority_rank = _source_authority_bucket(row.get("source"), row.get("url"))
+            result_rows.append(
+                {
+                    "run_id": run_id,
+                    "asof_time_utc": asof_time_utc,
+                    "candidate_id": candidate_id,
+                    "query_id": query_id,
+                    "provider": "tavily",
+                    "result_id": f"{query_id}::tavily::{hashlib.sha1((_coerce_text(row.get('url')) or title).encode('utf-8')).hexdigest()[:12]}",
+                    "title": title,
+                    "url": _coerce_text(row.get("url")),
+                    "snippet": snippet,
+                    "error_text": "",
+                    "result_kind": "result",
+                    "source": _coerce_text(row.get("source")) or "tavily",
+                    "published_at": _coerce_text(row.get("published_at")),
                     "authority_bucket": authority_bucket,
                     "authority_rank": authority_rank,
                 }
@@ -1343,6 +1771,12 @@ def _candidate_context_documents(
     articles = payload.get("articles")
     if isinstance(articles, pd.DataFrame) and not articles.empty:
         for _, row in articles.iterrows():
+            news_headline = _coerce_text(row.get("headline"))
+            news_summary = _coerce_text(row.get("summary") or row.get("description"))
+            news_text = _evidence_text(news_summary, news_headline)
+            if _is_irrelevant_news_text(news_headline, news_text):
+                continue
+            search_provider = _coerce_text(row.get("provider") or payload.get("source"))
             authority_bucket, authority_rank = _source_authority_bucket(row.get("source"), row.get("url"))
             documents.append(
                 {
@@ -1358,9 +1792,10 @@ def _candidate_context_documents(
                     "title": _coerce_text(row.get("headline")),
                     "url": _coerce_text(row.get("url")),
                     "published_at": pd.to_datetime(row.get("published_at"), utc=True, errors="coerce"),
-                    "raw_text": _coerce_text(row.get("summary") or row.get("description")),
-                    "display_excerpt": _display_excerpt(row.get("summary") or row.get("description"), row.get("headline")),
-                    "source_trace": _json_dumps({"source": "news_payloads"}),
+                    "raw_text": news_text,
+                    "display_excerpt": _display_excerpt(news_text, row.get("headline")),
+                    "search_provider": search_provider,
+                    "source_trace": _json_dumps({"source": "news_payloads", "provider": search_provider}),
                 }
             )
     context = dict((context_payloads or {}).get(symbol) or {})
@@ -1501,7 +1936,10 @@ def _documents_from_search_results(
     for row in result_rows:
         title = _coerce_text(row.get("title"))
         snippet = _coerce_text(row.get("snippet"))
+        snippet_or_title = _evidence_text(snippet, title)
         if not title and not snippet:
+            continue
+        if _is_irrelevant_news_text(title, snippet):
             continue
         if _is_provider_error_text(title) or _is_provider_error_text(snippet):
             continue
@@ -1522,8 +1960,9 @@ def _documents_from_search_results(
                 "title": title,
                 "url": _coerce_text(row.get("url")),
                 "published_at": pd.to_datetime(row.get("published_at"), utc=True, errors="coerce"),
-                "raw_text": snippet,
-                "display_excerpt": _display_excerpt(snippet, title),
+                "raw_text": snippet_or_title,
+                "display_excerpt": _display_excerpt(snippet_or_title, title),
+                "search_provider": _coerce_text(row.get("provider")),
                 "source_trace": _json_dumps({"source": "search", "query_id": _coerce_text(row.get("query_id"))}),
             }
         )
@@ -2467,25 +2906,50 @@ def _build_candidate_bundle(
     cause_status, why_today_mode = _judge_cause_status(claims)
     evidence_quality, freshness_quality = _quality_label(claims, cause_status)
     written = _write_symbol_bundle(candidate, claims, peer_moves, llm_client=llm_client, cause_status=cause_status, yield_facts=yield_facts)
+    document_importance = _document_importance_map(claims)
     evidence = []
     background = []
     for doc in documents:
+        document_id = _coerce_text(doc.get("document_id"))
+        source_kind = _coerce_text(doc.get("source_kind"))
+        evidence_role = (
+            "same_day"
+            if _freshness_score(pd.to_datetime(doc.get("published_at"), utc=True, errors="coerce"), pd.to_datetime(candidate.get("asof_time_utc"), utc=True, errors="coerce")) >= 0.95
+            else "background"
+        )
+        importance_score = float(document_importance.get(document_id, 0.0))
+        importance_label = _importance_label(importance_score)
+        is_important = importance_score >= 0.5
+        if source_kind.lower() in {"news", "search"} and evidence_role == "same_day" and cause_status == "supported":
+            is_important = is_important or importance_score >= 0.45
+        if source_kind.lower() in {"news", "search"} and int(doc.get("authority_rank") or 3) <= 1:
+            is_important = is_important or importance_score >= 0.42
         item = {
-            "document_id": _coerce_text(doc.get("document_id")),
+            "document_id": document_id,
             "source": _coerce_text(doc.get("source_provider")),
+            "source_kind": source_kind,
+            "search_provider": _coerce_text(doc.get("search_provider")),
             "authority_bucket": _coerce_text(doc.get("source_authority_bucket")),
             "headline": _coerce_text(doc.get("title")),
             "summary": _coerce_text(doc.get("display_excerpt") or doc.get("raw_text")),
             "display_excerpt": _coerce_text(doc.get("display_excerpt")),
             "url": _coerce_text(doc.get("url")),
             "published_at": _coerce_text(pd.to_datetime(doc.get("published_at"), utc=True, errors="coerce").isoformat() if pd.notna(pd.to_datetime(doc.get("published_at"), utc=True, errors="coerce")) else ""),
-            "evidence_role": "same_day" if _freshness_score(pd.to_datetime(doc.get("published_at"), utc=True, errors="coerce"), pd.to_datetime(candidate.get("asof_time_utc"), utc=True, errors="coerce")) >= 0.95 else "background",
+            "evidence_role": evidence_role,
+            "importance_score": round(importance_score, 3),
+            "importance_label": importance_label,
+            "is_important": bool(is_important),
         }
         if item["evidence_role"] == "same_day":
             evidence.append(item)
         else:
             background.append(item)
     top_claim_ids = [item["claim_id"] for item in claims[:4]]
+    important_news_count = sum(
+        1
+        for item in evidence + background
+        if bool(item.get("is_important")) and _coerce_text(item.get("source_kind")).lower() in {"news", "search"}
+    )
     return {
         "bundle_id": _coerce_text(candidate.get("bundle_id")) or f"symbol::{_normalize_symbol(candidate.get('symbol'))}",
         "bundle_type": "symbol",
@@ -2510,6 +2974,7 @@ def _build_candidate_bundle(
         "source_count": len({item.get("source") for item in claims if _coerce_text(item.get("source"))}),
         "evidence_count": len(documents),
         "same_day_evidence_count": len([item for item in claims if bool(item.get("is_same_day"))]),
+        "important_news_count": int(important_news_count),
         "evidence": evidence[:6],
         "background_context": background[:4],
         "related_symbols": [],
@@ -3156,10 +3621,13 @@ def build_bottom_up_attention_artifacts(
             req_rows, res_rows = _search_query_results(
                 _coerce_text((query or {}).get("query")),
                 candidate_id=_coerce_text(candidate.get("candidate_id")),
+                symbol=_normalize_symbol(candidate.get("symbol")),
+                company_name=_candidate_company_name(candidate),
                 run_id=run_id,
                 asof_time_utc=asof_time_utc,
                 serp_client=serp_client,
                 tavily_client=tavily_client,
+                llm_client=llm_client,
                 budget=per_query_budget,
             )
             request_rows.extend(req_rows)

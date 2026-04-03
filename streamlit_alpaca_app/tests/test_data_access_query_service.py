@@ -543,6 +543,429 @@ def test_resolve_attention_research_bundle_rejects_stat_dump_materialized_payloa
     assert "USO +5.95%" not in resolved.payload["what_happened_text"]
 
 
+def test_resolve_attention_research_bundle_symbol_prefers_on_demand_when_materialized_has_no_web_signal(monkeypatch):
+    monkeypatch.setenv("ATTENTION_SYMBOL_BUNDLE_PRECOMPUTED_ONLY", "false")
+
+    bundle_id = "symbol::BMY"
+    materialized_bundle_payload = {
+        "bundle_id": bundle_id,
+        "bundle_type": "symbol",
+        "headline": "BMY",
+        "what_changed_text": "BMY moved below trend.",
+        "why_now_text": "No concrete catalyst in snapshot.",
+        "source_summary": "SEC EDGAR",
+        "important_news_count": 0,
+        "same_day_evidence_count": 0,
+        "evidence": [
+            {
+                "headline": "DEF 14A filing",
+                "summary": "Routine filing recap.",
+                "source": "SEC EDGAR",
+                "source_kind": "sec",
+                "is_important": True,
+            }
+        ],
+        "background_context": [],
+    }
+    materialized_bundle = pd.DataFrame(
+        [
+            {
+                "bundle_id": bundle_id,
+                "payload_json": json.dumps(materialized_bundle_payload),
+            }
+        ]
+    )
+    direct_payload = {
+        "bundle_id": bundle_id,
+        "bundle_type": "symbol",
+        "headline": "Bristol Myers drawdown tied to trial headline mix",
+        "what_changed_text": "BMY sold off after mixed clinical updates.",
+        "why_now_text": "Coverage focused on read-through risk to near-term estimates.",
+        "source_summary": "Yahoo Finance and Reuters",
+        "important_news_count": 1,
+        "same_day_evidence_count": 1,
+        "evidence": [
+            {
+                "headline": "Why Bristol-Myers Squibb (BMY) Stock Is Up Today",
+                "summary": "Web coverage discussed trial context and positioning.",
+                "source": "Yahoo Finance",
+                "source_kind": "search",
+                "search_provider": "serpapi",
+                "is_important": True,
+            }
+        ],
+        "background_context": [],
+        "run_id": "live-run",
+    }
+
+    monkeypatch.setattr(DataAccessLayer, "_should_try_pipeline", lambda self, force_refresh: True)
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_pipeline_frame",
+        lambda self, dataset_name: (materialized_bundle.copy(), {"dataset_name": dataset_name}),
+    )
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_resolve_symbol_agentic_bundle",
+        lambda self, symbol, force_refresh: direct_payload,
+    )
+
+    resolved = DataAccessLayer().resolve_attention_research_bundle(bundle_id)
+
+    assert resolved.provenance.mode == "on_demand"
+    assert resolved.payload["headline"].startswith("Bristol Myers drawdown")
+    assert "attention_search_results" in resolved.provenance.datasets
+
+
+def test_resolve_attention_research_bundle_symbol_precomputed_only_skips_on_demand(monkeypatch):
+    monkeypatch.delenv("ATTENTION_SYMBOL_BUNDLE_PRECOMPUTED_ONLY", raising=False)
+
+    bundle_id = "symbol::BMY"
+    materialized_bundle_payload = {
+        "bundle_id": bundle_id,
+        "bundle_type": "symbol",
+        "headline": "BMY precomputed snapshot",
+        "what_changed_text": "BMY moved below trend.",
+        "why_now_text": "No concrete catalyst in snapshot.",
+        "source_summary": "SEC EDGAR",
+        "important_news_count": 0,
+        "same_day_evidence_count": 0,
+        "evidence": [
+            {
+                "headline": "DEF 14A filing",
+                "summary": "Routine filing recap.",
+                "source": "SEC EDGAR",
+                "source_kind": "sec",
+                "is_important": True,
+            }
+        ],
+        "background_context": [],
+    }
+    materialized_bundle = pd.DataFrame(
+        [
+            {
+                "bundle_id": bundle_id,
+                "payload_json": json.dumps(materialized_bundle_payload),
+            }
+        ]
+    )
+
+    monkeypatch.setattr(DataAccessLayer, "_should_try_pipeline", lambda self, force_refresh: True)
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_pipeline_frame",
+        lambda self, dataset_name: (materialized_bundle.copy(), {"dataset_name": dataset_name}),
+    )
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_resolve_symbol_agentic_bundle",
+        lambda self, symbol, force_refresh: (_ for _ in ()).throw(AssertionError("on-demand symbol bundle should be disabled in precomputed mode")),
+    )
+
+    resolved = DataAccessLayer().resolve_attention_research_bundle(bundle_id)
+
+    assert resolved.provenance.mode == "materialized"
+    assert resolved.provenance.details.get("precomputed_only") is True
+    assert resolved.payload["headline"] == "BMY precomputed snapshot"
+
+
+def test_resolve_attention_research_bundle_symbol_keeps_materialized_when_web_signal_exists(monkeypatch):
+    bundle_id = "symbol::BMY"
+    materialized_bundle_payload = {
+        "bundle_id": bundle_id,
+        "bundle_type": "symbol",
+        "headline": "BMY rebounds after catalyst coverage",
+        "what_changed_text": "BMY recovered as coverage reframed trial risk.",
+        "why_now_text": "Catalyst recap pointed to manageable downside.",
+        "source_summary": "SerpApi and Tavily",
+        "important_news_count": 1,
+        "same_day_evidence_count": 1,
+        "evidence": [
+            {
+                "headline": "BMY catalyst recap",
+                "summary": "Coverage highlighted risk-reward reset.",
+                "source": "Reuters",
+                "source_kind": "search",
+                "search_provider": "tavily",
+                "is_important": True,
+            }
+        ],
+        "background_context": [],
+    }
+    materialized_bundle = pd.DataFrame(
+        [
+            {
+                "bundle_id": bundle_id,
+                "payload_json": json.dumps(materialized_bundle_payload),
+            }
+        ]
+    )
+
+    monkeypatch.setattr(DataAccessLayer, "_should_try_pipeline", lambda self, force_refresh: True)
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_pipeline_frame",
+        lambda self, dataset_name: (materialized_bundle.copy(), {"dataset_name": dataset_name}),
+    )
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_resolve_symbol_agentic_bundle",
+        lambda self, symbol, force_refresh: (_ for _ in ()).throw(AssertionError("on-demand symbol bundle should not run")),
+    )
+
+    resolved = DataAccessLayer().resolve_attention_research_bundle(bundle_id)
+
+    assert resolved.provenance.mode == "materialized"
+    assert resolved.payload["headline"].startswith("BMY rebounds")
+    assert resolved.provenance.datasets == ("attention_bundle_snapshots",)
+
+
+def test_resolve_attention_ticker_background_prefers_agentic_symbol_bundle(monkeypatch):
+    materialized_background = pd.DataFrame(
+        [
+            {
+                "symbol": "AAPL",
+                "description_text": "Legacy deterministic summary.",
+                "news_summary_lines_json": json.dumps(["Legacy line."]),
+                "recent_headlines_json": json.dumps([]),
+                "source_trace_json": json.dumps({"source": "attention_ticker_background_snapshots"}),
+            }
+        ]
+    )
+    bundle_payload = {
+        "bundle_id": "symbol::AAPL",
+        "bundle_type": "symbol",
+        "headline": "Apple extends a services-led support story",
+        "what_changed_text": "Recent coverage focused on services growth and margin durability.",
+        "why_now_text": "Investors are repricing recurring revenue durability after fresh channel checks.",
+        "background_context_text": "Background coverage points to installed-base monetization and buyback support.",
+        "source_summary": "Reuters, CNBC, and company commentary",
+        "evidence_count": 3,
+        "same_day_evidence_count": 2,
+        "run_id": "agentic-run",
+        "prompt_version": "attention-bottom-up-v1",
+        "model_name": "planner",
+        "evidence": [
+            {
+                "headline": "Apple shares rise as services momentum stays firm",
+                "summary": "Coverage highlighted resilient high-margin services demand.",
+                "source": "Reuters",
+                "published_at": "2026-04-03T13:00:00+00:00",
+                "url": "https://example.com/reuters-apple-services",
+                "source_kind": "search",
+                "search_provider": "tavily",
+                "evidence_role": "same_day",
+                "is_important": True,
+            }
+        ],
+        "background_context": [
+            {
+                "headline": "Apple buyback authorization remains a valuation support",
+                "summary": "Capital-return policy stayed central in analyst framing.",
+                "source": "CNBC",
+                "published_at": "2026-04-02T20:00:00+00:00",
+                "url": "https://example.com/cnbc-apple-buyback",
+                "source_kind": "search",
+                "search_provider": "serpapi",
+                "evidence_role": "background",
+                "is_important": True,
+            }
+        ],
+    }
+
+    monkeypatch.setattr(DataAccessLayer, "_should_try_pipeline", lambda self, force_refresh: True)
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_pipeline_frame",
+        lambda self, dataset_name: (
+            materialized_background.copy(),
+            {"dataset_name": dataset_name},
+        ),
+    )
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "resolve_attention_research_bundle",
+        lambda self, bundle_id, force_refresh=False: ResolvedPayload(
+            payload=bundle_payload,
+            provenance=DataProvenance(
+                mode="on_demand",
+                datasets=("attention_research_bundles",),
+                details={"bundle_id": bundle_id},
+            ),
+        ),
+    )
+
+    resolved = DataAccessLayer().resolve_attention_ticker_background("AAPL")
+
+    assert resolved.provenance.mode == "materialized"
+    assert resolved.payload["description_text"].startswith("Apple extends a services-led support story")
+    assert "agentic research" in resolved.payload["news_summary_lines"][0].lower()
+    assert "tavily" in resolved.payload["news_summary_lines"][0].lower()
+    assert resolved.payload["recent_headlines"][0]["headline"].startswith("Apple shares rise")
+    assert "(via Tavily)" in resolved.payload["recent_headlines"][0]["source"]
+    assert resolved.payload["source_trace"]["bundle_id"] == "symbol::AAPL"
+
+
+def test_resolve_attention_ticker_background_reports_no_relevant_agentic_news(monkeypatch):
+    materialized_background = pd.DataFrame(
+        [
+            {
+                "symbol": "IRDM",
+                "description_text": "Legacy deterministic summary.",
+                "news_summary_lines_json": json.dumps(["Legacy line."]),
+                "recent_headlines_json": json.dumps([]),
+                "source_trace_json": json.dumps({"source": "attention_ticker_background_snapshots"}),
+            }
+        ]
+    )
+    bundle_payload = {
+        "bundle_id": "symbol::IRDM",
+        "bundle_type": "symbol",
+        "headline": "Iridium baseline move",
+        "what_changed_text": "Generic move recap.",
+        "why_now_text": "No concrete catalyst.",
+        "background_context_text": "No useful context.",
+        "source_summary": "Attention Context",
+        "evidence_count": 1,
+        "same_day_evidence_count": 0,
+        "run_id": "agentic-run",
+        "prompt_version": "attention-bottom-up-v1",
+        "model_name": "planner",
+        "evidence": [
+            {
+                "headline": "IRDM context snippet",
+                "summary": "Model context only.",
+                "source": "Attention Context",
+                "source_kind": "context",
+                "published_at": "",
+                "url": "",
+                "evidence_role": "background",
+            },
+            {
+                "headline": "Iridium minor filing update",
+                "summary": "Low-impact filing recap.",
+                "source": "Stock Titan",
+                "source_kind": "search",
+                "search_provider": "tavily",
+                "published_at": "2026-04-03T09:00:00+00:00",
+                "url": "https://example.com/irdm-minor-filing",
+                "evidence_role": "same_day",
+                "is_important": False,
+            },
+        ],
+        "background_context": [],
+    }
+
+    monkeypatch.setattr(DataAccessLayer, "_should_try_pipeline", lambda self, force_refresh: True)
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_pipeline_frame",
+        lambda self, dataset_name: (
+            materialized_background.copy(),
+            {"dataset_name": dataset_name},
+        ),
+    )
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "resolve_attention_research_bundle",
+        lambda self, bundle_id, force_refresh=False: ResolvedPayload(
+            payload=bundle_payload,
+            provenance=DataProvenance(
+                mode="on_demand",
+                datasets=("attention_research_bundles",),
+                details={"bundle_id": bundle_id},
+            ),
+        ),
+    )
+
+    resolved = DataAccessLayer().resolve_attention_ticker_background("IRDM")
+
+    assert resolved.payload["description_text"].startswith("No relevant catalyst found")
+    assert resolved.payload["news_summary_lines"][0].startswith("No relevant catalyst found")
+    assert resolved.payload["recent_headlines"] == []
+    assert resolved.payload["source_trace"]["relevant_news_count"] == 0
+
+
+def test_resolve_attention_ticker_background_keeps_materialized_context_when_bundle_has_no_web_headlines(monkeypatch):
+    materialized_background = pd.DataFrame(
+        [
+            {
+                "symbol": "BMY",
+                "description_text": "Bristol-Myers Squibb baseline context from materialized ticker background.",
+                "news_summary_lines_json": json.dumps(
+                    [
+                        "6 recent article(s) over roughly the last 1 day(s); tone is mixed.",
+                        "Bristol Myers Squibb (BMY) is a Top-Ranked Value Stock: Should You Buy?",
+                    ]
+                ),
+                "recent_headlines_json": json.dumps(
+                    [
+                        {
+                            "headline": "Bristol Myers Squibb (BMY) is a Top-Ranked Value Stock: Should You Buy?",
+                            "source": "Yahoo Finance",
+                            "published_at": "2026-04-03T10:00:00+00:00",
+                            "url": "https://example.com/bmy-value-stock",
+                        }
+                    ]
+                ),
+                "source_trace_json": json.dumps(
+                    {
+                        "source": "attention_ticker_background_snapshots",
+                        "evidence_count": 6,
+                        "same_day_evidence_count": 1,
+                        "important_news_count": 2,
+                        "news_provider_mix": ["Yahoo Finance"],
+                    }
+                ),
+            }
+        ]
+    )
+    bundle_payload = {
+        "bundle_id": "symbol::BMY",
+        "bundle_type": "symbol",
+        "headline": "Bristol Myers Squibb (BMY) is a Top-Ranked Value Stock: Should You Buy?",
+        "what_changed_text": "BMY fell meaningfully today relative to its recent baseline.",
+        "why_now_text": "",
+        "source_summary": "",
+        "evidence_count": 0,
+        "same_day_evidence_count": 0,
+        "important_news_count": 0,
+        "evidence": [],
+        "background_context": [],
+    }
+
+    monkeypatch.setattr(DataAccessLayer, "_should_try_pipeline", lambda self, force_refresh: True)
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_pipeline_frame",
+        lambda self, dataset_name: (
+            materialized_background.copy(),
+            {"dataset_name": dataset_name},
+        ),
+    )
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "resolve_attention_research_bundle",
+        lambda self, bundle_id, force_refresh=False: ResolvedPayload(
+            payload=bundle_payload,
+            provenance=DataProvenance(
+                mode="materialized",
+                datasets=("attention_bundle_snapshots",),
+                details={"bundle_id": bundle_id},
+            ),
+        ),
+    )
+
+    resolved = DataAccessLayer().resolve_attention_ticker_background("BMY")
+
+    assert resolved.payload["description_text"].startswith("Bristol-Myers Squibb baseline context")
+    assert resolved.payload["news_summary_lines"][0].startswith("6 recent article")
+    assert resolved.payload["recent_headlines"][0]["headline"].startswith("Bristol Myers Squibb")
+    assert not resolved.payload["description_text"].startswith("No relevant catalyst found")
+    assert resolved.payload["source_trace"]["relevant_news_count"] == 1
+    assert resolved.payload["source_trace"]["source"] == "attention_ticker_background_snapshots"
+
+
 def test_data_access_layer_builds_tuned_attention_feed_from_candidate_snapshot(monkeypatch):
     import data_access.layer as layer_module
 

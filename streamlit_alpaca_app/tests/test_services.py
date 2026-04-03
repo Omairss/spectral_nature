@@ -68,6 +68,7 @@ from services.market import (
 from services.options import analyze_option_candidates, load_option_chain, load_option_surface
 from services.signals import build_signal_frame, forecast_next_week, summarize_signal_frame
 from services.universe import build_liquidity_ranked_equity_universe, load_us_equity_listings
+from services.web_research import WebSearchResult
 
 
 class RecordingAlpacaAPI(AlpacaAPI):
@@ -1246,6 +1247,55 @@ def test_build_attention_event_candidates_1d_uses_macro_roles_for_generic_peer_g
     assert lookup.loc["TLT", "peer_group_name"] == "Rates"
 
 
+def test_build_attention_event_candidates_1d_preserves_security_name_for_graph_labels():
+    daily_movers = pd.DataFrame(
+        [
+            {
+                "symbol": "AAA",
+                "security_name": "Acme Industrial Holdings Inc.",
+                "change_pct": 4.2,
+                "close": 120.0,
+                "prev_close": 115.2,
+                "volume": 1_400_000,
+                "dollar_volume": 168_000_000,
+            }
+        ]
+    )
+    entity_master = pd.DataFrame(
+        [
+            {
+                "symbol": "AAA",
+                "security_name": "Acme Industrial Holdings Inc.",
+                "asset_class": "equity",
+                "security_type": "common_stock",
+                "sector": "Industrials",
+                "industry": "Capital Goods",
+                "country": "US",
+                "commodity_role": "",
+                "rates_role": "",
+                "defensive_role": "",
+                "macro_role_tags": [],
+                "business_role_tags": [],
+                "source_of_truth": "listing_metadata",
+                "override_reason": "unit-test",
+            }
+        ]
+    )
+
+    candidates = build_attention_event_candidates_1d(
+        daily_movers,
+        bars_by_symbol={},
+        news_payloads={},
+        context_payloads={},
+        entity_master=entity_master,
+        holdings=[],
+        asof_time_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+    )
+
+    assert not candidates.empty
+    assert candidates.loc[0, "security_name"] == "Acme Industrial Holdings Inc."
+
+
 def test_build_attention_home_1d_includes_taxonomy_multi_horizon_trend_surface():
     daily_movers = pd.DataFrame(
         [
@@ -2118,6 +2168,157 @@ def test_documents_from_search_results_skip_provider_error_rows():
     assert len(docs) == 1
     assert docs[0]["title"] == "Retail flows stabilize after stronger account growth"
     assert "usage limit" not in docs[0]["raw_text"].lower()
+
+
+def test_documents_from_search_results_uses_headline_when_snippet_missing():
+    candidate = {"candidate_id": "candidate::BMY", "symbol": "BMY"}
+    title = "Bristol-Myers Squibb reports positive late-stage trial data"
+    docs = attention_agentic_module._documents_from_search_results(
+        candidate,
+        [
+            {
+                "result_id": "query::1::serpapi::ok",
+                "title": title,
+                "snippet": "",
+                "source": "Yahoo Finance",
+                "provider": "serpapi",
+                "published_at": "2026-04-03T01:00:00Z",
+                "authority_bucket": "press",
+                "authority_rank": 2,
+                "query_id": "query::1",
+            }
+        ],
+        run_id="run-1",
+        asof_time_utc=pd.Timestamp("2026-04-03T02:00:00Z"),
+    )
+
+    assert len(docs) == 1
+    assert docs[0]["raw_text"] == title
+
+
+def test_search_query_results_uses_tavily_rag_fallback_when_serp_is_irrelevant():
+    class _SerpClient:
+        def search(self, query, *, news=False, num=10):
+            return [
+                WebSearchResult(
+                    provider="serpapi",
+                    title="Iridium director gets 58.5 share dividend equivalents",
+                    url="https://example.com/irdm-dividend-equivalent",
+                    snippet="Form 4 filing about director dividend-equivalent rights.",
+                    source="Stock Titan",
+                    published_at="2026-04-03T08:00:00Z",
+                )
+            ]
+
+    class _TavilyClient:
+        def __init__(self):
+            self.calls: list[dict[str, object]] = []
+
+        def search(self, query, *, max_results=10, topic=None):
+            self.calls.append({"query": query, "max_results": max_results, "topic": topic})
+            return [
+                WebSearchResult(
+                    provider="tavily",
+                    title="Iridium secures new U.S. government communications award",
+                    url="https://example.com/irdm-contract",
+                    snippet="The award expands protected satcom capacity for defense use.",
+                    source="Reuters",
+                    published_at="2026-04-03T10:00:00Z",
+                )
+            ]
+
+    class _RouterLLM:
+        def __init__(self):
+            self.relevance_calls = 0
+
+        def generate_json(self, **kwargs):
+            schema_name = kwargs.get("schema_name")
+            if schema_name == "attention_search_relevance":
+                self.relevance_calls += 1
+                if self.relevance_calls == 1:
+                    return {"relevant_indices": [], "reason": "Noisy insider/form-4 coverage."}
+                return {"relevant_indices": [0], "reason": "Material contract update."}
+            return {
+                "use_tavily": True,
+                "tavily_topic": "general",
+                "tavily_query": "Iridium Communications latest government contract and guidance developments",
+                "reason": "Serp results are insider/noise.",
+            }
+
+    tavily = _TavilyClient()
+    router_llm = _RouterLLM()
+    request_rows, result_rows = attention_agentic_module._search_query_results(
+        "IRDM stock move today",
+        candidate_id="candidate::IRDM",
+        symbol="IRDM",
+        company_name="Iridium Communications",
+        run_id="run-1",
+        asof_time_utc=pd.Timestamp("2026-04-03T12:00:00Z"),
+        serp_client=_SerpClient(),
+        tavily_client=tavily,
+        llm_client=router_llm,
+        budget=4,
+    )
+
+    assert any(row.get("provider") == "tavily" for row in request_rows)
+    tavily_request = next(row for row in request_rows if row.get("provider") == "tavily")
+    assert tavily_request["route_mode"] == "rag_fallback"
+    assert tavily_request["topic"] == "general"
+    assert tavily.calls and tavily.calls[0]["topic"] == "general"
+    assert any(row.get("provider") == "tavily" and "government communications award" in str(row.get("title")).lower() for row in result_rows)
+
+
+def test_search_query_results_skips_tavily_when_serp_is_relevant():
+    class _SerpClient:
+        def search(self, query, *, news=False, num=10):
+            return [
+                WebSearchResult(
+                    provider="serpapi",
+                    title="Iridium Communications (IRDM) raises full-year outlook after stronger subscriber growth",
+                    url="https://example.com/irdm-outlook",
+                    snippet="Management raised guidance after stronger commercial demand trends.",
+                    source="Reuters",
+                    published_at="2026-04-03T09:00:00Z",
+                )
+            ]
+
+    class _TavilyClient:
+        def __init__(self):
+            self.calls = 0
+
+        def search(self, query, *, max_results=10, topic=None):
+            self.calls += 1
+            return []
+
+    class _RelevantLLM:
+        def generate_json(self, **kwargs):
+            schema_name = kwargs.get("schema_name")
+            if schema_name == "attention_search_relevance":
+                return {"relevant_indices": [0], "reason": "Company-specific catalyst coverage."}
+            return {
+                "use_tavily": False,
+                "tavily_topic": "news",
+                "tavily_query": "IRDM stock move today",
+                "reason": "Serp already contains relevant coverage.",
+            }
+
+    tavily = _TavilyClient()
+    request_rows, result_rows = attention_agentic_module._search_query_results(
+        "IRDM stock move today",
+        candidate_id="candidate::IRDM",
+        symbol="IRDM",
+        company_name="Iridium Communications",
+        run_id="run-1",
+        asof_time_utc=pd.Timestamp("2026-04-03T12:00:00Z"),
+        serp_client=_SerpClient(),
+        tavily_client=tavily,
+        llm_client=_RelevantLLM(),
+        budget=4,
+    )
+
+    assert tavily.calls == 0
+    assert all(row.get("provider") != "tavily" for row in request_rows)
+    assert any(row.get("provider") == "serpapi" for row in result_rows)
 
 
 def test_fallback_claims_from_chunks_skip_provider_error_chunks():
@@ -3402,6 +3603,45 @@ def test_candidate_context_documents_adds_treasury_yield_summary_for_rates_names
     assert "bps" not in raw_text
 
 
+def test_candidate_context_documents_uses_headline_when_news_summary_missing():
+    candidate = {
+        "candidate_id": "candidate::BMY",
+        "symbol": "BMY",
+    }
+    news_payloads = {
+        "BMY": {
+            "articles": pd.DataFrame(
+                [
+                    {
+                        "headline": "Bristol-Myers advances oncology program with new data",
+                        "summary": "",
+                        "description": "",
+                        "source": "Yahoo Finance",
+                        "published_at": "2026-04-03T05:00:00Z",
+                        "url": "https://example.com/bmy-oncology",
+                        "provider": "serpapi",
+                    }
+                ]
+            )
+        }
+    }
+    docs = attention_agentic_module._candidate_context_documents(
+        candidate,
+        news_payloads=news_payloads,
+        context_payloads={},
+        filings_frame=pd.DataFrame(),
+        fred_summary_frame=pd.DataFrame(),
+        yield_curve_facts_frame=pd.DataFrame(),
+        run_id="run-1",
+        asof_time_utc=pd.Timestamp("2026-04-03T06:00:00Z"),
+        official_routes=[],
+        priority_entities=[],
+    )
+    news_docs = [doc for doc in docs if doc.get("source_kind") == "news"]
+    assert len(news_docs) == 1
+    assert news_docs[0]["raw_text"] == "Bristol-Myers advances oncology program with new data"
+
+
 def test_csv_cache_reuses_fresh_files_and_refreshes_when_stale_or_forced():
     original_root = data_cache.CACHE_ROOT
     original_data_root = data_cache.CACHE_DATA_ROOT
@@ -4180,6 +4420,144 @@ def test_plot_attention_candidate_network_can_hide_isolates_and_soften_node_over
     assert any("visible symbols" in text for text in annotation_texts)
     assert not any(text == "Isolated symbols (1)" for text in annotation_texts)
     assert float(primary_trace.marker.opacity) < 0.85
+
+
+def test_plot_attention_candidate_network_adds_component_captions_and_company_labels():
+    from services.attention_graph_network import (
+        build_attention_candidate_network,
+        plot_attention_candidate_network,
+    )
+
+    candidates = pd.DataFrame(
+        [
+            {
+                "symbol": "AAA",
+                "security_name": "Alpha Software Holdings Inc.",
+                "sector": "Information Technology",
+                "industry": "Application Software",
+                "peer_group_name": "Application Software",
+                "direction": "up",
+                "change_pct": 3.6,
+                "candidate_score": 91.0,
+                "attention_score": 84.0,
+            },
+            {
+                "symbol": "AAB",
+                "security_name": "Beta Software Group Inc.",
+                "sector": "Information Technology",
+                "industry": "Application Software",
+                "peer_group_name": "Application Software",
+                "direction": "up",
+                "change_pct": 2.1,
+                "candidate_score": 78.0,
+                "attention_score": 73.0,
+            },
+            {
+                "symbol": "BBC",
+                "security_name": "Circuit Foundry Corporation",
+                "sector": "Information Technology",
+                "industry": "Semiconductors",
+                "peer_group_name": "Semiconductors",
+                "direction": "down",
+                "change_pct": -1.4,
+                "candidate_score": 83.0,
+                "attention_score": 70.0,
+            },
+            {
+                "symbol": "BBD",
+                "security_name": "Delta Chip Company",
+                "sector": "Information Technology",
+                "industry": "Semiconductors",
+                "peer_group_name": "Semiconductors",
+                "direction": "up",
+                "change_pct": 1.1,
+                "candidate_score": 76.0,
+                "attention_score": 68.0,
+            },
+        ]
+    )
+    edges = pd.DataFrame(
+        [
+            {"left_symbol": "AAA", "right_symbol": "AAB", "edge_weight": 0.88, "edge_reasons": ["taxonomy_peer"]},
+            {"left_symbol": "BBC", "right_symbol": "BBD", "edge_weight": 0.84, "edge_reasons": ["taxonomy_peer"]},
+        ]
+    )
+
+    graph = build_attention_candidate_network(candidates, edges)
+    fig = plot_attention_candidate_network(
+        graph,
+        title="Attention graph",
+        height=460,
+        seed=3,
+        show_isolates=False,
+        label_top_n=12,
+    )
+
+    annotation_texts = [str(item.text) for item in list(fig.layout.annotations or [])]
+    tech_trace = next(trace for trace in fig.data if getattr(trace, "name", "") == "Information Technology")
+    rendered_labels = [str(text) for text in list(getattr(tech_trace, "text", []) or []) if str(text).strip()]
+
+    assert any(text.startswith("CC1:") for text in annotation_texts)
+    assert any("Application Software" in text or "Semiconductors" in text for text in annotation_texts)
+    assert any("<br>" in text for text in rendered_labels)
+
+
+def test_plot_attention_candidate_network_adds_subcluster_labels_within_single_component():
+    import services.attention_graph_network as attention_graph_network
+    from services.attention_graph_network import (
+        build_attention_candidate_network,
+        plot_attention_candidate_network,
+    )
+
+    candidates = pd.DataFrame(
+        [
+            {"symbol": "AAA", "security_name": "Alpha Software Holdings Inc.", "sector": "Information Technology", "industry": "Application Software", "peer_group_name": "Application Software", "direction": "up", "change_pct": 3.6, "candidate_score": 91.0, "attention_score": 84.0},
+            {"symbol": "AAB", "security_name": "Beta Software Group Inc.", "sector": "Information Technology", "industry": "Application Software", "peer_group_name": "Application Software", "direction": "up", "change_pct": 2.1, "candidate_score": 78.0, "attention_score": 73.0},
+            {"symbol": "BBC", "security_name": "Circuit Foundry Corporation", "sector": "Information Technology", "industry": "Semiconductors", "peer_group_name": "Semiconductors", "direction": "down", "change_pct": -1.4, "candidate_score": 83.0, "attention_score": 70.0},
+            {"symbol": "BBD", "security_name": "Delta Chip Company", "sector": "Information Technology", "industry": "Semiconductors", "peer_group_name": "Semiconductors", "direction": "up", "change_pct": 1.1, "candidate_score": 76.0, "attention_score": 68.0},
+            {"symbol": "CCC", "security_name": "Core Energy Group", "sector": "Information Technology", "industry": "Solar Power Electronics", "peer_group_name": "Solar Power Electronics", "direction": "up", "change_pct": 0.8, "candidate_score": 72.0, "attention_score": 64.0},
+            {"symbol": "CCD", "security_name": "Helix Power Systems", "sector": "Information Technology", "industry": "Solar Power Electronics", "peer_group_name": "Solar Power Electronics", "direction": "down", "change_pct": -0.7, "candidate_score": 68.0, "attention_score": 61.0},
+        ]
+    )
+    edges = pd.DataFrame(
+        [
+            {"left_symbol": "AAA", "right_symbol": "AAB", "edge_weight": 0.88, "edge_reasons": ["taxonomy_peer"]},
+            {"left_symbol": "BBC", "right_symbol": "BBD", "edge_weight": 0.84, "edge_reasons": ["taxonomy_peer"]},
+            {"left_symbol": "CCC", "right_symbol": "CCD", "edge_weight": 0.82, "edge_reasons": ["taxonomy_peer"]},
+            {"left_symbol": "AAA", "right_symbol": "BBC", "edge_weight": 0.58, "edge_reasons": ["theme"]},
+            {"left_symbol": "BBC", "right_symbol": "CCC", "edge_weight": 0.55, "edge_reasons": ["theme"]},
+        ]
+    )
+
+    graph = build_attention_candidate_network(candidates, edges)
+    fixed_positions = {
+        "AAA": (0.0, 2.2),
+        "AAB": (1.0, 2.2),
+        "BBC": (3.6, 1.2),
+        "BBD": (4.6, 1.2),
+        "CCC": (7.2, 0.2),
+        "CCD": (8.2, 0.2),
+    }
+    original_pack = attention_graph_network._pack_component_positions
+    attention_graph_network._pack_component_positions = lambda _graph, seed=7: dict(fixed_positions)
+    try:
+        fig = plot_attention_candidate_network(
+            graph,
+            title="Attention graph",
+            height=460,
+            seed=3,
+            show_isolates=False,
+            label_top_n=12,
+            show_component_labels=True,
+        )
+    finally:
+        attention_graph_network._pack_component_positions = original_pack
+
+    annotation_texts = [str(item.text) for item in list(fig.layout.annotations or [])]
+
+    assert any(text.startswith("CC1:") for text in annotation_texts)
+    assert any(text == "Application Software" for text in annotation_texts)
+    assert any(text == "Semiconductors" for text in annotation_texts)
 
 
 def test_serialize_attention_home_payload_preserves_homepage_graph():

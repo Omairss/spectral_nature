@@ -151,6 +151,59 @@ class SerpAPISearchClient:
             )
         return rows
 
+    def search_ai_overview(self, query: str) -> WebSearchResult | None:
+        response = self.session.get(
+            "https://serpapi.com/search.json",
+            params={
+                "api_key": self.config.api_key,
+                "engine": self.config.engine,
+                "q": query,
+                "num": 5,
+                "google_domain": self.config.google_domain,
+                "hl": self.config.hl,
+                "gl": self.config.gl,
+            },
+            timeout=self.config.timeout_seconds,
+        )
+        if response.status_code != 200:
+            raise WebResearchError(f"SerpApi request failed status={response.status_code}: {response.text[:400]}")
+        payload = response.json()
+        overview = payload.get("ai_overview")
+        if not isinstance(overview, dict):
+            overview = payload.get("ai_overview_result")
+        if not isinstance(overview, dict):
+            return None
+        snippet = _clean(
+            overview.get("snippet")
+            or overview.get("summary")
+            or overview.get("answer")
+            or overview.get("content")
+        )
+        title = _clean(overview.get("title")) or "Google AI Overview"
+        source_url = ""
+        sources = overview.get("sources")
+        if isinstance(sources, list) and sources:
+            first = sources[0]
+            if isinstance(first, dict):
+                source_url = _clean(first.get("link") or first.get("url"))
+        if not source_url:
+            organic_items = payload.get("organic_results")
+            if isinstance(organic_items, list) and organic_items:
+                first = organic_items[0]
+                if isinstance(first, dict):
+                    source_url = _clean(first.get("link"))
+        if not snippet and not source_url:
+            return None
+        return WebSearchResult(
+            provider="serpapi_ai_overview",
+            title=title,
+            url=source_url,
+            snippet=snippet,
+            source="Google AI Overview",
+            published_at="",
+            raw=overview,
+        )
+
 
 class TavilySearchClient:
     def __init__(self, config: TavilyConfig, *, session: requests.Session | None = None) -> None:

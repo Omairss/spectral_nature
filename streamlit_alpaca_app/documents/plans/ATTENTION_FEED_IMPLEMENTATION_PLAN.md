@@ -27,6 +27,8 @@ Narrative generation hardening status as of 2026-03-31:
 - the explorer now prefers real topology-path expansion over concept bridges: it builds a broader taxonomy/tag/event supergraph, finds shortest paths between disconnected plotted components, and injects those actual intermediate nodes back into the candidate plot as faded `Path Nodes`
 - the explorer now renders only the main global graph by default, hides isolate-only rows from that view, and uses slightly translucent candidate markers so dense clusters remain readable when nodes overlap
 - the network plotter now picks labels with local crowding in mind and varies label anchors away from nearby nodes, which cuts the dense path-node pileups that made the main graph hard to scan
+- the network plotter now adds muted per-connected-component captions (`CC1`, `CC2`, ...) based on peer-group/industry mix and shows compact company names under labeled tickers, while automatically increasing translucency for large sector clusters to reduce overlap noise
+- attention candidate rows now carry `security_name` from taxonomy/listing metadata into `attention_candidates_1d`, so graph labels and hover detail can show company names at source instead of relying on plot-only fallbacks
 - the homepage path now stores a compact banner-ready graph figure inside `attention_home_1d`, so Streamlit renders the precomputed relationship graph under the hero without recomputing topology or carrying notebook-only legends and titles into production
 
 ## Why the current shape feels messy

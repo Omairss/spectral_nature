@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import json
+import os
 import re
 from typing import Any
 
@@ -94,6 +95,275 @@ def _pipeline_details(metadata: Any | None) -> dict[str, Any]:
 def _coerce_text(value: object) -> str:
     text = str(value or "").strip()
     return "" if text.lower() == "nan" else text
+
+
+def _normalized_text(value: object) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", _coerce_text(value).lower()).strip()
+
+
+def _dedupe_text_items(items: list[str], *, limit: int | None = None) -> list[str]:
+    out: list[str] = []
+    seen: set[str] = set()
+    for raw in items:
+        text = " ".join(str(raw or "").split()).strip()
+        if not text:
+            continue
+        key = _normalized_text(text)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        out.append(text)
+        if limit is not None and len(out) >= max(int(limit), 1):
+            break
+    return out
+
+
+def _provider_display_label(value: object) -> str:
+    text = _coerce_text(value)
+    lowered = text.lower()
+    if "tavily" in lowered:
+        return "Tavily"
+    if "serpapi" in lowered or "serp api" in lowered:
+        return "SerpApi"
+    return text
+
+
+def _coerce_bool_or_none(value: object) -> bool | None:
+    if isinstance(value, bool):
+        return value
+    lowered = _coerce_text(value).lower()
+    if lowered in {"true", "1", "yes"}:
+        return True
+    if lowered in {"false", "0", "no"}:
+        return False
+    return None
+
+
+def _is_relevant_bundle_news_item(item: dict[str, Any] | None) -> bool:
+    payload = item if isinstance(item, dict) else {}
+    source_kind = _coerce_text(payload.get("source_kind")).lower()
+    if source_kind not in {"news", "search"} and not _coerce_text(payload.get("search_provider")):
+        return False
+    is_important = _coerce_bool_or_none(payload.get("is_important"))
+    if is_important is None:
+        return True
+    return bool(is_important)
+
+
+def _headline_source_label(item: dict[str, Any] | None) -> str:
+    payload = item if isinstance(item, dict) else {}
+    base_source = _coerce_text(payload.get("source")) or "News"
+    provider = _provider_display_label(payload.get("search_provider") or payload.get("origin_provider"))
+    if provider and provider.lower() not in base_source.lower():
+        return f"{base_source} (via {provider})"
+    return base_source
+
+
+def _relevant_news_message(symbol: str, *, has_tavily: bool) -> str:
+    target = _coerce_text(symbol).upper()
+    if has_tavily:
+        return f"No relevant catalyst found in Tavily coverage for {target} in the latest agentic run."
+    return f"No relevant catalyst found in web coverage for {target} in the latest agentic run."
+
+
+def _bundle_recent_headlines(bundle: dict[str, Any], *, limit: int = 6) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    for field in ("evidence", "background_context"):
+        for item in list(bundle.get(field) or []):
+            payload = item if isinstance(item, dict) else {}
+            if not _is_relevant_bundle_news_item(payload):
+                continue
+            headline = _coerce_text((item or {}).get("headline"))
+            excerpt = _coerce_text((item or {}).get("display_excerpt") or (item or {}).get("summary"))
+            if not headline and not excerpt:
+                continue
+            url = _coerce_text((item or {}).get("url"))
+            dedupe_key = (_normalized_text(headline or excerpt), url.lower())
+            if dedupe_key in seen:
+                continue
+            seen.add(dedupe_key)
+            rows.append(
+                {
+                    "headline": headline or excerpt,
+                    "source": _headline_source_label(payload),
+                    "published_at": _coerce_text((item or {}).get("published_at")),
+                    "url": url,
+                    "summary": excerpt,
+                    "search_provider": _coerce_text(payload.get("search_provider")),
+                    "evidence_role": _coerce_text(payload.get("evidence_role")),
+                }
+            )
+            if len(rows) >= max(int(limit), 1):
+                return rows
+    return rows
+
+
+def _bundle_news_summary_lines(bundle: dict[str, Any], recent_headlines: list[dict[str, Any]]) -> list[str]:
+    if not recent_headlines:
+        return []
+    same_day_count = sum(1 for item in recent_headlines if _coerce_text((item or {}).get("evidence_role")).lower() == "same_day")
+    background_count = max(int(len(recent_headlines)) - int(same_day_count), 0)
+    provider_labels = _dedupe_text_items(
+        [
+            _provider_display_label((item or {}).get("search_provider"))
+            for item in recent_headlines
+            if _provider_display_label((item or {}).get("search_provider"))
+        ],
+        limit=3,
+    )
+    intro = f"{same_day_count} same-day important item(s) and {background_count} background item(s) from agentic research"
+    if provider_labels:
+        intro = f"{intro} via {', '.join(provider_labels)}"
+    lines = [intro + "."]
+    for item in recent_headlines[:4]:
+        headline = _coerce_text((item or {}).get("headline"))
+        if headline:
+            lines.append(headline)
+    return _dedupe_text_items(lines, limit=5)
+
+
+def _bundle_description_text(bundle: dict[str, Any], *, fallback: str = "") -> str:
+    fields = [
+        _coerce_text(bundle.get("headline")),
+        _coerce_text(bundle.get("what_changed_text")),
+        _coerce_text(bundle.get("why_now_text")),
+    ]
+    merged = _dedupe_text_items(fields, limit=3)
+    if merged:
+        return " ".join(merged)
+    return _coerce_text(fallback)
+
+
+def _bundle_web_signal_score(bundle: dict[str, Any] | None) -> int:
+    payload = bundle if isinstance(bundle, dict) else {}
+    if not payload:
+        return 0
+
+    recent_headlines = _bundle_recent_headlines(payload, limit=12)
+    web_item_count = 0
+    provider_count = 0
+    providers: set[str] = set()
+    for field in ("evidence", "background_context"):
+        for item in list(payload.get(field) or []):
+            candidate = item if isinstance(item, dict) else {}
+            if not _is_relevant_bundle_news_item(candidate):
+                continue
+            source_kind = _coerce_text(candidate.get("source_kind")).lower()
+            provider = _provider_display_label(candidate.get("search_provider") or candidate.get("origin_provider"))
+            source = _coerce_text(candidate.get("source")).lower()
+            if source_kind not in {"news", "search"} and not provider:
+                continue
+            web_item_count += 1
+            if provider:
+                providers.add(provider.lower())
+            elif "tavily" in source:
+                providers.add("tavily")
+            elif "serpapi" in source or "serp api" in source:
+                providers.add("serpapi")
+    provider_count = len(providers)
+
+    same_day_count = max(int(payload.get("same_day_evidence_count") or 0), 0)
+    important_count = max(int(payload.get("important_news_count") or 0), 0)
+    return (
+        same_day_count * 100
+        + important_count * 20
+        + len(recent_headlines) * 10
+        + web_item_count * 3
+        + provider_count
+    )
+
+
+def _precomputed_symbol_bundles_only() -> bool:
+    raw = str(os.getenv("ATTENTION_SYMBOL_BUNDLE_PRECOMPUTED_ONLY") or "true").strip().lower()
+    return raw not in {"0", "false", "no", "off"}
+
+
+def _overlay_background_payload_from_bundle(
+    symbol: str,
+    *,
+    base_payload: dict[str, Any] | None,
+    bundle: dict[str, Any],
+) -> dict[str, Any]:
+    payload = dict(base_payload or {})
+    normalized_symbol = _coerce_text(symbol).upper()
+    bundle_recent_headlines = _bundle_recent_headlines(bundle, limit=6)
+    base_recent_headlines = [item for item in list(payload.get("recent_headlines") or []) if isinstance(item, dict)]
+    recent_headlines = bundle_recent_headlines or base_recent_headlines
+    source_trace = payload.get("source_trace")
+    if not isinstance(source_trace, dict):
+        source_trace = {}
+
+    provider_labels = _dedupe_text_items(
+        [
+            _provider_display_label((item or {}).get("search_provider"))
+            for item in recent_headlines
+            if _provider_display_label((item or {}).get("search_provider"))
+        ],
+        limit=3,
+    )
+    if not provider_labels:
+        provider_labels = _dedupe_text_items([_provider_display_label(item) for item in list(source_trace.get("news_provider_mix") or [])], limit=3)
+    has_tavily = any(label.lower() == "tavily" for label in provider_labels)
+
+    base_description_text = _coerce_text(payload.get("description_text"))
+    bundle_description_text = _bundle_description_text(bundle, fallback="")
+    base_summary_lines = _dedupe_text_items([_coerce_text(item) for item in list(payload.get("news_summary_lines") or [])], limit=5)
+    bundle_summary_lines = _bundle_news_summary_lines(bundle, bundle_recent_headlines)
+
+    if bundle_recent_headlines:
+        description_text = bundle_description_text or base_description_text
+        summary_lines = bundle_summary_lines or base_summary_lines
+    elif base_recent_headlines:
+        description_text = base_description_text or bundle_description_text
+        summary_lines = base_summary_lines or bundle_summary_lines
+    else:
+        description_text = ""
+        summary_lines = []
+
+    if not description_text:
+        description_text = _relevant_news_message(normalized_symbol, has_tavily=has_tavily)
+    if not summary_lines:
+        summary_lines = [description_text]
+
+    payload.update(
+        {
+            "symbol": normalized_symbol,
+            "description_text": description_text,
+            "news_summary_lines": summary_lines,
+            "news_summary_lines_json": json.dumps(summary_lines, ensure_ascii=False, default=str),
+            "recent_headlines": recent_headlines,
+            "recent_headlines_json": json.dumps(recent_headlines, ensure_ascii=False, default=str),
+            "run_id": _coerce_text(bundle.get("run_id") or payload.get("run_id")),
+            "asof_time_utc": _coerce_text(payload.get("asof_time_utc")),
+            "prompt_version": _coerce_text(bundle.get("prompt_version") or payload.get("prompt_version")),
+            "model_name": _coerce_text(bundle.get("model_name") or payload.get("model_name") or "agentic"),
+        }
+    )
+    existing_source = _coerce_text(source_trace.get("source"))
+    existing_evidence_count = int(source_trace.get("evidence_count") or 0)
+    existing_same_day_count = int(source_trace.get("same_day_evidence_count") or 0)
+    existing_important_count = int(source_trace.get("important_news_count") or 0)
+    bundle_evidence_count = int(bundle.get("evidence_count") or 0)
+    bundle_same_day_count = int(bundle.get("same_day_evidence_count") or 0)
+    bundle_important_count = int(bundle.get("important_news_count") or 0)
+
+    source_trace.update(
+        {
+            "bundle_id": _coerce_text(bundle.get("bundle_id")) or f"symbol::{normalized_symbol}",
+            "bundle_type": _coerce_text(bundle.get("bundle_type")) or "symbol",
+            "source_summary": _coerce_text(bundle.get("source_summary") or source_trace.get("source_summary")),
+            "evidence_count": max(bundle_evidence_count, existing_evidence_count),
+            "same_day_evidence_count": max(bundle_same_day_count, existing_same_day_count),
+            "important_news_count": max(bundle_important_count, existing_important_count),
+            "relevant_news_count": int(len(recent_headlines)),
+            "news_provider_mix": provider_labels,
+            "source": "attention_research_bundle" if bundle_recent_headlines else (existing_source or "attention_ticker_background_snapshots"),
+        }
+    )
+    payload["source_trace"] = source_trace
+    payload["source_trace_json"] = json.dumps(source_trace, ensure_ascii=False, default=str)
+    return payload
 
 
 ATTENTION_HOME_SNAPSHOT_DATASETS = ("attention_home_snapshots_1d", "attention_home_1d")
@@ -408,9 +678,14 @@ class DataAccessLayer:
         return cached_news_payload(
             "web_search_news",
             cache_scope,
-            lambda: search_symbol_news_payload(target, company_name=company_name, max_results=8),
+            lambda: search_symbol_news_payload(
+                target,
+                company_name=company_name,
+                max_results=8,
+                llm_client=load_llm_client(),
+            ),
             force_refresh=force_refresh,
-            version=1,
+            version=5,
         )
 
     def _resolve_materialized_asset_metadata(self, ticker: str, *, force_refresh: bool = False) -> ResolvedPayload | None:
@@ -625,6 +900,151 @@ class DataAccessLayer:
             out = out.drop_duplicates(subset=["symbol"], keep="first").reset_index(drop=True)
             out = out.drop(columns=["_priority", "_abs_move"], errors="ignore")
         return out
+
+    def _resolve_symbol_agentic_bundle(self, symbol: str, *, force_refresh: bool) -> dict[str, Any]:
+        target = str(symbol or "").upper().strip()
+        if not target or self.materialized_only or self.cfg is None:
+            return {}
+        cache_scope = f"{pd.Timestamp.utcnow().date().isoformat()}__{target}"
+
+        def _fetch() -> dict[str, Any]:
+            company_name = ""
+            universe_materialized = self._try_pipeline_frame("universe_snapshot", force_refresh=force_refresh)
+            if universe_materialized is not None:
+                frame, _ = universe_materialized
+                if isinstance(frame, pd.DataFrame) and not frame.empty and "symbol" in frame.columns:
+                    scoped = frame.copy()
+                    scoped["symbol"] = scoped["symbol"].astype(str).str.upper().str.strip()
+                    match = scoped[scoped["symbol"] == target].head(1)
+                    if not match.empty:
+                        for column in ("security_name", "company_name", "name"):
+                            candidate = _coerce_text(match.iloc[0].get(column))
+                            if candidate:
+                                company_name = candidate
+                                break
+
+            news_payload = self._resolve_web_search_news(
+                target,
+                company_name=company_name,
+                force_refresh=force_refresh,
+            )
+            if not isinstance(news_payload, dict):
+                news_payload = {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
+
+            try:
+                context_payload = self.resolve_attention_context(
+                    target,
+                    force_refresh=force_refresh,
+                ).payload
+            except Exception:
+                context_payload = {}
+
+            try:
+                movers = self.resolve_daily_movers(
+                    symbols=[target],
+                    force_refresh=force_refresh,
+                ).payload
+            except Exception:
+                movers = pd.DataFrame()
+            if not isinstance(movers, pd.DataFrame):
+                movers = pd.DataFrame()
+
+            if not movers.empty and "symbol" in movers.columns:
+                movers = movers.copy()
+                movers["symbol"] = movers["symbol"].astype(str).str.upper().str.strip()
+                movers = movers[movers["symbol"] == target].head(1).reset_index(drop=True)
+            if movers.empty:
+                movers = pd.DataFrame(
+                    [
+                        {
+                            "symbol": target,
+                            "change_pct": 0.1,
+                            "close": pd.NA,
+                            "prev_close": pd.NA,
+                            "volume": pd.NA,
+                            "dollar_volume": pd.NA,
+                        }
+                    ]
+                )
+            for column in ["change_pct", "close", "prev_close", "volume", "dollar_volume"]:
+                movers[column] = pd.to_numeric(movers.get(column), errors="coerce")
+            if pd.isna(movers.iloc[0].get("change_pct")):
+                close = pd.to_numeric(movers.iloc[0].get("close"), errors="coerce")
+                prev_close = pd.to_numeric(movers.iloc[0].get("prev_close"), errors="coerce")
+                if pd.notna(close) and pd.notna(prev_close) and float(prev_close) != 0.0:
+                    movers.at[0, "change_pct"] = (float(close) - float(prev_close)) / float(prev_close) * 100.0
+                else:
+                    movers.at[0, "change_pct"] = 0.1
+            if pd.isna(movers.iloc[0].get("dollar_volume")):
+                close = pd.to_numeric(movers.iloc[0].get("close"), errors="coerce")
+                volume = pd.to_numeric(movers.iloc[0].get("volume"), errors="coerce")
+                if pd.notna(close) and pd.notna(volume):
+                    movers.at[0, "dollar_volume"] = float(close) * float(volume)
+
+            bars_by_symbol: dict[str, pd.DataFrame] = {}
+            try:
+                bars_by_symbol = _make_api(self.cfg).get_stock_bars(
+                    [target],
+                    start=datetime.now(timezone.utc) - pd.Timedelta(days=120),
+                    end=datetime.now(timezone.utc),
+                    timeframe="1Day",
+                    feed="iex",
+                )
+            except Exception:
+                bars_by_symbol = {}
+
+            filings_frame = self._resolve_attention_edgar_filings([target], force_refresh=force_refresh)
+            fred_summary_frame = pd.DataFrame()
+            yield_curve_facts_frame = pd.DataFrame()
+            if pipeline_store_configured():
+                try:
+                    fred_summary_frame, _ = self._pipeline_frame("fred_summary")
+                except Exception:
+                    fred_summary_frame = pd.DataFrame()
+                try:
+                    yield_curve_facts_frame, _ = self._pipeline_frame("yield_curve_facts_1d")
+                except Exception:
+                    yield_curve_facts_frame = pd.DataFrame()
+
+            attention_rows = pd.DataFrame(
+                [
+                    {
+                        "entity_id": target,
+                        "attention_score": 1.0,
+                        "severity_score": 1.0,
+                        "observed_value": float(pd.to_numeric(movers.iloc[0].get("change_pct"), errors="coerce") or 0.1),
+                    }
+                ]
+            )
+            artifacts = build_bottom_up_attention_artifacts(
+                movers,
+                attention_rows=attention_rows,
+                bars_by_symbol=bars_by_symbol,
+                news_payloads={target: news_payload if isinstance(news_payload, dict) else {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}},
+                context_payloads={target: context_payload if isinstance(context_payload, dict) else {}},
+                entity_master=build_attention_entity_master([target]),
+                holdings=[],
+                generated_at_utc=pd.Timestamp.utcnow(),
+                filings_frame=filings_frame,
+                fred_summary_frame=fred_summary_frame,
+                yield_curve_facts_frame=yield_curve_facts_frame,
+                llm_client=load_llm_client(),
+                embedding_client=load_embedding_client(),
+                top_events_limit=1,
+                must_read_limit=1,
+                unresolved_limit=1,
+                research_limit=1,
+            )
+            bundle = dict((artifacts.bundle_map or {}).get(f"symbol::{target}") or {})
+            return bundle
+
+        return cached_scalar_dict(
+            "attention_symbol_agentic_bundle",
+            cache_scope,
+            _fetch,
+            force_refresh=force_refresh,
+            version=5,
+        )
 
     def _resolve_live_attention_artifacts(self, *, force_refresh: bool) -> dict[str, Any]:
         if self.materialized_only:
@@ -1755,6 +2175,10 @@ class DataAccessLayer:
 
     def resolve_attention_ticker_background(self, ticker: str, *, force_refresh: bool = False) -> ResolvedPayload:
         target = str(ticker or "").upper().strip()
+        materialized_payload: dict[str, Any] = {}
+        materialized_mode = "on_demand"
+        materialized_datasets: tuple[str, ...] = ATTENTION_TICKER_BACKGROUND_DATASETS
+        materialized_details: dict[str, Any] = {"ticker": target}
         materialized = self._first_materialized_frame(
             ATTENTION_TICKER_BACKGROUND_DATASETS,
             force_refresh=force_refresh,
@@ -1763,13 +2187,77 @@ class DataAccessLayer:
             dataset_name, frame, details = materialized
             payload = deserialize_attention_ticker_background_frame(frame, target)
             if payload:
+                materialized_payload = payload
+                materialized_mode = "materialized"
+                materialized_datasets = (dataset_name,)
+                materialized_details = {**details, "ticker": target}
+
+        if self.materialized_only:
+            if materialized_payload:
                 return self._resolved(
-                    payload,
-                    mode="materialized",
-                    datasets=(dataset_name,),
-                    details={**details, "ticker": target},
+                    materialized_payload,
+                    mode=materialized_mode,
+                    datasets=materialized_datasets,
+                    details=materialized_details,
                 )
-        return self._resolved({}, mode="materialized" if self.materialized_only else "on_demand", datasets=ATTENTION_TICKER_BACKGROUND_DATASETS, details={"ticker": target, **({"materialized_only": True} if self.materialized_only else {})})
+            return self._resolved(
+                {},
+                mode="materialized",
+                datasets=ATTENTION_TICKER_BACKGROUND_DATASETS,
+                details={"ticker": target, "materialized_only": True},
+            )
+
+        bundle_resolved = self.resolve_attention_research_bundle(
+            f"symbol::{target}",
+            force_refresh=force_refresh,
+        )
+        bundle_payload = bundle_resolved.payload if isinstance(bundle_resolved.payload, dict) else {}
+        has_bundle_story = bool(
+            _coerce_text(bundle_payload.get("headline"))
+            or _coerce_text(bundle_payload.get("what_changed_text"))
+            or _coerce_text(bundle_payload.get("why_now_text"))
+            or list(bundle_payload.get("evidence") or [])
+        )
+        if has_bundle_story:
+            merged_payload = _overlay_background_payload_from_bundle(
+                target,
+                base_payload=materialized_payload,
+                bundle=bundle_payload,
+            )
+            merged_datasets = tuple(
+                dict.fromkeys(
+                    list(materialized_datasets if materialized_payload else [])
+                    + list(bundle_resolved.provenance.datasets)
+                )
+            )
+            merged_details = dict(materialized_details if materialized_payload else {"ticker": target})
+            merged_details.update(
+                {
+                    "bundle_mode": bundle_resolved.provenance.mode,
+                    "bundle_id": _coerce_text(bundle_payload.get("bundle_id")) or f"symbol::{target}",
+                }
+            )
+            return self._resolved(
+                merged_payload,
+                mode=("materialized" if materialized_payload else "on_demand"),
+                datasets=merged_datasets or ATTENTION_TICKER_BACKGROUND_DATASETS,
+                details=merged_details,
+            )
+
+        if materialized_payload:
+            return self._resolved(
+                materialized_payload,
+                mode=materialized_mode,
+                datasets=materialized_datasets,
+                details=materialized_details,
+            )
+
+        return self._resolved(
+            {},
+            mode="on_demand",
+            datasets=ATTENTION_TICKER_BACKGROUND_DATASETS,
+            details={"ticker": target},
+        )
 
     def resolve_attention_home_1d(self, *, force_refresh: bool = False) -> ResolvedPayload:
         materialized = self._first_materialized_frame(
@@ -1813,6 +2301,9 @@ class DataAccessLayer:
 
     def resolve_attention_research_bundle(self, bundle_id: str, *, force_refresh: bool = False) -> ResolvedPayload:
         normalized_bundle_id = str(bundle_id or "").strip()
+        materialized_payload: dict[str, Any] = {}
+        materialized_dataset_name = ""
+        materialized_details: dict[str, Any] = {"bundle_id": normalized_bundle_id}
         materialized = self._first_materialized_frame(
             ATTENTION_BUNDLE_SNAPSHOT_DATASETS,
             force_refresh=force_refresh,
@@ -1825,16 +2316,73 @@ class DataAccessLayer:
                 and not self._bundle_uses_legacy_attention_titles(payload)
                 and not self._bundle_uses_stat_dump_copy(payload)
             ):
-                return self._resolved(
-                    payload,
-                    mode="materialized",
-                    datasets=(dataset_name,),
-                    details={**details, "bundle_id": normalized_bundle_id},
-                )
+                materialized_payload = payload
+                materialized_dataset_name = dataset_name
+                materialized_details = {**details, "bundle_id": normalized_bundle_id}
 
         materialized_only = self._materialized_only_result({}, datasets=ATTENTION_BUNDLE_SNAPSHOT_DATASETS, details={"bundle_id": normalized_bundle_id})
         if materialized_only is not None:
+            if materialized_payload:
+                return self._resolved(
+                    materialized_payload,
+                    mode="materialized",
+                    datasets=(materialized_dataset_name or ATTENTION_BUNDLE_SNAPSHOT_DATASETS[0],),
+                    details=materialized_details,
+                )
             return materialized_only
+
+        if normalized_bundle_id.lower().startswith("symbol::"):
+            symbol = normalized_bundle_id.split("::", 1)[1].upper().strip()
+            if _precomputed_symbol_bundles_only() and not force_refresh:
+                if materialized_payload:
+                    return self._resolved(
+                        materialized_payload,
+                        mode="materialized",
+                        datasets=(materialized_dataset_name or ATTENTION_BUNDLE_SNAPSHOT_DATASETS[0],),
+                        details={**materialized_details, "precomputed_only": True},
+                    )
+                return self._resolved(
+                    {},
+                    mode="materialized",
+                    datasets=ATTENTION_BUNDLE_SNAPSHOT_DATASETS,
+                    details={"bundle_id": normalized_bundle_id, "precomputed_only": True},
+                )
+
+            materialized_signal_score = _bundle_web_signal_score(materialized_payload)
+            should_try_direct = force_refresh or materialized_signal_score <= 0
+            if should_try_direct:
+                direct_payload = self._resolve_symbol_agentic_bundle(symbol, force_refresh=force_refresh)
+                if direct_payload:
+                    direct_signal_score = _bundle_web_signal_score(direct_payload)
+                    if force_refresh or not materialized_payload or direct_signal_score > materialized_signal_score:
+                        return self._resolved(
+                            direct_payload,
+                            mode="on_demand",
+                            datasets=(
+                                "attention_web_search_news",
+                                "attention_search_requests",
+                                "attention_search_results",
+                                "attention_source_documents",
+                                "attention_evidence_chunks",
+                                "attention_claims",
+                            ),
+                            details={"bundle_id": normalized_bundle_id, "run_id": _coerce_text(direct_payload.get("run_id"))},
+                        )
+            if materialized_payload:
+                return self._resolved(
+                    materialized_payload,
+                    mode="materialized",
+                    datasets=(materialized_dataset_name or ATTENTION_BUNDLE_SNAPSHOT_DATASETS[0],),
+                    details=materialized_details,
+                )
+
+        if materialized_payload:
+            return self._resolved(
+                materialized_payload,
+                mode="materialized",
+                datasets=(materialized_dataset_name or ATTENTION_BUNDLE_SNAPSHOT_DATASETS[0],),
+                details=materialized_details,
+            )
         live = self._resolve_live_attention_artifacts(force_refresh=force_refresh)
         bundle_map = dict(live.get("bundle_map") or {})
         payload = dict(bundle_map.get(normalized_bundle_id) or {})

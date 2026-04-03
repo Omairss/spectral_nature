@@ -28,7 +28,7 @@ from services import auth_service
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
 from services.analytics import build_metric_bar, build_portfolio_vs_benchmarks_fig, select_signed_ranked
 from services import attention_surface as attention_surface_module
-from services.company import build_attention_news_narrative, build_company_description, summarize_recent_news
+from services.company import build_attention_news_narrative, summarize_recent_news
 from services.config import AppConfig, load_config
 from services.data_cache import cache_bundle_exists, cache_data_root, cache_policy_path, dataset_scope
 from services.entity_taxonomy import business_focus_label_from_taxonomy_row, dashboard_business_lens_from_taxonomy_row, taxonomy_lookup_by_symbol
@@ -1471,6 +1471,30 @@ def _render_fundamental_statement_charts(
         st.plotly_chart(fig, use_container_width=True)
 
 
+def _render_overview_fundamentals(
+    cfg: AppConfig,
+    ticker: str,
+    *,
+    force_data_refresh: bool,
+    asof_time_utc: object | None = None,
+) -> None:
+    normalized_ticker = str(ticker or "").upper().strip()
+    if not normalized_ticker:
+        return
+    try:
+        fundamentals = _load_quarterly_fundamentals_cached(normalized_ticker, force_refresh=force_data_refresh)
+    except Exception as exc:
+        st.caption(f"Fundamentals unavailable: {exc}")
+        return
+    scoped = _filter_fundamentals_asof(fundamentals, asof_time_utc=asof_time_utc)
+    has_any = any(isinstance((scoped or {}).get(key), pd.DataFrame) and not (scoped or {}).get(key).empty for key in ["income", "balance", "cashflow"])
+    st.markdown("**Fundamentals**")
+    if not has_any:
+        st.caption("No quarterly fundamentals were available for this ticker.")
+        return
+    _render_fundamental_statement_charts(normalized_ticker, scoped, quarterly_titles=True)
+
+
 def _ticker_inspector_href(symbol: str, *, target: str) -> str:
     cleaned_symbol = str(symbol or "").upper().strip()
     cleaned_target = str(target or "").strip().lower()
@@ -2021,6 +2045,102 @@ def _render_related_news_database_section(
             st.caption(meta)
 
 
+def _compact_background_fallback_text(ticker: str) -> str:
+    target = str(ticker or "").upper().strip()
+    return f"No relevant catalyst found in web coverage for {target} in the latest agentic run."
+
+
+def _collect_evidence_links(*, recent_headlines: list[dict[str, object]] | None = None, articles: pd.DataFrame | None = None, limit: int = 8) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    if isinstance(recent_headlines, list):
+        for item in recent_headlines:
+            if not isinstance(item, dict):
+                continue
+            headline = str(item.get("headline") or "").strip()
+            url = str(item.get("url") or "").strip()
+            if not headline:
+                continue
+            dedupe_key = (headline.lower(), url.lower())
+            if dedupe_key in seen:
+                continue
+            seen.add(dedupe_key)
+            rows.append(
+                {
+                    "headline": headline,
+                    "url": url,
+                    "source": str(item.get("source") or "News").strip(),
+                    "published_at": str(item.get("published_at") or "").strip(),
+                }
+            )
+            if len(rows) >= max(int(limit), 1):
+                return rows
+    if isinstance(articles, pd.DataFrame) and not articles.empty:
+        for _, row in articles.iterrows():
+            headline = str(row.get("headline") or "").strip()
+            url = str(row.get("url") or "").strip()
+            if not headline:
+                continue
+            dedupe_key = (headline.lower(), url.lower())
+            if dedupe_key in seen:
+                continue
+            seen.add(dedupe_key)
+            published_at = pd.to_datetime(row.get("published_at"), utc=True, errors="coerce")
+            rows.append(
+                {
+                    "headline": headline,
+                    "url": url,
+                    "source": str(row.get("source") or "News").strip(),
+                    "published_at": published_at.isoformat() if pd.notna(published_at) else "",
+                }
+            )
+            if len(rows) >= max(int(limit), 1):
+                return rows
+    return rows
+
+
+def _render_compact_background_sections(
+    ticker: str,
+    *,
+    background_summary: str,
+    what_happened_summary: str,
+    evidence_links: list[dict[str, str]],
+) -> None:
+    fallback = _compact_background_fallback_text(ticker)
+    background_text = " ".join(str(background_summary or "").split()).strip()
+    happened_text = " ".join(str(what_happened_summary or "").split()).strip()
+    if not background_text and happened_text:
+        background_text = happened_text
+    if not happened_text and background_text:
+        happened_text = background_text
+    if not background_text:
+        background_text = fallback
+    if not happened_text:
+        happened_text = fallback
+
+    st.markdown("**Background**")
+    st.write(background_text)
+
+    st.markdown("**What Happened**")
+    st.write(happened_text)
+
+    st.markdown("**Evidence**")
+    if not evidence_links:
+        st.caption("No relevant evidence links were available in the latest agentic run.")
+        return
+    for item in evidence_links[:8]:
+        headline = str((item or {}).get("headline") or "Untitled").strip()
+        source = str((item or {}).get("source") or "News").strip()
+        published_at = pd.to_datetime((item or {}).get("published_at"), utc=True, errors="coerce")
+        published_label = published_at.strftime("%Y-%m-%d") if pd.notna(published_at) else "n/a"
+        url = str((item or {}).get("url") or "").strip()
+        if url:
+            st.markdown(f"- [{headline}]({url})")
+        else:
+            st.markdown(f"- {headline}")
+        st.caption(" | ".join(part for part in [source, published_label] if part))
+
+
 def _render_home_ticker_background_panel(
     cfg: AppConfig,
     ticker: str,
@@ -2041,7 +2161,6 @@ def _render_home_ticker_background_panel(
     if not target:
         return
     business_filter = _market_business_filter_for_symbol(target)
-    narrative_lens = _company_narrative_lens_for_symbol(target)
     show_open_button = bool(str(open_button_label or "").strip())
     show_clear_button = bool(str(clear_button_label or "").strip())
     with st.container(border=show_container_border):
@@ -2127,67 +2246,37 @@ def _render_home_ticker_background_panel(
                 st.plotly_chart(price_fig, use_container_width=True)
 
             description = str(materialized_background.get("description_text") or "").strip()
-            if description:
-                st.write(description)
-
             summary_lines = [
                 str(item).strip()
                 for item in list(materialized_background.get("news_summary_lines") or [])
                 if str(item).strip()
             ]
-            if summary_lines:
-                st.markdown("**Recent News Snapshot**")
-                st.markdown("\n".join(f"- {line}" for line in summary_lines))
-
-            llm_source_line = str(materialized_background.get("llm_source_line") or "").strip()
             llm_headline = str(materialized_background.get("llm_headline") or "").strip()
             llm_summary_text = str(materialized_background.get("llm_summary_text") or "").strip()
             primary_context_text = str(materialized_background.get("context_story_text") or "").strip()
-            if llm_source_line:
-                st.caption(llm_source_line)
-            if llm_headline:
-                st.markdown(f"**Primary-Source Narrative**  \n{llm_headline}")
-            if llm_summary_text:
-                st.write(llm_summary_text)
-            if primary_context_text:
-                st.caption(primary_context_text)
 
-            _render_related_news_database_section(target, limit=6)
-
-            recent_headlines = list(materialized_background.get("recent_headlines") or [])
-            if recent_headlines:
-                with st.expander("Recent Headlines", expanded=False):
-                    for item in recent_headlines:
-                        if not isinstance(item, dict):
-                            continue
-                        headline = str(item.get("headline") or "Untitled").strip()
-                        source = str(item.get("source") or "News").strip()
-                        published_at = pd.to_datetime(item.get("published_at"), utc=True, errors="coerce")
-                        published_label = published_at.strftime("%Y-%m-%d") if pd.notna(published_at) else "n/a"
-                        url = str(item.get("url") or "").strip()
-                        if url:
-                            st.markdown(f"- [{headline}]({url})")
-                        else:
-                            st.markdown(f"- {headline}")
-                        st.caption(" | ".join(part for part in [source, published_label] if part))
-
-            fundamentals = _filter_fundamentals_asof(
-                _load_quarterly_fundamentals_cached(target, force_refresh=force_data_refresh),
+            background_summary = llm_summary_text or primary_context_text
+            what_happened_summary = description or (summary_lines[0] if summary_lines else "") or llm_headline
+            evidence_links = _collect_evidence_links(
+                recent_headlines=list(materialized_background.get("recent_headlines") or []),
+                limit=8,
+            )
+            _render_compact_background_sections(
+                target,
+                background_summary=background_summary,
+                what_happened_summary=what_happened_summary,
+                evidence_links=evidence_links,
+            )
+            _render_overview_fundamentals(
+                cfg,
+                target,
+                force_data_refresh=force_data_refresh,
                 asof_time_utc=materialized_background.get("asof_time_utc"),
             )
-            income = fundamentals.get("income", pd.DataFrame())
-            balance = fundamentals.get("balance", pd.DataFrame())
-            cashflow = fundamentals.get("cashflow", pd.DataFrame())
-            if income.empty and balance.empty and cashflow.empty:
-                st.info("No quarterly fundamentals found for this ticker in the local dataset.")
-            else:
-                st.markdown("**Fundamentals**")
-                _render_fundamental_statement_charts(target, fundamentals, bottom_labels=True)
             return
 
         try:
             with st.spinner("Loading company background..."):
-                asset = _load_asset_metadata_cached(cfg, target, force_refresh=force_data_refresh)
                 news_payload = _load_recent_news_cached(
                     cfg,
                     target,
@@ -2197,10 +2286,6 @@ def _render_home_ticker_background_panel(
                 )
                 attention_context = _load_attention_context_cached(
                     cfg,
-                    target,
-                    force_refresh=force_data_refresh,
-                )
-                fundamentals = _load_quarterly_fundamentals_cached(
                     target,
                     force_refresh=force_data_refresh,
                 )
@@ -2241,60 +2326,33 @@ def _render_home_ticker_background_panel(
             )
             st.plotly_chart(price_fig, use_container_width=True)
 
-        description = build_company_description(
-            target,
-            asset,
-            fundamentals,
-            {},
-            news_payload=news_payload,
-            active_lens=narrative_lens,
-        )
-        st.write(description)
-
         news_summary = summarize_recent_news(target, news_payload)
-        summary_lines = news_summary.get("summary_lines", [])
-        if summary_lines:
-            st.markdown("**Recent News Snapshot**")
-            st.markdown("\n".join(f"- {line}" for line in summary_lines))
-
-        llm_source_line = str(attention_context.get("llm_source_line") or "").strip()
+        summary_lines = [
+            str(item).strip()
+            for item in list(news_summary.get("summary_lines") or [])
+            if str(item).strip()
+        ]
         llm_headline = str(attention_context.get("llm_headline") or "").strip()
         llm_summary_text = str(attention_context.get("llm_summary_text") or "").strip()
         primary_context_text = str(attention_context.get("context_story_text") or "").strip()
-        if llm_source_line:
-            st.caption(llm_source_line)
-        if llm_headline:
-            st.markdown(f"**Primary-Source Narrative**  \n{llm_headline}")
-        if llm_summary_text:
-            st.write(llm_summary_text)
-        if primary_context_text:
-            st.caption(primary_context_text)
-
-        _render_related_news_database_section(target, limit=6)
-
-        news_articles = news_summary.get("articles", pd.DataFrame())
-        if isinstance(news_articles, pd.DataFrame) and not news_articles.empty:
-            with st.expander("Recent Headlines", expanded=False):
-                for _, row in news_articles.iterrows():
-                    headline = str(row.get("headline") or "Untitled").strip()
-                    source = str(row.get("source") or "News").strip()
-                    published_at = pd.to_datetime(row.get("published_at"), utc=True, errors="coerce")
-                    published_label = published_at.strftime("%Y-%m-%d") if pd.notna(published_at) else "n/a"
-                    url = str(row.get("url") or "").strip()
-                    if url:
-                        st.markdown(f"- [{headline}]({url})")
-                    else:
-                        st.markdown(f"- {headline}")
-                    st.caption(" | ".join(part for part in [source, published_label] if part))
-
-        income = fundamentals.get("income", pd.DataFrame())
-        balance = fundamentals.get("balance", pd.DataFrame())
-        cashflow = fundamentals.get("cashflow", pd.DataFrame())
-        if income.empty and balance.empty and cashflow.empty:
-            st.info("No quarterly fundamentals found for this ticker in the local dataset.")
-        else:
-            st.markdown("**Fundamentals**")
-            _render_fundamental_statement_charts(target, fundamentals, bottom_labels=True)
+        background_summary = llm_summary_text or primary_context_text
+        what_happened_summary = llm_headline or (summary_lines[0] if summary_lines else "")
+        evidence_links = _collect_evidence_links(
+            articles=news_summary.get("articles", pd.DataFrame()),
+            limit=8,
+        )
+        _render_compact_background_sections(
+            target,
+            background_summary=background_summary,
+            what_happened_summary=what_happened_summary,
+            evidence_links=evidence_links,
+        )
+        _render_overview_fundamentals(
+            cfg,
+            target,
+            force_data_refresh=force_data_refresh,
+            asof_time_utc=attention_context.get("asof_time_utc"),
+        )
 
 def _parse_drilldown_params(raw: object) -> dict[str, object]:
     if isinstance(raw, dict):
@@ -6433,21 +6491,8 @@ elif section == "Market Opportunity":
                         st.info("Forecast distribution unavailable for this ticker.")
 
         try:
-            with st.spinner("Loading selected ticker fundamentals..."):
-                with _timed("load_market_detail_fundamentals", ticker=ticker):
-                    market_fundamentals = _load_quarterly_fundamentals_cached(
-                        ticker,
-                        force_refresh=force_data_refresh,
-                    )
-        except Exception as exc:
-            _log_event("load_market_detail_fundamentals_failed", ticker=ticker, error=str(exc)[:200])
-            st.warning(f"Could not load fundamentals for {ticker}: {exc}")
-            market_fundamentals = {"income": pd.DataFrame(), "balance": pd.DataFrame(), "cashflow": pd.DataFrame()}
-
-        try:
             with st.spinner("Loading company profile and recent news..."):
                 with _timed("load_market_detail_context", ticker=ticker):
-                    asset = _load_asset_metadata_cached(cfg, ticker, force_refresh=force_data_refresh)
                     news_payload = _load_recent_news_cached(
                         cfg,
                         ticker,
@@ -6460,119 +6505,52 @@ elif section == "Market Opportunity":
                         ticker,
                         force_refresh=force_data_refresh,
                     )
+                    background_payload = _load_attention_ticker_background_cached(
+                        cfg,
+                        ticker,
+                        force_refresh=force_data_refresh,
+                    )
         except Exception as exc:
             _log_event("load_market_detail_context_failed", ticker=ticker, error=str(exc)[:200])
             st.warning(f"Could not load company context for {ticker}: {exc}")
-            asset = {}
             news_payload = {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
             attention_context = {
                 "context_story_text": "",
-                "primary_source_excerpt": "",
                 "llm_headline": "",
                 "llm_summary_text": "",
-                "llm_narrative_text": "",
-                "llm_why_now": "",
-                "llm_management_signal": "",
-                "llm_confidence": "",
-                "llm_source_line": "",
-                "llm_supporting_points": [],
-                "top_filing_links": [],
             }
+            background_payload = {}
 
         st.subheader(f"{ticker} Overview")
-        description = build_company_description(
-            ticker,
-            asset,
-            market_fundamentals,
-            signal_summary,
-            news_payload=news_payload,
-            active_lens=_company_narrative_lens_for_symbol(ticker),
-        )
-        st.write(description)
-
         news_summary = summarize_recent_news(ticker, news_payload)
-        news_source = news_summary.get("source")
-        if news_source:
-            st.caption(f"Recent news source: {str(news_source).title()}")
-        summary_lines = news_summary.get("summary_lines", [])
-        if summary_lines:
-            st.markdown("\n".join(f"- {line}" for line in summary_lines))
-        else:
-            st.info("No recent news summary was available for this ticker.")
-
-        _render_related_news_database_section(ticker, limit=6)
-
-        primary_context_text = str(attention_context.get("context_story_text") or "").strip()
-        primary_excerpt = str(attention_context.get("primary_source_excerpt") or "").strip()
+        summary_lines = [
+            str(item).strip()
+            for item in list(news_summary.get("summary_lines") or [])
+            if str(item).strip()
+        ]
         llm_headline = str(attention_context.get("llm_headline") or "").strip()
         llm_summary_text = str(attention_context.get("llm_summary_text") or "").strip()
-        llm_narrative_text = str(attention_context.get("llm_narrative_text") or "").strip()
-        llm_why_now = str(attention_context.get("llm_why_now") or "").strip()
-        llm_management_signal = str(attention_context.get("llm_management_signal") or "").strip()
-        llm_confidence = str(attention_context.get("llm_confidence") or "").strip()
-        llm_source_line = str(attention_context.get("llm_source_line") or "").strip()
-        llm_supporting_points = attention_context.get("llm_supporting_points", [])
-        primary_links = attention_context.get("top_filing_links", [])
-        if primary_context_text or primary_excerpt or primary_links or llm_summary_text or llm_narrative_text:
-            if llm_source_line:
-                st.caption(llm_source_line)
-            if llm_headline:
-                st.markdown(f"**EDGAR Narrative**  \n{llm_headline}")
-            if llm_summary_text:
-                st.write(llm_summary_text)
-            if llm_narrative_text:
-                st.caption(llm_narrative_text)
-            if llm_why_now:
-                st.caption(f"Why now: {llm_why_now}")
-            if llm_management_signal:
-                st.caption(f"Management signal: {llm_management_signal}")
-            if llm_confidence:
-                st.caption(f"Confidence: {llm_confidence}")
-            if isinstance(llm_supporting_points, list):
-                points = [str(item).strip() for item in llm_supporting_points if str(item).strip()]
-                if points:
-                    st.markdown("\n".join(f"- {point}" for point in points[:4]))
-            st.caption(str(attention_context.get("source_line") or "Primary sources").strip() or "Primary sources")
-            if primary_context_text:
-                st.markdown(f"**Primary-Source Context**  \n{primary_context_text}")
-            if primary_excerpt:
-                st.caption(primary_excerpt)
-            if isinstance(primary_links, list) and primary_links:
-                with st.expander("Recent SEC Filings", expanded=False):
-                    for item in primary_links[:3]:
-                        label = str((item or {}).get("label") or "").strip()
-                        if not label:
-                            continue
-                        url = str((item or {}).get("url") or "").strip()
-                        if url:
-                            st.markdown(f"- [{label}]({url})")
-                        else:
-                            st.markdown(f"- {label}")
-
-        news_articles = news_summary.get("articles", pd.DataFrame())
-        if isinstance(news_articles, pd.DataFrame) and not news_articles.empty:
-            with st.expander("Recent Headlines", expanded=False):
-                for _, row in news_articles.iterrows():
-                    headline = str(row.get("headline") or "Untitled").strip()
-                    source = str(row.get("source") or "News").strip()
-                    published_at = pd.to_datetime(row.get("published_at"), utc=True, errors="coerce")
-                    published_label = published_at.strftime("%Y-%m-%d") if pd.notna(published_at) else "n/a"
-                    url = str(row.get("url") or "").strip()
-                    prefix = f"{source} | {published_label}"
-                    if url:
-                        st.markdown(f"- [{headline}]({url})")
-                    else:
-                        st.markdown(f"- {headline}")
-                    st.caption(prefix)
-
-        income = market_fundamentals.get("income", pd.DataFrame())
-        balance = market_fundamentals.get("balance", pd.DataFrame())
-        cashflow = market_fundamentals.get("cashflow", pd.DataFrame())
-        st.subheader(f"{ticker} Fundamentals")
-        if income.empty and balance.empty and cashflow.empty:
-            st.info("No quarterly fundamentals found for this ticker in the local dataset.")
-        else:
-            _render_fundamental_statement_charts(ticker, market_fundamentals)
+        primary_context_text = str(attention_context.get("context_story_text") or "").strip()
+        description_text = str(background_payload.get("description_text") or "").strip()
+        background_summary = llm_summary_text or primary_context_text or str(background_payload.get("llm_summary_text") or "").strip()
+        what_happened_summary = description_text or llm_headline or (summary_lines[0] if summary_lines else "")
+        evidence_links = _collect_evidence_links(
+            recent_headlines=list(background_payload.get("recent_headlines") or []),
+            articles=news_summary.get("articles", pd.DataFrame()),
+            limit=8,
+        )
+        _render_compact_background_sections(
+            ticker,
+            background_summary=background_summary,
+            what_happened_summary=what_happened_summary,
+            evidence_links=evidence_links,
+        )
+        _render_overview_fundamentals(
+            cfg,
+            ticker,
+            force_data_refresh=force_data_refresh,
+            asof_time_utc=background_payload.get("asof_time_utc"),
+        )
 
 elif section == "Technical Strategizer":
     header_cols = st.columns([4.8, 1.4])
