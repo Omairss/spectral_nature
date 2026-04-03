@@ -25,7 +25,7 @@ This document defines the canonical architecture for cached dashboard reads.
 
 - FRED
   - Job: `macro-fred-daily`
-  - Datasets: `fred_summary`, `fred_observations`
+  - Datasets: `fred_summary`, `fred_observations`, `fred_series_index`, `fred_release_index`
   - Dashboard: FRED Macro
 
 - Commodities

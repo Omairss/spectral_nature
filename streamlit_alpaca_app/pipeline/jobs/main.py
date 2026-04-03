@@ -1276,9 +1276,13 @@ def run_fred(ctx: JobContext, conn: Any | None = None) -> None:
             dashboard = load_fred_dashboard(api_key, years=int(os.getenv("FRED_LOOKBACK_YEARS", "10")))
             summary = dashboard.get("summary", pd.DataFrame())
             observations = dashboard.get("observations", pd.DataFrame())
+            series_index = dashboard.get("series_index", pd.DataFrame())
+            release_index = dashboard.get("release_index", pd.DataFrame())
 
             _persist_dataset("fred_summary", summary, ctx, conn)
             _persist_dataset("fred_observations", observations, ctx, conn)
+            _persist_dataset("fred_series_index", series_index, ctx, conn)
+            _persist_dataset("fred_release_index", release_index, ctx, conn)
         except FredAPIError as exc:
             print(f"[error] FRED preload failed: {exc}")
     else:

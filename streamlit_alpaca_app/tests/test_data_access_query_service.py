@@ -231,6 +231,20 @@ def test_data_access_layer_builds_materialized_fred_dashboard_when_available(mon
             "release_id": [10, 10],
         }
     )
+    series_index = pd.DataFrame(
+        {
+            "series_id": ["CPIAUCSL"],
+            "title": ["Consumer Price Index"],
+            "frequency": ["Monthly"],
+            "frequency_short": ["M"],
+            "units": ["Index 1982-1984=100"],
+            "units_short": ["Index 1982-1984=100"],
+            "release_id": [10],
+            "release_name": ["Consumer Price Index Release"],
+            "notes": ["Example notes"],
+        }
+    )
+    release_index = pd.DataFrame({"release_id": [10], "release_name": ["Consumer Price Index Release"]})
     metadata = {
         "fred_summary": SimpleNamespace(
             dataset_name="fred_summary",
@@ -248,6 +262,22 @@ def test_data_access_layer_builds_materialized_fred_dashboard_when_available(mon
             ingested_at_utc="2026-03-12T00:05:00Z",
             row_count=2,
         ),
+        "fred_series_index": SimpleNamespace(
+            dataset_name="fred_series_index",
+            dataset_version_id="fred_series_index__20260312T000000Z__abcd1234",
+            blob_path="datasets/fred_series_index/example.parquet",
+            asof_time_utc="2026-03-12T00:00:00Z",
+            ingested_at_utc="2026-03-12T00:05:00Z",
+            row_count=1,
+        ),
+        "fred_release_index": SimpleNamespace(
+            dataset_name="fred_release_index",
+            dataset_version_id="fred_release_index__20260312T000000Z__abcd1234",
+            blob_path="datasets/fred_release_index/example.parquet",
+            asof_time_utc="2026-03-12T00:00:00Z",
+            ingested_at_utc="2026-03-12T00:05:00Z",
+            row_count=1,
+        ),
     }
 
     def _load(dataset_name: str):
@@ -255,6 +285,10 @@ def test_data_access_layer_builds_materialized_fred_dashboard_when_available(mon
             return summary.copy(), metadata[dataset_name]
         if dataset_name == "fred_observations":
             return observations.copy(), metadata[dataset_name]
+        if dataset_name == "fred_series_index":
+            return series_index.copy(), metadata[dataset_name]
+        if dataset_name == "fred_release_index":
+            return release_index.copy(), metadata[dataset_name]
         raise AssertionError(f"unexpected dataset: {dataset_name}")
 
     monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
@@ -263,9 +297,11 @@ def test_data_access_layer_builds_materialized_fred_dashboard_when_available(mon
     resolved = DataAccessLayer(fred_api_key="").resolve_fred_dashboard(years=3)
 
     assert resolved.provenance.mode == "materialized"
-    assert resolved.provenance.datasets == ("fred_summary", "fred_observations")
+    assert resolved.provenance.datasets == ("fred_summary", "fred_observations", "fred_series_index", "fred_release_index")
     assert resolved.provenance.details["summary"]["dataset_version_id"] == metadata["fred_summary"].dataset_version_id
+    assert resolved.provenance.details["series_index"]["dataset_version_id"] == metadata["fred_series_index"].dataset_version_id
     assert resolved.payload["series_data"]["CPIAUCSL"]["value"].tolist() == [315.0, 316.2]
+    assert resolved.payload["metadata"]["CPIAUCSL"]["release_name"] == "Consumer Price Index Release"
 
 
 def test_data_access_layer_resolves_attention_datasets_when_available(monkeypatch):

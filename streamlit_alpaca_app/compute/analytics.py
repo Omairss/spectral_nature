@@ -117,7 +117,10 @@ def performance_table(timeseries: pd.DataFrame, risk_free_rate: float = 0.02) ->
                 )
             )
 
-        cumulative = frame[["timestamp", symbol] + ([spy_col] if spy_col else [])].dropna(subset=[symbol])
+        cumulative_columns = ["timestamp", symbol]
+        if spy_col and symbol != spy_col:
+            cumulative_columns.append(spy_col)
+        cumulative = frame[cumulative_columns].dropna(subset=[symbol])
         if len(cumulative) < 3:
             continue
 

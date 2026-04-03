@@ -19,6 +19,7 @@ from pipeline.jobs.main import (
     _upload_frame,
     run_attention_home,
     run_entity_taxonomy,
+    run_fred,
     run_news,
 )
 from services.pipeline_store import SOURCE_DATASETS, SOURCE_JOB_MAP
@@ -71,7 +72,49 @@ def test_pipeline_store_lists_universe_snapshot_under_equities():
 def test_pipeline_store_lists_yield_datasets_under_fred():
     fred_datasets = set(SOURCE_DATASETS["fred"])
 
-    assert {"yield_curve_observations", "yield_curve_summary", "yield_curve_facts_1d"}.issubset(fred_datasets)
+    assert {
+        "fred_series_index",
+        "fred_release_index",
+        "yield_curve_observations",
+        "yield_curve_summary",
+        "yield_curve_facts_1d",
+    }.issubset(fred_datasets)
+
+
+def test_run_fred_persists_series_and_release_indexes(monkeypatch):
+    persisted: list[str] = []
+    dashboard = {
+        "summary": pd.DataFrame({"series_id": ["CPIAUCSL"]}),
+        "observations": pd.DataFrame(
+            {
+                "series_id": ["CPIAUCSL"],
+                "date": [pd.Timestamp("2026-03-01")],
+                "value": [316.2],
+                "release_id": [10],
+            }
+        ),
+        "series_index": pd.DataFrame({"series_id": ["CPIAUCSL"], "release_id": [10], "release_name": ["Consumer Price Index Release"]}),
+        "release_index": pd.DataFrame({"release_id": [10], "release_name": ["Consumer Price Index Release"]}),
+    }
+    ctx = JobContext(
+        name="macro-fred-daily",
+        run_id="fred-test-run",
+        asof=datetime(2026, 3, 20, 12, 0, tzinfo=timezone.utc),
+        universe_version="20260320",
+    )
+
+    monkeypatch.setattr("pipeline.jobs.main.load_fred_api_key", lambda: "fred-key")
+    monkeypatch.setattr("pipeline.jobs.main.load_fred_dashboard", lambda api_key, years: dashboard)
+    monkeypatch.setattr(
+        "pipeline.jobs.main._build_treasury_yield_snapshots",
+        lambda asof_time_utc: (pd.DataFrame(), pd.DataFrame(), pd.DataFrame()),
+    )
+    monkeypatch.setattr("pipeline.jobs.main._persist_dataset", lambda dataset_name, frame, ctx, conn: persisted.append(dataset_name))
+    monkeypatch.setattr("pipeline.jobs.main._job_progress", lambda *args, **kwargs: None)
+
+    run_fred(ctx, conn=object())
+
+    assert {"fred_summary", "fred_observations", "fred_series_index", "fred_release_index"}.issubset(set(persisted))
 
 
 def test_pipeline_store_lists_attention_datasets_under_commodities():

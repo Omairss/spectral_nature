@@ -63,7 +63,15 @@ SOURCE_DATASETS: dict[str, list[str]] = {
         "momentum_profiles",
         "price_history",
     ],
-    "fred": ["fred_summary", "fred_observations", "yield_curve_observations", "yield_curve_summary", "yield_curve_facts_1d"],
+    "fred": [
+        "fred_summary",
+        "fred_observations",
+        "fred_series_index",
+        "fred_release_index",
+        "yield_curve_observations",
+        "yield_curve_summary",
+        "yield_curve_facts_1d",
+    ],
     "commodities": [
         "commodity_regime_summary",
         "commodity_regime_history",

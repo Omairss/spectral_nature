@@ -176,9 +176,18 @@ def build_fred_series_summary(spec: FredSeriesSpec, metadata: dict[str, Any], fr
     }
 
 
-def build_fred_dashboard_from_pipeline(summary: pd.DataFrame, observations: pd.DataFrame, years: int) -> dict[str, object]:
+def build_fred_dashboard_from_pipeline(
+    summary: pd.DataFrame,
+    observations: pd.DataFrame,
+    years: int,
+    *,
+    series_index: pd.DataFrame | None = None,
+    release_index: pd.DataFrame | None = None,
+) -> dict[str, object]:
     summary_frame = summary.copy()
     obs_frame = observations.copy()
+    series_index_frame = series_index.copy() if isinstance(series_index, pd.DataFrame) else pd.DataFrame()
+    release_index_frame = release_index.copy() if isinstance(release_index, pd.DataFrame) else pd.DataFrame()
 
     if "date" in obs_frame.columns:
         obs_frame["date"] = pd.to_datetime(obs_frame["date"], errors="coerce")
@@ -188,34 +197,117 @@ def build_fred_dashboard_from_pipeline(summary: pd.DataFrame, observations: pd.D
         obs_frame["value"] = pd.to_numeric(obs_frame["value"], errors="coerce")
 
     summary_frame["series_id"] = summary_frame.get("series_id", pd.Series(dtype=str)).astype(str)
+    if "series_id" in series_index_frame.columns:
+        series_index_frame["series_id"] = series_index_frame["series_id"].astype(str)
+
+    summary_lookup = (
+        summary_frame.drop_duplicates(subset=["series_id"], keep="first").set_index("series_id")
+        if not summary_frame.empty and "series_id" in summary_frame.columns
+        else pd.DataFrame()
+    )
+    observation_release_lookup = (
+        obs_frame.dropna(subset=["series_id", "release_id"])[["series_id", "release_id"]]
+        .drop_duplicates(subset=["series_id"], keep="first")
+        .set_index("series_id")["release_id"]
+        if not obs_frame.empty and {"series_id", "release_id"}.issubset(obs_frame.columns)
+        else pd.Series(dtype=object)
+    )
+
+    if series_index_frame.empty:
+        series_index_frame = pd.DataFrame({"series_id": summary_frame.get("series_id", pd.Series(dtype=str)).astype(str)})
+
+    if "title" not in series_index_frame.columns:
+        series_index_frame["title"] = pd.Series(pd.NA, index=series_index_frame.index, dtype="object")
+    if "source_title" in series_index_frame.columns:
+        series_index_frame["title"] = series_index_frame["title"].fillna(series_index_frame["source_title"])
+    if "indicator" in series_index_frame.columns:
+        series_index_frame["title"] = series_index_frame["title"].fillna(series_index_frame["indicator"])
+    if not summary_lookup.empty:
+        if "source_title" in summary_lookup.columns:
+            series_index_frame["title"] = series_index_frame["title"].fillna(series_index_frame["series_id"].map(summary_lookup["source_title"]))
+        if "indicator" in summary_lookup.columns:
+            series_index_frame["title"] = series_index_frame["title"].fillna(series_index_frame["series_id"].map(summary_lookup["indicator"]))
+    series_index_frame["title"] = series_index_frame["title"].fillna(series_index_frame["series_id"])
+
+    if "frequency_short" not in series_index_frame.columns:
+        series_index_frame["frequency_short"] = (
+            series_index_frame["series_id"].map(summary_lookup["frequency_short"])
+            if not summary_lookup.empty and "frequency_short" in summary_lookup.columns
+            else pd.Series(pd.NA, index=series_index_frame.index, dtype="object")
+        )
+    if "frequency" not in series_index_frame.columns:
+        series_index_frame["frequency"] = series_index_frame["frequency_short"]
+
+    if "units_short" not in series_index_frame.columns:
+        series_index_frame["units_short"] = (
+            series_index_frame["series_id"].map(summary_lookup["units_short"])
+            if not summary_lookup.empty and "units_short" in summary_lookup.columns
+            else pd.Series(pd.NA, index=series_index_frame.index, dtype="object")
+        )
+    if "units" not in series_index_frame.columns:
+        series_index_frame["units"] = series_index_frame["units_short"]
+
+    if "notes" not in series_index_frame.columns:
+        series_index_frame["notes"] = pd.Series(pd.NA, index=series_index_frame.index, dtype="object")
+    if "last_updated" not in series_index_frame.columns and not summary_lookup.empty and "last_updated" in summary_lookup.columns:
+        series_index_frame["last_updated"] = series_index_frame["series_id"].map(summary_lookup["last_updated"])
+    if "release_id" not in series_index_frame.columns:
+        series_index_frame["release_id"] = series_index_frame["series_id"].map(observation_release_lookup)
+
+    if release_index_frame.empty:
+        release_index_cols = [col for col in ["release_id", "release_name"] if col in series_index_frame.columns]
+        if release_index_cols:
+            release_index_frame = series_index_frame[release_index_cols].dropna(subset=["release_id"]).drop_duplicates(
+                subset=["release_id"], keep="first"
+            )
+    if release_index_frame.empty and "release_id" in obs_frame.columns:
+        release_ids = pd.to_numeric(obs_frame["release_id"], errors="coerce").dropna().astype(int).drop_duplicates().sort_values()
+        if not release_ids.empty:
+            release_index_frame = pd.DataFrame({"release_id": release_ids})
+
+    if "release_name" not in series_index_frame.columns:
+        series_index_frame["release_name"] = pd.Series(pd.NA, index=series_index_frame.index, dtype="object")
+    if not summary_lookup.empty and "release_name" in summary_lookup.columns:
+        series_index_frame["release_name"] = series_index_frame["release_name"].fillna(
+            series_index_frame["series_id"].map(summary_lookup["release_name"])
+        )
+    if not release_index_frame.empty and {"release_id", "release_name"}.issubset(release_index_frame.columns):
+        release_lookup = release_index_frame.drop_duplicates(subset=["release_id"], keep="first").set_index("release_id")["release_name"]
+        series_index_frame["release_name"] = series_index_frame["release_name"].fillna(
+            pd.to_numeric(series_index_frame["release_id"], errors="coerce").map(release_lookup)
+        )
+    if not release_index_frame.empty and "release_name" not in release_index_frame.columns:
+        release_index_frame["release_name"] = pd.Series(pd.NA, index=release_index_frame.index, dtype="object")
+    if not release_index_frame.empty and {"release_id", "release_name"}.issubset(release_index_frame.columns):
+        release_name_lookup = (
+            series_index_frame[["release_id", "release_name"]]
+            .dropna(subset=["release_id"])
+            .drop_duplicates(subset=["release_id"], keep="first")
+            .set_index("release_id")["release_name"]
+        )
+        release_index_frame["release_name"] = release_index_frame["release_name"].fillna(
+            pd.to_numeric(release_index_frame["release_id"], errors="coerce").map(release_name_lookup)
+        )
+
+    sort_cols = [col for col in ["release_name", "title", "series_id"] if col in series_index_frame.columns]
+    if sort_cols:
+        series_index_frame = (
+            series_index_frame.sort_values(sort_cols, na_position="last")
+            .drop_duplicates(subset=["series_id"], keep="first")
+            .reset_index(drop=True)
+        )
+
     metadata_by_id: dict[str, dict[str, object]] = {}
-    for _, row in summary_frame.iterrows():
+    for _, row in series_index_frame.iterrows():
         series_id = str(row.get("series_id") or "").strip()
         if not series_id:
             continue
-        metadata_by_id[series_id] = {
-            "series_id": series_id,
-            "units_short": row.get("units_short"),
-            "frequency_short": row.get("frequency_short"),
-            "title": row.get("source_title") or row.get("indicator") or series_id,
-            "last_updated": row.get("last_updated"),
-        }
+        metadata_by_id[series_id] = row.dropna().to_dict()
 
     series_data: dict[str, pd.DataFrame] = {}
     if not obs_frame.empty and "series_id" in obs_frame.columns:
         for series_id, frame in obs_frame.groupby("series_id", sort=False):
             series_data[str(series_id)] = frame[[col for col in ["date", "value"] if col in frame.columns]].reset_index(drop=True)
-
-    series_index_cols = [col for col in ["series_id", "indicator", "frequency_short", "units_short", "source_title"] if col in summary_frame.columns]
-    series_index = summary_frame[series_index_cols].copy() if series_index_cols else pd.DataFrame()
-    if "indicator" in series_index.columns:
-        series_index = series_index.rename(columns={"indicator": "title"})
-
-    release_index = pd.DataFrame()
-    if "release_id" in obs_frame.columns:
-        release_ids = pd.to_numeric(obs_frame["release_id"], errors="coerce").dropna().astype(int).drop_duplicates().sort_values()
-        if not release_ids.empty:
-            release_index = pd.DataFrame({"release_id": release_ids})
 
     return {
         "summary": summary_frame.reset_index(drop=True),
@@ -223,9 +315,9 @@ def build_fred_dashboard_from_pipeline(summary: pd.DataFrame, observations: pd.D
         "metadata": metadata_by_id,
         "specs_by_category": fred_specs_by_category(),
         "category_blurbs": FRED_CATEGORY_BLURBS,
-        "series_index": series_index.reset_index(drop=True),
+        "series_index": series_index_frame.reset_index(drop=True),
         "observations": obs_frame.reset_index(drop=True),
-        "release_index": release_index.reset_index(drop=True),
+        "release_index": release_index_frame.reset_index(drop=True),
     }
 
 

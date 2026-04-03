@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import base64
 from contextlib import contextmanager
 import html
 import importlib
 import json
 import logging
 import os
+from pathlib import Path
 import re
 import secrets as py_secrets
 import time
@@ -16,6 +18,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+from PIL import Image
 from streamlit.components.v1 import html as components_html
 
 from compute.portfolio import normalize_timeseries_view
@@ -105,8 +108,27 @@ except ModuleNotFoundError as exc:
         fig.update_layout(template="plotly_dark", title=f"{ticker} 5-Day Terminal Price Distribution")
         return fig
 
+APP_ROOT = Path(__file__).resolve().parent
+BRANDING_ROOT = APP_ROOT / "branding" / "Logo Files"
+APP_FAVICON_PATH = BRANDING_ROOT / "Favicons" / "browser.png"
+APP_SIDEBAR_LOGO_PATH = BRANDING_ROOT / "png" / "White logo - no background.png"
 
-st.set_page_config(page_title="Spectral Nature", page_icon="chart_with_upwards_trend", layout="wide")
+
+def _load_page_icon() -> object:
+    if APP_FAVICON_PATH.is_file():
+        try:
+            with Image.open(APP_FAVICON_PATH) as icon_image:
+                return icon_image.copy()
+        except OSError:
+            pass
+    return "chart_with_upwards_trend"
+
+
+st.set_page_config(
+    page_title="Spectral Nature",
+    page_icon=_load_page_icon(),
+    layout="wide",
+)
 
 LOGGER = logging.getLogger("spectral_nature.ui_app")
 if not LOGGER.handlers:
@@ -121,6 +143,8 @@ if not LOGGER.handlers:
     LOGGER.addHandler(file_handler)
 LOGGER.setLevel(logging.INFO)
 LOGGER.propagate = False
+
+HOME_EXP_SECTION = "Home Exp"
 
 BASE_SECTION_OPTIONS = [
     "Home",
@@ -183,8 +207,10 @@ ATTENTION_SENSITIVITY_ORDER = list(_ATTENTION_UI_POLICY.sensitivity_order)
 _AUTH_COOKIE_NAME = "spectral_nature_ui_session"
 _AUTH_COOKIE_TTL_SECONDS = 7 * 24 * 60 * 60
 APP_BRAND_NAME = "Spectral Nature"
-APP_BRAND_KICKER = "Private Market Intelligence"
+APP_BRAND_KICKER = "Torres Capital"
 APP_BRAND_SUBTITLE = "Research, portfolio context, and market structure in one refined workspace."
+_APP_SHELL_STYLE_VERSION = "2026-04-03-brand-assets-v4"
+_INLINE_LOADING_STYLE_VERSION = "2026-04-02-inline-loading-v1"
 
 
 def _environment_label(app_track: str) -> str:
@@ -199,9 +225,7 @@ def _environment_label(app_track: str) -> str:
 
 
 def _ensure_app_shell_styles() -> None:
-    if st.session_state.get("_sn_app_shell_styles_ready"):
-        return
-    st.session_state["_sn_app_shell_styles_ready"] = True
+    st.session_state["_sn_app_shell_styles_version"] = _APP_SHELL_STYLE_VERSION
     st.markdown(
         """
         <style>
@@ -233,12 +257,10 @@ def _ensure_app_shell_styles() -> None:
             display: none;
         }
         [data-testid="stHeader"] {
-            background: rgba(10, 13, 18, 0.9);
-            border-bottom: 1px solid var(--sn-line);
-            backdrop-filter: blur(10px);
+            display: none;
         }
         .block-container {
-            padding-top: 1.5rem;
+            padding-top: 0.8rem;
             padding-bottom: 2.5rem;
             max-width: 1440px;
         }
@@ -282,13 +304,55 @@ def _ensure_app_shell_styles() -> None:
             background: var(--sn-card-strong);
             box-shadow: var(--sn-shadow-soft);
         }
+        .sn-sidebar-brand-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 0.12rem;
+            width: 100%;
+        }
+        .sn-sidebar-brand-signoff {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 0.42rem;
+            padding-top: 0.48rem;
+            border-top: 1px solid var(--sn-line);
+            width: 100%;
+        }
         .sn-sidebar-kicker {
-            margin-bottom: 0.35rem;
+            margin-bottom: 0.7rem;
             color: var(--sn-accent);
             font-size: 0.68rem;
             font-weight: 700;
             letter-spacing: 0.2em;
             text-transform: uppercase;
+        }
+        .sn-sidebar-logo {
+            width: 100%;
+            max-width: 15.5rem;
+            margin: 0 0 0.64rem 0;
+        }
+        .sn-sidebar-logo img,
+        .sn-sidebar-logo svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .sn-sidebar-brand-title {
+            color: var(--sn-ink);
+            font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+            font-size: 1.28rem;
+            font-weight: 700;
+            line-height: 1.05;
+        }
+        .sn-sidebar-brand-subtitle {
+            color: var(--sn-muted);
+            font-family: "Bodoni Moda", "Didot", "Bodoni 72", "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            line-height: 1.25;
+            text-align: right;
+            max-width: max-content;
         }
         .sn-sidebar-wordmark {
             margin-bottom: 0.35rem;
@@ -348,6 +412,143 @@ def _ensure_app_shell_styles() -> None:
             color: var(--sn-muted-strong);
             font-size: 0.94rem;
             line-height: 1.6;
+        }
+        .sn-rail-title {
+            margin: 0;
+            color: var(--sn-ink);
+            font-size: 1.08rem;
+            font-weight: 675;
+            line-height: 1.2;
+            text-align: left;
+        }
+        .sn-rail-caption {
+            margin-top: 0.22rem;
+            color: var(--sn-muted);
+            font-size: 0.8rem;
+            line-height: 1.4;
+            text-align: left;
+        }
+        [class*="st-key-homepage_v2_surface_idle_"] button,
+        [class*="st-key-homepage_v2_surface_selected_"] button,
+        [class*="st-key-homepage_exp_surface_idle_"] button,
+        [class*="st-key-homepage_exp_surface_selected_"] button {
+            width: 100%;
+            align-items: flex-start;
+            justify-content: flex-start;
+            text-align: left;
+            padding: 0.18rem 0.22rem 0.24rem 0.22rem;
+            min-height: 0;
+            border-radius: 0.62rem;
+            border: 1px solid transparent;
+            background: transparent;
+            box-shadow: none;
+            color: var(--sn-ink);
+            line-height: 1.18;
+        }
+        [class*="st-key-homepage_v2_surface_idle_"] button > div,
+        [class*="st-key-homepage_v2_surface_selected_"] button > div,
+        [class*="st-key-homepage_exp_surface_idle_"] button > div,
+        [class*="st-key-homepage_exp_surface_selected_"] button > div {
+            width: 100%;
+            justify-content: flex-start;
+            text-align: left;
+        }
+        [class*="st-key-homepage_v2_surface_idle_"] button:hover,
+        [class*="st-key-homepage_exp_surface_idle_"] button:hover {
+            border-color: rgba(216, 225, 234, 0.2);
+            background: rgba(168, 184, 201, 0.06);
+            color: var(--sn-accent-strong);
+        }
+        [class*="st-key-homepage_v2_surface_selected_"] button,
+        [class*="st-key-homepage_exp_surface_selected_"] button {
+            border-color: rgba(168, 184, 201, 0.24);
+            background: rgba(168, 184, 201, 0.08);
+            color: var(--sn-accent-strong);
+        }
+        [class*="st-key-homepage_v2_surface_selected_"] button:hover,
+        [class*="st-key-homepage_exp_surface_selected_"] button:hover {
+            border-color: rgba(168, 184, 201, 0.28);
+            background: rgba(168, 184, 201, 0.1);
+            color: var(--sn-accent-strong);
+        }
+        [class*="st-key-homepage_v2_surface_idle_"] button p,
+        [class*="st-key-homepage_v2_surface_selected_"] button p,
+        [class*="st-key-homepage_exp_surface_idle_"] button p,
+        [class*="st-key-homepage_exp_surface_selected_"] button p {
+            margin: 0;
+            width: 100%;
+            font-size: 1.02rem;
+            font-weight: 650;
+            line-height: 1.18;
+            text-align: left;
+        }
+        [class*="st-key-homepage_exp_surface_selected_"] button {
+            box-shadow: inset 2px 0 0 rgba(216, 225, 234, 0.72);
+        }
+        [class*="st-key-homepage_exp_surface_selected_company_"] button {
+            border-color: rgba(168, 184, 201, 0.3);
+            background: rgba(168, 184, 201, 0.11);
+            box-shadow: inset 3px 0 0 rgba(216, 225, 234, 0.82);
+        }
+        [class*="st-key-homepage_exp_surface_selected_company_"] button:hover {
+            border-color: rgba(168, 184, 201, 0.34);
+            background: rgba(168, 184, 201, 0.13);
+        }
+        [class*="st-key-ticker_preview_surface_idle_"] button,
+        [class*="st-key-ticker_preview_surface_selected_"] button {
+            width: 100%;
+            align-items: flex-start;
+            justify-content: flex-start;
+            text-align: left;
+            padding: 0.14rem 0.22rem 0.18rem 0.22rem;
+            min-height: 0;
+            border-radius: 0.58rem;
+            border: 1px solid transparent;
+            background: transparent;
+            box-shadow: none;
+            color: var(--sn-ink);
+            line-height: 1.16;
+        }
+        [class*="st-key-ticker_preview_surface_idle_"] button > div,
+        [class*="st-key-ticker_preview_surface_selected_"] button > div {
+            width: 100%;
+            justify-content: flex-start;
+            text-align: left;
+        }
+        [class*="st-key-ticker_preview_surface_idle_"] button:hover {
+            border-color: rgba(216, 225, 234, 0.18);
+            background: rgba(168, 184, 201, 0.05);
+            color: var(--sn-accent-strong);
+        }
+        [class*="st-key-ticker_preview_surface_selected_"] button {
+            border-color: rgba(168, 184, 201, 0.22);
+            background: rgba(168, 184, 201, 0.08);
+            color: var(--sn-accent-strong);
+            box-shadow: inset 2px 0 0 rgba(216, 225, 234, 0.72);
+        }
+        [class*="st-key-ticker_preview_surface_selected_"] button:hover {
+            border-color: rgba(168, 184, 201, 0.26);
+            background: rgba(168, 184, 201, 0.1);
+            color: var(--sn-accent-strong);
+        }
+        [class*="st-key-ticker_preview_surface_idle_"] button p,
+        [class*="st-key-ticker_preview_surface_selected_"] button p {
+            margin: 0;
+            width: 100%;
+            font-size: 0.96rem;
+            font-weight: 620;
+            line-height: 1.16;
+            text-align: left;
+        }
+        [class*="st-key-homepage_exp_close_"] button {
+            min-height: 2rem;
+            height: 2rem;
+            padding: 0;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.03);
+        }
+        [class*="st-key-homepage_exp_close_"] button:hover {
+            background: rgba(255, 255, 255, 0.06);
         }
         div[data-testid="stMetric"] {
             padding: 0.9rem 1rem;
@@ -409,18 +610,39 @@ def _ensure_app_shell_styles() -> None:
 
 
 def _render_sidebar_brand_panel(app_track: str) -> None:
-    pills = [
-        _environment_label(app_track),
-        "Research Workspace",
-    ]
-    pills_html = "".join(f"<span class='sn-sidebar-pill'>{html.escape(label)}</span>" for label in pills if label)
+    logo_markup = ""
+    has_logo = False
+    try:
+        logo_bytes = APP_SIDEBAR_LOGO_PATH.read_bytes()
+        logo_b64 = base64.b64encode(logo_bytes).decode("ascii")
+        logo_markup = (
+            "<img "
+            f"src='data:image/png;base64,{logo_b64}' "
+            f"alt='{html.escape(APP_BRAND_NAME)} logo' />"
+        )
+        has_logo = True
+    except OSError:
+        logo_markup = ""
+    brand_markup = (
+        f"<div class='sn-sidebar-logo'>{logo_markup}</div>"
+        if logo_markup
+        else ""
+    )
+    title_markup = (
+        ""
+        if has_logo
+        else f"<div class='sn-sidebar-brand-title'>{html.escape(APP_BRAND_NAME)}</div>"
+    )
     st.markdown(
         (
             "<div class='sn-sidebar-brand'>"
-            f"<div class='sn-sidebar-kicker'>{html.escape(APP_BRAND_KICKER)}</div>"
-            f"<div class='sn-sidebar-wordmark'>{html.escape(APP_BRAND_NAME)}</div>"
-            f"<div class='sn-sidebar-subtitle'>{html.escape(APP_BRAND_SUBTITLE)}</div>"
-            f"<div class='sn-sidebar-pills'>{pills_html}</div>"
+            f"{brand_markup}"
+            "<div class='sn-sidebar-brand-copy'>"
+            f"{title_markup}"
+            "<div class='sn-sidebar-brand-signoff'>"
+            f"<div class='sn-sidebar-brand-subtitle'>by {html.escape(APP_BRAND_KICKER)}</div>"
+            "</div>"
+            "</div>"
             "</div>"
         ),
         unsafe_allow_html=True,
@@ -651,6 +873,8 @@ def _normalize_workspace_section(section_name: object) -> str:
     normalized = str(section_name or "").strip()
     if normalized == "Homepage - v2":
         return "Home"
+    if normalized in {"Homepage Exp", "Home Experimental"}:
+        return HOME_EXP_SECTION
     return normalized
 
 
@@ -1258,7 +1482,7 @@ def _ticker_inspector_href(symbol: str, *, target: str) -> str:
 def _open_ticker_snapshot_target(symbol: str, *, target: str) -> None:
     cleaned_symbol = str(symbol or "").upper().strip()
     cleaned_target = str(target or "").strip().lower()
-    if not cleaned_symbol or cleaned_target not in {"home", "home_v2", "market"}:
+    if not cleaned_symbol or cleaned_target not in {"home", "home_v2", "home_exp", "market"}:
         return
     if cleaned_target == "home":
         st.session_state["home_selected_ticker"] = cleaned_symbol
@@ -1266,7 +1490,10 @@ def _open_ticker_snapshot_target(symbol: str, *, target: str) -> None:
     if cleaned_target == "home_v2":
         st.session_state["homepage_v2_selected_ticker"] = cleaned_symbol
         _queue_homepage_v2_active_panel(HOMEPAGE_V2_COMPANY_PANEL)
-        st.rerun()
+        return
+    if cleaned_target == "home_exp":
+        st.session_state["homepage_exp_selected_ticker"] = cleaned_symbol
+        st.session_state["homepage_exp_active_panel"] = HOMEPAGE_V2_COMPANY_PANEL
         return
     _open_attention_target(
         "Market Opportunity",
@@ -1299,14 +1526,109 @@ def _render_ticker_snapshot_chart(
     if not click_target:
         return
 
-    button_label = "Inspect" if str(click_target or "").strip().lower() == "home" else "Open"
+    normalized_click_target = str(click_target or "").strip().lower()
+    if normalized_click_target in {"home", "home_v2", "home_exp"}:
+        return
     widget_key = str(button_key or f"ticker_snapshot_{click_target}_{symbol}").strip()
     if st.button(
-        button_label,
+        "Open",
         key=widget_key,
         use_container_width=True,
     ):
         _open_ticker_snapshot_target(symbol, target=click_target)
+
+
+def _ticker_preview_clickable(click_target: str) -> bool:
+    return str(click_target or "").strip().lower() in {"home", "home_v2", "home_exp"}
+
+
+def _ticker_preview_is_selected(symbol: str, *, click_target: str, click_bundle_id: str = "") -> bool:
+    normalized_symbol = str(symbol or "").upper().strip()
+    normalized_click_target = str(click_target or "").strip().lower()
+    normalized_bundle_id = str(click_bundle_id or "").strip()
+    if not normalized_symbol:
+        return False
+    if normalized_click_target == "home":
+        return str(st.session_state.get("home_selected_ticker") or "").upper().strip() == normalized_symbol
+    if normalized_click_target == "home_v2":
+        return (
+            str(st.session_state.get("homepage_v2_selected_ticker") or "").upper().strip() == normalized_symbol
+            and str(st.session_state.get("homepage_v2_active_panel") or "").strip() == HOMEPAGE_V2_COMPANY_PANEL
+            and (
+                not normalized_bundle_id
+                or str(st.session_state.get("homepage_v2_selected_bundle_id") or "").strip() == normalized_bundle_id
+            )
+        )
+    if normalized_click_target == "home_exp":
+        return (
+            str(st.session_state.get("homepage_exp_selected_ticker") or "").upper().strip() == normalized_symbol
+            and str(st.session_state.get("homepage_exp_active_panel") or "").strip() == HOMEPAGE_V2_COMPANY_PANEL
+            and (
+                not normalized_bundle_id
+                or str(st.session_state.get("homepage_exp_selected_bundle_id") or "").strip() == normalized_bundle_id
+            )
+        )
+    return False
+
+
+def _ticker_preview_surface_key(
+    symbol: str,
+    *,
+    click_target: str,
+    key_prefix: str = "",
+    index: int = 0,
+    selected: bool = False,
+) -> str:
+    cleaned_symbol = re.sub(r"[^a-zA-Z0-9_]+", "_", str(symbol or index).strip())
+    cleaned_prefix = re.sub(r"[^a-zA-Z0-9_]+", "_", str(key_prefix or "ticker_preview").strip())
+    cleaned_target = re.sub(r"[^a-zA-Z0-9_]+", "_", str(click_target or "none").strip())
+    state_prefix = "ticker_preview_surface_selected" if selected else "ticker_preview_surface_idle"
+    return f"{state_prefix}_{cleaned_target}_{cleaned_prefix}_{index}_{cleaned_symbol}"
+
+
+def _render_ticker_preview_identity(
+    row: dict[str, str],
+    *,
+    click_target: str,
+    key_prefix: str = "",
+    index: int = 0,
+    click_bundle_id: str = "",
+) -> None:
+    symbol = str(row.get("symbol") or "").upper().strip()
+    company_name = str(row.get("company_name") or symbol).strip()
+    label = f"{symbol} · {company_name}" if company_name and company_name != symbol else symbol
+    normalized_click_target = str(click_target or "").strip().lower()
+    if _ticker_preview_clickable(normalized_click_target):
+        click_handler = _open_ticker_snapshot_target
+        click_args: tuple[object, ...] = (symbol,)
+        click_kwargs: dict[str, object] = {"target": normalized_click_target}
+        if normalized_click_target == "home_exp":
+            click_handler = _open_homepage_exp_ticker
+            click_args = (symbol, str(click_bundle_id or "").strip())
+            click_kwargs = {}
+        st.button(
+            label,
+            key=_ticker_preview_surface_key(
+                symbol,
+                click_target=normalized_click_target,
+                key_prefix=key_prefix,
+                index=index,
+                selected=_ticker_preview_is_selected(
+                    symbol,
+                    click_target=normalized_click_target,
+                    click_bundle_id=str(click_bundle_id or "").strip(),
+                ),
+            ),
+            use_container_width=True,
+            type="tertiary",
+            on_click=click_handler,
+            args=click_args,
+            kwargs=click_kwargs,
+        )
+        return
+    st.markdown(f"**{symbol}**")
+    if company_name and company_name != symbol:
+        st.markdown(f"**{company_name}**")
 
 
 def _render_ticker_snapshot_table(
@@ -1317,6 +1639,7 @@ def _render_ticker_snapshot_table(
     show_header: bool = True,
     click_target: str = "",
     key_prefix: str = "",
+    click_bundle_id: str = "",
     allow_live_profile_fallback: bool = True,
 ) -> None:
     if not isinstance(items, list):
@@ -1353,10 +1676,34 @@ def _render_ticker_snapshot_table(
         )
     if not rows:
         return
+    interactive_preview = _ticker_preview_clickable(click_target)
     show_context_column = any(row["note"] or row["note_secondary"] for row in rows)
     if not show_header and len(rows) == 1:
         row = rows[0]
-        compact_cols = st.columns([0.9, 2.5, 1.45], gap="small")
+        compact_spec = [2.8, 1.45] if interactive_preview else [0.9, 2.5, 1.45]
+        compact_cols = st.columns(compact_spec, gap="small")
+        if interactive_preview:
+            with compact_cols[0]:
+                _render_ticker_preview_identity(
+                    row,
+                    click_target=click_target,
+                    key_prefix=key_prefix or "ticker_snapshot",
+                    index=0,
+                    click_bundle_id=click_bundle_id,
+                )
+                if row["subline"]:
+                    st.caption(row["subline"])
+                note_parts = [part for part in [row["note"], row["note_secondary"]] if part]
+                if note_parts:
+                    st.caption(" | ".join(note_parts))
+            with compact_cols[1]:
+                _render_ticker_snapshot_chart(
+                    row["sparkline_data_uri"],
+                    symbol=row["symbol"],
+                    click_target="",
+                    button_key=f"{key_prefix or 'ticker_snapshot'}_{row['symbol']}_inspect",
+                )
+            return
         with compact_cols[0]:
             st.markdown(f"**{row['symbol']}**")
         with compact_cols[1]:
@@ -1375,33 +1722,61 @@ def _render_ticker_snapshot_table(
             )
         return
     if show_header:
-        header_spec = [0.9, 2.5, 1.6, 1.8] if show_context_column else [0.9, 2.7, 1.6]
-        header_cols = st.columns(header_spec, gap="small")
-        header_cols[0].caption("Ticker")
-        header_cols[1].caption("Name")
-        header_cols[2].caption("Chart")
-        if show_context_column:
-            header_cols[3].caption("Context")
+        if interactive_preview:
+            header_spec = [3.3, 1.6, 1.8] if show_context_column else [3.5, 1.6]
+            header_cols = st.columns(header_spec, gap="small")
+            header_cols[0].caption("Ticker")
+            header_cols[1].caption("Chart")
+            if show_context_column:
+                header_cols[2].caption("Context")
+        else:
+            header_spec = [0.9, 2.5, 1.6, 1.8] if show_context_column else [0.9, 2.7, 1.6]
+            header_cols = st.columns(header_spec, gap="small")
+            header_cols[0].caption("Ticker")
+            header_cols[1].caption("Name")
+            header_cols[2].caption("Chart")
+            if show_context_column:
+                header_cols[3].caption("Context")
     for index, row in enumerate(rows):
         row_container = st.container(border=show_header or len(rows) > 1)
         with row_container:
-            row_spec = [0.9, 2.5, 1.6, 1.8] if show_context_column else [0.9, 2.7, 1.6]
+            row_spec = [3.3, 1.6, 1.8] if interactive_preview and show_context_column else [3.5, 1.6] if interactive_preview else [0.9, 2.5, 1.6, 1.8] if show_context_column else [0.9, 2.7, 1.6]
             row_cols = st.columns(row_spec, gap="small")
-            with row_cols[0]:
-                st.markdown(f"**{row['symbol']}**")
-            with row_cols[1]:
-                st.markdown(f"**{row['company_name']}**")
-                if row["subline"]:
-                    st.caption(row["subline"])
-            with row_cols[2]:
-                _render_ticker_snapshot_chart(
-                    row["sparkline_data_uri"],
-                    symbol=row["symbol"],
-                    click_target=click_target,
-                    button_key=f"{key_prefix or 'ticker_snapshot'}_{index}_{row['symbol']}_inspect",
-                )
+            if interactive_preview:
+                with row_cols[0]:
+                    _render_ticker_preview_identity(
+                        row,
+                        click_target=click_target,
+                        key_prefix=key_prefix or "ticker_snapshot",
+                        index=index,
+                        click_bundle_id=click_bundle_id,
+                    )
+                    if row["subline"]:
+                        st.caption(row["subline"])
+                with row_cols[1]:
+                    _render_ticker_snapshot_chart(
+                        row["sparkline_data_uri"],
+                        symbol=row["symbol"],
+                        click_target="",
+                        button_key=f"{key_prefix or 'ticker_snapshot'}_{index}_{row['symbol']}_inspect",
+                    )
+            else:
+                with row_cols[0]:
+                    st.markdown(f"**{row['symbol']}**")
+                with row_cols[1]:
+                    st.markdown(f"**{row['company_name']}**")
+                    if row["subline"]:
+                        st.caption(row["subline"])
+                with row_cols[2]:
+                    _render_ticker_snapshot_chart(
+                        row["sparkline_data_uri"],
+                        symbol=row["symbol"],
+                        click_target=click_target,
+                        button_key=f"{key_prefix or 'ticker_snapshot'}_{index}_{row['symbol']}_inspect",
+                    )
             if show_context_column:
-                with row_cols[3]:
+                context_col_index = 2 if interactive_preview else 3
+                with row_cols[context_col_index]:
                     if row["note"]:
                         st.write(row["note"])
                     if row["note_secondary"]:
@@ -1409,9 +1784,7 @@ def _render_ticker_snapshot_table(
 
 
 def _ensure_inline_loading_banner_styles() -> None:
-    if st.session_state.get("_inline_loading_banner_styles_ready"):
-        return
-    st.session_state["_inline_loading_banner_styles_ready"] = True
+    st.session_state["_inline_loading_banner_styles_version"] = _INLINE_LOADING_STYLE_VERSION
     st.markdown(
         """
         <style>
@@ -1657,36 +2030,58 @@ def _render_home_ticker_background_panel(
     clear_mode_key: str = "",
     clear_mode_value: str = HOMEPAGE_V2_RESEARCH_PANEL,
     panel_title: str = "",
-    panel_caption: str = "Loaded from the Home page ticker chart interaction.",
+    panel_caption: str = "Loaded from the Home page ticker preview selection.",
     open_button_label: str = "Open Market View",
     clear_button_label: str = "Clear",
+    clear_button_key: str = "",
+    show_header: bool = True,
+    show_container_border: bool = True,
 ) -> None:
     target = str(ticker or "").upper().strip()
     if not target:
         return
     business_filter = _market_business_filter_for_symbol(target)
     narrative_lens = _company_narrative_lens_for_symbol(target)
-    with st.container(border=True):
-        header_cols = st.columns([5.2, 1.8], gap="small")
-        with header_cols[0]:
-            st.subheader(panel_title or f"{target} Background")
-            st.caption(panel_caption)
-            taxonomy_summary = _taxonomy_summary_text(target)
-            if taxonomy_summary:
-                st.caption(taxonomy_summary)
-        with header_cols[1]:
-            if st.button(open_button_label, key=f"home_background_open_market_{target}", use_container_width=True):
-                _open_attention_target(
-                    "Market Opportunity",
-                    {"ticker": target, "market_view": "Markets", "business_filter": business_filter},
-                )
-            if st.button(clear_button_label, key=f"home_background_clear_{target}_{session_key or 'home'}", use_container_width=True):
-                st.session_state.pop(session_key or "home_selected_ticker", None)
-                if clear_mode_key == "homepage_v2_active_panel":
-                    _queue_homepage_v2_active_panel(clear_mode_value)
-                elif clear_mode_key:
-                    st.session_state[clear_mode_key] = clear_mode_value
-                st.rerun()
+    show_open_button = bool(str(open_button_label or "").strip())
+    show_clear_button = bool(str(clear_button_label or "").strip())
+    with st.container(border=show_container_border):
+        if show_header:
+            if show_open_button or show_clear_button:
+                header_cols = st.columns([5.4, 1.4 if show_open_button and show_clear_button else 0.7], gap="small")
+                title_col = header_cols[0]
+                action_col = header_cols[1]
+            else:
+                title_col = st.container()
+                action_col = None
+            with title_col:
+                st.markdown(f"### {panel_title or f'{target} Background'}")
+                if str(panel_caption or "").strip():
+                    st.caption(panel_caption)
+                taxonomy_summary = _taxonomy_summary_text(target)
+                if taxonomy_summary:
+                    st.caption(taxonomy_summary)
+            if action_col is not None:
+                with action_col:
+                    if show_open_button and st.button(
+                        open_button_label,
+                        key=f"home_background_open_market_{target}",
+                        use_container_width=True,
+                    ):
+                        _open_attention_target(
+                            "Market Opportunity",
+                            {"ticker": target, "market_view": "Markets", "business_filter": business_filter},
+                        )
+                    if show_clear_button and st.button(
+                        clear_button_label,
+                        key=str(clear_button_key or f"home_background_clear_{target}_{session_key or 'home'}").strip(),
+                        use_container_width=True,
+                    ):
+                        st.session_state.pop(session_key or "home_selected_ticker", None)
+                        if clear_mode_key == "homepage_v2_active_panel":
+                            _queue_homepage_v2_active_panel(clear_mode_value)
+                        elif clear_mode_key:
+                            st.session_state[clear_mode_key] = clear_mode_value
+                        st.rerun()
 
         materialized_background: dict[str, object] = {}
         try:
@@ -2960,6 +3355,96 @@ def _select_homepage_v2_bundle(bundle_id: str, symbols: list[str] | None = None)
     st.session_state["homepage_v2_selected_ticker"] = symbol_options[0] if symbol_options else ""
 
 
+def _homepage_v2_surface_key(bundle_id: str, *, index: int, selected: bool) -> str:
+    cleaned = re.sub(r"[^a-zA-Z0-9_]+", "_", str(bundle_id or index).strip())
+    prefix = "homepage_v2_surface_selected" if selected else "homepage_v2_surface_idle"
+    return f"{prefix}_{cleaned}"
+
+
+def _select_homepage_exp_bundle(bundle_id: str, symbols: list[str] | None = None) -> None:
+    st.session_state["homepage_exp_selected_bundle_id"] = str(bundle_id or "").strip()
+    st.session_state["homepage_exp_active_panel"] = HOMEPAGE_V2_RESEARCH_PANEL
+    symbol_options = [str(symbol).upper().strip() for symbol in list(symbols or []) if str(symbol).strip()]
+    current_ticker = str(st.session_state.get("homepage_exp_selected_ticker") or "").upper().strip()
+    if current_ticker and current_ticker in symbol_options:
+        st.session_state["homepage_exp_selected_ticker"] = current_ticker
+        return
+    if symbol_options:
+        st.session_state["homepage_exp_selected_ticker"] = symbol_options[0]
+
+
+def _open_homepage_exp_ticker(symbol: str, bundle_id: str = "") -> None:
+    cleaned_symbol = str(symbol or "").upper().strip()
+    cleaned_bundle_id = str(bundle_id or "").strip()
+    if not cleaned_symbol:
+        return
+    if cleaned_bundle_id:
+        st.session_state["homepage_exp_selected_bundle_id"] = cleaned_bundle_id
+    st.session_state["homepage_exp_selected_ticker"] = cleaned_symbol
+    st.session_state["homepage_exp_active_panel"] = HOMEPAGE_V2_COMPANY_PANEL
+
+
+def _homepage_exp_surface_key(bundle_id: str, *, index: int, state: str = "idle") -> str:
+    cleaned = re.sub(r"[^a-zA-Z0-9_]+", "_", str(bundle_id or index).strip())
+    if state == "selected_company":
+        prefix = "homepage_exp_surface_selected_company"
+    elif state == "selected_research":
+        prefix = "homepage_exp_surface_selected_research"
+    else:
+        prefix = "homepage_exp_surface_idle"
+    return f"{prefix}_{cleaned}"
+
+
+def _render_homepage_exp_rail_header(
+    title: str,
+    *,
+    caption: str = "",
+    clear_button_label: str = "",
+    clear_button_key: str = "",
+    clear_session_key: str = "",
+    clear_mode_key: str = "",
+    clear_mode_value: str = HOMEPAGE_V2_RESEARCH_PANEL,
+) -> None:
+    cleaned_title = str(title or "").strip()
+    cleaned_caption = str(caption or "").strip()
+    if not cleaned_title:
+        return
+    if not str(clear_button_label or "").strip():
+        st.markdown(
+            f"<div class='sn-rail-title'>{html.escape(cleaned_title)}</div>",
+            unsafe_allow_html=True,
+        )
+        if cleaned_caption:
+            st.markdown(
+                f"<div class='sn-rail-caption'>{html.escape(cleaned_caption)}</div>",
+                unsafe_allow_html=True,
+            )
+        return
+    header_cols = st.columns([8.8, 0.65], gap="small")
+    with header_cols[0]:
+        st.markdown(
+            f"<div class='sn-rail-title'>{html.escape(cleaned_title)}</div>",
+            unsafe_allow_html=True,
+        )
+        if cleaned_caption:
+            st.markdown(
+                f"<div class='sn-rail-caption'>{html.escape(cleaned_caption)}</div>",
+                unsafe_allow_html=True,
+            )
+    with header_cols[1]:
+        if st.button(
+            clear_button_label,
+            key=str(clear_button_key or f"homepage_exp_rail_clear_{cleaned_title}").strip(),
+            use_container_width=True,
+        ):
+            st.session_state.pop(clear_session_key or "homepage_exp_selected_ticker", None)
+            if clear_mode_key == "homepage_v2_active_panel":
+                _queue_homepage_v2_active_panel(clear_mode_value)
+            elif clear_mode_key:
+                st.session_state[clear_mode_key] = clear_mode_value
+            st.rerun()
+
+
 @st.fragment
 def _render_homepage_v2_story_fragment(
     cfg: AppConfig,
@@ -2999,7 +3484,7 @@ def _render_homepage_v2_story_fragment(
     main_cols = st.columns([1.45, 1.05], gap="large")
     with main_cols[0]:
         st.subheader("Narrative Thread")
-        st.caption("Each beat stays compact. Open research in the rail, or inspect any ticker chart to switch the rail into company background.")
+        st.caption("Each beat stays compact. Choose any headline to load retained research in the rail, or choose any ticker preview to switch the rail into company background.")
         for index, beat in enumerate(beats):
             beat_sentence = str(beat.get("sentence") or "").strip()
             bundle_id = str(beat.get("bundle_id") or "").strip()
@@ -3014,21 +3499,23 @@ def _render_homepage_v2_story_fragment(
             ]
             is_selected = bool(bundle_id) and bundle_id == selected_bundle_id and active_panel == HOMEPAGE_V2_RESEARCH_PANEL
             with st.container(border=True):
-                header_cols = st.columns([5.0, 1.6], gap="small")
-                with header_cols[0]:
-                    st.markdown(f"##### {index + 1}. {beat_sentence}")
-                    meta = [item for item in [beat_kind, f"{len(beat_symbols)} symbols" if beat_symbols else ""] if item]
-                    if meta:
-                        st.caption(" | ".join(meta))
-                with header_cols[1]:
+                if bundle_id:
                     st.button(
-                        "Research selected" if is_selected else "Open research",
-                        key=f"homepage_v2_select_{bundle_id or index}",
+                        f"{index + 1}. {beat_sentence}",
+                        key=_homepage_v2_surface_key(bundle_id, index=index, selected=is_selected),
                         use_container_width=True,
-                        disabled=is_selected or not bundle_id,
+                        type="tertiary",
+                        help="Load retained research for this beat in the drilldown rail.",
                         on_click=_select_homepage_v2_bundle,
                         args=(bundle_id, list(beat_symbols)),
                     )
+                else:
+                    st.markdown(f"##### {index + 1}. {beat_sentence}")
+                meta = [item for item in [beat_kind, f"{len(beat_symbols)} symbols" if beat_symbols else ""] if item]
+                if is_selected:
+                    meta.append("In rail")
+                if meta:
+                    st.caption(" | ".join(meta))
                 if beat_summary:
                     st.write(beat_summary)
                 if beat_symbols:
@@ -3060,7 +3547,7 @@ def _render_homepage_v2_story_fragment(
             active_panel = str(st.session_state.get("homepage_v2_active_panel") or HOMEPAGE_V2_RESEARCH_PANEL).strip()
             if active_panel == HOMEPAGE_V2_COMPANY_PANEL:
                 if not selected_ticker:
-                    st.info("Inspect a ticker from the narrative thread to load company background here.")
+                    st.info("Choose a ticker preview from the narrative thread to load company background here.")
                 else:
                     _render_home_ticker_background_panel(
                         cfg,
@@ -3070,7 +3557,7 @@ def _render_homepage_v2_story_fragment(
                         clear_mode_key="homepage_v2_active_panel",
                         clear_mode_value=HOMEPAGE_V2_RESEARCH_PANEL,
                         panel_title=f"{selected_ticker} Company Background",
-                        panel_caption="Loaded from the narrative rail ticker inspect action.",
+                        panel_caption="Loaded from the narrative rail ticker preview selection.",
                         clear_button_label="Close",
                     )
             elif not selected_bundle_id:
@@ -3104,6 +3591,156 @@ def _render_homepage_v2_story_fragment(
                 )
 
 
+@st.fragment
+def _render_homepage_exp_story_fragment(
+    cfg: AppConfig,
+    beats: list[dict[str, object]],
+    *,
+    run_token: str,
+    force_data_refresh: bool,
+) -> None:
+    active_run_token = str(run_token or "").strip()
+    previous_run_token = str(st.session_state.get("homepage_exp_bundle_run_token") or "").strip()
+    if active_run_token and previous_run_token and active_run_token != previous_run_token:
+        stale_keys = [key for key in st.session_state.keys() if str(key).startswith("attention_bundle_cache_")]
+        for key in stale_keys:
+            st.session_state.pop(key, None)
+    st.session_state["homepage_exp_bundle_run_token"] = active_run_token
+
+    selection_state = normalize_homepage_v2_detail_state(
+        beats,
+        selected_bundle_id=str(st.session_state.get("homepage_exp_selected_bundle_id") or "").strip(),
+        selected_ticker=str(st.session_state.get("homepage_exp_selected_ticker") or "").strip(),
+        active_panel=str(st.session_state.get("homepage_exp_active_panel") or "").strip(),
+    )
+    selected_bundle_id = str(selection_state.get("selected_bundle_id") or "").strip()
+    selected_ticker = str(selection_state.get("selected_ticker") or "").upper().strip()
+    active_panel = str(selection_state.get("active_panel") or HOMEPAGE_V2_RESEARCH_PANEL).strip()
+    st.session_state["homepage_exp_selected_bundle_id"] = selected_bundle_id
+    st.session_state["homepage_exp_selected_ticker"] = selected_ticker
+    st.session_state["homepage_exp_active_panel"] = active_panel
+
+    bundle_symbol_lookup = homepage_v2_bundle_symbol_lookup(beats)
+    beat_lookup = {
+        str(beat.get("bundle_id") or "").strip(): beat
+        for beat in beats
+        if str((beat or {}).get("bundle_id") or "").strip()
+    }
+    selected_beat = beat_lookup.get(selected_bundle_id, {})
+
+    main_cols = st.columns([1.45, 1.05], gap="large")
+    with main_cols[0]:
+        for index, beat in enumerate(beats):
+            beat_sentence = str(beat.get("sentence") or "").strip()
+            bundle_id = str(beat.get("bundle_id") or "").strip()
+            if not beat_sentence:
+                continue
+            beat_summary = str(beat.get("summary") or "").strip()
+            beat_kind = str(beat.get("kind") or "").replace("_", " ").title().strip()
+            beat_symbols = bundle_symbol_lookup.get(bundle_id) or [
+                str(symbol).upper().strip()
+                for symbol in list(beat.get("symbols") or [])
+                if str(symbol).strip()
+            ]
+            is_selected = bool(bundle_id) and bundle_id == selected_bundle_id
+            company_focus = (
+                active_panel == HOMEPAGE_V2_COMPANY_PANEL
+                and is_selected
+                and bool(selected_ticker)
+                and selected_ticker in beat_symbols
+            )
+            surface_state = "selected_company" if company_focus else "selected_research" if is_selected else "idle"
+            with st.container(border=True):
+                if bundle_id:
+                    st.button(
+                        f"{index + 1}. {beat_sentence}",
+                        key=_homepage_exp_surface_key(bundle_id, index=index, state=surface_state),
+                        use_container_width=True,
+                        type="tertiary",
+                        on_click=_select_homepage_exp_bundle,
+                        args=(bundle_id, list(beat_symbols)),
+                    )
+                else:
+                    st.markdown(f"##### {index + 1}. {beat_sentence}")
+                meta = [item for item in [beat_kind, f"{len(beat_symbols)} symbols" if beat_symbols else ""] if item]
+                if meta:
+                    st.caption(" | ".join(meta))
+                if beat_summary:
+                    st.write(beat_summary)
+                if beat_symbols:
+                    _render_ticker_snapshot_table(
+                        cfg,
+                        [{"symbol": symbol} for symbol in beat_symbols[:8] if str(symbol).strip()],
+                        force_refresh=force_data_refresh,
+                        show_header=True,
+                        click_target="home_exp",
+                        key_prefix=f"homepage_exp_beat_{bundle_id or index}_symbols",
+                        click_bundle_id=bundle_id,
+                        allow_live_profile_fallback=False,
+                    )
+
+    with main_cols[1]:
+        if active_panel == HOMEPAGE_V2_COMPANY_PANEL:
+            with st.container(border=True):
+                if not selected_ticker:
+                    st.info("Select a ticker to load company background.")
+                else:
+                    _render_homepage_exp_rail_header(
+                        f"{selected_ticker} Background",
+                        clear_button_label="X",
+                        clear_button_key=f"homepage_exp_close_{selected_ticker}",
+                        clear_session_key="homepage_exp_selected_ticker",
+                        clear_mode_key="homepage_exp_active_panel",
+                        clear_mode_value=HOMEPAGE_V2_RESEARCH_PANEL,
+                    )
+                    _render_home_ticker_background_panel(
+                        cfg,
+                        selected_ticker,
+                        force_data_refresh=force_data_refresh,
+                        session_key="homepage_exp_selected_ticker",
+                        clear_mode_key="homepage_exp_active_panel",
+                        clear_mode_value=HOMEPAGE_V2_RESEARCH_PANEL,
+                        panel_title="",
+                        panel_caption="",
+                        open_button_label="",
+                        clear_button_label="",
+                        clear_button_key="",
+                        show_header=False,
+                        show_container_border=False,
+                    )
+        elif not selected_bundle_id:
+            with st.container(border=True):
+                st.info("Select a beat to load retained research.")
+        else:
+            if _has_cached_attention_bundle(selected_bundle_id, run_token=active_run_token) and not force_data_refresh:
+                bundle = _load_attention_research_bundle_session_cached(
+                    cfg,
+                    selected_bundle_id,
+                    run_token=active_run_token,
+                    force_refresh=False,
+                )
+            else:
+                with _inline_loading_banner(
+                    "Loading research",
+                    "Pulling the retained evidence, price context, and linked symbols for this beat.",
+                ):
+                    bundle = _load_attention_research_bundle_session_cached(
+                        cfg,
+                        selected_bundle_id,
+                        run_token=active_run_token,
+                        force_refresh=force_data_refresh,
+                    )
+            fallback_item = selected_beat if isinstance(selected_beat, dict) else {}
+            title = _attention_bundle_title(bundle, fallback=fallback_item)
+            with st.container(border=True):
+                _render_homepage_exp_rail_header(title)
+                _render_attention_research_bundle_panel(
+                    bundle,
+                    ticker_click_target="home_exp",
+                    ticker_table_key_prefix=f"homepage_exp_bundle_{selected_bundle_id or 'selected'}",
+                )
+
+
 def _render_homepage_v2_graph_banner(home_payload: dict[str, object]) -> None:
     homepage_graph = dict(home_payload.get("homepage_graph") or {}) if isinstance(home_payload, dict) else {}
     figure_json = homepage_graph.get("figure")
@@ -3121,39 +3758,10 @@ def _render_homepage_v2_graph_banner(home_payload: dict[str, object]) -> None:
         )
 
 
-def _render_homepage_v2(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_refresh: bool) -> None:
-    header_cols = st.columns([4.5, 1.5])
-    with header_cols[0]:
-        _render_page_intro(
-            "Narrative Home",
-            APP_BRAND_NAME,
-            "A calm daily market briefing built from the latest event tape, primary-source research, and retained company context.",
-        )
-    with header_cols[1]:
-        force_data_refresh = force_data_refresh or _section_refresh_button(
-            "homepage_v2_refresh",
-            source="attention",
-            label="Run attention refresh job",
-        )
-
-    try:
-        with _inline_loading_banner(
-            "Loading today's narrative home",
-            "Assembling the day-only homepage summary from the latest event tape and research snapshot.",
-        ):
-            home_payload = _load_attention_home_1d_cached(
-                cfg,
-                force_refresh=force_data_refresh,
-            )
-    except Exception as exc:
-        st.warning(f"Could not build Home: {exc}")
-        return
-
+def _build_homepage_narrative_beats(home_payload: dict[str, object]) -> list[dict[str, object]]:
     top_events = list(home_payload.get("top_events") or [])
     must_read = list(home_payload.get("must_read_movers") or [])
     unresolved = list(home_payload.get("unresolved_large_moves") or [])
-    generated_at = pd.to_datetime(home_payload.get("generated_at_utc"), utc=True, errors="coerce")
-    generated_label = generated_at.strftime("%Y-%m-%d %H:%M UTC") if pd.notna(generated_at) else "just now"
 
     beats: list[dict[str, object]] = []
     for event in top_events:
@@ -3192,37 +3800,56 @@ def _render_homepage_v2(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_ref
                 "kind": "unresolved",
             }
         )
+    return beats
 
+
+def _load_homepage_narrative_payload(cfg: AppConfig, *, force_data_refresh: bool) -> dict[str, object] | None:
+    try:
+        with _inline_loading_banner(
+            "Loading today's narrative home",
+            "Assembling the day-only homepage summary from the latest event tape and research snapshot.",
+        ):
+            return _load_attention_home_1d_cached(
+                cfg,
+                force_refresh=force_data_refresh,
+            )
+    except Exception as exc:
+        st.warning(f"Could not build Home: {exc}")
+        return None
+
+
+def _render_homepage_v2(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_refresh: bool) -> None:
+    force_data_refresh = force_data_refresh or _section_refresh_button(
+        "homepage_v2_refresh",
+        source="attention",
+        label="Run attention refresh job",
+    )
+
+    home_payload = _load_homepage_narrative_payload(
+        cfg,
+        force_data_refresh=force_data_refresh,
+    )
+    if not isinstance(home_payload, dict):
+        return
+
+    beats = _build_homepage_narrative_beats(home_payload)
     if not beats:
         st.info("No daily narrative beats were produced from the latest market tape.")
         return
 
-    metric_cols = st.columns(4)
-    with metric_cols[0]:
-        st.metric("Snapshot", generated_label)
-    with metric_cols[1]:
-        st.metric("Narrative Beats", str(len(beats)))
-    with metric_cols[2]:
-        st.metric("Top Events", str(len(top_events)))
-    with metric_cols[3]:
-        st.metric("Mode", "Narrative Home")
-
-    with st.container(border=True):
-        headline = str(top_events[0].get("event_title") or beats[0].get("sentence") or "Top Market Events Today").strip()
-        st.markdown(f"### {headline}")
-        top_event_preview = _attention_home_bundle_preview(
-            top_events[0],
-            bundle={},
-        ) if top_events else {"what_changed_text": "", "why_text": "", "what_else_moved_text": ""}
-        dek = _attention_home_surface_summary(top_event_preview, is_event=True) if top_events else ""
-        if dek:
-            st.write(dek)
-        st.caption(f"Refreshed {generated_label} | disciplined daily brief")
     _render_homepage_v2_graph_banner(home_payload)
-    _render_homepage_v2_story_fragment(
+    _render_homepage_exp_story_fragment(
         cfg,
         beats,
         run_token=str(home_payload.get("run_id") or home_payload.get("generated_at_utc") or "").strip(),
+        force_data_refresh=force_data_refresh,
+    )
+
+
+def _render_homepage_exp(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_refresh: bool) -> None:
+    _render_homepage_v2(
+        cfg,
+        api,
         force_data_refresh=force_data_refresh,
     )
 
@@ -4669,6 +5296,13 @@ if section == "Home":
         force_data_refresh=force_data_refresh,
     )
 
+elif section == HOME_EXP_SECTION:
+    _render_homepage_exp(
+        cfg,
+        api,
+        force_data_refresh=force_data_refresh,
+    )
+
 elif section == "Daily Tape":
     _render_home_attention(cfg, api, force_data_refresh=force_data_refresh)
 
@@ -4989,6 +5623,26 @@ elif section == "FRED Macro":
 
         if not series_index.empty and not observations.empty:
             st.subheader("Series Explorer")
+            explorer_series = series_index.copy()
+            if "title" not in explorer_series.columns:
+                if "source_title" in explorer_series.columns:
+                    explorer_series["title"] = explorer_series["source_title"]
+                else:
+                    explorer_series["title"] = explorer_series.get("series_id", pd.Series(dtype=str)).astype(str)
+            if "notes" not in explorer_series.columns:
+                explorer_series["notes"] = ""
+            if "frequency" not in explorer_series.columns:
+                explorer_series["frequency"] = explorer_series.get(
+                    "frequency_short",
+                    pd.Series(pd.NA, index=explorer_series.index),
+                )
+            if "units" not in explorer_series.columns:
+                explorer_series["units"] = explorer_series.get(
+                    "units_short",
+                    pd.Series(pd.NA, index=explorer_series.index),
+                )
+            if "release_name" not in explorer_series.columns:
+                explorer_series["release_name"] = pd.Series(pd.NA, index=explorer_series.index)
             explorer_cols = st.columns([2, 1])
             with explorer_cols[0]:
                 search_query = st.text_input(
@@ -4997,14 +5651,14 @@ elif section == "FRED Macro":
                     placeholder="cpi, mortgage, delinquency, money stock",
                 ).strip()
             with explorer_cols[1]:
-                release_options = sorted(series_index["release_name"].dropna().astype(str).unique().tolist())
+                release_options = sorted(explorer_series["release_name"].dropna().astype(str).unique().tolist())
                 selected_release_names = st.multiselect(
                     "Filter releases",
                     release_options,
                     key="fred_release_filter",
                 )
 
-            filtered_series = series_index.copy()
+            filtered_series = explorer_series.copy()
             if selected_release_names:
                 filtered_series = filtered_series[filtered_series["release_name"].isin(selected_release_names)]
             if search_query:

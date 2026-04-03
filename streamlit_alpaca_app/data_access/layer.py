@@ -2065,16 +2065,42 @@ class DataAccessLayer:
             summary = frames["fred_summary"]
             observations = frames["fred_observations"]
             if not summary.empty and not observations.empty:
-                payload = build_fred_dashboard_from_pipeline(summary, observations, years)
+                optional_frames: dict[str, pd.DataFrame] = {}
+                optional_details: dict[str, dict[str, Any]] = {}
+                for dataset_name in ("fred_series_index", "fred_release_index"):
+                    materialized_optional = self._try_pipeline_frame(dataset_name, force_refresh=force_refresh)
+                    if materialized_optional is None:
+                        continue
+                    frame, dataset_details = materialized_optional
+                    optional_frames[dataset_name] = frame
+                    optional_details[dataset_name] = dataset_details
+
+                payload = build_fred_dashboard_from_pipeline(
+                    summary,
+                    observations,
+                    years,
+                    series_index=optional_frames.get("fred_series_index"),
+                    release_index=optional_frames.get("fred_release_index"),
+                )
+                datasets = ["fred_summary", "fred_observations"]
+                if "fred_series_index" in optional_frames:
+                    datasets.append("fred_series_index")
+                if "fred_release_index" in optional_frames:
+                    datasets.append("fred_release_index")
+                details_payload: dict[str, Any] = {
+                    "summary": details["fred_summary"],
+                    "observations": details["fred_observations"],
+                    "years": years,
+                }
+                if "fred_series_index" in optional_details:
+                    details_payload["series_index"] = optional_details["fred_series_index"]
+                if "fred_release_index" in optional_details:
+                    details_payload["release_index"] = optional_details["fred_release_index"]
                 return self._resolved(
                     payload,
                     mode="materialized",
-                    datasets=("fred_summary", "fred_observations"),
-                    details={
-                        "summary": details["fred_summary"],
-                        "observations": details["fred_observations"],
-                        "years": years,
-                    },
+                    datasets=tuple(datasets),
+                    details=details_payload,
                 )
 
         materialized_only = self._materialized_only_result({}, datasets=("fred_summary", "fred_observations"), details={"years": years})

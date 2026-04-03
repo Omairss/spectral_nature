@@ -11,7 +11,7 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from compute.analytics import select_signed_ranked
+from compute.analytics import performance_table, select_signed_ranked
 from compute.fred import build_fred_dashboard_from_pipeline
 from compute.portfolio import (
     build_portfolio_timeseries,
@@ -156,6 +156,9 @@ def test_build_fred_dashboard_from_pipeline_shapes_materialized_payload():
     assert payload["summary"]["series_id"].tolist() == ["CPIAUCSL"]
     assert payload["metadata"]["CPIAUCSL"]["title"] == "Consumer Price Index"
     assert payload["series_data"]["CPIAUCSL"]["value"].tolist() == [310.0, 315.0]
+    assert "release_name" in payload["series_index"].columns
+    assert "frequency" in payload["series_index"].columns
+    assert "units" in payload["series_index"].columns
     assert payload["release_index"]["release_id"].tolist() == [10]
     assert "Inflation" in payload["specs_by_category"]
 
@@ -175,3 +178,23 @@ def test_select_signed_ranked_filters_to_true_gainers_and_losers():
     assert down["symbol"].tolist() == ["DDD", "CCC"]
     assert (up["return_1d_pct"] > 0).all()
     assert (down["return_1d_pct"] < 0).all()
+
+
+def test_performance_table_handles_spy_cumulative_row_without_duplicate_column_selection():
+    frame = pd.DataFrame(
+        {
+            "timestamp": pd.to_datetime(
+                ["2025-01-02", "2025-06-02", "2025-12-31"],
+                utc=True,
+            ),
+            "portfolio": [100.0, 108.0, 121.0],
+            "SPY": [100.0, 106.0, 118.0],
+        }
+    )
+
+    out = performance_table(frame)
+
+    cumulative = out[out["year"] == "Cumulative"].sort_values("entity").reset_index(drop=True)
+
+    assert cumulative["entity"].tolist() == ["SPY", "portfolio"]
+    assert cumulative["annual_return"].notna().all()
