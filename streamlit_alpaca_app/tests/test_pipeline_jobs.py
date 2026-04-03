@@ -117,6 +117,68 @@ def test_run_fred_persists_series_and_release_indexes(monkeypatch):
     assert {"fred_summary", "fred_observations", "fred_series_index", "fred_release_index"}.issubset(set(persisted))
 
 
+def test_run_fred_raises_if_fred_step_fails(monkeypatch):
+    persisted: list[str] = []
+    ctx = JobContext(
+        name="macro-fred-daily",
+        run_id="fred-fail-test-run",
+        asof=datetime(2026, 3, 20, 12, 0, tzinfo=timezone.utc),
+        universe_version="20260320",
+    )
+
+    monkeypatch.setattr("pipeline.jobs.main.load_fred_api_key", lambda: "fred-key")
+    monkeypatch.setattr(
+        "pipeline.jobs.main.load_fred_dashboard",
+        lambda api_key, years: (_ for _ in ()).throw(RuntimeError("simulated fred failure")),
+    )
+    monkeypatch.setattr(
+        "pipeline.jobs.main._build_treasury_yield_snapshots",
+        lambda asof_time_utc: (pd.DataFrame(), pd.DataFrame(), pd.DataFrame()),
+    )
+    monkeypatch.setattr("pipeline.jobs.main._persist_dataset", lambda dataset_name, frame, ctx, conn: persisted.append(dataset_name))
+    monkeypatch.setattr("pipeline.jobs.main._job_progress", lambda *args, **kwargs: None)
+
+    try:
+        run_fred(ctx, conn=object())
+        raised = False
+    except RuntimeError as exc:
+        raised = True
+        assert "FRED preload failed" in str(exc)
+
+    assert raised
+    assert {"yield_curve_observations", "yield_curve_summary", "yield_curve_facts_1d"}.issubset(set(persisted))
+    assert "fred_summary" not in persisted
+
+
+def test_run_fred_raises_if_key_missing(monkeypatch):
+    persisted: list[str] = []
+    ctx = JobContext(
+        name="macro-fred-daily",
+        run_id="fred-missing-key-test-run",
+        asof=datetime(2026, 3, 20, 12, 0, tzinfo=timezone.utc),
+        universe_version="20260320",
+    )
+
+    monkeypatch.setattr("pipeline.jobs.main.load_fred_api_key", lambda: "")
+    monkeypatch.setattr(
+        "pipeline.jobs.main._build_treasury_yield_snapshots",
+        lambda asof_time_utc: (pd.DataFrame(), pd.DataFrame(), pd.DataFrame()),
+    )
+    monkeypatch.setattr("pipeline.jobs.main._persist_dataset", lambda dataset_name, frame, ctx, conn: persisted.append(dataset_name))
+    monkeypatch.setattr("pipeline.jobs.main._job_progress", lambda *args, **kwargs: None)
+
+    try:
+        run_fred(ctx, conn=object())
+        raised = False
+    except RuntimeError as exc:
+        raised = True
+        assert "FRED key unavailable" in str(exc)
+
+    assert raised
+    assert {"yield_curve_observations", "yield_curve_summary", "yield_curve_facts_1d"}.issubset(set(persisted))
+    assert "fred_summary" not in persisted
+
+
 def test_pipeline_store_lists_attention_datasets_under_commodities():
     commodity_datasets = set(SOURCE_DATASETS["commodities"])
 

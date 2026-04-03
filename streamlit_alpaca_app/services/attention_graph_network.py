@@ -570,7 +570,7 @@ def build_homepage_attention_graph_payload(
     universe_frame: pd.DataFrame | None = None,
     height: int = 320,
     seed: int = 7,
-    label_top_n: int = 8,
+    label_top_n: int = 12,
 ) -> dict[str, Any]:
     if not isinstance(candidate_frame, pd.DataFrame) or candidate_frame.empty:
         return {}
@@ -604,6 +604,7 @@ def build_homepage_attention_graph_payload(
         show_summary=False,
         show_footer=False,
         compact=True,
+        show_component_labels=True,
     )
     return {
         "figure": fig.to_plotly_json(),
@@ -1231,8 +1232,8 @@ def _component_cluster_annotations(
     if not components:
         return []
 
-    max_labels = 4 if compact else 8
-    subcluster_budget = 3 if compact else (8 if len(components) <= 2 else 6)
+    max_labels = 6 if compact else 8
+    subcluster_budget = 4 if compact else (8 if len(components) <= 2 else 6)
     per_component_subcluster_limit = 2 if compact else (4 if len(components) == 1 else 2)
     annotations: list[dict[str, object]] = []
     used_points: list[tuple[float, float]] = []

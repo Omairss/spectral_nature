@@ -4651,7 +4651,8 @@ def test_build_homepage_attention_graph_payload_returns_compact_banner_figure():
     assert payload["summary"]["connected_components"] == 1
     assert figure.layout.showlegend is False
     assert figure.layout.height == 320
-    assert not list(figure.layout.annotations or [])
+    annotation_texts = [str(item.text) for item in list(figure.layout.annotations or [])]
+    assert any(text.startswith("CC1:") for text in annotation_texts)
     assert float(path_trace.marker.opacity) < 0.6
 
 

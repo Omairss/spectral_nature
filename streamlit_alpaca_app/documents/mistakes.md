@@ -34,3 +34,18 @@
 1. For ticker-background fixes, always verify both paths: `force_refresh=true` and `force_refresh=false`.
 2. In container validation, assert provenance datasets for default path include live search datasets when materialized bundle lacks web signal.
 3. Treat stale materialized-vs-on-demand precedence as a first-class regression risk and add explicit tests for it.
+
+## 2026-04-03 - Silent Partial Success in `macro-fred-daily`
+
+### What went wrong
+- The FRED phase in `macro-fred-daily` logged errors but did not fail the job.
+- Treasury yield persistence in the same run made the execution appear successful while FRED datasets stayed stale.
+
+### Impact
+- Monitoring and operators saw `Succeeded` executions despite no fresh FRED snapshots.
+- FRED dashboard data could lag for multiple days without a job-level failure signal.
+
+### Never repeat checklist (mandatory)
+1. For composite jobs, define mandatory source steps and fail the run when they fail.
+2. Do not downgrade mandatory ingest failures to warning-only logs.
+3. Add tests that simulate source failure and assert job failure status propagation.

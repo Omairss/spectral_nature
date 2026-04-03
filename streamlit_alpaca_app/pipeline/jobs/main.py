@@ -1269,6 +1269,7 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
 
 def run_fred(ctx: JobContext, conn: Any | None = None) -> None:
     _job_progress(ctx, conn, stage="starting", message="Starting FRED and Treasury yield preload.", progress_pct=1.0)
+    errors: list[str] = []
     api_key = load_fred_api_key()
     if api_key:
         try:
@@ -1284,9 +1285,17 @@ def run_fred(ctx: JobContext, conn: Any | None = None) -> None:
             _persist_dataset("fred_series_index", series_index, ctx, conn)
             _persist_dataset("fred_release_index", release_index, ctx, conn)
         except FredAPIError as exc:
-            print(f"[error] FRED preload failed: {exc}")
+            message = f"FRED preload failed: {exc}"
+            print(f"[error] {message}")
+            errors.append(message)
+        except Exception as exc:
+            message = f"FRED preload failed: {type(exc).__name__}: {exc}"
+            print(f"[error] {message}")
+            errors.append(message)
     else:
-        print("[warn] FRED key unavailable; skipping FRED preload")
+        message = "FRED key unavailable; skipping FRED preload"
+        print(f"[error] {message}")
+        errors.append(message)
 
     try:
         _job_progress(ctx, conn, stage="treasury_yields", message="Loading Treasury yield datasets.", progress_pct=65.0)
@@ -1295,7 +1304,25 @@ def run_fred(ctx: JobContext, conn: Any | None = None) -> None:
         _persist_dataset("yield_curve_summary", yield_summary, ctx, conn)
         _persist_dataset("yield_curve_facts_1d", yield_facts, ctx, conn)
     except TreasuryYieldError as exc:
-        print(f"[error] Treasury yield preload failed: {exc}")
+        message = f"Treasury yield preload failed: {exc}"
+        print(f"[error] {message}")
+        errors.append(message)
+    except Exception as exc:
+        message = f"Treasury yield preload failed: {type(exc).__name__}: {exc}"
+        print(f"[error] {message}")
+        errors.append(message)
+
+    if errors:
+        error_summary = "; ".join(errors)
+        _job_progress(
+            ctx,
+            conn,
+            stage="failed",
+            message=error_summary[:4000],
+            progress_pct=100.0,
+            status="Failed",
+        )
+        raise RuntimeError(error_summary)
 
 
 def run_commodities(ctx: JobContext, conn: Any | None = None) -> None:

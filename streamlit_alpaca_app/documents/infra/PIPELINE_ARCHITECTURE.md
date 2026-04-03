@@ -27,6 +27,7 @@ This document defines the canonical architecture for cached dashboard reads.
   - Job: `macro-fred-daily`
   - Datasets: `fred_summary`, `fred_observations`, `fred_series_index`, `fred_release_index`
   - Dashboard: FRED Macro
+  - Failure semantics: the job is marked `Failed` if FRED preload fails (or key is missing), even if Treasury yield datasets persist successfully.
 
 - Commodities
   - Job: `commodities-regime`
