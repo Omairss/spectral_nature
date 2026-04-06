@@ -15,9 +15,11 @@ This guide is for new contributors/operators with **no prior project context**.
 ### Core components
 
 - **UI app**: `app.py`
+- **External API app**: `api/main.py` (FastAPI wrapper over `QueryService`)
 - **Compute layer**: `compute/*` (pure transforms and derived-data logic)
 - **Services**: `services/*` (API clients, caching, pipeline store integration, secrets)
 - **Pipeline jobs**: `pipeline/jobs/main.py`
+- **iOS scaffold**: `ios_app/SpectralNatureMVP/*` (SwiftUI client via XcodeGen)
 - **Infra scripts/docs**: `scripts/*`, `infra/*`, `documents/infra/*`
 - **Working plans**: `documents/plans/*` for active refactor, recovery, and implementation notes
 
@@ -100,6 +102,12 @@ source infra/deployment.outputs.env
 
 ```bash
 ./scripts/run_ui_local.sh
+```
+
+Run the API layer for external clients:
+
+```bash
+./scripts/run_api_local.sh
 ```
 
 ---
@@ -209,11 +217,11 @@ Warning:
 
 ### Custom domains and managed TLS
 
-Current Development custom domains are bound on `sn-streamlit-ui-dev` in:
+Current Production custom domains are bound on `sn-streamlit-ui` in:
 
 - Resource group: `sn-pipeline-rg-03130136`
 - Container Apps environment: `sn-pipeline-env`
-- Generated app FQDN: `sn-streamlit-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io`
+- Generated app FQDN: `sn-streamlit-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io`
 
 For Azure Container Apps managed certificates, publish DNS first:
 
@@ -221,7 +229,7 @@ For Azure Container Apps managed certificates, publish DNS first:
   - `A @ -> 172.168.33.46` (the Container Apps environment static IP)
   - `TXT asuid -> <customDomainVerificationId>`
 - Subdomain (`www.torres-cap.com`)
-  - `CNAME www -> sn-streamlit-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io`
+  - `CNAME www -> sn-streamlit-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io`
   - `TXT asuid.www -> <customDomainVerificationId>`
 
 You can fetch the verification ID with:
@@ -229,7 +237,7 @@ You can fetch the verification ID with:
 ```bash
 az containerapp show \
   -g sn-pipeline-rg-03130136 \
-  -n sn-streamlit-ui-dev \
+  -n sn-streamlit-ui \
   --query properties.customDomainVerificationId -o tsv
 ```
 
@@ -238,28 +246,44 @@ Bind the hostnames after DNS is live:
 ```bash
 az containerapp hostname add \
   -g sn-pipeline-rg-03130136 \
-  -n sn-streamlit-ui-dev \
+  -n sn-streamlit-ui \
   --hostname torres-cap.com
 
 az containerapp hostname bind \
   -g sn-pipeline-rg-03130136 \
-  -n sn-streamlit-ui-dev \
+  -n sn-streamlit-ui \
   --environment sn-pipeline-env \
   --hostname torres-cap.com \
   --validation-method HTTP
 
 az containerapp hostname add \
   -g sn-pipeline-rg-03130136 \
-  -n sn-streamlit-ui-dev \
+  -n sn-streamlit-ui \
   --hostname www.torres-cap.com
 
 az containerapp hostname bind \
   -g sn-pipeline-rg-03130136 \
-  -n sn-streamlit-ui-dev \
+  -n sn-streamlit-ui \
   --environment sn-pipeline-env \
   --hostname www.torres-cap.com \
   --validation-method CNAME
 ```
+
+Move ownership from Development to Production (no cert re-issuance needed):
+
+```bash
+az containerapp hostname delete -g sn-pipeline-rg-03130136 -n sn-streamlit-ui-dev --hostname torres-cap.com -y
+az containerapp hostname add    -g sn-pipeline-rg-03130136 -n sn-streamlit-ui     --hostname torres-cap.com
+az containerapp hostname bind   -g sn-pipeline-rg-03130136 -n sn-streamlit-ui --environment sn-pipeline-env \
+  --hostname torres-cap.com --certificate mc-sn-pipeline-en-torres-cap-com-8958
+
+az containerapp hostname delete -g sn-pipeline-rg-03130136 -n sn-streamlit-ui-dev --hostname www.torres-cap.com -y
+az containerapp hostname add    -g sn-pipeline-rg-03130136 -n sn-streamlit-ui     --hostname www.torres-cap.com
+az containerapp hostname bind   -g sn-pipeline-rg-03130136 -n sn-streamlit-ui --environment sn-pipeline-env \
+  --hostname www.torres-cap.com --certificate mc-sn-pipeline-en-www-torres-cap-c-5247
+```
+
+Note: DNS for `torres-cap.com` is managed outside Azure (Google Domains/Cloud DNS nameservers). Keep `CNAME www` aligned to the prod generated FQDN.
 
 ### Email delivery setup
 
@@ -285,7 +309,8 @@ Operational notes:
 - The managed certificate creation step can stay in `Pending` for several minutes before Azure binds it.
 - Apex domains use `HTTP` validation; subdomains use `CNAME` validation.
 - If CAA records exist on the root domain, allow DigiCert or managed certificate issuance can fail.
-- As of `2026-03-20`, `torres-cap.com` and `www.torres-cap.com` both return `HTTP 200` over HTTPS on the Development app.
+- Invite/reset email links are generated from `APP_PUBLIC_BASE_URL`; keep this set to the public domain (`https://torres-cap.com`) instead of the generated Container Apps FQDN.
+- As of `2026-04-05`, `torres-cap.com` and `www.torres-cap.com` both return `HTTP 200` over HTTPS on the Production app.
 
 ---
 

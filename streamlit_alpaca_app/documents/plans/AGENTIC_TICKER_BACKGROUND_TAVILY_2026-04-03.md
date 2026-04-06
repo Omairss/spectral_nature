@@ -234,6 +234,32 @@ Both pass.
   - `tav_cfg=True`
   - `llm_cfg=True`
 
+## 2026-04-03 Update (Company Background Quality)
+
+### Problem
+- Background copy could degrade into template text like:
+  - `... is being tracked here as an individual company narrative inside the market dashboard.`
+- Company names also leaked listing suffixes (`Class A Common Stock`) into background text.
+
+### Changes
+- `services/company.py`
+  - Added company-name normalization to strip listing instrument suffixes.
+  - Replaced the template fallback phrase with:
+    - Wikipedia summary fallback (short extract) when available.
+    - Neutral company fallback (`<name> (<symbol>) is a publicly traded company.`) when no summary is available.
+- `services/attention_ticker_snapshots.py`
+  - Added `company_background_text` field to ticker background snapshot rows.
+- `data_access/layer.py`
+  - Added runtime guard to detect and replace legacy template background text.
+  - Preserves `company_background_text` during symbol-bundle overlay so `Background` can stay company-focused even when `What Happened` is catalyst-focused.
+- `app.py`
+  - `Background` now prefers: `llm_summary` -> `context_story` -> `company_background_text` -> `description`.
+  - `What Happened` now prefers: `llm_headline` -> first summary line -> `description`.
+
+### Verification
+- `pytest -q tests/test_services.py -k "build_company_description_"` -> 4 passed.
+- `pytest -q tests/test_data_access_query_service.py -k "resolve_attention_ticker_background or resolve_attention_research_bundle"` -> 7 passed.
+
 ## 2026-04-03 Update (VSAT Evidence Drop Fix)
 
 ### Problem

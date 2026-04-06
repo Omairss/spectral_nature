@@ -8,6 +8,9 @@ enableXsrfProtection = false
 [browser]
 gatherUsageStats = false
 
+[client]
+toolbarMode = "minimal"
+
 [theme]
 primaryColor = "#a8b8c9"
 backgroundColor = "#0a0d12"

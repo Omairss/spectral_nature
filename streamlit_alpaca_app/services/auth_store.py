@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import json
 import os
 import re
 import uuid
@@ -178,6 +179,14 @@ def _ensure_schema(conn: Any) -> None:
         )
         """,
         f"CREATE UNIQUE INDEX IF NOT EXISTS idx_{schema}_user_sessions_token_hash ON {schema}.user_sessions (session_token_hash)",
+        f"""
+        CREATE TABLE IF NOT EXISTS {schema}.app_settings (
+            key TEXT PRIMARY KEY,
+            value_json JSONB NOT NULL,
+            updated_at TIMESTAMPTZ NOT NULL,
+            updated_by UUID NULL REFERENCES {schema}.users(id) ON DELETE SET NULL
+        )
+        """,
         f"""
         CREATE TABLE IF NOT EXISTS {schema}.capital_requests (
             id UUID PRIMARY KEY,
@@ -1168,14 +1177,154 @@ def list_pending_invites() -> list[dict[str, Any]]:
         conn.close()
 
 
+def delete_pending_invite(*, invite_id: str, deleted_by: str | None = None) -> dict[str, Any]:
+    del deleted_by
+    normalized_id = str(invite_id or "").strip()
+    if not normalized_id:
+        raise ValueError("Invite id is required.")
+    try:
+        invite_uuid = str(uuid.UUID(normalized_id))
+    except Exception:
+        raise ValueError("Invite id is invalid.")
+
+    conn = _db_connect()
+    if conn is None:
+        raise RuntimeError("Authentication store is unavailable.")
+    schema = _schema_name()
+    now = _now_utc()
+    try:
+        with conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    SELECT id, email, role, status, expires_at
+                    FROM {schema}.user_invites
+                    WHERE id = %s::uuid
+                    LIMIT 1
+                    """,
+                    (invite_uuid,),
+                )
+                invite = _fetchone_dict(cursor)
+                if invite is None:
+                    raise ValueError("Invite not found.")
+                if str(invite.get("status") or "").strip().lower() != "pending":
+                    raise ValueError("Invite is no longer pending.")
+
+                cursor.execute(
+                    f"""
+                    UPDATE {schema}.user_invites
+                    SET status = %s, updated_at = %s
+                    WHERE id = %s::uuid
+                      AND status = %s
+                    """,
+                    ("revoked", now, invite_uuid, "pending"),
+                )
+                if int(cursor.rowcount or 0) <= 0:
+                    raise ValueError("Invite is no longer pending.")
+                return {
+                    "id": str(invite.get("id") or invite_uuid),
+                    "email": str(invite.get("email") or ""),
+                    "role": str(invite.get("role") or ""),
+                    "status": "revoked",
+                }
+    finally:
+        conn.close()
+
+
+def get_app_setting(setting_key: str) -> dict[str, Any] | None:
+    normalized_key = str(setting_key or "").strip()
+    if not normalized_key:
+        return None
+    conn = _db_connect()
+    if conn is None:
+        return None
+    schema = _schema_name()
+    try:
+        with conn:
+            _ensure_schema(conn)
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    SELECT key, value_json, updated_at, updated_by
+                    FROM {schema}.app_settings
+                    WHERE key = %s
+                    LIMIT 1
+                    """,
+                    (normalized_key,),
+                )
+                row = _fetchone_dict(cursor)
+        if not row:
+            return None
+        value = row.get("value_json")
+        if isinstance(value, str):
+            try:
+                value = json.loads(value)
+            except Exception:
+                value = None
+        return {
+            "key": str(row.get("key") or ""),
+            "value": value,
+            "updated_at": row.get("updated_at"),
+            "updated_by": str(row.get("updated_by") or ""),
+        }
+    finally:
+        conn.close()
+
+
+def set_app_setting(setting_key: str, value: Any, *, updated_by: str | None = None) -> dict[str, Any]:
+    normalized_key = str(setting_key or "").strip()
+    if not normalized_key:
+        raise ValueError("Setting key is required.")
+    conn = _db_connect()
+    if conn is None:
+        raise RuntimeError("Authentication store is unavailable.")
+    schema = _schema_name()
+    now = _now_utc()
+    serialized_value = json.dumps(value if value is not None else {})
+    updated_by_value = str(updated_by or "").strip()
+    try:
+        with conn:
+            _ensure_schema(conn)
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    INSERT INTO {schema}.app_settings (key, value_json, updated_at, updated_by)
+                    VALUES (%s, %s::jsonb, %s, NULLIF(%s, '')::uuid)
+                    ON CONFLICT (key) DO UPDATE SET
+                        value_json = EXCLUDED.value_json,
+                        updated_at = EXCLUDED.updated_at,
+                        updated_by = EXCLUDED.updated_by
+                    RETURNING key, value_json, updated_at, updated_by
+                    """,
+                    (normalized_key, serialized_value, now, updated_by_value),
+                )
+                row = _fetchone_dict(cursor) or {}
+        value_out = row.get("value_json")
+        if isinstance(value_out, str):
+            try:
+                value_out = json.loads(value_out)
+            except Exception:
+                value_out = None
+        return {
+            "key": str(row.get("key") or normalized_key),
+            "value": value_out,
+            "updated_at": row.get("updated_at") or now,
+            "updated_by": str(row.get("updated_by") or ""),
+        }
+    finally:
+        conn.close()
+
+
 __all__ = [
     "accept_invite",
     "auth_store_configured",
     "bootstrap_admin",
     "clear_failed_login",
+    "delete_pending_invite",
     "create_session",
     "ensure_auth_schema",
     "get_active_user_by_email",
+    "get_app_setting",
     "get_pending_invite_by_token_hash",
     "get_user_context_for_session",
     "get_user_for_login",
@@ -1185,6 +1334,7 @@ __all__ = [
     "list_pending_invites",
     "list_users",
     "record_failed_login",
+    "set_app_setting",
     "reset_password",
     "revoke_session",
     "revoke_user_sessions",

@@ -2813,6 +2813,23 @@ def test_build_company_description_omits_empty_watch_clause_for_unmapped_busines
     assert "commodity prices" not in description.lower()
 
 
+def test_build_company_description_uses_clean_name_and_avoids_dashboard_template(monkeypatch):
+    monkeypatch.setattr(company_module, "_wikipedia_company_background", lambda company_name: "")
+    monkeypatch.setattr("services.company.narrative_business_lens_for_symbol", lambda symbol: "")
+
+    description = build_company_description(
+        "SBAC",
+        {"name": "SBA Communications Corporation - Class A Common Stock"},
+        {},
+        {},
+        news_payload={"articles": pd.DataFrame()},
+    )
+
+    assert "class a common stock" not in description.lower()
+    assert "tracked here as an individual company narrative" not in description.lower()
+    assert "SBA Communications Corporation (SBAC)" in description
+
+
 def test_load_recent_news_and_summary_use_recent_articles():
     payload = load_recent_news(FakeCompanyAPI(), "AAPL", days=14, limit=4)
     summary = summarize_recent_news("AAPL", payload)

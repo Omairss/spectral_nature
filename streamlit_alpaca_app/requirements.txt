@@ -12,3 +12,5 @@ azure-keyvault-secrets>=4.8
 azure-storage-blob>=12.23
 pyarrow>=17.0
 psycopg[binary]>=3.2
+fastapi>=0.112
+uvicorn>=0.30

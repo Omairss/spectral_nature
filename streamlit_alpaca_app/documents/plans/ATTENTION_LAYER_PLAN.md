@@ -40,15 +40,17 @@ Inputs already available:
 
 Initial peer definitions:
 
-- business lenses from `services/market.py`
-- benchmark linkage from `SPY`
+- taxonomy-derived peer groups from `services/entity_taxonomy.py`
+- benchmark linkage from `SPY` (equities) and commodity benchmark defaults where applicable
 - portfolio holdings as a relevance overlay
 
 Initial horizons:
 
 - `1d`
 - `1w`
-- `1m`
+- `1mo`
+- `3mo`
+- `1yr`
 
 ## Target Architecture
 
@@ -90,9 +92,9 @@ Columns:
 Notes:
 
 - `entity_type` is `symbol` in Phase 1
-- `peer_group_type` starts as `business_lens`
+- `peer_group_type` starts as taxonomy-backed labels (`industry`, `sector`, `business_role`, fallback `market`)
 - `membership_weight` defaults to `1.0`
-- `source` should record `business_focus_universe_v1`
+- `source` should record `entity_taxonomy_v1`
 
 ### 2) `price_expectations`
 
@@ -195,8 +197,11 @@ Allowed `anomaly_type` values in Phase 1:
 - `momentum_deceleration`
 - `correlation_break`
 - `decoupling`
-- `technical_regime_shift`
 - `news_confirmed_move`
+
+Note:
+
+- `technical_regime_shift` is reserved in action copy logic but is not emitted by the current anomaly classifier.
 
 Allowed `status` values:
 
@@ -212,12 +217,19 @@ Scoring guidance:
 - `confidence_score`: whether multiple signals agree
 - `attention_score`: final ranking score shown in feed
 
-Recommended Phase 1 formula:
+Current runtime formula (`compute/anomalies.py`):
 
 - `severity_score = min(abs(residual_zscore) / 4.0, 1.0) * 100`
-- `impact_score = weighted(portfolio_exposure, liquidity proxy, peer breadth, move size)`
-- `relevance_score = 100 if symbol is held, else 70 if in active lens, else 40`
-- `confidence_score = weighted(technical confirmation, peer confirmation, news confirmation, persistence)`
+- `move_component = min(abs(observed_value) / 10.0, 1.0) * 100`
+- `residual_component = min(abs(residual_value) / 8.0, 1.0) * 100`
+- `exposure_component = min(max(portfolio_exposure_weight, 0.0), 1.0) * 100`
+- `impact_score = 0.45 * move_component + 0.35 * residual_component + 0.20 * exposure_component`
+- `relevance_score = 100 if symbol is held, else 70 if peer_group_name != "All Market", else 40`
+- `horizon_persistence = {1d:35, 1w:55, 1mo:70, 3mo:82.5, 1yr:92.5}`
+- `persistence_score = min(horizon_persistence + max(abs(residual_zscore) - threshold_for_horizon, 0) * 10 + persistence_bonus, 100)`
+- `news_confirmation = min(linked_news_count * 25, 100)`
+- `technical_confirmation = 100 for supportive regime/direction combos, 65 when regime exists but is not strongly aligned, 40 when regime is missing`
+- `confidence_score = 0.35 * technical_confirmation + 0.35 * news_confirmation + 0.30 * persistence_score`
 - `attention_score = 0.40 * severity_score + 0.25 * impact_score + 0.20 * relevance_score + 0.15 * confidence_score`
 
 ### 4) `attention_feed`
@@ -375,17 +387,19 @@ import pandas as pd
 @dataclass(frozen=True)
 class ExpectationConfig:
     residual_lookback_days: int = 252
-    horizons: tuple[str, ...] = ("1d", "1w", "1m")
+    horizons: tuple[str, ...] = ("1d", "1w", "1mo", "3mo", "1yr")
     trend_weight: float = 0.40
     peer_weight: float = 0.35
     benchmark_weight: float = 0.25
-    min_history_rows: int = 63
+    min_history_rows: int = 21
     schema_version: str = "v1"
 
 
 @dataclass(frozen=True)
 class AttentionConfig:
     residual_zscore_threshold: float = 2.0
+    residual_zscore_thresholds: dict[str, float] | None = None
+    min_attention_score: float = 0.0
     high_priority_threshold: float = 75.0
     news_lookback_days: int = 3
     persistence_periods: int = 2

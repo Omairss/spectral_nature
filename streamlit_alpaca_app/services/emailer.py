@@ -14,6 +14,14 @@ class EmailDeliveryResult:
     message: str
 
 
+@dataclass(frozen=True)
+class EmailInlineImage:
+    content_id: str
+    content: bytes
+    mime_type: str = "image/png"
+    filename: str = ""
+
+
 def _smtp_host() -> str:
     return (os.getenv("APP_SMTP_HOST") or os.getenv("SMTP_HOST") or "").strip()
 
@@ -70,6 +78,7 @@ def send_email(
     subject: str,
     text_body: str,
     html_body: str | None = None,
+    inline_images: list[EmailInlineImage] | None = None,
 ) -> EmailDeliveryResult:
     recipient = str(to_address or "").strip()
     sender = _from_address()
@@ -85,6 +94,25 @@ def send_email(
     message.set_content(text_body or "")
     if html_body:
         message.add_alternative(html_body, subtype="html")
+        html_part = message.get_payload()[-1]
+        for image in inline_images or []:
+            content_id = str(image.content_id or "").strip()
+            if not content_id:
+                continue
+            mime_type = str(image.mime_type or "image/png").strip().lower()
+            if "/" in mime_type:
+                maintype, subtype = mime_type.split("/", 1)
+            else:
+                maintype, subtype = "image", "png"
+            filename = str(image.filename or "").strip() or f"{content_id}.{subtype}"
+            html_part.add_related(
+                image.content,
+                maintype=maintype,
+                subtype=subtype,
+                cid=f"<{content_id}>",
+                filename=filename,
+                disposition="inline",
+            )
 
     host = _smtp_host()
     port = _smtp_port()
@@ -111,6 +139,7 @@ def send_email(
 
 
 __all__ = [
+    "EmailInlineImage",
     "EmailDeliveryResult",
     "email_delivery_configured",
     "send_email",

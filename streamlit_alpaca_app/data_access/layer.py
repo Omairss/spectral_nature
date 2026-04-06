@@ -37,7 +37,7 @@ from services.attention_home_1d import (
     build_attention_home_1d,
     shortlist_attention_symbols_1d,
 )
-from services.company import load_asset_metadata, load_recent_news
+from services.company import build_company_description, load_asset_metadata, load_recent_news
 from services.config import AppConfig, load_config
 from services.data_cache import (
     cached_frame,
@@ -235,6 +235,42 @@ def _bundle_description_text(bundle: dict[str, Any], *, fallback: str = "") -> s
     return _coerce_text(fallback)
 
 
+def _is_template_company_background(text: str) -> bool:
+    return TEMPLATE_COMPANY_BACKGROUND_PHRASE in _coerce_text(text).lower()
+
+
+def _ensure_company_background_text(
+    symbol: str,
+    *,
+    company_name: str = "",
+    current_text: str = "",
+) -> str:
+    existing = _coerce_text(current_text)
+    if existing and not _is_template_company_background(existing):
+        return existing
+    target = _coerce_text(symbol).upper()
+    name = _coerce_text(company_name)
+    generated = ""
+    try:
+        generated = build_company_description(
+            target,
+            {"name": name or target},
+            {},
+            {},
+            news_payload={"articles": pd.DataFrame()},
+        )
+    except Exception:
+        generated = ""
+    generated = _coerce_text(generated)
+    if generated and not _is_template_company_background(generated):
+        return generated
+    if name:
+        return f"{name} ({target}) is a publicly traded company."
+    if target:
+        return f"{target} is a publicly traded company."
+    return "Company background is unavailable in the latest snapshot."
+
+
 def _bundle_web_signal_score(bundle: dict[str, Any] | None) -> int:
     payload = bundle if isinstance(bundle, dict) else {}
     if not payload:
@@ -307,6 +343,11 @@ def _overlay_background_payload_from_bundle(
     has_tavily = any(label.lower() == "tavily" for label in provider_labels)
 
     base_description_text = _coerce_text(payload.get("description_text"))
+    company_background_text = _ensure_company_background_text(
+        normalized_symbol,
+        company_name=_coerce_text(payload.get("company_name")),
+        current_text=_coerce_text(payload.get("company_background_text")) or base_description_text,
+    )
     bundle_description_text = _bundle_description_text(bundle, fallback="")
     base_summary_lines = _dedupe_text_items([_coerce_text(item) for item in list(payload.get("news_summary_lines") or [])], limit=5)
     bundle_summary_lines = _bundle_news_summary_lines(bundle, bundle_recent_headlines)
@@ -329,6 +370,7 @@ def _overlay_background_payload_from_bundle(
     payload.update(
         {
             "symbol": normalized_symbol,
+            "company_background_text": company_background_text,
             "description_text": description_text,
             "news_summary_lines": summary_lines,
             "news_summary_lines_json": json.dumps(summary_lines, ensure_ascii=False, default=str),
@@ -370,6 +412,7 @@ ATTENTION_HOME_SNAPSHOT_DATASETS = ("attention_home_snapshots_1d", "attention_ho
 ATTENTION_BUNDLE_SNAPSHOT_DATASETS = ("attention_bundle_snapshots", "attention_research_bundles")
 ATTENTION_TICKER_SNAPSHOT_DATASETS = ("attention_ticker_snapshots_1d",)
 ATTENTION_TICKER_BACKGROUND_DATASETS = ("attention_ticker_background_snapshots",)
+TEMPLATE_COMPANY_BACKGROUND_PHRASE = "is being tracked here as an individual company narrative inside the market dashboard"
 ATTENTION_TRACE_DATASETS = (
     "attention_candidates_1d",
     "attention_research_plans",
@@ -2191,6 +2234,13 @@ class DataAccessLayer:
                 materialized_mode = "materialized"
                 materialized_datasets = (dataset_name,)
                 materialized_details = {**details, "ticker": target}
+        if materialized_payload:
+            materialized_payload["company_background_text"] = _ensure_company_background_text(
+                target,
+                company_name=_coerce_text(materialized_payload.get("company_name")),
+                current_text=_coerce_text(materialized_payload.get("company_background_text"))
+                or _coerce_text(materialized_payload.get("description_text")),
+            )
 
         if self.materialized_only:
             if materialized_payload:

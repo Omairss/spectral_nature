@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import base64
 from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
+import hashlib
 import html
 import importlib
 import json
@@ -110,17 +112,13 @@ except ModuleNotFoundError as exc:
 
 APP_ROOT = Path(__file__).resolve().parent
 BRANDING_ROOT = APP_ROOT / "branding" / "Logo Files"
-APP_FAVICON_PATH = BRANDING_ROOT / "Favicons" / "browser.png"
+APP_FAVICON_PATH = BRANDING_ROOT / "Favicons" / "iPhone.png"
 APP_SIDEBAR_LOGO_PATH = BRANDING_ROOT / "png" / "White logo - no background.png"
 
 
 def _load_page_icon() -> object:
     if APP_FAVICON_PATH.is_file():
-        try:
-            with Image.open(APP_FAVICON_PATH) as icon_image:
-                return icon_image.copy()
-        except OSError:
-            pass
+        return str(APP_FAVICON_PATH)
     return "chart_with_upwards_trend"
 
 
@@ -128,6 +126,11 @@ st.set_page_config(
     page_title="Spectral Nature",
     page_icon=_load_page_icon(),
     layout="wide",
+    menu_items={
+        "Get help": None,
+        "Report a Bug": None,
+        "About": None,
+    },
 )
 
 LOGGER = logging.getLogger("spectral_nature.ui_app")
@@ -211,6 +214,201 @@ APP_BRAND_KICKER = "Torres Capital"
 APP_BRAND_SUBTITLE = "Research, portfolio context, and market structure in one refined workspace."
 _APP_SHELL_STYLE_VERSION = "2026-04-03-brand-assets-v4"
 _INLINE_LOADING_STYLE_VERSION = "2026-04-02-inline-loading-v1"
+_INVITE_THEME_WIDGET_PREFIX = "_access_invite_theme_"
+_INVITE_TEMPLATE_INIT_KEY = "_access_invite_template_editor_initialized"
+_INVITE_TEMPLATE_SELECTED_ID_KEY = "_access_invite_template_selected_id"
+_INVITE_TEMPLATE_LOADED_ID_KEY = "_access_invite_template_loaded_id"
+_INVITE_TEMPLATE_NAME_KEY = "_access_invite_template_name"
+_INVITE_TEMPLATE_LOGO_VARIANT_KEY = "_access_invite_template_logo_variant"
+_INVITE_TEMPLATE_CHART_SOURCE_KEY = "_access_invite_template_chart_source"
+_INVITE_TEMPLATE_CHART_BUILTIN_KEY = "_access_invite_template_chart_builtin"
+_INVITE_TEMPLATE_CHART_UPLOAD_FILENAME_KEY = "_access_invite_template_chart_upload_filename"
+_INVITE_TEMPLATE_CHART_UPLOAD_MIME_KEY = "_access_invite_template_chart_upload_mime"
+_INVITE_TEMPLATE_CHART_UPLOAD_DATA_KEY = "_access_invite_template_chart_upload_data_b64"
+_INVITE_TEMPLATE_CHART_UPLOAD_DIGEST_KEY = "_access_invite_template_chart_upload_digest"
+_INVITE_TEMPLATE_UPLOAD_NONCE_KEY = "_access_invite_template_upload_nonce"
+_INVITE_TEMPLATE_NOTICE_KEY = "_access_invite_template_notice"
+_INVITE_TEMPLATE_PENDING_LOAD_KEY = "_access_invite_template_pending_load"
+_INVITE_TEMPLATE_PENDING_SELECTED_ID_KEY = "_access_invite_template_pending_selected_id"
+
+
+def _invite_theme_widget_state_key(field: str) -> str:
+    return f"{_INVITE_THEME_WIDGET_PREFIX}{field}"
+
+
+def _set_invite_theme_widget_state(theme: dict[str, object]) -> None:
+    resolved = auth_service.sanitize_invite_email_theme(theme)
+    for field in [
+        "kicker",
+        "headline",
+        "intro_text",
+        "cta_label",
+        "graph_caption",
+        "footer_note",
+        "background_color",
+        "card_background_color",
+        "title_color",
+        "body_color",
+        "muted_text_color",
+        "button_color",
+        "button_text_color",
+        "link_color",
+        "border_color",
+        "show_graph",
+    ]:
+        st.session_state[_invite_theme_widget_state_key(field)] = resolved.get(field)
+
+
+def _invite_theme_from_widget_state() -> dict[str, object]:
+    raw_theme = {
+        "kicker": str(st.session_state.get(_invite_theme_widget_state_key("kicker")) or ""),
+        "headline": str(st.session_state.get(_invite_theme_widget_state_key("headline")) or ""),
+        "intro_text": str(st.session_state.get(_invite_theme_widget_state_key("intro_text")) or ""),
+        "cta_label": str(st.session_state.get(_invite_theme_widget_state_key("cta_label")) or ""),
+        "graph_caption": str(st.session_state.get(_invite_theme_widget_state_key("graph_caption")) or ""),
+        "footer_note": str(st.session_state.get(_invite_theme_widget_state_key("footer_note")) or ""),
+        "background_color": str(st.session_state.get(_invite_theme_widget_state_key("background_color")) or ""),
+        "card_background_color": str(st.session_state.get(_invite_theme_widget_state_key("card_background_color")) or ""),
+        "title_color": str(st.session_state.get(_invite_theme_widget_state_key("title_color")) or ""),
+        "body_color": str(st.session_state.get(_invite_theme_widget_state_key("body_color")) or ""),
+        "muted_text_color": str(st.session_state.get(_invite_theme_widget_state_key("muted_text_color")) or ""),
+        "button_color": str(st.session_state.get(_invite_theme_widget_state_key("button_color")) or ""),
+        "button_text_color": str(st.session_state.get(_invite_theme_widget_state_key("button_text_color")) or ""),
+        "link_color": str(st.session_state.get(_invite_theme_widget_state_key("link_color")) or ""),
+        "border_color": str(st.session_state.get(_invite_theme_widget_state_key("border_color")) or ""),
+        "show_graph": bool(st.session_state.get(_invite_theme_widget_state_key("show_graph"))),
+    }
+    return auth_service.sanitize_invite_email_theme(raw_theme)
+
+
+def _invite_template_upload_widget_key() -> str:
+    nonce = int(st.session_state.get(_INVITE_TEMPLATE_UPLOAD_NONCE_KEY) or 0)
+    return f"_access_invite_template_chart_upload_{nonce}"
+
+
+def _clear_invite_template_upload_chart(*, reset_widget: bool) -> None:
+    st.session_state[_INVITE_TEMPLATE_CHART_UPLOAD_FILENAME_KEY] = ""
+    st.session_state[_INVITE_TEMPLATE_CHART_UPLOAD_MIME_KEY] = ""
+    st.session_state[_INVITE_TEMPLATE_CHART_UPLOAD_DATA_KEY] = ""
+    st.session_state[_INVITE_TEMPLATE_CHART_UPLOAD_DIGEST_KEY] = ""
+    if reset_widget:
+        st.session_state[_INVITE_TEMPLATE_UPLOAD_NONCE_KEY] = int(st.session_state.get(_INVITE_TEMPLATE_UPLOAD_NONCE_KEY) or 0) + 1
+
+
+def _set_invite_template_widget_state(template: dict[str, object]) -> None:
+    if not isinstance(template, dict):
+        return
+    st.session_state[_INVITE_TEMPLATE_LOADED_ID_KEY] = str(template.get("template_id") or "")
+    st.session_state[_INVITE_TEMPLATE_NAME_KEY] = str(template.get("name") or "Invite Template")
+    logo_variant = str(template.get("logo_variant") or "color").strip().lower()
+    if logo_variant not in {"color", "white"}:
+        logo_variant = "color"
+    st.session_state[_INVITE_TEMPLATE_LOGO_VARIANT_KEY] = logo_variant
+    _set_invite_theme_widget_state(template.get("theme") if isinstance(template.get("theme"), dict) else {})
+
+    chart_asset = template.get("chart_asset") if isinstance(template.get("chart_asset"), dict) else {}
+    chart_kind = str(chart_asset.get("kind") or "").strip().lower()
+    if chart_kind == "upload":
+        st.session_state[_INVITE_TEMPLATE_CHART_SOURCE_KEY] = "upload"
+        st.session_state[_INVITE_TEMPLATE_CHART_BUILTIN_KEY] = (
+            "dark" if str(st.session_state.get(_INVITE_TEMPLATE_LOGO_VARIANT_KEY) or "color") == "white" else "light"
+        )
+        st.session_state[_INVITE_TEMPLATE_CHART_UPLOAD_FILENAME_KEY] = str(chart_asset.get("filename") or "uploaded-chart")
+        st.session_state[_INVITE_TEMPLATE_CHART_UPLOAD_MIME_KEY] = str(chart_asset.get("mime_type") or "image/png")
+        data_b64 = str(chart_asset.get("data_b64") or "")
+        st.session_state[_INVITE_TEMPLATE_CHART_UPLOAD_DATA_KEY] = data_b64
+        st.session_state[_INVITE_TEMPLATE_CHART_UPLOAD_DIGEST_KEY] = hashlib.sha256(data_b64.encode("ascii")).hexdigest() if data_b64 else ""
+    else:
+        st.session_state[_INVITE_TEMPLATE_CHART_SOURCE_KEY] = "builtin"
+        builtin_name = str(chart_asset.get("name") or "").strip().lower()
+        if builtin_name not in {"dark", "light"}:
+            builtin_name = "dark" if str(st.session_state.get(_INVITE_TEMPLATE_LOGO_VARIANT_KEY) or "color") == "white" else "light"
+        st.session_state[_INVITE_TEMPLATE_CHART_BUILTIN_KEY] = builtin_name
+        _clear_invite_template_upload_chart(reset_widget=True)
+
+
+def _invite_template_from_widget_state() -> dict[str, object]:
+    template_name = str(st.session_state.get(_INVITE_TEMPLATE_NAME_KEY) or "").strip() or "Invite Template"
+    logo_variant = str(st.session_state.get(_INVITE_TEMPLATE_LOGO_VARIANT_KEY) or "color").strip().lower()
+    if logo_variant not in {"color", "white"}:
+        logo_variant = "color"
+
+    chart_source = str(st.session_state.get(_INVITE_TEMPLATE_CHART_SOURCE_KEY) or "builtin").strip().lower()
+    builtin_name = str(st.session_state.get(_INVITE_TEMPLATE_CHART_BUILTIN_KEY) or "").strip().lower()
+    if builtin_name not in {"dark", "light"}:
+        builtin_name = "dark" if logo_variant == "white" else "light"
+    chart_asset: dict[str, object] = {"kind": "builtin", "name": builtin_name}
+    if chart_source == "upload":
+        filename = str(st.session_state.get(_INVITE_TEMPLATE_CHART_UPLOAD_FILENAME_KEY) or "").strip()
+        mime_type = str(st.session_state.get(_INVITE_TEMPLATE_CHART_UPLOAD_MIME_KEY) or "").strip().lower()
+        data_b64 = str(st.session_state.get(_INVITE_TEMPLATE_CHART_UPLOAD_DATA_KEY) or "").strip()
+        if filename and mime_type in auth_service.INVITE_EMAIL_UPLOAD_ALLOWED_MIME_TYPES and data_b64:
+            chart_asset = {
+                "kind": "upload",
+                "filename": filename,
+                "mime_type": mime_type,
+                "data_b64": data_b64,
+            }
+    return {
+        "name": template_name,
+        "theme": _invite_theme_from_widget_state(),
+        "logo_variant": logo_variant,
+        "chart_asset": chart_asset,
+    }
+
+
+def _invite_template_label(template: dict[str, object], *, active_template_id: str) -> str:
+    template_id = str(template.get("template_id") or "")
+    name = str(template.get("name") or template_id or "Template")
+    tags: list[str] = []
+    if template_id == active_template_id:
+        tags.append("active")
+    if bool(template.get("protected")):
+        tags.append("built-in")
+    if tags:
+        return f"{name} [{', '.join(tags)}]"
+    return name
+
+
+def _show_invite_template_notice() -> None:
+    notice = st.session_state.pop(_INVITE_TEMPLATE_NOTICE_KEY, None)
+    if isinstance(notice, dict):
+        level = str(notice.get("level") or "").strip().lower()
+        message = str(notice.get("message") or "").strip()
+        if not message:
+            return
+        if level == "error":
+            st.error(message)
+            return
+        if level == "warning":
+            st.warning(message)
+            return
+        st.success(message)
+
+
+def _apply_pending_invite_template_state() -> None:
+    pending_selected_id = st.session_state.pop(_INVITE_TEMPLATE_PENDING_SELECTED_ID_KEY, None)
+    if isinstance(pending_selected_id, str) and pending_selected_id.strip():
+        st.session_state[_INVITE_TEMPLATE_SELECTED_ID_KEY] = pending_selected_id.strip()
+
+    pending_template = st.session_state.pop(_INVITE_TEMPLATE_PENDING_LOAD_KEY, None)
+    if isinstance(pending_template, dict):
+        _set_invite_template_widget_state(pending_template)
+
+
+def _queue_invite_template_state_update(
+    *,
+    selected_template_id: str | None = None,
+    template_to_load: dict[str, object] | None = None,
+    notice: dict[str, str] | None = None,
+) -> None:
+    if isinstance(selected_template_id, str) and selected_template_id.strip():
+        st.session_state[_INVITE_TEMPLATE_PENDING_SELECTED_ID_KEY] = selected_template_id.strip()
+    if isinstance(template_to_load, dict):
+        st.session_state[_INVITE_TEMPLATE_PENDING_LOAD_KEY] = dict(template_to_load)
+    if isinstance(notice, dict):
+        st.session_state[_INVITE_TEMPLATE_NOTICE_KEY] = notice
+    st.rerun()
 
 
 def _environment_label(app_track: str) -> str:
@@ -250,13 +448,13 @@ def _ensure_app_shell_styles() -> None:
             color: var(--sn-ink);
             font-family: "Avenir Next", "Plus Jakarta Sans", "IBM Plex Sans", "Segoe UI", sans-serif;
         }
-        #MainMenu, footer {
-            visibility: hidden;
-        }
-        [data-testid="stToolbar"] {
-            display: none;
-        }
-        [data-testid="stHeader"] {
+        #MainMenu,
+        footer,
+        [data-testid="stMainMenu"],
+        [data-testid="stToolbar"],
+        [data-testid="stAppToolbar"],
+        [data-testid="stHeader"],
+        [data-testid="stAppHeader"] {
             display: none;
         }
         .block-container {
@@ -1267,6 +1465,257 @@ def _enforce_login_gate() -> None:
     _render_legacy_login_gate()
 
 
+def _render_invite_email_designer(*, current_user: auth_service.UserContext) -> None:
+    st.subheader("Invite Email Designer")
+    st.caption("Manage dark/white invite templates, upload the primary chart image, and preview exactly what recipients will see.")
+    _apply_pending_invite_template_state()
+    _show_invite_template_notice()
+
+    library = auth_service.get_invite_email_template_library()
+    templates_raw = library.get("templates") if isinstance(library.get("templates"), list) else []
+    template_by_id: dict[str, dict[str, object]] = {}
+    for entry in templates_raw:
+        if not isinstance(entry, dict):
+            continue
+        template_id = str(entry.get("template_id") or "").strip()
+        if template_id:
+            template_by_id[template_id] = entry
+
+    if not template_by_id:
+        st.error("No invite templates are available.")
+        return
+
+    active_template_id = str(library.get("active_template_id") or "")
+    if active_template_id not in template_by_id:
+        active_template_id = next(iter(template_by_id.keys()))
+
+    if st.session_state.get(_INVITE_TEMPLATE_SELECTED_ID_KEY) not in template_by_id:
+        st.session_state[_INVITE_TEMPLATE_SELECTED_ID_KEY] = active_template_id
+
+    if not st.session_state.get(_INVITE_TEMPLATE_INIT_KEY):
+        _set_invite_template_widget_state(template_by_id[active_template_id])
+        st.session_state[_INVITE_TEMPLATE_SELECTED_ID_KEY] = active_template_id
+        st.session_state[_INVITE_TEMPLATE_INIT_KEY] = True
+
+    template_ids = list(template_by_id.keys())
+    selected_template_id = st.selectbox(
+        "Saved Templates",
+        options=template_ids,
+        key=_INVITE_TEMPLATE_SELECTED_ID_KEY,
+        format_func=lambda template_id: _invite_template_label(template_by_id[template_id], active_template_id=active_template_id),
+    )
+    selected_template = template_by_id.get(selected_template_id) or {}
+    loaded_template_id = str(st.session_state.get(_INVITE_TEMPLATE_LOADED_ID_KEY) or "")
+    loaded_template = template_by_id.get(loaded_template_id) if loaded_template_id in template_by_id else None
+    if loaded_template is not None:
+        st.caption(f"Loaded in editor: {str(loaded_template.get('name') or loaded_template_id)}")
+
+    action_load_col, action_active_col, action_delete_col = st.columns(3)
+    with action_load_col:
+        if st.button("Load Template", key="_access_invite_template_load", use_container_width=True):
+            _queue_invite_template_state_update(
+                template_to_load=selected_template,
+                notice={"level": "success", "message": "Template loaded into editor."},
+            )
+    with action_active_col:
+        if st.button("Set Active Template", key="_access_invite_template_set_active", use_container_width=True):
+            try:
+                result = auth_service.set_active_invite_email_template(
+                    selected_template_id,
+                    updated_by=current_user,
+                )
+                active_id = str(result.get("active_template_id") or selected_template_id)
+                _queue_invite_template_state_update(
+                    selected_template_id=active_id,
+                    notice={"level": "success", "message": "Active invite template updated."},
+                )
+            except Exception as exc:
+                st.error(str(exc))
+    with action_delete_col:
+        can_delete = bool(selected_template) and (not bool(selected_template.get("protected")))
+        if st.button(
+            "Delete Selected",
+            key="_access_invite_template_delete",
+            use_container_width=True,
+            disabled=not can_delete,
+        ):
+            result = auth_service.delete_invite_email_template(
+                selected_template_id,
+                updated_by=current_user,
+            )
+            if result.get("ok"):
+                _queue_invite_template_state_update(
+                    selected_template_id=str(result.get("active_template_id") or active_template_id),
+                    notice={"level": "success", "message": "Template deleted."},
+                )
+            else:
+                st.error(str(result.get("message") or "Unable to delete template."))
+
+    save_name_col, save_current_col, save_new_col = st.columns([1.8, 1.1, 1.1])
+    with save_name_col:
+        st.text_input("Template Name", key=_INVITE_TEMPLATE_NAME_KEY)
+    with save_current_col:
+        save_current_disabled = loaded_template is None
+        if st.button(
+            "Save Current",
+            key="_access_invite_template_save_current",
+            type="primary",
+            use_container_width=True,
+            disabled=save_current_disabled,
+        ):
+            payload = _invite_template_from_widget_state()
+            result = auth_service.save_invite_email_template(
+                template_name=str(payload.get("name") or "Invite Template"),
+                theme=payload.get("theme") if isinstance(payload.get("theme"), dict) else {},
+                logo_variant=str(payload.get("logo_variant") or "color"),
+                chart_asset=payload.get("chart_asset") if isinstance(payload.get("chart_asset"), dict) else None,
+                template_id=loaded_template_id,
+                updated_by=current_user,
+            )
+            saved_template = result.get("template") if isinstance(result, dict) else None
+            if isinstance(saved_template, dict):
+                _queue_invite_template_state_update(
+                    selected_template_id=str(saved_template.get("template_id") or loaded_template_id),
+                    template_to_load=saved_template,
+                    notice={"level": "success", "message": "Template changes saved."},
+                )
+            _queue_invite_template_state_update(
+                notice={"level": "success", "message": "Template changes saved."},
+            )
+    with save_new_col:
+        if st.button("Save As New", key="_access_invite_template_save_new", use_container_width=True):
+            payload = _invite_template_from_widget_state()
+            result = auth_service.save_invite_email_template(
+                template_name=str(payload.get("name") or "Invite Template"),
+                theme=payload.get("theme") if isinstance(payload.get("theme"), dict) else {},
+                logo_variant=str(payload.get("logo_variant") or "color"),
+                chart_asset=payload.get("chart_asset") if isinstance(payload.get("chart_asset"), dict) else None,
+                template_id=None,
+                updated_by=current_user,
+            )
+            saved_template = result.get("template") if isinstance(result, dict) else None
+            if isinstance(saved_template, dict):
+                _queue_invite_template_state_update(
+                    selected_template_id=str(saved_template.get("template_id") or ""),
+                    template_to_load=saved_template,
+                    notice={"level": "success", "message": "New template saved and activated."},
+                )
+            _queue_invite_template_state_update(
+                notice={"level": "success", "message": "New template saved and activated."},
+            )
+
+    copy_col, color_col = st.columns(2)
+    with copy_col:
+        st.text_input("Kicker", key=_invite_theme_widget_state_key("kicker"))
+        st.text_input("Headline", key=_invite_theme_widget_state_key("headline"))
+        st.text_area("Intro Copy", key=_invite_theme_widget_state_key("intro_text"), height=120)
+        st.text_input("CTA Button Label", key=_invite_theme_widget_state_key("cta_label"))
+        st.checkbox("Show Graph", key=_invite_theme_widget_state_key("show_graph"))
+        st.text_area("Graph Caption", key=_invite_theme_widget_state_key("graph_caption"), height=90)
+        st.text_area("Footer Note", key=_invite_theme_widget_state_key("footer_note"), height=90)
+        st.selectbox(
+            "Logo Variant",
+            options=["color", "white"],
+            key=_INVITE_TEMPLATE_LOGO_VARIANT_KEY,
+            format_func=lambda value: "Color logo (light backgrounds)" if value == "color" else "White logo (dark backgrounds)",
+        )
+        st.radio(
+            "Main Chart Source",
+            options=["builtin", "upload"],
+            key=_INVITE_TEMPLATE_CHART_SOURCE_KEY,
+            format_func=lambda value: "Built-in chart" if value == "builtin" else "Uploaded chart (.png/.gif)",
+            horizontal=True,
+        )
+        if str(st.session_state.get(_INVITE_TEMPLATE_CHART_SOURCE_KEY) or "builtin") == "builtin":
+            st.selectbox(
+                "Built-in Chart",
+                options=["dark", "light"],
+                key=_INVITE_TEMPLATE_CHART_BUILTIN_KEY,
+                format_func=lambda value: "Dark chart" if value == "dark" else "Light chart",
+            )
+        else:
+            uploaded_chart = st.file_uploader(
+                "Upload Chart Image",
+                type=["png", "gif"],
+                key=_invite_template_upload_widget_key(),
+            )
+            if uploaded_chart is not None:
+                chart_bytes = uploaded_chart.getvalue()
+                digest = hashlib.sha256(chart_bytes).hexdigest()
+                if digest != str(st.session_state.get(_INVITE_TEMPLATE_CHART_UPLOAD_DIGEST_KEY) or ""):
+                    guessed_mime = "image/gif" if str(uploaded_chart.name or "").strip().lower().endswith(".gif") else "image/png"
+                    mime_type = str(uploaded_chart.type or guessed_mime).strip().lower()
+                    if mime_type not in auth_service.INVITE_EMAIL_UPLOAD_ALLOWED_MIME_TYPES:
+                        st.error("Only .png and .gif charts are supported.")
+                    elif len(chart_bytes) > auth_service.INVITE_EMAIL_UPLOAD_MAX_BYTES:
+                        max_mb = auth_service.INVITE_EMAIL_UPLOAD_MAX_BYTES // (1024 * 1024)
+                        st.error(f"Chart image is too large. Maximum size is {max_mb} MB.")
+                    elif not chart_bytes:
+                        st.error("Uploaded chart is empty.")
+                    else:
+                        st.session_state[_INVITE_TEMPLATE_CHART_UPLOAD_FILENAME_KEY] = str(uploaded_chart.name or "uploaded-chart.png")
+                        st.session_state[_INVITE_TEMPLATE_CHART_UPLOAD_MIME_KEY] = mime_type
+                        st.session_state[_INVITE_TEMPLATE_CHART_UPLOAD_DATA_KEY] = base64.b64encode(chart_bytes).decode("ascii")
+                        st.session_state[_INVITE_TEMPLATE_CHART_UPLOAD_DIGEST_KEY] = digest
+            uploaded_name = str(st.session_state.get(_INVITE_TEMPLATE_CHART_UPLOAD_FILENAME_KEY) or "")
+            uploaded_mime = str(st.session_state.get(_INVITE_TEMPLATE_CHART_UPLOAD_MIME_KEY) or "")
+            uploaded_data = str(st.session_state.get(_INVITE_TEMPLATE_CHART_UPLOAD_DATA_KEY) or "")
+            if uploaded_data:
+                try:
+                    bytes_size = len(base64.b64decode(uploaded_data.encode("ascii"), validate=True))
+                except Exception:
+                    bytes_size = 0
+                kb_size = max(1, int(round(bytes_size / 1024.0)))
+                st.caption(f"Uploaded chart: {uploaded_name} ({uploaded_mime}, {kb_size} KB)")
+                if st.button("Clear Uploaded Chart", key="_access_invite_template_clear_upload", use_container_width=False):
+                    _clear_invite_template_upload_chart(reset_widget=True)
+                    st.rerun()
+            else:
+                st.caption("No upload selected yet. Preview will fall back to the selected built-in chart.")
+
+    with color_col:
+        st.color_picker("Background", key=_invite_theme_widget_state_key("background_color"))
+        st.color_picker("Card Background", key=_invite_theme_widget_state_key("card_background_color"))
+        st.color_picker("Title Color", key=_invite_theme_widget_state_key("title_color"))
+        st.color_picker("Body Text Color", key=_invite_theme_widget_state_key("body_color"))
+        st.color_picker("Muted Text Color", key=_invite_theme_widget_state_key("muted_text_color"))
+        st.color_picker("Button Color", key=_invite_theme_widget_state_key("button_color"))
+        st.color_picker("Button Text Color", key=_invite_theme_widget_state_key("button_text_color"))
+        st.color_picker("Link Color", key=_invite_theme_widget_state_key("link_color"))
+        st.color_picker("Border Color", key=_invite_theme_widget_state_key("border_color"))
+
+    preview_base = (os.getenv("APP_PUBLIC_BASE_URL") or "").strip().rstrip("/")
+    default_preview_url = f"{preview_base}/?invite_token=preview-token" if preview_base else "?invite_token=preview-token"
+    preview_email = st.text_input(
+        "Preview Recipient Email",
+        value=str(current_user.email or "client@example.com"),
+        key="_access_invite_preview_email",
+    )
+    preview_role = st.selectbox(
+        "Preview Role",
+        ["investor", "viewer", "admin"],
+        index=0,
+        key="_access_invite_preview_role",
+    )
+    preview_url = st.text_input(
+        "Preview Invite URL",
+        value=default_preview_url,
+        key="_access_invite_preview_url",
+    )
+
+    preview_payload = auth_service.build_invite_email_preview(
+        invite_url=str(preview_url or default_preview_url),
+        recipient_email=str(preview_email or "client@example.com"),
+        role=str(preview_role or "investor"),
+        expires_at=datetime.now(timezone.utc) + timedelta(hours=72),
+        template_override=_invite_template_from_widget_state(),
+    )
+
+    components_html(str(preview_payload.get("html_body") or ""), height=980, scrolling=True)
+    with st.expander("Plain Text Fallback", expanded=False):
+        st.code(str(preview_payload.get("text_body") or ""), language="text")
+
+
 def _render_access_admin_section() -> None:
     st.title("Access Admin")
     if st.session_state.get("_ui_auth_mode") != "database":
@@ -1280,89 +1729,136 @@ def _render_access_admin_section() -> None:
 
     auth_state = auth_service.initialize_auth_system()
     st.caption(
-        "Manage invite-based account creation, review pending invites, and issue password reset links."
+        "Manage invite-based account creation, review pending invites, issue password reset links, and design invite emails."
     )
     st.caption(
         f"Email delivery: {'configured' if auth_state.get('email_delivery') else 'not configured'}"
     )
 
-    invite_col, reset_col = st.columns(2)
-    with invite_col:
-        st.subheader("Create Invite")
-        with st.form("access_admin_invite", clear_on_submit=True):
-            invite_email = st.text_input("Email")
-            invite_role = st.selectbox("Role", ["investor", "viewer", "admin"], index=0)
-            invite_share_pct = st.number_input("Portfolio share %", min_value=0.0, max_value=100.0, value=0.0, step=0.25)
-            invite_submitted = st.form_submit_button("Create invite", type="primary")
-        if invite_submitted:
-            share_fraction = float(invite_share_pct) / 100.0 if invite_role == "investor" else 0.0
-            result = auth_service.issue_invite(
-                email=invite_email,
-                role=invite_role,
-                share_fraction=share_fraction,
-                created_by=current_user,
-            )
-            if result.get("ok"):
-                st.success("Invite created.")
-                if result.get("email_sent"):
-                    st.caption(str(result.get("email_message") or "Invite email sent."))
+    access_tab, designer_tab = st.tabs(["Access Management", "Invite Email Designer"])
+    with access_tab:
+        invite_col, reset_col = st.columns(2)
+        with invite_col:
+            st.subheader("Create Invite")
+            with st.form("access_admin_invite", clear_on_submit=True):
+                invite_email = st.text_input("Email")
+                invite_role = st.selectbox("Role", ["investor", "viewer", "admin"], index=0)
+                invite_share_pct = st.number_input("Portfolio share %", min_value=0.0, max_value=100.0, value=0.0, step=0.25)
+                invite_submitted = st.form_submit_button("Create invite", type="primary")
+            if invite_submitted:
+                share_fraction = float(invite_share_pct) / 100.0 if invite_role == "investor" else 0.0
+                result = auth_service.issue_invite(
+                    email=invite_email,
+                    role=invite_role,
+                    share_fraction=share_fraction,
+                    created_by=current_user,
+                )
+                if result.get("ok"):
+                    st.success("Invite created.")
+                    if result.get("email_sent"):
+                        st.caption(str(result.get("email_message") or "Invite email sent."))
+                    else:
+                        st.caption(str(result.get("email_message") or "Email not sent."))
+                        st.code(str(result.get("invite_url") or ""), language="text")
                 else:
-                    st.caption(str(result.get("email_message") or "Email not sent."))
-                    st.code(str(result.get("invite_url") or ""), language="text")
-            else:
-                st.error(str(result.get("message") or "Invite creation failed."))
+                    st.error(str(result.get("message") or "Invite creation failed."))
 
-    with reset_col:
-        st.subheader("Issue Password Reset")
-        with st.form("access_admin_reset", clear_on_submit=True):
-            reset_email = st.text_input("User email")
-            reset_submitted = st.form_submit_button("Issue reset link", type="primary")
-        if reset_submitted:
-            result = auth_service.admin_issue_password_reset(
-                email=reset_email,
-                requested_by=current_user,
-            )
-            if result.get("ok"):
-                st.success("Password reset issued.")
-                if result.get("email_sent"):
-                    st.caption(str(result.get("email_message") or "Reset email sent."))
+        with reset_col:
+            st.subheader("Issue Password Reset")
+            with st.form("access_admin_reset", clear_on_submit=True):
+                reset_email = st.text_input("User email")
+                reset_submitted = st.form_submit_button("Issue reset link", type="primary")
+            if reset_submitted:
+                result = auth_service.admin_issue_password_reset(
+                    email=reset_email,
+                    requested_by=current_user,
+                )
+                if result.get("ok"):
+                    st.success("Password reset issued.")
+                    if result.get("email_sent"):
+                        st.caption(str(result.get("email_message") or "Reset email sent."))
+                    else:
+                        st.caption(str(result.get("email_message") or "Email not sent."))
+                        st.code(str(result.get("reset_url") or ""), language="text")
                 else:
-                    st.caption(str(result.get("email_message") or "Email not sent."))
-                    st.code(str(result.get("reset_url") or ""), language="text")
-            else:
-                st.error(str(result.get("message") or "Reset issuance failed."))
+                    st.error(str(result.get("message") or "Reset issuance failed."))
 
-    users = pd.DataFrame(auth_service.list_users())
-    st.subheader("Users")
-    if users.empty:
-        st.info("No users found.")
-    else:
-        display_cols = [
-            column
-            for column in [
-                "email",
-                "display_name",
-                "role",
-                "membership_role",
-                "share_fraction",
-                "can_view_full_portfolio",
-                "status",
-                "last_login_at",
+        users = pd.DataFrame(auth_service.list_users())
+        st.subheader("Users")
+        if users.empty:
+            st.info("No users found.")
+        else:
+            display_cols = [
+                column
+                for column in [
+                    "email",
+                    "display_name",
+                    "role",
+                    "membership_role",
+                    "share_fraction",
+                    "can_view_full_portfolio",
+                    "status",
+                    "last_login_at",
+                ]
+                if column in users.columns
             ]
-            if column in users.columns
-        ]
-        if "share_fraction" in users.columns:
-            users["share_fraction"] = pd.to_numeric(users["share_fraction"], errors="coerce") * 100.0
-        st.dataframe(users[display_cols], use_container_width=True, hide_index=True)
+            if "share_fraction" in users.columns:
+                users["share_fraction"] = pd.to_numeric(users["share_fraction"], errors="coerce") * 100.0
+            st.dataframe(users[display_cols], use_container_width=True, hide_index=True)
 
-    invites = pd.DataFrame(auth_service.list_pending_invites())
-    st.subheader("Pending Invites")
-    if invites.empty:
-        st.info("No pending invites.")
-    else:
-        if "proposed_share_fraction" in invites.columns:
-            invites["proposed_share_fraction"] = pd.to_numeric(invites["proposed_share_fraction"], errors="coerce") * 100.0
-        st.dataframe(invites, use_container_width=True, hide_index=True)
+        invites = pd.DataFrame(auth_service.list_pending_invites())
+        st.subheader("Pending Invites")
+        if invites.empty:
+            st.info("No pending invites.")
+        else:
+            if "proposed_share_fraction" in invites.columns:
+                invites["proposed_share_fraction"] = pd.to_numeric(invites["proposed_share_fraction"], errors="coerce") * 100.0
+            invite_event = st.dataframe(
+                invites,
+                use_container_width=True,
+                hide_index=True,
+                on_select="rerun",
+                selection_mode="single-row",
+                key="_access_pending_invites_table",
+            )
+            selected_rows = _dataframe_selected_rows(invite_event)
+            selected_pending_invite_id = ""
+            selected_pending_invite_email = ""
+            if selected_rows:
+                selected_row_idx = selected_rows[0]
+                if 0 <= selected_row_idx < len(invites.index):
+                    selected_row = invites.iloc[selected_row_idx]
+                    selected_pending_invite_id = str(selected_row.get("id") or "").strip()
+                    selected_pending_invite_email = str(selected_row.get("email") or "").strip()
+
+            info_col, action_col = st.columns([4.0, 1.2])
+            if selected_pending_invite_id:
+                short_invite_id = selected_pending_invite_id[:8]
+                if selected_pending_invite_email:
+                    info_col.caption(f"Selected invite: {selected_pending_invite_email} ({short_invite_id})")
+                else:
+                    info_col.caption(f"Selected invite id: {short_invite_id}")
+            else:
+                info_col.caption("Select a row in the Pending Invites table to enable deletion.")
+
+            if action_col.button(
+                "Delete Invite",
+                key="_access_pending_invite_delete_button",
+                use_container_width=True,
+                disabled=not bool(selected_pending_invite_id),
+            ):
+                delete_result = auth_service.delete_pending_invite(
+                    invite_id=selected_pending_invite_id,
+                    requested_by=current_user,
+                )
+                if delete_result.get("ok"):
+                    st.success(str(delete_result.get("message") or "Pending invite deleted."))
+                    st.rerun()
+                else:
+                    st.error(str(delete_result.get("message") or "Unable to delete pending invite."))
+
+    with designer_tab:
+        _render_invite_email_designer(current_user=current_user)
 
 
 def _has_live_api(api: AlpacaAPI | None, message: str, *, allow_pipeline: bool = False) -> bool:
@@ -2254,9 +2750,10 @@ def _render_home_ticker_background_panel(
             llm_headline = str(materialized_background.get("llm_headline") or "").strip()
             llm_summary_text = str(materialized_background.get("llm_summary_text") or "").strip()
             primary_context_text = str(materialized_background.get("context_story_text") or "").strip()
+            company_background_text = str(materialized_background.get("company_background_text") or "").strip()
 
-            background_summary = llm_summary_text or primary_context_text
-            what_happened_summary = description or (summary_lines[0] if summary_lines else "") or llm_headline
+            background_summary = llm_summary_text or primary_context_text or company_background_text or description
+            what_happened_summary = llm_headline or (summary_lines[0] if summary_lines else "") or description
             evidence_links = _collect_evidence_links(
                 recent_headlines=list(materialized_background.get("recent_headlines") or []),
                 limit=8,
@@ -6532,8 +7029,15 @@ elif section == "Market Opportunity":
         llm_summary_text = str(attention_context.get("llm_summary_text") or "").strip()
         primary_context_text = str(attention_context.get("context_story_text") or "").strip()
         description_text = str(background_payload.get("description_text") or "").strip()
-        background_summary = llm_summary_text or primary_context_text or str(background_payload.get("llm_summary_text") or "").strip()
-        what_happened_summary = description_text or llm_headline or (summary_lines[0] if summary_lines else "")
+        company_background_text = str(background_payload.get("company_background_text") or "").strip()
+        background_summary = (
+            llm_summary_text
+            or primary_context_text
+            or company_background_text
+            or str(background_payload.get("llm_summary_text") or "").strip()
+            or description_text
+        )
+        what_happened_summary = llm_headline or (summary_lines[0] if summary_lines else "") or description_text
         evidence_links = _collect_evidence_links(
             recent_headlines=list(background_payload.get("recent_headlines") or []),
             articles=news_summary.get("articles", pd.DataFrame()),

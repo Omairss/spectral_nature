@@ -4,8 +4,10 @@ from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from pathlib import Path
 import re
+from urllib.parse import quote
 
 import pandas as pd
+import requests
 
 from .alpaca_api import AlpacaAPI, AlpacaAPIError
 from .market import commodity_proxy_profile, narrative_business_lens_for_symbol
@@ -90,9 +92,83 @@ REGIME_TEXT: dict[str, str] = {
     "Breakdown risk": "Price action suggests the narrative is under pressure and needs a fresh catalyst.",
 }
 
+WIKIPEDIA_SUMMARY_ENDPOINT = "https://en.wikipedia.org/api/rest_v1/page/summary/{}"
+WIKIPEDIA_USER_AGENT = "spectral-nature-company-background/1.0"
+COMPANY_INSTRUMENT_SUFFIXES = (
+    "common stock",
+    "class a common stock",
+    "class b common stock",
+    "class c common stock",
+    "ordinary shares",
+    "american depositary shares",
+    "american depositary share",
+    "ads",
+    "adr",
+)
+
 
 def _normalized(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "", str(value).lower())
+
+
+def _clean_company_display_name(value: object) -> str:
+    text = " ".join(str(value or "").split()).strip()
+    if not text:
+        return ""
+    lowered = text.lower()
+    for suffix in COMPANY_INSTRUMENT_SUFFIXES:
+        if lowered.endswith(suffix):
+            text = text[: -len(suffix)].rstrip(" -|:,")
+            lowered = text.lower()
+            break
+    text = re.sub(r"\s*[-|:,]?\s*class\s+[a-z0-9-]+\s*$", "", text, flags=re.IGNORECASE).strip()
+    text = re.sub(r"\s*\((?:nasdaq|nyse|amex)\s*:[^)]+\)\s*$", "", text, flags=re.IGNORECASE).strip()
+    return text
+
+
+def _trim_wikipedia_extract(text: str, *, max_sentences: int = 2, max_chars: int = 420) -> str:
+    cleaned = " ".join(str(text or "").split()).strip()
+    if not cleaned:
+        return ""
+    sentences = re.split(r"(?<=[.!?])\s+", cleaned)
+    clipped = " ".join(sentences[:max_sentences]).strip()
+    if len(clipped) <= max_chars:
+        return clipped
+    return clipped[: max_chars - 1].rstrip() + "..."
+
+
+@lru_cache(maxsize=512)
+def _wikipedia_company_background(company_name: str) -> str:
+    display_name = _clean_company_display_name(company_name)
+    if not display_name:
+        return ""
+    title = quote(display_name.replace(" ", "_"), safe="")
+    url = WIKIPEDIA_SUMMARY_ENDPOINT.format(title)
+    try:
+        response = requests.get(
+            url,
+            headers={"User-Agent": WIKIPEDIA_USER_AGENT},
+            timeout=4,
+        )
+    except Exception:
+        return ""
+    if response.status_code != 200:
+        return ""
+    try:
+        payload = response.json()
+    except Exception:
+        return ""
+    if not isinstance(payload, dict):
+        return ""
+    if str(payload.get("type") or "").strip().lower() == "disambiguation":
+        return ""
+    extract = " ".join(str(payload.get("extract") or "").split()).strip()
+    if not extract:
+        return ""
+    lowered_extract = extract.lower()
+    if " may refer to" in lowered_extract:
+        return ""
+    return _trim_wikipedia_extract(extract)
 
 
 def _coerce_items(value: object) -> list[object]:
@@ -455,7 +531,8 @@ def build_company_description(
     asset = asset or {}
     signal_summary = signal_summary or {}
 
-    name = str(asset.get("name") or symbol).strip()
+    raw_name = str(asset.get("name") or symbol).strip()
+    name = _clean_company_display_name(raw_name) or raw_name or symbol
     if active_lens and active_lens not in {"", "All Market"}:
         ordered_lenses = [active_lens]
     else:
@@ -464,10 +541,15 @@ def build_company_description(
     role_hint = COMPANY_ROLE_HINTS.get(symbol)
     if not role_hint and ordered_lenses:
         role_hint = BUSINESS_ROLE_HINTS.get(ordered_lenses[0])
-    if not role_hint:
-        role_hint = "is being tracked here as an individual company narrative inside the market dashboard"
-
-    details: list[str] = [f"{name} ({symbol}) {role_hint}."]
+    details: list[str]
+    if role_hint:
+        details = [f"{name} ({symbol}) {role_hint}."]
+    else:
+        wikipedia_background = _wikipedia_company_background(name)
+        if wikipedia_background:
+            details = [wikipedia_background]
+        else:
+            details = [f"{name} ({symbol}) is a publicly traded company."]
 
     if ordered_lenses:
         lens_text = _join_phrases(ordered_lenses[:2])

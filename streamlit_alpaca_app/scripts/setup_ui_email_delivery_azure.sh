@@ -194,6 +194,9 @@ ensure_target_context() {
 
   PUBLIC_BASE_URL="$(app_env_value "$TARGET_APP" "APP_PUBLIC_BASE_URL")"
   if [[ -z "$PUBLIC_BASE_URL" || "$PUBLIC_BASE_URL" == "null" ]]; then
+    PUBLIC_BASE_URL="${APP_PUBLIC_BASE_URL:-}"
+  fi
+  if [[ -z "$PUBLIC_BASE_URL" || "$PUBLIC_BASE_URL" == "null" ]]; then
     PUBLIC_BASE_URL="https://$(app_fqdn "$TARGET_APP")"
   fi
 

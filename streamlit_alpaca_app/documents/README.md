@@ -39,6 +39,12 @@ set +a
 ./scripts/run_ui_local.sh
 ```
 
+4. Optional: run the backend API for external clients (iOS, agents, integrations):
+
+```bash
+./scripts/run_api_local.sh
+```
+
 ## App sections
 
 - Portfolio Overview
@@ -54,6 +60,7 @@ set +a
 - `documents/infra/README.md`: Azure deployment entrypoints and outputs
 - `documents/reference/ATTENTION_FEED_GUIDELINES.md`: current product rules for the attention feed
 - `documents/plans/README.md`: index of active implementation and recovery plans
+- `ios_app/SpectralNatureMVP/README.md`: native iPhone scaffold setup and generation steps
 
 ## Shared data access
 
@@ -117,6 +124,26 @@ Each response includes provenance so callers can tell whether the result came fr
 - `materialized` pipeline artifacts
 - `on_demand` local cache/live fetches
 - `computed` derived transforms built from lower-level datasets
+
+## HTTP API access
+
+For non-Python clients, use the FastAPI layer:
+
+- `GET /health`
+- `GET /v1/auth/status`
+- `POST /v1/auth/login`
+- `POST /v1/auth/logout`
+- `GET /v1/me`
+- `GET /v1/capabilities`
+- `POST /v1/query`
+- `POST /v1/dataset/{name}`
+- `POST /v1/chart/{name}`
+
+Run locally with:
+
+```bash
+./scripts/run_api_local.sh
+```
 
 ## Azure UI deploy
 

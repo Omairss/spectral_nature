@@ -1,0 +1,29 @@
+name: SpectralNatureMVP
+options:
+  minimumXcodeGenVersion: 2.38.0
+configs:
+  Debug: debug
+  Release: release
+configFiles:
+  Debug: Config/Debug.xcconfig
+  Release: Config/Release.xcconfig
+settings:
+  base:
+    SWIFT_VERSION: 5.10
+targets:
+  SpectralNatureMVP:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: SpectralNatureMVP
+    info:
+      properties:
+        CFBundleDisplayName: Spectral Nature
+        UILaunchScreen: {}
+        SNApiBaseURL: $(API_BASE_URL)
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.torrescapital.spectralnaturemvp
+        CODE_SIGN_STYLE: Automatic
+

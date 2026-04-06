@@ -382,6 +382,7 @@ def build_attention_ticker_background_snapshot_frame(
                 "symbol": symbol,
                 "company_name": company_name,
                 "business_lens": business_lens,
+                "company_background_text": _coerce_text(description_text),
                 "description_text": _coerce_text(description_text),
                 "news_summary_lines_json": _json_dumps(list(news_summary.get("summary_lines") or [])),
                 "recent_headlines_json": _json_dumps(recent_headlines),
