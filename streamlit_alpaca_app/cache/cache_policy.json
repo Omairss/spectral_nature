@@ -1,0 +1,20 @@
+{
+  "default_stale_minutes": 60,
+  "datasets": {
+    "account": 5,
+    "positions": 5,
+    "portfolio_timeseries": 30,
+    "holding_roc": 30,
+    "daily_movers": 10,
+    "momentum_profiles": 30,
+    "correlation_phase_shift": 30,
+    "commodity_regime": 30,
+    "price_history": 60,
+    "option_chain": 15,
+    "option_surface": 15,
+    "quarterly_fundamentals": 1440,
+    "asset_metadata": 10080,
+    "recent_news": 60,
+    "fred_dashboard": 1440
+  }
+}

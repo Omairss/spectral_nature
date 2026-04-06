@@ -1,0 +1,4 @@
+- Fix the mathy text generation at the source, the presentation layer doesn't need to screen it out
+- Do not rewrite tiles, fix it at the source
+- Stop inserting canned causal explanations.: What is this? FIx it at the source.
+- The only thing the notebook is missing is the actual data charts and hotlinks to investigate stocks. Add that in and that's all that the homepage needs to be

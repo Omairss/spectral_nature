@@ -4,6 +4,7 @@ import argparse
 import datetime
 import pickle
 from typing import Tuple, Dict, List, Optional
+import shutil
 
 import pandas as pd
 import plotly.express as px
@@ -24,9 +25,15 @@ except Exception:
 
 # ---------------- SimFin setup & loaders ----------------
 def setup_simfin(api_key: Optional[str] = None, data_dir: Optional[str] = None):
-
     sf.set_api_key(LinkedAuth.get_creds("spectral-nature-kvault", retreive=['SimFinAPI'])[0])
-    sf.set_data_dir('../data/stock_fundamental/' if data_dir is None else data_dir)
+    sf.set_data_dir('../../data/stock_fundamental/' if data_dir is None else data_dir)
+
+def _purge_simfin_quarterly_cache(data_dir: Optional[str] = None):
+    dd = '../../data/stock_fundamental/' if data_dir is None else data_dir
+    for name in ['us-income-quarterly', 'us-balance-quarterly', 'us-cashflow-quarterly']:
+        path = os.path.join(dd, name)
+        if os.path.isdir(path):
+            shutil.rmtree(path, ignore_errors=True)
 
 def _has_quarters(df: pd.DataFrame) -> bool:
     try:
@@ -38,8 +45,10 @@ def _has_quarters(df: pd.DataFrame) -> bool:
     except Exception:
         return False
 
-def load_quarterly_frames() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def load_quarterly_frames(refresh: bool = True, data_dir: Optional[str] = None) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     try:
+        if refresh:
+            _purge_simfin_quarterly_cache(data_dir)
         inc = sf.load(dataset='income',   variant='quarterly', market='us')
         bal = sf.load(dataset='balance',  variant='quarterly', market='us')
         cfs = sf.load(dataset='cashflow', variant='quarterly', market='us')
@@ -118,35 +127,34 @@ def _qtr_prepare(df: pd.DataFrame) -> pd.DataFrame:
     Strict quarterly shaping. Avoid fragile Int64 casts; keep Year/QuarterNum numeric via to_numeric.
     """
     if 'Report Date' not in df.columns:
-        df = df.reset_index()
+        return pd.DataFrame()
     base = df.copy()
 
-    # Require true quarterly rows
     if 'Fiscal Period' not in base.columns:
-        raise ValueError("No 'Fiscal Period' column; not a quarterly frame.")
+        return pd.DataFrame()
+
     qmask = base['Fiscal Period'].astype(str).isin(['Q1', 'Q2', 'Q3', 'Q4'])
     if not qmask.any():
-        raise ValueError("No Q1–Q4 rows; frame is annual.")
+        return pd.DataFrame()
     base = base[qmask].copy()
 
-    # Dates and period fields
     base['Report Date'] = pd.to_datetime(base['Report Date'], errors='coerce')
 
-    # Year: numeric, do not force Int64
+    # Prefer Fiscal Year for off-calendar companies (e.g., STX)
     if 'Fiscal Year' in base.columns:
         base['Year'] = pd.to_numeric(base['Fiscal Year'], errors='coerce')
     else:
-        base['Year'] = base['Report Date'].dt.year.astype('float64')
+        base['Year'] = base['Report Date'].dt.year
 
-    # Quarter label and number
     base['Quarter'] = base['Fiscal Period'].astype(str).str.extract(r'(Q[1-4])', expand=False)
     base['QuarterNum'] = pd.to_numeric(base['Quarter'].str[-1], errors='coerce')
 
-    # Keep last report per Year/Quarter
     base = base.sort_values('Report Date').drop_duplicates(subset=['Year', 'Quarter'], keep='last')
 
-    # YearQ label uses report date year to avoid int casting issues
-    base['YearQ'] = base['Report Date'].dt.year.astype(int).astype(str) + base['Quarter']
+    # Use Fiscal Year (if present) for label to avoid mislabeling FY that crosses calendar years
+    year_label = (base['Fiscal Year'].astype(int).astype(str)
+                  if 'Fiscal Year' in base.columns else base['Report Date'].dt.year.astype(int).astype(str))
+    base['YearQ'] = year_label + base['Quarter']
     return base
 
 # ---------------- Column resolvers ----------------
@@ -250,7 +258,7 @@ def run_quarterly_comparison(
     since: 'YYYYQn' (e.g., '2018Q1') to filter from that quarter inclusive.
     Returns: (tidy_frames, pivot_tables, errors)
     """
-    setup_simfin(api_key=api_key, data_dir=data_dir or '../data/stock_fundamental/')
+    setup_simfin(api_key=api_key, data_dir=data_dir or '../../data/stock_fundamental/')
     income, balance, cashflw = load_quarterly_frames()
     since_yq = _parse_year_quarter(since)
 
@@ -360,7 +368,7 @@ def main_cli(tickers_csv: str, since: Optional[str], cache_mode: str):
         tickers=tickers,
         since=since,
         api_key=None,                       # pass explicit key if desired
-        data_dir='../data/stock_fundamental/',
+        data_dir='../../data/stock_fundamental/',
         plot=True
     )
     bundle = {'tidy': tidy, 'pivots': pivots, 'errors': errs}
@@ -373,6 +381,26 @@ def main_cli(tickers_csv: str, since: Optional[str], cache_mode: str):
     if errs:
         print("Errors:", errs)
     return bundle
+
+def main(tickers_csv: str, cache_mode: str = 'normal', since: Optional[str] = '2018Q1', plot: bool = True):
+    """
+    Back-compat wrapper for front_end_app.app usage:
+      - tickers_csv: 'MSFT' or 'AAPL,MSFT'
+      - cache_mode: 'local' | 'refresh' | 'normal'
+      - since: e.g., '2018Q1'
+      - plot: pass-through to run_quarterly_comparison
+    Returns the same bundle dict shape as main_cli.
+    """
+    if plot is not True:
+        tidy, pivots, errs = run_quarterly_comparison(
+            tickers=[t.strip().upper() for t in tickers_csv.split(',') if t.strip()],
+            since=since,
+            api_key=None,
+            data_dir='../../data/stock_fundamental/',
+            plot=plot
+        )
+        return {'tidy': tidy, 'pivots': pivots, 'errors': errs}
+    return main_cli(tickers_csv, since, cache_mode)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Quarterly Fundamental Comparison (SimFin)')

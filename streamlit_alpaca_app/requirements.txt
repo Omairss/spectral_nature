@@ -1,0 +1,16 @@
+streamlit>=1.39
+pandas>=2.2
+numpy>=1.26,<2
+plotly>=5.24
+networkx>=3.2
+requests>=2.32
+alpaca-py>=0.34
+simfin>=1.0.1
+python-dotenv>=1.0
+azure-identity>=1.17
+azure-keyvault-secrets>=4.8
+azure-storage-blob>=12.23
+pyarrow>=17.0
+psycopg[binary]>=3.2
+fastapi>=0.112
+uvicorn>=0.30
