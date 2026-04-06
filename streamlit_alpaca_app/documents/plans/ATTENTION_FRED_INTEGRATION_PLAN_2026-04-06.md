@@ -76,6 +76,11 @@ The model must allow conditional or regime-dependent edges (for example, 10Y yie
 - Purpose: persist generated and verified macro hypotheses for downstream ranking/narrative
 - Fields: `hypothesis_id`, `candidate_id`, `hypothesis_text`, `support_status`, `support_score`, `contradiction_score`, `evidence_count`, `asof_time_utc`, `schema_version`
 
+7. `macro_release_events_1d`
+- Grain: one row per high-importance scheduled macro release instance (for example, NFP, CPI, FOMC decision)
+- Purpose: explicit release event objects for homepage/event ranking, independent of symbol-mover gates
+- Fields: `release_event_id`, `release_type`, `release_time_utc`, `surprise_score`, `importance_tier`, `primary_nodes`, `initial_hypothesis`, `status`, `asof_time_utc`, `schema_version`
+
 ### 2) Scoring integration in `compute/anomalies.py`
 
 Add optional macro context input to `build_attention_candidates(...)`:
@@ -129,6 +134,43 @@ This loop provides the machine-checkable state before any LLM narrative generati
 - Final per-hypothesis status must be one of: `supported`, `continuation`, `conflicting`, `unresolved`.
 - Ranking and narrative consume this status; they never bypass verification.
 
+### 6) Release importance + surprise definitions (v1)
+
+`importance_tier` defaults:
+
+- `high`
+  - NFP payrolls
+  - unemployment rate
+  - CPI headline/core (monthly release)
+  - PCE headline/core (monthly release)
+  - FOMC policy decision / SEP release
+- `medium`
+  - average hourly earnings, JOLTS, ISM PMI, retail sales, GDP advance estimate
+- `low`
+  - all other scheduled releases unless promoted by config
+
+`surprise_score` defaults:
+
+- If consensus is available:
+  - `surprise_z = abs(actual - consensus) / max(forecast_error_std_rolling, series_min_sigma)`
+  - `surprise_score = min(surprise_z / 2.5, 1.0) * 100`
+- If consensus is missing:
+  - fallback to first-window cross-asset reaction percentile (rates + dollar + equity index response)
+
+`high surprise` threshold:
+
+- `surprise_score >= 60` (roughly `surprise_z >= 1.5`)
+
+Homepage promotion rule:
+
+- force macro release into `top_events` when:
+  - `importance_tier == high`, and
+  - `surprise_score >= 60`
+
+Non-suppression rule:
+
+- a qualifying macro release cannot be dropped only because mover-based rails consumed slots.
+
 ## Runtime Config (No Hardcoding)
 
 Add a versioned config profile (example: `config/attention_macro_signal_profile.v1.yaml`) containing:
@@ -141,6 +183,7 @@ Add a versioned config profile (example: `config/attention_macro_signal_profile.
 - regime predicates (for conditional edge activation)
 - relationship-check tolerance thresholds
 - hypothesis verification thresholds (`support_score`, contradiction cutoffs)
+- release-promotion thresholds (`importance_tier`, surprise cutoffs, max forced macro events on homepage)
 
 Scoring code must read this profile, not embed per-series magic numbers in code.
 
@@ -155,8 +198,9 @@ Scoring code must read this profile, not embed per-series magic numbers in code.
   4. load causal graph config and materialize `macro_causal_graph_edges_v1`
   5. run propagation + consistency checker; persist `macro_relationship_checks_1d`
   6. build/persist `attention_macro_context_1d`
-  7. generate + verify hypotheses; persist `attention_hypotheses_1d` (+ existing `attention_claims`)
-  8. pass `attention_macro_context_1d` into candidate/event generation
+  7. detect + persist `macro_release_events_1d`
+  8. generate + verify hypotheses; persist `attention_hypotheses_1d` (+ existing `attention_claims`)
+  9. pass `attention_macro_context_1d` and release events into candidate/event generation and homepage assembly
 
 ### Data Access Layer
 
@@ -167,6 +211,7 @@ Scoring code must read this profile, not embed per-series magic numbers in code.
   - whether macro scoring was shadow/live
   - relationship-check summary (`holding`, `mixed`, `broken` counts)
   - hypothesis verification summary (`supported`, `conflicting`, `unresolved`)
+  - release visibility summary (which macro releases were promoted/suppressed and why)
 
 ## Reliability and Complexity Assessment
 
@@ -192,6 +237,7 @@ Scoring code must read this profile, not embed per-series magic numbers in code.
 - `equities-intraday-preload` persists new datasets
 - `resolve_attention_feed` returns macro provenance and stable ordering under default (non-macro) mode
 - SerpApi/Tavily verification pipeline writes traceable claims/hypothesis statuses
+- release-day scenario tests: high-surprise jobs/CPI release appears in homepage `top_events` even when no single-name move dominates
 
 3. Regression checks
 - existing attention scoring tests continue passing in default mode
@@ -215,3 +261,4 @@ Scoring code must read this profile, not embed per-series magic numbers in code.
 - Stale/missing FRED input is explicitly surfaced and never silently treated as fresh.
 - Relationship checks produce stable, explainable holding/broken signals for major macro events.
 - Hypothesis outputs are evidence-backed and consistently classified (`supported` / `continuation` / `conflicting` / `unresolved`).
+- On high-importance release days, at least one macro release event is present in homepage `top_events` with verification status and relationship-check context.

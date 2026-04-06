@@ -2,6 +2,12 @@
 
 ## 2026-04-06
 
+## market explorer split takeaways
+- Keeping market-wide scanners and ticker-deep-dive workflows in separate sections improves navigation clarity without changing data contracts.
+- A shared session-state helper for ticker propagation (`_set_workspace_ticker`) is more reliable than repeating per-section key assignments.
+- For section splits, preserving existing drilldown defaults while adding explicit handoff CTAs reduces migration risk.
+- After consolidation, remove old sections from navigation and delete dead render branches in the same pass to avoid UI drift.
+
 ## attention scoring documentation parity
 - Historical planning docs can drift from runtime scoring logic; explicitly label historical guidance versus current implementation formulas.
 - For scoring questions, treat `compute/anomalies.py` as source of truth and backfill docs with exact equations/components, not shorthand prose.
@@ -15,6 +21,13 @@
 ## implementation guidance
 - Start iOS with JSON-first payload rendering to validate endpoint contracts quickly, then layer typed view models.
 - Keep base URL in xcconfig + Info.plist key so environment switching does not require source edits.
+
+## homepage agent workspace planning
+- Reuse `data_access/query_service.py` and `api/main.py` as the agent's structured-data boundary; do not route agent behavior through `app.py`.
+- Treat charts, datasets, anomalies, and run traces as tool calls, not RAG content.
+- Use RAG only for unstructured evidence and documents with citation metadata.
+- If users want "thoughts", expose explicit notes/scratchpad state instead of raw chain-of-thought.
+- Keep sandbox execution as a separate bounded service with dev-first rollout.
 
 ## 2026-04-05
 

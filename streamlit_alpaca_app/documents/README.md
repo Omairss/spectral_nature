@@ -6,10 +6,9 @@ Spectral Nature is a market intelligence workspace for portfolio context, macro 
 
 - `Current Portfolio` -> live account + open positions + portfolio history
 - `Past Performance` -> Portfolio vs benchmark performance metrics (annual return, Sharpe, beta, alpha, max drawdown)
-- `Market Opportunity` -> Daily mover scan from market snapshots + price chart
-- `Strategizer - Technical` -> Candlestick + SMA(20/50), RSI(14), MACD
+- `Market Opportunity` -> Market-wide mover and momentum scans (Markets/Broad Markets/Commodity lenses)
+- `Stock Investigator` -> Single-ticker technicals + company context + fundamentals (consolidated stock drilldown)
 - `Strategizer - Option` -> Option chain explorer/ranking (via live option contracts + snapshots)
-- `Strategizer - Fundamental` -> Quarterly income/balance/cashflow charts (via local SimFin quarterly dataset)
 
 ## Setup
 
@@ -50,9 +49,8 @@ set +a
 - Portfolio Overview
 - Performance
 - Market Opportunity
-- Technical Strategizer
+- Stock Investigator
 - Option Strategizer
-- Fundamental Strategizer
 
 ## Documentation map
 

@@ -148,6 +148,7 @@ LOGGER.setLevel(logging.INFO)
 LOGGER.propagate = False
 
 HOME_EXP_SECTION = "Home Exp"
+STOCK_INVESTIGATOR_SECTION = "Stock Investigator"
 
 BASE_SECTION_OPTIONS = [
     "Home",
@@ -155,9 +156,8 @@ BASE_SECTION_OPTIONS = [
     "Portfolio Overview",
     "Performance",
     "Market Opportunity",
-    "Technical Strategizer",
+    STOCK_INVESTIGATOR_SECTION,
     "Option Strategizer",
-    "Fundamental Strategizer",
     "FRED Macro",
     "Pipeline Jobs",
 ]
@@ -1117,10 +1117,8 @@ def _consume_cross_page_inspector_query_params() -> None:
         st.session_state.pop("homepage_v2_selected_ticker", None)
         st.session_state.pop("homepage_v2_active_panel", None)
     elif inspect_view == "market":
-        st.session_state["_pending_workspace_section"] = "Market Opportunity"
-        st.session_state["_pending_market_view"] = "Markets"
-        st.session_state["market_selected_ticker"] = inspect_ticker
-        st.session_state["market_ticker_detail_widget"] = inspect_ticker
+        st.session_state["_pending_workspace_section"] = STOCK_INVESTIGATOR_SECTION
+        _set_workspace_ticker(inspect_ticker)
     _clear_query_params("inspect_ticker", "inspect_view")
 
 
@@ -2015,14 +2013,7 @@ def _open_ticker_snapshot_target(symbol: str, *, target: str) -> None:
         st.session_state["homepage_exp_selected_ticker"] = cleaned_symbol
         st.session_state["homepage_exp_active_panel"] = HOMEPAGE_V2_COMPANY_PANEL
         return
-    _open_attention_target(
-        "Market Opportunity",
-        {
-            "ticker": cleaned_symbol,
-            "market_view": "Markets",
-            "business_filter": _market_business_filter_for_symbol(cleaned_symbol),
-        },
-    )
+    _open_attention_target(STOCK_INVESTIGATOR_SECTION, {"ticker": cleaned_symbol})
 
 
 def _render_ticker_snapshot_chart(
@@ -2647,7 +2638,7 @@ def _render_home_ticker_background_panel(
     clear_mode_value: str = HOMEPAGE_V2_RESEARCH_PANEL,
     panel_title: str = "",
     panel_caption: str = "Loaded from the Home page ticker preview selection.",
-    open_button_label: str = "Open Market View",
+    open_button_label: str = "Open Stock Investigator",
     clear_button_label: str = "Clear",
     clear_button_key: str = "",
     show_header: bool = True,
@@ -2656,7 +2647,6 @@ def _render_home_ticker_background_panel(
     target = str(ticker or "").upper().strip()
     if not target:
         return
-    business_filter = _market_business_filter_for_symbol(target)
     show_open_button = bool(str(open_button_label or "").strip())
     show_clear_button = bool(str(clear_button_label or "").strip())
     with st.container(border=show_container_border):
@@ -2682,10 +2672,7 @@ def _render_home_ticker_background_panel(
                         key=f"home_background_open_market_{target}",
                         use_container_width=True,
                     ):
-                        _open_attention_target(
-                            "Market Opportunity",
-                            {"ticker": target, "market_view": "Markets", "business_filter": business_filter},
-                        )
+                        _open_attention_target(STOCK_INVESTIGATOR_SECTION, {"ticker": target})
                     if show_clear_button and st.button(
                         clear_button_label,
                         key=str(clear_button_key or f"home_background_clear_{target}_{session_key or 'home'}").strip(),
@@ -2962,6 +2949,18 @@ def _consume_homepage_v2_pending_panel() -> None:
         st.session_state["homepage_v2_active_panel"] = pending_panel
 
 
+def _set_workspace_ticker(ticker: str) -> str:
+    normalized = str(ticker or "").upper().strip()
+    if not normalized:
+        return ""
+    st.session_state["market_selected_ticker"] = normalized
+    st.session_state["market_ticker_detail_widget"] = normalized
+    st.session_state["opt_ticker"] = normalized
+    st.session_state["stock_investigator_ticker"] = normalized
+    st.session_state["stock_investigator_ticker_widget"] = normalized
+    return normalized
+
+
 def _open_attention_target(section_name: str, params: dict[str, object] | None = None) -> None:
     target = str(section_name or "").strip() or "Market Opportunity"
     payload = dict(params or {})
@@ -2986,14 +2985,10 @@ def _open_attention_target(section_name: str, params: dict[str, object] | None =
             if business_filter:
                 st.session_state["_pending_market_business_filter"] = business_filter
     if ticker:
-        st.session_state["market_selected_ticker"] = ticker
-        st.session_state["market_ticker_detail_widget"] = ticker
+        _set_workspace_ticker(ticker)
         if target == "Market Opportunity" and normalized_market_view == "Commodity Section":
             st.session_state["market_commodity_selected_ticker"] = ticker
             st.session_state["market_commodity_ticker_widget"] = ticker
-        st.session_state["technical_ticker"] = ticker
-        st.session_state["opt_ticker"] = ticker
-        st.session_state["fund_ticker"] = ticker
     st.rerun()
 
 
@@ -4580,10 +4575,255 @@ def _build_rank_timeseries_figure(
     return fig
 
 
-def _sync_market_ticker_from_widget() -> None:
-    ticker = st.session_state.get("market_ticker_detail_widget")
+def _sync_stock_investigator_ticker_from_widget() -> None:
+    ticker = str(st.session_state.get("stock_investigator_ticker_widget") or "").upper().strip()
     if ticker:
-        st.session_state["market_selected_ticker"] = ticker
+        _set_workspace_ticker(ticker)
+
+
+def _render_stock_investigator_workspace(
+    cfg: AppConfig,
+    *,
+    force_data_refresh: bool,
+) -> None:
+    default_ticker = (
+        str(st.session_state.get("stock_investigator_ticker") or "").upper().strip()
+        or str(st.session_state.get("market_selected_ticker") or "").upper().strip()
+        or "AAPL"
+    )
+    if not str(st.session_state.get("stock_investigator_ticker") or "").strip():
+        _set_workspace_ticker(default_ticker)
+    if not str(st.session_state.get("stock_investigator_ticker_widget") or "").strip():
+        st.session_state["stock_investigator_ticker_widget"] = default_ticker
+
+    control_cols = st.columns([2.4, 2.2, 1.4])
+    with control_cols[0]:
+        ticker = st.text_input(
+            "Ticker",
+            key="stock_investigator_ticker_widget",
+            placeholder="AAPL",
+            on_change=_sync_stock_investigator_ticker_from_widget,
+        ).upper().strip()
+    with control_cols[1]:
+        days = st.slider("Days", 60, 720, 365, step=30, key="stock_investigator_days")
+    with control_cols[2]:
+        if st.button(
+            "Open Market Opportunity",
+            key="stock_investigator_open_market",
+            use_container_width=True,
+            disabled=not bool(ticker),
+        ):
+            _open_attention_target(
+                "Market Opportunity",
+                {
+                    "ticker": ticker,
+                    "market_view": "Markets",
+                    "business_filter": _market_business_filter_for_symbol(ticker),
+                },
+            )
+
+    ticker = str(ticker or "").upper().strip()
+    if not ticker:
+        st.info("Enter a ticker to load technicals, company context, and fundamentals.")
+        return
+
+    if ticker != str(st.session_state.get("stock_investigator_ticker") or "").upper().strip():
+        _set_workspace_ticker(ticker)
+
+    taxonomy_summary = _taxonomy_summary_text(ticker)
+    if taxonomy_summary:
+        st.caption(taxonomy_summary)
+
+    analysis_days = max(days, 3650)
+    try:
+        with st.spinner("Loading price history..."):
+            with _timed("load_price_history", ticker=ticker, days=analysis_days):
+                price = _load_price_history_cached(
+                    cfg,
+                    ticker,
+                    analysis_days,
+                    force_refresh=force_data_refresh,
+                )
+    except AlpacaAPIError as exc:
+        _log_event("load_price_history_failed", ticker=ticker, error=str(exc)[:200])
+        st.warning(f"Could not load price history: {exc}")
+        price = pd.DataFrame()
+
+    st.subheader(f"{ticker} Technicals")
+    signal_summary: dict[str, object] = {}
+    if not price.empty:
+        try:
+            recent_cutoff = price["timestamp"].max() - pd.Timedelta(days=days)
+            visible_price = price[price["timestamp"] >= recent_cutoff].copy()
+            if visible_price.empty:
+                visible_price = price.tail(min(len(price), 220)).copy()
+            st.plotly_chart(build_technical_figure(visible_price, f"Technical View - {ticker}"), use_container_width=True)
+        except Exception as exc:
+            _log_event("stock_investigator_technical_overview_failed", ticker=ticker, error=str(exc)[:200])
+            st.caption("Technical overview chart unavailable for this ticker.")
+
+        with st.expander("Show Recent Price Data", expanded=False):
+            st.dataframe(price.tail(40), use_container_width=True, hide_index=True)
+
+        if _SIGNALS_IMPORT_ERROR:
+            st.warning(
+                "Advanced signal charts are temporarily unavailable because the optional signals module "
+                f"did not load: {_SIGNALS_IMPORT_ERROR}"
+            )
+
+        signal_frame = _load_technical_signal_history_cached(
+            cfg,
+            ticker,
+            days=max(days, 180),
+            force_refresh=force_data_refresh,
+        )
+        if signal_frame.empty:
+            if not _SIGNALS_IMPORT_ERROR:
+                st.info("Not enough valid price history to compute signals.")
+        else:
+            cutoff = signal_frame["timestamp"].max() - pd.Timedelta(days=days)
+            visible_signal_frame = signal_frame[signal_frame["timestamp"] >= cutoff].copy()
+            if visible_signal_frame.empty:
+                visible_signal_frame = signal_frame.tail(min(len(signal_frame), 120)).copy()
+
+            signal_summary = _load_technical_signal_summary_cached(
+                cfg,
+                ticker,
+                signal_frame,
+                force_refresh=force_data_refresh,
+            )
+            forecast = _load_forecast_next_week_cached(
+                cfg,
+                ticker,
+                days=max(days, 180),
+                signal_frame=signal_frame,
+                force_refresh=force_data_refresh,
+            )
+
+            metric_cols = st.columns(6)
+            with metric_cols[0]:
+                st.metric("Pullback vs ATH", f"{signal_summary.get('pullback_from_ath_pct', np.nan):.1f}%")
+            with metric_cols[1]:
+                st.metric("Channel Position", f"{signal_summary.get('channel_position', np.nan) * 100:.0f}%")
+            with metric_cols[2]:
+                st.metric("Support Buffer", f"{signal_summary.get('dist_to_support_pct', np.nan):.1f}%")
+            with metric_cols[3]:
+                st.metric("Room to Resistance", f"{signal_summary.get('dist_to_resistance_pct', np.nan):.1f}%")
+            with metric_cols[4]:
+                up_probability = forecast.get("up_probability", np.nan) if forecast else np.nan
+                st.metric("1W Up Probability", f"{up_probability * 100:.0f}%")
+            with metric_cols[5]:
+                breakout_probability = forecast.get("breakout_probability", np.nan) if forecast else np.nan
+                st.metric("1W Breakout Prob", f"{breakout_probability * 100:.0f}%")
+
+            if signal_summary:
+                st.caption(
+                    f"Signal regime: {signal_summary.get('regime', 'n/a')} | "
+                    f"RSI 14: {signal_summary.get('rsi_14', np.nan):.1f} | "
+                    f"20D realized vol: {signal_summary.get('vol_20_ann_pct', np.nan):.1f}% | "
+                    "ATH and channel signals are computed from up to 10 years of daily bars."
+                )
+
+            channel_left, channel_right = st.columns(2)
+            with channel_left:
+                st.plotly_chart(build_price_channel_figure(visible_signal_frame, ticker), use_container_width=True)
+            with channel_right:
+                st.plotly_chart(build_pullback_figure(visible_signal_frame, ticker), use_container_width=True)
+
+            forecast_left, forecast_right = st.columns(2)
+            with forecast_left:
+                if forecast:
+                    st.plotly_chart(
+                        build_forecast_cone_figure(visible_signal_frame, forecast, ticker),
+                        use_container_width=True,
+                    )
+                else:
+                    st.info("Not enough history to build the next-week probability model.")
+            with forecast_right:
+                if forecast:
+                    st.plotly_chart(
+                        build_terminal_distribution_figure(forecast, ticker),
+                        use_container_width=True,
+                    )
+                    st.caption(
+                        f"Analog model: {forecast.get('analog_count', 0)} similar historical setups, "
+                        f"expected 5-day return {forecast.get('expected_return_pct', np.nan):.2f}%."
+                    )
+                else:
+                    st.info("Forecast distribution unavailable for this ticker.")
+    else:
+        st.info("No price history was available for this ticker.")
+
+    try:
+        with st.spinner("Loading company profile and recent news..."):
+            with _timed("load_market_detail_context", ticker=ticker):
+                news_payload = _load_recent_news_cached(
+                    cfg,
+                    ticker,
+                    days=14,
+                    limit=6,
+                    force_refresh=force_data_refresh,
+                )
+                attention_context = _load_attention_context_cached(
+                    cfg,
+                    ticker,
+                    force_refresh=force_data_refresh,
+                )
+                background_payload = _load_attention_ticker_background_cached(
+                    cfg,
+                    ticker,
+                    force_refresh=force_data_refresh,
+                )
+    except Exception as exc:
+        _log_event("load_market_detail_context_failed", ticker=ticker, error=str(exc)[:200])
+        st.warning(f"Could not load company context for {ticker}: {exc}")
+        news_payload = {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
+        attention_context = {
+            "context_story_text": "",
+            "llm_headline": "",
+            "llm_summary_text": "",
+        }
+        background_payload = {}
+
+    st.subheader(f"{ticker} Company Context")
+    news_summary = summarize_recent_news(ticker, news_payload)
+    summary_lines = [
+        str(item).strip()
+        for item in list(news_summary.get("summary_lines") or [])
+        if str(item).strip()
+    ]
+    llm_headline = str(attention_context.get("llm_headline") or "").strip()
+    llm_summary_text = str(attention_context.get("llm_summary_text") or "").strip()
+    primary_context_text = str(attention_context.get("context_story_text") or "").strip()
+    description_text = str(background_payload.get("description_text") or "").strip()
+    company_background_text = str(background_payload.get("company_background_text") or "").strip()
+    background_summary = (
+        llm_summary_text
+        or primary_context_text
+        or company_background_text
+        or str(background_payload.get("llm_summary_text") or "").strip()
+        or description_text
+    )
+    what_happened_summary = llm_headline or (summary_lines[0] if summary_lines else "") or description_text
+    evidence_links = _collect_evidence_links(
+        recent_headlines=list(background_payload.get("recent_headlines") or []),
+        articles=news_summary.get("articles", pd.DataFrame()),
+        limit=8,
+    )
+    _render_compact_background_sections(
+        ticker,
+        background_summary=background_summary,
+        what_happened_summary=what_happened_summary,
+        evidence_links=evidence_links,
+    )
+
+    st.subheader(f"{ticker} Fundamentals")
+    _render_overview_fundamentals(
+        cfg,
+        ticker,
+        force_data_refresh=force_data_refresh,
+        asof_time_utc=background_payload.get("asof_time_utc"),
+    )
 
 
 def _render_market_opportunity_experiments(
@@ -6822,297 +7062,69 @@ elif section == "Market Opportunity":
         else:
             st.info("Daily mover snapshots were unavailable for this market lens, so only the momentum-based views are shown.")
 
-        detail_symbols = set(movers["symbol"].astype(str).tolist()) if not movers.empty else set()
+        scanned_detail_symbols: set[str] = set()
+        if not movers.empty:
+            scanned_detail_symbols.update(
+                str(symbol).upper().strip()
+                for symbol in movers["symbol"].astype(str).tolist()
+                if str(symbol).strip()
+            )
         if not momentum.empty:
-            detail_symbols.update(momentum["symbol"].astype(str).tolist())
-        scanned_detail_symbols = {
-            str(symbol).upper().strip()
-            for symbol in detail_symbols
-            if str(symbol).strip()
-        }
-        if requested_market_ticker:
-            detail_symbols.add(requested_market_ticker)
-        if not detail_symbols:
-            st.info("No market symbols were available for the detail view.")
-            st.stop()
-        detail_symbol_options = sorted(detail_symbols)
-        selected_key = "market_selected_ticker"
-        widget_key = "market_ticker_detail_widget"
-        fallback_market_ticker = st.session_state.get(selected_key) or detail_symbol_options[0]
-        if fallback_market_ticker not in detail_symbol_options:
-            fallback_market_ticker = detail_symbol_options[0]
+            scanned_detail_symbols.update(
+                str(symbol).upper().strip()
+                for symbol in momentum["symbol"].astype(str).tolist()
+                if str(symbol).strip()
+            )
 
-        current_market_ticker = st.session_state.get(selected_key)
-        if current_market_ticker not in detail_symbol_options:
-            current_market_ticker = fallback_market_ticker
+        focus_ticker = str(st.session_state.get("market_selected_ticker") or "").upper().strip()
+        if selected_market_ticker:
+            focus_ticker = _set_workspace_ticker(selected_market_ticker) or focus_ticker
+        elif requested_market_ticker:
+            focus_ticker = _set_workspace_ticker(requested_market_ticker) or focus_ticker
 
         if requested_market_ticker and requested_market_ticker not in scanned_detail_symbols:
             st.caption(
-                f"{requested_market_ticker} was opened from attention and pinned into the detail view because it is outside the current {business_filter} scan lens."
+                f"{requested_market_ticker} was opened from attention and pinned into the ticker handoff because it is outside the current {business_filter} scan lens."
             )
 
-        if selected_market_ticker and selected_market_ticker in detail_symbol_options:
-            if selected_market_ticker != current_market_ticker:
-                st.session_state[selected_key] = selected_market_ticker
-                st.session_state[widget_key] = selected_market_ticker
-                st.rerun()
-        elif selected_key not in st.session_state or st.session_state[selected_key] not in detail_symbol_options:
-            st.session_state[selected_key] = fallback_market_ticker
-
-        if widget_key not in st.session_state or st.session_state[widget_key] not in detail_symbol_options:
-            st.session_state[widget_key] = st.session_state[selected_key]
-        elif st.session_state[widget_key] != st.session_state[selected_key]:
-            st.session_state[widget_key] = st.session_state[selected_key]
-
-        ticker = st.selectbox(
-            "Ticker Detail",
-            detail_symbol_options,
-            key=widget_key,
-            on_change=_sync_market_ticker_from_widget,
-        )
-        st.session_state[selected_key] = ticker
-        days = st.slider("Days", 60, 720, 365, step=30)
-
-        analysis_days = max(days, 3650)
-        try:
-            with st.spinner("Loading price history..."):
-                with _timed("load_price_history", ticker=ticker, days=analysis_days):
-                    price = _load_price_history_cached(
-                        cfg,
-                        ticker,
-                        analysis_days,
-                        force_refresh=force_data_refresh,
-                    )
-        except AlpacaAPIError as exc:
-            _log_event("load_price_history_failed", ticker=ticker, error=str(exc)[:200])
-            st.warning(f"Could not load price history: {exc}")
-            price = pd.DataFrame()
-
-        signal_summary: dict[str, object] = {}
-        if not price.empty:
-            if _SIGNALS_IMPORT_ERROR:
-                st.warning(
-                    "Advanced signal charts are temporarily unavailable because the optional signals module "
-                    f"did not load: {_SIGNALS_IMPORT_ERROR}"
+        if focus_ticker:
+            handoff_cols = st.columns([4.8, 1.4])
+            with handoff_cols[0]:
+                st.caption(
+                    f"Stock focus: {focus_ticker}. Open Stock Investigator for technicals, fundamentals, and company context."
                 )
-                fig = go.Figure(
-                    go.Scatter(
-                        x=price["timestamp"],
-                        y=price["close"],
-                        mode="lines",
-                        name=ticker,
-                    )
-                )
-                fig.update_layout(template="plotly_dark", title=f"{ticker} Price", xaxis_title="Date", yaxis_title="Price")
-                st.plotly_chart(fig, use_container_width=True)
+            with handoff_cols[1]:
+                if st.button(
+                    "Open Stock Investigator",
+                    key=f"market_open_stock_investigator_{focus_ticker}",
+                    use_container_width=True,
+                ):
+                    _open_attention_target(STOCK_INVESTIGATOR_SECTION, {"ticker": focus_ticker})
+        else:
+            st.info("Select a ticker from a market table to continue in Stock Investigator.")
 
-            signal_frame = _load_technical_signal_history_cached(
-                cfg,
-                ticker,
-                days=max(days, 180),
-                force_refresh=force_data_refresh,
-            )
-            if signal_frame.empty:
-                if not _SIGNALS_IMPORT_ERROR:
-                    st.info("Not enough valid price history to compute signals.")
-            else:
-                cutoff = signal_frame["timestamp"].max() - pd.Timedelta(days=days)
-                visible_signal_frame = signal_frame[signal_frame["timestamp"] >= cutoff].copy()
-                if visible_signal_frame.empty:
-                    visible_signal_frame = signal_frame.tail(min(len(signal_frame), 120)).copy()
-
-                signal_summary = _load_technical_signal_summary_cached(
-                    cfg,
-                    ticker,
-                    signal_frame,
-                    force_refresh=force_data_refresh,
-                )
-                forecast = _load_forecast_next_week_cached(
-                    cfg,
-                    ticker,
-                    days=max(days, 180),
-                    signal_frame=signal_frame,
-                    force_refresh=force_data_refresh,
-                )
-
-                metric_cols = st.columns(6)
-                with metric_cols[0]:
-                    st.metric("Pullback vs ATH", f"{signal_summary.get('pullback_from_ath_pct', np.nan):.1f}%")
-                with metric_cols[1]:
-                    st.metric("Channel Position", f"{signal_summary.get('channel_position', np.nan) * 100:.0f}%")
-                with metric_cols[2]:
-                    st.metric("Support Buffer", f"{signal_summary.get('dist_to_support_pct', np.nan):.1f}%")
-                with metric_cols[3]:
-                    st.metric("Room to Resistance", f"{signal_summary.get('dist_to_resistance_pct', np.nan):.1f}%")
-                with metric_cols[4]:
-                    up_probability = forecast.get("up_probability", np.nan) if forecast else np.nan
-                    st.metric("1W Up Probability", f"{up_probability * 100:.0f}%")
-                with metric_cols[5]:
-                    breakout_probability = forecast.get("breakout_probability", np.nan) if forecast else np.nan
-                    st.metric("1W Breakout Prob", f"{breakout_probability * 100:.0f}%")
-
-                if signal_summary:
-                    st.caption(
-                        f"Signal regime: {signal_summary.get('regime', 'n/a')} | "
-                        f"RSI 14: {signal_summary.get('rsi_14', np.nan):.1f} | "
-                        f"20D realized vol: {signal_summary.get('vol_20_ann_pct', np.nan):.1f}% | "
-                        "ATH and channel signals are computed from up to 10 years of daily bars."
-                    )
-
-                channel_left, channel_right = st.columns(2)
-                with channel_left:
-                    st.plotly_chart(build_price_channel_figure(visible_signal_frame, ticker), use_container_width=True)
-                with channel_right:
-                    st.plotly_chart(build_pullback_figure(visible_signal_frame, ticker), use_container_width=True)
-
-                forecast_left, forecast_right = st.columns(2)
-                with forecast_left:
-                    if forecast:
-                        st.plotly_chart(
-                            build_forecast_cone_figure(visible_signal_frame, forecast, ticker),
-                            use_container_width=True,
-                        )
-                    else:
-                        st.info("Not enough history to build the next-week probability model.")
-                with forecast_right:
-                    if forecast:
-                        st.plotly_chart(
-                            build_terminal_distribution_figure(forecast, ticker),
-                            use_container_width=True,
-                        )
-                        st.caption(
-                            f"Analog model: {forecast.get('analog_count', 0)} similar historical setups, "
-                            f"expected 5-day return {forecast.get('expected_return_pct', np.nan):.2f}%."
-                        )
-                    else:
-                        st.info("Forecast distribution unavailable for this ticker.")
-
-        try:
-            with st.spinner("Loading company profile and recent news..."):
-                with _timed("load_market_detail_context", ticker=ticker):
-                    news_payload = _load_recent_news_cached(
-                        cfg,
-                        ticker,
-                        days=14,
-                        limit=6,
-                        force_refresh=force_data_refresh,
-                    )
-                    attention_context = _load_attention_context_cached(
-                        cfg,
-                        ticker,
-                        force_refresh=force_data_refresh,
-                    )
-                    background_payload = _load_attention_ticker_background_cached(
-                        cfg,
-                        ticker,
-                        force_refresh=force_data_refresh,
-                    )
-        except Exception as exc:
-            _log_event("load_market_detail_context_failed", ticker=ticker, error=str(exc)[:200])
-            st.warning(f"Could not load company context for {ticker}: {exc}")
-            news_payload = {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
-            attention_context = {
-                "context_story_text": "",
-                "llm_headline": "",
-                "llm_summary_text": "",
-            }
-            background_payload = {}
-
-        st.subheader(f"{ticker} Overview")
-        news_summary = summarize_recent_news(ticker, news_payload)
-        summary_lines = [
-            str(item).strip()
-            for item in list(news_summary.get("summary_lines") or [])
-            if str(item).strip()
-        ]
-        llm_headline = str(attention_context.get("llm_headline") or "").strip()
-        llm_summary_text = str(attention_context.get("llm_summary_text") or "").strip()
-        primary_context_text = str(attention_context.get("context_story_text") or "").strip()
-        description_text = str(background_payload.get("description_text") or "").strip()
-        company_background_text = str(background_payload.get("company_background_text") or "").strip()
-        background_summary = (
-            llm_summary_text
-            or primary_context_text
-            or company_background_text
-            or str(background_payload.get("llm_summary_text") or "").strip()
-            or description_text
-        )
-        what_happened_summary = llm_headline or (summary_lines[0] if summary_lines else "") or description_text
-        evidence_links = _collect_evidence_links(
-            recent_headlines=list(background_payload.get("recent_headlines") or []),
-            articles=news_summary.get("articles", pd.DataFrame()),
-            limit=8,
-        )
-        _render_compact_background_sections(
-            ticker,
-            background_summary=background_summary,
-            what_happened_summary=what_happened_summary,
-            evidence_links=evidence_links,
-        )
-        _render_overview_fundamentals(
-            cfg,
-            ticker,
-            force_data_refresh=force_data_refresh,
-            asof_time_utc=background_payload.get("asof_time_utc"),
-        )
-
-elif section == "Technical Strategizer":
+elif section == STOCK_INVESTIGATOR_SECTION:
     header_cols = st.columns([4.8, 1.4])
     with header_cols[0]:
-        st.title("Technical Strategizer")
+        st.title("Stock Investigator")
     with header_cols[1]:
         force_data_refresh = force_data_refresh or _section_refresh_button(
-            "technical_refresh",
-            source="derivatives",
-            label="Run derivatives refresh job",
+            "stock_investigator_refresh",
+            source="equities",
+            label="Run equities refresh job",
         )
-    ticker = st.text_input("Ticker", value="AAPL", key="technical_ticker").upper().strip()
-    days = st.slider("Lookback (days)", 90, 1095, 365, step=15)
 
-    if ticker and _has_live_api(
+    if not _has_live_api(
         api,
-        "Technical Strategizer requires a working live market connection or pipeline snapshots.",
+        "Stock Investigator requires a working live market connection or pipeline snapshots.",
         allow_pipeline=True,
     ):
-        try:
-            with st.spinner("Loading technical data..."):
-                with _timed("technical_load_price_history", ticker=ticker, days=days):
-                    frame = _load_price_history_cached(cfg, ticker, days=days, force_refresh=force_data_refresh)
-        except AlpacaAPIError as exc:
-            _log_event("technical_load_price_history_failed", ticker=ticker, error=str(exc)[:200])
-            st.error(f"Could not load technical data: {exc}")
-            st.stop()
-
-        if frame.empty:
-            st.info("No bars returned for this ticker.")
-        else:
-            st.plotly_chart(build_technical_figure(frame, f"Technical View - {ticker}"), use_container_width=True)
-            st.dataframe(frame.tail(40), use_container_width=True, hide_index=True)
-
-            signal_frame = _load_technical_signal_history_cached(
-                cfg,
-                ticker,
-                days=max(days, 180),
-                force_refresh=force_data_refresh,
-            )
-            signal_summary = _load_technical_signal_summary_cached(
-                cfg,
-                ticker,
-                signal_frame,
-                force_refresh=force_data_refresh,
-            )
-            if signal_summary:
-                metric_cols = st.columns(5)
-                with metric_cols[0]:
-                    st.metric("Signal Regime", str(signal_summary.get("regime") or "n/a"))
-                with metric_cols[1]:
-                    st.metric("RSI 14", f"{pd.to_numeric(signal_summary.get('rsi_14'), errors='coerce'):.1f}")
-                with metric_cols[2]:
-                    st.metric("Pullback vs ATH", f"{pd.to_numeric(signal_summary.get('pullback_from_ath_pct'), errors='coerce'):.1f}%")
-                with metric_cols[3]:
-                    st.metric("Channel Position", f"{pd.to_numeric(signal_summary.get('channel_position'), errors='coerce') * 100:.0f}%")
-                with metric_cols[4]:
-                    st.metric("20D Vol (ann)", f"{pd.to_numeric(signal_summary.get('vol_20_ann_pct'), errors='coerce'):.1f}%")
+        st.info("Restore the live market connection or configure pipeline snapshots to inspect ticker details.")
+    else:
+        _render_stock_investigator_workspace(
+            cfg,
+            force_data_refresh=force_data_refresh,
+        )
 
 elif section == "Option Strategizer":
     header_cols = st.columns([4.8, 1.4])
@@ -7383,41 +7395,3 @@ elif section == "Option Strategizer":
                         )
             else:
                 st.info("A recent stock price was not available, so the Greek-based scenario selector is hidden for this ticker.")
-
-elif section == "Fundamental Strategizer":
-    header_cols = st.columns([4.8, 1.4])
-    with header_cols[0]:
-        st.title("Fundamental Strategizer")
-    with header_cols[1]:
-        force_data_refresh = force_data_refresh or _section_refresh_button(
-            "fundamental_refresh",
-            source="fundamentals",
-            label="Run fundamentals refresh job",
-        )
-    ticker = st.text_input("Ticker", value="AAPL", key="fund_ticker").upper().strip()
-
-    if ticker:
-        try:
-            with st.spinner("Loading quarterly fundamentals..."):
-                with _timed("load_quarterly_fundamentals", ticker=ticker):
-                    data = _load_quarterly_fundamentals_cached(ticker, force_refresh=force_data_refresh)
-        except Exception as exc:
-            _log_event("load_quarterly_fundamentals_failed", ticker=ticker, error=str(exc)[:200])
-            st.warning(f"Could not load quarterly fundamentals: {exc}")
-            data = {"income": pd.DataFrame(), "balance": pd.DataFrame(), "cashflow": pd.DataFrame()}
-        income = data.get("income", pd.DataFrame())
-        balance = data.get("balance", pd.DataFrame())
-        cashflow = data.get("cashflow", pd.DataFrame())
-
-        if income.empty and balance.empty and cashflow.empty:
-            st.info("No quarterly fundamentals found for this ticker in the local quarterly dataset.")
-        else:
-            _render_fundamental_statement_charts(ticker, data, quarterly_titles=True)
-
-            with st.expander("Show Raw Fundamental Tables"):
-                st.subheader("Income")
-                st.dataframe(income, use_container_width=True, hide_index=True)
-                st.subheader("Balance")
-                st.dataframe(balance, use_container_width=True, hide_index=True)
-                st.subheader("Cash Flow")
-                st.dataframe(cashflow, use_container_width=True, hide_index=True)
