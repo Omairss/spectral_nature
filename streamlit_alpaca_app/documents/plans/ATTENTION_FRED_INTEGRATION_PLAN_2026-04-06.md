@@ -205,6 +205,7 @@ Scoring code must read this profile, not embed per-series magic numbers in code.
 ### Data Access Layer
 
 - Expose materialized reads for new datasets.
+- Keep new macro datasets and event objects available through the shared query/data-access boundary so the iPhone API can reuse them without homepage-specific logic.
 - Include macro provenance in `resolve_attention_feed` details payload:
   - macro dataset version ids
   - staleness summary
@@ -212,6 +213,21 @@ Scoring code must read this profile, not embed per-series magic numbers in code.
   - relationship-check summary (`holding`, `mixed`, `broken` counts)
   - hypothesis verification summary (`supported`, `conflicting`, `unresolved`)
   - release visibility summary (which macro releases were promoted/suppressed and why)
+
+### API / Mobile Reuse Constraint
+
+Do not wire macro-release behavior only into homepage assembly.
+
+The same underlying macro datasets, release events, provenance, and verification state should be reachable through the shared API surface used by the iPhone app.
+
+Preferred shape:
+
+- materialize once in pipeline
+- expose through `data_access/` and `QueryService`
+- map to API resources/endpoints
+- let Streamlit homepage and iPhone clients consume the same contract
+
+This avoids a second mobile-specific implementation of macro ranking or release-event logic.
 
 ## Reliability and Complexity Assessment
 
@@ -252,6 +268,72 @@ Scoring code must read this profile, not embed per-series magic numbers in code.
 4. Run 1-2 weeks of replay and daily shadow diff monitoring.
 5. Enable macro-aware ranking in dev with conservative weights.
 6. Promote to broader environments after acceptance metrics pass.
+
+## Implementation Status (2026-04-07)
+
+Implemented now (`attention_agentic` + config + query surface):
+
+- Added deterministic macro release extraction from `fred_summary` into:
+  - `macro_release_events_1d`
+- Added fallback surprise scoring when consensus is unavailable:
+  - cross-asset reaction proxy from macro anchors (rates + USD + equity proxies)
+- Added promotion contract:
+  - release forced into `top_events` when `importance_tier == high` and `surprise_score >= threshold`
+- Added non-suppression behavior:
+  - forced macro release events are appended even when mover/event slots are already full
+- Replaced in-code release mapping with runtime profile loading:
+  - `config/attention_macro_signal_profile.v1.yaml`
+  - runtime loader merges profile overrides with defaults and preserves env fallback behavior
+- Added relationship-check materialization on top of macro release events:
+  - `macro_relationship_checks_1d`
+  - edge-level status (`holding`/`mixed`/`broken`/`unresolved`) with evidence symbols and provenance
+- Added hypothesis materialization from relationship-check state:
+  - `attention_hypotheses_1d`
+  - status contract (`supported`/`continuation`/`conflicting`/`unresolved`) with support/contradiction scores
+- Added standalone causal graph edge materialization:
+  - `macro_causal_graph_edges_v1`
+  - profile-derived directed edges persisted with regime/lag/sign/weight priors
+- Added macro context bridge materialization for scoring:
+  - `attention_macro_context_1d`
+  - per symbol x horizon alignment/conflict/signal-count/staleness fields
+- Added SERP/Tavily-backed hypothesis verification pass:
+  - macro hypotheses now run a retrieval verification step before final status update
+  - support/contradiction scores are blended with relationship-check priors
+  - verification queries/results are persisted in existing search trace tables
+- Added homepage/event provenance counters for diagnostics:
+  - macro relationship check counts by status
+  - macro hypothesis counts by status
+- Exposed new materialized datasets through query registry:
+  - `macro_release_events_1d`
+  - `macro_causal_graph_edges_v1`
+  - `macro_relationship_checks_1d`
+  - `attention_hypotheses_1d`
+  - `attention_macro_context_1d`
+- Integrated macro context into anomaly scoring (`compute/anomalies.py`):
+  - optional `macro_context` input on `build_attention_candidates(...)` / `detect_anomaly_events(...)`
+  - added output fields: `macro_alignment_score`, `macro_conflict_score`, `macro_signal_count`, `macro_data_fresh`
+  - added shadow/live score fields: `attention_score_v2_shadow`, `attention_score_v2`
+  - default behavior preserved (`attention_score` unchanged unless `ATTENTION_MACRO_SCORE_LIVE_ENABLED=true`)
+- Added feed-level macro provenance in `resolve_attention_feed` details:
+  - macro dataset version ids
+  - staleness summary
+  - relationship and hypothesis status summaries
+  - release visibility summary (`detected` / `qualifying` / `promoted` / `suppressed`)
+
+Shipped tests:
+
+- `test_bottom_up_attention_artifacts_promotes_high_importance_macro_release_into_top_events`
+- `test_bottom_up_attention_artifacts_does_not_suppress_forced_macro_release_when_event_slots_are_full`
+- `test_bottom_up_attention_artifacts_uses_runtime_macro_profile_for_release_mapping`
+- `test_bottom_up_attention_artifacts_builds_macro_relationship_checks_and_hypotheses`
+- `test_bottom_up_attention_artifacts_verifies_macro_hypotheses_with_search`
+- `test_build_attention_candidates_applies_macro_context_shadow_and_live_switch`
+- `test_resolve_attention_feed_includes_macro_provenance_details`
+
+Still pending from full plan:
+
+- replay calibration and acceptance-window monitoring before enabling live macro scoring broadly
+- broader node/edge coverage and regime predicates refinement in config after replay feedback
 
 ## Acceptance Criteria
 

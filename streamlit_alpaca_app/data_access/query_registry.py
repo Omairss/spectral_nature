@@ -250,6 +250,41 @@ def _resolve_fred_dashboard(data_access: Any, params: dict[str, Any]) -> Resolve
     )
 
 
+def _resolve_macro_release_events_1d(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
+    return data_access.resolve_materialized_dataset(
+        "macro_release_events_1d",
+        force_refresh=_force_refresh(params),
+    )
+
+
+def _resolve_macro_relationship_checks_1d(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
+    return data_access.resolve_materialized_dataset(
+        "macro_relationship_checks_1d",
+        force_refresh=_force_refresh(params),
+    )
+
+
+def _resolve_macro_causal_graph_edges_v1(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
+    return data_access.resolve_materialized_dataset(
+        "macro_causal_graph_edges_v1",
+        force_refresh=_force_refresh(params),
+    )
+
+
+def _resolve_attention_hypotheses_1d(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
+    return data_access.resolve_materialized_dataset(
+        "attention_hypotheses_1d",
+        force_refresh=_force_refresh(params),
+    )
+
+
+def _resolve_attention_macro_context_1d(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
+    return data_access.resolve_materialized_dataset(
+        "attention_macro_context_1d",
+        force_refresh=_force_refresh(params),
+    )
+
+
 def _resolve_attention_feed(
     data_access: Any,
     params: dict[str, Any],
@@ -599,6 +634,31 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         params=("years", "force_refresh"),
         resolution="materialized_first",
         handler=_resolve_fred_dashboard,
+    ),
+    "macro_release_events_1d": DatasetSpec(
+        params=("force_refresh",),
+        resolution="materialized",
+        handler=_resolve_macro_release_events_1d,
+    ),
+    "macro_relationship_checks_1d": DatasetSpec(
+        params=("force_refresh",),
+        resolution="materialized",
+        handler=_resolve_macro_relationship_checks_1d,
+    ),
+    "macro_causal_graph_edges_v1": DatasetSpec(
+        params=("force_refresh",),
+        resolution="materialized",
+        handler=_resolve_macro_causal_graph_edges_v1,
+    ),
+    "attention_hypotheses_1d": DatasetSpec(
+        params=("force_refresh",),
+        resolution="materialized",
+        handler=_resolve_attention_hypotheses_1d,
+    ),
+    "attention_macro_context_1d": DatasetSpec(
+        params=("force_refresh",),
+        resolution="materialized",
+        handler=_resolve_attention_macro_context_1d,
     ),
     "attention_feed": DatasetSpec(
         params=(

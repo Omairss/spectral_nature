@@ -180,6 +180,26 @@ def _ensure_schema(conn: Any) -> None:
         """,
         f"CREATE UNIQUE INDEX IF NOT EXISTS idx_{schema}_user_sessions_token_hash ON {schema}.user_sessions (session_token_hash)",
         f"""
+        CREATE TABLE IF NOT EXISTS {schema}.agent_api_keys (
+            id UUID PRIMARY KEY,
+            name TEXT NOT NULL,
+            key_prefix TEXT NOT NULL,
+            token_hash TEXT NOT NULL,
+            scopes_json JSONB NOT NULL,
+            status TEXT NOT NULL,
+            expires_at TIMESTAMPTZ NULL,
+            revoked_at TIMESTAMPTZ NULL,
+            created_by UUID NULL REFERENCES {schema}.users(id) ON DELETE SET NULL,
+            created_at TIMESTAMPTZ NOT NULL,
+            updated_at TIMESTAMPTZ NOT NULL,
+            last_used_at TIMESTAMPTZ NULL,
+            notes TEXT NULL
+        )
+        """,
+        f"CREATE UNIQUE INDEX IF NOT EXISTS idx_{schema}_agent_api_keys_token_hash ON {schema}.agent_api_keys (token_hash)",
+        f"CREATE INDEX IF NOT EXISTS idx_{schema}_agent_api_keys_status ON {schema}.agent_api_keys (status, created_at DESC)",
+        f"CREATE INDEX IF NOT EXISTS idx_{schema}_agent_api_keys_created_by ON {schema}.agent_api_keys (created_by, created_at DESC)",
+        f"""
         CREATE TABLE IF NOT EXISTS {schema}.app_settings (
             key TEXT PRIMARY KEY,
             value_json JSONB NOT NULL,
@@ -1271,6 +1291,229 @@ def get_app_setting(setting_key: str) -> dict[str, Any] | None:
         conn.close()
 
 
+def _normalize_scopes_json(value: Any) -> list[str]:
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+        except Exception:
+            parsed = []
+    else:
+        parsed = value
+    if not isinstance(parsed, list):
+        return []
+    out: list[str] = []
+    for item in parsed:
+        text = str(item or "").strip()
+        if not text:
+            continue
+        out.append(text)
+    return out
+
+
+def _agent_key_row_payload(row: dict[str, Any], *, include_token_hash: bool = False) -> dict[str, Any]:
+    payload = {
+        "id": str(row.get("id") or ""),
+        "name": str(row.get("name") or ""),
+        "key_prefix": str(row.get("key_prefix") or ""),
+        "scopes": _normalize_scopes_json(row.get("scopes_json")),
+        "status": str(row.get("status") or ""),
+        "expires_at": row.get("expires_at"),
+        "revoked_at": row.get("revoked_at"),
+        "created_by": str(row.get("created_by") or ""),
+        "created_at": row.get("created_at"),
+        "updated_at": row.get("updated_at"),
+        "last_used_at": row.get("last_used_at"),
+        "notes": str(row.get("notes") or ""),
+    }
+    if include_token_hash:
+        payload["token_hash"] = str(row.get("token_hash") or "")
+    return payload
+
+
+def create_agent_api_key(
+    *,
+    name: str,
+    key_prefix: str,
+    token_hash: str,
+    scopes: list[str],
+    created_by: str | None = None,
+    expires_at: datetime | None = None,
+    notes: str = "",
+) -> dict[str, Any]:
+    normalized_name = str(name or "").strip()
+    if not normalized_name:
+        raise ValueError("Agent key name is required.")
+    normalized_prefix = str(key_prefix or "").strip()
+    if not normalized_prefix:
+        raise ValueError("Agent key prefix is required.")
+    normalized_hash = str(token_hash or "").strip()
+    if not normalized_hash:
+        raise ValueError("Agent key token hash is required.")
+
+    conn = _db_connect()
+    if conn is None:
+        raise RuntimeError("Authentication store is unavailable.")
+    schema = _schema_name()
+    now = _now_utc()
+    key_id = uuid.uuid4()
+    scopes_json = json.dumps([str(item or "").strip() for item in list(scopes or []) if str(item or "").strip()])
+    created_by_value = str(created_by or "").strip()
+    notes_value = str(notes or "").strip()
+    try:
+        with conn:
+            _ensure_schema(conn)
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    INSERT INTO {schema}.agent_api_keys (
+                        id, name, key_prefix, token_hash, scopes_json, status, expires_at, revoked_at,
+                        created_by, created_at, updated_at, last_used_at, notes
+                    ) VALUES (%s, %s, %s, %s, %s::jsonb, %s, %s, %s, NULLIF(%s, '')::uuid, %s, %s, %s, %s)
+                    RETURNING id, name, key_prefix, token_hash, scopes_json, status, expires_at, revoked_at,
+                              created_by, created_at, updated_at, last_used_at, notes
+                    """,
+                    (
+                        key_id,
+                        normalized_name,
+                        normalized_prefix,
+                        normalized_hash,
+                        scopes_json,
+                        "active",
+                        expires_at,
+                        None,
+                        created_by_value,
+                        now,
+                        now,
+                        None,
+                        notes_value or None,
+                    ),
+                )
+                row = _fetchone_dict(cursor) or {}
+        return _agent_key_row_payload(row)
+    finally:
+        conn.close()
+
+
+def get_agent_api_key_by_hash(token_hash: str, *, touch_last_used: bool = False) -> dict[str, Any] | None:
+    normalized_hash = str(token_hash or "").strip()
+    if not normalized_hash:
+        return None
+    conn = _db_connect()
+    if conn is None:
+        return None
+    schema = _schema_name()
+    now = _now_utc()
+    try:
+        with conn:
+            _ensure_schema(conn)
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    SELECT
+                        id, name, key_prefix, token_hash, scopes_json, status, expires_at, revoked_at,
+                        created_by, created_at, updated_at, last_used_at, notes
+                    FROM {schema}.agent_api_keys
+                    WHERE token_hash = %s
+                      AND status = %s
+                      AND revoked_at IS NULL
+                      AND (expires_at IS NULL OR expires_at > %s)
+                    LIMIT 1
+                    """,
+                    (normalized_hash, "active", now),
+                )
+                row = _fetchone_dict(cursor)
+                if row is None:
+                    return None
+                if touch_last_used:
+                    cursor.execute(
+                        f"""
+                        UPDATE {schema}.agent_api_keys
+                        SET last_used_at = %s, updated_at = %s
+                        WHERE id = %s
+                        """,
+                        (now, now, row["id"]),
+                    )
+                    row["last_used_at"] = now
+                    row["updated_at"] = now
+                return _agent_key_row_payload(row, include_token_hash=True)
+    finally:
+        conn.close()
+
+
+def list_agent_api_keys() -> list[dict[str, Any]]:
+    conn = _db_connect()
+    if conn is None:
+        return []
+    schema = _schema_name()
+    try:
+        with conn:
+            _ensure_schema(conn)
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    SELECT
+                        id, name, key_prefix, scopes_json, status, expires_at, revoked_at,
+                        created_by, created_at, updated_at, last_used_at, notes
+                    FROM {schema}.agent_api_keys
+                    ORDER BY created_at DESC, name ASC
+                    """
+                )
+                rows = _fetchall_dicts(cursor)
+                return [_agent_key_row_payload(row) for row in rows]
+    finally:
+        conn.close()
+
+
+def revoke_agent_api_key(*, key_id: str, revoked_by: str | None = None) -> dict[str, Any]:
+    normalized_key_id = str(key_id or "").strip()
+    if not normalized_key_id:
+        raise ValueError("Agent key id is required.")
+    try:
+        key_uuid = str(uuid.UUID(normalized_key_id))
+    except Exception:
+        raise ValueError("Agent key id is invalid.")
+
+    conn = _db_connect()
+    if conn is None:
+        raise RuntimeError("Authentication store is unavailable.")
+    schema = _schema_name()
+    now = _now_utc()
+    del revoked_by
+    try:
+        with conn:
+            _ensure_schema(conn)
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    SELECT
+                        id, name, key_prefix, scopes_json, status, expires_at, revoked_at,
+                        created_by, created_at, updated_at, last_used_at, notes
+                    FROM {schema}.agent_api_keys
+                    WHERE id = %s::uuid
+                    LIMIT 1
+                    """,
+                    (key_uuid,),
+                )
+                row = _fetchone_dict(cursor)
+                if row is None:
+                    raise ValueError("Agent key not found.")
+
+                cursor.execute(
+                    f"""
+                    UPDATE {schema}.agent_api_keys
+                    SET status = %s, revoked_at = COALESCE(revoked_at, %s), updated_at = %s
+                    WHERE id = %s::uuid
+                    """,
+                    ("revoked", now, now, key_uuid),
+                )
+                row["status"] = "revoked"
+                row["revoked_at"] = row.get("revoked_at") or now
+                row["updated_at"] = now
+        return _agent_key_row_payload(row)
+    finally:
+        conn.close()
+
+
 def set_app_setting(setting_key: str, value: Any, *, updated_by: str | None = None) -> dict[str, Any]:
     normalized_key = str(setting_key or "").strip()
     if not normalized_key:
@@ -1320,9 +1563,11 @@ __all__ = [
     "auth_store_configured",
     "bootstrap_admin",
     "clear_failed_login",
+    "create_agent_api_key",
     "delete_pending_invite",
     "create_session",
     "ensure_auth_schema",
+    "get_agent_api_key_by_hash",
     "get_active_user_by_email",
     "get_app_setting",
     "get_pending_invite_by_token_hash",
@@ -1331,9 +1576,11 @@ __all__ = [
     "has_users",
     "insert_invite",
     "issue_password_reset",
+    "list_agent_api_keys",
     "list_pending_invites",
     "list_users",
     "record_failed_login",
+    "revoke_agent_api_key",
     "set_app_setting",
     "reset_password",
     "revoke_session",

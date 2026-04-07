@@ -51,13 +51,23 @@ struct LoginRequestBody: Encodable {
 
 struct LoginResponseBody: Decodable {
     let ok: Bool
-    let sessionToken: String
+    let tokenType: String
+    let accessToken: String
+    let refreshToken: String
+    let scopes: [String]
     let context: [String: JSONValue]?
+    let accessTokenExpiresAt: String?
+    let refreshTokenExpiresAt: String?
 
     enum CodingKeys: String, CodingKey {
         case ok
-        case sessionToken = "session_token"
+        case tokenType = "token_type"
+        case accessToken = "access_token"
+        case refreshToken = "refresh_token"
+        case scopes
         case context
+        case accessTokenExpiresAt = "access_token_expires_at"
+        case refreshTokenExpiresAt = "refresh_token_expires_at"
     }
 }
 
@@ -69,4 +79,3 @@ struct MeResponse: Decodable {
 struct BasicResponse: Decodable {
     let ok: Bool
 }
-

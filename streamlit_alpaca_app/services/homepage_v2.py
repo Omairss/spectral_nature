@@ -16,6 +16,16 @@ HOMEPAGE_V2_DETAIL_PANELS = (
     HOMEPAGE_V2_RESEARCH_PANEL,
     HOMEPAGE_V2_COMPANY_PANEL,
 )
+HOMEPAGE_V2_EDITORIAL_LINKS: tuple[dict[str, str], ...] = (
+    {
+        "link_id": "torres-capital-substack",
+        "placement": "sidebar_brand",
+        "label": "Torres Capital Substack",
+        "button_label": "Read on Substack",
+        "icon_name": "substack",
+        "url": "https://substack.com/@torrescap",
+    },
+)
 
 HOMEPAGE_V2_SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -177,6 +187,39 @@ def _unique_texts(values: list[object], *, limit: int | None = None) -> list[str
         if limit is not None and len(out) >= int(limit):
             break
     return out
+
+
+def homepage_v2_editorial_links(*, placement: str = "") -> list[dict[str, str]]:
+    normalized_placement = _coerce_text(placement).lower()
+    links: list[dict[str, str]] = []
+    seen: set[str] = set()
+
+    for raw in HOMEPAGE_V2_EDITORIAL_LINKS:
+        link_id = _coerce_text(raw.get("link_id")).lower()
+        link_placement = _coerce_text(raw.get("placement")).lower()
+        label = _coerce_text(raw.get("label"))
+        url = _coerce_text(raw.get("url"))
+        if not label or not url:
+            continue
+        if normalized_placement and link_placement != normalized_placement:
+            continue
+
+        dedupe_key = link_id or url.lower()
+        if dedupe_key in seen:
+            continue
+        seen.add(dedupe_key)
+        links.append(
+            {
+                "link_id": link_id,
+                "placement": link_placement,
+                "label": label,
+                "button_label": _coerce_text(raw.get("button_label")) or label,
+                "icon_name": _coerce_text(raw.get("icon_name")),
+                "url": url,
+            }
+        )
+
+    return links
 
 
 def homepage_v2_bundle_symbol_lookup(beats: list[dict[str, Any]] | None) -> dict[str, list[str]]:

@@ -130,12 +130,25 @@ For non-Python clients, use the FastAPI layer:
 - `GET /health`
 - `GET /v1/auth/status`
 - `POST /v1/auth/login`
+- `POST /v1/auth/refresh`
 - `POST /v1/auth/logout`
 - `GET /v1/me`
+- `GET /v1/auth/agent-keys` (admin)
+- `POST /v1/auth/agent-keys` (admin)
+- `POST /v1/auth/agent-keys/{key_id}/revoke` (admin)
 - `GET /v1/capabilities`
 - `POST /v1/query`
 - `POST /v1/dataset/{name}`
 - `POST /v1/chart/{name}`
+- `GET /v1/agent/tools`
+- `POST /v1/agent/tools/{tool_name}/invoke`
+- `POST /v1/agent/rpc` (MCP-compatible JSON-RPC)
+
+Auth model:
+
+- user login returns short-lived `access_token` + refresh `refresh_token`
+- bearer supports both new access token and legacy session token during migration
+- machine agents can use scoped `X-API-Key` credentials from `agent_api_keys`
 
 Run locally with:
 

@@ -39,6 +39,7 @@ from services.data_cache import CacheTarget, cached_frame
 from services.edgar import EdgarClient, build_attention_context_bundle
 from services.fred import FREDClient, FredSeriesSpec, build_fred_figure, build_fred_series_summary, format_fred_value, fred_categories, load_fred_dashboard
 from services.fundamentals import load_quarterly_fundamentals
+from services.web_research import WebSearchResult
 from services.simfin_refresh import build_quarterly_fundamentals_frame, load_simfin_api_key
 from services import treasury_yields as treasury_module
 from services.homepage_v2 import (
@@ -46,6 +47,7 @@ from services.homepage_v2 import (
     HOMEPAGE_V2_RESEARCH_PANEL,
     build_homepage_v2_digest,
     build_homepage_v2_market_digest,
+    homepage_v2_editorial_links,
     homepage_v2_bundle_symbol_lookup,
     normalize_homepage_v2_detail_state,
 )
@@ -2496,6 +2498,320 @@ def test_bottom_up_attention_artifacts_use_dynamic_event_titles_instead_of_gener
     assert "oil moved lower today" in top_event["surface_summary_text"].lower()
 
 
+def test_bottom_up_attention_artifacts_promotes_high_importance_macro_release_into_top_events():
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "TLT", "change_pct": 1.8, "close": 97.6, "prev_close": 95.9, "volume": 6_400_000, "dollar_volume": 624_640_000},
+        ]
+    )
+    bars_by_symbol = {
+        "TLT": pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=25, freq="B"),
+                "close": [100.0] * 24 + [101.8],
+            }
+        )
+    }
+    fred_summary_frame = pd.DataFrame(
+        [
+            {
+                "series_id": "UNRATE",
+                "indicator": "Unemployment Rate",
+                "units_short": "Percent",
+                "latest_value": 4.4,
+                "prev_delta": 0.2,
+                "last_updated": pd.Timestamp("2026-03-24T13:31:00Z"),
+                "latest_date": pd.Timestamp("2026-03-01"),
+            }
+        ]
+    )
+
+    artifacts = build_bottom_up_attention_artifacts(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads={},
+        context_payloads={},
+        entity_master=build_attention_entity_master(["TLT"]),
+        holdings=[],
+        generated_at_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+        fred_summary_frame=fred_summary_frame,
+        llm_client=None,
+        top_events_limit=1,
+    )
+
+    top_events = list(artifacts.home_payload.get("top_events") or [])
+    macro_event = next(item for item in top_events if str(item.get("event_type")) == "macro_release")
+    assert macro_event["importance_tier"] == "high"
+    assert macro_event["is_forced_macro_release"] is True
+    assert float(macro_event["surprise_score"] or 0.0) >= 60.0
+    assert not artifacts.frames["macro_release_events_1d"].empty
+    assert int(artifacts.home_payload.get("coverage_summary", {}).get("macro_release_promoted_count") or 0) >= 1
+
+
+def test_bottom_up_attention_artifacts_does_not_suppress_forced_macro_release_when_event_slots_are_full():
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "BNO", "change_pct": -8.9, "close": 25.0, "prev_close": 27.44, "volume": 2_000_000, "dollar_volume": 50_000_000},
+            {"symbol": "USO", "change_pct": -7.4, "close": 70.0, "prev_close": 75.59, "volume": 4_000_000, "dollar_volume": 280_000_000},
+            {"symbol": "UAL", "change_pct": 4.6, "close": 45.0, "prev_close": 43.02, "volume": 5_000_000, "dollar_volume": 225_000_000},
+            {"symbol": "DAL", "change_pct": 4.1, "close": 53.0, "prev_close": 50.91, "volume": 4_500_000, "dollar_volume": 238_500_000},
+            {"symbol": "TLT", "change_pct": 1.2, "close": 97.0, "prev_close": 95.85, "volume": 6_000_000, "dollar_volume": 582_000_000},
+        ]
+    )
+    bars_by_symbol = {
+        symbol: pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=25, freq="B"),
+                "close": [100.0] * 24 + [100.0 * (1.0 + float(move) / 100.0)],
+            }
+        )
+        for symbol, move in daily_movers[["symbol", "change_pct"]].itertuples(index=False, name=None)
+    }
+    entity_master = build_attention_entity_master(daily_movers["symbol"].tolist()).copy()
+    macro_overrides = {
+        "BNO": {"commodity_role": "oil", "macro_role_tags": ["oil"]},
+        "USO": {"commodity_role": "oil", "macro_role_tags": ["oil"]},
+        "TLT": {"rates_role": "rates", "macro_role_tags": ["rates"]},
+        "UAL": {"industry": "Airlines", "business_role_tags": ["travel_mobility"], "macro_role_tags": ["travel"]},
+        "DAL": {"industry": "Airlines", "business_role_tags": ["travel_mobility"], "macro_role_tags": ["travel"]},
+    }
+    for symbol, payload in macro_overrides.items():
+        mask = entity_master["symbol"] == symbol
+        for column, value in payload.items():
+            entity_master.loc[mask, column] = [value]
+    fred_summary_frame = pd.DataFrame(
+        [
+            {
+                "series_id": "CPIAUCSL",
+                "indicator": "Headline CPI",
+                "units_short": "Index 1982-1984=100",
+                "latest_value": 326.6,
+                "prev_delta": 0.55,
+                "last_updated": pd.Timestamp("2026-03-24T13:31:00Z"),
+                "latest_date": pd.Timestamp("2026-03-01"),
+            }
+        ]
+    )
+
+    artifacts = build_bottom_up_attention_artifacts(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads={},
+        context_payloads={},
+        entity_master=entity_master,
+        holdings=[],
+        generated_at_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+        fred_summary_frame=fred_summary_frame,
+        llm_client=None,
+        top_events_limit=1,
+    )
+
+    top_events = list(artifacts.home_payload.get("top_events") or [])
+    event_types = {str(item.get("event_type")) for item in top_events}
+    assert "oil" in event_types
+    assert "macro_release" in event_types
+    assert len(top_events) >= 2
+
+
+def test_bottom_up_attention_artifacts_uses_runtime_macro_profile_for_release_mapping(monkeypatch):
+    with TemporaryDirectory() as tmp_dir:
+        profile_path = Path(tmp_dir) / "attention_macro_signal_profile.v1.yaml"
+        profile_path.write_text(
+            "\n".join(
+                [
+                    "release_display_names:",
+                    "  money_supply: M2 money supply release",
+                    "release_components:",
+                    "  M2SL:",
+                    "    release_type: money_supply",
+                    "    component_label: M2 Supply",
+                    "    importance_tier: high",
+                    "    primary_nodes: [liquidity, rates, usd, equity_duration]",
+                    "release_rules:",
+                    "  surprise_threshold: 0",
+                    "  reaction_cap_move: 1.0",
+                    "  freshness_hours: 72",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        monkeypatch.setenv("ATTENTION_MACRO_SIGNAL_PROFILE_PATH", str(profile_path))
+
+        daily_movers = pd.DataFrame(
+            [
+                {"symbol": "SPY", "change_pct": 1.1, "close": 505.0, "prev_close": 499.5, "volume": 50_000_000, "dollar_volume": 25_250_000_000},
+            ]
+        )
+        bars_by_symbol = {
+            "SPY": pd.DataFrame(
+                {
+                    "timestamp": pd.date_range("2026-02-20", periods=25, freq="B"),
+                    "close": [100.0] * 24 + [101.1],
+                }
+            )
+        }
+        fred_summary_frame = pd.DataFrame(
+            [
+                {
+                    "series_id": "M2SL",
+                    "indicator": "M2",
+                    "units_short": "Billions of Dollars",
+                    "latest_value": 22_300.0,
+                    "prev_delta": 120.0,
+                    "last_updated": pd.Timestamp("2026-03-24T13:31:00Z"),
+                    "latest_date": pd.Timestamp("2026-03-01"),
+                }
+            ]
+        )
+
+        artifacts = build_bottom_up_attention_artifacts(
+            daily_movers,
+            bars_by_symbol=bars_by_symbol,
+            news_payloads={},
+            context_payloads={},
+            entity_master=build_attention_entity_master(["SPY"]),
+            holdings=[],
+            generated_at_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+            fred_summary_frame=fred_summary_frame,
+            llm_client=None,
+            top_events_limit=1,
+        )
+
+        release_frame = artifacts.frames["macro_release_events_1d"]
+        assert not release_frame.empty
+        assert release_frame["release_type"].astype(str).str.lower().eq("money_supply").any()
+        top_events = list(artifacts.home_payload.get("top_events") or [])
+        macro_event = next(item for item in top_events if str(item.get("event_type")) == "macro_release")
+        assert str(macro_event.get("release_type")) == "money_supply"
+
+
+def test_bottom_up_attention_artifacts_builds_macro_relationship_checks_and_hypotheses():
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "TLT", "change_pct": 1.8, "close": 97.6, "prev_close": 95.9, "volume": 6_400_000, "dollar_volume": 624_640_000},
+            {"symbol": "UUP", "change_pct": -1.1, "close": 27.5, "prev_close": 27.81, "volume": 8_200_000, "dollar_volume": 225_500_000},
+            {"symbol": "QQQ", "change_pct": 1.3, "close": 498.0, "prev_close": 491.6, "volume": 39_000_000, "dollar_volume": 19_422_000_000},
+        ]
+    )
+    bars_by_symbol = {
+        symbol: pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=25, freq="B"),
+                "close": [100.0] * 24 + [100.0 * (1.0 + float(move) / 100.0)],
+            }
+        )
+        for symbol, move in daily_movers[["symbol", "change_pct"]].itertuples(index=False, name=None)
+    }
+    fred_summary_frame = pd.DataFrame(
+        [
+            {
+                "series_id": "UNRATE",
+                "indicator": "Unemployment Rate",
+                "units_short": "Percent",
+                "latest_value": 4.4,
+                "prev_delta": 0.2,
+                "last_updated": pd.Timestamp("2026-03-24T13:31:00Z"),
+                "latest_date": pd.Timestamp("2026-03-01"),
+            }
+        ]
+    )
+
+    artifacts = build_bottom_up_attention_artifacts(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads={},
+        context_payloads={},
+        entity_master=build_attention_entity_master(["TLT", "UUP", "QQQ"]),
+        holdings=[],
+        generated_at_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+        fred_summary_frame=fred_summary_frame,
+        llm_client=None,
+        top_events_limit=1,
+    )
+
+    checks = artifacts.frames["macro_relationship_checks_1d"]
+    edges = artifacts.frames["macro_causal_graph_edges_v1"]
+    macro_context = artifacts.frames["attention_macro_context_1d"]
+    hypotheses = artifacts.frames["attention_hypotheses_1d"]
+    assert not edges.empty
+    assert not checks.empty
+    assert not hypotheses.empty
+    assert not macro_context.empty
+    assert "consistency_status" in checks.columns
+    assert checks["consistency_status"].astype(str).str.lower().isin({"holding", "mixed", "broken", "unresolved"}).all()
+    assert checks["consistency_status"].astype(str).str.lower().eq("holding").any()
+    assert hypotheses["support_status"].astype(str).str.lower().isin({"supported", "continuation", "conflicting", "unresolved"}).all()
+    macro_event = next(item for item in (artifacts.home_payload.get("top_events") or []) if str(item.get("event_type")) == "macro_release")
+    assert int(macro_event.get("relationship_holding_count") or 0) >= 0
+    assert str(macro_event.get("hypothesis_status") or "").lower() in {"supported", "continuation", "conflicting", "unresolved"}
+
+
+def test_bottom_up_attention_artifacts_verifies_macro_hypotheses_with_search(monkeypatch):
+    class _SerpClient:
+        def search(self, query: str, *, news: bool = False, num: int = 10):
+            del query, news, num
+            return [
+                WebSearchResult(
+                    provider="serpapi",
+                    title="Jobs cooling lifts rate-cut expectations and supports growth stocks",
+                    url="https://example.com/macro-release",
+                    snippet="Treasury proxies rallied, the dollar softened, and duration-sensitive equities gained after labor cooled.",
+                    source="Reuters",
+                    published_at="2026-03-24T14:00:00Z",
+                )
+            ]
+
+    monkeypatch.setattr("services.attention_agentic._load_search_clients", lambda: (_SerpClient(), None))
+
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "TLT", "change_pct": 1.8, "close": 97.6, "prev_close": 95.9, "volume": 6_400_000, "dollar_volume": 624_640_000},
+            {"symbol": "UUP", "change_pct": -1.1, "close": 27.5, "prev_close": 27.81, "volume": 8_200_000, "dollar_volume": 225_500_000},
+            {"symbol": "QQQ", "change_pct": 1.3, "close": 498.0, "prev_close": 491.6, "volume": 39_000_000, "dollar_volume": 19_422_000_000},
+        ]
+    )
+    bars_by_symbol = {
+        symbol: pd.DataFrame(
+            {
+                "timestamp": pd.date_range("2026-02-20", periods=25, freq="B"),
+                "close": [100.0] * 24 + [100.0 * (1.0 + float(move) / 100.0)],
+            }
+        )
+        for symbol, move in daily_movers[["symbol", "change_pct"]].itertuples(index=False, name=None)
+    }
+    fred_summary_frame = pd.DataFrame(
+        [
+            {
+                "series_id": "UNRATE",
+                "indicator": "Unemployment Rate",
+                "units_short": "Percent",
+                "latest_value": 4.4,
+                "prev_delta": 0.2,
+                "last_updated": pd.Timestamp("2026-03-24T13:31:00Z"),
+                "latest_date": pd.Timestamp("2026-03-01"),
+            }
+        ]
+    )
+
+    artifacts = build_bottom_up_attention_artifacts(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        news_payloads={},
+        context_payloads={},
+        entity_master=build_attention_entity_master(["TLT", "UUP", "QQQ"]),
+        holdings=[],
+        generated_at_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+        fred_summary_frame=fred_summary_frame,
+        llm_client=None,
+        top_events_limit=1,
+    )
+
+    hypotheses = artifacts.frames["attention_hypotheses_1d"]
+    assert not hypotheses.empty
+    assert int(hypotheses["evidence_count"].max()) >= 1
+    assert artifacts.frames["attention_search_requests"]["candidate_id"].astype(str).str.startswith("macro_release::").any()
+
+
 def test_build_live_attention_research_bundle_generic_filing_sections_do_not_drive_continuation_copy():
     daily_movers = pd.DataFrame(
         [
@@ -3375,6 +3691,21 @@ def test_homepage_v2_bundle_symbol_lookup_deduplicates_symbols_per_bundle():
         "bundle-1": ["MSFT", "AAPL", "NVDA"],
         "bundle-2": ["TLT"],
     }
+
+
+def test_homepage_v2_editorial_links_exposes_top_level_torres_capital_substack_cta():
+    links = homepage_v2_editorial_links(placement="sidebar_brand")
+
+    assert links == [
+        {
+            "link_id": "torres-capital-substack",
+            "placement": "sidebar_brand",
+            "label": "Torres Capital Substack",
+            "button_label": "Read on Substack",
+            "icon_name": "substack",
+            "url": "https://substack.com/@torrescap",
+        }
+    ]
 
 
 def test_normalize_homepage_v2_detail_state_defaults_to_first_bundle_and_symbol():

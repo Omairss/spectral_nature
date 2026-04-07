@@ -416,6 +416,165 @@ def test_data_access_layer_resolves_attention_datasets_when_available(monkeypatc
     assert resolved_commodity_rollups.payload["rollup_name"].tolist() == ["Precious Metals"]
 
 
+def test_resolve_attention_feed_includes_macro_provenance_details(monkeypatch):
+    import data_access.layer as layer_module
+    feed = pd.DataFrame(
+        [
+            {
+                "feed_rank": 1,
+                "event_id": "e1",
+                "entity_id": "TLT",
+                "horizon": "1d",
+                "attention_score": 77.0,
+                "severity_score": 80.0,
+                "impact_score": 70.0,
+                "confidence_score": 68.0,
+                "observed_value": 2.0,
+                "expected_value": 0.5,
+                "residual_value": 1.5,
+                "residual_zscore": 2.4,
+                "card_type": "price_residual",
+                "title": "TLT is outperforming expectation",
+                "subtitle": "Price Residual over 1d",
+                "entity_type": "symbol",
+                "direction": "up",
+                "peer_group_name": "Rates",
+                "regime_label": "",
+                "story_text": "",
+                "why_now_text": "",
+                "expected_vs_observed_text": "",
+                "next_best_action": "",
+                "drilldown_section": "Market Opportunity",
+                "drilldown_params_json": "{}",
+                "linked_news_count": 0,
+                "status": "active",
+                "schema_version": "v1",
+            }
+        ]
+    )
+    macro_release = pd.DataFrame(
+        [
+            {
+                "release_event_id": "macro_release::jobs_report::20260324T133000Z",
+                "release_time_utc": "2026-03-24T13:30:00Z",
+                "surprise_score": 72.0,
+            }
+        ]
+    )
+    macro_checks = pd.DataFrame({"consistency_status": ["holding", "mixed", "broken"]})
+    hypotheses = pd.DataFrame({"support_status": ["supported", "continuation", "unresolved"]})
+    attention_home = pd.DataFrame(
+        [
+            {
+                "run_id": "run-macro",
+                "generated_at_utc": "2026-03-24T18:00:00Z",
+                "coverage_summary_json": json.dumps(
+                    {
+                        "macro_release_detected_count": 3,
+                        "macro_release_qualifying_count": 2,
+                        "macro_release_promoted_count": 1,
+                        "macro_release_suppressed_count": 1,
+                    }
+                ),
+                "taxonomy_horizon_trends_json": json.dumps([]),
+                "top_events_json": json.dumps([]),
+                "must_read_movers_json": json.dumps([]),
+                "unresolved_large_moves_json": json.dumps([]),
+                "event_candidates_1d_json": json.dumps([]),
+                "event_impacts_1d_json": json.dumps([]),
+                "entity_master_json": json.dumps([]),
+            }
+        ]
+    )
+
+    metadata = {
+        "attention_feed": SimpleNamespace(
+            dataset_name="attention_feed",
+            dataset_version_id="attention_feed__20260324T180000Z__abcd1234",
+            blob_path="datasets/attention_feed/example.parquet",
+            asof_time_utc="2026-03-24T18:00:00Z",
+            ingested_at_utc="2026-03-24T18:05:00Z",
+            row_count=1,
+        ),
+        "macro_release_events_1d": SimpleNamespace(
+            dataset_name="macro_release_events_1d",
+            dataset_version_id="macro_release_events_1d__20260324T180000Z__abcd1234",
+            blob_path="datasets/macro_release_events_1d/example.parquet",
+            asof_time_utc="2026-03-24T18:00:00Z",
+            ingested_at_utc="2026-03-24T18:05:00Z",
+            row_count=1,
+        ),
+        "macro_causal_graph_edges_v1": SimpleNamespace(
+            dataset_name="macro_causal_graph_edges_v1",
+            dataset_version_id="macro_causal_graph_edges_v1__20260324T180000Z__abcd1234",
+            blob_path="datasets/macro_causal_graph_edges_v1/example.parquet",
+            asof_time_utc="2026-03-24T18:00:00Z",
+            ingested_at_utc="2026-03-24T18:05:00Z",
+            row_count=1,
+        ),
+        "macro_relationship_checks_1d": SimpleNamespace(
+            dataset_name="macro_relationship_checks_1d",
+            dataset_version_id="macro_relationship_checks_1d__20260324T180000Z__abcd1234",
+            blob_path="datasets/macro_relationship_checks_1d/example.parquet",
+            asof_time_utc="2026-03-24T18:00:00Z",
+            ingested_at_utc="2026-03-24T18:05:00Z",
+            row_count=3,
+        ),
+        "attention_hypotheses_1d": SimpleNamespace(
+            dataset_name="attention_hypotheses_1d",
+            dataset_version_id="attention_hypotheses_1d__20260324T180000Z__abcd1234",
+            blob_path="datasets/attention_hypotheses_1d/example.parquet",
+            asof_time_utc="2026-03-24T18:00:00Z",
+            ingested_at_utc="2026-03-24T18:05:00Z",
+            row_count=3,
+        ),
+        "attention_home_snapshots_1d": SimpleNamespace(
+            dataset_name="attention_home_snapshots_1d",
+            dataset_version_id="attention_home_snapshots_1d__20260324T180000Z__abcd1234",
+            blob_path="datasets/attention_home_snapshots_1d/example.parquet",
+            asof_time_utc="2026-03-24T18:00:00Z",
+            ingested_at_utc="2026-03-24T18:05:00Z",
+            row_count=1,
+        ),
+    }
+
+    def _load(dataset_name: str):
+        if dataset_name == "attention_feed":
+            return feed.copy(), metadata[dataset_name]
+        if dataset_name == "macro_release_events_1d":
+            return macro_release.copy(), metadata[dataset_name]
+        if dataset_name == "macro_causal_graph_edges_v1":
+            return pd.DataFrame([{"edge_id": "e1"}]), metadata[dataset_name]
+        if dataset_name == "macro_relationship_checks_1d":
+            return macro_checks.copy(), metadata[dataset_name]
+        if dataset_name == "attention_hypotheses_1d":
+            return hypotheses.copy(), metadata[dataset_name]
+        if dataset_name == "attention_home_snapshots_1d":
+            return attention_home.copy(), metadata[dataset_name]
+        if dataset_name == "attention_home_1d":
+            return pd.DataFrame(), SimpleNamespace(
+                dataset_name="attention_home_1d",
+                dataset_version_id="",
+                blob_path="",
+                asof_time_utc="",
+                ingested_at_utc="",
+                row_count=0,
+            )
+        raise AssertionError(f"unexpected dataset: {dataset_name}")
+
+    monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
+    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", _load)
+
+    resolved = DataAccessLayer().resolve_attention_feed(limit=1)
+
+    details = resolved.provenance.details
+    assert "macro_dataset_version_ids" in details
+    assert details["macro_dataset_version_ids"]["macro_release_events_1d"].startswith("macro_release_events_1d__")
+    assert details["macro_relationship_summary"]["holding"] == 1
+    assert details["macro_hypothesis_summary"]["supported"] == 1
+    assert details["macro_release_visibility_summary"]["promoted"] == 1
+
+
 def test_resolve_attention_home_1d_rejects_stat_dump_materialized_payload(monkeypatch):
     bad_what = (
         "Energy and crude-linked products advanced with USO +5.95%, BNO +4.35%, and XOM +3.36%. "

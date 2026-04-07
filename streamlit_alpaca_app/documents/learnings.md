@@ -1,5 +1,36 @@
 # Learnings
 
+## 2026-04-07
+
+## agentic API/auth gateway takeaways
+- Treat REST and MCP transport as two facades over one execution core (`QueryService`) so auth, scopes, and behavior remain consistent.
+- Keep machine credentials as first-class DB entities (`agent_api_keys`) with hashed secrets, scoped permissions, and revoke/expiry lifecycle; do not overload user session tokens for long-lived agents.
+- Access/refresh token split gives better operational control: short-lived bearer for request auth, long-lived revocable refresh/session for continuity.
+
+## macro release visibility in attention home
+- If macro releases must appear on the homepage, release objects must be first-class events, not only evidence attached to symbol bundles.
+- Promotion and non-suppression rules should be enforced in `_build_home_payload(...)` so slot competition cannot silently hide qualifying macro releases.
+- Persisting a dedicated `macro_release_events_1d` frame keeps diagnostics and replay analysis possible without parsing `top_events` JSON blobs.
+
+## runtime macro profile + diagnostics
+- Keep macro release/component mapping in a versioned profile file (`config/attention_macro_signal_profile.v1.yaml`) and merge with safe defaults at load time; this allows partial overrides without brittle startup failures.
+- Relationship checks should run before narrative synthesis and write a first-class dataset (`macro_relationship_checks_1d`) so support/conflict states are replayable and auditable.
+- Hypothesis rows (`attention_hypotheses_1d`) should be built from deterministic check outputs first; retrieval-backed verification can be layered on top without changing the status contract.
+
+## agent resource contract takeaways
+- For cross-client agent UX, REST resources should model sessions, messages, runs, tool calls, artifacts, and notes explicitly instead of forcing clients to reconstruct state from MCP logs or plain chat text.
+- Keep artifact payloads separate from transcript text so iPhone and Streamlit can render charts/tables/code without fragile parsing.
+- Async run + pollable event stream is the safest first delivery shape; it fits both homepage and mobile without requiring streaming as a prerequisite.
+
+## Spectral Nature 2 omnibar planning
+- One shared text bar is cleaner than separate search and chat controls, but only if intent routing is backend-driven and reusable by both Streamlit and iPhone.
+- Keep omnibar resolution non-mutating (`/v1/omnibar/resolve`) so clients can preview search/navigation versus agent actions before creating session state.
+- Strong exact matches should stay fast-path navigation; agent runs should be reserved for prompts that actually need multi-step tool use.
+
+## homepage editorial links
+- Keep homepage external destinations in structured homepage metadata/helpers instead of embedding raw URLs directly inside render branches.
+- A compact top-of-home CTA strip is a lower-risk way to add editorial destinations than threading one-off links through multiple cards or rails.
+
 ## 2026-04-06
 
 ## market explorer split takeaways
@@ -24,6 +55,7 @@
 
 ## homepage agent workspace planning
 - Reuse `data_access/query_service.py` and `api/main.py` as the agent's structured-data boundary; do not route agent behavior through `app.py`.
+- When adding new agent capabilities, define the API/resource contract first so the iPhone app can reuse it directly.
 - Treat charts, datasets, anomalies, and run traces as tool calls, not RAG content.
 - Use RAG only for unstructured evidence and documents with citation metadata.
 - If users want "thoughts", expose explicit notes/scratchpad state instead of raw chain-of-thought.
@@ -78,3 +110,10 @@
 3. Patch source logic and add one regression test for the exact failing shape.
 4. Run narrow tests + one direct payload sanity check.
 5. Deploy to dev once, verify revision/image/health, then stop.
+
+## 2026-04-07
+
+- For macro integration, persisting the causal graph edges as a first-class dataset (`macro_causal_graph_edges_v1`) makes relationship checks auditable and reusable across homepage/API/mobile without duplicating profile parsing logic.
+- Hypothesis verification is more reliable when web retrieval updates the same persisted hypothesis rows instead of creating parallel status channels; keep one status contract and blend deterministic + retrieval evidence.
+- Adding macro provenance directly to `resolve_attention_feed` details removes the need for UI-specific diagnostics logic and keeps clients aligned on why macro events were promoted/suppressed.
+- Optional macro scoring should ship with explicit shadow/live fields (`attention_score_v2_shadow`, `attention_score_v2`) while leaving `attention_score` unchanged by default to prevent accidental ranking drift.

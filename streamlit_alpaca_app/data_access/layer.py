@@ -423,6 +423,11 @@ ATTENTION_TRACE_DATASETS = (
     "attention_claims",
     "attention_candidate_graph",
     "attention_event_clusters_1d",
+    "macro_release_events_1d",
+    "attention_macro_context_1d",
+    "macro_causal_graph_edges_v1",
+    "macro_relationship_checks_1d",
+    "attention_hypotheses_1d",
     "attention_ticker_snapshots_1d",
     "attention_ticker_background_snapshots",
     "attention_home_snapshots_1d",
@@ -572,6 +577,76 @@ class DataAccessLayer:
             frames[dataset_name] = frame
             details[dataset_name] = metadata
         return frames, details
+
+    def _attention_home_coverage_summary(self, *, force_refresh: bool) -> dict[str, Any]:
+        materialized = self._first_materialized_frame(
+            ATTENTION_HOME_SNAPSHOT_DATASETS,
+            force_refresh=force_refresh,
+        )
+        if materialized is None:
+            return {}
+        _, frame, _ = materialized
+        payload = deserialize_attention_home_payload(frame)
+        return dict(payload.get("coverage_summary") or {}) if isinstance(payload, dict) else {}
+
+    def _macro_feed_provenance_details(self, *, force_refresh: bool) -> dict[str, Any]:
+        dataset_names = (
+            "macro_release_events_1d",
+            "macro_causal_graph_edges_v1",
+            "macro_relationship_checks_1d",
+            "attention_hypotheses_1d",
+        )
+        dataset_versions: dict[str, str] = {}
+        staleness_summary: dict[str, Any] = {}
+        relationship_summary = {"holding": 0, "mixed": 0, "broken": 0, "unresolved": 0}
+        hypothesis_summary = {"supported": 0, "continuation": 0, "conflicting": 0, "unresolved": 0}
+        for dataset_name in dataset_names:
+            materialized = self._try_pipeline_frame(dataset_name, force_refresh=force_refresh)
+            if materialized is None:
+                continue
+            frame, details = materialized
+            version_id = _coerce_text(details.get("dataset_version_id"))
+            if version_id:
+                dataset_versions[dataset_name] = version_id
+            if dataset_name == "macro_release_events_1d" and not frame.empty:
+                if "release_time_utc" in frame.columns:
+                    release_times = pd.to_datetime(frame["release_time_utc"], utc=True, errors="coerce").dropna()
+                    if not release_times.empty:
+                        now_utc = pd.Timestamp.utcnow()
+                        if now_utc.tzinfo is None:
+                            now_utc = now_utc.tz_localize("UTC")
+                        else:
+                            now_utc = now_utc.tz_convert("UTC")
+                        age_hours = (now_utc - release_times.max()).total_seconds() / 3600.0
+                        staleness_summary["macro_release_events_age_hours"] = round(float(max(age_hours, 0.0)), 2)
+                if "surprise_score" in frame.columns:
+                    staleness_summary["macro_release_count"] = int(len(frame))
+            if dataset_name == "macro_relationship_checks_1d" and not frame.empty and "consistency_status" in frame.columns:
+                status_counts = frame["consistency_status"].astype(str).str.lower().value_counts()
+                for key in relationship_summary:
+                    relationship_summary[key] = int(status_counts.get(key, 0))
+            if dataset_name == "attention_hypotheses_1d" and not frame.empty and "support_status" in frame.columns:
+                status_counts = frame["support_status"].astype(str).str.lower().value_counts()
+                for key in hypothesis_summary:
+                    hypothesis_summary[key] = int(status_counts.get(key, 0))
+
+        coverage_summary = self._attention_home_coverage_summary(force_refresh=force_refresh)
+        release_visibility_summary = {
+            "detected": int(coverage_summary.get("macro_release_detected_count") or 0),
+            "qualifying": int(coverage_summary.get("macro_release_qualifying_count") or 0),
+            "promoted": int(coverage_summary.get("macro_release_promoted_count") or 0),
+            "suppressed": int(coverage_summary.get("macro_release_suppressed_count") or 0),
+        }
+        macro_live_enabled = bool((os.getenv("ATTENTION_MACRO_SCORE_LIVE_ENABLED") or "").strip().lower() in {"1", "true", "yes", "on"})
+        macro_shadow_enabled = bool((os.getenv("ATTENTION_MACRO_SCORE_SHADOW_ENABLED") or "1").strip().lower() not in {"0", "false", "no", "off"})
+        return {
+            "macro_dataset_version_ids": dataset_versions,
+            "macro_staleness_summary": staleness_summary,
+            "macro_scoring_mode": "live" if macro_live_enabled else ("shadow" if macro_shadow_enabled else "disabled"),
+            "macro_relationship_summary": relationship_summary,
+            "macro_hypothesis_summary": hypothesis_summary,
+            "macro_release_visibility_summary": release_visibility_summary,
+        }
 
     def _first_materialized_frame(
         self,
@@ -2492,7 +2567,6 @@ class DataAccessLayer:
         residual_zscore_threshold: float | None = None,
         force_refresh: bool = False,
     ) -> ResolvedPayload:
-        del force_refresh
         dataset_key = str(dataset_name or "attention_feed").strip() or "attention_feed"
         if not pipeline_store_configured():
             return self._resolved(
@@ -2528,16 +2602,26 @@ class DataAccessLayer:
                     statuses=statuses,
                 )
                 feed = build_attention_feed(filtered, pd.DataFrame(), top_n=int(limit))
+                macro_details = self._macro_feed_provenance_details(force_refresh=force_refresh)
                 return self._resolved(
                     feed.reset_index(drop=True),
                     mode="materialized",
                     datasets=(candidate_dataset,),
-                    details={**candidate_details, "filters": {"horizons": list(normalize_horizons(horizons)), "sensitivity": sensitivity or "balanced"}},
+                    details={
+                        **candidate_details,
+                        **macro_details,
+                        "filters": {"horizons": list(normalize_horizons(horizons)), "sensitivity": sensitivity or "balanced"},
+                    },
                 )
 
         feed, details = self._pipeline_frame(dataset_key)
         if feed.empty:
-            return self._resolved(feed, mode="materialized", datasets=(dataset_key,), details=details)
+            return self._resolved(
+                feed,
+                mode="materialized",
+                datasets=(dataset_key,),
+                details={**details, **self._macro_feed_provenance_details(force_refresh=force_refresh)},
+            )
 
         out = feed.copy()
         if "entity_id" in out.columns and entity_ids:
@@ -2561,7 +2645,12 @@ class DataAccessLayer:
             out = out.sort_values("attention_score", ascending=False, na_position="last")
         if int(limit) > 0:
             out = out.head(int(limit))
-        return self._resolved(out.reset_index(drop=True), mode="materialized", datasets=(dataset_key,), details=details)
+        return self._resolved(
+            out.reset_index(drop=True),
+            mode="materialized",
+            datasets=(dataset_key,),
+            details={**details, **self._macro_feed_provenance_details(force_refresh=force_refresh)},
+        )
 
     def resolve_attention_rollups(
         self,
@@ -2770,6 +2859,19 @@ class DataAccessLayer:
         except TreasuryYieldError as exc:
             raise RuntimeError(f"Treasury yield facts unavailable and no materialized daily facts were found: {exc}") from exc
         return self._resolved(facts.reset_index(drop=True), mode="on_demand", datasets=("yield_curve_facts_1d",), details={"source": "treasury_direct"})
+
+    def resolve_materialized_dataset(self, dataset_name: str, *, force_refresh: bool = False) -> ResolvedPayload:
+        normalized_name = str(dataset_name or "").strip()
+        if not normalized_name:
+            return self._resolved(pd.DataFrame(), mode="materialized", datasets=(), details={"warning": "dataset_name is required"})
+        materialized = self._try_pipeline_frame(normalized_name, force_refresh=force_refresh)
+        if materialized is not None:
+            frame, details = materialized
+            return self._resolved(frame.reset_index(drop=True), mode="materialized", datasets=(normalized_name,), details=details)
+        materialized_only = self._materialized_only_result(pd.DataFrame(), datasets=(normalized_name,))
+        if materialized_only is not None:
+            return materialized_only
+        return self._resolved(pd.DataFrame(), mode="on_demand", datasets=(normalized_name,), details={"warning": "materialized dataset not available"})
 
     def latest_job_status(self) -> ResolvedPayload:
         return self._resolved(latest_job_status_table(), mode="materialized", datasets=("job_runs",))

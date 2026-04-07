@@ -16,6 +16,8 @@ Current plan files:
 - `ATTENTION_FEED_EVENT_REDESIGN_PLAN.md`: product/background context for the event redesign
 - `ATTENTION_LAYER_PLAN.md`: historical layer-design context
 - `ATTENTION_FRED_INTEGRATION_PLAN_2026-04-06.md`: phased architecture plan to integrate FRED into attention scoring
+- `YIELD_VIEW_PLAN_2026-04-06.md`: scoped architecture plan for a market-explorer fixed-income / yield view
+- `TRUE_BOND_VIEW_PLAN_2026-04-06.md`: separate architecture plan for a real bond-level view across Treasuries, corporates, and munis
 - `STOCK_INVESTIGATOR_SPLIT_2026-04-06.md`: market-vs-stock workspace split and ticker handoff architecture
 - `EMAIL_DELIVERY_SETUP_PLAN.md`: Azure email delivery design and rollout notes
 - `BRANDING_REFRESH_PLAN.md`: app-shell branding cleanup and product presentation notes
@@ -24,6 +26,8 @@ Current plan files:
 - `INBOUND_MAIL_SETUP_PLAN.md`: prerequisites and architecture for support/newsletter inbound mail
 - `IPHONE_APP_STRATEGY_2026-04-05.md`: source-first migration plan from Streamlit UI to native iPhone app
 - `IPHONE_MVP_SCAFFOLD_2026-04-06.md`: delivered backend/API + SwiftUI scaffold for iPhone MVP
+- `AGENTIC_API_AUTH_MCP_2026-04-07.md`: production-grade auth model + scoped agent keys + MCP-compatible gateway
+- `AGENT_API_RESOURCE_CONTRACT_2026-04-07.md`: concrete `/v1/agent/*` REST resource schemas and payload examples for homepage + iPhone reuse
 - `HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md`: phased plan for a homepage agent workspace with tools, RAG, notes, and sandbox execution
 - `HOMEPAGE_V2_RAIL_REFACTOR_PLAN.md`: homepage rail refactor work
 - `MARKET_OPPORTUNITY_PRECOMPUTE_RECOVERY_PLAN.md`: market precompute recovery work

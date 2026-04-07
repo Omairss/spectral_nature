@@ -7,7 +7,7 @@ Native SwiftUI client scaffold for Spectral Nature.
 - Login + guest entry
 - Home, Portfolio, and Ticker tabs
 - Query-backed data loading via `/v1/query` and `/v1/dataset/{name}`
-- Optional bearer token auth support
+- Access-token + refresh-token auth support
 - Secure token storage in Keychain
 
 ## Prerequisites
@@ -43,5 +43,5 @@ The app reads this value from `Info.plist` key `SNApiBaseURL`.
 ## Notes
 
 - If backend auth is disabled in the environment, use `Continue as Guest`.
+- When backend auth is enabled, login now returns `access_token` + `refresh_token`.
 - This scaffold is intentionally thin and calls existing query contracts so backend logic remains source-of-truth.
-

@@ -46,8 +46,21 @@ final class APIClient {
         )
     }
 
-    func logout() async throws -> BasicResponse {
-        try await request(path: "/v1/auth/logout", method: "POST", requiresAuth: true)
+    func refresh(refreshToken: String, rotateRefreshToken: Bool = true) async throws -> LoginResponseBody {
+        try await request(
+            path: "/v1/auth/refresh",
+            method: "POST",
+            body: RefreshRequestBody(refreshToken: refreshToken, rotateRefreshToken: rotateRefreshToken)
+        )
+    }
+
+    func logout(refreshToken: String = "") async throws -> BasicResponse {
+        try await request(
+            path: "/v1/auth/logout",
+            method: "POST",
+            body: LogoutRequestBody(refreshToken: refreshToken),
+            requiresAuth: true
+        )
     }
 
     func me() async throws -> MeResponse {
@@ -167,4 +180,22 @@ final class APIClient {
 
 private struct QueryBody: Encodable {
     let params: [String: JSONValue]
+}
+
+private struct RefreshRequestBody: Encodable {
+    let refreshToken: String
+    let rotateRefreshToken: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case refreshToken = "refresh_token"
+        case rotateRefreshToken = "rotate_refresh_token"
+    }
+}
+
+private struct LogoutRequestBody: Encodable {
+    let refreshToken: String
+
+    enum CodingKeys: String, CodingKey {
+        case refreshToken = "refresh_token"
+    }
 }

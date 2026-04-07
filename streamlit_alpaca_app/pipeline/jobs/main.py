@@ -777,6 +777,13 @@ def _parse_attention_thresholds_env() -> dict[str, float]:
     return parsed
 
 
+def _env_flag(name: str, default: bool) -> bool:
+    raw = (os.getenv(name) or ("1" if default else "0")).strip().lower()
+    if not raw:
+        return default
+    return raw not in {"0", "false", "no", "off"}
+
+
 def _load_stock_bars_frame(api: AlpacaAPI, symbols: list[str], *, days: int) -> pd.DataFrame:
     normalized_symbols = sorted({str(symbol).upper().strip() for symbol in symbols if str(symbol).strip()})
     if not normalized_symbols:
@@ -1202,9 +1209,14 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
                 high_priority_threshold=max(float(os.getenv("ATTENTION_HIGH_PRIORITY_THRESHOLD", "75.0")), 1.0),
                 news_lookback_days=max(int(os.getenv("ATTENTION_NEWS_LOOKBACK_DAYS", "3")), 0),
                 persistence_periods=max(int(os.getenv("ATTENTION_PERSISTENCE_PERIODS", "2")), 1),
+                macro_shadow_enabled=_env_flag("ATTENTION_MACRO_SCORE_SHADOW_ENABLED", True),
+                macro_live_enabled=_env_flag("ATTENTION_MACRO_SCORE_LIVE_ENABLED", False),
+                macro_shadow_weight=max(float(os.getenv("ATTENTION_MACRO_SCORE_WEIGHT", "0.12")), 0.0),
+                macro_staleness_hours=max(float(os.getenv("ATTENTION_MACRO_STALENESS_HOURS", "48")), 0.0),
                 schema_version=(os.getenv("ATTENTION_SCHEMA_VERSION") or "v1").strip() or "v1",
             )
             news_symbol_map = _load_attention_news_map(api, symbols)
+            macro_context_frame = _load_latest_materialized_frame("attention_macro_context_1d")
             price_expectations = build_price_expectations(
                 bars_frame,
                 momentum,
@@ -1217,6 +1229,7 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
                 technical_signals_latest=technical_latest,
                 news_symbol_map=news_symbol_map,
                 positions=positions,
+                macro_context=macro_context_frame,
                 config=attention_config,
             )
             anomaly_events = filter_attention_events(
@@ -1364,6 +1377,10 @@ def run_commodities(ctx: JobContext, conn: Any | None = None) -> None:
                 high_priority_threshold=max(float(os.getenv("ATTENTION_HIGH_PRIORITY_THRESHOLD", "75.0")), 1.0),
                 news_lookback_days=max(int(os.getenv("ATTENTION_NEWS_LOOKBACK_DAYS", "3")), 0),
                 persistence_periods=max(int(os.getenv("ATTENTION_PERSISTENCE_PERIODS", "2")), 1),
+                macro_shadow_enabled=_env_flag("ATTENTION_MACRO_SCORE_SHADOW_ENABLED", True),
+                macro_live_enabled=_env_flag("ATTENTION_MACRO_SCORE_LIVE_ENABLED", False),
+                macro_shadow_weight=max(float(os.getenv("ATTENTION_MACRO_SCORE_WEIGHT", "0.12")), 0.0),
+                macro_staleness_hours=max(float(os.getenv("ATTENTION_MACRO_STALENESS_HOURS", "48")), 0.0),
                 schema_version=(os.getenv("ATTENTION_SCHEMA_VERSION") or "v1").strip() or "v1",
             )
 
@@ -1400,6 +1417,7 @@ def run_commodities(ctx: JobContext, conn: Any | None = None) -> None:
                 phase_summary = phase_summary[keep].drop_duplicates(subset=["symbol"], keep="last")
 
             commodity_signals = _commodity_regime_signals(summary)
+            macro_context_frame = _load_latest_materialized_frame("attention_macro_context_1d")
             price_expectations = build_price_expectations(
                 bars_frame,
                 momentum,
@@ -1412,6 +1430,7 @@ def run_commodities(ctx: JobContext, conn: Any | None = None) -> None:
                 technical_signals_latest=commodity_signals,
                 news_symbol_map=news_symbol_map,
                 positions=positions,
+                macro_context=macro_context_frame,
                 config=attention_config,
             )
             anomaly_events = filter_attention_events(

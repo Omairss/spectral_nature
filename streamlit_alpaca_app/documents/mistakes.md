@@ -1,5 +1,48 @@
 # Mistakes Log
 
+## 2026-04-07 - FastAPI Response Type Annotation Broke Route Registration
+
+### What went wrong
+- I annotated the JSON-RPC endpoint return type as a complex union (`Response | dict | list[dict]`), which FastAPI attempted to turn into a Pydantic response model and failed during app import.
+
+### Impact
+- API test collection failed before running any endpoint tests.
+
+### Never repeat checklist (mandatory)
+1. For heterogeneous RPC endpoints, set `response_model=None` and use `-> Any` return annotation.
+2. Run `pytest` immediately after adding a new route signature to catch import-time FastAPI model errors.
+3. Prefer explicit response model classes for non-RPC endpoints and keep RPC endpoints intentionally model-free.
+
+## 2026-04-07 - Macro Release Events Were Not First-Class Homepage Items
+
+### What went wrong
+- High-importance macro releases (jobs/CPI/PCE) were only used as narrative context and not emitted as standalone event objects in the attention homepage payload.
+- `top_events` slotting was driven by mover clustering only, so qualifying macro releases could be absent even on release days.
+
+### Impact
+- Users could miss key macro prints in homepage `top_events` despite visible cross-asset reaction.
+- Reduced trust in the feed during macro event days.
+
+### Never repeat checklist (mandatory)
+1. For must-show event classes, create explicit event rows and persistence datasets (`*_events_1d`) instead of relying on side-channel narrative enrichment.
+2. Enforce promotion and non-suppression in one place (`_build_home_payload`) with tests that cover slot-pressure scenarios.
+3. Add release-day regression tests that assert presence of macro release events even when non-macro clusters already consume top slots.
+
+## 2026-04-07 - Macro Release Logic Stayed Hardcoded Too Long
+
+### What went wrong
+- Macro release mapping, display names, and scoring thresholds stayed embedded in `services/attention_agentic.py` after initial ship.
+- This limited coverage to a fixed symbol list and made normal release-model tuning require code edits and redeploys.
+
+### Impact
+- Faster iteration on macro detection thresholds and series mapping was blocked.
+- Users could miss relevant release types that were present in FRED inputs but absent from hardcoded mapping.
+
+### Never repeat checklist (mandatory)
+1. Move release/component dictionaries and thresholds into a versioned runtime profile before expanding feature scope.
+2. Keep code responsible for orchestration only; put series membership and edge definitions in config.
+3. Add tests that prove config override behavior for at least one non-default series.
+
 ## 2026-04-06 - Attention Scoring Doc Drift From Runtime
 
 ### What went wrong
@@ -117,3 +160,16 @@
 1. For composite jobs, define mandatory source steps and fail the run when they fail.
 2. Do not downgrade mandatory ingest failures to warning-only logs.
 3. Add tests that simulate source failure and assert job failure status propagation.
+
+## 2026-04-07 - Overly Strict Macro-Verification Test Assertion
+
+### What went wrong
+- I initially asserted that macro verification always writes `macro_*` claim rows.
+- In practice, retrieval may produce only neutral evidence for a hypothesis, which can validly update `evidence_count` without adding support/contradiction claim rows.
+
+### Impact
+- Test failed even though the verification path executed and persisted search traces as designed.
+
+### Never repeat checklist (mandatory)
+1. For retrieval-verification tests, assert execution traces (`search_requests/search_results`) and hypothesis evidence counts first.
+2. Only assert support/contradiction claim rows when test fixtures explicitly force non-neutral verdicts.

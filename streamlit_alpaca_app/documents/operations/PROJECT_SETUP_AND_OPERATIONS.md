@@ -123,6 +123,13 @@ Run the API layer for external clients:
 - `APP_PUBLIC_BASE_URL`
 - `AZURE_KEY_VAULT_NAME` / `KEY_VAULT_NAME`
 
+## API auth / agent gateway
+
+- `API_ACCESS_TOKEN_SECRET` (preferred shared signing secret)
+- `API_ACCESS_TOKEN_SECRET_NAME` (Key Vault secret indirection)
+- `API_ACCESS_TOKEN_TTL_SECONDS` (default `900`)
+- `API_ACCESS_TOKEN_ISSUER` (default `spectral-nature-api`)
+
 ## Email delivery
 
 - `APP_SMTP_HOST` (ACS SMTP: `smtp.azurecomm.net`)

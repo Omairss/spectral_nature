@@ -11,23 +11,29 @@ final class AppSession: ObservableObject {
 
     @Published var baseURLText: String
     @Published var mode: Mode
-    @Published var sessionToken: String?
+    @Published var accessToken: String?
+    @Published var refreshToken: String?
     @Published var userContext: [String: JSONValue]?
     @Published var authStatus: AuthStatusResponse?
     @Published var errorMessage: String = ""
 
     private let defaults = UserDefaults.standard
     private let baseURLDefaultsKey = "sn.api.base_url"
-    private let tokenStore = KeychainTokenStore(
+    private let accessTokenStore = KeychainTokenStore(
         service: "com.torrescapital.spectralnaturemvp",
-        account: "session_token"
+        account: "access_token"
+    )
+    private let refreshTokenStore = KeychainTokenStore(
+        service: "com.torrescapital.spectralnaturemvp",
+        account: "refresh_token"
     )
 
     init() {
         let storedBaseURL = defaults.string(forKey: baseURLDefaultsKey) ?? AppEnvironment.defaultBaseURL
         baseURLText = storedBaseURL
-        sessionToken = tokenStore.readToken()
-        mode = (sessionToken?.isEmpty == false) ? .authenticated : .unauthenticated
+        accessToken = accessTokenStore.readToken()
+        refreshToken = refreshTokenStore.readToken()
+        mode = (accessToken?.isEmpty == false) ? .authenticated : .unauthenticated
     }
 
     var resolvedBaseURL: URL {
@@ -38,7 +44,7 @@ final class AppSession: ObservableObject {
     }
 
     var apiClient: APIClient {
-        APIClient(baseURL: resolvedBaseURL, bearerToken: sessionToken)
+        APIClient(baseURL: resolvedBaseURL, bearerToken: accessToken)
     }
 
     func setBaseURL(_ value: String) {
@@ -61,8 +67,10 @@ final class AppSession: ObservableObject {
     func signIn(email: String, password: String) async {
         do {
             let response = try await apiClient.login(email: email, password: password)
-            sessionToken = response.sessionToken
-            tokenStore.saveToken(response.sessionToken)
+            accessToken = response.accessToken
+            refreshToken = response.refreshToken
+            accessTokenStore.saveToken(response.accessToken)
+            refreshTokenStore.saveToken(response.refreshToken)
             userContext = response.context
             mode = .authenticated
             errorMessage = ""
@@ -80,12 +88,14 @@ final class AppSession: ObservableObject {
     }
 
     func signOut() async {
-        if sessionToken != nil {
-            _ = try? await apiClient.logout()
+        if accessToken != nil {
+            _ = try? await apiClient.logout(refreshToken: refreshToken ?? "")
         }
-        sessionToken = nil
+        accessToken = nil
+        refreshToken = nil
         userContext = nil
-        tokenStore.clearToken()
+        accessTokenStore.clearToken()
+        refreshTokenStore.clearToken()
         mode = .unauthenticated
     }
 }

@@ -4,6 +4,11 @@
 
 Add a homepage agent workspace that feels like a Claude Code-style interface, but is grounded in Spectral Nature's existing data/query stack.
 
+For Spectral Nature 2, the primary entrypoint should be a single text bar that serves as both:
+
+- quick search / navigation, and
+- agentic chat / analysis
+
 The agent should be able to:
 
 - read any supported dataset, chart model, anomaly feed, research bundle, or run trace
@@ -57,6 +62,8 @@ What is missing today:
 
 Add a new `Home -> Agent Workspace` mode instead of replacing the current homepage feed.
 
+For Spectral Nature 2, that workspace should be entered through one shared omnibar rather than separate search and chat widgets.
+
 Recommended UI layout:
 
 1. Left rail
@@ -75,19 +82,74 @@ Recommended UI layout:
 - run status and budgets
 
 4. Launch points
-- global "Ask the workspace" composer on the homepage
+- global Spectral Nature 2 omnibar on the homepage
 - "Open in workspace" from any homepage beat, chart, anomaly, or research bundle
 
 This keeps the homepage useful as a market dashboard while adding an agentic work surface on top.
 
+## Spectral Nature 2 Omnibar
+
+The default homepage control in Spectral Nature 2 should be one text bar that can do two jobs:
+
+1. quick search
+- resolve symbols, macro releases, research bundles, saved sessions, charts, datasets, and documents
+- support immediate navigation or result-list expansion
+
+2. agentic chat
+- accept natural-language questions, follow-ups, and analysis prompts
+- create or resume an agent session when the request needs multi-step reasoning or tool use
+
+The product rule should be:
+
+- one input surface
+- one backend intent resolver
+- two possible outcomes: `search/navigate` or `agent run`
+
+Recommended UX:
+
+- typing shows direct matches and recent items
+- pressing Enter on a strong exact match opens the resolved target quickly
+- pressing Enter on a natural-language prompt starts or resumes an agent run
+- if intent is ambiguous, show two explicit actions:
+  - `Search`
+  - `Ask Spectral Nature`
+
+This avoids splitting user intent across separate bars while still keeping the fast path fast.
+
 ## Design Principles
 
 - Fix at source: the agent should call stable tool contracts, not UI internals.
+- API-first: Streamlit homepage and iPhone should both consume the same backend agent/session/tool contracts.
+- One-bar entry: Spectral Nature 2 should expose one omnibar with intent routing, not separate search and chat systems.
 - Structured data stays query-driven; RAG is for unstructured evidence.
 - Materialized-first remains the default when data already exists.
 - Sandbox execution is isolated from the Streamlit app process.
 - Every answer should carry provenance: datasets, documents, searches, tool calls, and timestamps.
 - Start in dev only. Do not wire prod execution or broad permissions first.
+
+## Cross-Client Requirement
+
+This workspace cannot be implemented as a homepage-only feature.
+
+The correct architecture is:
+
+1. shared backend agent/session/tool services
+2. shared API surface over those services
+3. Streamlit homepage workspace as one client
+4. iPhone app as another client
+
+That means:
+
+- no Streamlit-only session model
+- no tool execution logic embedded in `app.py`
+- no artifact format that only the homepage can render
+- no duplicate mobile-specific orchestration layer
+
+If a feature is required by the homepage workspace, assume it should be reachable by the iPhone app too unless there is a strong reason not to expose it.
+
+Concrete shared REST resource shapes now live in:
+
+- `documents/plans/AGENT_API_RESOURCE_CONTRACT_2026-04-07.md`
 
 ## Target Architecture
 
@@ -110,6 +172,7 @@ Responsibilities:
 - emit a clean event stream for the UI
 
 The orchestrator should stay stateless between calls except for persisted session/run records.
+It should be callable from the API layer first, with Streamlit acting as a client of that API contract.
 
 ### 2) Tool Surface
 
@@ -243,24 +306,57 @@ Keep the UI thin. The homepage should render persisted agent state and poll/stre
 
 Recommended sequence:
 
-1. add a new homepage workspace panel in `app.py`
-2. use the existing homepage selection state to prefill context
-3. allow the user to pin:
+1. add the Spectral Nature 2 omnibar at the top of the homepage
+2. add a new homepage workspace panel in `app.py`
+3. use the existing homepage selection state to prefill context
+4. allow the user to pin:
 - a symbol
 - a homepage beat
 - a chart
 - a research bundle
 - an anomaly row
-4. render artifact blocks from API payloads instead of rebuilding logic in the UI
+5. render artifact blocks from API payloads instead of rebuilding logic in the UI
+
+The omnibar should support:
+
+- `auto` mode: resolve whether the input is quick search or agent chat
+- `search` mode: force search/navigation behavior
+- `agent` mode: force agent run behavior
 
 The interface should expose:
 
-- prompt composer
+- omnibar with inline intent hints
 - session history
 - tool activity
 - artifact viewer
 - notes viewer/editor
 - rerun / stop / clear context controls
+
+Intent routing behavior:
+
+- strong entity/ticker/release match -> quick open / result list
+- natural-language question or follow-up -> agent session message
+- ambiguous short query -> show both search and ask actions
+
+The workspace transcript can still expand below the omnibar after an agent run starts.
+
+## API-First Delivery Requirement
+
+Before building the homepage UI shell, define the shared API contract for agent workflows.
+
+Minimum shared resources:
+
+- `agent_session`
+- `agent_message`
+- `agent_run`
+- `agent_tool_call`
+- `agent_artifact`
+- `agent_note`
+
+The homepage should consume those resources through API-shaped payloads even if, in local dev, the initial implementation calls the same Python services in-process.
+
+This keeps the iPhone path aligned and avoids a later rewrite from Streamlit widget state into mobile-safe contracts.
+Use `AGENT_API_RESOURCE_CONTRACT_2026-04-07.md` as the source of truth for those resource shapes.
 
 ## API Additions
 
@@ -268,6 +364,7 @@ Extend `api/main.py` with agent-specific endpoints rather than overloading the g
 
 Suggested endpoints:
 
+- `POST /v1/omnibar/resolve`
 - `POST /v1/agent/sessions`
 - `GET /v1/agent/sessions/{session_id}`
 - `POST /v1/agent/sessions/{session_id}/messages`
@@ -275,6 +372,13 @@ Suggested endpoints:
 - `GET /v1/agent/runs/{run_id}/events`
 - `POST /v1/agent/sessions/{session_id}/notes`
 - `GET /v1/agent/sessions/{session_id}/artifacts`
+
+Nice-to-have follow-up endpoints for mobile-friendly screens:
+
+- `GET /v1/omnibar/suggestions`
+- `GET /v1/agent/sessions/{session_id}/summary`
+- `GET /v1/agent/artifacts/{artifact_id}`
+- `POST /v1/agent/runs/{run_id}/cancel`
 
 Reliability-first delivery:
 
@@ -285,30 +389,34 @@ Polling is simpler and good enough for the first internal version.
 
 ## Data Flow
 
-1. User opens homepage workspace.
-2. Homepage injects current context objects.
-3. API creates or resumes an `agent_session`.
-4. Orchestrator plans tool calls.
-5. Tool calls hit:
+1. User types into the Spectral Nature 2 omnibar.
+2. API resolves input intent.
+3. If intent is `search` or `navigate`, the client opens the resolved item or displays result suggestions.
+4. If intent is `agent`, the API creates or resumes an `agent_session`.
+5. Orchestrator plans tool calls.
+6. Tool calls hit:
 - query service for datasets/charts/anomalies
 - search/research adapters for news/web
 - RAG index for semantic document retrieval
 - sandbox service for bounded code execution
-6. Results are stored as artifacts and summarized into the transcript.
-7. Notes can be created manually by the user or explicitly via the `write_note` tool.
-8. Final answer references artifacts and sources.
+7. Results are stored as artifacts and summarized into the transcript.
+8. Notes can be created manually by the user or explicitly via the `write_note` tool.
+9. Final answer references artifacts and sources.
 
 ## Phased Delivery
 
 ### Phase 0 - Contracts First
 
 - define session/run/artifact/note schemas
+- define omnibar intent schema (`search`, `navigate`, `agent`, `ambiguous`)
 - define tool registry and response envelopes
-- define homepage workspace UI contract
+- define shared API contract for homepage + iPhone
+- define homepage workspace UI contract as a client of that API
 - define sandbox contract, but do not implement execution yet
 
 ### Phase 1 - Read-Only Agent
 
+- add Spectral Nature 2 omnibar with shared intent routing
 - homepage workspace UI shell
 - session/message persistence
 - tool calls for datasets, charts, anomalies, bundles, run traces
@@ -376,14 +484,17 @@ The reliable path is:
 
 1. Reuse `QueryService` as the main structured-data contract.
 2. Reuse `attention_agentic` search and evidence logic instead of creating new search clients.
-3. Keep RAG for unstructured content only.
-4. Keep notes explicit and user-visible.
-5. Keep sandbox isolated and dev-scoped first.
-6. Do not expose raw model reasoning; expose notes, plans, tool logs, and artifacts instead.
+3. Put the agent/session/run/artifact model behind a shared API so iPhone can reuse it directly.
+4. Keep RAG for unstructured content only.
+5. Keep notes explicit and user-visible.
+6. Keep sandbox isolated and dev-scoped first.
+7. Do not expose raw model reasoning; expose notes, plans, tool logs, and artifacts instead.
 
 ## Acceptance Criteria
 
-- A homepage user can open a workspace and ask questions about current homepage context.
+- A homepage user can use one Spectral Nature 2 text bar for both quick search and agentic chat.
+- Strong direct matches open quickly without forcing an agent run.
+- Natural-language prompts start or resume an agent session from the same bar.
 - The agent can fetch supported datasets/charts through stable tool contracts.
 - The agent can cite internal documents, evidence chunks, and web results.
 - The agent can save and retrieve notes within a session.
@@ -395,11 +506,13 @@ The reliable path is:
 
 If we want the fastest useful version, build only this first:
 
-1. homepage workspace shell
-2. session/message persistence
-3. `get_dataset`, `get_chart`, `get_attention_bundle`, `search_news`, `search_web`
-4. artifact rendering
-5. notes panel
+1. shared omnibar intent endpoint
+2. shared agent session/run/artifact API endpoints
+3. session/message persistence
+4. `get_dataset`, `get_chart`, `get_attention_bundle`, `search_news`, `search_web`
+5. homepage omnibar + workspace shell consuming those endpoints
+6. artifact rendering
+7. notes panel
 
 Do not include sandbox execution in the first slice.
 

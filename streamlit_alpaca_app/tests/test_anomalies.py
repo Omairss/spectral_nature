@@ -540,3 +540,62 @@ def test_build_attention_candidates_scores_all_rows_before_thresholding():
 
     assert candidates["entity_id"].tolist() == ["BBB", "AAA"]
     assert anomalies["entity_id"].tolist() == ["BBB"]
+
+
+def test_build_attention_candidates_applies_macro_context_shadow_and_live_switch():
+    price_expectations = pd.DataFrame(
+        {
+            "asof_time_utc": pd.to_datetime(["2026-03-20T00:00:00Z"], utc=True),
+            "symbol": ["AAA"],
+            "horizon": ["1d"],
+            "close": [100.0],
+            "observed_return_pct": [2.5],
+            "trend_expected_return_pct": [0.5],
+            "peer_expected_return_pct": [0.6],
+            "benchmark_expected_return_pct": [0.4],
+            "blended_expected_return_pct": [0.5],
+            "residual_return_pct": [2.0],
+            "residual_zscore": [2.2],
+            "trend_zscore": [0.0],
+            "peer_zscore": [0.0],
+            "benchmark_zscore": [0.0],
+            "vol_20_ann_pct": [20.0],
+            "momentum_score": [0.4],
+            "momentum_roc_score": [0.0],
+            "correlation_now": [0.7],
+            "correlation_roc": [0.0],
+            "peer_group_id": ["business_lens:test"],
+            "peer_group_name": ["Test Lens"],
+            "benchmark": ["SPY"],
+            "trajectory_model_version": ["trend_blend_v1"],
+            "peer_model_version": ["business_lens_peer_v1"],
+            "schema_version": ["v1"],
+        }
+    )
+    macro_context = pd.DataFrame(
+        {
+            "symbol": ["AAA"],
+            "horizon": ["1d"],
+            "macro_alignment_score": [80.0],
+            "macro_conflict_score": [10.0],
+            "macro_signal_count": [3],
+            "macro_staleness_hours": [3.0],
+        }
+    )
+
+    shadow = build_attention_candidates(
+        price_expectations,
+        macro_context=macro_context,
+        config=AttentionConfig(macro_live_enabled=False, macro_shadow_enabled=True, macro_shadow_weight=0.2),
+    ).iloc[0]
+    assert bool(shadow["macro_data_fresh"]) is True
+    assert shadow["attention_score_v2_shadow"] > shadow["attention_score"]
+    assert shadow["attention_score_v2"] == pytest.approx(shadow["attention_score"])
+
+    live = build_attention_candidates(
+        price_expectations,
+        macro_context=macro_context,
+        config=AttentionConfig(macro_live_enabled=True, macro_shadow_enabled=True, macro_shadow_weight=0.2),
+    ).iloc[0]
+    assert live["attention_score"] == pytest.approx(live["attention_score_v2"])
+    assert live["attention_score"] > shadow["attention_score"]

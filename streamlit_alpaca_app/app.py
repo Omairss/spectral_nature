@@ -56,6 +56,7 @@ from services.homepage_v2 import (
     HOMEPAGE_V2_COMPANY_PANEL,
     HOMEPAGE_V2_RESEARCH_PANEL,
     build_homepage_v2_market_digest,
+    homepage_v2_editorial_links,
     homepage_v2_bundle_symbol_lookup,
     normalize_homepage_v2_detail_state,
 )
@@ -114,12 +115,28 @@ APP_ROOT = Path(__file__).resolve().parent
 BRANDING_ROOT = APP_ROOT / "branding" / "Logo Files"
 APP_FAVICON_PATH = BRANDING_ROOT / "Favicons" / "iPhone.png"
 APP_SIDEBAR_LOGO_PATH = BRANDING_ROOT / "png" / "White logo - no background.png"
+APP_SUBSTACK_ICON_PATH = APP_ROOT / "branding" / "substack" / "Substack.png"
 
 
 def _load_page_icon() -> object:
     if APP_FAVICON_PATH.is_file():
         return str(APP_FAVICON_PATH)
     return "chart_with_upwards_trend"
+
+
+def _inline_image_markup(image_path: Path, *, alt_text: str, css_class: str) -> str:
+    try:
+        image_bytes = image_path.read_bytes()
+    except OSError:
+        return ""
+    image_b64 = base64.b64encode(image_bytes).decode("ascii")
+    class_attr = f"class='{html.escape(css_class)}' " if str(css_class).strip() else ""
+    return (
+        "<img "
+        f"{class_attr}"
+        f"src='data:image/png;base64,{image_b64}' "
+        f"alt='{html.escape(alt_text)}' />"
+    )
 
 
 st.set_page_config(
@@ -516,6 +533,45 @@ def _ensure_app_shell_styles() -> None:
             border-top: 1px solid var(--sn-line);
             width: 100%;
         }
+        .sn-sidebar-editorial-link {
+            width: 100%;
+            margin: 0 0 0.75rem 0;
+        }
+        .sn-sidebar-editorial-link-anchor {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.58rem;
+            width: 100%;
+            padding: 0.56rem 0.8rem;
+            border-radius: 0.72rem;
+            border: 1px solid var(--sn-line-strong);
+            background: #1a2029;
+            color: var(--sn-ink) !important;
+            text-decoration: none !important;
+            font-size: 0.84rem;
+            font-weight: 650;
+            line-height: 1.1;
+            box-shadow: none;
+            transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+        }
+        .sn-sidebar-editorial-link-anchor:hover {
+            border-color: rgba(216, 225, 234, 0.28);
+            background: #202733;
+            color: var(--sn-ink) !important;
+            text-decoration: none !important;
+        }
+        .sn-sidebar-editorial-link-icon {
+            width: 1.02rem;
+            height: 1.02rem;
+            flex: 0 0 1.02rem;
+            display: inline-block;
+            object-fit: contain;
+        }
+        .sn-sidebar-editorial-link-text {
+            display: inline-flex;
+            align-items: center;
+            min-width: 0;
+        }
         .sn-sidebar-kicker {
             margin-bottom: 0.7rem;
             color: var(--sn-accent);
@@ -807,20 +863,44 @@ def _ensure_app_shell_styles() -> None:
     )
 
 
-def _render_sidebar_brand_panel(app_track: str) -> None:
-    logo_markup = ""
-    has_logo = False
-    try:
-        logo_bytes = APP_SIDEBAR_LOGO_PATH.read_bytes()
-        logo_b64 = base64.b64encode(logo_bytes).decode("ascii")
-        logo_markup = (
-            "<img "
-            f"src='data:image/png;base64,{logo_b64}' "
-            f"alt='{html.escape(APP_BRAND_NAME)} logo' />"
+def _sidebar_editorial_icon_svg(icon_name: str) -> str:
+    if str(icon_name or "").strip().lower() != "substack":
+        return ""
+    return _inline_image_markup(
+        APP_SUBSTACK_ICON_PATH,
+        alt_text="Substack logo",
+        css_class="sn-sidebar-editorial-link-icon",
+    )
+
+
+def _render_sidebar_editorial_links(*, placement: str = "sidebar_brand") -> None:
+    editorial_markup_parts: list[str] = []
+    for link in homepage_v2_editorial_links(placement=placement):
+        editorial_url = str(link.get("url") or "").strip()
+        editorial_label = str(link.get("button_label") or link.get("label") or "").strip()
+        editorial_icon = _sidebar_editorial_icon_svg(str(link.get("icon_name") or "").strip())
+        if not editorial_url or not editorial_label:
+            continue
+        editorial_markup_parts.append(
+            "<div class='sn-sidebar-editorial-link'>"
+            f"<a class='sn-sidebar-editorial-link-anchor' href='{html.escape(editorial_url)}' target='_blank' rel='noopener noreferrer'>"
+            f"{editorial_icon}"
+            f"<span class='sn-sidebar-editorial-link-text'>{html.escape(editorial_label)}</span>"
+            "</a>"
+            "</div>"
         )
-        has_logo = True
-    except OSError:
-        logo_markup = ""
+    if editorial_markup_parts:
+        st.markdown("".join(editorial_markup_parts), unsafe_allow_html=True)
+
+
+def _render_sidebar_brand_panel(app_track: str) -> None:
+
+    logo_markup = _inline_image_markup(
+        APP_SIDEBAR_LOGO_PATH,
+        alt_text=f"{APP_BRAND_NAME} logo",
+        css_class="",
+    )
+    has_logo = bool(logo_markup)
     brand_markup = (
         f"<div class='sn-sidebar-logo'>{logo_markup}</div>"
         if logo_markup
@@ -1263,7 +1343,17 @@ def _restore_database_login_from_cookie() -> bool:
     return True
 
 
+def _render_login_gate_sidebar() -> None:
+    app_track = (os.getenv("APP_TRACK") or "local").strip().lower()
+    with st.sidebar:
+        _render_sidebar_brand_panel(app_track)
+        _render_sidebar_editorial_links(placement="sidebar_brand")
+        if app_track:
+            st.caption(f"Environment: {_environment_label(app_track)}")
+
+
 def _render_legacy_login_gate() -> None:
+    _render_login_gate_sidebar()
     username_expected = _auth_username()
     password_expected = _auth_password()
     _render_page_intro(
@@ -1306,6 +1396,7 @@ def _render_legacy_login_gate() -> None:
 
 
 def _render_database_login_gate() -> None:
+    _render_login_gate_sidebar()
     auth_state = auth_service.initialize_auth_system()
     _render_page_intro(
         "Secure Access",
@@ -4307,7 +4398,6 @@ def _render_homepage_v2_graph_banner(home_payload: dict[str, object]) -> None:
             config={"displayModeBar": False, "displaylogo": False, "scrollZoom": False},
         )
 
-
 def _build_homepage_narrative_beats(home_payload: dict[str, object]) -> list[dict[str, object]]:
     top_events = list(home_payload.get("top_events") or [])
     must_read = list(home_payload.get("must_read_movers") or [])
@@ -5999,6 +6089,7 @@ current_user = _current_user_context()
 
 with st.sidebar:
     _render_sidebar_brand_panel(app_track)
+    _render_sidebar_editorial_links(placement="sidebar_brand")
     if app_track:
         st.caption(f"Environment: {_environment_label(app_track)}")
     if current_user is not None:

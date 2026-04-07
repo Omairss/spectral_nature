@@ -1,0 +1,164 @@
+schema_version: attention_macro_signal_profile.v1
+
+release_type_priority:
+  high: 3
+  medium: 2
+  low: 1
+
+release_type_base_score:
+  high: 82.0
+  medium: 62.0
+  low: 42.0
+
+release_display_names:
+  jobs_report: BLS jobs report
+  cpi: CPI inflation release
+  pce: PCE inflation release
+  jolts: JOLTS labor release
+  housing_starts: Housing starts release
+  building_permits: Building permits release
+
+release_components:
+  PAYEMS:
+    release_type: jobs_report
+    component_label: Nonfarm Payrolls
+    importance_tier: high
+    primary_nodes: [labor, policy, rates, equity_duration, usd]
+  UNRATE:
+    release_type: jobs_report
+    component_label: Unemployment Rate
+    importance_tier: high
+    primary_nodes: [labor, policy, rates, equity_duration, usd]
+  CES0500000003:
+    release_type: jobs_report
+    component_label: Average Hourly Earnings
+    importance_tier: medium
+    primary_nodes: [labor, inflation, policy, rates]
+  CPIAUCSL:
+    release_type: cpi
+    component_label: CPI Headline
+    importance_tier: high
+    primary_nodes: [inflation, policy, rates, usd, equity_duration]
+  CPILFESL:
+    release_type: cpi
+    component_label: CPI Core
+    importance_tier: high
+    primary_nodes: [inflation, policy, rates, usd, equity_duration]
+  PCEPI:
+    release_type: pce
+    component_label: PCE Headline
+    importance_tier: high
+    primary_nodes: [inflation, policy, rates, usd, equity_duration]
+  PCEPILFE:
+    release_type: pce
+    component_label: PCE Core
+    importance_tier: high
+    primary_nodes: [inflation, policy, rates, usd, equity_duration]
+  JTSJOL:
+    release_type: jolts
+    component_label: JOLTS Openings
+    importance_tier: medium
+    primary_nodes: [labor, policy, rates]
+  HOUST:
+    release_type: housing_starts
+    component_label: Housing Starts
+    importance_tier: low
+    primary_nodes: [growth, rates, credit]
+  PERMIT:
+    release_type: building_permits
+    component_label: Building Permits
+    importance_tier: low
+    primary_nodes: [growth, rates, credit]
+
+surprise_symbol_groups:
+  rates: [TLT, IEF, SHY, LQD, HYG, ZB, ZN]
+  usd: [UUP, UDN, USDU, DXY]
+  equity: [SPY, QQQ, IWM, DIA]
+
+release_rules:
+  freshness_hours: 36
+  surprise_threshold: 60
+  force_limit: 2
+  reaction_cap_move: 1.5
+  release_time_lookahead_hours: 2
+  supporting_symbol_limit: 6
+
+relationship_checks:
+  min_abs_change_pct_default: 0.25
+  edges:
+    - edge_id: labor_to_rates_duration
+      from_node: labor
+      to_node: rates
+      expected_sign: positive
+      target_symbols: [TLT, IEF, ZB, ZN]
+      lag_window: same_day
+      regime_filter: baseline
+      min_abs_change_pct: 0.25
+      strength_weight: 1.0
+      confidence_prior: 0.68
+    - edge_id: labor_to_usd
+      from_node: labor
+      to_node: usd
+      expected_sign: negative
+      target_symbols: [UUP, DXY, USDU]
+      lag_window: same_day
+      regime_filter: baseline
+      min_abs_change_pct: 0.20
+      strength_weight: 0.9
+      confidence_prior: 0.60
+    - edge_id: labor_to_equity_duration
+      from_node: labor
+      to_node: equity_duration
+      expected_sign: positive
+      target_symbols: [QQQ, ARKK, SPY]
+      lag_window: same_day
+      regime_filter: baseline
+      min_abs_change_pct: 0.35
+      strength_weight: 0.8
+      confidence_prior: 0.55
+    - edge_id: inflation_to_rates
+      from_node: inflation
+      to_node: rates
+      expected_sign: negative
+      target_symbols: [TLT, IEF, ZB, ZN]
+      lag_window: same_day
+      regime_filter: baseline
+      min_abs_change_pct: 0.25
+      strength_weight: 1.0
+      confidence_prior: 0.72
+    - edge_id: inflation_to_usd
+      from_node: inflation
+      to_node: usd
+      expected_sign: positive
+      target_symbols: [UUP, DXY, USDU]
+      lag_window: same_day
+      regime_filter: baseline
+      min_abs_change_pct: 0.20
+      strength_weight: 0.8
+      confidence_prior: 0.58
+    - edge_id: inflation_to_equity_duration
+      from_node: inflation
+      to_node: equity_duration
+      expected_sign: negative
+      target_symbols: [QQQ, SPY]
+      lag_window: same_day
+      regime_filter: baseline
+      min_abs_change_pct: 0.35
+      strength_weight: 0.8
+      confidence_prior: 0.57
+    - edge_id: policy_to_rates
+      from_node: policy
+      to_node: rates
+      expected_sign: negative
+      target_symbols: [TLT, IEF, ZB, ZN]
+      lag_window: same_day
+      regime_filter: baseline
+      min_abs_change_pct: 0.20
+      strength_weight: 1.0
+      confidence_prior: 0.70
+
+hypothesis_rules:
+  supported_min_support_score: 0.70
+  supported_max_contradiction_score: 0.25
+  conflicting_min_contradiction_score: 0.45
+  continuation_min_support_score: 0.35

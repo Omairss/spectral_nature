@@ -107,8 +107,14 @@ ANOMALY_EVENT_COLUMNS = [
     "relevance_score",
     "confidence_score",
     "attention_score",
+    "attention_score_v2_shadow",
+    "attention_score_v2",
     "persistence_score",
     "novelty_score",
+    "macro_alignment_score",
+    "macro_conflict_score",
+    "macro_signal_count",
+    "macro_data_fresh",
     "portfolio_exposure_weight",
     "peer_group_id",
     "peer_group_name",
@@ -207,11 +213,23 @@ class AttentionConfig:
     high_priority_threshold: float = 75.0
     news_lookback_days: int = 3
     persistence_periods: int = 2
+    macro_shadow_enabled: bool = True
+    macro_live_enabled: bool = False
+    macro_shadow_weight: float = 0.12
+    macro_staleness_hours: float = 48.0
     schema_version: str = "v1"
 
 
 def _empty_frame(columns: list[str]) -> pd.DataFrame:
     return pd.DataFrame(columns=columns)
+
+
+def _ensure_columns(frame: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
+    out = frame.copy()
+    for column in columns:
+        if column not in out.columns:
+            out[column] = False if column == "macro_data_fresh" else np.nan
+    return out
 
 
 def _normalize_symbol(value: Any) -> str:
@@ -224,6 +242,49 @@ def _coerce_timestamp(value: Any) -> pd.Timestamp:
 
 def _coerce_numeric(series: pd.Series) -> pd.Series:
     return pd.to_numeric(series, errors="coerce")
+
+
+def _clamp(value: Any, low: float, high: float) -> float:
+    numeric = float(pd.to_numeric(value, errors="coerce"))
+    if not np.isfinite(numeric):
+        return low
+    return max(low, min(high, numeric))
+
+
+def _macro_context_lookup(macro_context: pd.DataFrame | None) -> dict[tuple[str, str], dict[str, Any]]:
+    if macro_context is None or macro_context.empty or "symbol" not in macro_context.columns:
+        return {}
+    frame = macro_context.copy()
+    frame["symbol"] = frame["symbol"].map(_normalize_symbol)
+    if "horizon" in frame.columns:
+        frame["horizon"] = frame["horizon"].map(normalize_horizon)
+    else:
+        frame["horizon"] = ""
+    if "asof_time_utc" in frame.columns:
+        frame["asof_time_utc"] = pd.to_datetime(frame["asof_time_utc"], utc=True, errors="coerce")
+        frame = frame.sort_values("asof_time_utc", ascending=False, na_position="last")
+    for column in ["macro_alignment_score", "macro_conflict_score", "macro_signal_count", "macro_staleness_hours"]:
+        if column not in frame.columns:
+            frame[column] = np.nan
+    lookup: dict[tuple[str, str], dict[str, Any]] = {}
+    for _, row in frame.iterrows():
+        symbol = _normalize_symbol(row.get("symbol"))
+        horizon = normalize_horizon(row.get("horizon"))
+        if not symbol:
+            continue
+        key = (symbol, horizon)
+        if key in lookup:
+            continue
+        lookup[key] = {
+            "macro_alignment_score": float(pd.to_numeric(row.get("macro_alignment_score"), errors="coerce")),
+            "macro_conflict_score": float(pd.to_numeric(row.get("macro_conflict_score"), errors="coerce")),
+            "macro_signal_count": int(pd.to_numeric(row.get("macro_signal_count"), errors="coerce")) if pd.notna(pd.to_numeric(row.get("macro_signal_count"), errors="coerce")) else 0,
+            "macro_staleness_hours": float(pd.to_numeric(row.get("macro_staleness_hours"), errors="coerce")),
+        }
+        fallback_key = (symbol, "")
+        if fallback_key not in lookup:
+            lookup[fallback_key] = dict(lookup[key])
+    return lookup
 
 
 def _slugify(value: Any) -> str:
@@ -628,7 +689,12 @@ def _recent_news_lookup(news_symbol_map: pd.DataFrame | None, asof_time_utc: pd.
     return lookup
 
 
-def _supporting_datasets(technical_signals_latest: pd.DataFrame | None, news_symbol_map: pd.DataFrame | None, positions: pd.DataFrame | None) -> str:
+def _supporting_datasets(
+    technical_signals_latest: pd.DataFrame | None,
+    news_symbol_map: pd.DataFrame | None,
+    positions: pd.DataFrame | None,
+    macro_context: pd.DataFrame | None,
+) -> str:
     datasets = ["price_expectations"]
     if technical_signals_latest is not None and not technical_signals_latest.empty:
         datasets.append("technical_signals_latest")
@@ -636,6 +702,8 @@ def _supporting_datasets(technical_signals_latest: pd.DataFrame | None, news_sym
         datasets.append("news_symbol_map")
     if positions is not None and not positions.empty:
         datasets.append("positions")
+    if macro_context is not None and not macro_context.empty:
+        datasets.append("attention_macro_context_1d")
     return ",".join(datasets)
 
 
@@ -1098,6 +1166,7 @@ def build_attention_candidates(
     technical_signals_latest: pd.DataFrame | None = None,
     news_symbol_map: pd.DataFrame | None = None,
     positions: pd.DataFrame | None = None,
+    macro_context: pd.DataFrame | None = None,
     *,
     config: AttentionConfig,
 ) -> pd.DataFrame:
@@ -1111,7 +1180,8 @@ def build_attention_candidates(
     position_weights = _position_weights(positions)
     news_lookup = _recent_news_lookup(news_symbol_map, pd.to_datetime(frame["asof_time_utc"].max(), utc=True, errors="coerce"), config.news_lookback_days)
     regime_lookup = _regime_lookup(technical_signals_latest)
-    datasets_used = _supporting_datasets(technical_signals_latest, news_symbol_map, positions)
+    datasets_used = _supporting_datasets(technical_signals_latest, news_symbol_map, positions, macro_context)
+    macro_lookup = _macro_context_lookup(macro_context)
 
     rows: list[dict[str, object]] = []
     for _, row in frame.iterrows():
@@ -1127,6 +1197,15 @@ def build_attention_candidates(
         linked_news_count = int(linked_news.get("count") or 0)
         linked_news_ids = ",".join(dict.fromkeys(str(value) for value in linked_news.get("ids") or []))
         regime_label = regime_lookup.get(symbol, "")
+        macro_row = dict(macro_lookup.get((symbol, horizon)) or macro_lookup.get((symbol, "")) or {})
+        macro_alignment_score = _clamp(macro_row.get("macro_alignment_score", 0.0), 0.0, 100.0)
+        macro_conflict_score = _clamp(macro_row.get("macro_conflict_score", 0.0), 0.0, 100.0)
+        macro_signal_count = max(int(macro_row.get("macro_signal_count") or 0), 0)
+        macro_staleness_hours = float(pd.to_numeric(macro_row.get("macro_staleness_hours"), errors="coerce"))
+        macro_data_fresh = bool(
+            macro_signal_count > 0
+            and (not np.isfinite(macro_staleness_hours) or macro_staleness_hours <= float(max(config.macro_staleness_hours, 0.0)))
+        )
 
         severity_score = min(abs(residual_zscore) / 4.0, 1.0) * 100.0 if np.isfinite(residual_zscore) else 0.0
         move_component = min(abs(observed_value) / 10.0, 1.0) * 100.0 if np.isfinite(observed_value) else 0.0
@@ -1162,6 +1241,11 @@ def build_attention_candidates(
             + 0.20 * relevance_score
             + 0.15 * confidence_score
         )
+        macro_net_signal = (macro_alignment_score - macro_conflict_score) / 100.0 if macro_data_fresh else 0.0
+        macro_adjustment = float(config.macro_shadow_weight) * macro_net_signal * 100.0 if bool(config.macro_shadow_enabled) else 0.0
+        attention_score_v2_shadow = _clamp(attention_score + macro_adjustment, 0.0, 100.0)
+        attention_score_v2 = attention_score_v2_shadow if bool(config.macro_live_enabled) else attention_score
+        attention_score_output = attention_score_v2 if bool(config.macro_live_enabled) else attention_score
 
         why_now_text = (
             f"{symbol} moved {observed_value:.2f}% over {horizon} versus an expected {expected_value:.2f}%, "
@@ -1190,9 +1274,15 @@ def build_attention_candidates(
                 "impact_score": impact_score,
                 "relevance_score": relevance_score,
                 "confidence_score": confidence_score,
-                "attention_score": attention_score,
+                "attention_score": attention_score_output,
+                "attention_score_v2_shadow": attention_score_v2_shadow,
+                "attention_score_v2": attention_score_v2,
                 "persistence_score": persistence_score,
                 "novelty_score": novelty_score,
+                "macro_alignment_score": macro_alignment_score,
+                "macro_conflict_score": macro_conflict_score,
+                "macro_signal_count": macro_signal_count,
+                "macro_data_fresh": macro_data_fresh,
                 "portfolio_exposure_weight": portfolio_exposure_weight,
                 "peer_group_id": row.get("peer_group_id"),
                 "peer_group_name": row.get("peer_group_name"),
@@ -1221,6 +1311,7 @@ def build_attention_candidates(
     out = pd.DataFrame(rows)
     if out.empty:
         return _empty_frame(ANOMALY_EVENT_COLUMNS)
+    out = _ensure_columns(out, ANOMALY_EVENT_COLUMNS)
     return out[ANOMALY_EVENT_COLUMNS].sort_values(["attention_score", "severity_score"], ascending=False).reset_index(drop=True)
 
 
@@ -1284,6 +1375,7 @@ def filter_attention_events(
         return _empty_frame(ANOMALY_EVENT_COLUMNS)
 
     out = out.drop(columns=["_dynamic_threshold"], errors="ignore")
+    out = _ensure_columns(out, ANOMALY_EVENT_COLUMNS)
     return out[ANOMALY_EVENT_COLUMNS].sort_values(["attention_score", "severity_score"], ascending=False).reset_index(drop=True)
 
 
@@ -1292,6 +1384,7 @@ def detect_anomaly_events(
     technical_signals_latest: pd.DataFrame | None = None,
     news_symbol_map: pd.DataFrame | None = None,
     positions: pd.DataFrame | None = None,
+    macro_context: pd.DataFrame | None = None,
     *,
     config: AttentionConfig,
 ) -> pd.DataFrame:
@@ -1300,6 +1393,7 @@ def detect_anomaly_events(
         technical_signals_latest=technical_signals_latest,
         news_symbol_map=news_symbol_map,
         positions=positions,
+        macro_context=macro_context,
         config=config,
     )
     return filter_attention_events(
