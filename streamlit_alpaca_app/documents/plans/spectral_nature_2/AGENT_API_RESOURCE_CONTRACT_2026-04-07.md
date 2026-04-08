@@ -911,7 +911,8 @@ Do not start with sandbox execution.
 
 ## Cross-References
 
-- `documents/plans/HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md`
-- `documents/plans/IPHONE_APP_STRATEGY_2026-04-05.md`
-- `documents/plans/IPHONE_MVP_SCAFFOLD_2026-04-06.md`
-- `documents/plans/AGENTIC_API_AUTH_MCP_2026-04-07.md`
+- `documents/plans/spectral_nature_2/HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md`
+- `documents/plans/spectral_nature_2/HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md`
+- `documents/plans/spectral_nature_2/IPHONE_APP_STRATEGY_2026-04-05.md`
+- `documents/plans/spectral_nature_2/IPHONE_MVP_SCAFFOLD_2026-04-06.md`
+- `documents/plans/spectral_nature_2/AGENTIC_API_AUTH_MCP_2026-04-07.md`

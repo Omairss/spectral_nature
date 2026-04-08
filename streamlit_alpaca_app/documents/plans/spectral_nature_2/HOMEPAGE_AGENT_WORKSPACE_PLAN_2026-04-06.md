@@ -149,7 +149,7 @@ If a feature is required by the homepage workspace, assume it should be reachabl
 
 Concrete shared REST resource shapes now live in:
 
-- `documents/plans/AGENT_API_RESOURCE_CONTRACT_2026-04-07.md`
+- `documents/plans/spectral_nature_2/AGENT_API_RESOURCE_CONTRACT_2026-04-07.md`
 
 ## Target Architecture
 

@@ -27,6 +27,13 @@
 - Keep omnibar resolution non-mutating (`/v1/omnibar/resolve`) so clients can preview search/navigation versus agent actions before creating session state.
 - Strong exact matches should stay fast-path navigation; agent runs should be reserved for prompts that actually need multi-step tool use.
 
+## iPhone negotiation planning
+- For parallel iPhone work, write down non-negotiables and flexible areas explicitly so the task does not drift into mobile-specific backend logic.
+- The most important contrasts to make explicit are: native app vs wrapper, shared API vs mobile-only contracts, shared omnibar vs separate search/chat systems, and artifact-first UI vs text parsing.
+- When the planning surface gets larger, create one short reference-map doc so future sessions know which spec is authoritative for negotiation, API shape, product behavior, and current implementation status.
+- When a plan cluster becomes its own workstream, group it into a subdirectory instead of leaving related docs scattered at the top of `documents/plans/`.
+- When a merged negotiation baseline exists, write a separate explicit response doc rather than relying only on embedded “ready to send” text inside the baseline.
+
 ## homepage editorial links
 - Keep homepage external destinations in structured homepage metadata/helpers instead of embedding raw URLs directly inside render branches.
 - A compact top-of-home CTA strip is a lower-risk way to add editorial destinations than threading one-off links through multiple cards or rails.
@@ -117,3 +124,5 @@
 - Hypothesis verification is more reliable when web retrieval updates the same persisted hypothesis rows instead of creating parallel status channels; keep one status contract and blend deterministic + retrieval evidence.
 - Adding macro provenance directly to `resolve_attention_feed` details removes the need for UI-specific diagnostics logic and keeps clients aligned on why macro events were promoted/suppressed.
 - Optional macro scoring should ship with explicit shadow/live fields (`attention_score_v2_shadow`, `attention_score_v2`) while leaving `attention_score` unchanged by default to prevent accidental ranking drift.
+- For parallel implementation tracks (iPhone + omnibar + agent API), keep a dedicated doc hub subdirectory with one negotiation baseline doc and explicit references to shared contracts to reduce cross-session drift.
+- When multiple negotiation docs overlap, merge into one canonical baseline and keep reference-map docs pointing to that single source to avoid conflicting instructions.

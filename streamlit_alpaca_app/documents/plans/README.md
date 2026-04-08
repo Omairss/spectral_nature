@@ -24,11 +24,16 @@ Current plan files:
 - `INVITE_EMAIL_BRANDING_REFRESH_2026-04-05.md`: branded invite email rollout notes
 - `INVITE_EMAIL_DESIGNER_ADMIN_2026-04-05.md`: admin invite template editor and template-library notes
 - `INBOUND_MAIL_SETUP_PLAN.md`: prerequisites and architecture for support/newsletter inbound mail
-- `IPHONE_APP_STRATEGY_2026-04-05.md`: source-first migration plan from Streamlit UI to native iPhone app
-- `IPHONE_MVP_SCAFFOLD_2026-04-06.md`: delivered backend/API + SwiftUI scaffold for iPhone MVP
-- `AGENTIC_API_AUTH_MCP_2026-04-07.md`: production-grade auth model + scoped agent keys + MCP-compatible gateway
-- `AGENT_API_RESOURCE_CONTRACT_2026-04-07.md`: concrete `/v1/agent/*` REST resource schemas and payload examples for homepage + iPhone reuse
-- `HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md`: phased plan for a homepage agent workspace with tools, RAG, notes, and sandbox execution
+- `spectral_nature_2/`: grouped plan set for Spectral Nature 2, omnibar, shared agent/API contracts, and iPhone work
+- `spectral_nature_2/agent_omnibar/`: dedicated doc hub for the separate agent omnibar task
+- `spectral_nature_2/SN2_NEGOTIATION_BASELINE_2026-04-07.md`: merged negotiation baseline for iPhone + omnibar requirements and constraints
+- `spectral_nature_2/agent_omnibar/OTHER_TASK_RESPONSE_2026-04-08.md`: copy-ready response for the separate omnibar task
+- `spectral_nature_2/IPHONE_APP_STRATEGY_2026-04-05.md`: source-first migration plan from Streamlit UI to native iPhone app
+- `spectral_nature_2/IPHONE_MVP_SCAFFOLD_2026-04-06.md`: delivered backend/API + SwiftUI scaffold for iPhone MVP
+- `spectral_nature_2/SN2_IPHONE_AGENT_REFERENCE_MAP_2026-04-07.md`: doc map for Spectral Nature 2, omnibar, agent workspace, shared API, and iPhone work
+- `spectral_nature_2/AGENTIC_API_AUTH_MCP_2026-04-07.md`: production-grade auth model + scoped agent keys + MCP-compatible gateway
+- `spectral_nature_2/AGENT_API_RESOURCE_CONTRACT_2026-04-07.md`: concrete `/v1/agent/*` REST resource schemas and payload examples for homepage + iPhone reuse
+- `spectral_nature_2/HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md`: phased plan for a homepage agent workspace with tools, RAG, notes, and sandbox execution
 - `HOMEPAGE_V2_RAIL_REFACTOR_PLAN.md`: homepage rail refactor work
 - `MARKET_OPPORTUNITY_PRECOMPUTE_RECOVERY_PLAN.md`: market precompute recovery work
 - `Guidelines.md`: short working notes that have not yet been folded into a canonical doc
