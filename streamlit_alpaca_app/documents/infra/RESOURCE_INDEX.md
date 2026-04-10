@@ -30,6 +30,11 @@ bash ./scripts/show_infra_inventory.sh
 
 ### Pipeline platform
 
+- `shared_runtime_key_vault`
+  - Purpose: shared secret store used by both the UI apps and the pipeline jobs
+  - Current vault: `spectral-nature-kvault`
+  - Live lookup: `az keyvault show --name spectral-nature-kvault -o json`
+
 - `pipeline_resource_group`
   - Purpose: top-level Azure resource group for pipeline jobs and shared infra
   - Local cache: `PIPELINE_RESOURCE_GROUP` in `infra/.generated/deployment.local.env`

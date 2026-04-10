@@ -25,3 +25,8 @@
 
 - For infra metadata, the secure pattern is: tracked docs for lookup rules, ignored generated files for operator convenience, and Azure as the live source of truth.
 - If local runtime scripts need generated context, load ignored files automatically instead of asking contributors to source tracked env dumps by hand.
+
+## Key Vault consolidation
+
+- If multiple runtimes share the same external credential, duplicating it across Key Vaults creates drift risk. It is cleaner to standardize the runtimes on one vault and move the env references, not just copy the secret.
+- For Azure deploy tooling, Key Vault lookup should not assume the vault lives in the same resource group as the workload.

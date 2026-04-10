@@ -1,5 +1,22 @@
 # Mistakes Log
 
+## 2026-04-10 - Infra Inventory Could Prefer Stale Local Cache
+
+### What went wrong
+
+- `show_infra_inventory.sh` could inherit `KEYVAULT_NAME` from the ignored local output file before checking the live job env vars.
+- That made the local inventory report less reliable during the Key Vault consolidation work.
+
+### Impact
+
+- The script could point us at an old vault name even after the live jobs had already moved.
+
+### Never repeat checklist
+
+1. For live infra reporting, prefer Azure runtime config first and use local generated files only as fallback.
+2. When a deploy changes shared infra references, refresh the tracker and re-read the live env before trusting cached output.
+3. Treat ignored local env files as convenience state, not source of truth.
+
 ## 2026-04-10 - Tracked `.env` Held Real Broker Credentials
 
 ### What went wrong

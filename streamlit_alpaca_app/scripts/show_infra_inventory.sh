@@ -11,6 +11,7 @@ LEGACY_EMAIL_OUTPUTS_FILE="infra/email_delivery.outputs.env"
 CONTAINERAPP_API_VERSION="${CONTAINERAPP_API_VERSION:-2025-07-01}"
 DEV_CONTAINER_APP="${DEV_CONTAINER_APP:-sn-streamlit-ui-dev}"
 PROD_CONTAINER_APP="${PROD_CONTAINER_APP:-sn-streamlit-ui}"
+PIPELINE_ENV_SOURCE_JOBS="${PIPELINE_ENV_SOURCE_JOBS:-equities-intraday-preload attention-home-build news-ingest-and-features}"
 TARGET="${TARGET:-dev}"
 WRITE_LOCAL=false
 RESOURCE_GROUP="${RESOURCE_GROUP:-${PIPELINE_RESOURCE_GROUP:-}}"
@@ -107,6 +108,40 @@ app_env_value() {
   containerapp_query "$app_name" "properties.template.containers[0].env[?name=='${key}'].value | [0]"
 }
 
+job_exists() {
+  local job_name="$1"
+  az containerapp job show --name "$job_name" --resource-group "$RESOURCE_GROUP" --output none >/dev/null 2>&1
+}
+
+job_env_value() {
+  local job_name="$1"
+  local key="$2"
+  az containerapp job show \
+    --name "$job_name" \
+    --resource-group "$RESOURCE_GROUP" \
+    --query "properties.template.containers[0].env[?name=='${key}'].value | [0]" \
+    -o tsv 2>/dev/null || true
+}
+
+first_nonempty_job_env_value() {
+  local key="$1"
+  local value=""
+  local job_name=""
+  shift
+  for job_name in "$@"; do
+    [[ -n "$job_name" ]] || continue
+    if ! job_exists "$job_name"; then
+      continue
+    fi
+    value="$(job_env_value "$job_name" "$key")"
+    if [[ -n "$value" && "$value" != "null" ]]; then
+      printf '%s\n' "$value"
+      return 0
+    fi
+  done
+  return 1
+}
+
 target_app_name() {
   case "$1" in
     dev) printf '%s\n' "$DEV_CONTAINER_APP" ;;
@@ -136,6 +171,21 @@ discover_resource_group() {
 discover_pipeline_context() {
   azure_ready || return 0
   [[ -n "$RESOURCE_GROUP" ]] || return 0
+
+  local donor_jobs=()
+  local donor_keyvault_name=""
+  # shellcheck disable=SC2206
+  donor_jobs=(${PIPELINE_ENV_SOURCE_JOBS})
+
+  donor_keyvault_name="$(first_nonempty_job_env_value "AZURE_KEY_VAULT_NAME" "${donor_jobs[@]}" || true)"
+  if [[ -z "$donor_keyvault_name" || "$donor_keyvault_name" == "null" ]]; then
+    donor_keyvault_name="$(first_nonempty_job_env_value "KEY_VAULT_NAME" "${donor_jobs[@]}" || true)"
+  fi
+  if [[ -n "$donor_keyvault_name" && "$donor_keyvault_name" != "null" ]]; then
+    KEYVAULT_NAME="$donor_keyvault_name"
+  elif [[ -z "${KEYVAULT_NAME:-}" || "$KEYVAULT_NAME" == "null" ]]; then
+    KEYVAULT_NAME=""
+  fi
 
   ACR_NAME="${ACR_NAME:-$(az acr list -g "$RESOURCE_GROUP" --query '[0].name' -o tsv 2>/dev/null || true)}"
   STORAGE_ACCOUNT="${STORAGE_ACCOUNT:-$(az storage account list -g "$RESOURCE_GROUP" --query '[0].name' -o tsv 2>/dev/null || true)}"

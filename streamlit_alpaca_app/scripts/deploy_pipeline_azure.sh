@@ -8,6 +8,7 @@ DEFAULT_DEPLOY_OUTPUTS_FILE="${ROOT_DIR}/infra/.generated/deployment.local.env"
 LEGACY_DEPLOY_OUTPUTS_FILE="${ROOT_DIR}/infra/deployment.outputs.env"
 DEPLOY_OUTPUTS_FILE="${DEPLOY_OUTPUTS_FILE:-$DEFAULT_DEPLOY_OUTPUTS_FILE}"
 JOB_SCHEDULES_FILE="${ROOT_DIR}/infra/job_schedules.env"
+REQUESTED_KEYVAULT_NAME="${KEYVAULT_NAME:-${AZURE_KEY_VAULT_NAME:-${KEY_VAULT_NAME:-}}}"
 
 if [[ -f "$DEPLOY_OUTPUTS_FILE" ]]; then
   # shellcheck disable=SC1090
@@ -20,6 +21,12 @@ fi
 if [[ -f "$JOB_SCHEDULES_FILE" ]]; then
   # shellcheck disable=SC1090
   source "$JOB_SCHEDULES_FILE"
+fi
+
+if [[ -n "$REQUESTED_KEYVAULT_NAME" ]]; then
+  KEYVAULT_NAME="$REQUESTED_KEYVAULT_NAME"
+  AZURE_KEY_VAULT_NAME="$REQUESTED_KEYVAULT_NAME"
+  KEY_VAULT_NAME="$REQUESTED_KEYVAULT_NAME"
 fi
 
 if ! command -v az >/dev/null 2>&1; then
@@ -197,14 +204,18 @@ hydrate_llm_env_defaults
 echo "[1/11] Creating resource group"
 az group create --name "$RESOURCE_GROUP" --location "$LOCATION" --output none
 
-echo "[2/11] Creating Key Vault"
-if ! az keyvault show --name "$KEYVAULT_NAME" --resource-group "$RESOURCE_GROUP" --output none >/dev/null 2>&1; then
+echo "[2/11] Ensuring Key Vault"
+KEYVAULT_RESOURCE_GROUP="$(az keyvault show --name "$KEYVAULT_NAME" --query resourceGroup -o tsv 2>/dev/null || true)"
+if [[ -z "$KEYVAULT_RESOURCE_GROUP" || "$KEYVAULT_RESOURCE_GROUP" == "null" ]]; then
   az keyvault create \
     --name "$KEYVAULT_NAME" \
     --resource-group "$RESOURCE_GROUP" \
     --location "$LOCATION" \
     --enable-rbac-authorization true \
     --output none
+  KEYVAULT_RESOURCE_GROUP="$RESOURCE_GROUP"
+else
+  echo "  - using existing Key Vault ${KEYVAULT_NAME} (${KEYVAULT_RESOURCE_GROUP})"
 fi
 
 echo "[3/11] Creating storage account"
@@ -312,7 +323,7 @@ UAMI_CLIENT_ID="$(az identity show "${UAMI_SHOW_ARGS[@]}" --query clientId -o ts
 
 STORAGE_ID="$(az storage account show -n "$STORAGE_ACCOUNT" -g "$RESOURCE_GROUP" --query id -o tsv)"
 ACR_ID="$(az acr show -n "$ACR_NAME" -g "$RESOURCE_GROUP" --query id -o tsv)"
-KEYVAULT_ID="$(az keyvault show -n "$KEYVAULT_NAME" -g "$RESOURCE_GROUP" --query id -o tsv)"
+KEYVAULT_ID="$(az keyvault show -n "$KEYVAULT_NAME" --query id -o tsv)"
 
 echo "[8/11] Assigning RBAC for storage, ACR, and Key Vault access"
 az role assignment create --assignee-object-id "$UAMI_PRINCIPAL_ID" --assignee-principal-type ServicePrincipal --role "Storage Blob Data Contributor" --scope "$STORAGE_ID" --output none || true
@@ -453,6 +464,7 @@ PIPELINE_RESOURCE_GROUP=${RESOURCE_GROUP}
 LOCATION=${LOCATION}
 CONTAINERAPPS_ENV=${ENV_NAME}
 KEYVAULT_NAME=${KEYVAULT_NAME}
+KEYVAULT_RESOURCE_GROUP=${KEYVAULT_RESOURCE_GROUP}
 AZURE_KEY_VAULT_NAME=${KEYVAULT_NAME}
 KEY_VAULT_NAME=${KEYVAULT_NAME}
 STORAGE_ACCOUNT=${STORAGE_ACCOUNT}
