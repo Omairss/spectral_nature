@@ -4,6 +4,9 @@
 .env.*
 !.env.example
 !**/.env.example
+streamlit_alpaca_app/infra/.generated/
+streamlit_alpaca_app/infra/deployment.outputs.env
+streamlit_alpaca_app/infra/email_delivery.outputs.env
 
 .ssh/*
 data/*

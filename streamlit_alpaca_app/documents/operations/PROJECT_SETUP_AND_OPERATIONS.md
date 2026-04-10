@@ -63,9 +63,13 @@ See current URLs/revisions in:
 - `news-ingest-and-features`
 - `attention-home-build`
 
-Deployment outputs are stored in:
+Local deployment outputs are stored in ignored files under:
 
-- `infra/deployment.outputs.env`
+- `infra/.generated/`
+
+Tracked infra lookup rules live in:
+
+- `documents/infra/RESOURCE_INDEX.md`
 
 ---
 
@@ -93,10 +97,10 @@ cp .env.example .env
 # keep Alpaca credentials in Key Vault under apca-api-key and apca-api-secret-key
 ```
 
-For Azure-backed runs, load deployment outputs:
+Refresh local Azure context when needed:
 
 ```bash
-source infra/deployment.outputs.env
+bash ./scripts/show_infra_inventory.sh --write-local
 ```
 
 ## Run locally
@@ -120,7 +124,7 @@ Run the same workflows inside Docker when host dependencies are missing:
 ./scripts/docker_dev.sh ui
 ```
 
-The Docker entrypoint auto-loads `.env` and `infra/deployment.outputs.env` when present, so it follows the same local credential flow as the host scripts. Keep only Key Vault references in `.env`, not raw Alpaca credentials.
+The local UI/API scripts and the Docker entrypoint auto-load `infra/.generated/deployment.local.env`, `infra/.generated/email_delivery.local.env`, and then `.env`. Keep only Key Vault references in `.env`, not raw Alpaca credentials.
 
 ---
 
@@ -321,7 +325,7 @@ What it does:
 5. Updates the target Container App with `APP_SMTP_*` and `APP_EMAIL_FROM_SECRET`.
 6. Waits for the new revision, smoke-checks the app, and optionally sends a test message.
 
-Non-secret outputs are written to `infra/email_delivery.outputs.env`.
+Local-only outputs are written to `infra/.generated/email_delivery.local.env`.
 
 Operational notes:
 
@@ -427,7 +431,7 @@ These are high-impact and low-risk improvements:
 ## 12) First-day checklist for a new engineer
 
 1. Read this file and `documents/infra/UI_DEPLOYMENT_STATUS.md`.
-2. Run app locally with `.env` + `infra/deployment.outputs.env`.
+2. Run app locally with `.env` plus the generated files under `infra/.generated/`.
 3. Verify login and Pipeline Jobs page.
 4. Trigger one source refresh and confirm `job_runs` updates.
 5. Make change in dev app only, validate, then promote.

@@ -4,7 +4,9 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-DEPLOYMENT_ENV_FILE="${DEPLOYMENT_ENV_FILE:-infra/deployment.outputs.env}"
+DEFAULT_DEPLOYMENT_ENV_FILE="infra/.generated/deployment.local.env"
+LEGACY_DEPLOYMENT_ENV_FILE="infra/deployment.outputs.env"
+DEPLOYMENT_ENV_FILE="${DEPLOYMENT_ENV_FILE:-$DEFAULT_DEPLOYMENT_ENV_FILE}"
 STATUS_FILE="${STATUS_FILE:-documents/infra/UI_DEPLOYMENT_STATUS.md}"
 TARGET="dev"
 PROMOTE_FROM=""
@@ -79,6 +81,9 @@ load_deployment_context() {
   if [[ -f "$DEPLOYMENT_ENV_FILE" ]]; then
     # shellcheck disable=SC1090
     source "$DEPLOYMENT_ENV_FILE"
+  elif [[ "$DEPLOYMENT_ENV_FILE" == "$DEFAULT_DEPLOYMENT_ENV_FILE" && -f "$LEGACY_DEPLOYMENT_ENV_FILE" ]]; then
+    # shellcheck disable=SC1090
+    source "$LEGACY_DEPLOYMENT_ENV_FILE"
   fi
 
   RESOURCE_GROUP="${RESOURCE_GROUP:-${PIPELINE_RESOURCE_GROUP:-}}"

@@ -30,12 +30,9 @@ cp .env.example .env
 # set APCA_API_BASE_URL to paper or live endpoint matching your key pair
 ```
 
-3. Load env and run:
+3. Run locally:
 
 ```bash
-set -a
-source .env
-set +a
 ./scripts/run_ui_local.sh
 ```
 
@@ -48,7 +45,17 @@ set +a
 ## Docker dev environment
 
 Use Docker when the host Python environment is missing app/test dependencies or when you want a pinned local runtime that matches the repo setup more closely.
-The container entrypoint automatically loads `.env` and `infra/deployment.outputs.env` when those files are present in the repo.
+Local runtime scripts now auto-load, in this order:
+
+- `infra/.generated/deployment.local.env`
+- `infra/.generated/email_delivery.local.env`
+- `.env`
+
+Refresh the local generated files from live Azure when needed:
+
+```bash
+bash ./scripts/show_infra_inventory.sh --write-local
+```
 
 Build the image once:
 
@@ -221,7 +228,7 @@ That workflow:
 - stores SMTP secrets in the UI Key Vault
 - updates the selected Container App with the expected SMTP env vars
 
-The setup script writes non-secret outputs to `infra/email_delivery.outputs.env`.
+The setup script writes local-only outputs to `infra/.generated/email_delivery.local.env`.
 
 ## Notes
 

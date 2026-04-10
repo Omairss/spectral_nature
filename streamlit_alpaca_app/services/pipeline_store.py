@@ -132,18 +132,43 @@ SOURCE_DATASETS: dict[str, list[str]] = {
     ],
 }
 
+def _deployment_env_paths() -> tuple[Path, ...]:
+    override = (os.getenv("DEPLOYMENT_ENV_FILE") or "").strip()
+    candidates: list[Path] = []
+    if override:
+        override_path = Path(override)
+        if not override_path.is_absolute():
+            override_path = APP_ROOT / override_path
+        candidates.append(override_path)
+    candidates.extend(
+        (
+            APP_ROOT / "infra" / ".generated" / "deployment.local.env",
+            APP_ROOT / "infra" / "deployment.outputs.env",
+        )
+    )
+    unique_paths: list[Path] = []
+    seen: set[Path] = set()
+    for path in candidates:
+        if path in seen:
+            continue
+        seen.add(path)
+        unique_paths.append(path)
+    return tuple(unique_paths)
+
 
 def _load_deployment_env() -> dict[str, str]:
-    env_file = Path(__file__).resolve().parents[1] / "infra" / "deployment.outputs.env"
     values: dict[str, str] = {}
-    if not env_file.exists():
-        return values
-    for line in env_file.read_text(encoding="utf-8").splitlines():
-        clean = line.strip()
-        if not clean or clean.startswith("#") or "=" not in clean:
+    for env_file in _deployment_env_paths():
+        if not env_file.exists():
             continue
-        key, value = clean.split("=", 1)
-        values[key.strip()] = value.strip()
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            clean = line.strip()
+            if not clean or clean.startswith("#") or "=" not in clean:
+                continue
+            key, value = clean.split("=", 1)
+            values[key.strip()] = value.strip()
+        if values:
+            return values
     return values
 
 
@@ -213,7 +238,7 @@ def _storage_account_url() -> str:
     if direct:
         return direct
     deployment = _load_deployment_env()
-    return (deployment.get("STORAGE_URL") or "").strip()
+    return (deployment.get("AZURE_STORAGE_ACCOUNT_URL") or deployment.get("STORAGE_URL") or "").strip()
 
 
 def _storage_container() -> str:
@@ -221,11 +246,11 @@ def _storage_container() -> str:
 
 
 def _resource_group() -> str:
-    direct = _get_env("PIPELINE_RESOURCE_GROUP")
+    direct = _get_env("PIPELINE_RESOURCE_GROUP") or _get_env("RESOURCE_GROUP")
     if direct:
         return direct
     deployment = _load_deployment_env()
-    return (deployment.get("RESOURCE_GROUP") or "").strip()
+    return (deployment.get("PIPELINE_RESOURCE_GROUP") or deployment.get("RESOURCE_GROUP") or "").strip()
 
 
 def pipeline_store_configured() -> bool:
@@ -451,7 +476,7 @@ def start_source_refresh_job(source: str) -> tuple[bool, str]:
 
     resource_group = _resource_group()
     if not resource_group:
-        return False, "Missing resource group. Set PIPELINE_RESOURCE_GROUP or infra/deployment.outputs.env."
+        return False, "Missing resource group. Set PIPELINE_RESOURCE_GROUP or infra/.generated/deployment.local.env."
 
     cmd = [
         "az",

@@ -20,3 +20,8 @@
 
 - Moving relationship maps from Python constants into JSON graph files is a low-risk way to add new graph-driven features because the current UI can keep the same render contract while the data model gets more flexible.
 - Keeping display-only weight in `edge.attributes.display_weight` avoids mixing UI sizing with semantic fields like `severity` and `confidence`.
+
+## Infra index hardening
+
+- For infra metadata, the secure pattern is: tracked docs for lookup rules, ignored generated files for operator convenience, and Azure as the live source of truth.
+- If local runtime scripts need generated context, load ignored files automatically instead of asking contributors to source tracked env dumps by hand.

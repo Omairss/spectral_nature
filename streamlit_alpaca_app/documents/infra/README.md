@@ -54,11 +54,23 @@ Taxonomy flow charts and setup notes live in:
 
 ## Output
 
-Deployment details are written to:
+Local deployment details are written to:
 
-- `infra/deployment.outputs.env`
+- `infra/.generated/deployment.local.env`
+- `infra/.generated/email_delivery.local.env`
 
-This file includes resource names, DB endpoint details, and image reference.
+These files are intentionally ignored by git. They keep local operator context out of the tracked repo while still giving scripts a stable place to read from.
+
+The committed infra index lives in:
+
+- `documents/infra/RESOURCE_INDEX.md`
+
+Refresh the local generated files or print the current inventory with:
+
+```bash
+bash ./scripts/show_infra_inventory.sh
+bash ./scripts/show_infra_inventory.sh --write-local
+```
 
 ## UI App Deployment
 

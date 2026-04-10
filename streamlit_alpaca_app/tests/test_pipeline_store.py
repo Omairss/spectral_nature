@@ -62,6 +62,45 @@ def test_pipeline_store_configured_with_storage_only(monkeypatch):
     assert pipeline_store.pipeline_store_configured() is True
 
 
+def test_load_deployment_env_prefers_generated_local_file(monkeypatch, tmp_path):
+    generated_dir = tmp_path / "infra" / ".generated"
+    generated_dir.mkdir(parents=True)
+    (generated_dir / "deployment.local.env").write_text(
+        "PIPELINE_RESOURCE_GROUP=rg-generated\nAZURE_STORAGE_ACCOUNT_URL=https://generated.blob.core.windows.net\n",
+        encoding="utf-8",
+    )
+    legacy_file = tmp_path / "infra" / "deployment.outputs.env"
+    legacy_file.write_text(
+        "RESOURCE_GROUP=rg-legacy\nSTORAGE_URL=https://legacy.blob.core.windows.net\n",
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(pipeline_store, "APP_ROOT", tmp_path)
+    monkeypatch.delenv("DEPLOYMENT_ENV_FILE", raising=False)
+
+    loaded = pipeline_store._load_deployment_env()
+
+    assert loaded["PIPELINE_RESOURCE_GROUP"] == "rg-generated"
+    assert loaded["AZURE_STORAGE_ACCOUNT_URL"] == "https://generated.blob.core.windows.net"
+
+
+def test_load_deployment_env_uses_legacy_file_as_fallback(monkeypatch, tmp_path):
+    infra_dir = tmp_path / "infra"
+    infra_dir.mkdir(parents=True)
+    (infra_dir / "deployment.outputs.env").write_text(
+        "RESOURCE_GROUP=rg-legacy\nSTORAGE_URL=https://legacy.blob.core.windows.net\n",
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(pipeline_store, "APP_ROOT", tmp_path)
+    monkeypatch.delenv("DEPLOYMENT_ENV_FILE", raising=False)
+
+    loaded = pipeline_store._load_deployment_env()
+
+    assert loaded["RESOURCE_GROUP"] == "rg-legacy"
+    assert loaded["STORAGE_URL"] == "https://legacy.blob.core.windows.net"
+
+
 def test_latest_dataset_metadata_falls_back_to_manifest_when_db_unavailable(monkeypatch):
     manifest = {
         "dataset_name": "attention_feed",
