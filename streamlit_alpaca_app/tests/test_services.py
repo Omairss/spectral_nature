@@ -57,6 +57,7 @@ from services.market import (
     business_focus_description,
     business_focus_options,
     business_focus_universe,
+    default_commodity_proxy_symbols,
     commodity_dependency_graph,
     commodity_focus_description,
     commodity_focus_options,
@@ -3055,6 +3056,10 @@ def test_scan_commodity_regimes_finds_beneficiaries_and_decouplers():
     assert summary.nlargest(1, "beneficiary_score").iloc[0]["symbol"] == "BENEFIT"
     assert summary.nlargest(1, "decoupler_score").iloc[0]["symbol"] == "DECOUPLE"
     assert summary.nlargest(1, "squeeze_score").iloc[0]["symbol"] == "SQUEEZE"
+
+
+def test_default_commodity_proxy_symbols_uses_broad_market_focus():
+    assert default_commodity_proxy_symbols() == commodity_focus_universe("Broad Commodity Market")
 
 
 def test_build_signal_frame_computes_pullback_and_channel_features():

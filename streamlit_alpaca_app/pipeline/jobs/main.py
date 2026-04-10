@@ -33,7 +33,7 @@ from services.attention_context_llm import (
     build_edgar_evidence,
     merge_attention_context_with_llm,
 )
-from services.config import AppConfig
+from services.config import AppConfig, alpaca_secret_name_settings
 from services.edgar import DEFAULT_EDGAR_FORMS, EdgarAPIError, EdgarClient, build_attention_context_bundle
 from services.entity_taxonomy import (
     bootstrap_entity_taxonomy_tables,
@@ -47,7 +47,8 @@ from services.llm import LLMAPIError, load_llm_client
 from services.market import (
     build_correlation_phase_shifts_from_bars,
     build_momentum_profiles_from_bars,
-    default_commodity_universe_symbols,
+    commodity_reference_universe,
+    default_commodity_proxy_symbols,
     scan_commodity_regimes,
     scan_daily_movers,
     scan_momentum_profiles,
@@ -493,15 +494,14 @@ def _persist_dataset(dataset_name: str, frame: pd.DataFrame, ctx: JobContext, co
 
 
 def _alpaca_config() -> AppConfig | None:
+    key_secret_name, secret_secret_name = alpaca_secret_name_settings()
     key = resolve_secret_value(
-        ["APCA_API_KEY", "APCA_API_KEY_ID"],
-        secret_name_env="APCA_API_KEY_SECRET",
-        default_secret_name="apca-api-key",
+        [],
+        default_secret_name=key_secret_name,
     )
     secret = resolve_secret_value(
-        ["APCA_API_SECRET_KEY"],
-        secret_name_env="APCA_API_SECRET_KEY_SECRET",
-        default_secret_name="apca-api-secret-key",
+        [],
+        default_secret_name=secret_secret_name,
     )
     if not key or not secret:
         return None
@@ -1345,13 +1345,22 @@ def run_commodities(ctx: JobContext, conn: Any | None = None) -> None:
         print("[warn] APCA credentials missing; skipping commodity preload")
         return
     api = AlpacaAPI(cfg)
-    symbols = default_commodity_universe_symbols()
+    symbols = default_commodity_proxy_symbols()
+    reference_symbols = commodity_reference_universe()
     if not symbols:
-        print("[warn] commodity preload skipped: taxonomy did not return any commodity symbols")
+        print("[warn] commodity preload skipped: commodity proxy universe is empty")
+        return
+    if not reference_symbols:
+        print("[warn] commodity preload skipped: commodity reference universe is empty")
         return
     try:
         _job_progress(ctx, conn, stage="commodity_regimes", message=f"Scanning commodity regimes symbols={len(symbols)}.", progress_pct=12.0)
-        payload = scan_commodity_regimes(api, symbols=symbols, commodity_symbols=symbols, days=252)
+        payload = scan_commodity_regimes(
+            api,
+            symbols=symbols,
+            commodity_symbols=reference_symbols,
+            days=252,
+        )
         summary = payload.get("summary", pd.DataFrame())
         history = payload.get("history", pd.DataFrame())
 

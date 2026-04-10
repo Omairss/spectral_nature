@@ -1,0 +1,310 @@
+{
+  "schema_version": "1.0.0",
+  "graph": {
+    "id": "commodity_agriculture_softs",
+    "title": "Agriculture and Softs Transmission",
+    "description": "Crop baskets and soft commodities react to fertilizer, freight, and food-inflation spillovers.",
+    "created_at": "2026-04-10",
+    "time_horizon": "short_to_medium_term",
+    "units": {
+      "severity": "0_to_1_score",
+      "confidence": "0_to_1_score",
+      "display_weight": "relative_sankey_weight"
+    },
+    "tags": ["commodities", "agriculture", "softs", "shipping"],
+    "nodes": [
+      {
+        "id": "DBA",
+        "type": "commodity_proxy",
+        "label": "Agriculture basket",
+        "description": "Broad agriculture basket used as the main crop complex anchor.",
+        "attributes": {
+          "proxy_name": "Invesco DB Agriculture Fund",
+          "focus_bucket": "Softs & Agriculture"
+        },
+        "risk": 0.46,
+        "criticality": 0.88,
+        "status": "normal"
+      },
+      {
+        "id": "UNG",
+        "type": "commodity_proxy",
+        "label": "Natural gas",
+        "description": "Gas proxy used here because fertilizer cost transmission starts upstream in energy.",
+        "attributes": {
+          "proxy_name": "United States Natural Gas Fund",
+          "focus_bucket": "Energy & Oil"
+        },
+        "risk": 0.58,
+        "criticality": 0.83,
+        "status": "stressed"
+      },
+      {
+        "id": "CORN",
+        "type": "commodity_proxy",
+        "label": "Corn",
+        "description": "Core row crop tied to feed, ethanol, and fertilizer inputs.",
+        "attributes": {
+          "proxy_name": "Teucrium Corn Fund",
+          "focus_bucket": "Softs & Agriculture"
+        },
+        "risk": 0.44,
+        "criticality": 0.74,
+        "status": "normal"
+      },
+      {
+        "id": "WEAT",
+        "type": "commodity_proxy",
+        "label": "Wheat",
+        "description": "Grain proxy sensitive to fertilizer, exports, and weather.",
+        "attributes": {
+          "proxy_name": "Teucrium Wheat Fund",
+          "focus_bucket": "Softs & Agriculture"
+        },
+        "risk": 0.45,
+        "criticality": 0.7,
+        "status": "normal"
+      },
+      {
+        "id": "SOYB",
+        "type": "commodity_proxy",
+        "label": "Soybeans",
+        "description": "Soybean proxy with crush-margin and protein-demand sensitivity.",
+        "attributes": {
+          "proxy_name": "Teucrium Soybean Fund",
+          "focus_bucket": "Softs & Agriculture"
+        },
+        "risk": 0.43,
+        "criticality": 0.68,
+        "status": "normal"
+      },
+      {
+        "id": "JO",
+        "type": "commodity_proxy",
+        "label": "Coffee",
+        "description": "Soft-commodity proxy used to represent food-inflation spillover.",
+        "attributes": {
+          "proxy_name": "iPath Series B Bloomberg Coffee Subindex",
+          "focus_bucket": "Softs & Agriculture"
+        },
+        "risk": 0.59,
+        "criticality": 0.52,
+        "status": "stressed"
+      },
+      {
+        "id": "NIB",
+        "type": "commodity_proxy",
+        "label": "Cocoa",
+        "description": "Soft-commodity proxy that can ride broader supply-shock and food-inflation waves.",
+        "attributes": {
+          "proxy_name": "iPath Bloomberg Cocoa Subindex Total Return ETN",
+          "focus_bucket": "Softs & Agriculture"
+        },
+        "risk": 0.67,
+        "criticality": 0.56,
+        "status": "constrained"
+      },
+      {
+        "id": "BAL",
+        "type": "commodity_proxy",
+        "label": "Cotton",
+        "description": "Cotton proxy tied to softs and export-chain pressure.",
+        "attributes": {
+          "proxy_name": "iPath Series B Bloomberg Cotton Subindex",
+          "focus_bucket": "Softs & Agriculture"
+        },
+        "risk": 0.38,
+        "criticality": 0.44,
+        "status": "normal"
+      },
+      {
+        "id": "BDRY",
+        "type": "commodity_proxy",
+        "label": "Dry-bulk shipping",
+        "description": "Freight proxy used for landed-cost transmission into bulk agriculture.",
+        "attributes": {
+          "proxy_name": "Breakwave Dry Bulk Shipping ETF",
+          "focus_bucket": "Shipping & Logistics"
+        },
+        "risk": 0.39,
+        "criticality": 0.58,
+        "status": "normal"
+      }
+    ],
+    "edges": [
+      {
+        "id": "ung_to_dba",
+        "source": "UNG",
+        "target": "DBA",
+        "relationship": "raises_cost",
+        "mechanism": "Natural gas drives nitrogen fertilizer costs, which then feed into crop markets.",
+        "polarity": "positive",
+        "directness": "indirect",
+        "severity": 0.9,
+        "confidence": 0.88,
+        "lag": { "value": 1, "unit": "months" },
+        "conditions": ["fertilizer pass-through remains active"],
+        "attributes": { "display_weight": 2.7 }
+      },
+      {
+        "id": "ung_to_weat",
+        "source": "UNG",
+        "target": "WEAT",
+        "relationship": "raises_cost",
+        "mechanism": "Wheat can react indirectly to fertilizer and energy input pressure.",
+        "polarity": "positive",
+        "directness": "indirect",
+        "severity": 0.73,
+        "confidence": 0.82,
+        "lag": { "value": 1, "unit": "months" },
+        "conditions": ["input costs matter more than harvest surplus"],
+        "attributes": { "display_weight": 2.2 }
+      },
+      {
+        "id": "ung_to_soyb",
+        "source": "UNG",
+        "target": "SOYB",
+        "relationship": "raises_cost",
+        "mechanism": "Soybeans also absorb fertilizer and fuel cost pressure.",
+        "polarity": "positive",
+        "directness": "indirect",
+        "severity": 0.67,
+        "confidence": 0.76,
+        "lag": { "value": 1, "unit": "months" },
+        "conditions": ["input costs are not offset by strong yields"],
+        "attributes": { "display_weight": 2.0 }
+      },
+      {
+        "id": "dba_to_corn",
+        "source": "DBA",
+        "target": "CORN",
+        "relationship": "supports",
+        "mechanism": "Corn can lead broader agricultural baskets during feed or weather stress.",
+        "polarity": "positive",
+        "directness": "indirect",
+        "severity": 0.53,
+        "confidence": 0.71,
+        "lag": { "value": 2, "unit": "weeks" },
+        "conditions": ["grain stress dominates"],
+        "attributes": { "display_weight": 1.6 }
+      },
+      {
+        "id": "dba_to_weat",
+        "source": "DBA",
+        "target": "WEAT",
+        "relationship": "supports",
+        "mechanism": "Wheat can transmit grain-market pressure through the broader crop basket.",
+        "polarity": "positive",
+        "directness": "indirect",
+        "severity": 0.5,
+        "confidence": 0.68,
+        "lag": { "value": 2, "unit": "weeks" },
+        "conditions": ["grain basket breadth increases"],
+        "attributes": { "display_weight": 1.5 }
+      },
+      {
+        "id": "dba_to_soyb",
+        "source": "DBA",
+        "target": "SOYB",
+        "relationship": "supports",
+        "mechanism": "Soybeans can transmit protein and crush-margin demand through agriculture baskets.",
+        "polarity": "positive",
+        "directness": "indirect",
+        "severity": 0.5,
+        "confidence": 0.67,
+        "lag": { "value": 2, "unit": "weeks" },
+        "conditions": ["protein demand stays firm"],
+        "attributes": { "display_weight": 1.5 }
+      },
+      {
+        "id": "dba_to_jo",
+        "source": "DBA",
+        "target": "JO",
+        "relationship": "amplifies",
+        "mechanism": "Coffee often participates in broader food and weather-driven softs inflation waves.",
+        "polarity": "positive",
+        "directness": "indirect",
+        "severity": 0.43,
+        "confidence": 0.61,
+        "lag": { "value": 1, "unit": "months" },
+        "conditions": ["softs inflation broadens"],
+        "attributes": { "display_weight": 1.3 }
+      },
+      {
+        "id": "dba_to_nib",
+        "source": "DBA",
+        "target": "NIB",
+        "relationship": "amplifies",
+        "mechanism": "Cocoa can participate in wider softs inflation and supply-shock waves.",
+        "polarity": "positive",
+        "directness": "indirect",
+        "severity": 0.47,
+        "confidence": 0.63,
+        "lag": { "value": 1, "unit": "months" },
+        "conditions": ["softs shortages remain visible"],
+        "attributes": { "display_weight": 1.4 }
+      },
+      {
+        "id": "dba_to_bal",
+        "source": "DBA",
+        "target": "BAL",
+        "relationship": "amplifies",
+        "mechanism": "Cotton can respond alongside broader agriculture and softs supply shocks.",
+        "polarity": "positive",
+        "directness": "indirect",
+        "severity": 0.4,
+        "confidence": 0.56,
+        "lag": { "value": 1, "unit": "months" },
+        "conditions": ["export chain remains tight"],
+        "attributes": { "display_weight": 1.2 }
+      },
+      {
+        "id": "bdry_to_dba",
+        "source": "BDRY",
+        "target": "DBA",
+        "relationship": "raises_cost",
+        "mechanism": "Dry-bulk freight spikes can transmit into agriculture and bulk-commodity landed costs.",
+        "polarity": "positive",
+        "directness": "indirect",
+        "severity": 0.53,
+        "confidence": 0.66,
+        "lag": { "value": 3, "unit": "weeks" },
+        "conditions": ["freight markets tighten"],
+        "attributes": { "display_weight": 1.6 }
+      }
+    ],
+    "scenarios": [
+      {
+        "id": "food_inflation_wave",
+        "label": "Food inflation wave",
+        "description": "Input costs and freight both rise while softs remain supply constrained.",
+        "assumptions": ["Fertilizer pass-through persists", "Freight does not normalize quickly"],
+        "projected_outcomes": {
+          "pressure_points": ["DBA", "WEAT", "SOYB", "JO", "NIB"],
+          "upstream_signals": ["UNG", "BDRY"]
+        }
+      }
+    ],
+    "evidence": [
+      {
+        "id": "agri_softs_seed",
+        "node_or_edge_ids": ["ung_to_dba", "bdry_to_dba"],
+        "claim": "Agriculture pricing often absorbs both upstream input costs and freight bottlenecks.",
+        "source_type": "expert_judgment",
+        "source_ref": "example://spectral-nature/commodity-playbook/agriculture-softs",
+        "confidence": 0.82,
+        "attributes": {
+          "note": "Illustrative seed graph for the commodity dashboard."
+        }
+      }
+    ],
+    "metrics": [
+      {
+        "name": "display_edge_count",
+        "value": 9,
+        "unit": "edges",
+        "applies_to": ["commodity_agriculture_softs"]
+      }
+    ]
+  }
+}

@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from .alpaca_api import AlpacaAPI
+from .dependency_graphs import dependency_graph_edges_frame
 
 
 DEFAULT_UNIVERSE: list[str] = []
@@ -284,170 +285,6 @@ COMMODITY_REFERENCE_SYMBOLS = _unique_symbols(
     ["PDBC", "USO", "BNO", "UNG", "GLD", "SLV", "CPER", "DBB", "REMX", "DBA", "CORN", "JO", "BDRY"]
 )
 
-COMMODITY_DEPENDENCY_EDGES: list[dict[str, object]] = [
-    {
-        "source": "USO",
-        "target": "UNG",
-        "relation": "energy complex",
-        "weight": 2.4,
-        "description": "Oil and gas shocks often move together through macro energy demand and supply stress.",
-    },
-    {
-        "source": "USO",
-        "target": "UGA",
-        "relation": "refining spread transmission",
-        "weight": 2.2,
-        "description": "Crude moves can transmit into gasoline with changing refinery margins and product inventories.",
-    },
-    {
-        "source": "USO",
-        "target": "CANE",
-        "relation": "biofuel crossover",
-        "weight": 1.6,
-        "description": "Higher oil can increase the relative value of sugarcane-linked ethanol routes.",
-    },
-    {
-        "source": "USO",
-        "target": "CORN",
-        "relation": "biofuel crossover",
-        "weight": 1.5,
-        "description": "Corn and oil interact through ethanol economics and transport input costs.",
-    },
-    {
-        "source": "UNG",
-        "target": "DBA",
-        "relation": "fertilizer cost transmission",
-        "weight": 2.7,
-        "description": "Natural gas drives nitrogen fertilizer costs, which then feed into crop markets.",
-    },
-    {
-        "source": "UNG",
-        "target": "WEAT",
-        "relation": "fertilizer cost transmission",
-        "weight": 2.2,
-        "description": "Wheat costs can react indirectly to fertilizer and energy input pressure.",
-    },
-    {
-        "source": "UNG",
-        "target": "SOYB",
-        "relation": "fertilizer cost transmission",
-        "weight": 2.0,
-        "description": "Soybeans also absorb fertilizer and fuel cost pressure.",
-    },
-    {
-        "source": "USO",
-        "target": "BDRY",
-        "relation": "freight fuel pressure",
-        "weight": 1.8,
-        "description": "Oil price shocks can feed into freight costs and dry-bulk shipping economics.",
-    },
-    {
-        "source": "CPER",
-        "target": "DBB",
-        "relation": "industrial metals complex",
-        "weight": 2.6,
-        "description": "Copper often leads the broader industrial-metals complex.",
-    },
-    {
-        "source": "CPER",
-        "target": "REMX",
-        "relation": "electrification buildout",
-        "weight": 2.1,
-        "description": "Copper and rare earths both rise when grid and electrification demand strengthens.",
-    },
-    {
-        "source": "CPER",
-        "target": "LIT",
-        "relation": "battery supply chain",
-        "weight": 2.0,
-        "description": "Copper and lithium both respond to EV and storage buildout cycles.",
-    },
-    {
-        "source": "REMX",
-        "target": "LIT",
-        "relation": "strategic materials chain",
-        "weight": 1.8,
-        "description": "Rare earths and lithium sit in adjacent electrification and battery supply chains.",
-    },
-    {
-        "source": "URA",
-        "target": "LIT",
-        "relation": "electrification power buildout",
-        "weight": 1.4,
-        "description": "Uranium and lithium can co-move when long-duration power and electrification spending both strengthen.",
-    },
-    {
-        "source": "GLD",
-        "target": "SLV",
-        "relation": "precious metals transmission",
-        "weight": 1.9,
-        "description": "Gold leadership often spills over into silver as risk appetite expands within precious metals.",
-    },
-    {
-        "source": "SLV",
-        "target": "PPLT",
-        "relation": "industrial precious spillover",
-        "weight": 1.4,
-        "description": "Silver and platinum can co-move when industrial precious demand improves.",
-    },
-    {
-        "source": "PPLT",
-        "target": "PALL",
-        "relation": "autocatalyst metals chain",
-        "weight": 1.5,
-        "description": "Platinum and palladium can rotate together through autocatalyst substitution and industrial demand.",
-    },
-    {
-        "source": "DBA",
-        "target": "CORN",
-        "relation": "crop basket leadership",
-        "weight": 1.6,
-        "description": "Corn can lead broader agricultural baskets during feed or weather stress.",
-    },
-    {
-        "source": "DBA",
-        "target": "WEAT",
-        "relation": "crop basket leadership",
-        "weight": 1.5,
-        "description": "Wheat can transmit grain-market pressure through the broader crop basket.",
-    },
-    {
-        "source": "DBA",
-        "target": "SOYB",
-        "relation": "crop basket leadership",
-        "weight": 1.5,
-        "description": "Soybeans can transmit protein and crush-margin demand through agriculture baskets.",
-    },
-    {
-        "source": "DBA",
-        "target": "JO",
-        "relation": "food inflation spillover",
-        "weight": 1.3,
-        "description": "Coffee often participates in broader food and weather-driven softs inflation waves.",
-    },
-    {
-        "source": "DBA",
-        "target": "NIB",
-        "relation": "softs inflation spillover",
-        "weight": 1.4,
-        "description": "Cocoa can participate in wider softs inflation and supply-shock waves.",
-    },
-    {
-        "source": "DBA",
-        "target": "BAL",
-        "relation": "softs inflation spillover",
-        "weight": 1.2,
-        "description": "Cotton can respond alongside broader agriculture and softs supply shocks.",
-    },
-    {
-        "source": "BDRY",
-        "target": "DBA",
-        "relation": "shipping bottleneck transmission",
-        "weight": 1.6,
-        "description": "Dry-bulk freight spikes can transmit into agriculture and bulk-commodity landed costs.",
-    },
-]
-
 def business_focus_options() -> list[str]:
     return list(_taxonomy_focus_map().keys())
 
@@ -530,7 +367,17 @@ def commodity_reference_universe() -> list[str]:
     return list(COMMODITY_REFERENCE_SYMBOLS)
 
 
+def default_commodity_proxy_symbols(*, limit: int | None = None) -> list[str]:
+    symbols = commodity_focus_universe("Broad Commodity Market")
+    if limit is not None and limit > 0:
+        return symbols[:limit]
+    return symbols
+
+
 def default_commodity_universe_symbols(*, limit: int | None = None) -> list[str]:
+    # Taxonomy-derived commodity-linked symbols are useful for broader
+    # commodity-sensitive equity workflows, but they are not the curated proxy
+    # universe used by the commodity dashboard itself.
     try:
         from .entity_taxonomy import load_entity_taxonomy_frame
     except Exception:
@@ -599,28 +446,54 @@ def commodity_proxy_profile(symbol: str) -> dict[str, str]:
 
 def commodity_dependency_graph(symbols: list[str] | None = None) -> pd.DataFrame:
     allowed = {str(symbol).upper().strip() for symbol in (symbols or COMMODITY_PROXY_METADATA.keys()) if str(symbol).strip()}
-    rows: list[dict[str, object]] = []
-    for edge in COMMODITY_DEPENDENCY_EDGES:
-        source = str(edge.get("source") or "").upper().strip()
-        target = str(edge.get("target") or "").upper().strip()
-        if source not in allowed or target not in allowed:
-            continue
-        source_profile = commodity_proxy_profile(source)
-        target_profile = commodity_proxy_profile(target)
-        rows.append(
-            {
-                "source": source,
-                "target": target,
-                "source_name": source_profile["name"],
-                "target_name": target_profile["name"],
-                "source_commodity": source_profile["commodity"],
-                "target_commodity": target_profile["commodity"],
-                "relation": str(edge.get("relation") or ""),
-                "weight": float(edge.get("weight") or 1.0),
-                "description": str(edge.get("description") or ""),
-            }
+    edges = dependency_graph_edges_frame(tags=["commodities"], allowed_node_ids=allowed)
+    if edges.empty:
+        return pd.DataFrame(
+            columns=[
+                "graph_id",
+                "graph_title",
+                "source",
+                "target",
+                "source_name",
+                "target_name",
+                "source_commodity",
+                "target_commodity",
+                "relation",
+                "weight",
+                "description",
+                "severity",
+                "confidence",
+                "polarity",
+                "directness",
+            ]
         )
-    return pd.DataFrame(rows)
+
+    edges = edges.copy()
+    edges["source_name"] = edges["source"].map(lambda symbol: commodity_proxy_profile(symbol)["name"])
+    edges["target_name"] = edges["target"].map(lambda symbol: commodity_proxy_profile(symbol)["name"])
+    edges["source_commodity"] = edges["source_label"]
+    edges["target_commodity"] = edges["target_label"]
+    edges["relation"] = edges["relationship"]
+    edges["description"] = edges["mechanism"]
+    return edges[
+        [
+            "graph_id",
+            "graph_title",
+            "source",
+            "target",
+            "source_name",
+            "target_name",
+            "source_commodity",
+            "target_commodity",
+            "relation",
+            "weight",
+            "description",
+            "severity",
+            "confidence",
+            "polarity",
+            "directness",
+        ]
+    ].reset_index(drop=True)
 
 
 def _log_slope(series: pd.Series, window: int) -> float:

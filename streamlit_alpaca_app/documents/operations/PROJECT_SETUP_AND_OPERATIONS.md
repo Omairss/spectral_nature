@@ -89,7 +89,8 @@ pip install -r requirements.txt
 
 ```bash
 cp .env.example .env
-# set APCA_API_KEY / APCA_API_SECRET_KEY etc.
+# set AZURE_KEY_VAULT_NAME / KEY_VAULT_NAME
+# keep Alpaca credentials in Key Vault under apca-api-key and apca-api-secret-key
 ```
 
 For Azure-backed runs, load deployment outputs:
@@ -109,6 +110,17 @@ Run the API layer for external clients:
 ```bash
 ./scripts/run_api_local.sh
 ```
+
+Run the same workflows inside Docker when host dependencies are missing:
+
+```bash
+./scripts/docker_dev.sh build
+./scripts/docker_dev.sh test tests/test_api_v1.py tests/test_api_auth.py
+./scripts/docker_dev.sh api
+./scripts/docker_dev.sh ui
+```
+
+The Docker entrypoint auto-loads `.env` and `infra/deployment.outputs.env` when present, so it follows the same local credential flow as the host scripts. Keep only Key Vault references in `.env`, not raw Alpaca credentials.
 
 ---
 

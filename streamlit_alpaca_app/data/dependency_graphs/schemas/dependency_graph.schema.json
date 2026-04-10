@@ -1,0 +1,198 @@
+{
+  "$id": "https://spectralnature.local/dependency-graph.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Dependency Graph",
+  "type": "object",
+  "required": ["schema_version", "graph"],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "graph": {
+      "type": "object",
+      "required": ["id", "title", "nodes", "edges"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "created_at": { "type": "string", "format": "date" },
+        "time_horizon": {
+          "type": "string",
+          "enum": ["immediate", "short_term", "medium_term", "long_term", "short_to_medium_term", "multi_horizon"]
+        },
+        "units": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "nodes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/node" }
+        },
+        "edges": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/edge" }
+        },
+        "scenarios": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/scenario" }
+        },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/evidence" }
+        },
+        "metrics": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/metric" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "node": {
+      "type": "object",
+      "required": ["id", "type", "label"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": {
+          "type": "string",
+          "description": "Extensible node class. Suggested examples: commodity_proxy, resource, supplier, producer, chokepoint, company_operation, geography, regulation, effect, macro_factor."
+        },
+        "label": { "type": "string" },
+        "description": { "type": "string" },
+        "attributes": {
+          "type": "object",
+          "description": "Arbitrary structured metadata for domain-specific extensions.",
+          "additionalProperties": true
+        },
+        "risk": { "$ref": "#/$defs/score" },
+        "criticality": { "$ref": "#/$defs/score" },
+        "status": {
+          "type": "string",
+          "enum": ["normal", "stressed", "constrained", "failed", "unknown"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "edge": {
+      "type": "object",
+      "required": ["id", "source", "target", "relationship"],
+      "properties": {
+        "id": { "type": "string" },
+        "source": { "type": "string" },
+        "target": { "type": "string" },
+        "relationship": {
+          "type": "string",
+          "description": "Examples: reduces_supply, raises_cost, limits_capacity, delays, supports, mitigates, amplifies, substitutes_for."
+        },
+        "mechanism": { "type": "string" },
+        "polarity": {
+          "type": "string",
+          "enum": ["positive", "negative", "mixed", "unknown"]
+        },
+        "directness": {
+          "type": "string",
+          "enum": ["direct", "indirect", "conditional", "unknown"]
+        },
+        "severity": { "$ref": "#/$defs/score" },
+        "confidence": { "$ref": "#/$defs/score" },
+        "lag": {
+          "type": "object",
+          "properties": {
+            "value": { "type": "number" },
+            "unit": {
+              "type": "string",
+              "enum": ["hours", "days", "weeks", "months", "quarters", "years"]
+            }
+          },
+          "required": ["value", "unit"],
+          "additionalProperties": false
+        },
+        "conditions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "attributes": {
+          "type": "object",
+          "description": "Optional display-only metadata. Current UI uses `display_weight` when present.",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "scenario": {
+      "type": "object",
+      "required": ["id", "label"],
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "description": { "type": "string" },
+        "assumptions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "projected_outcomes": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["id", "claim", "source_type"],
+      "properties": {
+        "id": { "type": "string" },
+        "node_or_edge_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "claim": { "type": "string" },
+        "source_type": {
+          "type": "string",
+          "enum": ["reported_fact", "inference", "estimate", "model_output", "expert_judgment"]
+        },
+        "source_ref": {
+          "type": "string",
+          "description": "URL, citation key, database row id, or document reference."
+        },
+        "confidence": { "$ref": "#/$defs/score" },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "metric": {
+      "type": "object",
+      "required": ["name", "value"],
+      "properties": {
+        "name": { "type": "string" },
+        "value": {
+          "oneOf": [
+            { "type": "number" },
+            { "type": "string" },
+            { "type": "boolean" }
+          ]
+        },
+        "unit": { "type": "string" },
+        "applies_to": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }
+  },
+  "additionalProperties": false
+}

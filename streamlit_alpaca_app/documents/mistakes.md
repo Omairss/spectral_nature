@@ -1,5 +1,23 @@
 # Mistakes Log
 
+## 2026-04-09 - Commodity Preload Used the Wrong Universe Contract
+
+### What went wrong
+- The commodities preload job used a taxonomy-derived commodity universe, while the `Commodity Section` UI uses a curated commodity proxy universe.
+- The preload also reused that same list as the reference basket, which blurred two different roles in the model.
+- The materialized `momentum_profiles` resolver treated an empty filtered snapshot as a successful answer, so explicit commodity proxy requests could stop before any live fallback.
+
+### Impact
+- Materialized `commodity_regime_summary` / `commodity_regime_history` could be empty or misaligned with the dashboard.
+- Snapshot-first commodity views could fail with a vague “Not enough commodity history” message even when the UI code path itself was fine.
+- Connected mode could also fail for commodity proxies if the shared equity momentum snapshot did not include those symbols.
+
+### Never repeat checklist (mandatory)
+1. For snapshot-backed views, verify that the pipeline job and UI read path use the same symbol contract before debugging the renderer.
+2. Keep analysis universe helpers and reference-basket helpers separate when they serve different modeling roles.
+3. For materialized-first resolvers, distinguish between “snapshot exists” and “requested slice exists”.
+4. Add a regression test at the orchestration layer when a job wires multiple shared helper functions together.
+
 ## 2026-04-07 - FastAPI Response Type Annotation Broke Route Registration
 
 ### What went wrong

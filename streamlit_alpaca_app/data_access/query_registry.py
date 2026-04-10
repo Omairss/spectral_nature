@@ -13,15 +13,71 @@ ChartHandler = Callable[[Any, dict[str, Any]], ResolvedPayload]
 
 
 @dataclass(frozen=True)
+class ParamSpec:
+    name: str
+    json_type: str
+    required: bool = False
+    description: str = ""
+    items_type: str | None = None
+    enum: tuple[str, ...] = ()
+    nullable: bool = False
+
+    def to_schema(self) -> dict[str, Any]:
+        schema: dict[str, Any] = {}
+        if self.nullable:
+            schema["type"] = [self.json_type, "null"]
+        else:
+            schema["type"] = self.json_type
+        if self.description:
+            schema["description"] = self.description
+        if self.enum:
+            schema["enum"] = list(self.enum)
+        if self.json_type == "array":
+            item_type = self.items_type or "string"
+            schema["items"] = {"type": item_type}
+        return schema
+
+
+def param(
+    name: str,
+    json_type: str,
+    *,
+    required: bool = False,
+    description: str = "",
+    items_type: str | None = None,
+    enum: tuple[str, ...] = (),
+    nullable: bool = False,
+) -> ParamSpec:
+    return ParamSpec(
+        name=name,
+        json_type=json_type,
+        required=required,
+        description=description,
+        items_type=items_type,
+        enum=enum,
+        nullable=nullable,
+    )
+
+
+def _input_schema(param_specs: tuple[ParamSpec, ...]) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "properties": {item.name: item.to_schema() for item in param_specs},
+        "required": [item.name for item in param_specs if item.required],
+        "additionalProperties": False,
+    }
+
+
+@dataclass(frozen=True)
 class DatasetSpec:
-    params: tuple[str, ...]
+    params: tuple[ParamSpec, ...]
     resolution: str
     handler: DatasetHandler
 
 
 @dataclass(frozen=True)
 class ChartSpec:
-    params: tuple[str, ...]
+    params: tuple[ParamSpec, ...]
     resolution: str
     handler: ChartHandler
 
@@ -29,7 +85,9 @@ class ChartSpec:
 def _capabilities(specs: dict[str, DatasetSpec] | dict[str, ChartSpec]) -> dict[str, dict[str, Any]]:
     return {
         name: {
-            "params": list(spec.params),
+            "params": [item.name for item in spec.params],
+            "required_params": [item.name for item in spec.params if item.required],
+            "param_schema": _input_schema(spec.params),
             "resolution": spec.resolution,
         }
         for name, spec in specs.items()
@@ -521,199 +579,238 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
     "account": DatasetSpec(params=(), resolution="live_cached", handler=_resolve_account),
     "positions": DatasetSpec(params=(), resolution="materialized_first", handler=_resolve_positions),
     "portfolio_timeseries": DatasetSpec(
-        params=("period", "force_refresh"),
+        params=(param("period", "string"), param("force_refresh", "boolean")),
         resolution="materialized_first",
         handler=_resolve_portfolio_timeseries,
     ),
     "performance_table": DatasetSpec(
-        params=("period", "force_refresh"),
+        params=(param("period", "string"), param("force_refresh", "boolean")),
         resolution="computed_from_materialized_first",
         handler=_resolve_performance_table,
     ),
     "daily_movers": DatasetSpec(
-        params=("symbols", "force_refresh"),
+        params=(param("symbols", "array", items_type="string"), param("force_refresh", "boolean")),
         resolution="materialized_first",
         handler=_resolve_daily_movers,
     ),
     "momentum_profiles": DatasetSpec(
-        params=("days", "symbols", "force_refresh"),
+        params=(
+            param("days", "integer"),
+            param("symbols", "array", items_type="string"),
+            param("force_refresh", "boolean"),
+        ),
         resolution="materialized_first",
         handler=_resolve_momentum_profiles,
     ),
     "price_history": DatasetSpec(
-        params=("ticker", "days", "force_refresh"),
+        params=(
+            param("ticker", "string", required=True),
+            param("days", "integer"),
+            param("force_refresh", "boolean"),
+        ),
         resolution="materialized_first",
         handler=_resolve_price_history,
     ),
     "technical_signal_history": DatasetSpec(
-        params=("ticker", "days", "force_refresh"),
+        params=(
+            param("ticker", "string", required=True),
+            param("days", "integer"),
+            param("force_refresh", "boolean"),
+        ),
         resolution="materialized_first_then_computed",
         handler=_resolve_technical_signal_history,
     ),
     "technical_signal_summary": DatasetSpec(
-        params=("ticker", "force_refresh"),
+        params=(param("ticker", "string", required=True), param("force_refresh", "boolean")),
         resolution="materialized_first_then_computed",
         handler=_resolve_technical_signal_summary,
     ),
     "forecast_next_week": DatasetSpec(
-        params=("ticker", "days", "horizon", "simulations", "force_refresh"),
+        params=(
+            param("ticker", "string", required=True),
+            param("days", "integer"),
+            param("horizon", "integer"),
+            param("simulations", "integer"),
+            param("force_refresh", "boolean"),
+        ),
         resolution="computed_from_signal_history",
         handler=_resolve_forecast_next_week,
     ),
     "quarterly_fundamentals": DatasetSpec(
-        params=("ticker", "force_refresh"),
+        params=(param("ticker", "string", required=True), param("force_refresh", "boolean")),
         resolution="materialized_first",
         handler=_resolve_quarterly_fundamentals,
     ),
     "yield_curve_summary": DatasetSpec(
-        params=("force_refresh",),
+        params=(param("force_refresh", "boolean"),),
         resolution="materialized_first",
         handler=_resolve_yield_curve_summary,
     ),
     "yield_curve_observations": DatasetSpec(
-        params=("days", "force_refresh"),
+        params=(param("days", "integer"), param("force_refresh", "boolean")),
         resolution="materialized_first",
         handler=_resolve_yield_curve_observations,
     ),
     "yield_curve_facts_1d": DatasetSpec(
-        params=("force_refresh",),
+        params=(param("force_refresh", "boolean"),),
         resolution="materialized_first",
         handler=_resolve_yield_curve_facts_1d,
     ),
     "recent_news": DatasetSpec(
-        params=("ticker", "days", "limit", "force_refresh"),
+        params=(
+            param("ticker", "string", required=True),
+            param("days", "integer"),
+            param("limit", "integer"),
+            param("force_refresh", "boolean"),
+        ),
         resolution="materialized_first",
         handler=_resolve_recent_news,
     ),
     "attention_context": DatasetSpec(
-        params=("ticker", "force_refresh"),
+        params=(param("ticker", "string", required=True), param("force_refresh", "boolean")),
         resolution="materialized",
         handler=_resolve_attention_context,
     ),
     "attention_ticker_snapshot": DatasetSpec(
-        params=("ticker", "force_refresh"),
+        params=(param("ticker", "string", required=True), param("force_refresh", "boolean")),
         resolution="materialized_first",
         handler=_resolve_attention_ticker_snapshot,
     ),
     "attention_ticker_background": DatasetSpec(
-        params=("ticker", "force_refresh"),
+        params=(param("ticker", "string", required=True), param("force_refresh", "boolean")),
         resolution="materialized_first",
         handler=_resolve_attention_ticker_background,
     ),
     "attention_home_1d": DatasetSpec(
-        params=("force_refresh",),
+        params=(param("force_refresh", "boolean"),),
         resolution="materialized_first_then_on_demand",
         handler=_resolve_attention_home_1d,
     ),
     "attention_research_bundle": DatasetSpec(
-        params=("bundle_id", "force_refresh"),
+        params=(param("bundle_id", "string", required=True), param("force_refresh", "boolean")),
         resolution="materialized_first_then_on_demand",
         handler=_resolve_attention_research_bundle,
     ),
     "attention_run_trace": DatasetSpec(
-        params=("run_id", "force_refresh"),
+        params=(param("run_id", "string", required=True), param("force_refresh", "boolean")),
         resolution="materialized",
         handler=_resolve_attention_run_trace,
     ),
     "option_chain": DatasetSpec(
-        params=("ticker", "expiration", "force_refresh"),
+        params=(
+            param("ticker", "string", required=True),
+            param("expiration", "string", nullable=True),
+            param("force_refresh", "boolean"),
+        ),
         resolution="materialized_first",
         handler=_resolve_option_chain,
     ),
     "option_surface": DatasetSpec(
-        params=("ticker", "expected_price", "horizon_days", "underlying_price", "force_refresh"),
+        params=(
+            param("ticker", "string", required=True),
+            param("expected_price", "number", required=True),
+            param("horizon_days", "integer", required=True),
+            param("underlying_price", "number", required=True),
+            param("force_refresh", "boolean"),
+        ),
         resolution="materialized_first_then_on_demand",
         handler=_resolve_option_surface,
     ),
     "option_candidates": DatasetSpec(
-        params=("ticker", "expected_price", "horizon_days", "underlying_price", "force_refresh"),
+        params=(
+            param("ticker", "string", required=True),
+            param("expected_price", "number", required=True),
+            param("horizon_days", "integer", required=True),
+            param("underlying_price", "number", required=True),
+            param("force_refresh", "boolean"),
+        ),
         resolution="computed_from_option_surface",
         handler=_resolve_option_candidates,
     ),
     "fred_dashboard": DatasetSpec(
-        params=("years", "force_refresh"),
+        params=(param("years", "integer"), param("force_refresh", "boolean")),
         resolution="materialized_first",
         handler=_resolve_fred_dashboard,
     ),
     "macro_release_events_1d": DatasetSpec(
-        params=("force_refresh",),
+        params=(param("force_refresh", "boolean"),),
         resolution="materialized",
         handler=_resolve_macro_release_events_1d,
     ),
     "macro_relationship_checks_1d": DatasetSpec(
-        params=("force_refresh",),
+        params=(param("force_refresh", "boolean"),),
         resolution="materialized",
         handler=_resolve_macro_relationship_checks_1d,
     ),
     "macro_causal_graph_edges_v1": DatasetSpec(
-        params=("force_refresh",),
+        params=(param("force_refresh", "boolean"),),
         resolution="materialized",
         handler=_resolve_macro_causal_graph_edges_v1,
     ),
     "attention_hypotheses_1d": DatasetSpec(
-        params=("force_refresh",),
+        params=(param("force_refresh", "boolean"),),
         resolution="materialized",
         handler=_resolve_attention_hypotheses_1d,
     ),
     "attention_macro_context_1d": DatasetSpec(
-        params=("force_refresh",),
+        params=(param("force_refresh", "boolean"),),
         resolution="materialized",
         handler=_resolve_attention_macro_context_1d,
     ),
     "attention_feed": DatasetSpec(
         params=(
-            "limit",
-            "entity_ids",
-            "horizons",
-            "statuses",
-            "sensitivity",
-            "min_attention_score",
-            "residual_zscore_threshold",
-            "force_refresh",
+            param("limit", "integer"),
+            param("entity_ids", "array", items_type="string"),
+            param("horizons", "array", items_type="string"),
+            param("statuses", "array", items_type="string"),
+            param("sensitivity", "string"),
+            param("min_attention_score", "number"),
+            param("residual_zscore_threshold", "number"),
+            param("force_refresh", "boolean"),
         ),
         resolution="materialized",
         handler=_resolve_attention_feed,
     ),
     "attention_rollups": DatasetSpec(
         params=(
-            "rollup_type",
-            "horizons",
-            "statuses",
-            "sensitivity",
-            "min_attention_score",
-            "residual_zscore_threshold",
-            "high_priority_threshold",
-            "limit",
-            "force_refresh",
+            param("rollup_type", "string"),
+            param("horizons", "array", items_type="string"),
+            param("statuses", "array", items_type="string"),
+            param("sensitivity", "string"),
+            param("min_attention_score", "number"),
+            param("residual_zscore_threshold", "number"),
+            param("high_priority_threshold", "number"),
+            param("limit", "integer"),
+            param("force_refresh", "boolean"),
         ),
         resolution="materialized",
         handler=_resolve_attention_rollups,
     ),
     "commodity_attention_feed": DatasetSpec(
         params=(
-            "limit",
-            "entity_ids",
-            "horizons",
-            "statuses",
-            "sensitivity",
-            "min_attention_score",
-            "residual_zscore_threshold",
-            "force_refresh",
+            param("limit", "integer"),
+            param("entity_ids", "array", items_type="string"),
+            param("horizons", "array", items_type="string"),
+            param("statuses", "array", items_type="string"),
+            param("sensitivity", "string"),
+            param("min_attention_score", "number"),
+            param("residual_zscore_threshold", "number"),
+            param("force_refresh", "boolean"),
         ),
         resolution="materialized",
         handler=_resolve_commodity_attention_feed,
     ),
     "commodity_attention_rollups": DatasetSpec(
         params=(
-            "rollup_type",
-            "horizons",
-            "statuses",
-            "sensitivity",
-            "min_attention_score",
-            "residual_zscore_threshold",
-            "high_priority_threshold",
-            "limit",
-            "force_refresh",
+            param("rollup_type", "string"),
+            param("horizons", "array", items_type="string"),
+            param("statuses", "array", items_type="string"),
+            param("sensitivity", "string"),
+            param("min_attention_score", "number"),
+            param("residual_zscore_threshold", "number"),
+            param("high_priority_threshold", "number"),
+            param("limit", "integer"),
+            param("force_refresh", "boolean"),
         ),
         resolution="materialized",
         handler=_resolve_commodity_attention_rollups,
@@ -724,22 +821,34 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
 
 CHART_SPECS: dict[str, ChartSpec] = {
     "portfolio_vs_benchmarks": ChartSpec(
-        params=("period", "force_refresh"),
+        params=(param("period", "string"), param("force_refresh", "boolean")),
         resolution="computed_from_portfolio_timeseries",
         handler=_build_portfolio_vs_benchmarks_chart,
     ),
     "technical_price_channel": ChartSpec(
-        params=("ticker", "days", "force_refresh"),
+        params=(
+            param("ticker", "string", required=True),
+            param("days", "integer"),
+            param("force_refresh", "boolean"),
+        ),
         resolution="computed_from_signal_history",
         handler=_build_technical_price_channel_chart,
     ),
     "technical_pullback": ChartSpec(
-        params=("ticker", "days", "force_refresh"),
+        params=(
+            param("ticker", "string", required=True),
+            param("days", "integer"),
+            param("force_refresh", "boolean"),
+        ),
         resolution="computed_from_signal_history",
         handler=_build_technical_pullback_chart,
     ),
     "fundamental_statement": ChartSpec(
-        params=("ticker", "statement", "force_refresh"),
+        params=(
+            param("ticker", "string", required=True),
+            param("statement", "string", enum=("income", "balance", "cashflow")),
+            param("force_refresh", "boolean"),
+        ),
         resolution="computed_from_quarterly_fundamentals",
         handler=_build_fundamental_statement_chart,
     ),

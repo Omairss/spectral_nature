@@ -1,0 +1,215 @@
+{
+  "schema_version": "1.0.0",
+  "graph": {
+    "id": "commodity_energy_inputs",
+    "title": "Commodity Energy Input Transmission",
+    "description": "Energy shocks can spill into refined fuels, crops, and freight through fuel, fertilizer, and logistics channels.",
+    "created_at": "2026-04-10",
+    "time_horizon": "short_to_medium_term",
+    "units": {
+      "severity": "0_to_1_score",
+      "confidence": "0_to_1_score",
+      "display_weight": "relative_sankey_weight"
+    },
+    "tags": ["commodities", "energy", "agriculture", "shipping"],
+    "nodes": [
+      {
+        "id": "USO",
+        "type": "commodity_proxy",
+        "label": "WTI crude oil",
+        "description": "Near-dated WTI crude proxy used as the upstream energy anchor in the commodity view.",
+        "attributes": {
+          "proxy_name": "United States Oil Fund",
+          "focus_bucket": "Energy & Oil"
+        },
+        "risk": 0.62,
+        "criticality": 0.94,
+        "status": "stressed"
+      },
+      {
+        "id": "UNG",
+        "type": "commodity_proxy",
+        "label": "Natural gas",
+        "description": "Gas proxy tied to fertilizer economics, weather, storage, and power demand.",
+        "attributes": {
+          "proxy_name": "United States Natural Gas Fund",
+          "focus_bucket": "Energy & Oil"
+        },
+        "risk": 0.58,
+        "criticality": 0.83,
+        "status": "stressed"
+      },
+      {
+        "id": "UGA",
+        "type": "commodity_proxy",
+        "label": "Gasoline",
+        "description": "Refined fuel proxy that often reacts to crude changes with refinery-margin effects layered on top.",
+        "attributes": {
+          "proxy_name": "United States Gasoline Fund",
+          "focus_bucket": "Energy & Oil"
+        },
+        "risk": 0.47,
+        "criticality": 0.74,
+        "status": "normal"
+      },
+      {
+        "id": "CORN",
+        "type": "commodity_proxy",
+        "label": "Corn",
+        "description": "Row-crop proxy affected by fertilizer, fuel, and ethanol demand.",
+        "attributes": {
+          "proxy_name": "Teucrium Corn Fund",
+          "focus_bucket": "Softs & Agriculture"
+        },
+        "risk": 0.44,
+        "criticality": 0.71,
+        "status": "normal"
+      },
+      {
+        "id": "CANE",
+        "type": "commodity_proxy",
+        "label": "Sugar",
+        "description": "Soft-commodity proxy with crossover into ethanol economics.",
+        "attributes": {
+          "proxy_name": "Teucrium Sugar Fund",
+          "focus_bucket": "Softs & Agriculture"
+        },
+        "risk": 0.42,
+        "criticality": 0.65,
+        "status": "normal"
+      },
+      {
+        "id": "BDRY",
+        "type": "commodity_proxy",
+        "label": "Dry-bulk shipping",
+        "description": "Freight proxy that reflects transport pressure moving through raw-material supply chains.",
+        "attributes": {
+          "proxy_name": "Breakwave Dry Bulk Shipping ETF",
+          "focus_bucket": "Shipping & Logistics"
+        },
+        "risk": 0.39,
+        "criticality": 0.58,
+        "status": "normal"
+      }
+    ],
+    "edges": [
+      {
+        "id": "uso_to_ung",
+        "source": "USO",
+        "target": "UNG",
+        "relationship": "amplifies",
+        "mechanism": "Oil and gas shocks often move together when broad energy demand or supply stress dominates.",
+        "polarity": "positive",
+        "directness": "indirect",
+        "severity": 0.8,
+        "confidence": 0.78,
+        "lag": { "value": 2, "unit": "weeks" },
+        "conditions": ["broad energy shock", "macro demand repricing"],
+        "attributes": { "display_weight": 2.4 }
+      },
+      {
+        "id": "uso_to_uga",
+        "source": "USO",
+        "target": "UGA",
+        "relationship": "raises_cost",
+        "mechanism": "Crude changes can feed through refinery margins and product inventories into gasoline pricing.",
+        "polarity": "positive",
+        "directness": "direct",
+        "severity": 0.73,
+        "confidence": 0.82,
+        "lag": { "value": 10, "unit": "days" },
+        "conditions": ["refinery throughput stable", "product inventory sensitivity"],
+        "attributes": { "display_weight": 2.2 }
+      },
+      {
+        "id": "uso_to_cane",
+        "source": "USO",
+        "target": "CANE",
+        "relationship": "supports",
+        "mechanism": "Higher oil can raise the relative value of sugarcane-linked ethanol routes.",
+        "polarity": "positive",
+        "directness": "conditional",
+        "severity": 0.53,
+        "confidence": 0.65,
+        "lag": { "value": 1, "unit": "months" },
+        "conditions": ["biofuel mandate relevant", "Brazil ethanol mix matters"],
+        "attributes": { "display_weight": 1.6 }
+      },
+      {
+        "id": "uso_to_corn",
+        "source": "USO",
+        "target": "CORN",
+        "relationship": "raises_cost",
+        "mechanism": "Oil shocks can improve ethanol economics and lift transport and fuel input costs for corn.",
+        "polarity": "positive",
+        "directness": "conditional",
+        "severity": 0.5,
+        "confidence": 0.7,
+        "lag": { "value": 3, "unit": "weeks" },
+        "conditions": ["ethanol spread sensitivity", "harvest logistics active"],
+        "attributes": { "display_weight": 1.5 }
+      },
+      {
+        "id": "uso_to_bdry",
+        "source": "USO",
+        "target": "BDRY",
+        "relationship": "raises_cost",
+        "mechanism": "Fuel costs can pressure freight and dry-bulk shipping economics.",
+        "polarity": "positive",
+        "directness": "direct",
+        "severity": 0.6,
+        "confidence": 0.68,
+        "lag": { "value": 2, "unit": "weeks" },
+        "conditions": ["shipping demand intact"],
+        "attributes": { "display_weight": 1.8 }
+      },
+      {
+        "id": "ung_to_corn",
+        "source": "UNG",
+        "target": "CORN",
+        "relationship": "raises_cost",
+        "mechanism": "Natural gas is a major fertilizer input, so gas moves can transmit into row-crop cost structure.",
+        "polarity": "positive",
+        "directness": "indirect",
+        "severity": 0.76,
+        "confidence": 0.8,
+        "lag": { "value": 1, "unit": "months" },
+        "conditions": ["fertilizer pass-through active"],
+        "attributes": { "display_weight": 2.1 }
+      }
+    ],
+    "scenarios": [
+      {
+        "id": "energy_spike",
+        "label": "Energy spike",
+        "description": "Oil and gas both rise because supply looks tighter than expected.",
+        "assumptions": ["Inventory draw persists", "shipping demand stays positive"],
+        "projected_outcomes": {
+          "likely_winners": ["USO", "UNG", "UGA"],
+          "watchlist_pressure": ["CORN", "CANE", "BDRY"]
+        }
+      }
+    ],
+    "evidence": [
+      {
+        "id": "energy_inputs_playbook",
+        "node_or_edge_ids": ["uso_to_uga", "ung_to_corn"],
+        "claim": "Energy inputs often transmit into refined fuels and agriculture through direct fuel and fertilizer channels.",
+        "source_type": "expert_judgment",
+        "source_ref": "example://spectral-nature/commodity-playbook/energy-inputs",
+        "confidence": 0.78,
+        "attributes": {
+          "note": "Illustrative seed graph for product integration."
+        }
+      }
+    ],
+    "metrics": [
+      {
+        "name": "display_edge_count",
+        "value": 6,
+        "unit": "edges",
+        "applies_to": ["commodity_energy_inputs"]
+      }
+    ]
+  }
+}

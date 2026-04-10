@@ -24,11 +24,13 @@ Optional environment overrides:
 - `LOCATION` (default: `eastus`)
 - `RESOURCE_GROUP`
 - `SUFFIX`
-- `APCA_API_KEY`
-- `APCA_API_SECRET_KEY`
+- `APCA_API_KEY_SECRET_NAME`
+- `APCA_API_SECRET_KEY_SECRET_NAME`
 - `APCA_API_BASE_URL`
 - `ALPACA_DATA_BASE_URL`
 - `FRED_API_KEY`
+
+Alpaca credentials are now expected to already exist in Key Vault. The deploy script validates the named secrets instead of writing raw Alpaca values from the local shell.
 
 Cron schedules live in:
 

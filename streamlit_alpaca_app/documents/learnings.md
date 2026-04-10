@@ -1,5 +1,13 @@
 # Learnings
 
+## 2026-04-09
+
+## commodity preload universe alignment
+- Keep the commodity dashboard and the commodities preload job on the same symbol contract. The dashboard is built around curated proxy ETFs/ETNs, not taxonomy-derived commodity-linked equities.
+- Keep the analyzed commodity proxy universe separate from the commodity reference basket. Reusing one list for both hides modeling intent and can silently empty out snapshot datasets.
+- When a view is snapshot-first, a pipeline job using the wrong universe can look like a front-end “missing history” bug even though the real failure sits in the preload step.
+- For materialized-first resolvers, an empty filtered snapshot should not automatically win over live fallback when the caller requested explicit symbols and live reads are allowed.
+
 ## 2026-04-07
 
 ## agentic API/auth gateway takeaways

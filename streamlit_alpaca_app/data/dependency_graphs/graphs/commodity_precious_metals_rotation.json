@@ -1,0 +1,147 @@
+{
+  "schema_version": "1.0.0",
+  "graph": {
+    "id": "commodity_precious_metals_rotation",
+    "title": "Precious Metals Rotation",
+    "description": "Leadership can rotate from gold into silver and then into more industrial precious metals as the risk backdrop changes.",
+    "created_at": "2026-04-10",
+    "time_horizon": "short_to_medium_term",
+    "units": {
+      "severity": "0_to_1_score",
+      "confidence": "0_to_1_score",
+      "display_weight": "relative_sankey_weight"
+    },
+    "tags": ["commodities", "precious_metals", "rotation"],
+    "nodes": [
+      {
+        "id": "GLD",
+        "type": "commodity_proxy",
+        "label": "Gold",
+        "description": "Defensive hard-asset proxy that often leads the precious-metals complex.",
+        "attributes": {
+          "proxy_name": "SPDR Gold Shares",
+          "focus_bucket": "Precious Metals"
+        },
+        "risk": 0.33,
+        "criticality": 0.82,
+        "status": "normal"
+      },
+      {
+        "id": "SLV",
+        "type": "commodity_proxy",
+        "label": "Silver",
+        "description": "Precious and industrial crossover metal that often reacts after gold momentum broadens.",
+        "attributes": {
+          "proxy_name": "iShares Silver Trust",
+          "focus_bucket": "Precious Metals"
+        },
+        "risk": 0.4,
+        "criticality": 0.72,
+        "status": "normal"
+      },
+      {
+        "id": "PPLT",
+        "type": "commodity_proxy",
+        "label": "Platinum",
+        "description": "Industrial precious metal with cyclical demand overlap.",
+        "attributes": {
+          "proxy_name": "Aberdeen Physical Platinum Shares ETF",
+          "focus_bucket": "Precious Metals"
+        },
+        "risk": 0.44,
+        "criticality": 0.61,
+        "status": "normal"
+      },
+      {
+        "id": "PALL",
+        "type": "commodity_proxy",
+        "label": "Palladium",
+        "description": "Industrial precious metal with autocatalyst and substitution sensitivity.",
+        "attributes": {
+          "proxy_name": "abrdn Physical Palladium Shares ETF",
+          "focus_bucket": "Precious Metals"
+        },
+        "risk": 0.51,
+        "criticality": 0.63,
+        "status": "stressed"
+      }
+    ],
+    "edges": [
+      {
+        "id": "gld_to_slv",
+        "source": "GLD",
+        "target": "SLV",
+        "relationship": "supports",
+        "mechanism": "Gold leadership can spill into silver when the move broadens from defense into broader precious-metals participation.",
+        "polarity": "positive",
+        "directness": "indirect",
+        "severity": 0.63,
+        "confidence": 0.76,
+        "lag": { "value": 2, "unit": "weeks" },
+        "conditions": ["precious metals breadth improves"],
+        "attributes": { "display_weight": 1.9 }
+      },
+      {
+        "id": "slv_to_pplt",
+        "source": "SLV",
+        "target": "PPLT",
+        "relationship": "supports",
+        "mechanism": "Silver strength can precede stronger industrial precious demand if cyclical activity improves.",
+        "polarity": "positive",
+        "directness": "conditional",
+        "severity": 0.47,
+        "confidence": 0.58,
+        "lag": { "value": 1, "unit": "months" },
+        "conditions": ["industrial demand joins the move"],
+        "attributes": { "display_weight": 1.4 }
+      },
+      {
+        "id": "pplt_to_pall",
+        "source": "PPLT",
+        "target": "PALL",
+        "relationship": "substitutes_for",
+        "mechanism": "Platinum and palladium can rotate together through autocatalyst substitution and industrial demand.",
+        "polarity": "mixed",
+        "directness": "conditional",
+        "severity": 0.5,
+        "confidence": 0.6,
+        "lag": { "value": 6, "unit": "weeks" },
+        "conditions": ["autocatalyst substitution matters"],
+        "attributes": { "display_weight": 1.5 }
+      }
+    ],
+    "scenarios": [
+      {
+        "id": "defensive_to_cyclical",
+        "label": "Defensive move broadens",
+        "description": "A defensive gold-led move starts to widen into a broader metals rotation.",
+        "assumptions": ["Real-rate pressure eases", "Industrial data stops worsening"],
+        "projected_outcomes": {
+          "lead_signal": "GLD",
+          "follow_through_targets": ["SLV", "PPLT"]
+        }
+      }
+    ],
+    "evidence": [
+      {
+        "id": "precious_rotation_seed",
+        "node_or_edge_ids": ["gld_to_slv"],
+        "claim": "Gold often acts as the first clean signal before precious-metals breadth widens.",
+        "source_type": "expert_judgment",
+        "source_ref": "example://spectral-nature/commodity-playbook/precious-rotation",
+        "confidence": 0.74,
+        "attributes": {
+          "note": "Illustrative graph for precious-metals rotation."
+        }
+      }
+    ],
+    "metrics": [
+      {
+        "name": "display_edge_count",
+        "value": 3,
+        "unit": "edges",
+        "applies_to": ["commodity_precious_metals_rotation"]
+      }
+    ]
+  }
+}

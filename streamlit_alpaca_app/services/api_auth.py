@@ -18,6 +18,7 @@ SCOPE_CAPABILITIES_READ = "capabilities:read"
 SCOPE_DATASET_READ = "dataset:read"
 SCOPE_CHART_READ = "chart:read"
 SCOPE_QUERY_EXECUTE = "query:execute"
+SCOPE_OMNIBAR_RESOLVE = "omnibar:resolve"
 SCOPE_MCP_INVOKE = "mcp:invoke"
 SCOPE_AGENT_RUN = "agent:run"
 SCOPE_AGENT_KEY_READ = "auth:agent_keys:read"
@@ -29,6 +30,7 @@ AGENT_SCOPE_ALLOWLIST: set[str] = {
     SCOPE_DATASET_READ,
     SCOPE_CHART_READ,
     SCOPE_QUERY_EXECUTE,
+    SCOPE_OMNIBAR_RESOLVE,
     SCOPE_MCP_INVOKE,
     SCOPE_AGENT_RUN,
 }
@@ -416,6 +418,7 @@ __all__ = [
     "SCOPE_CHART_READ",
     "SCOPE_DATASET_READ",
     "SCOPE_MCP_INVOKE",
+    "SCOPE_OMNIBAR_RESOLVE",
     "SCOPE_QUERY_EXECUTE",
     "create_agent_api_key",
     "issue_user_tokens_from_password",
@@ -427,4 +430,3 @@ __all__ = [
     "refresh_user_tokens",
     "revoke_agent_api_key",
 ]
-

@@ -1506,14 +1506,24 @@ class DataAccessLayer:
         return self._resolved(frame, mode="on_demand", datasets=("daily_movers",), details={"symbols": sorted(universe)})
 
     def resolve_momentum_profiles(self, *, days: int = 180, symbols: list[str] | None = None, force_refresh: bool = False) -> ResolvedPayload:
+        requested_symbols = sorted({str(symbol).upper().strip() for symbol in (symbols or []) if str(symbol).strip()})
         materialized = self._try_pipeline_frame("momentum_profiles", force_refresh=force_refresh)
         if materialized is not None:
             pipeline, details = materialized
             if not pipeline.empty:
-                if symbols and "symbol" in pipeline.columns:
-                    allowed = {str(item).upper().strip() for item in symbols if str(item).strip()}
-                    pipeline = pipeline[pipeline["symbol"].astype(str).str.upper().isin(allowed)].copy()
-                return self._resolved(pipeline.reset_index(drop=True), mode="materialized", datasets=("momentum_profiles",), details=details)
+                filtered = pipeline
+                if requested_symbols and "symbol" in pipeline.columns:
+                    allowed = set(requested_symbols)
+                    filtered = pipeline[pipeline["symbol"].astype(str).str.upper().isin(allowed)].copy()
+                if not requested_symbols or not filtered.empty or self.materialized_only:
+                    materialized_details = dict(details)
+                    materialized_details.update({"days": days, "symbols": requested_symbols})
+                    return self._resolved(
+                        filtered.reset_index(drop=True),
+                        mode="materialized",
+                        datasets=("momentum_profiles",),
+                        details=materialized_details,
+                    )
 
         universe = symbols if symbols is not None else self._attention_home_equity_universe(force_refresh=force_refresh)
         universe = sorted({str(symbol).upper().strip() for symbol in universe if str(symbol).strip()})

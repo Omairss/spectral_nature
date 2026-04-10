@@ -26,12 +26,12 @@ from streamlit.components.v1 import html as components_html
 from compute.portfolio import normalize_timeseries_view
 from data_access.layer import DataAccessLayer
 from presentation import attention_content, dashboard_loaders
-from services import auth_service
+from services import auth_service, omnibar_agent as omnibar_agent_service
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
 from services.analytics import build_metric_bar, build_portfolio_vs_benchmarks_fig, select_signed_ranked
 from services import attention_surface as attention_surface_module
 from services.company import build_attention_news_narrative, summarize_recent_news
-from services.config import AppConfig, load_config
+from services.config import AppConfig, alpaca_secret_name_settings, load_config
 from services.data_cache import cache_bundle_exists, cache_data_root, cache_policy_path, dataset_scope
 from services.entity_taxonomy import business_focus_label_from_taxonomy_row, dashboard_business_lens_from_taxonomy_row, taxonomy_lookup_by_symbol
 from services.fred import (
@@ -165,10 +165,12 @@ LOGGER.setLevel(logging.INFO)
 LOGGER.propagate = False
 
 HOME_EXP_SECTION = "Home Exp"
+AGENTIC_OMNIBAR_SECTION = "Agentic Omnibar"
 STOCK_INVESTIGATOR_SECTION = "Stock Investigator"
 
 BASE_SECTION_OPTIONS = [
     "Home",
+    AGENTIC_OMNIBAR_SECTION,
     "Daily Tape",
     "Portfolio Overview",
     "Performance",
@@ -179,7 +181,45 @@ BASE_SECTION_OPTIONS = [
     "Pipeline Jobs",
 ]
 ADMIN_SECTION = "Access Admin"
-
+OMNIBAR_POLICY_VERSION = "streamlit-agentic-omnibar-v1"
+OMNIBAR_MACRO_RELEASES: tuple[dict[str, object], ...] = (
+    {
+        "release_id": "cpi",
+        "label": "CPI Release",
+        "subtitle": "Inflation release context and price-level signals in FRED Macro.",
+        "aliases": ("cpi", "consumer price index", "inflation release", "inflation print"),
+    },
+    {
+        "release_id": "pce",
+        "label": "PCE Release",
+        "subtitle": "Fed-focused inflation context and personal consumption expenditures signals.",
+        "aliases": ("pce", "core pce", "personal consumption expenditures"),
+    },
+    {
+        "release_id": "nfp",
+        "label": "NFP Release",
+        "subtitle": "Labor-market release context for payrolls and unemployment sensitivity.",
+        "aliases": ("nfp", "payrolls", "nonfarm payrolls", "jobs report"),
+    },
+    {
+        "release_id": "fomc",
+        "label": "FOMC Decision",
+        "subtitle": "Policy path and rates context through the macro dashboard.",
+        "aliases": ("fomc", "fed", "fed meeting", "rate decision", "powell"),
+    },
+    {
+        "release_id": "retail_sales",
+        "label": "Retail Sales",
+        "subtitle": "Consumer-demand release context in the FRED Macro view.",
+        "aliases": ("retail sales", "consumer spending"),
+    },
+    {
+        "release_id": "ism",
+        "label": "ISM Survey",
+        "subtitle": "Manufacturing and services diffusion context in the macro dashboard.",
+        "aliases": ("ism", "pmi", "manufacturing pmi", "services pmi"),
+    },
+)
 SOURCE_LABELS = {
     "equities": "Equities",
     "fred": "FRED",
@@ -3081,6 +3121,974 @@ def _open_attention_target(section_name: str, params: dict[str, object] | None =
             st.session_state["market_commodity_selected_ticker"] = ticker
             st.session_state["market_commodity_ticker_widget"] = ticker
     st.rerun()
+
+
+def _open_workspace_section(section_name: str) -> None:
+    target = _normalize_workspace_section(section_name)
+    if not target:
+        return
+    st.session_state["_pending_workspace_section"] = target
+    st.rerun()
+
+
+def _open_homepage_research_bundle_from_omnibar(bundle_id: str, symbols: list[str] | None = None) -> None:
+    normalized_bundle_id = str(bundle_id or "").strip()
+    if not normalized_bundle_id:
+        _open_workspace_section("Home")
+        return
+    _select_homepage_v2_bundle(normalized_bundle_id, symbols=symbols)
+    _queue_homepage_v2_active_panel(HOMEPAGE_V2_RESEARCH_PANEL)
+    st.session_state["_pending_workspace_section"] = "Home"
+    st.rerun()
+
+
+def _open_homepage_company_from_omnibar(symbol: str, *, bundle_id: str = "") -> None:
+    normalized_symbol = _set_workspace_ticker(symbol)
+    if not normalized_symbol:
+        return
+    st.session_state["homepage_v2_selected_ticker"] = normalized_symbol
+    normalized_bundle_id = str(bundle_id or "").strip()
+    if normalized_bundle_id:
+        st.session_state["homepage_v2_selected_bundle_id"] = normalized_bundle_id
+    _queue_homepage_v2_active_panel(HOMEPAGE_V2_COMPANY_PANEL)
+    st.session_state["_pending_workspace_section"] = "Home"
+    st.rerun()
+
+
+def _omnibar_normalize_text(value: object) -> str:
+    return " ".join(str(value or "").split()).strip()
+
+
+def _omnibar_trim(text: object, limit: int = 140) -> str:
+    clean = _omnibar_normalize_text(text)
+    if len(clean) <= limit:
+        return clean
+    return clean[: limit - 3].rstrip() + "..."
+
+
+def _omnibar_exact_ticker_candidate(query: str) -> str:
+    normalized = _omnibar_normalize_text(query).upper()
+    if not normalized or " " in normalized:
+        return ""
+    if re.fullmatch(r"[A-Z][A-Z0-9.\-]{0,5}", normalized):
+        return normalized
+    return ""
+
+
+def _omnibar_looks_like_agent_prompt(query: str) -> bool:
+    normalized = _omnibar_normalize_text(query).lower()
+    if not normalized:
+        return False
+    tokens = re.findall(r"[a-z0-9]+", normalized)
+    if not tokens:
+        return False
+    if "?" in normalized:
+        return True
+    prompt_markers = {
+        "after",
+        "analyze",
+        "analysis",
+        "before",
+        "compare",
+        "explain",
+        "how",
+        "impact",
+        "implications",
+        "outlook",
+        "reaction",
+        "setup",
+        "should",
+        "thesis",
+        "view",
+        "vs",
+        "versus",
+        "what",
+        "why",
+    }
+    return len(tokens) >= 4 or any(token in prompt_markers for token in tokens)
+
+
+def _omnibar_match_score(query: str, candidates: list[str]) -> float:
+    normalized_query = _omnibar_normalize_text(query).lower()
+    if not normalized_query:
+        return 0.0
+    text = " ".join(_omnibar_normalize_text(candidate).lower() for candidate in candidates if _omnibar_normalize_text(candidate))
+    if not text:
+        return 0.0
+    if normalized_query == text:
+        return 1.0
+    if normalized_query in text:
+        coverage = len(normalized_query) / max(len(text), len(normalized_query), 1)
+        return min(0.95, 0.74 + coverage * 0.18)
+    query_tokens = [token for token in re.findall(r"[a-z0-9]+", normalized_query) if token]
+    if not query_tokens:
+        return 0.0
+    hits = sum(1 for token in query_tokens if token in text)
+    if hits <= 0:
+        return 0.0
+    coverage = hits / max(len(query_tokens), 1)
+    return min(0.88, 0.34 + coverage * 0.42 + min(0.12, hits * 0.05))
+
+
+def _build_agentic_omnibar_symbol_catalog(
+    beats: list[dict[str, object]],
+    symbol_name_map: dict[str, str],
+) -> dict[str, dict[str, object]]:
+    catalog: dict[str, dict[str, object]] = {}
+    for beat in beats:
+        bundle_id = str(beat.get("bundle_id") or "").strip()
+        sentence = _omnibar_normalize_text(beat.get("sentence"))
+        summary = _omnibar_normalize_text(beat.get("summary"))
+        for raw_symbol in list(beat.get("symbols") or []):
+            symbol = str(raw_symbol or "").upper().strip()
+            if not symbol:
+                continue
+            entry = catalog.setdefault(
+                symbol,
+                {
+                    "symbol": symbol,
+                    "company_name": "",
+                    "bundle_ids": [],
+                    "beat_titles": [],
+                    "summaries": [],
+                },
+            )
+            if bundle_id and bundle_id not in entry["bundle_ids"]:
+                entry["bundle_ids"].append(bundle_id)
+            if sentence and sentence not in entry["beat_titles"]:
+                entry["beat_titles"].append(sentence)
+            if summary and summary not in entry["summaries"]:
+                entry["summaries"].append(summary)
+    for symbol, entry in catalog.items():
+        entry["company_name"] = str(symbol_name_map.get(symbol) or "").strip()
+    return catalog
+
+
+def _build_agentic_omnibar_results(
+    cfg: AppConfig,
+    query: str,
+    beats: list[dict[str, object]],
+    symbol_catalog: dict[str, dict[str, object]],
+    *,
+    force_data_refresh: bool,
+) -> list[dict[str, object]]:
+    normalized_query = _omnibar_normalize_text(query)
+    if not normalized_query:
+        return []
+
+    results: list[dict[str, object]] = []
+    exact_symbol = _omnibar_exact_ticker_candidate(normalized_query)
+    if exact_symbol:
+        symbol_entry = dict(symbol_catalog.get(exact_symbol) or {})
+        if not symbol_entry:
+            fallback_name_map = _load_symbol_name_map(
+                cfg,
+                [exact_symbol],
+                force_refresh=force_data_refresh,
+            )
+            symbol_entry = {
+                "symbol": exact_symbol,
+                "company_name": str(fallback_name_map.get(exact_symbol) or "").strip(),
+                "bundle_ids": [],
+                "beat_titles": [],
+                "summaries": [],
+            }
+        company_name = str(symbol_entry.get("company_name") or "").strip()
+        bundle_ids = list(symbol_entry.get("bundle_ids") or [])
+        subtitle_parts = []
+        if company_name:
+            subtitle_parts.append(company_name)
+        if bundle_ids:
+            subtitle_parts.append("linked to retained research")
+        else:
+            subtitle_parts.append("open ticker workspace")
+        results.append(
+            {
+                "kind": "symbol",
+                "ref": exact_symbol,
+                "label": exact_symbol,
+                "subtitle": " | ".join(subtitle_parts),
+                "score": 1.0,
+                "symbol": exact_symbol,
+                "company_name": company_name,
+                "bundle_ids": bundle_ids,
+            }
+        )
+
+    normalized_query_lower = normalized_query.lower()
+    for release in OMNIBAR_MACRO_RELEASES:
+        aliases = [str(item).lower().strip() for item in list(release.get("aliases") or []) if str(item).strip()]
+        score = 0.0
+        if normalized_query_lower in aliases:
+            score = 0.99
+        elif any(normalized_query_lower and normalized_query_lower in alias for alias in aliases):
+            score = 0.84
+        elif any(alias and alias in normalized_query_lower for alias in aliases):
+            score = 0.8
+        if score <= 0:
+            continue
+        results.append(
+            {
+                "kind": "macro_release",
+                "ref": str(release.get("release_id") or "").strip(),
+                "label": str(release.get("label") or "Macro Release").strip(),
+                "subtitle": str(release.get("subtitle") or "").strip(),
+                "score": score,
+            }
+        )
+
+    for beat in beats:
+        bundle_id = str(beat.get("bundle_id") or "").strip()
+        sentence = str(beat.get("sentence") or "").strip()
+        summary = str(beat.get("summary") or "").strip()
+        score = 1.0 if bundle_id and normalized_query == bundle_id else _omnibar_match_score(
+            normalized_query,
+            [sentence, summary, " ".join(list(beat.get("symbols") or [])), bundle_id],
+        )
+        if score < 0.46:
+            continue
+        results.append(
+            {
+                "kind": "bundle",
+                "ref": bundle_id or sentence,
+                "label": sentence or "Research bundle",
+                "subtitle": _omnibar_trim(summary or "Retained research bundle", limit=180),
+                "score": min(score, 0.96 if bundle_id and normalized_query != bundle_id else score),
+                "bundle_id": bundle_id,
+                "symbols": [str(item).upper().strip() for item in list(beat.get("symbols") or []) if str(item).strip()],
+            }
+        )
+
+    for symbol, entry in symbol_catalog.items():
+        if exact_symbol and symbol == exact_symbol:
+            continue
+        company_name = str(entry.get("company_name") or "").strip()
+        score = _omnibar_match_score(
+            normalized_query,
+            [
+                symbol,
+                company_name,
+                " ".join(list(entry.get("beat_titles") or [])),
+                " ".join(list(entry.get("summaries") or [])),
+            ],
+        )
+        if score < 0.52:
+            continue
+        subtitle_parts = []
+        if company_name:
+            subtitle_parts.append(company_name)
+        beat_titles = list(entry.get("beat_titles") or [])
+        if beat_titles:
+            subtitle_parts.append(_omnibar_trim(beat_titles[0], limit=96))
+        results.append(
+            {
+                "kind": "symbol",
+                "ref": symbol,
+                "label": symbol,
+                "subtitle": " | ".join(subtitle_parts) if subtitle_parts else "Open ticker workspace",
+                "score": min(score, 0.92),
+                "symbol": symbol,
+                "company_name": company_name,
+                "bundle_ids": list(entry.get("bundle_ids") or []),
+            }
+        )
+
+    deduped: list[dict[str, object]] = []
+    seen: set[tuple[str, str]] = set()
+    for item in sorted(results, key=lambda row: (-float(row.get("score") or 0.0), str(row.get("kind") or ""), str(row.get("label") or ""))):
+        dedupe_key = (str(item.get("kind") or ""), str(item.get("ref") or ""))
+        if dedupe_key in seen:
+            continue
+        seen.add(dedupe_key)
+        deduped.append(item)
+    return deduped[:6]
+
+
+def _agentic_omnibar_confidence_band(intent: str, top_score: float) -> str:
+    if intent == "navigate" or top_score >= 0.92:
+        return "high"
+    if top_score >= 0.7:
+        return "medium"
+    return "low"
+
+
+def _extract_agentic_omnibar_context_items(results: list[dict[str, object]]) -> list[dict[str, str]]:
+    items: list[dict[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for result in results:
+        kind = str(result.get("kind") or "").strip()
+        if kind == "symbol":
+            ref = str(result.get("symbol") or result.get("ref") or "").strip()
+        elif kind == "bundle":
+            ref = str(result.get("bundle_id") or result.get("ref") or "").strip()
+        else:
+            ref = str(result.get("ref") or "").strip()
+        if not kind or not ref:
+            continue
+        dedupe_key = (kind, ref)
+        if dedupe_key in seen:
+            continue
+        seen.add(dedupe_key)
+        items.append(
+            {
+                "kind": kind,
+                "ref": ref,
+                "label": str(result.get("label") or ref).strip(),
+            }
+        )
+        if len(items) >= 4:
+            break
+    return items
+
+
+def _build_agentic_omnibar_resolution(
+    cfg: AppConfig,
+    query: str,
+    preferred_mode: str,
+    beats: list[dict[str, object]],
+    symbol_catalog: dict[str, dict[str, object]],
+    *,
+    force_data_refresh: bool,
+) -> dict[str, object]:
+    normalized_query = _omnibar_normalize_text(query)
+    normalized_mode = str(preferred_mode or "auto").strip().lower()
+    if normalized_mode not in {"auto", "search", "agent"}:
+        normalized_mode = "auto"
+    search_results = _build_agentic_omnibar_results(
+        cfg,
+        normalized_query,
+        beats,
+        symbol_catalog,
+        force_data_refresh=force_data_refresh,
+    )
+    top_score = float(search_results[0].get("score") or 0.0) if search_results else 0.0
+    top_kind = str(search_results[0].get("kind") or "").strip() if search_results else ""
+    looks_like_agent_prompt = _omnibar_looks_like_agent_prompt(normalized_query)
+
+    if normalized_mode == "agent":
+        intent = "agent"
+    elif normalized_mode == "search":
+        intent = "navigate" if top_kind in {"symbol", "macro_release"} and top_score >= 0.96 else "search"
+    else:
+        if top_kind in {"symbol", "macro_release"} and top_score >= 0.96:
+            intent = "navigate"
+        elif looks_like_agent_prompt:
+            intent = "agent"
+        elif search_results:
+            intent = "search"
+        else:
+            intent = "ambiguous"
+
+    request_seed = f"{time.time_ns()}::{normalized_mode}::{normalized_query}"
+    request_id = f"omni_{hashlib.sha1(request_seed.encode('utf-8')).hexdigest()[:10]}"
+    return {
+        "request_id": request_id,
+        "query": normalized_query,
+        "preferred_mode": normalized_mode,
+        "intent": intent,
+        "policy_version": OMNIBAR_POLICY_VERSION,
+        "confidence_band": _agentic_omnibar_confidence_band(intent, top_score),
+        "search_results": search_results,
+        "context_items": _extract_agentic_omnibar_context_items(search_results),
+    }
+
+
+def _build_agentic_omnibar_assistant_message(query: str, resolution: dict[str, object]) -> str:
+    agent_result = dict(resolution.get("agent_result") or {})
+    agent_answer = str(agent_result.get("answer_markdown") or "").strip()
+    if agent_answer:
+        return agent_answer
+
+    answer_payload = dict(resolution.get("answer_payload") or {})
+    answer_lines = [str(item).strip() for item in list(answer_payload.get("lines") or []) if str(item).strip()]
+    answer_title = str(answer_payload.get("title") or "").strip()
+    answer_caption = str(answer_payload.get("caption") or "").strip()
+    if answer_lines:
+        parts: list[str] = []
+        if answer_title:
+            parts.append(answer_title)
+        parts.extend(answer_lines)
+        if answer_caption:
+            parts.append(answer_caption)
+        return "\n\n".join(parts)
+
+    context_items = list(resolution.get("context_items") or [])
+    context_labels = ", ".join(str(item.get("label") or "").strip() for item in context_items if str(item.get("label") or "").strip())
+    steps: list[str] = []
+    if any(str(item.get("kind") or "") == "symbol" for item in context_items):
+        steps.append("- Open Stock Investigator for ticker-specific technical and company context.")
+    if any(str(item.get("kind") or "") == "bundle" for item in context_items):
+        steps.append("- Open Home research for retained evidence and linked symbols.")
+    if any(str(item.get("kind") or "") == "macro_release" for item in context_items):
+        steps.append("- Open FRED Macro to compare the prompt against the macro release backdrop.")
+    if not steps:
+        steps.append("- Refine the prompt with a ticker, macro release, or concrete market question to tighten the first pass.")
+    context_line = f"Starting context: {context_labels}." if context_labels else "Starting context is still broad."
+    return (
+        "Routing this to agent mode because it reads like analysis rather than a direct jump.\n\n"
+        f"{context_line}\n\n"
+        "Suggested next steps:\n"
+        + "\n".join(steps)
+        + f"\n\nPrompt: {_omnibar_trim(query, limit=220)}"
+    )
+
+
+def _append_agentic_omnibar_turn(query: str, preferred_mode: str, resolution: dict[str, object]) -> None:
+    normalized_query = _omnibar_normalize_text(query)
+    normalized_mode = str(preferred_mode or "auto").strip().lower()
+    signature = f"{normalized_mode}::{normalized_query.lower()}"
+    if st.session_state.get("agentic_omnibar_last_signature") == signature:
+        return
+    transcript = list(st.session_state.get("agentic_omnibar_transcript") or [])
+    transcript.append({"role": "user", "content": normalized_query})
+    transcript.append(
+        {
+            "role": "assistant",
+            "content": _build_agentic_omnibar_assistant_message(normalized_query, resolution),
+        }
+    )
+    st.session_state["agentic_omnibar_transcript"] = transcript[-10:]
+    st.session_state["agentic_omnibar_last_signature"] = signature
+
+
+def _dispatch_agentic_omnibar_progress(
+    progress_callback: object | None,
+    *,
+    stage: str,
+    message: str,
+    progress: float,
+    **extra: object,
+) -> None:
+    if not callable(progress_callback):
+        return
+    payload: dict[str, object] = {
+        "stage": str(stage or "").strip(),
+        "message": str(message or "").strip(),
+        "progress": max(0.0, min(float(progress or 0.0), 1.0)),
+    }
+    payload.update(extra)
+    try:
+        progress_callback(payload)
+    except Exception:
+        return
+
+
+def _run_agentic_omnibar_resolution(
+    cfg: AppConfig,
+    query: str,
+    preferred_mode: str,
+    beats: list[dict[str, object]],
+    symbol_catalog: dict[str, dict[str, object]],
+    *,
+    force_data_refresh: bool,
+    progress_callback: object | None = None,
+    ) -> dict[str, object]:
+    normalized_query = _omnibar_normalize_text(query)
+    _dispatch_agentic_omnibar_progress(
+        progress_callback,
+        stage="resolve_start",
+        message="Resolving intent and direct matches.",
+        progress=0.08,
+        query=normalized_query,
+    )
+    resolution = _build_agentic_omnibar_resolution(
+        cfg,
+        query,
+        preferred_mode,
+        beats,
+        symbol_catalog,
+        force_data_refresh=force_data_refresh,
+    )
+    _dispatch_agentic_omnibar_progress(
+        progress_callback,
+        stage="intent_ready",
+        message=f"Resolved intent: {str(resolution.get('intent') or 'search').capitalize()}.",
+        progress=0.26,
+        intent=str(resolution.get("intent") or "search"),
+        matches=len(list(resolution.get("search_results") or [])),
+    )
+    if str(resolution.get("intent") or "") == "agent":
+        _dispatch_agentic_omnibar_progress(
+            progress_callback,
+            stage="agent_dispatch",
+            message="Running shared agent across available modules.",
+            progress=0.34,
+        )
+
+        def _agent_progress_bridge(event: dict[str, object]) -> None:
+            agent_progress = max(0.0, min(float(event.get("progress") or 0.0), 1.0))
+            bridged_event = dict(event)
+            bridged_event["progress"] = 0.34 + (agent_progress * 0.62)
+            _dispatch_agentic_omnibar_progress(progress_callback, **bridged_event)
+
+        resolution["agent_result"] = omnibar_agent_service.run_omnibar_agent(
+            query=normalized_query,
+            force_refresh=force_data_refresh,
+            progress_callback=_agent_progress_bridge,
+        )
+    st.session_state["agentic_omnibar_resolution"] = resolution
+    if str(resolution.get("intent") or "") == "agent":
+        _append_agentic_omnibar_turn(query, preferred_mode, resolution)
+    _dispatch_agentic_omnibar_progress(
+        progress_callback,
+        stage="completed",
+        message="Omnibar response ready.",
+        progress=1.0,
+        intent=str(resolution.get("intent") or "search"),
+    )
+    return resolution
+
+
+def _build_agentic_omnibar_tool_figure(render_payload: dict[str, object]) -> go.Figure | None:
+    kind = str(render_payload.get("kind") or "").strip().lower()
+    if kind == "timeseries":
+        x_values = [str(item).strip() for item in list(render_payload.get("x") or []) if str(item).strip()]
+        raw_y_values = list(render_payload.get("y") or [])
+        if not x_values or len(x_values) != len(raw_y_values):
+            return None
+        y_values = pd.to_numeric(pd.Series(raw_y_values), errors="coerce")
+        if y_values.dropna().empty:
+            return None
+        title = str(render_payload.get("title") or "Timeseries").strip()
+        subtitle = str(render_payload.get("subtitle") or "").strip()
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(
+                x=x_values,
+                y=y_values,
+                mode="lines",
+                name=title,
+                line={"width": 2.5},
+            )
+        )
+        fig.update_layout(
+            template="plotly_dark",
+            title=title,
+            hovermode="x unified",
+            margin={"l": 18, "r": 18, "t": 54, "b": 18},
+            showlegend=False,
+        )
+        if subtitle:
+            fig.add_annotation(
+                text=subtitle,
+                xref="paper",
+                yref="paper",
+                x=0,
+                y=1.08,
+                showarrow=False,
+                font={"size": 11, "color": "#94a3b8"},
+                align="left",
+            )
+        return fig
+
+    if kind != "chart_model":
+        return None
+
+    chart_model = dict(render_payload.get("chart_model") or {})
+    datasets = dict(chart_model.get("datasets") or {})
+    traces = list(chart_model.get("traces") or [])
+    if not datasets or not traces:
+        return None
+
+    fig = go.Figure()
+    for trace in traces:
+        if not isinstance(trace, dict):
+            continue
+        if str(trace.get("trace_type") or "").strip().lower() != "line":
+            continue
+        dataset_name = str(trace.get("dataset") or "primary").strip() or "primary"
+        rows = list(datasets.get(dataset_name) or [])
+        frame = pd.DataFrame(rows)
+        if frame.empty:
+            continue
+        where = dict(trace.get("where") or {})
+        for key, expected_value in where.items():
+            if key in frame.columns:
+                frame = frame[frame[key].astype(str) == str(expected_value)]
+        x_key = str(trace.get("x") or "").strip()
+        y_key = str(trace.get("y") or "").strip()
+        if not x_key or not y_key or x_key not in frame.columns or y_key not in frame.columns:
+            continue
+        style = dict(trace.get("style") or {})
+        line_style: dict[str, object] = {}
+        if style.get("color"):
+            line_style["color"] = str(style.get("color"))
+        if style.get("dash"):
+            line_style["dash"] = str(style.get("dash"))
+        if style.get("width") is not None:
+            line_style["width"] = style.get("width")
+        fig.add_trace(
+            go.Scatter(
+                x=frame[x_key],
+                y=pd.to_numeric(frame[y_key], errors="coerce"),
+                mode="lines",
+                name=str(trace.get("name") or dataset_name),
+                line=line_style or None,
+            )
+        )
+
+    if not fig.data:
+        return None
+
+    layout = dict(chart_model.get("layout") or {})
+    fig.update_layout(
+        template="plotly_dark",
+        title=str(chart_model.get("title") or chart_model.get("chart_id") or "Chart").strip(),
+        hovermode=str(layout.get("hovermode") or "x unified"),
+        margin={"l": 18, "r": 18, "t": 54, "b": 18},
+    )
+    if layout.get("xaxis_title"):
+        fig.update_xaxes(title_text=str(layout.get("xaxis_title")))
+    if layout.get("yaxis_title"):
+        fig.update_yaxes(title_text=str(layout.get("yaxis_title")))
+    return fig
+
+
+def _render_agentic_omnibar_result_card(result: dict[str, object], *, request_id: str) -> None:
+    kind = str(result.get("kind") or "").strip()
+    label = str(result.get("label") or "Result").strip()
+    subtitle = str(result.get("subtitle") or "").strip()
+    score = float(result.get("score") or 0.0)
+    with st.container(border=True):
+        header_cols = st.columns([4.5, 1.1])
+        with header_cols[0]:
+            st.markdown(f"**{label}**")
+            if subtitle:
+                st.caption(subtitle)
+        with header_cols[1]:
+            st.metric("Score", f"{score:.2f}")
+
+        if kind == "symbol":
+            symbol = str(result.get("symbol") or result.get("ref") or "").upper().strip()
+            bundle_ids = [str(item).strip() for item in list(result.get("bundle_ids") or []) if str(item).strip()]
+            action_cols = st.columns(3)
+            with action_cols[0]:
+                if st.button(
+                    "Open Stock Investigator",
+                    key=f"{request_id}_{kind}_{symbol}_stock",
+                    use_container_width=True,
+                    disabled=not bool(symbol),
+                ):
+                    _open_attention_target(STOCK_INVESTIGATOR_SECTION, {"ticker": symbol})
+            with action_cols[1]:
+                if st.button(
+                    "Open Market Opportunity",
+                    key=f"{request_id}_{kind}_{symbol}_market",
+                    use_container_width=True,
+                    disabled=not bool(symbol),
+                ):
+                    _open_attention_target(
+                        "Market Opportunity",
+                        {
+                            "ticker": symbol,
+                            "market_view": "Markets",
+                            "business_filter": _market_business_filter_for_symbol(symbol),
+                        },
+                    )
+            with action_cols[2]:
+                home_label = "Open Home Research" if bundle_ids else "Open Home Company"
+                if st.button(
+                    home_label,
+                    key=f"{request_id}_{kind}_{symbol}_home",
+                    use_container_width=True,
+                    disabled=not bool(symbol),
+                ):
+                    if bundle_ids:
+                        _open_homepage_research_bundle_from_omnibar(bundle_ids[0], symbols=[symbol])
+                    else:
+                        _open_homepage_company_from_omnibar(symbol)
+
+        elif kind == "bundle":
+            bundle_id = str(result.get("bundle_id") or result.get("ref") or "").strip()
+            symbols = [str(item).upper().strip() for item in list(result.get("symbols") or []) if str(item).strip()]
+            primary_symbol = symbols[0] if symbols else ""
+            action_cols = st.columns(3)
+            with action_cols[0]:
+                if st.button(
+                    "Open Home Research",
+                    key=f"{request_id}_{kind}_{bundle_id}_research",
+                    use_container_width=True,
+                    disabled=not bool(bundle_id),
+                ):
+                    _open_homepage_research_bundle_from_omnibar(bundle_id, symbols=symbols)
+            with action_cols[1]:
+                if st.button(
+                    "Open Home Company",
+                    key=f"{request_id}_{kind}_{bundle_id}_company",
+                    use_container_width=True,
+                    disabled=not bool(primary_symbol),
+                ):
+                    _open_homepage_company_from_omnibar(primary_symbol, bundle_id=bundle_id)
+            with action_cols[2]:
+                if st.button(
+                    "Open Stock Investigator",
+                    key=f"{request_id}_{kind}_{bundle_id}_stock",
+                    use_container_width=True,
+                    disabled=not bool(primary_symbol),
+                ):
+                    _open_attention_target(STOCK_INVESTIGATOR_SECTION, {"ticker": primary_symbol})
+
+        elif kind == "macro_release":
+            if st.button(
+                "Open FRED Macro",
+                key=f"{request_id}_{kind}_{str(result.get('ref') or '')}_fred",
+                use_container_width=True,
+            ):
+                _open_workspace_section("FRED Macro")
+
+
+def _render_agentic_omnibar_section(
+    cfg: AppConfig,
+    *,
+    force_data_refresh: bool,
+) -> None:
+    header_cols = st.columns([4.6, 1.4, 1.4])
+    with header_cols[0]:
+        st.title(AGENTIC_OMNIBAR_SECTION)
+        st.caption(
+            "One bar for navigation, retained research lookup, and tool-backed agent answers."
+        )
+    with header_cols[1]:
+        force_data_refresh = force_data_refresh or _section_refresh_button(
+            "agentic_omnibar_refresh",
+            source="attention",
+            label="Run attention refresh job",
+        )
+    with header_cols[2]:
+        if st.button("Clear Omnibar", key="agentic_omnibar_clear", use_container_width=True):
+            for state_key in [
+                "agentic_omnibar_query",
+                "agentic_omnibar_mode",
+                "agentic_omnibar_resolution",
+                "agentic_omnibar_transcript",
+                "agentic_omnibar_last_signature",
+            ]:
+                st.session_state.pop(state_key, None)
+            st.rerun()
+
+    home_payload = _load_homepage_narrative_payload(
+        cfg,
+        force_data_refresh=force_data_refresh,
+    )
+    beats = _build_homepage_narrative_beats(home_payload) if isinstance(home_payload, dict) else []
+    tracked_symbols = sorted(
+        {
+            str(symbol).upper().strip()
+            for beat in beats
+            for symbol in list(beat.get("symbols") or [])
+            if str(symbol).strip()
+        }
+    )
+    symbol_name_map = _load_symbol_name_map(
+        cfg,
+        tracked_symbols,
+        force_refresh=force_data_refresh,
+    ) if tracked_symbols else {}
+    symbol_catalog = _build_agentic_omnibar_symbol_catalog(beats, symbol_name_map)
+
+    st.info(
+        "This section uses the shared omnibar resolver for intent and the shared tool registry for agent answers. "
+        "When the query needs analysis, the agent can call any dataset or chart module exposed through the MCP/query surface."
+    )
+
+    resolution = dict(st.session_state.get("agentic_omnibar_resolution") or {})
+    progress_slot = st.empty()
+    preferred_mode_options = ["auto", "search", "agent"]
+    if str(st.session_state.get("agentic_omnibar_mode") or "").strip().lower() not in preferred_mode_options:
+        st.session_state["agentic_omnibar_mode"] = "auto"
+
+    with st.form("agentic_omnibar_resolve_form", clear_on_submit=False):
+        query = st.text_input(
+            "Resolve a symbol, release, bundle, or analysis prompt",
+            key="agentic_omnibar_query",
+            placeholder="NVDA, CPI, payrolls, semis after CPI, or a bundle id",
+        )
+        mode_cols = st.columns([1.7, 4.3])
+        with mode_cols[0]:
+            preferred_mode = st.selectbox(
+                "Preferred Mode",
+                preferred_mode_options,
+                key="agentic_omnibar_mode",
+                format_func=lambda value: str(value).capitalize(),
+            )
+        with mode_cols[1]:
+            st.caption(
+                "Auto keeps a strict fast path for exact matches. Search prioritizes lookup. Agent prioritizes analysis routing."
+            )
+        submitted = st.form_submit_button("Resolve", type="primary")
+
+    quick_query = ""
+    quick_mode = "auto"
+    quick_cols = st.columns(3)
+    quick_entries = list(beats[:3])
+    for index, beat in enumerate(quick_entries):
+        label = _omnibar_trim(str(beat.get("sentence") or "Research bundle"), limit=38)
+        with quick_cols[index % 3]:
+            if st.button(label, key=f"agentic_omnibar_quick_beat_{index}", use_container_width=True):
+                quick_query = str(beat.get("bundle_id") or beat.get("sentence") or "").strip()
+                quick_mode = "search"
+
+    macro_cols = st.columns(3)
+    for index, release in enumerate(OMNIBAR_MACRO_RELEASES[:3]):
+        with macro_cols[index % 3]:
+            if st.button(
+                str(release.get("label") or "Macro"),
+                key=f"agentic_omnibar_macro_{index}",
+                use_container_width=True,
+            ):
+                quick_query = str(release.get("aliases", [""])[0] or "").strip()
+                quick_mode = "search"
+
+    def _run_resolution_with_feedback(active_query: str, active_mode: str) -> dict[str, object]:
+        progress_bar = None
+        progress_caption = None
+        progress_history: list[str] = []
+
+        def _progress_callback(event: dict[str, object]) -> None:
+            nonlocal progress_bar, progress_caption
+            message = str(event.get("message") or "Working through the omnibar request.").strip()
+            percent = int(round(max(0.0, min(float(event.get("progress") or 0.0), 1.0)) * 100))
+            if progress_bar is None or progress_caption is None:
+                with progress_slot.container(border=True):
+                    st.markdown("#### Omnibar Progress")
+                    progress_bar = st.progress(percent, text=message)
+                    progress_caption = st.empty()
+            else:
+                progress_bar.progress(percent, text=message)
+            if not progress_history or progress_history[-1] != message:
+                progress_history.append(message)
+            progress_caption.caption(" | ".join(progress_history[-4:]))
+
+        return _run_agentic_omnibar_resolution(
+            cfg,
+            active_query,
+            active_mode,
+            beats,
+            symbol_catalog,
+            force_data_refresh=force_data_refresh,
+            progress_callback=_progress_callback,
+        )
+
+    if submitted:
+        if _omnibar_normalize_text(query):
+            resolution = _run_resolution_with_feedback(query, preferred_mode)
+        else:
+            st.warning("Enter a query to resolve.")
+    elif quick_query:
+        resolution = _run_resolution_with_feedback(quick_query, quick_mode)
+
+    if not beats:
+        st.caption("No retained narrative beats are available yet, so the omnibar is operating with ticker and macro-release fallbacks.")
+
+    if not resolution:
+        st.markdown("#### Suggested entries")
+        suggestion_cols = st.columns(2)
+        with suggestion_cols[0]:
+            if beats:
+                st.caption("Today's retained research")
+                for beat in beats[:4]:
+                    st.write(f"- {_omnibar_trim(beat.get('sentence'), limit=100)}")
+            else:
+                st.caption("Try an exact ticker like `AAPL` or a macro release like `CPI`.")
+        with suggestion_cols[1]:
+            st.caption("Try analysis-style prompts")
+            st.write("- semis after CPI")
+            st.write("- what changed in payrolls")
+            st.write("- compare banks vs software")
+        return
+
+    trace_cols = st.columns(4)
+    trace_cols[0].metric("Intent", str(resolution.get("intent") or "n/a").capitalize())
+    trace_cols[1].metric("Confidence", str(resolution.get("confidence_band") or "n/a").capitalize())
+    trace_cols[2].metric("Mode", str(resolution.get("preferred_mode") or "auto").capitalize())
+    trace_cols[3].metric("Matches", str(len(list(resolution.get("search_results") or []))))
+    st.caption(
+        f"request_id={resolution.get('request_id')} | policy_version={resolution.get('policy_version')}"
+    )
+
+    agent_result = dict(resolution.get("agent_result") or {})
+    agent_answer = str(agent_result.get("answer_markdown") or "").strip()
+    tool_calls = list(agent_result.get("tool_calls") or [])
+    if agent_answer:
+        with st.container(border=True):
+            st.markdown("#### Agent Answer")
+            st.markdown(agent_answer)
+            agent_meta_cols = st.columns(4)
+            agent_meta_cols[0].metric("Agent Status", str(agent_result.get("status") or "n/a").capitalize())
+            agent_meta_cols[1].metric("Tool Calls", str(len(tool_calls)))
+            agent_meta_cols[2].metric("Agent Confidence", str(agent_result.get("confidence") or "low").capitalize())
+            agent_meta_cols[3].metric("Model", str(agent_result.get("model") or "n/a"))
+            limitations = [str(item).strip() for item in list(agent_result.get("limitations") or []) if str(item).strip()]
+            if limitations:
+                st.caption("Limitations: " + " | ".join(limitations[:3]))
+            if tool_calls:
+                with st.expander("Agent Tool Calls", expanded=True):
+                    for tool_call in tool_calls:
+                        with st.container(border=True):
+                            header_cols = st.columns([3.2, 1.1, 1.7])
+                            with header_cols[0]:
+                                st.markdown(f"**{tool_call.get('tool_name') or 'tool'}**")
+                                try:
+                                    arguments_text = json.dumps(tool_call.get("arguments") or {}, sort_keys=True)
+                                except Exception:
+                                    arguments_text = str(tool_call.get("arguments") or {})
+                                st.caption(arguments_text)
+                            with header_cols[1]:
+                                st.metric("Status", str(tool_call.get("status") or "n/a").capitalize())
+                            with header_cols[2]:
+                                provenance = dict((tool_call.get("result_summary") or {}).get("provenance") or {})
+                                st.caption(
+                                    "datasets="
+                                    + ", ".join(str(item) for item in list(provenance.get("datasets") or [])[:4])
+                                )
+                            render_payload = dict((tool_call.get("result_summary") or {}).get("render_payload") or {})
+                            if render_payload:
+                                chart = _build_agentic_omnibar_tool_figure(render_payload)
+                                if chart is not None:
+                                    st.plotly_chart(
+                                        chart,
+                                        use_container_width=True,
+                                        config={"displayModeBar": False},
+                                    )
+                            preview_text = str((tool_call.get("result_summary") or {}).get("preview_text") or "").strip()
+                            if preview_text:
+                                st.write(preview_text)
+
+    if str(resolution.get("intent") or "") == "ambiguous":
+        st.warning("The omnibar could not confidently choose between direct lookup and analysis.")
+        action_cols = st.columns(2)
+        with action_cols[0]:
+            if st.button("Resolve as Search", key="agentic_omnibar_force_search", use_container_width=True):
+                resolution = _run_resolution_with_feedback(str(resolution.get("query") or ""), "search")
+        with action_cols[1]:
+            if st.button("Ask Spectral Nature", key="agentic_omnibar_force_agent", use_container_width=True):
+                resolution = _run_resolution_with_feedback(str(resolution.get("query") or ""), "agent")
+
+    if str(resolution.get("intent") or "") == "agent":
+        if agent_answer:
+            st.success("Answered through the shared tool agent. The transcript below stores the same local response for this workspace session.")
+        else:
+            st.success("Routed to agent mode. The transcript below stores the latest local planning turns for this workspace session.")
+
+    transcript = list(st.session_state.get("agentic_omnibar_transcript") or [])
+    if transcript:
+        with st.expander("Agent Route Transcript", expanded=True):
+            for message in transcript:
+                role = str(message.get("role") or "assistant").strip() or "assistant"
+                with st.chat_message(role):
+                    st.markdown(str(message.get("content") or "").strip())
+
+    search_results = list(resolution.get("search_results") or [])
+    if not search_results:
+        st.info("No direct matches were found for this query yet.")
+        return
+
+    st.markdown("#### Resolved Matches")
+    for result in search_results:
+        _render_agentic_omnibar_result_card(
+            result,
+            request_id=str(resolution.get("request_id") or "omni"),
+        )
 
 
 def _attention_key_points_text(row: pd.Series) -> str:
@@ -6018,33 +7026,27 @@ startup_setup_code: str | None = None
 
 if cfg is None:
     _log_event("config_invalid")
-    key_raw = (os.getenv("APCA_API_KEY") or os.getenv("APCA_API_KEY_ID") or os.getenv("ALPACA_API_KEY") or "").strip()
-    secret_raw = (os.getenv("APCA_API_SECRET_KEY") or os.getenv("ALPACA_SECRET_KEY") or "").strip()
+    key_secret_name, secret_secret_name = alpaca_secret_name_settings()
+    key_vault_name = (os.getenv("AZURE_KEY_VAULT_NAME") or os.getenv("KEY_VAULT_NAME") or "").strip()
+    key_vault_url = (os.getenv("AZURE_KEY_VAULT_URL") or "").strip()
     startup_setup_code = (
-        "export APCA_API_KEY='...'\n"
-        "export APCA_API_SECRET_KEY='...'\n"
+        "az login\n"
+        "export AZURE_KEY_VAULT_NAME='spectral-nature-kvault'\n"
+        f"export APCA_API_KEY_SECRET_NAME='{key_secret_name}'\n"
+        f"export APCA_API_SECRET_KEY_SECRET_NAME='{secret_secret_name}'\n"
         "export APCA_API_BASE_URL='https://paper-api.alpaca.markets'\n"
         "./scripts/run_ui_local.sh"
     )
-
-    if key_raw.lower() == "your_key_here" or (secret_raw and secret_raw.lower() == "your_secret_here"):
-        startup_error_summary = (
-            "Market data credentials are incomplete: placeholder values were detected. Replace `your_key_here` and `your_secret_here`."
+    if not key_vault_name and not key_vault_url:
+        startup_error_summary = "Market data credentials are unavailable."
+        startup_error_details = (
+            "Set AZURE_KEY_VAULT_NAME or AZURE_KEY_VAULT_URL so the app can load Alpaca secrets from Key Vault."
         )
     else:
-        missing = []
-        if not (os.getenv("APCA_API_KEY_ID") or os.getenv("APCA_API_KEY") or os.getenv("ALPACA_API_KEY")):
-            missing.append("APCA_API_KEY (or APCA_API_KEY_ID)")
-        if not (os.getenv("APCA_API_SECRET_KEY") or os.getenv("ALPACA_SECRET_KEY")):
-            missing.append("APCA_API_SECRET_KEY")
-
-        if missing:
-            startup_error_summary = "Market data credentials are missing or incomplete."
-            startup_error_details = "Missing: " + ", ".join(missing)
-        else:
-            startup_error_summary = (
-                "Market data credentials are missing or incomplete. Set APCA_API_KEY and APCA_API_SECRET_KEY."
-            )
+        startup_error_summary = "Market data credentials are unavailable from Key Vault."
+        startup_error_details = (
+            f"Expected secrets `{key_secret_name}` and `{secret_secret_name}` in the configured vault."
+        )
 
 elif cfg.alpaca_trading_base_url.startswith("hhttps://") or not cfg.alpaca_trading_base_url.startswith(("http://", "https://")):
     _log_event("config_invalid_base_url", base_url=cfg.alpaca_trading_base_url)
@@ -6052,14 +7054,6 @@ elif cfg.alpaca_trading_base_url.startswith("hhttps://") or not cfg.alpaca_tradi
         "Invalid APCA_API_BASE_URL value. Expected the paper or live trading endpoint."
     )
     startup_setup_code = "APCA_API_BASE_URL=https://api.alpaca.markets"
-
-elif cfg.alpaca_api_key.strip().lower() in {"your_key_here", ""}:
-    _log_event("config_placeholder_key")
-    startup_error_summary = "APCA_API_KEY is still a placeholder. Set your real market data API key."
-
-elif cfg.alpaca_secret_key.strip().lower() == "your_secret_here":
-    _log_event("config_placeholder_secret")
-    startup_error_summary = "APCA_API_SECRET_KEY is a placeholder. Set your real market data API secret key."
 
 else:
     with _timed("create_api_client"):
@@ -6186,6 +7180,12 @@ elif section == HOME_EXP_SECTION:
     _render_homepage_exp(
         cfg,
         api,
+        force_data_refresh=force_data_refresh,
+    )
+
+elif section == AGENTIC_OMNIBAR_SECTION:
+    _render_agentic_omnibar_section(
+        cfg,
         force_data_refresh=force_data_refresh,
     )
 

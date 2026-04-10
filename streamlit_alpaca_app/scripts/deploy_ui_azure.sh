@@ -23,6 +23,7 @@ RESOURCE_GROUP="${RESOURCE_GROUP:-}"
 ACR_NAME="${ACR_NAME:-}"
 REGISTRY_SERVER="${REGISTRY_SERVER:-}"
 AZURE_STORAGE_CONTAINER="${AZURE_STORAGE_CONTAINER:-datasets}"
+CONTAINERAPP_API_VERSION="${CONTAINERAPP_API_VERSION:-2025-07-01}"
 
 usage() {
   cat <<'EOF'
@@ -87,12 +88,11 @@ load_deployment_context() {
 ensure_azure_ready() {
   require_command az
   require_command curl
+  require_command python3
 
   if ! az account show >/dev/null 2>&1; then
     die "Azure CLI is not authenticated. Run: az login --use-device-code"
   fi
-
-  az extension add --name containerapp --upgrade >/dev/null
 }
 
 ensure_registry_context() {
@@ -107,10 +107,24 @@ ensure_registry_context() {
 app_env_value() {
   local app_name="$1"
   local key="$2"
-  az containerapp show \
+  az resource show \
     -n "$app_name" \
     -g "$RESOURCE_GROUP" \
+    --resource-type Microsoft.App/containerApps \
+    --api-version "$CONTAINERAPP_API_VERSION" \
     --query "properties.template.containers[0].env[?name=='${key}'].value | [0]" \
+    -o tsv 2>/dev/null || true
+}
+
+containerapp_query() {
+  local app_name="$1"
+  local query="$2"
+  az resource show \
+    -n "$app_name" \
+    -g "$RESOURCE_GROUP" \
+    --resource-type Microsoft.App/containerApps \
+    --api-version "$CONTAINERAPP_API_VERSION" \
+    --query "$query" \
     -o tsv 2>/dev/null || true
 }
 
@@ -175,7 +189,7 @@ build_ui_image() {
 image_from_app() {
   local source_app
   source_app="$(target_app_name "$1")"
-  az containerapp show -n "$source_app" -g "$RESOURCE_GROUP" --query "properties.template.containers[0].image" -o tsv
+  containerapp_query "$source_app" "properties.template.containers[0].image"
 }
 
 wait_for_ready_revision() {
@@ -185,8 +199,8 @@ wait_for_ready_revision() {
   local ready_revision=""
 
   for ((i=1; i<=attempts; i++)); do
-    latest_revision="$(az containerapp show -n "$app_name" -g "$RESOURCE_GROUP" --query "properties.latestRevisionName" -o tsv)"
-    ready_revision="$(az containerapp show -n "$app_name" -g "$RESOURCE_GROUP" --query "properties.latestReadyRevisionName" -o tsv)"
+    latest_revision="$(containerapp_query "$app_name" "properties.latestRevisionName")"
+    ready_revision="$(containerapp_query "$app_name" "properties.latestReadyRevisionName")"
 
     if [[ -n "$latest_revision" && "$latest_revision" == "$ready_revision" ]]; then
       echo "$ready_revision"
@@ -201,7 +215,84 @@ wait_for_ready_revision() {
 
 app_fqdn() {
   local app_name="$1"
-  az containerapp show -n "$app_name" -g "$RESOURCE_GROUP" --query "properties.configuration.ingress.fqdn" -o tsv
+  containerapp_query "$app_name" "properties.configuration.ingress.fqdn"
+}
+
+update_containerapp() {
+  local app_name="$1"
+  local image_ref="$2"
+  shift 2
+  local env_updates=("$@")
+  local current_json
+  local patch_json
+  local resource_id
+
+  current_json="$(mktemp)"
+  patch_json="$(mktemp)"
+
+  az resource show \
+    -n "$app_name" \
+    -g "$RESOURCE_GROUP" \
+    --resource-type Microsoft.App/containerApps \
+    --api-version "$CONTAINERAPP_API_VERSION" \
+    -o json > "$current_json"
+
+  python3 - "$current_json" "$patch_json" "$image_ref" "${env_updates[@]}" <<'PY'
+import json
+import sys
+
+source_path, patch_path, image_ref, *env_updates = sys.argv[1:]
+with open(source_path, "r", encoding="utf-8") as handle:
+    current = json.load(handle)
+
+template = current["properties"]["template"]
+containers = template.get("containers") or []
+if not containers:
+    raise SystemExit("Container App template did not include any containers.")
+
+container = containers[0]
+container["image"] = image_ref
+
+env_items = container.get("env") or []
+env_by_name = {}
+env_order = []
+for item in env_items:
+    name = item.get("name")
+    if not name:
+        continue
+    env_by_name[name] = dict(item)
+    env_order.append(name)
+
+for pair in env_updates:
+    key, value = pair.split("=", 1)
+    item = env_by_name.get(key, {"name": key})
+    item.pop("secretRef", None)
+    item["value"] = value
+    env_by_name[key] = item
+    if key not in env_order:
+        env_order.append(key)
+
+container["env"] = [env_by_name[name] for name in env_order]
+
+with open(patch_path, "w", encoding="utf-8") as handle:
+    json.dump({"properties": {"template": template}}, handle)
+PY
+
+  resource_id="$(python3 - "$current_json" <<'PY'
+import json
+import sys
+with open(sys.argv[1], "r", encoding="utf-8") as handle:
+    print(json.load(handle)["id"])
+PY
+)"
+
+  az rest \
+    --method PATCH \
+    --uri "https://management.azure.com${resource_id}?api-version=${CONTAINERAPP_API_VERSION}" \
+    --body "@${patch_json}" \
+    >/dev/null
+
+  rm -f "$current_json" "$patch_json"
 }
 
 root_http_code_for_url() {
@@ -236,7 +327,7 @@ status_row() {
   local role_label="$1"
   local app_name="$2"
 
-  if ! az containerapp show -n "$app_name" -g "$RESOURCE_GROUP" --output none >/dev/null 2>&1; then
+  if ! az resource show -n "$app_name" -g "$RESOURCE_GROUP" --resource-type Microsoft.App/containerApps --api-version "$CONTAINERAPP_API_VERSION" --output none >/dev/null 2>&1; then
     echo "| **${role_label}** | \`${app_name}\` | n/a | \`n/a\` | \`n/a\` | Unavailable |"
     return 0
   fi
@@ -248,8 +339,8 @@ status_row() {
   local http_code
 
   fqdn="$(app_fqdn "$app_name")"
-  image="$(az containerapp show -n "$app_name" -g "$RESOURCE_GROUP" --query "properties.template.containers[0].image" -o tsv)"
-  ready_revision="$(az containerapp show -n "$app_name" -g "$RESOURCE_GROUP" --query "properties.latestReadyRevisionName" -o tsv)"
+  image="$(containerapp_query "$app_name" "properties.template.containers[0].image")"
+  ready_revision="$(containerapp_query "$app_name" "properties.latestReadyRevisionName")"
   url="https://${fqdn}"
   http_code="$(root_http_code_for_url "$url")"
 
@@ -422,12 +513,7 @@ maybe_append_env "APP_SMTP_USERNAME_SECRET" "$TARGET_SMTP_USERNAME_SECRET_VALUE"
 maybe_append_env "APP_SMTP_PASSWORD_SECRET" "$TARGET_SMTP_PASSWORD_SECRET_VALUE"
 maybe_append_env "APP_EMAIL_FROM_SECRET" "$TARGET_EMAIL_FROM_SECRET_VALUE"
 
-az containerapp update \
-  -n "$TARGET_APP" \
-  -g "$RESOURCE_GROUP" \
-  --image "$IMAGE_TO_DEPLOY" \
-  --set-env-vars "${UPDATE_ENV_VARS[@]}" \
-  >/dev/null
+update_containerapp "$TARGET_APP" "$IMAGE_TO_DEPLOY" "${UPDATE_ENV_VARS[@]}"
 
 log "[3/5] Waiting for latest revision to become ready"
 READY_REVISION="$(wait_for_ready_revision "$TARGET_APP")"

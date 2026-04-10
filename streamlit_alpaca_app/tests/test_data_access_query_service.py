@@ -7,6 +7,7 @@ from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
+import pytest
 
 
 APP_ROOT = Path(__file__).resolve().parents[1]
@@ -389,7 +390,7 @@ def test_data_access_layer_resolves_attention_datasets_when_available(monkeypatc
             return commodity_feed.copy(), metadata[dataset_name]
         if dataset_name == "commodity_attention_rollups":
             return commodity_rollups.copy(), metadata[dataset_name]
-        raise AssertionError(f"unexpected dataset: {dataset_name}")
+        return pd.DataFrame(), None
 
     monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
     monkeypatch.setattr(layer_module, "load_latest_dataset_frame", _load)
@@ -1539,6 +1540,48 @@ def test_query_service_capabilities_include_resolution_hints():
     assert capabilities["datasets"]["attention_context"]["resolution"] == "materialized"
     assert capabilities["datasets"]["commodity_attention_feed"]["resolution"] == "materialized"
     assert capabilities["charts"]["technical_price_channel"]["resolution"] == "computed_from_signal_history"
+    assert capabilities["datasets"]["price_history"]["required_params"] == ["ticker"]
+    assert capabilities["datasets"]["price_history"]["param_schema"]["additionalProperties"] is False
+    assert capabilities["datasets"]["fred_dashboard"]["param_schema"]["properties"]["years"]["type"] == "integer"
+
+
+def test_query_request_rejects_non_object_params():
+    with pytest.raises(ValueError, match="params must be an object"):
+        QueryRequest.from_dict(
+            {
+                "operation": "dataset",
+                "name": "fred_dashboard",
+                "params": "{\"years\": 1}",
+            }
+        )
+
+
+def test_query_service_rejects_unknown_dataset_params():
+    class FakeAccess:
+        def resolve_fred_dashboard(self, *, years: int, force_refresh: bool = False) -> ResolvedPayload:
+            raise AssertionError("handler should not run for invalid params")
+
+    service = QueryService(data_access=FakeAccess())
+
+    with pytest.raises(ValueError, match="Unsupported params for dataset 'fred_dashboard': filter_indicator_contains"):
+        service.fetch_dataset("fred_dashboard", {"filter_indicator_contains": "M2"})
+
+
+def test_query_service_normalizes_integral_float_params_for_integer_fields():
+    class FakeAccess:
+        def resolve_fred_dashboard(self, *, years: int, force_refresh: bool = False) -> ResolvedPayload:
+            assert years == 1
+            assert isinstance(years, int)
+            assert force_refresh is False
+            return ResolvedPayload(
+                payload={"summary": []},
+                provenance=DataProvenance(mode="materialized", datasets=("fred_summary",), details={"years": years}),
+            )
+
+    service = QueryService(data_access=FakeAccess())
+    resolved = service.fetch_dataset("fred_dashboard", {"years": 1.0})
+
+    assert resolved.provenance.details["years"] == 1
 
 
 def test_query_service_fetches_attention_datasets():

@@ -13,9 +13,9 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from data_access.contracts import QueryRequest
+from data_access.contracts import QueryRequest, QueryValidationError, coerce_object
 from data_access.query_service import QueryService
-from services import api_auth, auth_service, auth_store
+from services import agent_tools, api_auth, auth_service, auth_store, omnibar as omnibar_service
 
 
 def _auth_enabled() -> bool:
@@ -117,69 +117,18 @@ def _require_admin_user(principal: api_auth.AuthPrincipal) -> None:
 
 
 def _execute_query(service: QueryService, payload: dict[str, Any]) -> dict[str, Any]:
-    query = QueryRequest.from_dict(payload)
     try:
+        query = QueryRequest.from_dict(payload)
         response = service.execute(query)
-    except ValueError as exc:
+    except (QueryValidationError, ValueError) as exc:
         raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
     except Exception as exc:
         raise _error(f"{type(exc).__name__}: {exc}", status.HTTP_500_INTERNAL_SERVER_ERROR)
     return response.to_dict()
 
 
-def _tool_schema(params: list[str]) -> dict[str, Any]:
-    return {
-        "type": "object",
-        "properties": {
-            name: {"type": ["string", "number", "boolean", "object", "array", "null"]}
-            for name in list(params or [])
-        },
-        "additionalProperties": True,
-    }
-
-
 def _build_tool_catalog(service: QueryService) -> list[dict[str, Any]]:
-    capabilities = service.list_capabilities()
-    tools: list[dict[str, Any]] = [
-        {
-            "name": "system.capabilities",
-            "description": "Return dataset and chart capability metadata.",
-            "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
-        },
-        {
-            "name": "query.execute",
-            "description": "Execute a generic query operation (capabilities, dataset, chart).",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "operation": {"type": "string"},
-                    "name": {"type": "string"},
-                    "params": {"type": "object"},
-                },
-                "required": ["operation"],
-                "additionalProperties": True,
-            },
-        },
-    ]
-    for dataset_name, spec in dict(capabilities.get("datasets") or {}).items():
-        tools.append(
-            {
-                "name": f"dataset.{dataset_name}",
-                "description": f"Fetch dataset '{dataset_name}'.",
-                "inputSchema": _tool_schema(list(spec.get("params") or [])),
-                "resolution": spec.get("resolution"),
-            }
-        )
-    for chart_name, spec in dict(capabilities.get("charts") or {}).items():
-        tools.append(
-            {
-                "name": f"chart.{chart_name}",
-                "description": f"Build chart model '{chart_name}'.",
-                "inputSchema": _tool_schema(list(spec.get("params") or [])),
-                "resolution": spec.get("resolution"),
-            }
-        )
-    return tools
+    return agent_tools.build_tool_catalog(service)
 
 
 def _invoke_tool(
@@ -189,36 +138,20 @@ def _invoke_tool(
     tool_name: str,
     arguments: dict[str, Any],
 ) -> dict[str, Any]:
-    name = str(tool_name or "").strip()
-    args = dict(arguments or {})
-    if name == "system.capabilities":
+    try:
+        query = agent_tools.build_query_request_for_tool(tool_name=tool_name, arguments=arguments)
+    except (QueryValidationError, ValueError) as exc:
+        raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
+    if query.operation == "capabilities":
         _ensure_scopes(principal, [api_auth.SCOPE_CAPABILITIES_READ])
-        return _execute_query(service, {"operation": "capabilities", "name": "", "params": {}})
-    if name == "query.execute":
-        payload = {
-            "operation": str(args.get("operation") or "").strip().lower(),
-            "name": str(args.get("name") or ""),
-            "params": dict(args.get("params") or {}),
-        }
-        _ensure_scopes(principal, _required_scopes_for_query(payload))
-        return _execute_query(service, payload)
-    if name.startswith("dataset."):
-        payload = {
-            "operation": "dataset",
-            "name": name.split(".", 1)[1],
-            "params": args,
-        }
-        _ensure_scopes(principal, _required_scopes_for_query(payload))
-        return _execute_query(service, payload)
-    if name.startswith("chart."):
-        payload = {
-            "operation": "chart",
-            "name": name.split(".", 1)[1],
-            "params": args,
-        }
-        _ensure_scopes(principal, _required_scopes_for_query(payload))
-        return _execute_query(service, payload)
-    raise _error(f"Unsupported tool '{name}'.", status.HTTP_400_BAD_REQUEST)
+    else:
+        _ensure_scopes(principal, _required_scopes_for_query(query.to_dict()))
+    try:
+        return service.execute(query).to_dict()
+    except (QueryValidationError, ValueError) as exc:
+        raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
+    except Exception as exc:
+        raise _error(f"{type(exc).__name__}: {exc}", status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def _rpc_response(result_id: Any, result: Any) -> dict[str, Any]:
@@ -243,10 +176,9 @@ def _handle_rpc_message(
         return _rpc_error(message.get("id"), -32600, "Invalid Request: missing method.")
     result_id = message.get("id")
     is_notification = result_id is None
-    params = message.get("params")
-    params_obj = dict(params or {}) if isinstance(params, dict) else {}
 
     try:
+        params_obj = coerce_object(message.get("params"), field_name="params")
         if method in {"rpc.ping", "health.ping"}:
             result = {"status": "ok"}
         elif method in {"mcp.initialize", "initialize"}:
@@ -266,7 +198,7 @@ def _handle_rpc_message(
             tool_name = str(params_obj.get("name") or "").strip()
             if not tool_name:
                 raise _error("Tool call requires `name`.", status.HTTP_400_BAD_REQUEST)
-            arguments = dict(params_obj.get("arguments") or {})
+            arguments = coerce_object(params_obj.get("arguments"), field_name="arguments")
             tool_result = _invoke_tool(
                 service=service,
                 principal=principal,
@@ -279,6 +211,8 @@ def _handle_rpc_message(
             }
         else:
             return _rpc_error(result_id, -32601, f"Method not found: {method}")
+    except QueryValidationError as exc:
+        return _rpc_error(result_id, -32602, str(exc))
     except HTTPException as exc:
         return _rpc_error(result_id, int(exc.status_code), str(exc.detail))
     except Exception as exc:
@@ -322,6 +256,12 @@ class AgentKeyCreateRequest(BaseModel):
 
 class ToolInvokeRequest(BaseModel):
     arguments: dict[str, Any] = Field(default_factory=dict)
+
+
+class OmnibarResolveRequest(BaseModel):
+    query: str
+    preferred_mode: str = "auto"
+    force_refresh: bool = False
 
 
 app = FastAPI(
@@ -483,6 +423,42 @@ def revoke_agent_key(
         revoked_by=principal.user_context.user_id if principal.user_context is not None else None,
     )
     return {"ok": True, "key": row}
+
+
+@app.post("/v1/omnibar/resolve")
+def resolve_omnibar(
+    payload: OmnibarResolveRequest,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, object]:
+    _ensure_scopes(principal, [api_auth.SCOPE_OMNIBAR_RESOLVE])
+    try:
+        return omnibar_service.resolve_omnibar(
+            query=payload.query,
+            preferred_mode=payload.preferred_mode,
+            force_refresh=bool(payload.force_refresh),
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise _error(f"Failed to resolve omnibar request: {type(exc).__name__}: {exc}", status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@app.get("/v1/omnibar/suggestions")
+def omnibar_suggestions(
+    limit: int = 8,
+    force_refresh: bool = False,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, object]:
+    _ensure_scopes(principal, [api_auth.SCOPE_OMNIBAR_RESOLVE])
+    try:
+        return omnibar_service.list_omnibar_suggestions(
+            limit=limit,
+            force_refresh=bool(force_refresh),
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise _error(f"Failed to build omnibar suggestions: {type(exc).__name__}: {exc}", status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @app.get("/v1/capabilities")

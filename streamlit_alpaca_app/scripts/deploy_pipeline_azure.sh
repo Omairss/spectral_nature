@@ -82,6 +82,15 @@ maybe_append_env() {
   fi
 }
 
+require_keyvault_secret() {
+  local secret_name="$1"
+  if ! az keyvault secret show --vault-name "$KEYVAULT_NAME" --name "$secret_name" --query id -o tsv >/dev/null 2>&1; then
+    echo "Required Key Vault secret is missing: ${secret_name}"
+    echo "Add or rotate the secret in Key Vault before deploying pipeline jobs."
+    exit 1
+  fi
+}
+
 job_env_value() {
   local job_name="$1"
   local key="$2"
@@ -321,15 +330,11 @@ fi
 
 echo "[9/11] Writing deployment secrets to Key Vault"
 az keyvault secret set --vault-name "$KEYVAULT_NAME" --name "$POSTGRES_CONNECTION_STRING_SECRET_NAME" --value "$PG_CONN" --output none
-if [[ -n "${APCA_API_KEY:-}" ]]; then
-  az keyvault secret set --vault-name "$KEYVAULT_NAME" --name "$APCA_API_KEY_SECRET_NAME" --value "$APCA_API_KEY" --output none
-fi
-if [[ -n "${APCA_API_SECRET_KEY:-}" ]]; then
-  az keyvault secret set --vault-name "$KEYVAULT_NAME" --name "$APCA_API_SECRET_KEY_SECRET_NAME" --value "$APCA_API_SECRET_KEY" --output none
-fi
 if [[ -n "${FRED_API_KEY:-}" ]]; then
   az keyvault secret set --vault-name "$KEYVAULT_NAME" --name "$FRED_API_KEY_SECRET_NAME" --value "$FRED_API_KEY" --output none
 fi
+require_keyvault_secret "$APCA_API_KEY_SECRET_NAME"
+require_keyvault_secret "$APCA_API_SECRET_KEY_SECRET_NAME"
 
 create_or_update_job () {
   local job_name="$1"

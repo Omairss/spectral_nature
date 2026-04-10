@@ -26,8 +26,9 @@ Current plan files:
 - `INBOUND_MAIL_SETUP_PLAN.md`: prerequisites and architecture for support/newsletter inbound mail
 - `spectral_nature_2/`: grouped plan set for Spectral Nature 2, omnibar, shared agent/API contracts, and iPhone work
 - `spectral_nature_2/agent_omnibar/`: dedicated doc hub for the separate agent omnibar task
-- `spectral_nature_2/SN2_NEGOTIATION_BASELINE_2026-04-07.md`: merged negotiation baseline for iPhone + omnibar requirements and constraints
-- `spectral_nature_2/agent_omnibar/OTHER_TASK_RESPONSE_2026-04-08.md`: copy-ready response for the separate omnibar task
+- `spectral_nature_2/SN2_NEGOTIATION_RESOLUTION_2026-04-07.md`: resolved contract for iPhone + omnibar requirements, clarifications, and sequencing
+- `spectral_nature_2/SN2_NEGOTIATION_BASELINE_2026-04-07.md`: historical merged negotiation baseline for iPhone + omnibar requirements and constraints
+- `spectral_nature_2/agent_omnibar/OTHER_TASK_RESPONSE_2026-04-08.md`: copy-ready resolved response for the separate omnibar task
 - `spectral_nature_2/IPHONE_APP_STRATEGY_2026-04-05.md`: source-first migration plan from Streamlit UI to native iPhone app
 - `spectral_nature_2/IPHONE_MVP_SCAFFOLD_2026-04-06.md`: delivered backend/API + SwiftUI scaffold for iPhone MVP
 - `spectral_nature_2/SN2_IPHONE_AGENT_REFERENCE_MAP_2026-04-07.md`: doc map for Spectral Nature 2, omnibar, agent workspace, shared API, and iPhone work

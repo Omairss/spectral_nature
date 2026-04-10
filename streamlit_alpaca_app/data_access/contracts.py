@@ -8,6 +8,18 @@ import numpy as np
 import pandas as pd
 
 
+class QueryValidationError(ValueError):
+    pass
+
+
+def coerce_object(value: Any, *, field_name: str) -> dict[str, Any]:
+    if value is None:
+        return {}
+    if not isinstance(value, dict):
+        raise QueryValidationError(f"{field_name} must be an object.")
+    return dict(value)
+
+
 def _jsonable_scalar(value: Any) -> Any:
     if value is None:
         return None
@@ -129,7 +141,7 @@ class QueryRequest:
         return cls(
             operation=str(payload.get("operation") or "").strip().lower(),
             name=str(payload.get("name") or "").strip(),
-            params=dict(payload.get("params") or {}),
+            params=coerce_object(payload.get("params"), field_name="params"),
         )
 
     def to_dict(self) -> dict[str, Any]:

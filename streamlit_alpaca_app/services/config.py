@@ -20,13 +20,26 @@ class AppConfig:
     alpaca_data_base_url: str = "https://data.alpaca.markets"
 
 
-def _clean_credential(value: str | None, placeholders: set[str]) -> str:
-    cleaned = (value or "").strip()
-    if not cleaned:
-        return ""
-    if cleaned.lower() in placeholders:
-        return ""
-    return cleaned
+DEFAULT_ALPACA_API_KEY_SECRET_NAME = "apca-api-key"
+DEFAULT_ALPACA_API_SECRET_KEY_SECRET_NAME = "apca-api-secret-key"
+
+
+def _env_secret_name(env_names: tuple[str, ...], default: str) -> str:
+    for env_name in env_names:
+        value = (os.getenv(env_name) or "").strip()
+        if value:
+            return value
+    return default
+
+
+def alpaca_secret_name_settings() -> tuple[str, str]:
+    return (
+        _env_secret_name(("APCA_API_KEY_SECRET_NAME", "APCA_API_KEY_SECRET"), DEFAULT_ALPACA_API_KEY_SECRET_NAME),
+        _env_secret_name(
+            ("APCA_API_SECRET_KEY_SECRET_NAME", "APCA_API_SECRET_KEY_SECRET"),
+            DEFAULT_ALPACA_API_SECRET_KEY_SECRET_NAME,
+        ),
+    )
 
 
 
@@ -39,17 +52,16 @@ def load_config() -> AppConfig | None:
 
     api_placeholders = {"your_key_here"}
     secret_placeholders = {"your_secret_here"}
+    api_key_secret_name, secret_key_secret_name = alpaca_secret_name_settings()
 
     api_key = resolve_secret_value(
-        ["APCA_API_KEY_ID", "APCA_API_KEY", "ALPACA_API_KEY"],
-        secret_name_env="APCA_API_KEY_SECRET",
-        default_secret_name="apca-api-key",
+        [],
+        default_secret_name=api_key_secret_name,
         placeholders=api_placeholders,
     )
     secret_key = resolve_secret_value(
-        ["APCA_API_SECRET_KEY", "ALPACA_SECRET_KEY"],
-        secret_name_env="APCA_API_SECRET_KEY_SECRET",
-        default_secret_name="apca-api-secret-key",
+        [],
+        default_secret_name=secret_key_secret_name,
         placeholders=secret_placeholders,
     )
 

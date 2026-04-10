@@ -83,6 +83,32 @@ def _supports_reasoning_effort_retry(status_code: int, response_text: str) -> bo
     )
 
 
+def _extract_first_json_object(raw: str) -> dict[str, Any]:
+    text = _clean(raw)
+    if not text:
+        raise LLMAPIError("LLM returned empty content.")
+
+    if text.startswith("```"):
+        lines = text.splitlines()
+        if len(lines) >= 3 and lines[0].startswith("```") and lines[-1].strip() == "```":
+            text = "\n".join(lines[1:-1]).strip()
+            if text.lower().startswith("json"):
+                text = text[4:].strip()
+
+    try:
+        parsed = json.loads(text)
+    except Exception:
+        decoder = json.JSONDecoder()
+        stripped = text.lstrip()
+        try:
+            parsed, _ = decoder.raw_decode(stripped)
+        except Exception as exc:
+            raise LLMAPIError(f"LLM returned non-JSON content: {text[:400]}") from exc
+    if not isinstance(parsed, dict):
+        raise LLMAPIError("LLM JSON payload must be an object.")
+    return parsed
+
+
 def load_llm_config() -> LLMConfig | None:
     provider = (_clean(os.getenv("LLM_PROVIDER")) or "openai").lower()
     if provider in {"", "none", "disabled", "off"}:
@@ -206,13 +232,7 @@ class OpenAIChatJSONClient:
 
         if not raw:
             raise LLMAPIError("LLM returned empty content.")
-        try:
-            data = json.loads(raw)
-        except Exception as exc:
-            raise LLMAPIError(f"LLM returned non-JSON content: {raw[:400]}") from exc
-        if not isinstance(data, dict):
-            raise LLMAPIError("LLM JSON payload must be an object.")
-        return data
+        return _extract_first_json_object(raw)
 
 
 class AzureOpenAIChatJSONClient:
@@ -293,13 +313,7 @@ class AzureOpenAIChatJSONClient:
         raw = _clean(message.get("content"))
         if not raw:
             raise LLMAPIError("LLM returned empty content.")
-        try:
-            data = json.loads(raw)
-        except Exception as exc:
-            raise LLMAPIError(f"LLM returned non-JSON content: {raw[:400]}") from exc
-        if not isinstance(data, dict):
-            raise LLMAPIError("LLM JSON payload must be an object.")
-        return data
+        return _extract_first_json_object(raw)
 
 
 class OpenAIEmbeddingClient:

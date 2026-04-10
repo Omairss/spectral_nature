@@ -1,0 +1,16 @@
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    working_dir: /workspace/streamlit_alpaca_app
+    command: ["sleep", "infinity"]
+    environment:
+      PYTHONPATH: /workspace/streamlit_alpaca_app
+    ports:
+      - "8501:8501"
+      - "8080:8080"
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/workspace/streamlit_alpaca_app

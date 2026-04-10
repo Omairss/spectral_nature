@@ -149,6 +149,99 @@ def test_dataset_endpoint_rejects_missing_scope(monkeypatch):
     assert "Missing required scope" in response.json().get("detail", "")
 
 
+def test_omnibar_endpoint_rejects_missing_scope(monkeypatch):
+    monkeypatch.setattr(api_main.api_auth, "principal_from_agent_api_key", lambda token: _agent_principal(api_auth.SCOPE_QUERY_EXECUTE))
+
+    client = TestClient(api_main.app)
+    response = client.post(
+        "/v1/omnibar/resolve",
+        headers={"X-API-Key": "snak_test"},
+        json={"query": "AAPL"},
+    )
+
+    assert response.status_code == 403
+    assert "Missing required scope" in response.json().get("detail", "")
+
+
+def test_omnibar_endpoint_returns_resolution(monkeypatch):
+    monkeypatch.setattr(
+        api_main.api_auth,
+        "principal_from_agent_api_key",
+        lambda token: _agent_principal(api_auth.SCOPE_OMNIBAR_RESOLVE),
+    )
+    monkeypatch.setattr(
+        api_main.omnibar_service,
+        "resolve_omnibar",
+        lambda **kwargs: {
+            "request_id": "omni_123",
+            "intent": "navigate",
+            "policy_version": "streamlit-agentic-omnibar-v1",
+            "confidence_band": "high",
+            "confidence": 1.0,
+            "query_echo": kwargs["query"],
+            "search_results": [
+                {
+                    "result_id": "sr_1",
+                    "kind": "symbol",
+                    "ref": "AAPL",
+                    "label": "AAPL",
+                    "subtitle": "Apple Inc.",
+                }
+            ],
+            "agent_action": {"suggested_message_blocks": [{"type": "text", "text": kwargs["query"]}]},
+        },
+    )
+
+    client = TestClient(api_main.app)
+    response = client.post(
+        "/v1/omnibar/resolve",
+        headers={"X-API-Key": "snak_test"},
+        json={"query": "AAPL", "preferred_mode": "auto"},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["request_id"] == "omni_123"
+    assert payload["intent"] == "navigate"
+    assert payload["policy_version"] == "streamlit-agentic-omnibar-v1"
+    assert payload["confidence_band"] == "high"
+    assert payload["search_results"][0]["ref"] == "AAPL"
+
+
+def test_omnibar_suggestions_endpoint_returns_suggestions(monkeypatch):
+    monkeypatch.setattr(
+        api_main.api_auth,
+        "principal_from_agent_api_key",
+        lambda token: _agent_principal(api_auth.SCOPE_OMNIBAR_RESOLVE),
+    )
+    monkeypatch.setattr(
+        api_main.omnibar_service,
+        "list_omnibar_suggestions",
+        lambda **kwargs: {
+            "policy_version": "streamlit-agentic-omnibar-v1",
+            "suggestions": [
+                {
+                    "kind": "macro_release",
+                    "query": "cpi",
+                    "label": "CPI Release",
+                    "subtitle": "Inflation release context and price-level signals in FRED Macro.",
+                }
+            ],
+        },
+    )
+
+    client = TestClient(api_main.app)
+    response = client.get(
+        "/v1/omnibar/suggestions",
+        headers={"X-API-Key": "snak_test"},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["policy_version"] == "streamlit-agentic-omnibar-v1"
+    assert payload["suggestions"][0]["query"] == "cpi"
+
+
 def test_agent_rpc_tools_call_executes_dataset(monkeypatch):
     monkeypatch.setattr(
         api_main.api_auth,
@@ -183,6 +276,58 @@ def test_agent_rpc_tools_call_executes_dataset(monkeypatch):
     assert payload["id"] == 1
     content = payload["result"]["content"]
     assert content[0]["json"]["payload"][0]["symbol"] == "AAPL"
+
+
+def test_agent_tool_invoke_rejects_stringified_query_params(monkeypatch):
+    monkeypatch.setattr(
+        api_main.api_auth,
+        "principal_from_agent_api_key",
+        lambda token: _agent_principal(
+            api_auth.SCOPE_MCP_INVOKE,
+            api_auth.SCOPE_QUERY_EXECUTE,
+            api_auth.SCOPE_DATASET_READ,
+        ),
+    )
+    monkeypatch.setattr(api_main.QueryService, "from_environment", lambda: _StubQueryService())
+
+    client = TestClient(api_main.app)
+    response = client.post(
+        "/v1/agent/tools/query.execute/invoke",
+        headers={"X-API-Key": "snak_test"},
+        json={
+            "arguments": {
+                "operation": "dataset",
+                "name": "fred_dashboard",
+                "params": "{\"years\": 1}",
+            }
+        },
+    )
+
+    assert response.status_code == 400
+    assert "params must be an object" in response.json()["detail"]
+
+
+def test_list_agent_tools_omits_generic_query_execute(monkeypatch):
+    monkeypatch.setattr(
+        api_main.api_auth,
+        "principal_from_agent_api_key",
+        lambda token: _agent_principal(
+            api_auth.SCOPE_MCP_INVOKE,
+            api_auth.SCOPE_CAPABILITIES_READ,
+        ),
+    )
+    monkeypatch.setattr(api_main.QueryService, "from_environment", lambda: _StubQueryService())
+
+    client = TestClient(api_main.app)
+    response = client.get(
+        "/v1/agent/tools",
+        headers={"X-API-Key": "snak_test"},
+    )
+
+    assert response.status_code == 200
+    tool_names = {tool["name"] for tool in response.json()["tools"]}
+    assert "query.execute" not in tool_names
+    assert "dataset.price_history" in tool_names
 
 
 def test_admin_can_create_agent_key(monkeypatch):

@@ -18,6 +18,7 @@ from pipeline.jobs.main import (
     _resolve_equity_symbols,
     _upload_frame,
     run_attention_home,
+    run_commodities,
     run_entity_taxonomy,
     run_fred,
     run_news,
@@ -192,6 +193,45 @@ def test_pipeline_store_lists_attention_datasets_under_commodities():
         "commodity_attention_rollups",
         "commodity_attention_feed",
     }.issubset(commodity_datasets)
+
+
+def test_run_commodities_uses_proxy_universe_and_reference_basket(monkeypatch):
+    ctx = JobContext(
+        name="commodities-regime",
+        run_id="commodity-test-run",
+        asof=datetime(2026, 4, 9, 12, 0, tzinfo=timezone.utc),
+        universe_version="20260409",
+    )
+    captured: dict[str, object] = {}
+    persisted: list[str] = []
+
+    monkeypatch.setattr("pipeline.jobs.main._alpaca_config", lambda: object())
+    monkeypatch.setattr("pipeline.jobs.main.AlpacaAPI", lambda cfg: SimpleNamespace())
+    monkeypatch.setattr("pipeline.jobs.main.default_commodity_proxy_symbols", lambda: ["USO", "GLD", "CPER"])
+    monkeypatch.setattr("pipeline.jobs.main.commodity_reference_universe", lambda: ["PDBC", "USO", "GLD", "CPER"])
+    monkeypatch.setattr("pipeline.jobs.main._job_progress", lambda *args, **kwargs: None)
+    monkeypatch.setattr("pipeline.jobs.main._persist_dataset", lambda dataset_name, frame, ctx, conn: persisted.append(dataset_name))
+
+    def _fake_scan(api, *, symbols, commodity_symbols, days):
+        captured["symbols"] = list(symbols)
+        captured["commodity_symbols"] = list(commodity_symbols)
+        captured["days"] = days
+        return {"summary": pd.DataFrame(), "history": pd.DataFrame()}
+
+    monkeypatch.setattr("pipeline.jobs.main.scan_commodity_regimes", _fake_scan)
+    monkeypatch.setattr(
+        "pipeline.jobs.main.build_commodity_peer_group_membership",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("stop after preload assertion")),
+    )
+
+    run_commodities(ctx, conn=object())
+
+    assert captured == {
+        "symbols": ["USO", "GLD", "CPER"],
+        "commodity_symbols": ["PDBC", "USO", "GLD", "CPER"],
+        "days": 252,
+    }
+    assert {"commodity_regime_summary", "commodity_regime_history"}.issubset(set(persisted))
 
 
 def test_pipeline_store_lists_attention_context_datasets_under_news():

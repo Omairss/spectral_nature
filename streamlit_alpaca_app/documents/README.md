@@ -25,7 +25,8 @@ pip install -r requirements.txt
 
 ```bash
 cp .env.example .env
-# set APCA_API_KEY and APCA_API_SECRET_KEY
+# set AZURE_KEY_VAULT_NAME / KEY_VAULT_NAME
+# keep Alpaca keys in Key Vault under apca-api-key and apca-api-secret-key
 # set APCA_API_BASE_URL to paper or live endpoint matching your key pair
 ```
 
@@ -42,6 +43,36 @@ set +a
 
 ```bash
 ./scripts/run_api_local.sh
+```
+
+## Docker dev environment
+
+Use Docker when the host Python environment is missing app/test dependencies or when you want a pinned local runtime that matches the repo setup more closely.
+The container entrypoint automatically loads `.env` and `infra/deployment.outputs.env` when those files are present in the repo.
+
+Build the image once:
+
+```bash
+./scripts/docker_dev.sh build
+```
+
+Open a shell inside the container:
+
+```bash
+./scripts/docker_dev.sh shell
+```
+
+Run tests in the container:
+
+```bash
+./scripts/docker_dev.sh test tests/test_api_v1.py tests/test_api_auth.py
+```
+
+Run the API or Streamlit UI with container ports exposed:
+
+```bash
+./scripts/docker_dev.sh api
+./scripts/docker_dev.sh ui
 ```
 
 ## App sections
@@ -136,6 +167,8 @@ For non-Python clients, use the FastAPI layer:
 - `GET /v1/auth/agent-keys` (admin)
 - `POST /v1/auth/agent-keys` (admin)
 - `POST /v1/auth/agent-keys/{key_id}/revoke` (admin)
+- `POST /v1/omnibar/resolve`
+- `GET /v1/omnibar/suggestions`
 - `GET /v1/capabilities`
 - `POST /v1/query`
 - `POST /v1/dataset/{name}`

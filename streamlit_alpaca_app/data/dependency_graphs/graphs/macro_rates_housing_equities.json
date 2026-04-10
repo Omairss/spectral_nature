@@ -1,0 +1,189 @@
+{
+  "schema_version": "1.0.0",
+  "graph": {
+    "id": "macro_rates_housing_equities",
+    "title": "Rates, Housing, and Equity Sensitivity",
+    "description": "Example non-commodity graph showing the same format can express macro transmission paths for future dashboards.",
+    "created_at": "2026-04-10",
+    "time_horizon": "short_to_medium_term",
+    "units": {
+      "severity": "0_to_1_score",
+      "confidence": "0_to_1_score",
+      "display_weight": "relative_sankey_weight"
+    },
+    "tags": ["macro", "rates", "housing", "equities"],
+    "nodes": [
+      {
+        "id": "fed_funds",
+        "type": "macro_factor",
+        "label": "Policy rate",
+        "description": "Short-rate policy stance used as the main upstream macro lever.",
+        "attributes": {
+          "series_hint": "FEDFUNDS"
+        },
+        "risk": 0.41,
+        "criticality": 0.92,
+        "status": "normal"
+      },
+      {
+        "id": "real_yields",
+        "type": "macro_factor",
+        "label": "Real yields",
+        "description": "Real-rate pressure often transmits quickly into long-duration valuation sensitivity.",
+        "attributes": {
+          "series_hint": "DFII10"
+        },
+        "risk": 0.43,
+        "criticality": 0.88,
+        "status": "normal"
+      },
+      {
+        "id": "mortgage_rates",
+        "type": "macro_factor",
+        "label": "Mortgage rates",
+        "description": "Housing financing cost node.",
+        "attributes": {
+          "series_hint": "MORTGAGE30US"
+        },
+        "risk": 0.48,
+        "criticality": 0.84,
+        "status": "stressed"
+      },
+      {
+        "id": "housing_activity",
+        "type": "effect",
+        "label": "Housing activity",
+        "description": "Housing demand and turnover sensitivity.",
+        "attributes": {},
+        "risk": 0.52,
+        "criticality": 0.75,
+        "status": "stressed"
+      },
+      {
+        "id": "homebuilders",
+        "type": "customer_segment",
+        "label": "Homebuilder equities",
+        "description": "Equity segment sensitive to housing activity and financing conditions.",
+        "attributes": {},
+        "risk": 0.57,
+        "criticality": 0.62,
+        "status": "normal"
+      },
+      {
+        "id": "duration_equities",
+        "type": "customer_segment",
+        "label": "Long-duration equities",
+        "description": "Growth equities sensitive to discount-rate changes.",
+        "attributes": {},
+        "risk": 0.61,
+        "criticality": 0.77,
+        "status": "normal"
+      }
+    ],
+    "edges": [
+      {
+        "id": "fed_to_real_yields",
+        "source": "fed_funds",
+        "target": "real_yields",
+        "relationship": "supports",
+        "mechanism": "A tighter policy path can keep real yields elevated.",
+        "polarity": "positive",
+        "directness": "direct",
+        "severity": 0.76,
+        "confidence": 0.81,
+        "lag": { "value": 2, "unit": "weeks" },
+        "conditions": ["inflation is not collapsing"],
+        "attributes": { "display_weight": 2.0 }
+      },
+      {
+        "id": "real_yields_to_duration_equities",
+        "source": "real_yields",
+        "target": "duration_equities",
+        "relationship": "delays",
+        "mechanism": "Higher real yields can pressure long-duration equity valuations.",
+        "polarity": "negative",
+        "directness": "direct",
+        "severity": 0.83,
+        "confidence": 0.86,
+        "lag": { "value": 5, "unit": "days" },
+        "conditions": ["valuation sensitivity remains high"],
+        "attributes": { "display_weight": 2.4 }
+      },
+      {
+        "id": "fed_to_mortgage_rates",
+        "source": "fed_funds",
+        "target": "mortgage_rates",
+        "relationship": "raises_cost",
+        "mechanism": "Higher policy rates usually lift end-borrower financing costs with some lag.",
+        "polarity": "positive",
+        "directness": "indirect",
+        "severity": 0.74,
+        "confidence": 0.79,
+        "lag": { "value": 3, "unit": "weeks" },
+        "conditions": ["credit spreads remain stable"],
+        "attributes": { "display_weight": 2.1 }
+      },
+      {
+        "id": "mortgage_rates_to_housing_activity",
+        "source": "mortgage_rates",
+        "target": "housing_activity",
+        "relationship": "delays",
+        "mechanism": "Higher mortgage rates can slow turnover, affordability, and new demand.",
+        "polarity": "negative",
+        "directness": "direct",
+        "severity": 0.82,
+        "confidence": 0.84,
+        "lag": { "value": 1, "unit": "months" },
+        "conditions": ["income growth does not offset affordability stress"],
+        "attributes": { "display_weight": 2.5 }
+      },
+      {
+        "id": "housing_activity_to_homebuilders",
+        "source": "housing_activity",
+        "target": "homebuilders",
+        "relationship": "supports",
+        "mechanism": "Improving housing activity usually supports homebuilder revenue expectations.",
+        "polarity": "positive",
+        "directness": "direct",
+        "severity": 0.71,
+        "confidence": 0.76,
+        "lag": { "value": 3, "unit": "weeks" },
+        "conditions": ["inventory conditions do not dominate"],
+        "attributes": { "display_weight": 2.0 }
+      }
+    ],
+    "scenarios": [
+      {
+        "id": "easing_cycle",
+        "label": "Easing cycle begins",
+        "description": "Policy rates peak and real yields begin to ease.",
+        "assumptions": ["Inflation cools", "Credit stays open"],
+        "projected_outcomes": {
+          "beneficiaries": ["duration_equities", "homebuilders"],
+          "watch_nodes": ["real_yields", "mortgage_rates"]
+        }
+      }
+    ],
+    "evidence": [
+      {
+        "id": "macro_seed",
+        "node_or_edge_ids": ["real_yields_to_duration_equities", "mortgage_rates_to_housing_activity"],
+        "claim": "The same graph contract can represent macro transmission chains, not just commodities.",
+        "source_type": "model_output",
+        "source_ref": "example://spectral-nature/prototypes/macro-transmission-seed",
+        "confidence": 0.77,
+        "attributes": {
+          "note": "Future reuse candidate for the macro dashboard."
+        }
+      }
+    ],
+    "metrics": [
+      {
+        "name": "display_edge_count",
+        "value": 5,
+        "unit": "edges",
+        "applies_to": ["macro_rates_housing_equities"]
+      }
+    ]
+  }
+}
