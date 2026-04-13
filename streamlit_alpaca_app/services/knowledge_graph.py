@@ -552,6 +552,7 @@ def _baseline_records() -> tuple[list[dict[str, Any]], list[dict[str, Any]], lis
 
 def clear_knowledge_graph_cache() -> None:
     _baseline_records.cache_clear()
+    _NODE_VECTOR_CACHE.clear()
 
 
 def _load_db_records() -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
@@ -778,6 +779,44 @@ def _embedding_scores(query: str, candidates: list[dict[str, Any]]) -> dict[str,
     return scores
 
 
+# Cache: frozenset(node_ids) -> {node_id: embedding_vector}
+_NODE_VECTOR_CACHE: dict[frozenset, dict[str, list[float]]] = {}
+
+
+def _node_embedding_text(node: dict[str, Any]) -> str:
+    """Rich text for a node: label + description + aliases. Used for semantic indexing."""
+    label = _clean(node.get("canonical_label") or node.get("node_id"))
+    description = _clean(node.get("description"))
+    aliases = [a for a in (node.get("aliases") or []) if _clean(a)]
+    parts = [label]
+    if description:
+        parts.append(description)
+    if aliases:
+        parts.append("Also known as: " + ", ".join(aliases[:8]))
+    return ". ".join(parts)
+
+
+def _get_node_vectors(nodes_by_id: dict[str, Any]) -> dict[str, list[float]]:
+    """Batch-embed all nodes using rich text; result is cached by node-id set."""
+    cache_key = frozenset(nodes_by_id.keys())
+    if cache_key in _NODE_VECTOR_CACHE:
+        return _NODE_VECTOR_CACHE[cache_key]
+    embedding_client = load_embedding_client()
+    if embedding_client is None or not nodes_by_id:
+        return {}
+    node_ids = list(nodes_by_id.keys())
+    texts = [_node_embedding_text(nodes_by_id[nid]) for nid in node_ids]
+    try:
+        vectors = embedding_client.generate_embeddings(texts)
+    except Exception:
+        return {}
+    if len(vectors) != len(node_ids):
+        return {}
+    result = dict(zip(node_ids, vectors))
+    _NODE_VECTOR_CACHE[cache_key] = result
+    return result
+
+
 def search_knowledge_graph_nodes(
     query: str,
     *,
@@ -790,6 +829,7 @@ def search_knowledge_graph_nodes(
     snapshot = snapshot or load_knowledge_graph_snapshot()
     nodes_by_id = dict(snapshot.get("nodes_by_id") or {})
 
+    # Stage 1: deterministic string match across all node aliases
     candidate_rows: dict[str, dict[str, Any]] = {}
     for node_id, node in nodes_by_id.items():
         label = _clean(node.get("canonical_label") or node_id)
@@ -810,15 +850,54 @@ def search_knowledge_graph_nodes(
             if existing is None or score > _coerce_float(existing.get("score_deterministic")):
                 candidate_rows[node_id] = row
 
-    ranked = sorted(candidate_rows.values(), key=lambda row: row["score_deterministic"], reverse=True)
-    if not ranked:
-        return []
-    embedding = _embedding_scores(normalized_query, ranked[: max(limit * 4, 12)])
-    for row in ranked:
-        emb_score = float(embedding.get(_clean(row.get("node_id")), 0.0))
-        row["score_embedding"] = emb_score
-        row["score"] = max(float(row["score_deterministic"]), (float(row["score_deterministic"]) * 0.7) + (emb_score * 0.3))
-    ranked = sorted(ranked, key=lambda row: (float(row.get("score") or 0.0), float(row.get("score_deterministic") or 0.0)), reverse=True)
+    # Stage 2: semantic search across ALL nodes using pre-computed vectors.
+    # This runs regardless of deterministic results, so novel queries (e.g. "fertilizer",
+    # "coffee") can surface semantically relevant nodes even with no lexical overlap.
+    embedding_scores: dict[str, float] = {}
+    node_vectors = _get_node_vectors(nodes_by_id)
+    if node_vectors:
+        embedding_client = load_embedding_client()
+        if embedding_client is not None:
+            try:
+                query_vecs = embedding_client.generate_embeddings([normalized_query])
+                if query_vecs:
+                    query_vec = query_vecs[0]
+                    for node_id, node_vec in node_vectors.items():
+                        embedding_scores[node_id] = (_cosine_similarity(query_vec, node_vec) + 1.0) / 2.0
+            except Exception:
+                pass
+
+    # Stage 3: merge — union of deterministic hits and strong semantic hits
+    SEMANTIC_ONLY_THRESHOLD = 0.60
+    all_node_ids = set(candidate_rows) | (
+        {nid for nid, s in embedding_scores.items() if s >= SEMANTIC_ONLY_THRESHOLD}
+    )
+    result_rows: dict[str, dict[str, Any]] = {}
+    for node_id in all_node_ids:
+        node = nodes_by_id.get(node_id, {})
+        det_row = candidate_rows.get(node_id)
+        det_score = _coerce_float(det_row.get("score_deterministic")) if det_row else 0.0
+        emb_score = float(embedding_scores.get(node_id, 0.0))
+        label = _clean(node.get("canonical_label") or node_id)
+
+        if det_score >= 0.15:
+            score = max(det_score, det_score * 0.7 + emb_score * 0.3)
+        else:
+            # Pure semantic hit — scale slightly below deterministic quality to prefer direct matches
+            score = emb_score * 0.9
+
+        result_rows[node_id] = {
+            "node_id": node_id,
+            "canonical_label": label,
+            "node_type": _clean(node.get("node_type")),
+            "description": _clean(node.get("description")),
+            "matched_alias": det_row.get("matched_alias") if det_row else label,
+            "score_deterministic": det_score,
+            "score_embedding": emb_score,
+            "score": score,
+        }
+
+    ranked = sorted(result_rows.values(), key=lambda r: (r["score"], r["score_deterministic"]), reverse=True)
     return ranked[: max(int(limit), 1)]
 
 
