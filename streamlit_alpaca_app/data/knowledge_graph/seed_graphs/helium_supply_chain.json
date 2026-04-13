@@ -1,0 +1,163 @@
+{
+  "title": "Helium Supply Chain",
+  "nodes": [
+    {
+      "id": "helium",
+      "label": "Helium",
+      "type": "commodity",
+      "description": "Industrial gas with constrained supply and specialized downstream uses.",
+      "aliases": ["He", "helium gas"]
+    },
+    {
+      "id": "industrial_gases",
+      "label": "Industrial Gases",
+      "type": "industry",
+      "description": "Companies that refine, distribute, and package industrial gases.",
+      "aliases": ["industrial gas suppliers", "gas distributors"]
+    },
+    {
+      "id": "LIN",
+      "label": "Linde",
+      "type": "company",
+      "description": "Large global industrial gas company with helium exposure.",
+      "aliases": ["LIN", "Linde plc"],
+      "attributes": {"ticker": "LIN"}
+    },
+    {
+      "id": "APD",
+      "label": "Air Products",
+      "type": "company",
+      "description": "Industrial gas company with merchant-gas exposure.",
+      "aliases": ["APD", "Air Products and Chemicals"],
+      "attributes": {"ticker": "APD"}
+    },
+    {
+      "id": "semiconductor_etch",
+      "label": "Semiconductor Etch and Process Gas",
+      "type": "process",
+      "description": "Process steps that depend on high-purity gases including helium.",
+      "aliases": ["semiconductor etch", "chip process gases"]
+    },
+    {
+      "id": "ASML",
+      "label": "ASML",
+      "type": "company",
+      "description": "Lithography equipment company tied to semiconductor capex.",
+      "aliases": ["ASML Holding", "ASML"],
+      "attributes": {"ticker": "ASML"}
+    },
+    {
+      "id": "AMAT",
+      "label": "Applied Materials",
+      "type": "company",
+      "description": "Semiconductor equipment company with process-tool exposure.",
+      "aliases": ["AMAT", "Applied Materials"],
+      "attributes": {"ticker": "AMAT"}
+    },
+    {
+      "id": "MRI_systems",
+      "label": "MRI Systems",
+      "type": "end_market",
+      "description": "MRI systems depend on liquid helium for superconducting magnet cooling.",
+      "aliases": ["MRI", "medical imaging magnets"]
+    },
+    {
+      "id": "GEHC",
+      "label": "GE HealthCare",
+      "type": "company",
+      "description": "Medical imaging company with MRI exposure.",
+      "aliases": ["GEHC", "GE HealthCare Technologies"],
+      "attributes": {"ticker": "GEHC"}
+    },
+    {
+      "id": "rocket_pressurization",
+      "label": "Rocket Pressurization",
+      "type": "application",
+      "description": "Launch systems use helium in tank pressurization and test processes.",
+      "aliases": ["rocket pressurization", "launch helium"]
+    },
+    {
+      "id": "RKLB",
+      "label": "Rocket Lab",
+      "type": "company",
+      "description": "Launch company with operational sensitivity to launch-input bottlenecks.",
+      "aliases": ["RKLB", "Rocket Lab"],
+      "attributes": {"ticker": "RKLB"}
+    }
+  ],
+  "edges": [
+    {
+      "source": "LIN",
+      "target": "industrial_gases",
+      "relationship": "supports_supply",
+      "mechanism": "Linde is a major industrial-gas distributor and merchant supplier.",
+      "confidence": 0.79
+    },
+    {
+      "source": "APD",
+      "target": "industrial_gases",
+      "relationship": "supports_supply",
+      "mechanism": "Air Products participates in merchant industrial-gas markets.",
+      "confidence": 0.72
+    },
+    {
+      "source": "industrial_gases",
+      "target": "helium",
+      "relationship": "packages_and_distributes",
+      "mechanism": "Industrial-gas networks refine, package, and move helium to end users.",
+      "confidence": 0.83
+    },
+    {
+      "source": "helium",
+      "target": "semiconductor_etch",
+      "relationship": "enables",
+      "mechanism": "High-purity helium is used in semiconductor process-gas workflows.",
+      "severity": 0.7,
+      "confidence": 0.76
+    },
+    {
+      "source": "semiconductor_etch",
+      "target": "ASML",
+      "relationship": "supports_tool_demand",
+      "mechanism": "Sustained chip process buildout supports lithography and fab-tool demand.",
+      "confidence": 0.58
+    },
+    {
+      "source": "semiconductor_etch",
+      "target": "AMAT",
+      "relationship": "supports_tool_demand",
+      "mechanism": "Process-gas intensity links to semiconductor tool demand and fab activity.",
+      "confidence": 0.64
+    },
+    {
+      "source": "helium",
+      "target": "MRI_systems",
+      "relationship": "enables",
+      "mechanism": "Liquid helium cools superconducting magnets in many MRI systems.",
+      "severity": 0.82,
+      "confidence": 0.9
+    },
+    {
+      "source": "MRI_systems",
+      "target": "GEHC",
+      "relationship": "supports_demand",
+      "mechanism": "MRI system demand and availability matter for imaging equipment suppliers.",
+      "confidence": 0.71
+    },
+    {
+      "source": "helium",
+      "target": "rocket_pressurization",
+      "relationship": "enables",
+      "mechanism": "Helium is used in launch-system pressurization and testing.",
+      "severity": 0.61,
+      "confidence": 0.74
+    },
+    {
+      "source": "rocket_pressurization",
+      "target": "RKLB",
+      "relationship": "supports_operations",
+      "mechanism": "Launch cadence depends on availability of key mission inputs.",
+      "confidence": 0.57
+    }
+  ]
+}

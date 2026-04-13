@@ -248,6 +248,7 @@ Never repeat:
 1. When an interaction can take several seconds, ship a visible wait state in the same cleanup pass.
 2. Reuse existing progress events before adding new loading infrastructure.
 3. For Streamlit AppTest, assign seeded session-state keys individually instead of calling `.update(...)`.
+4. When restyling a wait state, keep the actual progress indicator wired in instead of downgrading it to text-only status updates.
 
 ## 16. Left external TTS generation on the normal homepage render path
 
@@ -276,3 +277,17 @@ Never repeat:
 1. For time-sensitive `why`, `impact`, or `how this plays out` prompts, add a strong evidence-seeking preference so tool use becomes the default behavior when the right sources are available.
 2. Expose the actual product research sources as explicit tools or one shared research orchestrator.
 3. Reuse the repo's strongest retrieval and evidence pipeline instead of letting a second lighter agent path silently answer from less context.
+
+## 18. Confused browser depth with browser availability
+
+What went wrong:
+
+- I initially framed Playwright browsing as if it needed to be fully provisioned before the omnibar could benefit from page reads at all.
+- That would have delayed the source-level fix even though a bounded helper with graceful fallback was enough to improve research behavior immediately.
+- I also needed to keep the original product constraint in view: tool use and citations should be encouraged, not required.
+
+Never repeat:
+
+1. Ship the smallest reliable research improvement first, then harden the runtime later.
+2. Treat Playwright as a preferred deep-read layer, not a blocker for basic page extraction.
+3. When the product wants soft bias instead of hard requirements, implement that policy in the planner prompt and answer contract instead of in rigid gates.

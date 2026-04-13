@@ -110,6 +110,7 @@ This is a curated list of reusable lessons for this repo. Highest-leverage items
 
 - If a long-running UI flow already emits structured progress events, use those to drive the wait state instead of inventing fake token streaming.
 - A short sequence of plain-language status updates is easier to trust than a generic progress bar with internal wording.
+- Keep both layers when possible: plain-language status plus the real progress bar gives users direction and pacing.
 - For clean screens, temporary loading panels should clear once the final answer renders instead of leaving stale process chrome behind.
 - With `streamlit.testing.v1.AppTest`, seed session keys one by one; the testing session state proxy does not support `.update(...)`.
 
@@ -124,3 +125,15 @@ This is a curated list of reusable lessons for this repo. Highest-leverage items
 - If a feature promises current-event analysis, narrative recall, and search-backed answers, those sources must be explicit tools or one shared orchestrator. The model cannot use tools it cannot see.
 - For time-sensitive causal prompts, bias the planner toward retained context and fresh evidence instead of letting it jump too easily to a zero-tool answer.
 - Reuse the repo's strongest retrieval and evidence stack behind one path instead of keeping a lighter agent route with silently weaker source access.
+
+## 18. Draft-review-commit works better than direct live mutation for graph editing
+
+- For editable knowledge graphs, keep a seeded or committed read snapshot separate from the user draft in session state.
+- Let the review layer own adds, deletes, and edits, then commit one normalized delta into the durable store.
+- Tombstones are a simple way to let reviewed commits suppress baseline seed content without mutating the seed files themselves.
+
+## 18. Research browsing should degrade cleanly when full browser runtime is absent
+
+- For agentic research, a bounded page-read tool is useful even before full Playwright provisioning is in every deployed container.
+- Prefer a layered browser helper: use Playwright when available, then fall back to plain HTTP extraction so the feature stays useful instead of failing closed.
+- Keep the planner bias soft. Encourage tools for live analysis prompts, but do not force a fake research loop when retained context is already enough.

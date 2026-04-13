@@ -117,3 +117,13 @@ def test_run_omnibar_agent_reports_unavailable_llm(monkeypatch):
 
     assert result["status"] == "unavailable"
     assert "cannot run tool-based analysis" in result["answer_markdown"]
+
+
+def test_final_prompt_lightly_prefers_supporting_sources():
+    prompt = omnibar_agent._final_user_prompt(
+        query="How are things going to pan out now that there's no agreement in Iran US talks",
+        tool_calls=[],
+    )
+
+    assert "one or two supporting sources or links" in prompt
+    assert "Do not turn the answer into a citation list." in prompt

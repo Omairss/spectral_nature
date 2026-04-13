@@ -2,6 +2,26 @@
 
 Date: 2026-04-12
 
+## Implementation Status
+
+PoC implemented on the admin-only `Experiment` page.
+
+Current scope:
+
+- query resolver over the merged seeded + committed graph snapshot
+- seed graph baseline for helium, AI infrastructure, and uranium-power concepts
+- draft graph generation with local neighborhood expansion plus optional agentic suggestions
+- editable node and edge review tables in Streamlit
+- explicit commit into a Postgres-backed core knowledge graph
+- recent commit log on the page
+
+Current limits:
+
+- review is table-based, not direct graph-canvas editing
+- commit writes reviewed nodes, aliases, edges, and tombstones, but not a richer version graph yet
+- query resolution is deterministic-first with optional embeddings; it is not a fully vector-native retriever
+- agentic expansion can start from an unseen query, but quality still depends on the LLM and optional web-search runtime
+
 ## Goal
 
 Build an admin-only PoC on the `Experiment` page where a user can type an open-ended dependency seed such as `helium`, `ASML`, or `fertilizer`.

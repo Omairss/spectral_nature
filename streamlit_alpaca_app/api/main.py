@@ -158,16 +158,24 @@ def _invoke_tool(
     tool_name: str,
     arguments: dict[str, Any],
 ) -> dict[str, Any]:
-    try:
-        query = agent_tools.build_query_request_for_tool(tool_name=tool_name, arguments=arguments)
-    except (QueryValidationError, ValueError) as exc:
-        raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
-    if query.operation == "capabilities":
-        _ensure_scopes(principal, [api_auth.SCOPE_CAPABILITIES_READ])
+    query = None
+    if agent_tools.is_query_service_tool(tool_name):
+        try:
+            query = agent_tools.build_query_request_for_tool(tool_name=tool_name, arguments=arguments)
+        except (QueryValidationError, ValueError) as exc:
+            raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
+        if query.operation == "capabilities":
+            _ensure_scopes(principal, [api_auth.SCOPE_CAPABILITIES_READ])
+        else:
+            _ensure_scopes(principal, _required_scopes_for_query(query.to_dict()))
+    elif agent_tools.is_research_tool(tool_name):
+        _ensure_scopes(principal, [api_auth.SCOPE_QUERY_EXECUTE, api_auth.SCOPE_DATASET_READ])
     else:
-        _ensure_scopes(principal, _required_scopes_for_query(query.to_dict()))
+        raise _error(f"Unsupported tool '{tool_name}'.", status.HTTP_400_BAD_REQUEST)
     try:
-        return service.execute(query).to_dict()
+        if query is not None:
+            return service.execute(query).to_dict()
+        return agent_tools.invoke_tool(service=service, tool_name=tool_name, arguments=arguments)
     except (QueryValidationError, ValueError) as exc:
         raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
     except Exception as exc:

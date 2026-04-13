@@ -1,0 +1,134 @@
+{
+  "title": "AI Infrastructure Chain",
+  "nodes": [
+    {
+      "id": "ai_compute",
+      "label": "AI Compute Buildout",
+      "type": "theme",
+      "description": "Cluster buildout across accelerators, memory, networking, and power.",
+      "aliases": ["ai infrastructure", "ai datacenter", "gpu cluster"]
+    },
+    {
+      "id": "NVDA",
+      "label": "NVIDIA",
+      "type": "company",
+      "description": "Accelerator supplier with central exposure to AI compute demand.",
+      "aliases": ["NVDA", "NVIDIA"],
+      "attributes": {"ticker": "NVDA"}
+    },
+    {
+      "id": "TSM",
+      "label": "TSMC",
+      "type": "company",
+      "description": "Foundry supplier for leading-edge accelerator production.",
+      "aliases": ["TSM", "TSMC"],
+      "attributes": {"ticker": "TSM"}
+    },
+    {
+      "id": "hbm_memory",
+      "label": "HBM Memory",
+      "type": "component",
+      "description": "High-bandwidth memory used in advanced AI accelerators.",
+      "aliases": ["HBM", "high bandwidth memory"]
+    },
+    {
+      "id": "advanced_packaging",
+      "label": "Advanced Packaging",
+      "type": "capacity_pool",
+      "description": "Packaging and integration capacity for complex AI accelerators.",
+      "aliases": ["CoWoS", "chip packaging", "advanced semiconductor packaging"]
+    },
+    {
+      "id": "datacenter_power",
+      "label": "Datacenter Power Demand",
+      "type": "effect",
+      "description": "Power and cooling demand created by AI cluster deployments.",
+      "aliases": ["ai power demand", "datacenter electricity"]
+    },
+    {
+      "id": "power_grid",
+      "label": "Power Grid Capacity",
+      "type": "infrastructure",
+      "description": "Grid interconnect and local transmission capacity.",
+      "aliases": ["grid capacity", "transmission capacity"]
+    },
+    {
+      "id": "natural_gas_generation",
+      "label": "Natural Gas Generation",
+      "type": "capacity_pool",
+      "description": "Dispatchable generation often used to meet incremental load.",
+      "aliases": ["gas generation", "peaker power"]
+    },
+    {
+      "id": "CPER",
+      "label": "Copper",
+      "type": "commodity",
+      "description": "Electrical infrastructure metal already present in the commodity graph.",
+      "aliases": ["copper", "CPER"],
+      "attributes": {"ticker": "CPER"}
+    }
+  ],
+  "edges": [
+    {
+      "source": "NVDA",
+      "target": "ai_compute",
+      "relationship": "supplies",
+      "mechanism": "Accelerator shipments are a direct driver of AI cluster buildout.",
+      "confidence": 0.91
+    },
+    {
+      "source": "TSM",
+      "target": "NVDA",
+      "relationship": "manufactures_for",
+      "mechanism": "Leading-edge foundry capacity is required for accelerator supply.",
+      "severity": 0.86,
+      "confidence": 0.89
+    },
+    {
+      "source": "hbm_memory",
+      "target": "NVDA",
+      "relationship": "supports",
+      "mechanism": "HBM availability shapes accelerator throughput and package mix.",
+      "severity": 0.84,
+      "confidence": 0.83
+    },
+    {
+      "source": "advanced_packaging",
+      "target": "NVDA",
+      "relationship": "limits_capacity",
+      "mechanism": "Packaging bottlenecks can cap delivered accelerator volumes.",
+      "severity": 0.88,
+      "confidence": 0.85
+    },
+    {
+      "source": "ai_compute",
+      "target": "datacenter_power",
+      "relationship": "raises_demand",
+      "mechanism": "Cluster deployment materially increases facility power needs.",
+      "severity": 0.8,
+      "confidence": 0.92
+    },
+    {
+      "source": "datacenter_power",
+      "target": "power_grid",
+      "relationship": "strains",
+      "mechanism": "Large datacenter loads pressure transmission and interconnect capacity.",
+      "severity": 0.76,
+      "confidence": 0.79
+    },
+    {
+      "source": "power_grid",
+      "target": "natural_gas_generation",
+      "relationship": "raises_dispatch",
+      "mechanism": "When load rises faster than firm low-carbon supply, gas can fill the gap.",
+      "confidence": 0.68
+    },
+    {
+      "source": "power_grid",
+      "target": "CPER",
+      "relationship": "raises_demand",
+      "mechanism": "Transmission and electrical buildout tend to increase copper intensity.",
+      "confidence": 0.74
+    }
+  ]
+}

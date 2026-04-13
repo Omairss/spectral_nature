@@ -71,6 +71,18 @@ from services.homepage_v2 import (
     homepage_v2_bundle_symbol_lookup,
     normalize_homepage_v2_detail_state,
 )
+from services.knowledge_graph import (
+    build_knowledge_graph_draft,
+    commit_knowledge_graph_review,
+    default_seed_node_ids_from_matches,
+    draft_edges_frame,
+    draft_nodes_frame,
+    knowledge_graph_runtime_status,
+    list_recent_knowledge_graph_commits,
+    load_knowledge_graph_snapshot,
+    plot_knowledge_graph_draft,
+    search_knowledge_graph_nodes,
+)
 from services.runtime_policy import attention_ui_policy, presentation_layer_only_enabled, section_data_available
 from services.secrets import resolve_secret_value
 from services.fundamentals import plot_statement
@@ -4714,15 +4726,19 @@ def _render_agentic_omnibar_progress_panel(
     progress_slot: object,
     *,
     current_message: str,
+    progress: float,
     progress_history: list[str],
 ) -> None:
+    percent = int(round(max(0.0, min(float(progress or 0.0), 1.0)) * 100))
     recent_updates = [
         item for item in list(progress_history[-4:]) if item and item != current_message
     ]
     with progress_slot.container(border=True):
         st.markdown("#### Thinking")
         st.caption("Chat + Search is working through your request.")
+        st.progress(percent, text=current_message)
         st.markdown(f"**{current_message}**")
+        st.caption(f"{percent}% complete")
         if recent_updates:
             st.markdown("\n".join(f"- {item}" for item in recent_updates))
 
@@ -5154,11 +5170,13 @@ def _render_agentic_omnibar_section(
 
         def _progress_callback(event: dict[str, object]) -> None:
             message = _agentic_omnibar_progress_message(event)
+            progress = max(0.0, min(float(event.get("progress") or 0.0), 1.0))
             if not progress_history or progress_history[-1] != message:
                 progress_history.append(message)
             _render_agentic_omnibar_progress_panel(
                 progress_slot,
                 current_message=message,
+                progress=progress,
                 progress_history=progress_history,
             )
 
@@ -6932,18 +6950,253 @@ def _render_experiment_placeholder_page(
     *,
     force_data_refresh: bool,
 ) -> None:
+    del cfg, force_data_refresh
+
+    def _clear_experiment_graph_state(*, keep_query: bool = True) -> None:
+        state_keys = [
+            "_knowledge_graph_matches",
+            "_knowledge_graph_resolved_query",
+            "_knowledge_graph_draft",
+            "_knowledge_graph_draft_query",
+            "_knowledge_graph_draft_key",
+            "knowledge_graph_selected_node_ids",
+        ]
+        if not keep_query:
+            state_keys.extend(
+                [
+                    "knowledge_graph_query",
+                    "_knowledge_graph_last_input_query",
+                    "_knowledge_graph_commit_feedback",
+                ]
+            )
+        for key in state_keys:
+            st.session_state.pop(key, None)
+
+    def _knowledge_graph_commit_actor() -> str:
+        current_user = _current_user_context()
+        if current_user is None:
+            return "admin"
+        return str(current_user.email or current_user.user_id or current_user.label or "admin").strip() or "admin"
+
+    snapshot = load_knowledge_graph_snapshot()
+    runtime_status = knowledge_graph_runtime_status()
+
     header_cols = st.columns([4.8, 1.4])
     with header_cols[0]:
         st.title(HOME_EXP_SECTION)
-        st.caption("Admin-only placeholder for experimental surfaces.")
+        st.caption("Open knowledge graph PoC. This is separate from the homepage attention graph.")
     with header_cols[1]:
-        force_data_refresh = force_data_refresh or _section_refresh_button(
-            "experiment_refresh",
-            source="attention",
-            label="Run attention refresh job",
-        )
+        if st.button("Reset Draft", key="experiment_reset_draft", use_container_width=True):
+            _clear_experiment_graph_state(keep_query=False)
+            st.rerun()
 
-    st.info("The full Daily Tape workspace is disabled. Keep new experiments here until they are ready for wider use.")
+    feedback = st.session_state.get("_knowledge_graph_commit_feedback")
+    if isinstance(feedback, dict) and str(feedback.get("message") or "").strip():
+        if bool(feedback.get("ok")):
+            st.success(str(feedback.get("message")))
+        else:
+            st.error(str(feedback.get("message")))
+
+    status_cols = st.columns(5)
+    status_cols[0].metric("Nodes", f"{len(list(snapshot.get('nodes') or []))}")
+    status_cols[1].metric("Edges", f"{len(list(snapshot.get('edges') or []))}")
+    status_cols[2].metric(
+        "Store",
+        "Ready" if runtime_status.get("store_ready") else ("Configured" if runtime_status.get("store_configured") else "Preview only"),
+    )
+    status_cols[3].metric("LLM", "Ready" if runtime_status.get("llm_ready") else "Off")
+    status_cols[4].metric(
+        "Retrieval",
+        "Embeddings + Web"
+        if runtime_status.get("embedding_ready") and runtime_status.get("web_search_ready")
+        else ("Embeddings" if runtime_status.get("embedding_ready") else ("Web" if runtime_status.get("web_search_ready") else "Local only")),
+    )
+
+    st.caption(
+        "Flow: resolve query -> review the draft graph -> edit nodes and edges -> commit the approved delta into the core knowledge graph."
+    )
+
+    query = st.text_input(
+        "Seed query",
+        key="knowledge_graph_query",
+        placeholder="helium, HBM, uranium, ASML, fertilizer",
+    )
+    normalized_query = str(query or "").strip()
+    last_input_query = str(st.session_state.get("_knowledge_graph_last_input_query") or "").strip()
+    if normalized_query != last_input_query:
+        st.session_state["_knowledge_graph_last_input_query"] = normalized_query
+        st.session_state.pop("_knowledge_graph_commit_feedback", None)
+        _clear_experiment_graph_state(keep_query=True)
+
+    control_cols = st.columns([1.4, 1.4, 2.2])
+    include_agentic_expansion = control_cols[0].toggle(
+        "Use agentic expansion",
+        value=True,
+        key="knowledge_graph_include_agentic",
+    )
+    resolve_clicked = control_cols[1].button(
+        "Resolve Query",
+        key="knowledge_graph_resolve_query",
+        use_container_width=True,
+        disabled=not normalized_query,
+    )
+    generate_clicked = control_cols[2].button(
+        "Generate Draft Graph",
+        key="knowledge_graph_generate_draft",
+        use_container_width=True,
+        type="primary",
+        disabled=not normalized_query,
+    )
+
+    if resolve_clicked and normalized_query:
+        matches = search_knowledge_graph_nodes(normalized_query, snapshot=snapshot)
+        st.session_state["_knowledge_graph_matches"] = matches
+        st.session_state["_knowledge_graph_resolved_query"] = normalized_query
+        st.session_state["knowledge_graph_selected_node_ids"] = default_seed_node_ids_from_matches(matches)
+        st.session_state.pop("_knowledge_graph_draft", None)
+        st.session_state.pop("_knowledge_graph_draft_query", None)
+        st.session_state.pop("_knowledge_graph_draft_key", None)
+
+    resolved_query = str(st.session_state.get("_knowledge_graph_resolved_query") or "").strip()
+    matches = list(st.session_state.get("_knowledge_graph_matches") or []) if resolved_query == normalized_query else []
+
+    if matches:
+        st.subheader("Closest Existing Nodes")
+        match_frame = pd.DataFrame(
+            [
+                {
+                    "node_id": str(item.get("node_id") or ""),
+                    "label": str(item.get("canonical_label") or ""),
+                    "type": str(item.get("node_type") or ""),
+                    "matched_alias": str(item.get("matched_alias") or ""),
+                    "score": float(item.get("score") or 0.0),
+                }
+                for item in matches
+            ]
+        )
+        st.dataframe(
+            match_frame,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "score": st.column_config.NumberColumn("score", format="%.2f"),
+            },
+        )
+        option_lookup = {
+            str(item.get("node_id") or ""): f"{str(item.get('canonical_label') or item.get('node_id') or '')} ({str(item.get('node_id') or '')})"
+            for item in matches
+            if str(item.get("node_id") or "").strip()
+        }
+        valid_selected = [
+            node_id
+            for node_id in list(st.session_state.get("knowledge_graph_selected_node_ids") or [])
+            if node_id in option_lookup
+        ]
+        st.session_state["knowledge_graph_selected_node_ids"] = valid_selected
+        st.multiselect(
+            "Seed nodes",
+            options=list(option_lookup.keys()),
+            key="knowledge_graph_selected_node_ids",
+            format_func=lambda node_id: option_lookup.get(node_id, node_id),
+            help="These seed nodes anchor the local neighborhood before agent suggestions are added.",
+        )
+    elif normalized_query and resolved_query == normalized_query:
+        st.info("No close committed nodes were found. You can still generate a draft directly from the raw query.")
+
+    if generate_clicked and normalized_query:
+        draft = build_knowledge_graph_draft(
+            normalized_query,
+            selected_node_ids=list(st.session_state.get("knowledge_graph_selected_node_ids") or []),
+            include_agentic_expansion=bool(include_agentic_expansion),
+            snapshot=snapshot,
+        )
+        st.session_state["_knowledge_graph_matches"] = list(draft.get("seed_matches") or [])
+        st.session_state["_knowledge_graph_resolved_query"] = normalized_query
+        if not list(st.session_state.get("knowledge_graph_selected_node_ids") or []):
+            st.session_state["knowledge_graph_selected_node_ids"] = default_seed_node_ids_from_matches(
+                list(draft.get("seed_matches") or [])
+            )
+        st.session_state["_knowledge_graph_draft"] = draft
+        st.session_state["_knowledge_graph_draft_query"] = normalized_query
+        st.session_state["_knowledge_graph_draft_key"] = hashlib.sha1(
+            json.dumps(draft, sort_keys=True, default=str).encode("utf-8")
+        ).hexdigest()[:12]
+
+    draft = st.session_state.get("_knowledge_graph_draft")
+    draft_query = str(st.session_state.get("_knowledge_graph_draft_query") or "").strip()
+    if isinstance(draft, dict) and draft_query == normalized_query:
+        st.subheader("Draft Graph")
+        if str(draft.get("agentic_summary") or "").strip():
+            st.caption(str(draft.get("agentic_summary") or ""))
+        for limitation in list(draft.get("limitations") or []):
+            if str(limitation or "").strip():
+                st.warning(str(limitation))
+
+        st.plotly_chart(plot_knowledge_graph_draft(draft), use_container_width=True)
+        st.caption("If you change a node id, update any edges that reference it before commit.")
+
+        draft_key = str(st.session_state.get("_knowledge_graph_draft_key") or "draft")
+        nodes_editor = st.data_editor(
+            draft_nodes_frame(draft),
+            key=f"knowledge_graph_nodes_editor_{draft_key}",
+            use_container_width=True,
+            hide_index=True,
+            num_rows="dynamic",
+            column_config={
+                "keep": st.column_config.CheckboxColumn("keep"),
+                "confidence": st.column_config.NumberColumn("confidence", format="%.2f"),
+            },
+            disabled=["source_status"],
+        )
+        edges_editor = st.data_editor(
+            draft_edges_frame(draft),
+            key=f"knowledge_graph_edges_editor_{draft_key}",
+            use_container_width=True,
+            hide_index=True,
+            num_rows="dynamic",
+            column_config={
+                "keep": st.column_config.CheckboxColumn("keep"),
+                "severity": st.column_config.NumberColumn("severity", format="%.2f"),
+                "confidence": st.column_config.NumberColumn("confidence", format="%.2f"),
+            },
+            disabled=["source_status"],
+        )
+        commit_summary = st.text_area(
+            "Commit summary",
+            key=f"knowledge_graph_commit_summary_{draft_key}",
+            placeholder="Describe what you approved, removed, or added in this draft.",
+        )
+        if not runtime_status.get("store_ready"):
+            st.info("Commit is disabled because the Postgres knowledge-graph store is not ready in this environment.")
+        if st.button(
+            "Commit to Core Knowledge Graph",
+            key=f"knowledge_graph_commit_button_{draft_key}",
+            type="primary",
+            disabled=not bool(runtime_status.get("store_ready")),
+            use_container_width=True,
+        ):
+            result = commit_knowledge_graph_review(
+                query=normalized_query,
+                draft=draft,
+                nodes_frame=nodes_editor,
+                edges_frame=edges_editor,
+                summary=commit_summary,
+                created_by=_knowledge_graph_commit_actor(),
+            )
+            st.session_state["_knowledge_graph_commit_feedback"] = result
+            if bool(result.get("ok")):
+                _clear_experiment_graph_state(keep_query=True)
+                st.rerun()
+            st.error(str(result.get("message") or "Commit failed."))
+
+    st.subheader("Recent Commits")
+    recent_commits = list_recent_knowledge_graph_commits(limit=10)
+    if recent_commits.empty:
+        st.caption("No committed graph reviews yet.")
+    else:
+        if "created_at" in recent_commits.columns:
+            recent_commits["created_at"] = pd.to_datetime(recent_commits["created_at"], utc=True, errors="coerce")
+        st.dataframe(recent_commits, use_container_width=True, hide_index=True)
 
 
 def _render_homepage_exp(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_refresh: bool) -> None:

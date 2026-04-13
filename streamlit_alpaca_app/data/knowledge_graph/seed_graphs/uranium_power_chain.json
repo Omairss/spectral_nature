@@ -1,0 +1,115 @@
+{
+  "title": "Uranium and Power Reliability",
+  "nodes": [
+    {
+      "id": "uranium",
+      "label": "Uranium",
+      "type": "commodity",
+      "description": "Fuel input for nuclear generation.",
+      "aliases": ["uranium oxide", "nuclear fuel feedstock"]
+    },
+    {
+      "id": "nuclear_fuel",
+      "label": "Nuclear Fuel Cycle",
+      "type": "process",
+      "description": "Conversion, enrichment, fabrication, and fuel management.",
+      "aliases": ["fuel cycle", "nuclear fuel"]
+    },
+    {
+      "id": "nuclear_generation",
+      "label": "Nuclear Generation",
+      "type": "capacity_pool",
+      "description": "Existing and planned nuclear generation capacity.",
+      "aliases": ["nuclear power", "nuclear baseload"]
+    },
+    {
+      "id": "baseload_power",
+      "label": "Baseload Power",
+      "type": "effect",
+      "description": "Firm power supply that supports grid reliability.",
+      "aliases": ["firm power", "reliable power"]
+    },
+    {
+      "id": "datacenter_power",
+      "label": "Datacenter Power Demand",
+      "type": "effect",
+      "description": "Electric load from large compute campuses.",
+      "aliases": ["datacenter electricity", "ai power demand"]
+    },
+    {
+      "id": "CCJ",
+      "label": "Cameco",
+      "type": "company",
+      "description": "Major uranium supplier.",
+      "aliases": ["CCJ", "Cameco"],
+      "attributes": {"ticker": "CCJ"}
+    },
+    {
+      "id": "SMR",
+      "label": "NuScale Power",
+      "type": "company",
+      "description": "Small modular reactor design company.",
+      "aliases": ["SMR", "NuScale"],
+      "attributes": {"ticker": "SMR"}
+    },
+    {
+      "id": "advanced_reactors",
+      "label": "Advanced Reactors",
+      "type": "theme",
+      "description": "Next-generation reactor designs that can extend long-duration nuclear demand.",
+      "aliases": ["small modular reactors", "advanced nuclear"]
+    }
+  ],
+  "edges": [
+    {
+      "source": "uranium",
+      "target": "nuclear_fuel",
+      "relationship": "feeds",
+      "mechanism": "Uranium is the raw input to the fuel cycle.",
+      "confidence": 0.95
+    },
+    {
+      "source": "nuclear_fuel",
+      "target": "nuclear_generation",
+      "relationship": "supports",
+      "mechanism": "Fuel availability is required to sustain generation output.",
+      "severity": 0.83,
+      "confidence": 0.88
+    },
+    {
+      "source": "nuclear_generation",
+      "target": "baseload_power",
+      "relationship": "supports",
+      "mechanism": "Nuclear plants contribute firm low-carbon generation.",
+      "confidence": 0.9
+    },
+    {
+      "source": "baseload_power",
+      "target": "datacenter_power",
+      "relationship": "supports",
+      "mechanism": "Firm generation can improve power availability for large compute loads.",
+      "confidence": 0.67
+    },
+    {
+      "source": "uranium",
+      "target": "CCJ",
+      "relationship": "supports_revenue",
+      "mechanism": "Uranium demand and price strength support producer economics.",
+      "confidence": 0.84
+    },
+    {
+      "source": "advanced_reactors",
+      "target": "uranium",
+      "relationship": "raises_long_term_demand",
+      "mechanism": "More reactor deployment can extend long-run uranium demand.",
+      "confidence": 0.61
+    },
+    {
+      "source": "SMR",
+      "target": "advanced_reactors",
+      "relationship": "supplies_designs",
+      "mechanism": "NuScale is one public-company proxy for advanced-reactor deployment.",
+      "confidence": 0.66
+    }
+  ]
+}

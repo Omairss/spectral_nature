@@ -17,6 +17,22 @@ the system should:
 - fetch current evidence when the question is time-sensitive
 - answer with visible grounding instead of defaulting too easily to a zero-tool freehand synthesis
 
+## Current Status
+
+Implemented in this pass:
+
+- added `research.retained_context`, `research.market_impact_map`, `research.live_event_evidence`, and `research.open_page` to the omnibar tool catalog
+- added an evidence-seeking bias for live analysis prompts in the omnibar planner prompt
+- passed richer research tool context into the planner and final synthesis path
+- lightly encouraged one or two supporting source mentions when live external evidence is used
+- added bounded page browsing with Playwright-preferred reads and an HTTP fallback
+
+Still open:
+
+- full browser-runtime provisioning for Playwright-heavy sites in deployed containers
+- richer citation UI on the main answer surface
+- broader config-driven impact maps beyond the first market-event themes
+
 ## What is happening now
 
 - Routing into agent mode is working.

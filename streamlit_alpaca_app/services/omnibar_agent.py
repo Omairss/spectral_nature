@@ -6,6 +6,7 @@ from typing import Any, Callable
 
 from data_access.query_service import QueryService
 from .agent_tools import build_tool_catalog, invoke_tool
+from .omnibar_research import query_needs_evidence
 from .llm import (
     AzureOpenAIChatJSONClient,
     LLMAPIError,
@@ -267,12 +268,35 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
     else:
         preview_text = f"{result_type}: {_json_dumps(preview.get('value'))}"
 
+    llm_context_text = ""
+    if isinstance(payload, dict):
+        explicit_context = _clean(payload.get("llm_context_text"))
+        if explicit_context:
+            llm_context_text = _truncate(explicit_context, limit=2600)
+        elif isinstance(payload.get("summary"), list):
+            lines: list[str] = []
+            for item in list(payload.get("summary") or [])[:5]:
+                if not isinstance(item, dict):
+                    continue
+                parts = [
+                    _clean(item.get("symbol") or item.get("label") or item.get("title") or item.get("headline")),
+                    _clean(item.get("summary_text") or item.get("summary") or item.get("excerpt")),
+                    _clean(item.get("source")),
+                    _clean(item.get("url")),
+                ]
+                text = " | ".join(part for part in parts if part)
+                if text:
+                    lines.append(text)
+            if lines:
+                llm_context_text = _truncate("\n".join(lines), limit=2200)
+
     return {
         "result_type": result_type,
         "provenance": provenance,
         "preview": preview,
         "preview_text": preview_text,
         "render_payload": render_payload,
+        "llm_context_text": llm_context_text,
     }
 
 
@@ -295,10 +319,15 @@ def _tool_history_prompt(tool_calls: list[dict[str, Any]]) -> str:
         return "No tools have been called yet."
     lines: list[str] = []
     for tool_call in tool_calls:
+        result_summary = dict(tool_call.get("result_summary") or {})
+        result_text = _truncate(
+            result_summary.get("llm_context_text") or result_summary.get("preview_text") or "",
+            limit=1600,
+        )
         lines.append(
             f"- {tool_call['tool_call_id']} | {tool_call['status']} | {tool_call['tool_name']} | "
             f"args={_json_dumps(tool_call.get('arguments') or {}, limit=500)} | "
-            f"result={_truncate(tool_call.get('result_summary', {}).get('preview_text') or '', limit=1200)}"
+            f"result={result_text}"
         )
     return "\n".join(lines)
 
@@ -413,8 +442,8 @@ def _fallback_answer(query: str, tool_calls: list[dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
-def _planner_system_prompt() -> str:
-    return (
+def _planner_system_prompt(*, evidence_expected: bool) -> str:
+    prompt = (
         "You are the Spectral Nature omnibar agent. "
         "Answer the user's question by calling the available tools when needed. "
         "Use tools for factual retrieval, comparisons, macro releases, company context, portfolio context, "
@@ -427,6 +456,15 @@ def _planner_system_prompt() -> str:
         "Avoid broad query tools when a domain-specific dataset already returned the needed value. "
         "When you have enough evidence, return action='final' with a concise markdown answer grounded only in tool results."
     )
+    if evidence_expected:
+        prompt += (
+            " This prompt looks like time-sensitive analysis. "
+            "Strongly prefer using research.retained_context and/or research.live_event_evidence before answering. "
+            "Use research.market_impact_map when the prompt is about broad spillover or second-order effects. "
+            "If a promising result URL needs a deeper read, use research.open_page. "
+            "Tool use is encouraged, not forced, but a zero-tool final answer should be treated as a high bar."
+        )
+    return prompt
 
 
 def _planner_user_prompt(
@@ -435,9 +473,11 @@ def _planner_user_prompt(
     tool_catalog: list[dict[str, Any]],
     tool_calls: list[dict[str, Any]],
     max_tool_calls: int,
+    evidence_expected: bool,
 ) -> str:
     return (
         f"User question:\n{query}\n\n"
+        f"Evidence expectation: {'high' if evidence_expected else 'normal'}.\n\n"
         f"Tool budget: {max_tool_calls - len(tool_calls)} remaining out of {max_tool_calls}.\n\n"
         "Available tools:\n"
         f"{_tool_catalog_prompt(tool_catalog)}\n\n"
@@ -464,6 +504,8 @@ def _final_user_prompt(
         "Tool evidence:\n"
         f"{_tool_history_prompt(tool_calls)}\n\n"
         "Write the best grounded markdown answer you can from this evidence only. "
+        "If the evidence includes fresh web research, lightly mention one or two supporting sources or links. "
+        "Do not turn the answer into a citation list. "
         "If the evidence is incomplete, say what is missing."
     )
 
@@ -479,6 +521,7 @@ def run_omnibar_agent(
 ) -> dict[str, Any]:
     normalized_query = _clean(query)
     run_id = f"agrun_{uuid.uuid4().hex[:10]}"
+    evidence_expected = query_needs_evidence(normalized_query)
     if not normalized_query:
         return {
             "run_id": run_id,
@@ -541,12 +584,13 @@ def run_omnibar_agent(
                 tool_call_count=len(tool_calls),
             )
             decision = resolved_llm.generate_json(
-                system_prompt=_planner_system_prompt(),
+                system_prompt=_planner_system_prompt(evidence_expected=evidence_expected),
                 user_prompt=_planner_user_prompt(
                     query=normalized_query,
                     tool_catalog=tool_catalog,
                     tool_calls=tool_calls,
                     max_tool_calls=max_tool_calls,
+                    evidence_expected=evidence_expected,
                 ),
                 schema_name="omnibar_agent_step",
                 schema=_STEP_SCHEMA,
@@ -734,7 +778,8 @@ def run_omnibar_agent(
             final_payload = resolved_llm.generate_json(
                 system_prompt=(
                     "You are the Spectral Nature omnibar agent. "
-                    "Write a grounded markdown answer from the collected tool evidence only."
+                    "Write a grounded markdown answer from the collected tool evidence only. "
+                    "When live external evidence was used, lightly reference one or two supporting sources or URLs."
                 ),
                 user_prompt=_final_user_prompt(query=normalized_query, tool_calls=tool_calls),
                 schema_name="omnibar_agent_final",
@@ -789,6 +834,7 @@ def run_omnibar_agent(
         "answer_markdown": answer_markdown,
         "confidence": final_confidence,
         "limitations": limitations,
+        "evidence_expected": evidence_expected,
         "error": None if status == "completed" else "Agent did not produce an answer.",
     }
 
