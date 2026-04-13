@@ -7,7 +7,7 @@ import uuid
 from typing import Any
 
 from data_access.layer import DataAccessLayer
-from services.attention_surface import attention_home_bundle_preview, attention_home_surface_summary
+from services.attention_home_summary import build_attention_home_narrative_beats
 
 
 OMNIBAR_POLICY_VERSION = "streamlit-agentic-omnibar-v1"
@@ -15,37 +15,37 @@ OMNIBAR_MACRO_RELEASES: tuple[dict[str, object], ...] = (
     {
         "release_id": "cpi",
         "label": "CPI Release",
-        "subtitle": "Inflation release context and price-level signals in FRED Macro.",
+        "subtitle": "Inflation release context and price-level signals in Broad Economy.",
         "aliases": ("cpi", "consumer price index", "inflation release", "inflation print"),
     },
     {
         "release_id": "pce",
         "label": "PCE Release",
-        "subtitle": "Fed-focused inflation context and personal consumption expenditures signals.",
+        "subtitle": "Fed-focused inflation context and personal consumption expenditures signals in Broad Economy.",
         "aliases": ("pce", "core pce", "personal consumption expenditures"),
     },
     {
         "release_id": "nfp",
         "label": "NFP Release",
-        "subtitle": "Labor-market release context for payrolls and unemployment sensitivity.",
+        "subtitle": "Labor-market release context for payrolls and unemployment sensitivity in Broad Economy.",
         "aliases": ("nfp", "payrolls", "nonfarm payrolls", "jobs report"),
     },
     {
         "release_id": "fomc",
         "label": "FOMC Decision",
-        "subtitle": "Policy path and rates context through the macro dashboard.",
+        "subtitle": "Policy path and rates context through Broad Economy.",
         "aliases": ("fomc", "fed", "fed meeting", "rate decision", "powell"),
     },
     {
         "release_id": "retail_sales",
         "label": "Retail Sales",
-        "subtitle": "Consumer-demand release context in the FRED Macro view.",
+        "subtitle": "Consumer-demand release context in Broad Economy.",
         "aliases": ("retail sales", "consumer spending"),
     },
     {
         "release_id": "ism",
         "label": "ISM Survey",
-        "subtitle": "Manufacturing and services diffusion context in the macro dashboard.",
+        "subtitle": "Manufacturing and services diffusion context in Broad Economy.",
         "aliases": ("ism", "pmi", "manufacturing pmi", "services pmi"),
     },
 )
@@ -67,16 +67,6 @@ def _trim_text(text: object, *, limit: int = 140) -> str:
     if len(clean) <= limit:
         return clean
     return clean[: limit - 3].rstrip() + "..."
-
-
-def _attention_mover_card_title(mover: dict[str, object]) -> str:
-    headline = _normalize_text((mover or {}).get("headline"))
-    if headline:
-        return headline
-    symbol = _normalize_text((mover or {}).get("symbol")).upper()
-    if symbol:
-        return symbol
-    return "Mover"
 
 
 def _exact_ticker_candidate(query: str) -> str:
@@ -150,56 +140,6 @@ def _confidence_band(intent: str, top_score: float) -> str:
         return "medium"
     return "low"
 
-
-def _build_homepage_narrative_beats(home_payload: dict[str, object]) -> list[dict[str, object]]:
-    top_events = list(home_payload.get("top_events") or [])
-    must_read = list(home_payload.get("must_read_movers") or [])
-    unresolved = list(home_payload.get("unresolved_large_moves") or [])
-
-    beats: list[dict[str, object]] = []
-    for event in top_events:
-        preview = attention_home_bundle_preview(event, bundle={})
-        summary_text = attention_home_surface_summary(preview, is_event=True)
-        beats.append(
-            {
-                "bundle_id": _normalize_text(event.get("bundle_id")),
-                "sentence": _normalize_text(event.get("event_title")),
-                "summary": summary_text,
-                "symbols": [
-                    str(item).upper().strip()
-                    for item in list(event.get("supporting_symbols") or [])
-                    if str(item).strip()
-                ],
-                "kind": "event",
-            }
-        )
-    for mover in must_read:
-        preview = attention_home_bundle_preview(mover, bundle={})
-        summary_text = attention_home_surface_summary(preview, is_event=False)
-        beats.append(
-            {
-                "bundle_id": _normalize_text(mover.get("bundle_id")),
-                "sentence": _attention_mover_card_title(mover),
-                "summary": summary_text,
-                "symbols": [str(mover.get("symbol") or "").upper().strip()],
-                "kind": "mover",
-            }
-        )
-    for mover in unresolved:
-        preview = attention_home_bundle_preview(mover, bundle={})
-        summary_text = attention_home_surface_summary(preview, is_event=False)
-        beats.append(
-            {
-                "bundle_id": _normalize_text(mover.get("bundle_id")),
-                "sentence": _attention_mover_card_title(mover),
-                "summary": summary_text or "Large move with insufficient retained evidence so far.",
-                "symbols": [str(mover.get("symbol") or "").upper().strip()],
-                "kind": "unresolved",
-            }
-        )
-    return beats
-
-
 def _load_symbol_name_map(
     layer: DataAccessLayer,
     symbols: list[str],
@@ -266,7 +206,7 @@ def build_omnibar_context(
         home_payload = {}
     if not isinstance(home_payload, dict):
         home_payload = {}
-    beats = _build_homepage_narrative_beats(home_payload)
+    beats = build_attention_home_narrative_beats(home_payload if isinstance(home_payload, dict) else {})
     tracked_symbols = sorted(
         {
             str(symbol).upper().strip()

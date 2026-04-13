@@ -1,193 +1,278 @@
 # Mistakes Log
 
-## 2026-04-09 - Commodity Preload Used the Wrong Universe Contract
+This is a curated list of repeated failure modes for this repo. Highest-risk items come first.
 
-### What went wrong
-- The commodities preload job used a taxonomy-derived commodity universe, while the `Commodity Section` UI uses a curated commodity proxy universe.
-- The preload also reused that same list as the reference basket, which blurred two different roles in the model.
-- The materialized `momentum_profiles` resolver treated an empty filtered snapshot as a successful answer, so explicit commodity proxy requests could stop before any live fallback.
+## 1. Verified the wrong end state
 
-### Impact
-- Materialized `commodity_regime_summary` / `commodity_regime_history` could be empty or misaligned with the dashboard.
-- Snapshot-first commodity views could fail with a vague “Not enough commodity history” message even when the UI code path itself was fine.
-- Connected mode could also fail for commodity proxies if the shared equity momentum snapshot did not include those symbols.
+What went wrong:
 
-### Never repeat checklist (mandatory)
-1. For snapshot-backed views, verify that the pipeline job and UI read path use the same symbol contract before debugging the renderer.
-2. Keep analysis universe helpers and reference-basket helpers separate when they serve different modeling roles.
-3. For materialized-first resolvers, distinguish between “snapshot exists” and “requested slice exists”.
-4. Add a regression test at the orchestration layer when a job wires multiple shared helper functions together.
+- I treated unit or service checks as enough without verifying the exact UI or API path the user actually hits.
+- I validated forced-refresh or on-demand paths but missed the default materialized path.
+- I stopped after a deploy looked healthy without testing the affected screen or workflow end to end.
 
-## 2026-04-07 - FastAPI Response Type Annotation Broke Route Registration
+Never repeat:
 
-### What went wrong
-- I annotated the JSON-RPC endpoint return type as a complex union (`Response | dict | list[dict]`), which FastAPI attempted to turn into a Pydantic response model and failed during app import.
+1. Reproduce the issue through the smallest callable unit first.
+2. Verify the exact user-facing path after that, including default materialized or cached paths.
+3. Add at least one regression test on the final payload fields or contract the UI consumes.
+4. After deploy, test the exact affected screen or endpoint, not just service health.
 
-### Impact
-- API test collection failed before running any endpoint tests.
+## 2. Let secrets and infra state drift
 
-### Never repeat checklist (mandatory)
-1. For heterogeneous RPC endpoints, set `response_model=None` and use `-> Any` return annotation.
-2. Run `pytest` immediately after adding a new route signature to catch import-time FastAPI model errors.
-3. Prefer explicit response model classes for non-RPC endpoints and keep RPC endpoints intentionally model-free.
+What went wrong:
 
-## 2026-04-07 - Macro Release Events Were Not First-Class Homepage Items
+- I allowed tracked `.env` files or build context uploads to carry real secrets.
+- I trusted stale local env aliases or generated files instead of live Azure state.
+- I verified one Key Vault path and assumed the running app was using the same secrets.
 
-### What went wrong
-- High-importance macro releases (jobs/CPI/PCE) were only used as narrative context and not emitted as standalone event objects in the attention homepage payload.
-- `top_events` slotting was driven by mover clustering only, so qualifying macro releases could be absent even on release days.
+Never repeat:
 
-### Impact
-- Users could miss key macro prints in homepage `top_events` despite visible cross-asset reaction.
-- Reduced trust in the feed during macro event days.
+1. Keep `.env` and `.env.*` ignored, while keeping `.env.example` tracked.
+2. Mirror secret-file exclusions in build context rules such as `.dockerignore`.
+3. Treat Azure runtime config as source of truth and local generated files as fallback only.
+4. Normalize equivalent Key Vault env vars to one canonical value after discovery.
+5. Confirm secrets in the exact vault and app environment the running workload uses.
 
-### Never repeat checklist (mandatory)
-1. For must-show event classes, create explicit event rows and persistence datasets (`*_events_1d`) instead of relying on side-channel narrative enrichment.
-2. Enforce promotion and non-suppression in one place (`_build_home_payload`) with tests that cover slot-pressure scenarios.
-3. Add release-day regression tests that assert presence of macro release events even when non-macro clusters already consume top slots.
+## 3. Allowed stale or partial data to look successful
 
-## 2026-04-07 - Macro Release Logic Stayed Hardcoded Too Long
+What went wrong:
 
-### What went wrong
-- Macro release mapping, display names, and scoring thresholds stayed embedded in `services/attention_agentic.py` after initial ship.
-- This limited coverage to a fixed symbol list and made normal release-model tuning require code edits and redeploys.
+- I treated "snapshot exists" as equivalent to "requested slice exists."
+- I let warning-only source failures pass in composite jobs where the missing source was actually mandatory.
+- I allowed empty or wrong-universe materialized data to block better live fallback behavior.
 
-### Impact
-- Faster iteration on macro detection thresholds and series mapping was blocked.
-- Users could miss relevant release types that were present in FRED inputs but absent from hardcoded mapping.
+Never repeat:
 
-### Never repeat checklist (mandatory)
-1. Move release/component dictionaries and thresholds into a versioned runtime profile before expanding feature scope.
-2. Keep code responsible for orchestration only; put series membership and edge definitions in config.
-3. Add tests that prove config override behavior for at least one non-default series.
+1. Distinguish between a dataset existing and the requested slice being usable.
+2. Fail composite jobs when mandatory sources fail.
+3. Keep UI read paths and upstream jobs on the same symbol and data contract.
+4. Surface provenance clearly enough to tell whether a result came from live, cached, or materialized data.
+5. Add orchestration-level regression tests when multiple helpers or source paths interact.
 
-## 2026-04-06 - Attention Scoring Doc Drift From Runtime
+## 4. Changed public contracts only halfway
 
-### What went wrong
-- The historical attention layer plan still described scoring with shorthand placeholders (`liquidity proxy`, `peer confirmation`) that no longer matched the implemented formulas in `compute/anomalies.py`.
-- Horizon/config defaults shown in the plan also lagged behind runtime values.
+What went wrong:
 
-### Impact
-- Confusion during review about how `severity`, `impact`, `relevance`, and `confidence` are actually computed.
-- Higher risk of design decisions being made from stale guidance instead of current contracts.
+- I changed API, service, or UI contracts in one layer without updating the other layers in the same pass.
+- I relied on helpers that existed only in the dirty local workspace and not in the clean deploy source.
+- I assumed temporary test environments already included the dependencies the changed contract needed.
 
-### Never repeat checklist (mandatory)
-1. When explaining scoring behavior, verify formulas directly from code before citing plan docs.
-2. If a plan is historical, clearly mark current-runtime sections and keep formulas/versioned defaults updated.
-3. When adding a new architecture plan, immediately update the plans index so future sessions find the right spec first.
+Never repeat:
 
-## 2026-04-06 - Noisy Framework Search During API Discovery
+1. Treat contract changes as one atomic change set across service, UI, tests, and docs.
+2. Compare deploy-target files against `HEAD` when using a clean worktree, not against the dirty local copy.
+3. Smoke-test new route signatures and changed call sites immediately after editing them.
+4. Make helper usage self-contained when patching mixed files for isolated deploys.
+5. Confirm temporary test environments include real runtime test dependencies.
 
-### What went wrong
-- I used a broad keyword search for web frameworks and accidentally traversed generated/debug HTML artifacts, producing noisy output.
+## 5. Let docs or runtime rules drift from the code
 
-### Impact
-- Slower discovery loop before implementing the actual API scaffold.
+What went wrong:
 
-### Never repeat checklist (mandatory)
-1. Scope framework checks to source directories (`api/`, `scripts/`, `requirements.txt`, `services/`) first.
-2. Exclude heavy artifacts (`-g '!documents/debug/**' -g '!cache/**' -g '!*.html'`) on first pass.
-3. Stop and narrow immediately when output includes generated bundles.
+- I relied on planning docs that no longer matched runtime formulas or defaults.
+- I left important mappings and thresholds hardcoded long after the feature needed tuning.
+- I allowed must-show product behavior to stay implicit instead of encoding it in persisted data and tested orchestration rules.
 
-## 2026-04-05 - Overbroad Search During Domain Ops Discovery
+Never repeat:
 
-### What went wrong
-- I used a broad repo search pattern while looking for domain/DNS automation hooks and pulled notebook-heavy output that was not needed.
+1. Treat the runtime code path as source of truth when explaining current behavior.
+2. Move tunable mappings and thresholds into versioned config before the feature expands.
+3. Encode must-show behavior in one tested orchestration point, not in narrative side effects.
+4. Update plan indexes and canonical docs when implementation shape changes.
 
-### Impact
-- Slower discovery loop and unnecessary output review before the actual cutover.
+## 6. Used overly broad or assumption-heavy tooling
 
-### Never repeat checklist (mandatory)
-1. Start domain-operation discovery from `documents/operations/PROJECT_SETUP_AND_OPERATIONS.md` and `scripts/` only.
-2. Exclude notebooks and caches in initial searches (`-g '!notebooks/**' -g '!cache/**'`).
-3. Expand search scope only after targeted docs/scripts are exhausted.
+What went wrong:
 
-## 2026-04-05 - Partial Refactor Left UI/Service Contract Mismatch
+- I ran broad repo searches before confirming the right root path or narrowing the scope.
+- I used short-interval polling or high-churn commands when slower polling would have been enough.
+- I assumed commands like `python` or base-interpreter pytest environments would exist and match repo needs.
 
-### What went wrong
-- I partially migrated invite preview APIs from single-theme (`theme_override`) to template-based (`template_override`) but did not complete all UI call sites in the same pass.
-- This created a temporary runtime mismatch in the invite designer page.
+Never repeat:
 
-### Impact
-- Invite designer preview would fail until UI and service signatures were fully aligned.
+1. Resolve the exact workspace root first.
+2. Start with targeted `rg` searches on known files or directories before scanning broadly.
+3. Exclude heavy artifacts on first-pass searches.
+4. Poll long-running deploy and build commands less often and only ask for detail when state changes.
+5. Prefer explicit repo-safe commands such as `python3` and `uv run` over environment assumptions.
 
-### Never repeat checklist (mandatory)
-1. When changing public function signatures, run immediate cross-file search for old call patterns before pausing work.
-2. Treat service/UI contract migrations as one atomic change set (service, UI, tests) rather than incremental partial edits.
-3. Add at least one regression test for the new API surface (`build_invite_email_preview(..., template_override=...)`) before handoff.
+## 7. Chose the container before the action model
 
-## 2026-04-05 - Overscoped Search During Planning
+What went wrong:
 
-### What went wrong
-- I ran a broad `rg` query across the app tree during strategy discovery and pulled far more output than needed.
+- I treated an admin CRUD problem as a table or grid problem before deciding what actions the user needed.
 
-### Impact
-- Wasted review time and tokens during planning work.
+Never repeat:
 
-### Never repeat checklist (mandatory)
-1. Start with targeted files (`documents/README.md`, `data_access/query_service.py`, `services/auth_*`) before any broad scan.
-2. If grep is required, constrain with specific dirs and `--max-count`/file filters.
-3. Stop and narrow immediately when output volume spikes.
+1. Start with the per-row actions and state transitions the screen needs.
+2. Prefer native row-based controls before adding a grid dependency.
+3. Add the backend mutation path before polishing the UI shell around it.
 
-## 2026-04-03 - Dashboard End-State Mismatch
+## 8. Allowed tracked secrets and fail-open auth paths
 
-### What went wrong
-- I treated passing service-level tests as sufficient, but the actual dashboard end state still showed fallback text (`No relevant catalyst found ...`) for real symbols.
-- I removed overview-panel fundamental charts during cleanup when the request was to simplify narrative sections, not remove analytical visuals.
-- I validated providers in one vault path but did not first guarantee the running dev app vault had all required secrets (`serpapi-api-key`, `tavily-api-key`, `azure-openai-api-key`).
+What went wrong:
 
-### Impact
-- User saw unchanged/noisy outcomes in the real UI despite backend changes.
-- Confidence dropped because test results did not reflect production-like behavior.
+- Real credentials were allowed to live in tracked legacy code and notebooks.
+- The API auth path fell back to anonymous access when auth readiness failed instead of failing closed.
+- Browser session restoration relied on a JavaScript-written cookie that cannot be `HttpOnly`.
 
-### Never repeat checklist (mandatory)
-1. Validate through the same query path the dashboard uses (`attention_ticker_background`, `attention_research_bundle`) with `force_refresh=true`.
-2. Confirm target app environment secrets in the exact Key Vault used by that app before declaring search/LLM fixes done.
-3. Add/maintain end-state assertions in tests for final payload fields consumed by UI:
-   - `description_text`
-   - `news_summary_lines`
-   - `recent_headlines`
-4. Do not remove unrelated UI sections (e.g., fundamental charts) unless explicitly requested.
-5. After deploy, verify one known problematic ticker end-to-end and record the output in deploy notes.
+Never repeat:
 
-## 2026-04-03 - Missed `force_refresh=false` Materialized Path
+1. Treat tracked notebooks and legacy folders as full secret-scan scope.
+2. Never commit a real secret, even for old code, one-off scripts, or local test notebooks.
+3. Auth checks must fail closed on backend errors, missing stores, or partial configuration.
+4. Do not reuse dashboard passwords as token-signing material.
+5. If the framework forces browser-readable cookies, document the risk and plan the replacement instead of treating it as fully acceptable.
+6. Keep insecure migration paths behind explicit env flags and make the default posture the safer one.
 
-### What went wrong
-- I validated mostly with `force_refresh=true`, which hit on-demand symbol bundle logic.
-- The default dashboard path (`force_refresh=false`) still preferred materialized bundle snapshots and surfaced stale SEC-only/no-catalyst copy.
+## 9. Shipped a SQL rewrite without a store-level regression test
 
-### Impact
-- User kept seeing fallback text in the actual dashboard despite successful forced-refresh checks.
+What went wrong:
 
-### Never repeat checklist (mandatory)
-1. For ticker-background fixes, always verify both paths: `force_refresh=true` and `force_refresh=false`.
-2. In container validation, assert provenance datasets for default path include live search datasets when materialized bundle lacks web signal.
-3. Treat stale materialized-vs-on-demand precedence as a first-class regression risk and add explicit tests for it.
+- I expanded `auth_store.list_users()` to include credential and session stats.
+- The rewritten query referenced `u.*` but the `FROM` clause no longer aliased `users` as `u`.
+- There was no direct `auth_store` test covering the SQL string or the merged payload path.
 
-## 2026-04-03 - Silent Partial Success in `macro-fred-daily`
+Never repeat:
 
-### What went wrong
-- The FRED phase in `macro-fred-daily` logged errors but did not fail the job.
-- Treasury yield persistence in the same run made the execution appear successful while FRED datasets stayed stale.
+1. When rewriting SQL in store code, add a direct store-level regression test for the exact query path.
+2. If a query uses table aliases in joins or ordering, verify the alias is declared in the `FROM` clause before deploy.
+3. For admin surfaces backed by raw SQL, test the store function directly instead of relying only on service and API coverage.
 
-### Impact
-- Monitoring and operators saw `Succeeded` executions despite no fresh FRED snapshots.
-- FRED dashboard data could lag for multiple days without a job-level failure signal.
+## 10. Left incident-response visibility weaker than the secrets footprint
 
-### Never repeat checklist (mandatory)
-1. For composite jobs, define mandatory source steps and fail the run when they fail.
-2. Do not downgrade mandatory ingest failures to warning-only logs.
-3. Add tests that simulate source failure and assert job failure status propagation.
+What went wrong:
 
-## 2026-04-07 - Overly Strict Macro-Verification Test Assertion
+- Real secrets were allowed into tracked files before full SQL and Key Vault diagnostics were in place.
+- That meant the breach review could confirm management-plane events but could not confidently rule out data-plane misuse.
 
-### What went wrong
-- I initially asserted that macro verification always writes `macro_*` claim rows.
-- In practice, retrieval may produce only neutral evidence for a hypothesis, which can validly update `evidence_count` without adding support/contradiction claim rows.
+Never repeat:
 
-### Impact
-- Test failed even though the verification path executed and persisted search traces as designed.
+1. Enable service auditing and diagnostics before or alongside any rollout that introduces real credentials.
+2. When a secret leak is found, document the telemetry gap as part of the remediation, not as a separate cleanup task.
+3. Treat missing audit trails as a security defect with operational impact, not just an infrastructure nicety.
+4. When a security control is enabled by CLI, expose its steady-state status in the admin surface so drift is visible without another manual audit.
 
-### Never repeat checklist (mandatory)
-1. For retrieval-verification tests, assert execution traces (`search_requests/search_results`) and hypothesis evidence counts first.
-2. Only assert support/contradiction claim rows when test fixtures explicitly force non-neutral verdicts.
+## 11. Assumed Azure control-plane discovery was single-subscription
+
+What went wrong:
+
+- I initially resolved the admin security panel subscription by taking the first enabled subscription visible to the Azure credential.
+- The credential had access to multiple subscriptions, so the panel queried the right resource group name in the wrong subscription and showed false 404-based failures.
+- I also let the panel inherit the generic pipeline resource-group env, even though the audited SQL and Key Vault resources live outside that pipeline RG.
+
+Never repeat:
+
+1. For Azure health or security panels, resolve the subscription from the configured resource group and tracked resources, not from subscription list order.
+2. Keep admin observability config separate from generic pipeline env defaults when the monitored resources are different.
+3. Validate a new control-plane status reader against the live resource ids before trusting the UI summary.
+
+## 12. Let a prod-facing auth behavior depend on an implicit code default
+
+What went wrong:
+
+- Browser-persistence behavior changed in code, but the production UI app did not have an explicit env setting for that behavior.
+- The deployment tracker also did not surface the actual UI resource group or the auth-persistence mode, which slowed down root-cause confirmation.
+
+Never repeat:
+
+1. Put behavior-critical prod expectations behind explicit deploy-time env vars.
+2. Surface those env-backed behaviors in the deployment tracker when they materially affect user experience or security posture.
+3. When prod and dev intentionally differ, encode that in the deploy script instead of relying on remembered manual toggles.
+
+## 12. Left internal implementation copy in the end-user workspace
+
+What went wrong:
+
+- I left resolver and mode-explanation text directly in `Chat + Search`, even though it described implementation details instead of helping the user complete a task.
+- That made the screen noisier and pushed real controls further down without adding decision value.
+
+Never repeat:
+
+1. Keep architecture explanations in docs, comments, or admin surfaces unless the user explicitly needs them on-screen.
+2. For workflow pages, remove any copy that does not change what the next click should be.
+3. Before promotion, verify the rendered page for both visual order and text relevance, not just functional correctness.
+
+## 13. Promoted a prod image without promoting new runtime env
+
+What went wrong:
+
+- I promoted the dev UI image to prod, but the UI deploy script did not carry the LLM runtime env keys used by Chat + Search.
+- Dev already had those env values, so the feature looked healthy there while prod fell back to `LLM runtime is unavailable`.
+- I also allowed `.env.example` to omit the UI LLM runtime section, which made the intended deploy config less explicit.
+
+Never repeat:
+
+1. When a feature depends on app env, update the deploy script in the same change that introduces or relies on that config.
+2. Treat prod promotion as both image promotion and runtime-config reconciliation.
+3. Add env documentation for any shared runtime dependency the UI needs in cloud deployments.
+
+## 14. Counted fallback Azure ids as if they were real resource matches
+
+What went wrong:
+
+- I added fallback ARM ids so the admin security panel could still emit readable error paths, but I also let those fallback ids count as successful resource discovery.
+- In a multi-subscription credential, that made two subscriptions look equally valid even though only one actually contained the tracked SQL server and Key Vault.
+- The resolver then picked the first subscription in the ARM list and the UI showed false cloud-audit failures.
+
+Never repeat:
+
+1. Keep `resolved` and `fallback` resource states separate in any Azure discovery helper.
+2. Use fallback ids only for follow-up error reporting, never for subscription or resource scoring.
+3. Verify subscription selection with a deliberately wrong resource-group hint before trusting a new ARM resolver.
+
+## 15. Treated local Azure checks as equivalent to app-runtime permissions
+
+What went wrong:
+
+- I verified the cloud-audit reader with my local Azure CLI credential and assumed the app runtime would behave the same way.
+- The running UI container was using a managed identity that could read secrets but could not read SQL auditing settings or diagnostic settings through ARM.
+- That left the admin panel broken in live environments even though the same code looked healthy from my local machine.
+
+Never repeat:
+
+1. When a feature depends on Azure ARM, test it once from inside the live container with the actual managed identity.
+2. Separate secret-read roles from management-plane read roles in the diagnosis. They solve different problems.
+3. If a live Azure panel shows `AuthorizationFailed`, inspect the identity's RBAC before spending more time on source-code fixes.
+
+## 15. Left a long-running agent flow with no readable wait state
+
+What went wrong:
+
+- I cleaned up Chat + Search but left the wait experience as a generic progress bar, so the user still had to sit through a long agent run without meaningful feedback.
+- The agent was already emitting useful stages, but I did not convert that stream into user-facing language.
+- I also lost time on the first render test by assuming the AppTest session state proxy supported `.update(...)`.
+
+Never repeat:
+
+1. When an interaction can take several seconds, ship a visible wait state in the same cleanup pass.
+2. Reuse existing progress events before adding new loading infrastructure.
+3. For Streamlit AppTest, assign seeded session-state keys individually instead of calling `.update(...)`.
+
+## 16. Left external TTS generation on the normal homepage render path
+
+What went wrong:
+
+- I initially generated homepage narration during page render, which coupled the user's wait time to ElevenLabs latency.
+- That also meant the same summary audio could be regenerated repeatedly even when the underlying home snapshot had not changed.
+- The first async fallback pass also kept failed futures cached in memory instead of clearing them once the error state was recorded.
+
+Never repeat:
+
+1. If a summary is derived from a scheduled snapshot, compute and persist it in the job with the snapshot.
+2. Keep any on-demand fallback non-blocking and treat it as recovery, not the primary path.
+3. When background work fails, clear the cached future as part of error handling so retries and memory behavior stay predictable.
+
+## 17. Let a research prompt finalize with zero evidence
+
+What went wrong:
+
+- `Chat + Search` routed a live analysis prompt into agent mode, but the omnibar planner was still allowed to return `final` before any tool call.
+- The omnibar tool surface exposed only shared dataset and chart tools, not the full research sources users expected such as live web evidence, RAG fallback, or wiki-like corpora.
+- Stronger retrieval code already existed elsewhere in the repo, but it was not wired into the omnibar path.
+
+Never repeat:
+
+1. For time-sensitive `why`, `impact`, or `how this plays out` prompts, add a strong evidence-seeking preference so tool use becomes the default behavior when the right sources are available.
+2. Expose the actual product research sources as explicit tools or one shared research orchestrator.
+3. Reuse the repo's strongest retrieval and evidence pipeline instead of letting a second lighter agent path silently answer from less context.

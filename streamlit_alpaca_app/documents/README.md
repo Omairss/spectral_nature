@@ -2,6 +2,21 @@
 
 Spectral Nature is a market intelligence workspace for portfolio context, macro tracking, and idea discovery.
 
+## Documentation home
+
+`streamlit_alpaca_app/documents/` is the single tracked documentation home for this repo.
+
+When a doc below mentions `documents/...`, treat that as a path relative to `streamlit_alpaca_app/`.
+
+Keep docs here:
+
+- `plans/`: active implementation notes, recovery plans, and short design docs
+- `operations/`: setup, deploy, and operator runbooks
+- `infra/`: tracked infra references and live-status trackers
+- `reference/`: product and runtime reference docs
+- `learnings.md`: reusable takeaways from completed work
+- `mistakes.md`: repeated failure modes and "never repeat" checklists
+
 ## What was migrated
 
 - `Current Portfolio` -> live account + open positions + portfolio history
@@ -92,6 +107,9 @@ Run the API or Streamlit UI with container ports exposed:
 
 ## Documentation map
 
+- `documents/README.md`: doc hub and runtime overview
+- `documents/learnings.md`: reusable takeaways across sessions
+- `documents/mistakes.md`: repeated mistakes and guardrails
 - `documents/operations/PROJECT_SETUP_AND_OPERATIONS.md`: contributor setup and deployment workflow
 - `documents/infra/README.md`: Azure deployment entrypoints and outputs
 - `documents/reference/ATTENTION_FEED_GUIDELINES.md`: current product rules for the attention feed
@@ -187,7 +205,7 @@ For non-Python clients, use the FastAPI layer:
 Auth model:
 
 - user login returns short-lived `access_token` + refresh `refresh_token`
-- bearer supports both new access token and legacy session token during migration
+- bearer uses the short-lived `access_token` by default; legacy session-token bearer support is opt-in only for controlled migration work
 - machine agents can use scoped `X-API-Key` credentials from `agent_api_keys`
 
 Run locally with:
@@ -240,7 +258,7 @@ The setup script writes local-only outputs to `infra/.generated/email_delivery.l
 - The `attention-home-build` job materializes the homepage attention datasets and research bundles from upstream snapshots; the UI is intended to read those outputs rather than compute inline.
 - The `entity-taxonomy-refresh` job materializes `us_equity_listings` and `entity_taxonomy_labels`, and it is scheduled monthly by default.
 - A flow-chart version of the taxonomy setup lives in `documents/infra/TAXONOMY_PIPELINE_FLOW.md`.
-- Active design plans now live under `documents/plans/` rather than the repo root.
+- Active design plans live under `documents/plans/`.
 - Treasury direct yields are used for official daily rate facts; FRED remains available for broader macro history and dashboard context.
 - Benchmarks used: `SPY, DIA, QQQ, VOO, BRK.B, ARKK`.
 - Live data loaders now persist CSV caches under `streamlit_alpaca_app/cache/data/`.

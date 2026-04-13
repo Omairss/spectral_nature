@@ -1,13 +1,13 @@
 # UI Deployment Status Tracker
 
-Last updated (UTC): 2026-04-10 21:01
+Last updated (UTC): 2026-04-12 19:39
 
 ## Environment Mapping
 
-| Role | Container App | URL | Latest Revision | Image | Health |
-|---|---|---|---|---|---|
-| **Production (stable)** | `sn-streamlit-ui` | https://sn-streamlit-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io | `sn-streamlit-ui--0000048` | `snpipelineacr03130136.azurecr.io/streamlit-ui@sha256:d56405ceeb1ee678064f3f493d308df171c9a13d84552dcc1c1729affd84947d` | HTTP 200 |
-| **Development** | `sn-streamlit-ui-dev` | https://sn-streamlit-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io | `sn-streamlit-ui-dev--0000171` | `snpipelineacr03130136.azurecr.io/streamlit-ui@sha256:f8b6e0d180d4eb3081b797b39c4b07bd3d9942d1f8ef7414c03e7d4e732c6a87` | HTTP 200 |
+| Role | Resource Group | Container App | URL | Latest Revision | Image | Auth Persistence | Health |
+|---|---|---|---|---|---|---|---|
+| **Production (stable)** | `sn-pipeline-rg-03130136` | `sn-streamlit-ui` | https://sn-streamlit-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io | `sn-streamlit-ui--0000054` | `snpipelineacr03130136.azurecr.io/streamlit-ui@sha256:e1e52cab33af292c85b4e44677b0b7b42372cbeaeed68a554f2cdca9e4fb7d0d` | browser cookie | HTTP 200 |
+| **Development** | `sn-pipeline-rg-03130136` | `sn-streamlit-ui-dev` | https://sn-streamlit-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io | `sn-streamlit-ui-dev--0000187` | `snpipelineacr03130136.azurecr.io/streamlit-ui@sha256:36f1cc8c9a67b2f83d6d350a9ac1f635fac502eba69aab08e5de44e0bed912a6` | session only | HTTP 200 |
 
 ## Promotion Workflow
 
@@ -18,6 +18,8 @@ Last updated (UTC): 2026-04-10 21:01
 
 ## Notes
 
+- UI container apps live in resource group `sn-pipeline-rg-03130136`.
 - Both apps use the same managed identity and Key Vault-based auth configuration.
+- Browser persistence is controlled by `UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE` and is tracked above for each app.
 - Sidebar now displays `Environment: production` or `Environment: development` via `APP_TRACK`.
 - Keep Production stable by avoiding direct experimental changes to `sn-streamlit-ui`.

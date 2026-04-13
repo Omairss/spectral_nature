@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import base64
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from services import auth_service
 
@@ -194,6 +194,91 @@ def test_invite_email_preview_supports_uploaded_gif_chart(monkeypatch):
     assert "data:image/gif;base64," in html_body
 
 
+def test_get_auth_email_delivery_status_reports_missing_public_base_url(monkeypatch):
+    monkeypatch.delenv("APP_PUBLIC_BASE_URL", raising=False)
+    monkeypatch.setattr(
+        auth_service,
+        "email_delivery_status",
+        lambda: {
+            "configured": True,
+            "message": "Email delivery is configured.",
+        },
+    )
+
+    status = auth_service.get_auth_email_delivery_status()
+
+    assert status["ready"] is False
+    assert status["mail_configured"] is True
+    assert status["public_base_url_present"] is False
+    assert "APP_PUBLIC_BASE_URL" in status["message"]
+
+
+def test_browser_session_cookie_is_disabled_by_default(monkeypatch):
+    monkeypatch.delenv("UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE", raising=False)
+
+    assert auth_service.allow_insecure_browser_session_cookie() is False
+    assert auth_service.browser_session_persistence_mode() == "session_only"
+    assert "disabled" in auth_service.browser_session_persistence_message().lower()
+
+
+def test_browser_session_cookie_requires_explicit_opt_in(monkeypatch):
+    monkeypatch.setenv("UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE", "1")
+
+    assert auth_service.allow_insecure_browser_session_cookie() is True
+    assert auth_service.browser_session_persistence_mode() == "browser_cookie"
+    assert "readable cookie" in auth_service.browser_session_persistence_message().lower()
+
+
+def test_issue_invite_returns_specific_delivery_message_when_sender_secret_missing(monkeypatch):
+    admin = auth_service.UserContext(
+        user_id="u-admin",
+        email="admin@example.com",
+        first_name="Admin",
+        last_name="User",
+        display_name="Admin User",
+        role="admin",
+        portfolio_id="p1",
+        portfolio_slug="master-portfolio",
+        portfolio_name="Master Portfolio",
+        membership_role="admin",
+        share_fraction=0.0,
+        can_view_full_portfolio=True,
+    )
+
+    monkeypatch.setattr(auth_service, "generate_token", lambda: "invite-token")
+    monkeypatch.setattr(
+        auth_service.auth_store,
+        "insert_invite",
+        lambda **kwargs: {"id": "invite-1", "email": kwargs["email"], "role": kwargs["role"]},
+    )
+    monkeypatch.setattr(
+        auth_service,
+        "get_auth_email_delivery_status",
+        lambda **kwargs: {
+            "ready": False,
+            "configured": False,
+            "mail_configured": False,
+            "public_base_url_present": True,
+            "message": "Sender address secret `app-email-from` was not found in Key Vault `snpipelinekv03130136`.",
+            "user_message": "Email delivery is not available right now. Contact an administrator for a reset link.",
+            "mail_status": {},
+        },
+    )
+
+    result = auth_service.issue_invite(
+        email="investor@example.com",
+        role="investor",
+        share_fraction=0.25,
+        created_by=admin,
+        base_url="https://torres-cap.com",
+    )
+
+    assert result["ok"] is True
+    assert result["email_sent"] is False
+    assert "app-email-from" in str(result["email_message"])
+    assert result["invite_url"] == "https://torres-cap.com/?invite_token=invite-token"
+
+
 def test_delete_pending_invite_requires_admin():
     viewer = auth_service.UserContext(
         user_id="u-viewer",
@@ -214,6 +299,77 @@ def test_delete_pending_invite_requires_admin():
 
     assert result["ok"] is False
     assert "admins" in str(result["message"]).lower()
+
+
+def test_update_pending_invite_requires_admin():
+    viewer = auth_service.UserContext(
+        user_id="u-viewer",
+        email="viewer@example.com",
+        first_name="View",
+        last_name="Only",
+        display_name="View Only",
+        role="viewer",
+        portfolio_id="p1",
+        portfolio_slug="master-portfolio",
+        portfolio_name="Master Portfolio",
+        membership_role="viewer",
+        share_fraction=0.0,
+        can_view_full_portfolio=False,
+    )
+
+    result = auth_service.update_pending_invite(
+        invite_id="invite-123",
+        share_fraction=0.2,
+        requested_by=viewer,
+    )
+
+    assert result["ok"] is False
+    assert "admins" in str(result["message"]).lower()
+
+
+def test_update_pending_invite_calls_store(monkeypatch):
+    admin = auth_service.UserContext(
+        user_id="u-admin",
+        email="admin@example.com",
+        first_name="Admin",
+        last_name="User",
+        display_name="Admin User",
+        role="admin",
+        portfolio_id="p1",
+        portfolio_slug="master-portfolio",
+        portfolio_name="Master Portfolio",
+        membership_role="admin",
+        share_fraction=0.0,
+        can_view_full_portfolio=True,
+    )
+
+    called: dict[str, object] = {}
+
+    def fake_update_pending_invite(*, invite_id: str, role: str | None = None, proposed_share_fraction: float | None = None, updated_by: str | None = None):
+        called["invite_id"] = invite_id
+        called["role"] = role
+        called["proposed_share_fraction"] = proposed_share_fraction
+        called["updated_by"] = updated_by
+        return {
+            "id": invite_id,
+            "role": "investor",
+            "proposed_share_fraction": proposed_share_fraction,
+            "status": "pending",
+        }
+
+    monkeypatch.setattr(auth_service.auth_store, "update_pending_invite", fake_update_pending_invite)
+
+    result = auth_service.update_pending_invite(
+        invite_id="invite-123",
+        share_fraction=0.275,
+        requested_by=admin,
+    )
+
+    assert result["ok"] is True
+    assert called["invite_id"] == "invite-123"
+    assert called["role"] is None
+    assert called["proposed_share_fraction"] == 0.275
+    assert called["updated_by"] == "u-admin"
 
 
 def test_delete_pending_invite_calls_store(monkeypatch):
@@ -246,3 +402,248 @@ def test_delete_pending_invite_calls_store(monkeypatch):
     assert result["ok"] is True
     assert called["invite_id"] == "invite-123"
     assert called["deleted_by"] == "u-admin"
+
+
+def test_resend_pending_invite_requires_admin():
+    viewer = auth_service.UserContext(
+        user_id="u-viewer",
+        email="viewer@example.com",
+        first_name="View",
+        last_name="Only",
+        display_name="View Only",
+        role="viewer",
+        portfolio_id="p1",
+        portfolio_slug="master-portfolio",
+        portfolio_name="Master Portfolio",
+        membership_role="viewer",
+        share_fraction=0.0,
+        can_view_full_portfolio=False,
+    )
+
+    result = auth_service.resend_pending_invite(invite_id="invite-123", requested_by=viewer)
+
+    assert result["ok"] is False
+    assert "admins" in str(result["message"]).lower()
+
+
+def test_resend_pending_invite_reissues_selected_invite(monkeypatch):
+    admin = auth_service.UserContext(
+        user_id="u-admin",
+        email="admin@example.com",
+        first_name="Admin",
+        last_name="User",
+        display_name="Admin User",
+        role="admin",
+        portfolio_id="p1",
+        portfolio_slug="master-portfolio",
+        portfolio_name="Master Portfolio",
+        membership_role="admin",
+        share_fraction=0.0,
+        can_view_full_portfolio=True,
+    )
+
+    monkeypatch.setattr(
+        auth_service.auth_store,
+        "list_pending_invites",
+        lambda: [
+            {
+                "id": "invite-123",
+                "email": "investor@example.com",
+                "role": "investor",
+                "proposed_share_fraction": 0.125,
+                "status": "pending",
+            }
+        ],
+    )
+
+    called: dict[str, object] = {}
+
+    def fake_issue_invite(**kwargs):
+        called.update(kwargs)
+        return {
+            "ok": True,
+            "invite": {"id": "invite-456"},
+            "invite_url": "https://torres-cap.com/?invite_token=abc123",
+            "email_sent": True,
+            "email_message": "Email sent to investor@example.com.",
+        }
+
+    monkeypatch.setattr(auth_service, "issue_invite", fake_issue_invite)
+
+    result = auth_service.resend_pending_invite(
+        invite_id="invite-123",
+        requested_by=admin,
+        base_url="https://torres-cap.com",
+    )
+
+    assert result["ok"] is True
+    assert result["message"] == "Invite resent."
+    assert called["email"] == "investor@example.com"
+    assert called["role"] == "investor"
+    assert called["share_fraction"] == 0.125
+    assert called["created_by"] == admin
+    assert called["base_url"] == "https://torres-cap.com"
+
+
+def test_record_access_event_hashes_session_token_before_store(monkeypatch):
+    admin = auth_service.UserContext(
+        user_id="u-admin",
+        email="admin@example.com",
+        first_name="Admin",
+        last_name="User",
+        display_name="Admin User",
+        role="admin",
+        portfolio_id="p1",
+        portfolio_slug="master-portfolio",
+        portfolio_name="Master Portfolio",
+        membership_role="admin",
+        share_fraction=0.0,
+        can_view_full_portfolio=True,
+    )
+
+    captured: dict[str, object] = {}
+
+    def fake_record_access_event(**kwargs):
+        captured.update(kwargs)
+        return {"ok": True}
+
+    monkeypatch.setattr(auth_service.auth_store, "record_access_event", fake_record_access_event)
+
+    auth_service.record_access_event(
+        event_type="section_view",
+        event_category="usage",
+        user=admin,
+        section_name="Home",
+        session_token="session-token",
+        ip_address="203.0.113.10",
+        user_agent="pytest-agent",
+        detail={"app_track": "dev"},
+    )
+
+    assert captured["user_id"] == "u-admin"
+    assert captured["email"] == "admin@example.com"
+    assert captured["section_name"] == "Home"
+    assert captured["session_token_hash"] == auth_service.token_digest("session-token")
+    assert captured["event_type"] == "section_view"
+    assert captured["event_category"] == "usage"
+
+
+def test_authenticate_user_records_login_success_event(monkeypatch):
+    context = auth_service.UserContext(
+        user_id="u-admin",
+        email="admin@example.com",
+        first_name="Admin",
+        last_name="User",
+        display_name="Admin User",
+        role="admin",
+        portfolio_id="p1",
+        portfolio_slug="master-portfolio",
+        portfolio_name="Master Portfolio",
+        membership_role="admin",
+        share_fraction=0.0,
+        can_view_full_portfolio=True,
+    )
+    user_row = {
+        **context.to_dict(),
+        "status": "active",
+        "password_hash": auth_service.hash_password("VeryStrongPass123"),
+        "locked_until": None,
+    }
+
+    events: list[dict[str, object]] = []
+
+    monkeypatch.setattr(auth_service.auth_store, "get_user_for_login", lambda email: user_row)
+    monkeypatch.setattr(auth_service.auth_store, "clear_failed_login", lambda user_id: None)
+    monkeypatch.setattr(auth_service.auth_store, "create_session", lambda **kwargs: {"id": "session-1"})
+    monkeypatch.setattr(auth_service.auth_store, "record_access_event", lambda **kwargs: events.append(dict(kwargs)) or {"ok": True})
+    monkeypatch.setattr(auth_service, "generate_token", lambda: "session-token")
+
+    result = auth_service.authenticate_user(
+        email="admin@example.com",
+        password="VeryStrongPass123",
+        user_agent="pytest-agent",
+        ip_address="203.0.113.10",
+    )
+
+    assert result["ok"] is True
+    assert result["session_token"] == "session-token"
+    assert len(events) == 1
+    assert events[0]["event_type"] == "login_success"
+    assert events[0]["event_category"] == "usage"
+    assert events[0]["session_token_hash"] == auth_service.token_digest("session-token")
+
+
+def test_authenticate_user_records_failed_login_and_lock_events(monkeypatch):
+    context = auth_service.UserContext(
+        user_id="u-investor",
+        email="investor@example.com",
+        first_name="Investor",
+        last_name="User",
+        display_name="Investor User",
+        role="investor",
+        portfolio_id="p1",
+        portfolio_slug="master-portfolio",
+        portfolio_name="Master Portfolio",
+        membership_role="investor",
+        share_fraction=0.25,
+        can_view_full_portfolio=False,
+    )
+    user_row = {
+        **context.to_dict(),
+        "status": "active",
+        "password_hash": auth_service.hash_password("CorrectHorse123"),
+        "locked_until": None,
+    }
+    locked_until = datetime.now(timezone.utc) + timedelta(hours=1)
+    events: list[dict[str, object]] = []
+
+    monkeypatch.setattr(auth_service.auth_store, "get_user_for_login", lambda email: user_row)
+    monkeypatch.setattr(
+        auth_service.auth_store,
+        "record_failed_login",
+        lambda *args, **kwargs: {"failed_login_count": 5, "locked_until": locked_until},
+    )
+    monkeypatch.setattr(auth_service.auth_store, "record_access_event", lambda **kwargs: events.append(dict(kwargs)) or {"ok": True})
+
+    result = auth_service.authenticate_user(
+        email="investor@example.com",
+        password="WrongPassword123",
+        user_agent="pytest-agent",
+        ip_address="203.0.113.77",
+    )
+
+    assert result["ok"] is False
+    assert [event["event_type"] for event in events] == ["login_failed", "login_locked"]
+    assert events[0]["detail"]["failed_login_count"] == 5
+    assert events[1]["detail"]["locked_until"] == locked_until.isoformat()
+
+
+def test_get_access_admin_dashboard_delegates_to_store(monkeypatch):
+    monkeypatch.setattr(
+        auth_service.auth_store,
+        "get_access_admin_dashboard",
+        lambda **kwargs: {"summary": {"total_users": 3}, "kwargs": kwargs},
+    )
+    monkeypatch.setattr(
+        auth_service.admin_security_status,
+        "get_admin_cloud_security_status",
+        lambda: {"available": True, "summary": {"healthy_count": 4}},
+    )
+
+    payload = auth_service.get_access_admin_dashboard(
+        usage_window_days=30,
+        security_window_days=7,
+        active_window_minutes=60,
+        sankey_user_limit=5,
+        user_id="user-1",
+        user_email="ivy@example.com",
+    )
+
+    assert payload["summary"]["total_users"] == 3
+    assert payload["kwargs"]["usage_window_days"] == 30
+    assert payload["kwargs"]["security_window_days"] == 7
+    assert payload["kwargs"]["active_window_minutes"] == 60
+    assert payload["kwargs"]["sankey_user_limit"] == 5
+    assert payload["kwargs"]["user_id"] == "user-1"
+    assert payload["kwargs"]["user_email"] == "ivy@example.com"
+    assert payload["cloud_security_status"]["summary"]["healthy_count"] == 4

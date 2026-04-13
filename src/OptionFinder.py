@@ -11,6 +11,7 @@ import pickle
 from plotly.subplots import make_subplots
 from plotly.graph_objs import Figure
 import robin_stocks.robinhood as r
+import LinkedAuth
 
 
 # Get the current working directory
@@ -447,7 +448,6 @@ if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Robinhood Portfolio Performance')
     parser.add_argument('--username', required=True, help='Robinhood account username')
-    parser.add_argument('--password', required=True, help='Robinhood account password')
     parser.add_argument('--ticker', required=True, help='Robinhood account password')
     parser.add_argument('--target_price', required=True, type=float, help='Target strike price as a float')
     parser.add_argument('--force_refresh', action='store_true', help='Force refresh the option data')
@@ -455,8 +455,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     
-    rh_username = args.username
-    rh_password = args.password
+    rh_username, rh_password = LinkedAuth.resolve_robinhood_credentials(
+        username=args.username,
+    )
     ticker = args.ticker
     current_strike_price = args.target_price
     force_refresh = args.force_refresh
@@ -474,4 +475,3 @@ if __name__ == "__main__":
         exit(1)
 
     print(main(rh_username, rh_password, ticker, current_strike_price, cache_mode))
-

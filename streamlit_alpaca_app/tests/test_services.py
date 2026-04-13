@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
@@ -22,6 +23,12 @@ from services.attention_home_1d import (
     build_attention_event_candidates_1d,
     build_attention_home_1d,
     build_attention_research_bundle,
+)
+from services.attention_home_summary import (
+    attach_attention_home_summary_audio,
+    build_attention_home_narrative_beats,
+    build_attention_home_summary,
+    build_attention_home_summary_payload,
 )
 from services.attention_live_research import build_live_attention_research_bundle, merge_news_payloads
 from services.attention_market_events import build_attention_market_events
@@ -51,6 +58,14 @@ from services.homepage_v2 import (
     homepage_v2_bundle_symbol_lookup,
     normalize_homepage_v2_detail_state,
 )
+from services.elevenlabs_tts import (
+    ElevenLabsTTSClient,
+    ElevenLabsTTSConfig,
+    audio_file_extension,
+    audio_mime_type,
+    load_elevenlabs_tts_config,
+)
+from services import elevenlabs_tts as elevenlabs_tts_module
 from services.llm import AzureOpenAIChatJSONClient, LLMConfig, load_llm_config
 from services.market import (
     business_focus_for_symbol,
@@ -3683,6 +3698,238 @@ def test_build_homepage_v2_market_digest_uses_market_event_titles_and_underlying
     assert "easing supply-risk" in digest["beats"][0]["summary"].lower()
 
 
+def test_build_attention_home_narrative_beats_and_summary_cover_all_daily_tape_sections():
+    payload = {
+        "top_events": [
+            {
+                "bundle_id": "event-1",
+                "event_title": "Energy and airlines are repricing together",
+                "what_happened_text": "Oil-linked instruments fell sharply while airlines and duration rallied.",
+                "why_happened_text": "The tape tied the move to easing supply-risk and lower fuel pressure.",
+                "affected_assets_summary_text": "Airlines and bonds both caught a bid.",
+                "supporting_symbols": ["USO", "UAL", "TLT"],
+            }
+        ],
+        "must_read_movers": [
+            {
+                "bundle_id": "symbol::AAOI",
+                "symbol": "AAOI",
+                "headline": "AAOI moved sharply higher",
+                "what_changed_text": "AAOI rose 12% today versus a 1.0% 20-day baseline.",
+                "why_now_text": "A fresh filing sharpened the bull case.",
+                "what_else_moved_text": "LITE and COHR also firmed as optical names caught a bid.",
+            }
+        ],
+        "unresolved_large_moves": [
+            {
+                "bundle_id": "symbol::APGE",
+                "symbol": "APGE",
+                "what_changed_text": "APGE fell 21% today versus a 1.0% 20-day baseline.",
+                "why_now_text": "",
+                "cause_status": "unresolved",
+            }
+        ],
+    }
+
+    beats = build_attention_home_narrative_beats(payload)
+    summary = build_attention_home_summary(payload)
+
+    assert [beat["kind"] for beat in beats] == ["event", "mover", "unresolved"]
+    assert summary["event_count"] == 1
+    assert summary["must_read_count"] == 1
+    assert summary["unresolved_count"] == 1
+    assert "**What Matters Now**" in summary["summary_text"]
+    assert "**Top Events**" in summary["summary_text"]
+    assert "**Key Movers**" in summary["summary_text"]
+    assert "**Still Unresolved**" in summary["summary_text"]
+    assert "- " in summary["summary_text"]
+    assert "What matters now:" in summary["audio_text"]
+    assert "Still unresolved:" in summary["audio_text"]
+    assert summary["featured_symbols"][:5] == ["USO", "UAL", "TLT", "AAOI", "APGE"]
+
+
+def test_load_elevenlabs_tts_config_uses_env_settings(monkeypatch):
+    monkeypatch.setenv("ELEVENLABS_API_KEY", "eleven-key")
+    monkeypatch.setenv("ELEVENLABS_VOICE_ID", "voice-123")
+    monkeypatch.setenv("ELEVENLABS_MODEL_ID", "eleven_flash_v2_5")
+    monkeypatch.setenv("ELEVENLABS_OUTPUT_FORMAT", "wav_44100")
+    monkeypatch.setenv("ELEVENLABS_TIMEOUT_SECONDS", "45")
+
+    config = load_elevenlabs_tts_config()
+
+    assert config is not None
+    assert config.api_key == "eleven-key"
+    assert config.voice_id == "voice-123"
+    assert config.model_id == "eleven_flash_v2_5"
+    assert config.output_format == "wav_44100"
+    assert config.timeout_seconds == 45
+
+
+def test_build_attention_home_summary_drops_fragmentary_ellipsis_copy():
+    payload = {
+        "top_events": [],
+        "must_read_movers": [
+            {
+                "bundle_id": "symbol::XYZ",
+                "headline": "XYZ rallies on stronger demand signals",
+                "symbol": "XYZ",
+                "surface_summary_text": "The stock has been...",
+                "what_changed_text": "XYZ rose 11% today versus a 1.2% 20-day baseline.",
+                "why_now_text": "Same-day coverage pointed to stronger demand and better order momentum.",
+                "cause_status": "supported",
+            },
+            {
+                "bundle_id": "symbol::ABC",
+                "headline": "ABC extends a sharp move",
+                "symbol": "ABC",
+                "surface_summary_text": "ent surge excessive....",
+                "what_changed_text": "ABC rose 9% today versus a 1.0% 20-day baseline.",
+                "why_now_text": "Positioning and late-session buying pressure appear to be reinforcing the move.",
+                "cause_status": "continuation",
+            },
+        ],
+        "unresolved_large_moves": [],
+    }
+
+    beats = build_attention_home_narrative_beats(payload)
+    summary = build_attention_home_summary(payload)
+
+    assert len(beats) == 2
+    assert "..." not in summary["summary_text"]
+    assert "..." not in summary["audio_text"]
+    assert "The stock has been" not in summary["summary_text"]
+    assert "ent surge excessive" not in summary["summary_text"]
+    assert "stronger demand" in summary["summary_text"].lower()
+    assert "late-session buying pressure" in summary["audio_text"].lower()
+
+
+def test_attach_attention_home_summary_audio_embeds_base64_metadata():
+    summary_payload = build_attention_home_summary_payload(
+        {
+            "must_read_movers": [
+                {
+                    "bundle_id": "symbol::XYZ",
+                    "headline": "XYZ rallies on stronger demand signals",
+                    "symbol": "XYZ",
+                    "what_changed_text": "XYZ rose 11% today versus a 1.2% 20-day baseline.",
+                    "why_now_text": "Same-day coverage pointed to stronger demand and better order momentum.",
+                    "cause_status": "supported",
+                }
+            ]
+        }
+    )
+
+    class FakeTTSClient:
+        def __init__(self):
+            self.calls: list[str] = []
+
+        def synthesize(self, text: str) -> bytes:
+            self.calls.append(text)
+            return b"audio-bytes"
+
+    client = FakeTTSClient()
+    payload = attach_attention_home_summary_audio(
+        summary_payload,
+        tts_config=ElevenLabsTTSConfig(
+            api_key="eleven-key",
+            voice_id="voice-123",
+            model_id="eleven_multilingual_v2",
+            output_format="mp3_44100_128",
+            base_url="https://api.elevenlabs.io",
+            timeout_seconds=30,
+        ),
+        tts_client=client,
+    )
+
+    assert client.calls == [summary_payload["audio_text"]]
+    assert payload["audio_base64"] == base64.b64encode(b"audio-bytes").decode("ascii")
+    assert payload["audio_mime_type"] == "audio/mpeg"
+    assert payload["audio_file_extension"] == "mp3"
+    assert payload["voice_id"] == "voice-123"
+    assert payload["model_id"] == "eleven_multilingual_v2"
+    assert payload["output_format"] == "mp3_44100_128"
+
+
+def test_load_elevenlabs_tts_config_uses_default_keyvault_secret_names(monkeypatch):
+    monkeypatch.delenv("ELEVENLABS_API_KEY", raising=False)
+    monkeypatch.delenv("ELEVENLABS_VOICE_ID", raising=False)
+    calls: list[tuple[tuple[str, ...], str | None, str | None]] = []
+
+    def fake_resolve_secret_value(env_names, *, secret_name_env=None, default_secret_name=None, placeholders=None):
+        del placeholders
+        calls.append((tuple(env_names), secret_name_env, default_secret_name))
+        if default_secret_name == "elevenlabs-api-key":
+            return "vault-api-key"
+        if default_secret_name == "elevenlabs-voice-id":
+            return "vault-voice-id"
+        return ""
+
+    monkeypatch.setattr(elevenlabs_tts_module, "resolve_secret_value", fake_resolve_secret_value)
+
+    config = elevenlabs_tts_module.load_elevenlabs_tts_config()
+
+    assert config is not None
+    assert config.api_key == "vault-api-key"
+    assert config.voice_id == "vault-voice-id"
+    assert calls == [
+        (("ELEVENLABS_API_KEY",), "ELEVENLABS_API_KEY_SECRET_NAME", "elevenlabs-api-key"),
+        (("ELEVENLABS_VOICE_ID",), "ELEVENLABS_VOICE_ID_SECRET_NAME", "elevenlabs-voice-id"),
+    ]
+
+
+def test_elevenlabs_tts_client_posts_expected_request():
+    class RecordingSession:
+        def __init__(self):
+            self.calls: list[dict[str, object]] = []
+
+        def post(self, url, *, params=None, headers=None, json=None, timeout=None):
+            self.calls.append(
+                {
+                    "url": url,
+                    "params": params,
+                    "headers": headers,
+                    "json": json,
+                    "timeout": timeout,
+                }
+            )
+            return SimpleNamespace(status_code=200, content=b"audio-bytes", text="ok")
+
+    session = RecordingSession()
+    client = ElevenLabsTTSClient(
+        ElevenLabsTTSConfig(
+            api_key="eleven-key",
+            voice_id="voice-123",
+            model_id="eleven_multilingual_v2",
+            output_format="mp3_44100_128",
+            base_url="https://api.elevenlabs.io",
+            timeout_seconds=30,
+        ),
+        session=session,
+    )
+
+    audio_bytes = client.synthesize("Tape summary text")
+
+    assert audio_bytes == b"audio-bytes"
+    assert session.calls == [
+        {
+            "url": "https://api.elevenlabs.io/v1/text-to-speech/voice-123",
+            "params": {"output_format": "mp3_44100_128"},
+            "headers": {
+                "xi-api-key": "eleven-key",
+                "Content-Type": "application/json",
+            },
+            "json": {
+                "text": "Tape summary text",
+                "model_id": "eleven_multilingual_v2",
+            },
+            "timeout": 30,
+        }
+    ]
+    assert audio_mime_type("mp3_44100_128") == "audio/mpeg"
+    assert audio_mime_type("wav_44100") == "audio/wav"
+    assert audio_file_extension("wav_44100") == "wav"
+
+
 def test_homepage_v2_bundle_symbol_lookup_deduplicates_symbols_per_bundle():
     lookup = homepage_v2_bundle_symbol_lookup(
         [
@@ -4924,6 +5171,11 @@ def test_serialize_attention_home_payload_preserves_homepage_graph():
             "figure": {"data": [], "layout": {"height": 320, "showlegend": False}},
             "summary": {"connected_components": 1},
         },
+        "homepage_summary": {
+            "summary_text": "**What Matters Now**\nExample summary.",
+            "audio_base64": "cHJlYnVpbHQtYXVkaW8=",
+            "voice_id": "voice-123",
+        },
     }
 
     frame = serialize_attention_home_payload(payload)
@@ -4932,6 +5184,8 @@ def test_serialize_attention_home_payload_preserves_homepage_graph():
     assert restored["run_id"] == "run-123"
     assert restored["homepage_graph"]["figure"]["layout"]["height"] == 320
     assert restored["homepage_graph"]["summary"]["connected_components"] == 1
+    assert restored["homepage_summary"]["summary_text"]
+    assert restored["homepage_summary"]["voice_id"] == "voice-123"
 
 
 def test_build_homepage_attention_graph_payload_returns_compact_banner_figure():

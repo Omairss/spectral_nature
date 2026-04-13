@@ -16,6 +16,7 @@ from scipy.signal import stft
 import pandas as pd
 
 import plotly.graph_objects as go
+import LinkedAuth
 import utils.helpers_MarketExplorer as helpers_MarketExplorer
 
 # Get the current working directory
@@ -318,7 +319,6 @@ if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Robinhood Portfolio Performance')
     parser.add_argument('--username', required=True, help='Robinhood account username')
-    parser.add_argument('--password', required=True, help='Robinhood account password')
     parser.add_argument('--ticker', required=True, help='Robinhood account password')
     parser.add_argument('--mode', default='normal', help='Mode for fetching data. Hybrid mode fetches data at multiple intervals and spans.')
     parser.add_argument('--force_refresh', action='store_true', help='Force refresh the technical data')
@@ -326,8 +326,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     
-    rh_username = args.username
-    rh_password = args.password
+    rh_username, rh_password = LinkedAuth.resolve_robinhood_credentials(
+        username=args.username,
+    )
     ticker = args.ticker
     force_refresh = args.force_refresh
     force_local = args.force_local
@@ -345,4 +346,3 @@ if __name__ == "__main__":
         exit(1)
 
     main(rh_username, rh_password, ticker, cache_mode, mode)
-

@@ -210,8 +210,13 @@ discover_pipeline_context() {
       fi
     done < <(az keyvault list -g "$RESOURCE_GROUP" --query '[].name' -o tsv 2>/dev/null || true)
   fi
-  AZURE_KEY_VAULT_NAME="${AZURE_KEY_VAULT_NAME:-${KEYVAULT_NAME:-}}"
-  KEY_VAULT_NAME="${KEY_VAULT_NAME:-${KEYVAULT_NAME:-}}"
+  if [[ -n "${KEYVAULT_NAME:-}" && "$KEYVAULT_NAME" != "null" ]]; then
+    AZURE_KEY_VAULT_NAME="$KEYVAULT_NAME"
+    KEY_VAULT_NAME="$KEYVAULT_NAME"
+  else
+    AZURE_KEY_VAULT_NAME="${AZURE_KEY_VAULT_NAME:-${KEYVAULT_NAME:-}}"
+    KEY_VAULT_NAME="${KEY_VAULT_NAME:-${KEYVAULT_NAME:-}}"
+  fi
 
   if containerapp_exists "$DEV_CONTAINER_APP"; then
     LLM_API_KEY_SECRET_NAME="${LLM_API_KEY_SECRET_NAME:-$(app_env_value "$DEV_CONTAINER_APP" 'LLM_API_KEY_SECRET_NAME')}"

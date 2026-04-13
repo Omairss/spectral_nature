@@ -134,9 +134,12 @@ def _is_repetitive_copy(text: object) -> bool:
 
 
 def looks_like_low_quality_surface_summary(text: object) -> bool:
-    clean = " ".join(str(text or "").split()).lower()
+    raw_clean = " ".join(str(text or "").split())
+    clean = raw_clean.lower()
     if not clean:
         return False
+    if "..." in raw_clean or "…" in raw_clean:
+        return True
     patterns = [
         r"\bthe tape reads this as\b",
         r"\bmarket is treating this as\b",

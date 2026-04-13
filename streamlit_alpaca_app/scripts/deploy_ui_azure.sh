@@ -26,6 +26,22 @@ ACR_NAME="${ACR_NAME:-}"
 REGISTRY_SERVER="${REGISTRY_SERVER:-}"
 AZURE_STORAGE_CONTAINER="${AZURE_STORAGE_CONTAINER:-datasets}"
 CONTAINERAPP_API_VERSION="${CONTAINERAPP_API_VERSION:-2025-07-01}"
+LLM_API_KEY_SECRET_NAME="${LLM_API_KEY_SECRET_NAME:-${AZURE_OPENAI_API_KEY_SECRET_NAME:-}}"
+OPENAI_API_KEY_SECRET_NAME="${OPENAI_API_KEY_SECRET_NAME:-}"
+LLM_PROVIDER="${LLM_PROVIDER:-}"
+LLM_MODEL="${LLM_MODEL:-}"
+OPENAI_MODEL="${OPENAI_MODEL:-}"
+LLM_DEPLOYMENT="${LLM_DEPLOYMENT:-}"
+AZURE_OPENAI_DEPLOYMENT="${AZURE_OPENAI_DEPLOYMENT:-}"
+LLM_BASE_URL="${LLM_BASE_URL:-}"
+OPENAI_BASE_URL="${OPENAI_BASE_URL:-}"
+AZURE_OPENAI_ENDPOINT="${AZURE_OPENAI_ENDPOINT:-}"
+AZURE_OPENAI_API_VERSION="${AZURE_OPENAI_API_VERSION:-}"
+LLM_TIMEOUT_SECONDS="${LLM_TIMEOUT_SECONDS:-}"
+LLM_TEMPERATURE="${LLM_TEMPERATURE:-}"
+LLM_REASONING_EFFORT="${LLM_REASONING_EFFORT:-}"
+OPENAI_REASONING_EFFORT="${OPENAI_REASONING_EFFORT:-}"
+EMBEDDING_MODEL="${EMBEDDING_MODEL:-}"
 
 usage() {
   cat <<'EOF'
@@ -55,6 +71,15 @@ die() {
 
 log() {
   echo "$*"
+}
+
+truthy_value() {
+  local value
+  value="$(echo "${1:-}" | tr '[:upper:]' '[:lower:]' | xargs)"
+  case "$value" in
+    1|true|yes|on) return 0 ;;
+    *) return 1 ;;
+  esac
 }
 
 require_command() {
@@ -154,6 +179,36 @@ existing_or_override_env() {
   echo "$fallback"
 }
 
+existing_or_override_or_source_env() {
+  local app_name="$1"
+  local key="$2"
+  local override="$3"
+  local source_app="${4:-}"
+  local fallback="${5:-}"
+  local current=""
+
+  if [[ -n "$override" ]]; then
+    echo "$override"
+    return 0
+  fi
+
+  current="$(app_env_value "$app_name" "$key")"
+  if [[ -n "$current" && "$current" != "null" ]]; then
+    echo "$current"
+    return 0
+  fi
+
+  if [[ -n "$source_app" ]]; then
+    current="$(app_env_value "$source_app" "$key")"
+    if [[ -n "$current" && "$current" != "null" ]]; then
+      echo "$current"
+      return 0
+    fi
+  fi
+
+  echo "$fallback"
+}
+
 resolve_image_ref() {
   local ref="$1"
   ensure_registry_context
@@ -199,21 +254,35 @@ image_from_app() {
 
 wait_for_ready_revision() {
   local app_name="$1"
+  local previous_latest_revision="${2:-}"
   local attempts=$(( (WAIT_TIMEOUT_SECONDS + WAIT_INTERVAL_SECONDS - 1) / WAIT_INTERVAL_SECONDS ))
   local latest_revision=""
   local ready_revision=""
+  local saw_new_revision=false
+
+  if [[ -z "$previous_latest_revision" ]]; then
+    saw_new_revision=true
+  fi
 
   for ((i=1; i<=attempts; i++)); do
     latest_revision="$(containerapp_query "$app_name" "properties.latestRevisionName")"
     ready_revision="$(containerapp_query "$app_name" "properties.latestReadyRevisionName")"
 
-    if [[ -n "$latest_revision" && "$latest_revision" == "$ready_revision" ]]; then
+    if [[ -n "$latest_revision" && -n "$previous_latest_revision" && "$latest_revision" != "$previous_latest_revision" ]]; then
+      saw_new_revision=true
+    fi
+
+    if [[ "$saw_new_revision" == true && -n "$latest_revision" && "$latest_revision" == "$ready_revision" ]]; then
       echo "$ready_revision"
       return 0
     fi
 
     sleep "$WAIT_INTERVAL_SECONDS"
   done
+
+  if [[ -n "$previous_latest_revision" ]]; then
+    die "Timed out waiting for $app_name to make a new ready revision after ${previous_latest_revision}."
+  fi
 
   die "Timed out waiting for $app_name to make the latest revision ready."
 }
@@ -333,7 +402,7 @@ status_row() {
   local app_name="$2"
 
   if ! az resource show -n "$app_name" -g "$RESOURCE_GROUP" --resource-type Microsoft.App/containerApps --api-version "$CONTAINERAPP_API_VERSION" --output none >/dev/null 2>&1; then
-    echo "| **${role_label}** | \`${app_name}\` | n/a | \`n/a\` | \`n/a\` | Unavailable |"
+    echo "| **${role_label}** | \`${RESOURCE_GROUP}\` | \`${app_name}\` | n/a | \`n/a\` | \`n/a\` | n/a | Unavailable |"
     return 0
   fi
 
@@ -342,14 +411,21 @@ status_row() {
   local ready_revision
   local url
   local http_code
+  local browser_cookie_value
+  local auth_persistence_label
 
   fqdn="$(app_fqdn "$app_name")"
   image="$(containerapp_query "$app_name" "properties.template.containers[0].image")"
   ready_revision="$(containerapp_query "$app_name" "properties.latestReadyRevisionName")"
+  browser_cookie_value="$(app_env_value "$app_name" "UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE")"
+  auth_persistence_label="session only"
+  if truthy_value "$browser_cookie_value"; then
+    auth_persistence_label="browser cookie"
+  fi
   url="https://${fqdn}"
   http_code="$(root_http_code_for_url "$url")"
 
-  echo "| **${role_label}** | \`${app_name}\` | ${url} | \`${ready_revision:-n/a}\` | \`${image:-n/a}\` | HTTP ${http_code} |"
+  echo "| **${role_label}** | \`${RESOURCE_GROUP}\` | \`${app_name}\` | ${url} | \`${ready_revision:-n/a}\` | \`${image:-n/a}\` | ${auth_persistence_label} | HTTP ${http_code} |"
 }
 
 write_status_tracker() {
@@ -370,8 +446,8 @@ Last updated (UTC): ${updated_at}
 
 ## Environment Mapping
 
-| Role | Container App | URL | Latest Revision | Image | Health |
-|---|---|---|---|---|---|
+| Role | Resource Group | Container App | URL | Latest Revision | Image | Auth Persistence | Health |
+|---|---|---|---|---|---|---|---|
 ${prod_row}
 ${dev_row}
 
@@ -384,7 +460,9 @@ ${dev_row}
 
 ## Notes
 
+- UI container apps live in resource group \`${RESOURCE_GROUP}\`.
 - Both apps use the same managed identity and Key Vault-based auth configuration.
+- Browser persistence is controlled by \`UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE\` and is tracked above for each app.
 - Sidebar now displays \`Environment: production\` or \`Environment: development\` via \`APP_TRACK\`.
 - Keep Production stable by avoiding direct experimental changes to \`${PROD_CONTAINER_APP}\`.
 EOF
@@ -463,6 +541,10 @@ if [[ -n "$PROMOTE_FROM" && "$PROMOTE_FROM" == "$TARGET" ]]; then
 fi
 
 TARGET_APP="$(target_app_name "$TARGET")"
+PROMOTION_SOURCE_APP=""
+if [[ -n "$PROMOTE_FROM" ]]; then
+  PROMOTION_SOURCE_APP="$(target_app_name "$PROMOTE_FROM")"
+fi
 TARGET_TRACK_VALUE="development"
 TARGET_CACHE_DISABLED_VALUE="true"
 #
@@ -490,11 +572,32 @@ TARGET_SMTP_USE_SSL_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_SMTP_US
 TARGET_SMTP_USERNAME_SECRET_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_SMTP_USERNAME_SECRET" "${APP_SMTP_USERNAME_SECRET:-}")"
 TARGET_SMTP_PASSWORD_SECRET_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_SMTP_PASSWORD_SECRET" "${APP_SMTP_PASSWORD_SECRET:-}")"
 TARGET_EMAIL_FROM_SECRET_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_EMAIL_FROM_SECRET" "${APP_EMAIL_FROM_SECRET:-}")"
+TARGET_UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE_FALLBACK=""
+if [[ "$TARGET" == "prod" ]]; then
+  TARGET_UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE_FALLBACK="1"
+fi
+TARGET_UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE_VALUE="$(existing_or_override_env "$TARGET_APP" "UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE" "${UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE:-}" "${TARGET_UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE_FALLBACK}")"
+TARGET_LLM_API_KEY_SECRET_NAME_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "LLM_API_KEY_SECRET_NAME" "${LLM_API_KEY_SECRET_NAME:-}" "$PROMOTION_SOURCE_APP")"
+TARGET_OPENAI_API_KEY_SECRET_NAME_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "OPENAI_API_KEY_SECRET_NAME" "${OPENAI_API_KEY_SECRET_NAME:-}" "$PROMOTION_SOURCE_APP")"
+TARGET_LLM_PROVIDER_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "LLM_PROVIDER" "${LLM_PROVIDER:-}" "$PROMOTION_SOURCE_APP")"
+TARGET_LLM_MODEL_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "LLM_MODEL" "${LLM_MODEL:-}" "$PROMOTION_SOURCE_APP")"
+TARGET_OPENAI_MODEL_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "OPENAI_MODEL" "${OPENAI_MODEL:-}" "$PROMOTION_SOURCE_APP")"
+TARGET_LLM_DEPLOYMENT_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "LLM_DEPLOYMENT" "${LLM_DEPLOYMENT:-}" "$PROMOTION_SOURCE_APP")"
+TARGET_AZURE_OPENAI_DEPLOYMENT_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "AZURE_OPENAI_DEPLOYMENT" "${AZURE_OPENAI_DEPLOYMENT:-}" "$PROMOTION_SOURCE_APP")"
+TARGET_LLM_BASE_URL_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "LLM_BASE_URL" "${LLM_BASE_URL:-}" "$PROMOTION_SOURCE_APP")"
+TARGET_OPENAI_BASE_URL_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "OPENAI_BASE_URL" "${OPENAI_BASE_URL:-}" "$PROMOTION_SOURCE_APP")"
+TARGET_AZURE_OPENAI_ENDPOINT_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "AZURE_OPENAI_ENDPOINT" "${AZURE_OPENAI_ENDPOINT:-}" "$PROMOTION_SOURCE_APP")"
+TARGET_AZURE_OPENAI_API_VERSION_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "AZURE_OPENAI_API_VERSION" "${AZURE_OPENAI_API_VERSION:-}" "$PROMOTION_SOURCE_APP")"
+TARGET_LLM_TIMEOUT_SECONDS_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "LLM_TIMEOUT_SECONDS" "${LLM_TIMEOUT_SECONDS:-}" "$PROMOTION_SOURCE_APP")"
+TARGET_LLM_TEMPERATURE_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "LLM_TEMPERATURE" "${LLM_TEMPERATURE:-}" "$PROMOTION_SOURCE_APP")"
+TARGET_LLM_REASONING_EFFORT_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "LLM_REASONING_EFFORT" "${LLM_REASONING_EFFORT:-}" "$PROMOTION_SOURCE_APP")"
+TARGET_OPENAI_REASONING_EFFORT_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "OPENAI_REASONING_EFFORT" "${OPENAI_REASONING_EFFORT:-}" "$PROMOTION_SOURCE_APP")"
+TARGET_EMBEDDING_MODEL_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "EMBEDDING_MODEL" "${EMBEDDING_MODEL:-}" "$PROMOTION_SOURCE_APP")"
 
 if [[ -n "$PROMOTE_FROM" ]]; then
-  log "[1/5] Resolving image from $(target_app_name "$PROMOTE_FROM")"
+  log "[1/5] Resolving image from ${PROMOTION_SOURCE_APP}"
   IMAGE_TO_DEPLOY="$(image_from_app "$PROMOTE_FROM")"
-  [[ -n "$IMAGE_TO_DEPLOY" ]] || die "No image found on $(target_app_name "$PROMOTE_FROM")"
+  [[ -n "$IMAGE_TO_DEPLOY" ]] || die "No image found on ${PROMOTION_SOURCE_APP}"
   IMAGE_TO_DEPLOY="$(resolve_image_ref "$IMAGE_TO_DEPLOY")"
 elif [[ -n "$IMAGE_REF" ]]; then
   log "[1/5] Resolving provided image reference"
@@ -521,11 +624,29 @@ maybe_append_env "APP_SMTP_USE_SSL" "$TARGET_SMTP_USE_SSL_VALUE"
 maybe_append_env "APP_SMTP_USERNAME_SECRET" "$TARGET_SMTP_USERNAME_SECRET_VALUE"
 maybe_append_env "APP_SMTP_PASSWORD_SECRET" "$TARGET_SMTP_PASSWORD_SECRET_VALUE"
 maybe_append_env "APP_EMAIL_FROM_SECRET" "$TARGET_EMAIL_FROM_SECRET_VALUE"
+maybe_append_env "UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE" "$TARGET_UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE_VALUE"
+maybe_append_env "LLM_API_KEY_SECRET_NAME" "$TARGET_LLM_API_KEY_SECRET_NAME_VALUE"
+maybe_append_env "OPENAI_API_KEY_SECRET_NAME" "$TARGET_OPENAI_API_KEY_SECRET_NAME_VALUE"
+maybe_append_env "LLM_PROVIDER" "$TARGET_LLM_PROVIDER_VALUE"
+maybe_append_env "LLM_MODEL" "$TARGET_LLM_MODEL_VALUE"
+maybe_append_env "OPENAI_MODEL" "$TARGET_OPENAI_MODEL_VALUE"
+maybe_append_env "LLM_DEPLOYMENT" "$TARGET_LLM_DEPLOYMENT_VALUE"
+maybe_append_env "AZURE_OPENAI_DEPLOYMENT" "$TARGET_AZURE_OPENAI_DEPLOYMENT_VALUE"
+maybe_append_env "LLM_BASE_URL" "$TARGET_LLM_BASE_URL_VALUE"
+maybe_append_env "OPENAI_BASE_URL" "$TARGET_OPENAI_BASE_URL_VALUE"
+maybe_append_env "AZURE_OPENAI_ENDPOINT" "$TARGET_AZURE_OPENAI_ENDPOINT_VALUE"
+maybe_append_env "AZURE_OPENAI_API_VERSION" "$TARGET_AZURE_OPENAI_API_VERSION_VALUE"
+maybe_append_env "LLM_TIMEOUT_SECONDS" "$TARGET_LLM_TIMEOUT_SECONDS_VALUE"
+maybe_append_env "LLM_TEMPERATURE" "$TARGET_LLM_TEMPERATURE_VALUE"
+maybe_append_env "LLM_REASONING_EFFORT" "$TARGET_LLM_REASONING_EFFORT_VALUE"
+maybe_append_env "OPENAI_REASONING_EFFORT" "$TARGET_OPENAI_REASONING_EFFORT_VALUE"
+maybe_append_env "EMBEDDING_MODEL" "$TARGET_EMBEDDING_MODEL_VALUE"
 
+PREVIOUS_LATEST_REVISION="$(containerapp_query "$TARGET_APP" "properties.latestRevisionName")"
 update_containerapp "$TARGET_APP" "$IMAGE_TO_DEPLOY" "${UPDATE_ENV_VARS[@]}"
 
 log "[3/5] Waiting for latest revision to become ready"
-READY_REVISION="$(wait_for_ready_revision "$TARGET_APP")"
+READY_REVISION="$(wait_for_ready_revision "$TARGET_APP" "$PREVIOUS_LATEST_REVISION")"
 
 log "[4/5] Running smoke checks"
 ROOT_HTTP_CODE="$(smoke_check_app "$TARGET_APP")"

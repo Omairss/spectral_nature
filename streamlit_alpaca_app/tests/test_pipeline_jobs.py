@@ -894,6 +894,18 @@ def test_run_attention_home_materializes_attention_home_and_research_outputs(mon
     monkeypatch.setattr("pipeline.jobs.attention_home_build.load_llm_client", lambda: None)
     monkeypatch.setattr("pipeline.jobs.attention_home_build.load_embedding_client", lambda: None)
     monkeypatch.setattr(
+        "pipeline.jobs.attention_home_build.attach_attention_home_summary_audio",
+        lambda summary_payload: {
+            **dict(summary_payload),
+            "audio_base64": "cHJlYnVpbHQtYXVkaW8=",
+            "audio_mime_type": "audio/mpeg",
+            "audio_file_extension": "mp3",
+            "voice_id": "voice-123",
+            "model_id": "eleven_multilingual_v2",
+            "output_format": "mp3_44100_128",
+        },
+    )
+    monkeypatch.setattr(
         "pipeline.jobs.attention_home_build.build_bottom_up_attention_artifacts",
         lambda *args, **kwargs: SimpleNamespace(
             home_payload={
@@ -1048,6 +1060,10 @@ def test_run_attention_home_materializes_attention_home_and_research_outputs(mon
     assert not persisted["attention_ticker_background_snapshots"].empty
     assert set(persisted["attention_research_bundles"]["bundle_id"]) == {"event::oil:USO:event", "symbol::AAPL"}
     assert json.loads(persisted["attention_home_1d"].iloc[0]["homepage_graph_json"])["figure"]["layout"]["height"] == 320
+    homepage_summary = json.loads(persisted["attention_home_1d"].iloc[0]["homepage_summary_json"])
+    assert homepage_summary["summary_text"]
+    assert homepage_summary["audio_base64"]
+    assert homepage_summary["voice_id"] == "voice-123"
 
 
 def test_build_portfolio_timeseries_snapshot_uses_shared_portfolio_builder(monkeypatch):

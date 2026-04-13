@@ -14,3 +14,4 @@ pyarrow>=17.0
 psycopg[binary]>=3.2
 fastapi>=0.112
 uvicorn>=0.30
+PyYAML>=6.0

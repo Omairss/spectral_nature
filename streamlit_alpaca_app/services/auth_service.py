@@ -13,8 +13,8 @@ import secrets
 from typing import Any
 from urllib.parse import urlencode
 
-from . import auth_store
-from .emailer import EmailDeliveryResult, EmailInlineImage, email_delivery_configured, send_email
+from . import admin_security_status, auth_store
+from .emailer import EmailDeliveryResult, EmailInlineImage, email_delivery_status, send_email
 from .secrets import resolve_secret_value
 
 APP_ROOT = Path(__file__).resolve().parents[1]
@@ -31,6 +31,7 @@ INVITE_EMAIL_TEMPLATE_WHITE_ID = "white-default"
 INVITE_EMAIL_TEMPLATE_NAME_MAX = 80
 INVITE_EMAIL_UPLOAD_MAX_BYTES = 4 * 1024 * 1024
 INVITE_EMAIL_UPLOAD_ALLOWED_MIME_TYPES = {"image/png", "image/gif"}
+_TRUE_VALUES = {"1", "true", "yes", "on"}
 INVITE_EMAIL_THEME_WHITE_DEFAULT: dict[str, Any] = {
     "kicker": "Private Client Workspace Access",
     "headline": "Your account invite is ready",
@@ -148,6 +149,26 @@ def auth_mode() -> str:
     return "auto"
 
 
+def allow_insecure_browser_session_cookie() -> bool:
+    return (os.getenv("UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE") or "").strip().lower() in _TRUE_VALUES
+
+
+def browser_session_persistence_mode() -> str:
+    return "browser_cookie" if allow_insecure_browser_session_cookie() else "session_only"
+
+
+def browser_session_persistence_message() -> str:
+    if allow_insecure_browser_session_cookie():
+        return (
+            "Browser-persistent login is enabled through a readable cookie. "
+            "Use this only in controlled local or migration environments."
+        )
+    return (
+        "Browser-persistent login is disabled in this environment. "
+        "Reloading or reopening the page requires signing in again."
+    )
+
+
 def database_auth_bootstrap_configured() -> bool:
     return bool(_bootstrap_admin_email() and _bootstrap_admin_password())
 
@@ -218,6 +239,36 @@ def _lockout_minutes() -> int:
 
 def _public_base_url() -> str:
     return (os.getenv("APP_PUBLIC_BASE_URL") or "").strip().rstrip("/")
+
+
+def get_auth_email_delivery_status(*, base_url: str = "") -> dict[str, Any]:
+    mail_status = email_delivery_status()
+    resolved_base_url = (base_url or _public_base_url()).strip().rstrip("/")
+    ready = bool(mail_status.get("configured")) and bool(resolved_base_url)
+
+    messages: list[str] = []
+    if not bool(mail_status.get("configured")):
+        messages.append(str(mail_status.get("message") or "Email delivery is not configured."))
+    if not resolved_base_url:
+        messages.append("`APP_PUBLIC_BASE_URL` is missing, so invite and reset emails cannot include a public link.")
+
+    admin_message = " ".join(part for part in messages if part).strip() or "Email delivery is configured."
+    user_message = (
+        "Email delivery is not available right now. Contact an administrator for a reset link."
+        if not ready
+        else "Email delivery is configured."
+    )
+
+    return {
+        "ready": ready,
+        "configured": ready,
+        "mail_configured": bool(mail_status.get("configured")),
+        "public_base_url_present": bool(resolved_base_url),
+        "public_base_url": resolved_base_url,
+        "message": admin_message,
+        "user_message": user_message,
+        "mail_status": mail_status,
+    }
 
 
 def build_action_link(*, token_name: str, token: str, base_url: str = "") -> str:
@@ -974,13 +1025,15 @@ def database_auth_enabled() -> bool:
 
 
 def initialize_auth_system() -> dict[str, Any]:
+    email_status = get_auth_email_delivery_status()
     available = auth_store.auth_store_configured()
     if not available:
         return {
             "available": False,
             "ready": False,
             "has_users": False,
-            "email_delivery": email_delivery_configured(),
+            "email_delivery": bool(email_status.get("ready")),
+            "email_delivery_status": email_status,
             "message": "Authentication database is unavailable.",
         }
 
@@ -1004,7 +1057,8 @@ def initialize_auth_system() -> dict[str, Any]:
         "ready": ready and has_users,
         "has_users": has_users,
         "bootstrapped": bootstrapped,
-        "email_delivery": email_delivery_configured(),
+        "email_delivery": bool(email_status.get("ready")),
+        "email_delivery_status": email_status,
         "message": "",
     }
 
@@ -1015,6 +1069,58 @@ def _context_from_row(row: dict[str, Any] | None) -> UserContext | None:
     return UserContext.from_dict(row)
 
 
+def record_access_event(
+    *,
+    event_type: str,
+    event_category: str,
+    user: UserContext | None = None,
+    email: str = "",
+    section_name: str = "",
+    session_token: str = "",
+    ip_address: str = "",
+    user_agent: str = "",
+    detail: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    context = user if isinstance(user, UserContext) else None
+    resolved_email = str(email or "").strip() or (context.email if context is not None else "")
+    session_token_hash = token_digest(session_token) if session_token else ""
+    payload = detail if isinstance(detail, dict) else {}
+    return auth_store.record_access_event(
+        event_type=event_type,
+        event_category=event_category,
+        user_id=context.user_id if context is not None else None,
+        email=resolved_email,
+        section_name=section_name,
+        session_token_hash=session_token_hash or None,
+        ip_address=ip_address,
+        user_agent=user_agent,
+        detail=payload,
+    )
+
+
+def get_access_admin_dashboard(
+    *,
+    usage_window_days: int = 14,
+    security_window_days: int = 14,
+    active_window_minutes: int = 30,
+    recent_event_limit: int = 80,
+    sankey_user_limit: int = 10,
+    user_id: str = "",
+    user_email: str = "",
+) -> dict[str, Any]:
+    dashboard = auth_store.get_access_admin_dashboard(
+        usage_window_days=usage_window_days,
+        security_window_days=security_window_days,
+        active_window_minutes=active_window_minutes,
+        recent_event_limit=recent_event_limit,
+        sankey_user_limit=sankey_user_limit,
+        user_id=user_id,
+        user_email=user_email,
+    )
+    dashboard["cloud_security_status"] = admin_security_status.get_admin_cloud_security_status()
+    return dashboard
+
+
 def authenticate_user(
     *,
     email: str,
@@ -1022,38 +1128,110 @@ def authenticate_user(
     user_agent: str = "",
     ip_address: str = "",
 ) -> dict[str, Any]:
+    normalized_email = str(email or "").strip()
     record = auth_store.get_user_for_login(email)
     generic_error = "Invalid email or password."
     if record is None:
+        record_access_event(
+            event_type="login_failed",
+            event_category="security",
+            email=normalized_email,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            detail={"reason": "unknown_email"},
+        )
         return {"ok": False, "message": generic_error}
 
     if str(record.get("status") or "").strip().lower() != "active":
+        record_access_event(
+            event_type="login_failed",
+            event_category="security",
+            email=normalized_email,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            detail={"reason": "inactive_account"},
+        )
         return {"ok": False, "message": generic_error}
 
     locked_until = record.get("locked_until")
     if isinstance(locked_until, datetime) and locked_until > _now_utc():
+        record_access_event(
+            event_type="login_locked",
+            event_category="security",
+            email=normalized_email,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            detail={"locked_until": locked_until.isoformat()},
+        )
         return {"ok": False, "message": f"Account is temporarily locked until {locked_until.strftime('%Y-%m-%d %H:%M UTC')}."}
 
     if not verify_password(password, str(record.get("password_hash") or "")):
-        auth_store.record_failed_login(
+        failure = auth_store.record_failed_login(
             email,
             max_attempts=_max_failed_attempts(),
             lockout_until=_now_utc() + timedelta(minutes=_lockout_minutes()),
         )
+        failure_count = int(failure.get("failed_login_count") or 0)
+        record_access_event(
+            event_type="login_failed",
+            event_category="security",
+            email=normalized_email,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            detail={
+                "reason": "invalid_password",
+                "failed_login_count": failure_count,
+            },
+        )
+        locked_after_failure = failure.get("locked_until")
+        if isinstance(locked_after_failure, datetime) and locked_after_failure > _now_utc():
+            record_access_event(
+                event_type="login_locked",
+                event_category="security",
+                email=normalized_email,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                detail={
+                    "reason": "max_failed_attempts_reached",
+                    "failed_login_count": failure_count,
+                    "locked_until": locked_after_failure.isoformat(),
+                },
+            )
         return {"ok": False, "message": generic_error}
 
     context = _context_from_row(record)
     if context is None:
+        record_access_event(
+            event_type="login_failed",
+            event_category="security",
+            email=normalized_email,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            detail={"reason": "missing_active_membership"},
+        )
         return {"ok": False, "message": "Account is missing an active portfolio membership."}
 
     auth_store.clear_failed_login(context.user_id)
     session_token = generate_token()
-    auth_store.create_session(
+    session_row = auth_store.create_session(
         user_id=context.user_id,
         session_token_hash=token_digest(session_token),
         expires_at=_now_utc() + timedelta(seconds=_session_ttl_seconds()),
         user_agent=user_agent,
         ip_address=ip_address,
+    )
+    record_access_event(
+        event_type="login_success",
+        event_category="usage",
+        user=context,
+        session_token=session_token,
+        ip_address=ip_address,
+        user_agent=user_agent,
+        detail={
+            "session_id": str((session_row or {}).get("id") or ""),
+            "portfolio_slug": context.portfolio_slug,
+            "role": context.role,
+        },
     )
     return {
         "ok": True,
@@ -1103,9 +1281,22 @@ def issue_invite(
     except Exception as exc:
         return {"ok": False, "message": str(exc)}
 
+    record_access_event(
+        event_type="invite_created",
+        event_category="admin",
+        user=created_by,
+        email=str(email or "").strip(),
+        detail={
+            "role": role,
+            "share_fraction": _coerce_share_fraction(share_fraction),
+            "expires_at": expires_at.isoformat(),
+        },
+    )
+
     invite_url = build_action_link(token_name="invite_token", token=token, base_url=base_url)
-    email_result = EmailDeliveryResult(False, "Email delivery is not configured.")
-    if email_delivery_configured() and (base_url or _public_base_url()):
+    delivery_status = get_auth_email_delivery_status(base_url=base_url)
+    email_result = EmailDeliveryResult(False, str(delivery_status.get("message") or "Email delivery is not configured."))
+    if bool(delivery_status.get("ready")):
         template_override = email_template_override if isinstance(email_template_override, dict) else None
         if isinstance(email_theme_override, dict):
             template_override = dict(template_override or {})
@@ -1189,12 +1380,25 @@ def accept_invite(
         return {"ok": False, "message": "Account activation succeeded, but login context could not be created."}
 
     session_token = generate_token()
-    auth_store.create_session(
+    session_row = auth_store.create_session(
         user_id=context.user_id,
         session_token_hash=token_digest(session_token),
         expires_at=_now_utc() + timedelta(seconds=_session_ttl_seconds()),
         user_agent=user_agent,
         ip_address=ip_address,
+    )
+    record_access_event(
+        event_type="account_created",
+        event_category="usage",
+        user=context,
+        session_token=session_token,
+        ip_address=ip_address,
+        user_agent=user_agent,
+        detail={
+            "session_id": str((session_row or {}).get("id") or ""),
+            "role": context.role,
+            "portfolio_slug": context.portfolio_slug,
+        },
     )
     return {
         "ok": True,
@@ -1213,6 +1417,13 @@ def request_password_reset(
     generic_message = "If an account exists for that email, reset instructions have been sent."
     user_row = auth_store.get_active_user_by_email(email)
     if user_row is None:
+        record_access_event(
+            event_type="password_reset_requested",
+            event_category="security",
+            email=str(email or "").strip(),
+            ip_address=requested_ip,
+            detail={"matched_user": False},
+        )
         return {
             "ok": True,
             "message": generic_message,
@@ -1228,10 +1439,23 @@ def request_password_reset(
         expires_at=expires_at,
         requested_ip=requested_ip,
     )
+    context = _context_from_row(user_row)
+    record_access_event(
+        event_type="password_reset_requested",
+        event_category="security",
+        user=context,
+        email=str(user_row.get("email") or ""),
+        ip_address=requested_ip,
+        detail={
+            "matched_user": True,
+            "expires_at": expires_at.isoformat(),
+        },
+    )
 
     reset_url = build_action_link(token_name="reset_token", token=token, base_url=base_url)
-    email_result = EmailDeliveryResult(False, "Email delivery is not configured.")
-    if email_delivery_configured() and (base_url or _public_base_url()):
+    delivery_status = get_auth_email_delivery_status(base_url=base_url)
+    email_result = EmailDeliveryResult(False, str(delivery_status.get("message") or "Email delivery is not configured."))
+    if bool(delivery_status.get("ready")):
         email_result = send_email(
             to_address=str(user_row.get("email") or "").strip(),
             subject="Reset your Spectral Nature password",
@@ -1272,9 +1496,21 @@ def admin_issue_password_reset(
         expires_at=expires_at,
         requested_ip="admin",
     )
+    record_access_event(
+        event_type="password_reset_issued_admin",
+        event_category="security",
+        user=requested_by,
+        email=str(user_row.get("email") or ""),
+        detail={
+            "target_user_id": str(user_row.get("user_id") or ""),
+            "target_email": str(user_row.get("email") or ""),
+            "expires_at": expires_at.isoformat(),
+        },
+    )
     reset_url = build_action_link(token_name="reset_token", token=token, base_url=base_url)
-    email_result = EmailDeliveryResult(False, "Email delivery is not configured.")
-    if email_delivery_configured() and (base_url or _public_base_url()):
+    delivery_status = get_auth_email_delivery_status(base_url=base_url)
+    email_result = EmailDeliveryResult(False, str(delivery_status.get("message") or "Email delivery is not configured."))
+    if bool(delivery_status.get("ready")):
         email_result = send_email(
             to_address=str(user_row.get("email") or "").strip(),
             subject="Your Spectral Nature password reset link",
@@ -1307,6 +1543,12 @@ def complete_password_reset(*, reset_token: str, new_password: str) -> dict[str,
         return {"ok": False, "message": str(exc)}
 
     context = _context_from_row(row)
+    record_access_event(
+        event_type="password_reset_completed",
+        event_category="security",
+        user=context,
+        detail={"email": context.email if context is not None else ""},
+    )
     return {
         "ok": True,
         "message": "Password reset complete. Please log in with your new password.",
@@ -1326,6 +1568,85 @@ def list_users() -> list[dict[str, Any]]:
 
 def list_pending_invites() -> list[dict[str, Any]]:
     return auth_store.list_pending_invites()
+
+
+def resend_pending_invite(
+    *,
+    invite_id: str,
+    requested_by: UserContext,
+    base_url: str = "",
+) -> dict[str, Any]:
+    if not isinstance(requested_by, UserContext) or not requested_by.is_admin:
+        return {"ok": False, "message": "Only admins can resend pending invites."}
+
+    normalized_id = str(invite_id or "").strip()
+    if not normalized_id:
+        return {"ok": False, "message": "Invite id is required."}
+
+    invite = next(
+        (
+            row
+            for row in auth_store.list_pending_invites()
+            if str((row or {}).get("id") or "").strip() == normalized_id
+        ),
+        None,
+    )
+    if not isinstance(invite, dict):
+        return {"ok": False, "message": "Invite not found."}
+
+    role = str(invite.get("role") or "investor").strip().lower() or "investor"
+    share_fraction = _coerce_share_fraction(invite.get("proposed_share_fraction")) if role == "investor" else 0.0
+    result = issue_invite(
+        email=str(invite.get("email") or "").strip(),
+        role=role,
+        share_fraction=share_fraction,
+        created_by=requested_by,
+        base_url=base_url,
+    )
+    if not result.get("ok"):
+        return result
+
+    return {
+        "ok": True,
+        "message": "Invite resent." if result.get("email_sent") else "Invite reissued.",
+        "invite": result.get("invite") if isinstance(result.get("invite"), dict) else {},
+        "invite_url": str(result.get("invite_url") or ""),
+        "email_sent": bool(result.get("email_sent")),
+        "email_message": str(result.get("email_message") or ""),
+    }
+
+
+def update_pending_invite(
+    *,
+    invite_id: str,
+    requested_by: UserContext,
+    role: str | None = None,
+    share_fraction: float | None = None,
+) -> dict[str, Any]:
+    if not isinstance(requested_by, UserContext) or not requested_by.is_admin:
+        return {"ok": False, "message": "Only admins can update pending invites."}
+
+    normalized_role = str(role or "").strip().lower()
+    if normalized_role and normalized_role not in {"investor", "viewer", "admin"}:
+        return {"ok": False, "message": "Invite role is invalid."}
+
+    normalized_share = None if share_fraction is None else _coerce_share_fraction(share_fraction)
+    try:
+        updated = auth_store.update_pending_invite(
+            invite_id=invite_id,
+            role=normalized_role or None,
+            proposed_share_fraction=normalized_share,
+            updated_by=requested_by.user_id,
+        )
+    except Exception as exc:
+        return {"ok": False, "message": str(exc)}
+
+    payload = updated if isinstance(updated, dict) else {}
+    return {
+        "ok": True,
+        "message": "Pending invite updated.",
+        "invite": payload,
+    }
 
 
 def delete_pending_invite(*, invite_id: str, requested_by: UserContext) -> dict[str, Any]:
@@ -1350,7 +1671,10 @@ __all__ = [
     "UserContext",
     "accept_invite",
     "admin_issue_password_reset",
+    "allow_insecure_browser_session_cookie",
     "authenticate_user",
+    "browser_session_persistence_message",
+    "browser_session_persistence_mode",
     "build_invite_email_preview",
     "build_action_link",
     "complete_password_reset",
@@ -1361,6 +1685,7 @@ __all__ = [
     "delete_invite_email_template",
     "generate_token",
     "get_active_invite_email_template",
+    "get_access_admin_dashboard",
     "get_invite_email_template_library",
     "get_invite_email_theme",
     "get_invite_preview",
@@ -1370,13 +1695,16 @@ __all__ = [
     "list_pending_invites",
     "list_users",
     "logout_session",
+    "record_access_event",
     "request_password_reset",
+    "resend_pending_invite",
     "restore_user_from_session",
     "sanitize_invite_email_theme",
     "save_invite_email_template",
     "save_invite_email_theme",
     "set_active_invite_email_template",
     "token_digest",
+    "update_pending_invite",
     "validate_password_strength",
     "verify_password",
 ]

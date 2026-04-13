@@ -4,6 +4,7 @@ import pandas as pd
 
 
 import db_connect
+import fred_config
 
 def get_data_from_db(db_name,table_name):
     
@@ -12,7 +13,7 @@ def get_data_from_db(db_name,table_name):
         # SQLite database connection
         # conn = sqlite3.connect(db_name)
 
-        conn = db_test.get_db_conn()
+        conn = db_connect.get_db_conn()
         
         # Query to select all data from the table
         query = f"SELECT * FROM {table_name}"
@@ -107,15 +108,8 @@ def get_all_sources(api_key):
               
 
 
-# def main():
-#     api_key = '46ae2b0f7c69c4fa5b6f3f4710a107dc'
-#     get_all_sources(api_key)
-
-# if __name__=="__main__":
-#     main()
-
 def get_sources():
-    api_key = '46ae2b0f7c69c4fa5b6f3f4710a107dc'
+    api_key = fred_config.get_fred_api_key()
     db_name='db_spectral_nature.sqlite'
 
     table_name='dim_source_data'
@@ -127,5 +121,4 @@ def get_sources():
     insert_into_db(all_sources_data_to_df,table_name)
 
     return ("Sources data has been fetched and inserted into the database")
-
 

@@ -8,16 +8,16 @@ from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 if TYPE_CHECKING:
-    from playwright.sync_api import BrowserContext, Page, Playwright
+    from playwright.async_api import BrowserContext, Page, Playwright
 
 _PLAYWRIGHT_IMPORT_ERROR: Exception | None = None
 
 try:
-    from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
-    from playwright.sync_api import sync_playwright
+    from playwright.async_api import TimeoutError as PlaywrightTimeoutError
+    from playwright.async_api import async_playwright
 except ImportError as exc:  # pragma: no cover - handled at runtime in notebook setup
     PlaywrightTimeoutError = RuntimeError  # type: ignore[assignment]
-    sync_playwright = None
+    async_playwright = None
     _PLAYWRIGHT_IMPORT_ERROR = exc
 
 
@@ -33,7 +33,7 @@ _FACT_META_KEYS = (
 
 
 def _require_playwright() -> None:
-    if sync_playwright is None:
+    if async_playwright is None:
         raise ImportError(
             "Playwright is not installed. Run `pip install playwright` and "
             "`python -m playwright install chromium` before using this helper."
@@ -237,53 +237,70 @@ class SeekingAlphaBrowser:
         self._playwright: Playwright | None = None
         self.context: BrowserContext | None = None
 
-    def __enter__(self) -> "SeekingAlphaBrowser":
-        return self.start()
+    async def __aenter__(self) -> "SeekingAlphaBrowser":
+        return await self.start()
 
-    def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
-        self.close()
+    async def __aexit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
+        await self.close()
 
-    def start(self) -> "SeekingAlphaBrowser":
+    async def start(self) -> "SeekingAlphaBrowser":
         _require_playwright()
         self.user_data_dir.mkdir(parents=True, exist_ok=True)
 
         if self.context is not None:
             return self
 
-        self._playwright = sync_playwright().start()
-        self.context = self._playwright.chromium.launch_persistent_context(
-            user_data_dir=str(self.user_data_dir),
-            headless=self.headless,
-            slow_mo=self.slow_mo_ms,
-            args=["--start-maximized"],
-            no_viewport=True,
-        )
+        self._playwright = await async_playwright().start()
+        context_kwargs: dict[str, Any] = {
+            "user_data_dir": str(self.user_data_dir),
+            "headless": self.headless,
+            "slow_mo": self.slow_mo_ms,
+        }
+
+        if self.headless:
+            context_kwargs["viewport"] = {"width": 1600, "height": 1200}
+        else:
+            context_kwargs["args"] = ["--start-maximized"]
+            context_kwargs["no_viewport"] = True
+
+        self.context = await self._playwright.chromium.launch_persistent_context(**context_kwargs)
         self.context.set_default_timeout(self.timeout_ms)
         return self
 
-    def close(self) -> None:
+    async def close(self) -> None:
         if self.context is not None:
-            self.context.close()
+            await self.context.close()
             self.context = None
 
         if self._playwright is not None:
-            self._playwright.stop()
+            await self._playwright.stop()
             self._playwright = None
 
-    def page(self) -> "Page":
+    async def page(self) -> "Page":
         if self.context is None:
             raise RuntimeError("Browser is not started. Call `start()` first.")
 
-        return self.context.pages[0] if self.context.pages else self.context.new_page()
+        return self.context.pages[0] if self.context.pages else await self.context.new_page()
 
-    def wait_for_user(self, message: str | None = None) -> None:
+    async def wait_for_user(self, message: str | None = None, *, enabled: bool = True) -> bool:
+        if not enabled:
+            return False
+
         prompt = message or (
             "Finish any login, 2FA, or cookie banner steps in the browser window, "
             "then press Enter here to continue."
         )
-        input(prompt + "\n")
+        try:
+            input(prompt + "\n")
+            return True
+        except EOFError:
+            return False
+        except Exception as exc:
+            if type(exc).__name__ == "StdinNotImplementedError":
+                return False
+            raise
 
-    def open(
+    async def open(
         self,
         target: str,
         *,
@@ -291,27 +308,27 @@ class SeekingAlphaBrowser:
         scroll_steps: int = 8,
         settle_ms: int = 1_500,
     ) -> "Page":
-        page = self.page()
-        page.goto(normalize_target(target), wait_until="domcontentloaded")
-        self._wait_for_content_root(page)
+        page = await self.page()
+        await page.goto(normalize_target(target), wait_until="domcontentloaded")
+        await self._wait_for_content_root(page)
 
         if scroll:
-            self.auto_scroll(page, steps=scroll_steps)
+            await self.auto_scroll(page, steps=scroll_steps)
 
         if settle_ms > 0:
-            page.wait_for_timeout(settle_ms)
+            await page.wait_for_timeout(settle_ms)
 
         return page
 
-    def auto_scroll(self, page: "Page", *, steps: int = 8, pause_ms: int = 500) -> None:
+    async def auto_scroll(self, page: "Page", *, steps: int = 8, pause_ms: int = 500) -> None:
         for _ in range(max(steps, 0)):
-            page.evaluate("window.scrollBy(0, Math.round(window.innerHeight * 0.85));")
-            page.wait_for_timeout(pause_ms)
+            await page.evaluate("window.scrollBy(0, Math.round(window.innerHeight * 0.85));")
+            await page.wait_for_timeout(pause_ms)
 
-        page.evaluate("window.scrollTo(0, 0);")
-        page.wait_for_timeout(pause_ms)
+        await page.evaluate("window.scrollTo(0, 0);")
+        await page.wait_for_timeout(pause_ms)
 
-    def extract_snapshot(
+    async def extract_snapshot(
         self,
         page: "Page",
         *,
@@ -320,18 +337,18 @@ class SeekingAlphaBrowser:
         max_table_rows: int = 20,
         max_links: int = 25,
     ) -> dict[str, Any]:
-        page_title = page.title()
-        meta = self._extract_meta(page)
-        json_ld = self._extract_json_ld(page)
+        page_title = await page.title()
+        meta = await self._extract_meta(page)
+        json_ld = await self._extract_json_ld(page)
         text_blocks = _dedupe_text_blocks(
-            self._extract_text_blocks(page, max_blocks=max_text_blocks)
+            await self._extract_text_blocks(page, max_blocks=max_text_blocks)
         )
-        tables = self._extract_tables(
+        tables = await self._extract_tables(
             page,
             max_tables=max_tables,
             max_rows=max_table_rows,
         )
-        links = self._extract_links(page, max_links=max_links)
+        links = await self._extract_links(page, max_links=max_links)
         headings = [block["text"] for block in text_blocks if block["tag"] in {"h1", "h2", "h3"}]
 
         return {
@@ -347,16 +364,16 @@ class SeekingAlphaBrowser:
             "json_ld": json_ld,
         }
 
-    def _wait_for_content_root(self, page: "Page") -> None:
+    async def _wait_for_content_root(self, page: "Page") -> None:
         for selector in ("article", "main", "body"):
             try:
-                page.locator(selector).first.wait_for(state="visible", timeout=5_000)
+                await page.locator(selector).first.wait_for(state="visible", timeout=5_000)
                 return
             except PlaywrightTimeoutError:
                 continue
 
-    def _extract_meta(self, page: "Page") -> dict[str, str]:
-        return page.evaluate(
+    async def _extract_meta(self, page: "Page") -> dict[str, str]:
+        return await page.evaluate(
             """
             () => {
               const keys = ['description', 'og:description', 'og:title', 'twitter:title', 'twitter:description', 'author'];
@@ -377,8 +394,8 @@ class SeekingAlphaBrowser:
             """
         )
 
-    def _extract_json_ld(self, page: "Page") -> list[dict[str, Any]]:
-        raw_blocks = page.evaluate(
+    async def _extract_json_ld(self, page: "Page") -> list[dict[str, Any]]:
+        raw_blocks = await page.evaluate(
             """
             () => Array.from(document.querySelectorAll('script[type="application/ld+json"]'))
               .map((node) => node.textContent || '')
@@ -397,8 +414,8 @@ class SeekingAlphaBrowser:
 
         return parsed_items
 
-    def _extract_text_blocks(self, page: "Page", *, max_blocks: int) -> list[dict[str, str]]:
-        return page.evaluate(
+    async def _extract_text_blocks(self, page: "Page", *, max_blocks: int) -> list[dict[str, str]]:
+        return await page.evaluate(
             """
             ({ maxBlocks }) => {
               const root = document.querySelector('article') || document.querySelector('main') || document.body;
@@ -440,14 +457,14 @@ class SeekingAlphaBrowser:
             {"maxBlocks": max_blocks},
         )
 
-    def _extract_tables(
+    async def _extract_tables(
         self,
         page: "Page",
         *,
         max_tables: int,
         max_rows: int,
     ) -> list[dict[str, Any]]:
-        return page.evaluate(
+        return await page.evaluate(
             """
             ({ maxTables, maxRows }) => {
               const root = document.querySelector('article') || document.querySelector('main') || document.body;
@@ -493,8 +510,8 @@ class SeekingAlphaBrowser:
             {"maxTables": max_tables, "maxRows": max_rows},
         )
 
-    def _extract_links(self, page: "Page", *, max_links: int) -> list[dict[str, str]]:
-        links = page.evaluate(
+    async def _extract_links(self, page: "Page", *, max_links: int) -> list[dict[str, str]]:
+        links = await page.evaluate(
             """
             ({ maxLinks }) => {
               const root = document.querySelector('article') || document.querySelector('main') || document.body;

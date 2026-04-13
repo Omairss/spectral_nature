@@ -7,6 +7,10 @@ from typing import Any, Callable
 import pandas as pd
 
 from services.attention_agentic import build_bottom_up_attention_artifacts, search_symbol_news_payload
+from services.attention_home_summary import (
+    attach_attention_home_summary_audio,
+    build_attention_home_summary_payload,
+)
 from services.attention_home_1d import build_attention_entity_master, resolve_macro_anchor_symbols, shortlist_attention_symbols_1d
 from services.attention_materialized import bars_by_symbol_from_price_history, serialize_attention_home_payload, serialize_attention_research_bundles
 from services.attention_ticker_snapshots import (
@@ -14,6 +18,7 @@ from services.attention_ticker_snapshots import (
     build_attention_ticker_snapshot_frame,
     collect_attention_ticker_symbols,
 )
+from services.elevenlabs_tts import ElevenLabsTTSAPIError
 from services.llm import LLMAPIError, load_embedding_client, load_llm_client
 from services.pipeline_store import load_latest_dataset_frame
 
@@ -48,6 +53,18 @@ def _attention_home_search_backfill_limit() -> int:
     except Exception:
         parsed = 100
     return max(parsed, 1)
+
+
+def _build_materialized_homepage_summary(payload: dict[str, Any]) -> dict[str, Any]:
+    summary_payload = build_attention_home_summary_payload(payload)
+    try:
+        return attach_attention_home_summary_audio(summary_payload)
+    except ElevenLabsTTSAPIError as exc:
+        print(f"[warn] attention-home-build ElevenLabs narration unavailable: {exc}")
+        return summary_payload
+    except Exception as exc:
+        print(f"[warn] attention-home-build unexpected ElevenLabs narration error: {type(exc).__name__}: {exc}")
+        return summary_payload
 
 
 def _normalize_symbol(value: object) -> str:
@@ -455,6 +472,7 @@ def build_attention_home_output_frames(
         }
     )
     payload["coverage_summary"] = coverage
+    payload["homepage_summary"] = _build_materialized_homepage_summary(payload)
     artifacts.frames["attention_home_snapshots_1d"] = serialize_attention_home_payload(payload)
     if "attention_bundle_snapshots" not in artifacts.frames:
         artifacts.frames["attention_bundle_snapshots"] = serialize_attention_research_bundles(

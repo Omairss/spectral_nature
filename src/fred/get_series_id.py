@@ -3,6 +3,7 @@ import pandas as pd
 import sqlite3
 import logging
 import db_connect
+import fred_config
 
 
 logging.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
@@ -52,7 +53,7 @@ def get_all_series_for_each_release(release_id,api_key):
     return(response_series.json())
 
 def get_series_ids():
-    api_key = '46ae2b0f7c69c4fa5b6f3f4710a107dc'
+    api_key = fred_config.get_fred_api_key()
     db_name='../../db/db_spectral_nature.sql'
     source_table_name='dim_source_data'
     release_table_name='dim_release_data'

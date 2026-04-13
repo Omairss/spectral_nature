@@ -19,10 +19,26 @@ from services import agent_tools, api_auth, auth_service, auth_store, omnibar as
 
 
 def _auth_enabled() -> bool:
+    return bool(auth_service.database_auth_enabled())
+
+
+def _auth_status() -> dict[str, Any]:
     try:
-        return bool(auth_service.database_auth_enabled())
-    except Exception:
-        return False
+        return {"enabled": _auth_enabled(), "error": ""}
+    except Exception as exc:
+        return {"enabled": False, "error": f"{type(exc).__name__}: {exc}"}
+
+
+def _require_auth_backend() -> None:
+    try:
+        enabled = _auth_enabled()
+    except Exception as exc:
+        raise _error(
+            f"Authentication backend unavailable: {type(exc).__name__}: {exc}",
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+    if not enabled:
+        raise _error("API authentication is disabled for this environment.", status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
 def _now_utc() -> datetime:
@@ -92,14 +108,18 @@ def _resolve_principal(
             raise _error("Invalid or expired bearer token.", status.HTTP_401_UNAUTHORIZED)
         return principal
 
-    if _auth_enabled():
+    try:
+        auth_enabled = _auth_enabled()
+    except Exception as exc:
+        raise _error(
+            f"Authentication backend unavailable: {type(exc).__name__}: {exc}",
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    if auth_enabled:
         raise _error("Authentication required.", status.HTTP_401_UNAUTHORIZED)
 
-    return api_auth.AuthPrincipal(
-        principal_type="anonymous",
-        scopes=tuple(sorted(api_auth.DEFAULT_USER_SCOPES)),
-        auth_source="anonymous",
-    )
+    raise _error("API authentication is disabled for this environment.", status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
 def _require_principal(
@@ -282,17 +302,18 @@ def healthcheck() -> dict[str, str]:
 @app.get("/v1/auth/status")
 def auth_status() -> dict[str, Any]:
     initialized = auth_service.initialize_auth_system()
+    auth_status_payload = _auth_status()
     return {
         **initialized,
         "mode": auth_service.auth_mode(),
-        "database_auth_enabled": _auth_enabled(),
+        "database_auth_enabled": auth_status_payload["enabled"],
+        "database_auth_error": auth_status_payload["error"],
     }
 
 
 @app.post("/v1/auth/login")
 def login(payload: LoginRequest, request: Request) -> dict[str, Any]:
-    if not _auth_enabled():
-        raise _error("Database authentication is not enabled for this environment.", status.HTTP_409_CONFLICT)
+    _require_auth_backend()
     user_agent = request.headers.get("user-agent", "")
     ip_address = request.client.host if request.client is not None else ""
     result = api_auth.issue_user_tokens_from_password(
@@ -318,8 +339,7 @@ def login(payload: LoginRequest, request: Request) -> dict[str, Any]:
 
 @app.post("/v1/auth/refresh")
 def refresh_tokens(payload: RefreshRequest, request: Request) -> dict[str, Any]:
-    if not _auth_enabled():
-        raise _error("Database authentication is not enabled for this environment.", status.HTTP_409_CONFLICT)
+    _require_auth_backend()
     user_agent = request.headers.get("user-agent", "")
     ip_address = request.client.host if request.client is not None else ""
     result = api_auth.refresh_user_tokens(

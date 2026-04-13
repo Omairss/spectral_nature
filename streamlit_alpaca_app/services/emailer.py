@@ -4,8 +4,9 @@ from dataclasses import dataclass
 from email.message import EmailMessage
 import os
 import smtplib
+from typing import Any
 
-from .secrets import resolve_secret_value
+from .secrets import describe_secret_resolution, resolve_secret_value
 
 
 @dataclass(frozen=True)
@@ -68,8 +69,76 @@ def _from_address() -> str:
     )
 
 
+def _secret_resolution_message(label: str, resolution: dict[str, Any]) -> str:
+    secret_name = str(resolution.get("secret_name") or "").strip()
+    vault_name = str(resolution.get("vault_name") or "").strip()
+    reason = str(resolution.get("reason") or "").strip()
+    error_type = str(resolution.get("error_type") or "").strip()
+
+    if reason == "secret_name_missing":
+        return f"{label} is missing. Set it directly or configure its secret name."
+    if reason == "vault_url_missing":
+        return f"{label} is missing because Key Vault is not configured."
+    if reason == "azure_sdk_unavailable":
+        return f"{label} is missing because Azure Key Vault support is not installed in this runtime."
+    if reason == "azure_credentials_unavailable":
+        return f"{label} is missing because Azure credentials are unavailable in this runtime."
+    if reason == "secret_value_missing":
+        if secret_name:
+            return f"{label} secret `{secret_name}` is empty."
+        return f"{label} is empty."
+    if reason == "key_vault_lookup_failed":
+        if secret_name and vault_name and error_type in {"SecretNotFound", "ResourceNotFoundError"}:
+            return f"{label} secret `{secret_name}` was not found in Key Vault `{vault_name}`."
+        if secret_name and vault_name:
+            return f"{label} secret `{secret_name}` could not be read from Key Vault `{vault_name}`."
+        return f"{label} could not be read from Key Vault."
+    return f"{label} is missing."
+
+
+def email_delivery_status() -> dict[str, Any]:
+    smtp_host = _smtp_host()
+    from_address = describe_secret_resolution(
+        ["APP_EMAIL_FROM", "EMAIL_FROM"],
+        secret_name_env="APP_EMAIL_FROM_SECRET",
+        default_secret_name="app-email-from",
+    )
+    smtp_username = describe_secret_resolution(
+        ["APP_SMTP_USERNAME", "SMTP_USERNAME"],
+        secret_name_env="APP_SMTP_USERNAME_SECRET",
+        default_secret_name="app-smtp-username",
+    )
+    smtp_password = describe_secret_resolution(
+        ["APP_SMTP_PASSWORD", "SMTP_PASSWORD"],
+        secret_name_env="APP_SMTP_PASSWORD_SECRET",
+        default_secret_name="app-smtp-password",
+    )
+
+    configured = bool(smtp_host and bool(from_address.get("resolved")))
+    message = "Email delivery is configured."
+    if not smtp_host:
+        message = "SMTP host is missing. Set `APP_SMTP_HOST`."
+    elif not bool(from_address.get("resolved")):
+        message = _secret_resolution_message("Sender address", from_address)
+
+    return {
+        "configured": configured,
+        "message": message,
+        "smtp_host_present": bool(smtp_host),
+        "smtp_host": smtp_host,
+        "from_address_present": bool(from_address.get("resolved")),
+        "from_address_source": str(from_address.get("source") or ""),
+        "from_address": from_address,
+        "smtp_username_present": bool(smtp_username.get("resolved")),
+        "smtp_username": smtp_username,
+        "smtp_password_present": bool(smtp_password.get("resolved")),
+        "smtp_password": smtp_password,
+        "smtp_auth_configured": bool(smtp_username.get("resolved")) and bool(smtp_password.get("resolved")),
+    }
+
+
 def email_delivery_configured() -> bool:
-    return bool(_smtp_host() and _from_address())
+    return bool(email_delivery_status().get("configured"))
 
 
 def send_email(
@@ -84,8 +153,9 @@ def send_email(
     sender = _from_address()
     if not recipient:
         return EmailDeliveryResult(False, "Missing recipient email address.")
-    if not email_delivery_configured():
-        return EmailDeliveryResult(False, "Email delivery is not configured.")
+    status = email_delivery_status()
+    if not bool(status.get("configured")):
+        return EmailDeliveryResult(False, str(status.get("message") or "Email delivery is not configured."))
 
     message = EmailMessage()
     message["From"] = sender
@@ -141,6 +211,7 @@ def send_email(
 __all__ = [
     "EmailInlineImage",
     "EmailDeliveryResult",
+    "email_delivery_status",
     "email_delivery_configured",
     "send_email",
 ]

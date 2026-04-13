@@ -35,6 +35,14 @@ load_first_available_local_env() {
   fi
 }
 
+normalize_local_keyvault_env() {
+  local canonical="${KEYVAULT_NAME:-${AZURE_KEY_VAULT_NAME:-${KEY_VAULT_NAME:-}}}"
+  [[ -n "$canonical" ]] || return 0
+  export KEYVAULT_NAME="$canonical"
+  export AZURE_KEY_VAULT_NAME="$canonical"
+  export KEY_VAULT_NAME="$canonical"
+}
+
 DEFAULT_DEPLOYMENT_ENV_FILE_ABS="$(resolve_local_env_path "infra/.generated/deployment.local.env")"
 LEGACY_DEPLOYMENT_ENV_FILE_ABS="$(resolve_local_env_path "infra/deployment.outputs.env")"
 DEFAULT_EMAIL_OUTPUTS_FILE_ABS="$(resolve_local_env_path "infra/.generated/email_delivery.local.env")"
@@ -49,3 +57,4 @@ load_first_available_local_env "$PREFERRED_EMAIL_OUTPUTS_FILE_ABS" "$LEGACY_EMAI
 
 # Load .env last so explicit local overrides win over generated convenience files.
 load_local_env_file "$DOTENV_FILE_ABS"
+normalize_local_keyvault_env

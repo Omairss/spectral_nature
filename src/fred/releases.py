@@ -3,6 +3,7 @@ import pandas as pd
 import sqlite3
 
 import db_connect
+import fred_config
 def insert_into_db(df_data,db_name,table_name):
     
     
@@ -59,7 +60,7 @@ def get_all_release_for_each_source(source_id,api_key):
 
 
 def get_releases():
-    api_key = '46ae2b0f7c69c4fa5b6f3f4710a107dc'
+    api_key = fred_config.get_fred_api_key()
     db_name='db_spectral_nature.sqlite'
     source_table_name='dim_source_data'
     release_table_name='dim_release_data'

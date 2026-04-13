@@ -608,8 +608,13 @@ def _build_equal_weight_basket(normalized_matrix: pd.DataFrame) -> pd.DataFrame:
     return basket.reset_index().rename(columns={"index": "timestamp"})
 
 
-def _phase_regime(compounding_momentum_pct: float, momentum_roc_pct: float, correlation_roc: float) -> str:
-    if compounding_momentum_pct >= 0 and correlation_roc < 0:
+def _phase_regime(
+    compounding_momentum_pct: float,
+    momentum_roc_pct: float,
+    correlation_roc: float,
+    correlation_now: float,
+) -> str:
+    if compounding_momentum_pct >= 0 and (correlation_roc < 0 or correlation_now < 0.3):
         return "Decoupling leader"
     if compounding_momentum_pct >= 0 and momentum_roc_pct >= 0 and correlation_roc >= 0:
         return "Beta-linked breakout"
@@ -895,11 +900,12 @@ def build_correlation_phase_shifts_from_bars(
     summary["beta_breakout_score"] = (comp_mom_z * 0.40 + mom_roc_z * 0.25 + corr_roc_z * 0.25 + corr_now_z * 0.10) * 100.0
     summary["correlation_break_score"] = (corr_roc_z.abs() * 0.65 + mom_roc_z.abs() * 0.35) * 100.0
     summary["phase_regime"] = [
-        _phase_regime(comp_mom, mom_roc, corr_roc)
-        for comp_mom, mom_roc, corr_roc in zip(
+        _phase_regime(comp_mom, mom_roc, corr_roc, corr_now)
+        for comp_mom, mom_roc, corr_roc, corr_now in zip(
             summary["compounding_momentum_pct"],
             summary["momentum_roc_pct"],
             summary["correlation_roc"],
+            summary["correlation_now"],
         )
     ]
     summary = summary.sort_values(["decoupling_score", "beta_breakout_score"], ascending=False, na_position="last").reset_index(drop=True)

@@ -224,7 +224,7 @@ def test_omnibar_suggestions_endpoint_returns_suggestions(monkeypatch):
                     "kind": "macro_release",
                     "query": "cpi",
                     "label": "CPI Release",
-                    "subtitle": "Inflation release context and price-level signals in FRED Macro.",
+                    "subtitle": "Inflation release context and price-level signals in Broad Economy.",
                 }
             ],
         },
@@ -240,6 +240,35 @@ def test_omnibar_suggestions_endpoint_returns_suggestions(monkeypatch):
     payload = response.json()
     assert payload["policy_version"] == "streamlit-agentic-omnibar-v1"
     assert payload["suggestions"][0]["query"] == "cpi"
+
+
+def test_protected_endpoint_fails_closed_when_auth_is_disabled(monkeypatch):
+    monkeypatch.setattr(api_main, "_auth_enabled", lambda: False)
+
+    client = TestClient(api_main.app)
+    response = client.post(
+        "/v1/dataset/price_history",
+        json={"params": {"ticker": "AAPL"}},
+    )
+
+    assert response.status_code == 503
+    assert "disabled for this environment" in response.json().get("detail", "")
+
+
+def test_protected_endpoint_fails_closed_when_auth_backend_errors(monkeypatch):
+    def _raise():
+        raise RuntimeError("database offline")
+
+    monkeypatch.setattr(api_main, "_auth_enabled", _raise)
+
+    client = TestClient(api_main.app)
+    response = client.post(
+        "/v1/dataset/price_history",
+        json={"params": {"ticker": "AAPL"}},
+    )
+
+    assert response.status_code == 503
+    assert "Authentication backend unavailable" in response.json().get("detail", "")
 
 
 def test_agent_rpc_tools_call_executes_dataset(monkeypatch):

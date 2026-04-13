@@ -43,6 +43,7 @@ ADMIN_EXTRA_SCOPES: set[str] = {
 
 
 _RUNTIME_FALLBACK_ACCESS_TOKEN_SECRET = secrets.token_urlsafe(48)
+_TRUE_VALUES = {"1", "true", "yes", "on"}
 
 
 @dataclass(frozen=True)
@@ -107,6 +108,14 @@ def _access_token_issuer() -> str:
     return (os.getenv("API_ACCESS_TOKEN_ISSUER") or "spectral-nature-api").strip() or "spectral-nature-api"
 
 
+def _allow_ephemeral_access_token_secret() -> bool:
+    return (os.getenv("API_ALLOW_EPHEMERAL_ACCESS_TOKEN_SECRET") or "").strip().lower() in _TRUE_VALUES
+
+
+def _allow_legacy_session_bearer_tokens() -> bool:
+    return (os.getenv("API_ALLOW_LEGACY_SESSION_BEARER") or "").strip().lower() in _TRUE_VALUES
+
+
 def _access_token_secret() -> str:
     configured = resolve_secret_value(
         ["API_ACCESS_TOKEN_SECRET"],
@@ -115,15 +124,12 @@ def _access_token_secret() -> str:
     )
     if configured:
         return configured
-
-    fallback = (
-        os.getenv("DASHBOARD_AUTH_BOOTSTRAP_ADMIN_PASSWORD")
-        or os.getenv("DASHBOARD_AUTH_PASSWORD")
-        or ""
-    ).strip()
-    if fallback:
-        return fallback
-    return _RUNTIME_FALLBACK_ACCESS_TOKEN_SECRET
+    if _allow_ephemeral_access_token_secret():
+        return _RUNTIME_FALLBACK_ACCESS_TOKEN_SECRET
+    raise RuntimeError(
+        "API access token signing secret is not configured. "
+        "Set API_ACCESS_TOKEN_SECRET or API_ACCESS_TOKEN_SECRET_NAME."
+    )
 
 
 def _scopes_for_user_context(context: auth_service.UserContext) -> list[str]:
@@ -338,6 +344,8 @@ def principal_from_access_token(access_token: str) -> AuthPrincipal | None:
 
 
 def principal_from_legacy_session_token(session_token: str) -> AuthPrincipal | None:
+    if not _allow_legacy_session_bearer_tokens():
+        return None
     row = _session_row_from_refresh_token(session_token)
     if not isinstance(row, dict):
         return None

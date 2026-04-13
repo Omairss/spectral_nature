@@ -67,6 +67,11 @@ bash ./scripts/show_infra_inventory.sh
 
 ### UI apps
 
+- `ui_resource_group`
+  - Purpose: Azure resource group that owns the UI Container Apps
+  - Current group: `sn-pipeline-rg-03130136`
+  - Live lookup: `az resource list --name sn-streamlit-ui --resource-type Microsoft.App/containerApps --query "[0].resourceGroup" -o tsv`
+
 - `ui_dev_app`
   - Purpose: development UI Container App
   - Live lookup: `az resource show -n sn-streamlit-ui-dev -g "$RESOURCE_GROUP" --resource-type Microsoft.App/containerApps --api-version 2025-07-01`
@@ -78,6 +83,11 @@ bash ./scripts/show_infra_inventory.sh
 - `ui_deployment_status`
   - Purpose: tracked snapshot of the current dev/prod image digests and revisions
   - Tracked file: `documents/infra/UI_DEPLOYMENT_STATUS.md`
+
+- `ui_browser_session_persistence`
+  - Purpose: explicit control for browser-persistent login on each UI app
+  - Env var: `UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE`
+  - Live lookup: `az resource show -n sn-streamlit-ui -g "$RESOURCE_GROUP" --resource-type Microsoft.App/containerApps --api-version 2025-07-01 --query "properties.template.containers[0].env[?name=='UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE'].value | [0]" -o tsv`
 
 ### Secret names
 

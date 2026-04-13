@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import json
 import os
 import re
@@ -65,6 +65,37 @@ def _fetchone_dict(cursor: Any) -> dict[str, Any] | None:
 
 def _fetchall_dicts(cursor: Any) -> list[dict[str, Any]]:
     return [_row_dict(cursor, row) for row in cursor.fetchall() or []]
+
+
+def _normalize_access_dashboard_user(*, user_id: str | None = None, user_email: str | None = None) -> tuple[str, str]:
+    normalized_user_id = ""
+    raw_user_id = str(user_id or "").strip()
+    if raw_user_id:
+        try:
+            normalized_user_id = str(uuid.UUID(raw_user_id))
+        except Exception:
+            normalized_user_id = ""
+    normalized_user_email = str(user_email or "").strip().lower()
+    return normalized_user_id, normalized_user_email
+
+
+def _decode_access_event_detail(detail_value: Any) -> dict[str, Any]:
+    if isinstance(detail_value, dict):
+        return detail_value
+    if isinstance(detail_value, str):
+        try:
+            parsed = json.loads(detail_value)
+        except Exception:
+            return {}
+        return parsed if isinstance(parsed, dict) else {}
+    return {}
+
+
+def _hydrate_access_event_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    for row in rows:
+        row["detail"] = _decode_access_event_detail(row.get("detail_json"))
+        row.pop("detail_json", None)
+    return rows
 
 
 def _default_portfolio_slug() -> str:
@@ -179,6 +210,26 @@ def _ensure_schema(conn: Any) -> None:
         )
         """,
         f"CREATE UNIQUE INDEX IF NOT EXISTS idx_{schema}_user_sessions_token_hash ON {schema}.user_sessions (session_token_hash)",
+        f"""
+        CREATE TABLE IF NOT EXISTS {schema}.access_events (
+            id UUID PRIMARY KEY,
+            user_id UUID NULL REFERENCES {schema}.users(id) ON DELETE SET NULL,
+            email TEXT NULL,
+            event_type TEXT NOT NULL,
+            event_category TEXT NOT NULL,
+            section_name TEXT NULL,
+            session_token_hash TEXT NULL,
+            ip_address TEXT NULL,
+            user_agent TEXT NULL,
+            detail_json JSONB NOT NULL,
+            created_at TIMESTAMPTZ NOT NULL
+        )
+        """,
+        f"CREATE INDEX IF NOT EXISTS idx_{schema}_access_events_created_at ON {schema}.access_events (created_at DESC)",
+        f"CREATE INDEX IF NOT EXISTS idx_{schema}_access_events_user_created ON {schema}.access_events (user_id, created_at DESC)",
+        f"CREATE INDEX IF NOT EXISTS idx_{schema}_access_events_type_created ON {schema}.access_events (event_type, created_at DESC)",
+        f"CREATE INDEX IF NOT EXISTS idx_{schema}_access_events_category_created ON {schema}.access_events (event_category, created_at DESC)",
+        f"CREATE INDEX IF NOT EXISTS idx_{schema}_access_events_section_created ON {schema}.access_events (section_name, created_at DESC)",
         f"""
         CREATE TABLE IF NOT EXISTS {schema}.agent_api_keys (
             id UUID PRIMARY KEY,
@@ -436,10 +487,10 @@ def get_user_for_login(email: str) -> dict[str, Any] | None:
         conn.close()
 
 
-def record_failed_login(email: str, *, max_attempts: int, lockout_until: datetime | None) -> None:
+def record_failed_login(email: str, *, max_attempts: int, lockout_until: datetime | None) -> dict[str, Any]:
     conn = _db_connect()
     if conn is None:
-        return
+        return {}
     schema = _schema_name()
     try:
         with conn:
@@ -456,9 +507,15 @@ def record_failed_login(email: str, *, max_attempts: int, lockout_until: datetim
                     WHERE user_id = (
                         SELECT id FROM {schema}.users WHERE lower(email) = lower(%s) LIMIT 1
                     )
+                    RETURNING failed_login_count, locked_until
                     """,
                     (max_attempts, lockout_until, str(email or "").strip()),
                 )
+                row = _fetchone_dict(cursor) or {}
+                return {
+                    "failed_login_count": int(row.get("failed_login_count") or 0),
+                    "locked_until": row.get("locked_until"),
+                }
     finally:
         conn.close()
 
@@ -603,6 +660,111 @@ def revoke_user_sessions(user_id: str) -> None:
                     """,
                     (now, user_id),
                 )
+    finally:
+        conn.close()
+
+
+def record_access_event(
+    *,
+    event_type: str,
+    event_category: str,
+    user_id: str | None = None,
+    email: str | None = None,
+    section_name: str | None = None,
+    session_token_hash: str | None = None,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
+    detail: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    normalized_event_type = str(event_type or "").strip().lower()
+    normalized_category = str(event_category or "").strip().lower()
+    if not normalized_event_type or not normalized_category:
+        return {}
+
+    conn = _db_connect()
+    if conn is None:
+        return {}
+
+    schema = _schema_name()
+    event_id = uuid.uuid4()
+    now = _now_utc()
+    normalized_user_id = str(user_id or "").strip()
+    normalized_email = str(email or "").strip()
+    normalized_section = str(section_name or "").strip()
+    normalized_session_hash = str(session_token_hash or "").strip()
+    normalized_ip = str(ip_address or "").strip()
+    normalized_user_agent = str(user_agent or "").strip()
+    serialized_detail = json.dumps(detail if isinstance(detail, dict) else {}, default=str)
+
+    try:
+        with conn:
+            _ensure_schema(conn)
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    INSERT INTO {schema}.access_events (
+                        id, user_id, email, event_type, event_category, section_name,
+                        session_token_hash, ip_address, user_agent, detail_json, created_at
+                    ) VALUES (
+                        %s,
+                        NULLIF(%s, '')::uuid,
+                        NULLIF(%s, ''),
+                        %s,
+                        %s,
+                        NULLIF(%s, ''),
+                        NULLIF(%s, ''),
+                        NULLIF(%s, ''),
+                        NULLIF(%s, ''),
+                        %s::jsonb,
+                        %s
+                    )
+                    RETURNING
+                        id,
+                        user_id,
+                        email,
+                        event_type,
+                        event_category,
+                        section_name,
+                        session_token_hash,
+                        ip_address,
+                        user_agent,
+                        detail_json,
+                        created_at
+                    """,
+                    (
+                        event_id,
+                        normalized_user_id,
+                        normalized_email,
+                        normalized_event_type,
+                        normalized_category,
+                        normalized_section,
+                        normalized_session_hash,
+                        normalized_ip,
+                        normalized_user_agent,
+                        serialized_detail,
+                        now,
+                    ),
+                )
+                row = _fetchone_dict(cursor) or {}
+        detail_value = row.get("detail_json")
+        if isinstance(detail_value, str):
+            try:
+                detail_value = json.loads(detail_value)
+            except Exception:
+                detail_value = {}
+        return {
+            "id": str(row.get("id") or event_id),
+            "user_id": str(row.get("user_id") or ""),
+            "email": str(row.get("email") or ""),
+            "event_type": str(row.get("event_type") or normalized_event_type),
+            "event_category": str(row.get("event_category") or normalized_category),
+            "section_name": str(row.get("section_name") or ""),
+            "session_token_hash": str(row.get("session_token_hash") or ""),
+            "ip_address": str(row.get("ip_address") or ""),
+            "user_agent": str(row.get("user_agent") or ""),
+            "detail": detail_value if isinstance(detail_value, dict) else {},
+            "created_at": row.get("created_at") or now,
+        }
     finally:
         conn.close()
 
@@ -1148,14 +1310,53 @@ def list_users() -> list[dict[str, Any]]:
     if conn is None:
         return []
     schema = _schema_name()
+    now = _now_utc()
+    active_since = now - timedelta(minutes=30)
     try:
         with conn.cursor() as cursor:
             cursor.execute(
                 f"""
-                SELECT id, email, first_name, last_name, display_name, status, role, last_login_at
-                FROM {schema}.users
-                ORDER BY created_at ASC, email ASC
+                SELECT
+                    u.id,
+                    u.email,
+                    u.first_name,
+                    u.last_name,
+                    u.display_name,
+                    u.status,
+                    u.role,
+                    u.last_login_at,
+                    COALESCE(c.failed_login_count, 0) AS failed_login_count,
+                    c.locked_until,
+                    COALESCE(sess.open_session_count, 0) AS open_session_count,
+                    COALESCE(sess.active_session_count, 0) AS active_session_count,
+                    sess.last_seen_at
+                FROM {schema}.users u
+                LEFT JOIN {schema}.user_credentials c
+                    ON c.user_id = u.id
+                LEFT JOIN (
+                    SELECT
+                        user_id,
+                        COUNT(*) FILTER (
+                            WHERE revoked_at IS NULL
+                              AND expires_at > %s
+                        ) AS open_session_count,
+                        COUNT(*) FILTER (
+                            WHERE revoked_at IS NULL
+                              AND expires_at > %s
+                              AND last_seen_at >= %s
+                        ) AS active_session_count,
+                        MAX(last_seen_at) FILTER (
+                            WHERE revoked_at IS NULL
+                              AND expires_at > %s
+                        ) AS last_seen_at
+                    FROM {schema}.user_sessions
+                    GROUP BY user_id
+                ) sess
+                    ON sess.user_id = u.id
+                ORDER BY u.created_at ASC, u.email ASC
                 """
+                ,
+                (now, now, active_since, now),
             )
             rows = _fetchall_dicts(cursor)
             result: list[dict[str, Any]] = []
@@ -1163,6 +1364,11 @@ def list_users() -> list[dict[str, Any]]:
                 membership = _active_membership_for_user(cursor, row["id"])
                 merged = _build_user_context_row(row, membership)
                 merged["last_login_at"] = row.get("last_login_at")
+                merged["failed_login_count"] = int(row.get("failed_login_count") or 0)
+                merged["locked_until"] = row.get("locked_until")
+                merged["open_session_count"] = int(row.get("open_session_count") or 0)
+                merged["active_session_count"] = int(row.get("active_session_count") or 0)
+                merged["last_seen_at"] = row.get("last_seen_at")
                 result.append(merged)
             return result
     finally:
@@ -1193,6 +1399,667 @@ def list_pending_invites() -> list[dict[str, Any]]:
                 if row.get("expires_at") is not None and row["expires_at"] <= now:
                     row["status"] = "expired"
             return rows
+    finally:
+        conn.close()
+
+
+def update_pending_invite(
+    *,
+    invite_id: str,
+    role: str | None = None,
+    proposed_share_fraction: float | None = None,
+    updated_by: str | None = None,
+) -> dict[str, Any]:
+    del updated_by
+    normalized_id = str(invite_id or "").strip()
+    if not normalized_id:
+        raise ValueError("Invite id is required.")
+    try:
+        invite_uuid = str(uuid.UUID(normalized_id))
+    except Exception:
+        raise ValueError("Invite id is invalid.")
+
+    normalized_role = str(role or "").strip().lower()
+    if normalized_role and normalized_role not in {"investor", "viewer", "admin"}:
+        raise ValueError("Invite role is invalid.")
+
+    conn = _db_connect()
+    if conn is None:
+        raise RuntimeError("Authentication store is unavailable.")
+    schema = _schema_name()
+    now = _now_utc()
+    try:
+        with conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    SELECT
+                        i.id,
+                        i.email,
+                        i.role,
+                        i.portfolio_id,
+                        i.proposed_share_fraction,
+                        i.status,
+                        i.expires_at,
+                        p.slug AS portfolio_slug
+                    FROM {schema}.user_invites i
+                    LEFT JOIN {schema}.portfolios p ON p.id = i.portfolio_id
+                    WHERE i.id = %s::uuid
+                    LIMIT 1
+                    """,
+                    (invite_uuid,),
+                )
+                invite = _fetchone_dict(cursor)
+                if invite is None:
+                    raise ValueError("Invite not found.")
+                if str(invite.get("status") or "").strip().lower() != "pending":
+                    raise ValueError("Invite is no longer pending.")
+
+                resolved_role = normalized_role or (str(invite.get("role") or "investor").strip().lower() or "investor")
+                if proposed_share_fraction is None:
+                    share_fraction = invite.get("proposed_share_fraction")
+                else:
+                    share_fraction = max(float(proposed_share_fraction), 0.0)
+                if resolved_role == "investor":
+                    share_fraction = float(share_fraction or 0.0)
+                    if share_fraction <= 0.0:
+                        raise ValueError("Investor invites require a positive portfolio share.")
+                    current_sum = _active_share_sum(cursor, invite.get("portfolio_id"))
+                    if current_sum + share_fraction > 1.000001:
+                        raise ValueError("Active investor shares would exceed 100%.")
+                else:
+                    share_fraction = 0.0
+
+                cursor.execute(
+                    f"""
+                    UPDATE {schema}.user_invites
+                    SET role = %s,
+                        proposed_share_fraction = %s,
+                        updated_at = %s
+                    WHERE id = %s::uuid
+                      AND status = %s
+                    RETURNING id, email, role, portfolio_id, proposed_share_fraction, status, expires_at
+                    """,
+                    (resolved_role, share_fraction, now, invite_uuid, "pending"),
+                )
+                updated = _fetchone_dict(cursor)
+                if updated is None:
+                    raise ValueError("Invite is no longer pending.")
+
+                return {
+                    "id": str(updated.get("id") or invite_uuid),
+                    "email": str(updated.get("email") or invite.get("email") or ""),
+                    "role": str(updated.get("role") or resolved_role),
+                    "portfolio_id": str(updated.get("portfolio_id") or invite.get("portfolio_id") or ""),
+                    "portfolio_slug": str(invite.get("portfolio_slug") or ""),
+                    "proposed_share_fraction": float(updated.get("proposed_share_fraction") or 0.0),
+                    "status": str(updated.get("status") or "pending"),
+                    "expires_at": updated.get("expires_at") or invite.get("expires_at"),
+                }
+    finally:
+        conn.close()
+
+
+def get_access_admin_dashboard(
+    *,
+    usage_window_days: int = 14,
+    security_window_days: int = 14,
+    active_window_minutes: int = 30,
+    recent_event_limit: int = 80,
+    sankey_user_limit: int = 10,
+    user_id: str = "",
+    user_email: str = "",
+) -> dict[str, Any]:
+    conn = _db_connect()
+    if conn is None:
+        return {
+            "summary": {},
+            "filtered_user_id": "",
+            "filtered_user_email": "",
+            "user_usage": [],
+            "section_usage": [],
+            "active_sessions": [],
+            "recent_security_events": [],
+            "selected_user_targets": [],
+            "selected_user_activity": [],
+            "usage_sankey": [],
+        }
+
+    schema = _schema_name()
+    now = _now_utc()
+    usage_days = max(int(usage_window_days or 0), 1)
+    security_days = max(int(security_window_days or 0), 1)
+    active_minutes = max(int(active_window_minutes or 0), 1)
+    event_limit = max(int(recent_event_limit or 0), 1)
+    flow_user_limit = max(min(int(sankey_user_limit or 0), 20), 1)
+    usage_since = now - timedelta(days=usage_days)
+    security_since = now - timedelta(days=security_days)
+    active_since = now - timedelta(minutes=active_minutes)
+    filtered_user_id, filtered_user_email = _normalize_access_dashboard_user(
+        user_id=user_id,
+        user_email=user_email,
+    )
+    usage_target_label_sql = """
+        COALESCE(
+            NULLIF(e.detail_json->>'target_label', ''),
+            NULLIF(e.detail_json->>'headline', ''),
+            NULLIF(e.detail_json->>'symbol', ''),
+            CASE
+                WHEN e.event_type = 'section_view' THEN NULL
+                ELSE e.event_type
+            END
+        )
+    """
+    usage_target_type_sql = """
+        COALESCE(
+            NULLIF(e.detail_json->>'target_type', ''),
+            CASE
+                WHEN e.event_type = 'section_view' THEN ''
+                WHEN e.event_type = 'content_link_open' THEN 'content'
+                WHEN e.event_type = 'ticker_open' THEN 'ticker'
+                WHEN e.event_type = 'bundle_open' THEN 'bundle'
+                ELSE e.event_type
+            END
+        )
+    """
+    usage_surface_sql = """
+        COALESCE(
+            NULLIF(e.section_name, ''),
+            NULLIF(e.detail_json->>'surface', ''),
+            'Unknown'
+        )
+    """
+    usage_user_label_sql = """
+        COALESCE(
+            NULLIF(u.display_name, ''),
+            NULLIF(u.email, ''),
+            NULLIF(e.email, ''),
+            e.user_id::text
+        )
+    """
+
+    try:
+        with conn:
+            _ensure_schema(conn)
+            with conn.cursor() as cursor:
+                cursor.execute(f"SELECT COUNT(*) AS total_users FROM {schema}.users")
+                total_users_row = _fetchone_dict(cursor) or {}
+
+                session_summary_sql = f"""
+                    SELECT
+                        COUNT(*) FILTER (
+                            WHERE revoked_at IS NULL
+                              AND expires_at > %s
+                        ) AS open_session_count,
+                        COUNT(*) FILTER (
+                            WHERE revoked_at IS NULL
+                              AND expires_at > %s
+                              AND last_seen_at >= %s
+                        ) AS active_session_count,
+                        COUNT(DISTINCT user_id) FILTER (
+                            WHERE revoked_at IS NULL
+                              AND expires_at > %s
+                              AND last_seen_at >= %s
+                        ) AS active_user_count
+                    FROM {schema}.user_sessions
+                """
+                session_summary_params: list[Any] = [now, now, active_since, now, active_since]
+                if filtered_user_id:
+                    session_summary_sql += " WHERE user_id = %s::uuid"
+                    session_summary_params.append(filtered_user_id)
+                cursor.execute(session_summary_sql, tuple(session_summary_params))
+                session_summary = _fetchone_dict(cursor) or {}
+
+                locked_summary_sql = f"""
+                    SELECT COUNT(*) AS locked_user_count
+                    FROM {schema}.user_credentials
+                    WHERE locked_until IS NOT NULL
+                      AND locked_until > %s
+                """
+                locked_summary_params: list[Any] = [now]
+                if filtered_user_id:
+                    locked_summary_sql += " AND user_id = %s::uuid"
+                    locked_summary_params.append(filtered_user_id)
+                cursor.execute(locked_summary_sql, tuple(locked_summary_params))
+                locked_summary = _fetchone_dict(cursor) or {}
+
+                cursor.execute(
+                    f"""
+                    SELECT COUNT(*) AS pending_invite_count
+                    FROM {schema}.user_invites
+                    WHERE status = %s
+                      AND expires_at > %s
+                    """,
+                    ("pending", now),
+                )
+                pending_invite_summary = _fetchone_dict(cursor) or {}
+
+                usage_summary_sql = f"""
+                    SELECT
+                        COUNT(*) FILTER (WHERE event_type = 'section_view') AS section_view_count,
+                        COUNT(*) FILTER (WHERE event_type = 'login_success') AS login_success_count,
+                        COUNT(DISTINCT user_id) FILTER (
+                            WHERE user_id IS NOT NULL
+                        ) AS active_user_count
+                    FROM {schema}.access_events
+                    WHERE event_category = %s
+                      AND created_at >= %s
+                """
+                usage_summary_params: list[Any] = ["usage", usage_since]
+                if filtered_user_id:
+                    usage_summary_sql += " AND user_id = %s::uuid"
+                    usage_summary_params.append(filtered_user_id)
+                cursor.execute(usage_summary_sql, tuple(usage_summary_params))
+                usage_summary = _fetchone_dict(cursor) or {}
+
+                security_summary_sql = f"""
+                    SELECT
+                        COUNT(*) FILTER (WHERE event_type = 'login_failed') AS failed_login_count,
+                        COUNT(*) FILTER (WHERE event_type = 'login_locked') AS login_lock_count,
+                        COUNT(*) FILTER (WHERE event_type = 'password_reset_requested') AS password_reset_request_count,
+                        COUNT(*) FILTER (WHERE event_type = 'password_reset_issued_admin') AS admin_password_reset_count,
+                        COUNT(*) FILTER (WHERE event_type = 'password_reset_completed') AS password_reset_complete_count,
+                        COUNT(DISTINCT NULLIF(ip_address, '')) AS unique_ip_count
+                    FROM {schema}.access_events
+                    WHERE event_category = %s
+                      AND created_at >= %s
+                """
+                security_summary_params: list[Any] = ["security", security_since]
+                security_actor_filters: list[str] = []
+                if filtered_user_id:
+                    security_actor_filters.append("user_id = %s::uuid")
+                    security_summary_params.append(filtered_user_id)
+                if filtered_user_email:
+                    security_actor_filters.append("(user_id IS NULL AND lower(email) = %s)")
+                    security_summary_params.append(filtered_user_email)
+                if security_actor_filters:
+                    security_summary_sql += " AND (" + " OR ".join(security_actor_filters) + ")"
+                cursor.execute(security_summary_sql, tuple(security_summary_params))
+                security_summary = _fetchone_dict(cursor) or {}
+
+                user_usage_sql = f"""
+                    WITH usage_rollup AS (
+                        SELECT
+                            user_id,
+                            COUNT(*) FILTER (WHERE event_type = 'section_view') AS section_view_count,
+                            COUNT(DISTINCT section_name) FILTER (
+                                WHERE event_type = 'section_view'
+                                  AND COALESCE(section_name, '') <> ''
+                            ) AS distinct_section_count,
+                            MAX(created_at) AS last_activity_at
+                        FROM {schema}.access_events
+                        WHERE user_id IS NOT NULL
+                          AND created_at >= %s
+                          {"AND user_id = %s::uuid" if filtered_user_id else ""}
+                        GROUP BY user_id
+                    ),
+                    top_sections AS (
+                        SELECT
+                            ranked.user_id,
+                            ranked.section_name,
+                            ranked.view_count
+                        FROM (
+                            SELECT
+                                user_id,
+                                section_name,
+                                COUNT(*) AS view_count,
+                                MAX(created_at) AS last_view_at,
+                                ROW_NUMBER() OVER (
+                                    PARTITION BY user_id
+                                    ORDER BY COUNT(*) DESC, MAX(created_at) DESC, section_name ASC
+                                ) AS rank_number
+                            FROM {schema}.access_events
+                            WHERE user_id IS NOT NULL
+                              AND event_type = 'section_view'
+                              AND created_at >= %s
+                              AND COALESCE(section_name, '') <> ''
+                              {"AND user_id = %s::uuid" if filtered_user_id else ""}
+                            GROUP BY user_id, section_name
+                        ) ranked
+                        WHERE ranked.rank_number = 1
+                    ),
+                    session_rollup AS (
+                        SELECT
+                            user_id,
+                            COUNT(*) FILTER (
+                                WHERE revoked_at IS NULL
+                                  AND expires_at > %s
+                            ) AS open_session_count,
+                            COUNT(*) FILTER (
+                                WHERE revoked_at IS NULL
+                                  AND expires_at > %s
+                                  AND last_seen_at >= %s
+                            ) AS active_session_count,
+                            MAX(last_seen_at) FILTER (
+                                WHERE revoked_at IS NULL
+                                  AND expires_at > %s
+                            ) AS last_seen_at
+                        FROM {schema}.user_sessions
+                        {"WHERE user_id = %s::uuid" if filtered_user_id else ""}
+                        GROUP BY user_id
+                    )
+                    SELECT
+                        u.id AS user_id,
+                        u.email,
+                        u.display_name,
+                        u.role,
+                        u.status,
+                        u.last_login_at,
+                        COALESCE(sr.open_session_count, 0) AS open_session_count,
+                        COALESCE(sr.active_session_count, 0) AS active_session_count,
+                        sr.last_seen_at,
+                        COALESCE(ur.section_view_count, 0) AS section_view_count,
+                        COALESCE(ur.distinct_section_count, 0) AS distinct_section_count,
+                        ur.last_activity_at,
+                        COALESCE(ts.section_name, '') AS top_section,
+                        COALESCE(ts.view_count, 0) AS top_section_view_count
+                    FROM {schema}.users u
+                    LEFT JOIN usage_rollup ur ON ur.user_id = u.id
+                    LEFT JOIN top_sections ts ON ts.user_id = u.id
+                    LEFT JOIN session_rollup sr ON sr.user_id = u.id
+                    {"WHERE u.id = %s::uuid" if filtered_user_id else ""}
+                    ORDER BY COALESCE(ur.last_activity_at, sr.last_seen_at, u.last_login_at, u.created_at) DESC, u.email ASC
+                """
+                user_usage_params: list[Any] = [usage_since]
+                if filtered_user_id:
+                    user_usage_params.append(filtered_user_id)
+                user_usage_params.append(usage_since)
+                if filtered_user_id:
+                    user_usage_params.append(filtered_user_id)
+                user_usage_params.extend([now, now, active_since, now])
+                if filtered_user_id:
+                    user_usage_params.append(filtered_user_id)
+                if filtered_user_id:
+                    user_usage_params.append(filtered_user_id)
+                cursor.execute(user_usage_sql, tuple(user_usage_params))
+                user_usage_rows = _fetchall_dicts(cursor)
+
+                section_usage_sql = f"""
+                    SELECT
+                        section_name,
+                        COUNT(*) AS view_count,
+                        COUNT(DISTINCT user_id) AS unique_user_count,
+                        MAX(created_at) AS last_view_at
+                    FROM {schema}.access_events
+                    WHERE event_type = 'section_view'
+                      AND created_at >= %s
+                      AND COALESCE(section_name, '') <> ''
+                      {"AND user_id = %s::uuid" if filtered_user_id else ""}
+                    GROUP BY section_name
+                    ORDER BY view_count DESC, unique_user_count DESC, section_name ASC
+                """
+                section_usage_params: list[Any] = [usage_since]
+                if filtered_user_id:
+                    section_usage_params.append(filtered_user_id)
+                cursor.execute(section_usage_sql, tuple(section_usage_params))
+                section_usage_rows = _fetchall_dicts(cursor)
+
+                usage_sankey_sql = f"""
+                    WITH top_users AS (
+                        SELECT
+                            e.user_id,
+                            COUNT(*) AS usage_event_count,
+                            MAX(e.created_at) AS last_event_at
+                        FROM {schema}.access_events e
+                        WHERE e.event_category = %s
+                          AND e.created_at >= %s
+                          AND e.user_id IS NOT NULL
+                          AND e.event_type NOT IN ('login_success', 'logout', 'session_restored')
+                          {"AND e.user_id = %s::uuid" if filtered_user_id else ""}
+                        GROUP BY e.user_id
+                        ORDER BY usage_event_count DESC, last_event_at DESC, e.user_id ASC
+                        LIMIT %s
+                    ),
+                    normalized_events AS (
+                        SELECT
+                            e.user_id,
+                            {usage_user_label_sql} AS user_label,
+                            {usage_surface_sql} AS section_label,
+                            {usage_target_label_sql} AS target_label,
+                            {usage_target_type_sql} AS target_type,
+                            e.created_at
+                        FROM {schema}.access_events e
+                        JOIN top_users tu ON tu.user_id = e.user_id
+                        LEFT JOIN {schema}.users u ON u.id = e.user_id
+                        WHERE e.event_category = %s
+                          AND e.created_at >= %s
+                          AND e.event_type NOT IN ('login_success', 'logout', 'session_restored')
+                    ),
+                    flow_rollup AS (
+                        SELECT
+                            user_id,
+                            user_label,
+                            section_label,
+                            target_label,
+                            target_type,
+                            COUNT(*) AS event_count,
+                            MAX(created_at) AS last_event_at
+                        FROM normalized_events
+                        GROUP BY user_id, user_label, section_label, target_label, target_type
+                    ),
+                    ranked_flow AS (
+                        SELECT
+                            user_id,
+                            user_label,
+                            section_label,
+                            target_label,
+                            target_type,
+                            event_count,
+                            last_event_at,
+                            ROW_NUMBER() OVER (
+                                PARTITION BY user_id, section_label
+                                ORDER BY event_count DESC, last_event_at DESC, COALESCE(target_label, '') ASC
+                            ) AS target_rank
+                        FROM flow_rollup
+                    )
+                    SELECT
+                        user_id,
+                        user_label,
+                        section_label,
+                        COALESCE(target_label, '') AS target_label,
+                        COALESCE(target_type, '') AS target_type,
+                        event_count,
+                        last_event_at
+                    FROM ranked_flow
+                    WHERE COALESCE(target_label, '') = ''
+                       OR target_rank <= 5
+                    ORDER BY user_label ASC, section_label ASC, event_count DESC, target_label ASC
+                """
+                usage_sankey_params: list[Any] = ["usage", usage_since]
+                if filtered_user_id:
+                    usage_sankey_params.append(filtered_user_id)
+                usage_sankey_params.append(flow_user_limit)
+                usage_sankey_params.extend(["usage", usage_since])
+                cursor.execute(usage_sankey_sql, tuple(usage_sankey_params))
+                usage_sankey_rows = _fetchall_dicts(cursor)
+
+                active_sessions_sql = f"""
+                    SELECT
+                        s.id,
+                        s.user_id,
+                        u.email,
+                        u.display_name,
+                        s.created_at,
+                        s.last_seen_at,
+                        s.expires_at,
+                        s.ip_address,
+                        s.user_agent,
+                        CASE
+                            WHEN s.last_seen_at >= %s THEN TRUE
+                            ELSE FALSE
+                        END AS is_active_now
+                    FROM {schema}.user_sessions s
+                    JOIN {schema}.users u ON u.id = s.user_id
+                    WHERE s.revoked_at IS NULL
+                      AND s.expires_at > %s
+                      {"AND s.user_id = %s::uuid" if filtered_user_id else ""}
+                    ORDER BY s.last_seen_at DESC NULLS LAST, s.created_at DESC
+                    LIMIT 100
+                """
+                active_sessions_params: list[Any] = [active_since, now]
+                if filtered_user_id:
+                    active_sessions_params.append(filtered_user_id)
+                cursor.execute(active_sessions_sql, tuple(active_sessions_params))
+                active_session_rows = _fetchall_dicts(cursor)
+
+                recent_security_sql = f"""
+                    SELECT
+                        e.id,
+                        e.created_at,
+                        e.event_type,
+                        e.email,
+                        u.email AS user_email,
+                        u.display_name,
+                        e.section_name,
+                        e.ip_address,
+                        e.user_agent,
+                        e.detail_json
+                    FROM {schema}.access_events e
+                    LEFT JOIN {schema}.users u ON u.id = e.user_id
+                    WHERE e.event_category = %s
+                      {
+                          "AND (" + " OR ".join(
+                              clause for clause in [
+                                  "e.user_id = %s::uuid" if filtered_user_id else "",
+                                  "(e.user_id IS NULL AND lower(e.email) = %s)" if filtered_user_email else "",
+                              ]
+                              if clause
+                          ) + ")"
+                          if filtered_user_id or filtered_user_email
+                          else ""
+                      }
+                      AND e.created_at >= %s
+                    ORDER BY e.created_at DESC
+                    LIMIT %s
+                """
+                recent_security_params: list[Any] = ["security"]
+                if filtered_user_id:
+                    recent_security_params.append(filtered_user_id)
+                if filtered_user_email:
+                    recent_security_params.append(filtered_user_email)
+                recent_security_params.extend([security_since, event_limit])
+                cursor.execute(recent_security_sql, tuple(recent_security_params))
+                recent_security_rows = _fetchall_dicts(cursor)
+
+                selected_user_targets: list[dict[str, Any]] = []
+                selected_user_activity: list[dict[str, Any]] = []
+                if filtered_user_id or filtered_user_email:
+                    selected_user_targets_sql = f"""
+                        SELECT
+                            COALESCE(
+                                NULLIF(e.detail_json->>'target_label', ''),
+                                NULLIF(e.detail_json->>'headline', ''),
+                                NULLIF(e.detail_json->>'symbol', ''),
+                                NULLIF(e.section_name, ''),
+                                e.event_type
+                            ) AS target_label,
+                            COALESCE(
+                                NULLIF(e.detail_json->>'target_type', ''),
+                                CASE
+                                    WHEN e.event_type = 'section_view' THEN 'section'
+                                    ELSE e.event_type
+                                END
+                            ) AS target_type,
+                            COUNT(*) AS event_count,
+                            MAX(e.created_at) AS last_event_at
+                        FROM {schema}.access_events e
+                        WHERE e.event_category = %s
+                          AND e.created_at >= %s
+                          AND (
+                              {"e.user_id = %s::uuid" if filtered_user_id else "FALSE"}
+                              {" OR (e.user_id IS NULL AND lower(e.email) = %s)" if filtered_user_email else ""}
+                          )
+                          AND e.event_type NOT IN ('login_success', 'logout', 'session_restored')
+                        GROUP BY target_label, target_type
+                        ORDER BY event_count DESC, last_event_at DESC, target_label ASC
+                        LIMIT 25
+                    """
+                    selected_user_targets_params: list[Any] = ["usage", usage_since]
+                    if filtered_user_id:
+                        selected_user_targets_params.append(filtered_user_id)
+                    if filtered_user_email:
+                        selected_user_targets_params.append(filtered_user_email)
+                    cursor.execute(selected_user_targets_sql, tuple(selected_user_targets_params))
+                    selected_user_targets = _fetchall_dicts(cursor)
+
+                    selected_user_activity_sql = f"""
+                        SELECT
+                            e.id,
+                            e.created_at,
+                            e.event_category,
+                            e.event_type,
+                            e.section_name,
+                            e.email,
+                            u.email AS user_email,
+                            u.display_name,
+                            e.ip_address,
+                            e.user_agent,
+                            e.detail_json,
+                            COALESCE(
+                                NULLIF(e.detail_json->>'target_label', ''),
+                                NULLIF(e.detail_json->>'headline', ''),
+                                NULLIF(e.detail_json->>'symbol', ''),
+                                NULLIF(e.section_name, ''),
+                                e.event_type
+                            ) AS target_label,
+                            COALESCE(NULLIF(e.detail_json->>'target_type', ''), '') AS target_type
+                        FROM {schema}.access_events e
+                        LEFT JOIN {schema}.users u ON u.id = e.user_id
+                        WHERE (
+                              (e.event_category = %s AND e.created_at >= %s)
+                           OR (e.event_category = %s AND e.created_at >= %s)
+                        )
+                          AND (
+                              {"e.user_id = %s::uuid" if filtered_user_id else "FALSE"}
+                              {" OR (e.user_id IS NULL AND lower(e.email) = %s)" if filtered_user_email else ""}
+                          )
+                        ORDER BY e.created_at DESC
+                        LIMIT %s
+                    """
+                    selected_user_activity_params: list[Any] = ["usage", usage_since, "security", security_since]
+                    if filtered_user_id:
+                        selected_user_activity_params.append(filtered_user_id)
+                    if filtered_user_email:
+                        selected_user_activity_params.append(filtered_user_email)
+                    selected_user_activity_params.append(event_limit)
+                    cursor.execute(selected_user_activity_sql, tuple(selected_user_activity_params))
+                    selected_user_activity = _fetchall_dicts(cursor)
+
+        recent_security_rows = _hydrate_access_event_rows(recent_security_rows)
+        selected_user_activity = _hydrate_access_event_rows(selected_user_activity)
+
+        return {
+            "generated_at": now,
+            "usage_window_days": usage_days,
+            "security_window_days": security_days,
+            "active_window_minutes": active_minutes,
+            "filtered_user_id": filtered_user_id,
+            "filtered_user_email": filtered_user_email,
+            "summary": {
+                "total_users": int(total_users_row.get("total_users") or 0),
+                "active_users_window": int(usage_summary.get("active_user_count") or 0),
+                "section_views_window": int(usage_summary.get("section_view_count") or 0),
+                "login_success_window": int(usage_summary.get("login_success_count") or 0),
+                "open_sessions": int(session_summary.get("open_session_count") or 0),
+                "active_sessions": int(session_summary.get("active_session_count") or 0),
+                "active_users_now": int(session_summary.get("active_user_count") or 0),
+                "failed_logins_window": int(security_summary.get("failed_login_count") or 0),
+                "login_locks_window": int(security_summary.get("login_lock_count") or 0),
+                "locked_users_now": int(locked_summary.get("locked_user_count") or 0),
+                "password_reset_requests_window": int(security_summary.get("password_reset_request_count") or 0),
+                "admin_password_resets_window": int(security_summary.get("admin_password_reset_count") or 0),
+                "password_resets_completed_window": int(security_summary.get("password_reset_complete_count") or 0),
+                "unique_ips_window": int(security_summary.get("unique_ip_count") or 0),
+                "pending_invites": int(pending_invite_summary.get("pending_invite_count") or 0),
+            },
+            "user_usage": user_usage_rows,
+            "section_usage": section_usage_rows,
+            "active_sessions": active_session_rows,
+            "recent_security_events": recent_security_rows,
+            "selected_user_targets": selected_user_targets,
+            "selected_user_activity": selected_user_activity,
+            "usage_sankey": usage_sankey_rows,
+        }
     finally:
         conn.close()
 
@@ -1569,6 +2436,7 @@ __all__ = [
     "ensure_auth_schema",
     "get_agent_api_key_by_hash",
     "get_active_user_by_email",
+    "get_access_admin_dashboard",
     "get_app_setting",
     "get_pending_invite_by_token_hash",
     "get_user_context_for_session",
@@ -1579,10 +2447,12 @@ __all__ = [
     "list_agent_api_keys",
     "list_pending_invites",
     "list_users",
+    "record_access_event",
     "record_failed_login",
     "revoke_agent_api_key",
     "set_app_setting",
     "reset_password",
     "revoke_session",
     "revoke_user_sessions",
+    "update_pending_invite",
 ]

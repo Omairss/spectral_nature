@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+from concurrent.futures import Future, ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 import hashlib
@@ -12,6 +13,7 @@ import os
 from pathlib import Path
 import re
 import secrets as py_secrets
+import threading
 import time
 from urllib.parse import urlencode
 
@@ -29,10 +31,19 @@ from presentation import attention_content, dashboard_loaders
 from services import auth_service, omnibar_agent as omnibar_agent_service
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
 from services.analytics import build_metric_bar, build_portfolio_vs_benchmarks_fig, select_signed_ranked
+from services.attention_home_summary import (
+    attention_mover_card_title as attention_mover_card_title_service,
+    build_attention_home_narrative_beats,
+    build_attention_home_summary_payload,
+)
 from services import attention_surface as attention_surface_module
 from services.company import build_attention_news_narrative, summarize_recent_news
 from services.config import AppConfig, alpaca_secret_name_settings, load_config
 from services.data_cache import cache_bundle_exists, cache_data_root, cache_policy_path, dataset_scope
+from services.elevenlabs_tts import (
+    ElevenLabsTTSAPIError,
+    load_elevenlabs_tts_config,
+)
 from services.entity_taxonomy import business_focus_label_from_taxonomy_row, dashboard_business_lens_from_taxonomy_row, taxonomy_lookup_by_symbol
 from services.fred import (
     FredAPIError,
@@ -79,6 +90,9 @@ from services.options import rank_options
 from services.technicals import build_technical_figure
 
 _SIGNALS_IMPORT_ERROR: str | None = None
+_ATTENTION_SUMMARY_AUDIO_EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="summary_audio")
+_ATTENTION_SUMMARY_AUDIO_FUTURES: dict[str, Future[bytes]] = {}
+_ATTENTION_SUMMARY_AUDIO_LOCK = threading.Lock()
 try:
     importlib.invalidate_caches()
     _signals = importlib.import_module("services.signals")
@@ -164,59 +178,62 @@ if not LOGGER.handlers:
 LOGGER.setLevel(logging.INFO)
 LOGGER.propagate = False
 
-HOME_EXP_SECTION = "Home Exp"
-AGENTIC_OMNIBAR_SECTION = "Agentic Omnibar"
+HOME_EXP_SECTION = "Experiment"
+AGENTIC_OMNIBAR_SECTION = "Chat + Search"
 STOCK_INVESTIGATOR_SECTION = "Stock Investigator"
+PORTFOLIO_SECTION = "Portfolio"
+PORTFOLIO_PERFORMANCE_SECTION = "Portfolio Performance"
+MARKET_EXPLORER_SECTION = "Market Explorer"
+BROAD_ECONOMY_SECTION = "Broad Economy"
+ADMIN_SECTION = "Admin"
 
 BASE_SECTION_OPTIONS = [
     "Home",
     AGENTIC_OMNIBAR_SECTION,
-    "Daily Tape",
-    "Portfolio Overview",
-    "Performance",
-    "Market Opportunity",
+    PORTFOLIO_SECTION,
+    PORTFOLIO_PERFORMANCE_SECTION,
+    MARKET_EXPLORER_SECTION,
     STOCK_INVESTIGATOR_SECTION,
     "Option Strategizer",
-    "FRED Macro",
+    BROAD_ECONOMY_SECTION,
     "Pipeline Jobs",
 ]
-ADMIN_SECTION = "Access Admin"
 OMNIBAR_POLICY_VERSION = "streamlit-agentic-omnibar-v1"
 OMNIBAR_MACRO_RELEASES: tuple[dict[str, object], ...] = (
     {
         "release_id": "cpi",
         "label": "CPI Release",
-        "subtitle": "Inflation release context and price-level signals in FRED Macro.",
+        "subtitle": f"Inflation release context and price-level signals in {BROAD_ECONOMY_SECTION}.",
         "aliases": ("cpi", "consumer price index", "inflation release", "inflation print"),
     },
     {
         "release_id": "pce",
         "label": "PCE Release",
-        "subtitle": "Fed-focused inflation context and personal consumption expenditures signals.",
+        "subtitle": f"Fed-focused inflation context and personal consumption expenditures signals in {BROAD_ECONOMY_SECTION}.",
         "aliases": ("pce", "core pce", "personal consumption expenditures"),
     },
     {
         "release_id": "nfp",
         "label": "NFP Release",
-        "subtitle": "Labor-market release context for payrolls and unemployment sensitivity.",
+        "subtitle": f"Labor-market release context for payrolls and unemployment sensitivity in {BROAD_ECONOMY_SECTION}.",
         "aliases": ("nfp", "payrolls", "nonfarm payrolls", "jobs report"),
     },
     {
         "release_id": "fomc",
         "label": "FOMC Decision",
-        "subtitle": "Policy path and rates context through the macro dashboard.",
+        "subtitle": f"Policy path and rates context through {BROAD_ECONOMY_SECTION}.",
         "aliases": ("fomc", "fed", "fed meeting", "rate decision", "powell"),
     },
     {
         "release_id": "retail_sales",
         "label": "Retail Sales",
-        "subtitle": "Consumer-demand release context in the FRED Macro view.",
+        "subtitle": f"Consumer-demand release context in {BROAD_ECONOMY_SECTION}.",
         "aliases": ("retail sales", "consumer spending"),
     },
     {
         "release_id": "ism",
         "label": "ISM Survey",
-        "subtitle": "Manufacturing and services diffusion context in the macro dashboard.",
+        "subtitle": f"Manufacturing and services diffusion context in {BROAD_ECONOMY_SECTION}.",
         "aliases": ("ism", "pmi", "manufacturing pmi", "services pmi"),
     },
 )
@@ -287,6 +304,7 @@ _INVITE_TEMPLATE_UPLOAD_NONCE_KEY = "_access_invite_template_upload_nonce"
 _INVITE_TEMPLATE_NOTICE_KEY = "_access_invite_template_notice"
 _INVITE_TEMPLATE_PENDING_LOAD_KEY = "_access_invite_template_pending_load"
 _INVITE_TEMPLATE_PENDING_SELECTED_ID_KEY = "_access_invite_template_pending_selected_id"
+_ACCESS_PENDING_INVITE_NOTICE_KEY = "_access_pending_invite_notice"
 
 
 def _invite_theme_widget_state_key(field: str) -> str:
@@ -443,6 +461,29 @@ def _show_invite_template_notice() -> None:
         st.success(message)
 
 
+def _show_access_pending_invite_notice() -> None:
+    notice = st.session_state.pop(_ACCESS_PENDING_INVITE_NOTICE_KEY, None)
+    if not isinstance(notice, dict):
+        return
+
+    level = str(notice.get("level") or "").strip().lower()
+    message = str(notice.get("message") or "").strip()
+    detail = str(notice.get("detail") or "").strip()
+    code_value = str(notice.get("code") or "").strip()
+
+    if message:
+        if level == "error":
+            st.error(message)
+        elif level == "warning":
+            st.warning(message)
+        else:
+            st.success(message)
+    if detail:
+        st.caption(detail)
+    if code_value:
+        st.code(code_value, language="text")
+
+
 def _apply_pending_invite_template_state() -> None:
     pending_selected_id = st.session_state.pop(_INVITE_TEMPLATE_PENDING_SELECTED_ID_KEY, None)
     if isinstance(pending_selected_id, str) and pending_selected_id.strip():
@@ -466,6 +507,692 @@ def _queue_invite_template_state_update(
     if isinstance(notice, dict):
         st.session_state[_INVITE_TEMPLATE_NOTICE_KEY] = notice
     st.rerun()
+
+
+def _queue_access_pending_invite_notice(
+    *,
+    level: str,
+    message: str,
+    detail: str = "",
+    code: str = "",
+) -> None:
+    st.session_state[_ACCESS_PENDING_INVITE_NOTICE_KEY] = {
+        "level": str(level or "").strip().lower() or "success",
+        "message": str(message or "").strip(),
+        "detail": str(detail or "").strip(),
+        "code": str(code or "").strip(),
+    }
+    st.rerun()
+
+
+def _format_access_admin_share_percent(value: object) -> str:
+    try:
+        share_pct = max(float(value or 0.0), 0.0) * 100.0
+    except Exception:
+        share_pct = 0.0
+    rendered = f"{share_pct:.2f}".rstrip("0").rstrip(".")
+    return f"{rendered}%"
+
+
+def _format_pending_invite_expires(value: object) -> str:
+    timestamp = pd.to_datetime(value, errors="coerce", utc=True)
+    if pd.isna(timestamp):
+        return ""
+    return timestamp.strftime("%Y-%m-%d %H:%M UTC")
+
+
+def _access_admin_int_state_value(key: str, *, fallback: int, allowed: tuple[int, ...]) -> int:
+    try:
+        value = int(st.session_state.get(key, fallback) or fallback)
+    except Exception:
+        value = fallback
+    if value not in allowed:
+        value = fallback
+    st.session_state[key] = value
+    return value
+
+
+def _truncate_access_sankey_label(value: object, *, limit: int = 42) -> str:
+    label = str(value or "").strip()
+    if len(label) <= limit:
+        return label
+    return f"{label[: max(limit - 3, 1)].rstrip()}..."
+
+
+def _format_access_sankey_target_label(target_label: object, target_type: object) -> str:
+    label = str(target_label or "").strip()
+    if not label:
+        return ""
+    target_kind = str(target_type or "").strip().replace("_", " ")
+    if not target_kind:
+        return label
+    normalized_kind = target_kind.title()
+    if normalized_kind.lower() == label.lower():
+        return label
+    return f"{label} ({normalized_kind})"
+
+
+def _build_access_usage_sankey_figure(flow_rows: list[dict[str, object]]) -> go.Figure | None:
+    if not flow_rows:
+        return None
+
+    node_lookup: dict[tuple[str, str], int] = {}
+    node_labels: list[str] = []
+    node_colors: list[str] = []
+    node_x: list[float] = []
+    user_section_links: dict[tuple[int, int], int] = {}
+    section_target_links: dict[tuple[int, int], int] = {}
+
+    def _node_index(kind: str, label: str) -> int:
+        key = (kind, label)
+        if key in node_lookup:
+            return node_lookup[key]
+        node_lookup[key] = len(node_labels)
+        node_labels.append(_truncate_access_sankey_label(label))
+        if kind == "user":
+            node_colors.append("rgba(37, 99, 235, 0.85)")
+            node_x.append(0.01)
+        elif kind == "section":
+            node_colors.append("rgba(14, 116, 144, 0.80)")
+            node_x.append(0.48)
+        else:
+            node_colors.append("rgba(22, 163, 74, 0.80)")
+            node_x.append(0.92)
+        return node_lookup[key]
+
+    for row in flow_rows:
+        if not isinstance(row, dict):
+            continue
+        try:
+            event_count = max(int(row.get("event_count") or 0), 0)
+        except Exception:
+            event_count = 0
+        if event_count <= 0:
+            continue
+        user_label = str(row.get("user_label") or "").strip()
+        section_label = str(row.get("section_label") or "").strip()
+        target_label = _format_access_sankey_target_label(row.get("target_label"), row.get("target_type"))
+        if not user_label or not section_label:
+            continue
+
+        user_index = _node_index("user", user_label)
+        section_index = _node_index("section", section_label)
+        user_section_links[(user_index, section_index)] = user_section_links.get((user_index, section_index), 0) + event_count
+
+        if target_label:
+            target_index = _node_index("target", target_label)
+            section_target_links[(section_index, target_index)] = (
+                section_target_links.get((section_index, target_index), 0) + event_count
+            )
+
+    if not user_section_links and not section_target_links:
+        return None
+
+    link_sources: list[int] = []
+    link_targets: list[int] = []
+    link_values: list[int] = []
+    link_colors: list[str] = []
+
+    for (source_index, target_index), value in sorted(user_section_links.items()):
+        link_sources.append(source_index)
+        link_targets.append(target_index)
+        link_values.append(value)
+        link_colors.append("rgba(37, 99, 235, 0.24)")
+    for (source_index, target_index), value in sorted(section_target_links.items()):
+        link_sources.append(source_index)
+        link_targets.append(target_index)
+        link_values.append(value)
+        link_colors.append("rgba(22, 163, 74, 0.24)")
+
+    fig = go.Figure(
+        go.Sankey(
+            arrangement="snap",
+            node=dict(
+                pad=18,
+                thickness=18,
+                line=dict(color="rgba(15, 23, 42, 0.22)", width=0.6),
+                label=node_labels,
+                color=node_colors,
+                x=node_x,
+            ),
+            link=dict(
+                source=link_sources,
+                target=link_targets,
+                value=link_values,
+                color=link_colors,
+            ),
+        )
+    )
+    fig.update_layout(
+        margin=dict(l=20, r=20, t=20, b=20),
+        height=min(max(460, 140 + len(node_labels) * 18), 900),
+        font=dict(size=12),
+    )
+    return fig
+
+
+def _render_access_usage_admin_dashboard(
+    *,
+    dashboard: dict[str, object],
+    selected_user_id: str,
+    selected_user_label: str,
+    selected_user_email: str,
+    usage_window_days: int,
+    active_window_minutes: int,
+    sankey_user_limit: int,
+) -> None:
+    summary = dict(dashboard.get("summary") or {})
+    usage_label = f"{usage_window_days}d"
+    active_label = f"{active_window_minutes}m"
+    selected_user_usage_row: dict[str, object] = {}
+    if selected_user_id:
+        selected_user_usage_row = next(
+            (
+                dict(row)
+                for row in list(dashboard.get("user_usage") or [])
+                if str((row or {}).get("user_id") or "").strip() == selected_user_id
+            ),
+            {},
+        )
+
+    st.subheader("Usage")
+    st.caption(
+        "Section-level usage comes from the access event tracker. Detailed click trails only include the higher-signal actions we explicitly record."
+    )
+    if selected_user_id:
+        st.caption(
+            f"Filtered to {selected_user_label}. The detailed activity trail below only shows recorded usage behavior for this user."
+        )
+
+    usage_metrics = st.columns(6)
+    if selected_user_id:
+        usage_metrics[0].metric("User", selected_user_email or selected_user_label)
+        usage_metrics[1].metric(f"Section Views ({usage_label})", int(summary.get("section_views_window") or 0))
+        usage_metrics[2].metric(
+            f"Distinct Sections ({usage_label})",
+            int(selected_user_usage_row.get("distinct_section_count") or 0),
+        )
+        usage_metrics[3].metric(f"Successful Logins ({usage_label})", int(summary.get("login_success_window") or 0))
+        usage_metrics[4].metric(f"Active Sessions ({active_label})", int(summary.get("active_sessions") or 0))
+        usage_metrics[5].metric(
+            "Last Activity",
+            _format_access_admin_timestamp(selected_user_usage_row.get("last_activity_at")) or "n/a",
+        )
+    else:
+        usage_metrics[0].metric("Total Users", int(summary.get("total_users") or 0))
+        usage_metrics[1].metric(f"Active Users ({usage_label})", int(summary.get("active_users_window") or 0))
+        usage_metrics[2].metric(f"Section Views ({usage_label})", int(summary.get("section_views_window") or 0))
+        usage_metrics[3].metric(f"Successful Logins ({usage_label})", int(summary.get("login_success_window") or 0))
+        usage_metrics[4].metric(f"Active Sessions ({active_label})", int(summary.get("active_sessions") or 0))
+        usage_metrics[5].metric("Pending Invites", int(summary.get("pending_invites") or 0))
+
+    section_usage = pd.DataFrame(dashboard.get("section_usage") or [])
+    usage_sankey_rows = list(dashboard.get("usage_sankey") or [])
+    st.subheader("Usage Flow" if not selected_user_id else "Selected User Usage Flow")
+    if selected_user_id:
+        st.caption(
+            "This flow is limited to the selected user. Page-only views stop at the page node, while tracked item and feature clicks continue to the right."
+        )
+    else:
+        st.caption(
+            f"This flow is limited to the top {sankey_user_limit} active users in the selected usage window so the chart stays fast and readable."
+        )
+    usage_sankey_figure = _build_access_usage_sankey_figure(usage_sankey_rows)
+    if usage_sankey_figure is None:
+        st.info("Not enough page or item activity has been recorded to build the usage flow chart yet.")
+    else:
+        st.plotly_chart(usage_sankey_figure, use_container_width=True)
+
+    st.subheader("Section Usage" if not selected_user_id else "Section Usage For Selected User")
+    if section_usage.empty:
+        st.info("No section usage events recorded yet.")
+    else:
+        section_usage["last_view_at"] = section_usage["last_view_at"].apply(_format_access_admin_timestamp)
+        top_section_usage = section_usage.head(10).copy()
+        section_chart = px.bar(
+            top_section_usage,
+            x="section_name",
+            y="view_count",
+            text="view_count",
+            custom_data=["unique_user_count"],
+        )
+        section_chart.update_traces(
+            hovertemplate="Section=%{x}<br>Views=%{y}<br>Users=%{customdata[0]}<extra></extra>"
+        )
+        section_chart.update_layout(
+            margin=dict(l=20, r=20, t=20, b=20),
+            xaxis_title="",
+            yaxis_title="Views",
+        )
+        st.plotly_chart(section_chart, use_container_width=True)
+        st.dataframe(
+            section_usage[["section_name", "view_count", "unique_user_count", "last_view_at"]],
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    user_usage = pd.DataFrame(dashboard.get("user_usage") or [])
+    st.subheader("Who Is Using It" if not selected_user_id else "Selected User Overview")
+    if user_usage.empty:
+        st.info("No user usage rows are available yet.")
+    else:
+        for timestamp_col in ["last_login_at", "last_seen_at", "last_activity_at"]:
+            if timestamp_col in user_usage.columns:
+                user_usage[timestamp_col] = user_usage[timestamp_col].apply(_format_access_admin_timestamp)
+        st.dataframe(
+            user_usage[
+                [
+                    column
+                    for column in [
+                        "email",
+                        "display_name",
+                        "role",
+                        "status",
+                        "last_activity_at",
+                        "top_section",
+                        "section_view_count",
+                        "distinct_section_count",
+                        "active_session_count",
+                        "open_session_count",
+                        "last_seen_at",
+                        "last_login_at",
+                    ]
+                    if column in user_usage.columns
+                ]
+            ],
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    if not selected_user_id:
+        return
+
+    selected_user_targets = pd.DataFrame(dashboard.get("selected_user_targets") or [])
+    st.subheader("Selected User Activity Targets")
+    st.caption("This highlights the sections, bundles, tickers, and content links this user is actually opening.")
+    if selected_user_targets.empty:
+        st.info("No detailed activity targets have been recorded for this user yet.")
+    else:
+        if "last_event_at" in selected_user_targets.columns:
+            selected_user_targets["last_event_at"] = selected_user_targets["last_event_at"].apply(_format_access_admin_timestamp)
+        target_chart_rows = selected_user_targets.head(10).copy()
+        target_chart = px.bar(
+            target_chart_rows,
+            x="target_label",
+            y="event_count",
+            color="target_type",
+            text="event_count",
+            custom_data=["last_event_at"],
+        )
+        target_chart.update_traces(
+            hovertemplate="Target=%{x}<br>Events=%{y}<br>Last=%{customdata[0]}<extra></extra>"
+        )
+        target_chart.update_layout(
+            margin=dict(l=20, r=20, t=20, b=20),
+            xaxis_title="",
+            yaxis_title="Events",
+            legend_title="Target Type",
+        )
+        st.plotly_chart(target_chart, use_container_width=True)
+        st.dataframe(
+            selected_user_targets[
+                [
+                    column
+                    for column in ["target_label", "target_type", "event_count", "last_event_at"]
+                    if column in selected_user_targets.columns
+                ]
+            ],
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    selected_user_activity = pd.DataFrame(dashboard.get("selected_user_activity") or [])
+    st.subheader("Selected User Activity Trail")
+    if "event_category" in selected_user_activity.columns:
+        selected_user_activity = selected_user_activity[selected_user_activity["event_category"] == "usage"].copy()
+    if selected_user_activity.empty:
+        st.info("No selected-user usage trail is available yet.")
+        return
+    if "created_at" in selected_user_activity.columns:
+        selected_user_activity["created_at"] = selected_user_activity["created_at"].apply(_format_access_admin_timestamp)
+    if "user_agent" in selected_user_activity.columns:
+        selected_user_activity["user_agent"] = selected_user_activity["user_agent"].apply(_short_user_agent)
+    if "detail" in selected_user_activity.columns:
+        selected_user_activity["detail_summary"] = selected_user_activity["detail"].apply(_format_access_admin_detail)
+        selected_user_activity["surface"] = selected_user_activity["detail"].apply(
+            lambda value: str(value.get("surface") or "") if isinstance(value, dict) else ""
+        )
+        selected_user_activity["source"] = selected_user_activity["detail"].apply(
+            lambda value: str(value.get("source") or "") if isinstance(value, dict) else ""
+        )
+    st.dataframe(
+        selected_user_activity[
+            [
+                column
+                for column in [
+                    "created_at",
+                    "event_type",
+                    "section_name",
+                    "surface",
+                    "target_type",
+                    "target_label",
+                    "source",
+                    "ip_address",
+                    "detail_summary",
+                ]
+                if column in selected_user_activity.columns
+            ]
+        ],
+        use_container_width=True,
+        hide_index=True,
+    )
+
+
+def _render_access_security_admin_dashboard(
+    *,
+    dashboard: dict[str, object],
+    selected_user_id: str,
+    selected_user_label: str,
+    selected_user_email: str,
+    security_window_days: int,
+    active_window_minutes: int,
+) -> None:
+    summary = dict(dashboard.get("summary") or {})
+    security_label = f"{security_window_days}d"
+    active_label = f"{active_window_minutes}m"
+
+    st.subheader("Security")
+    st.caption(
+        "Security covers login failures, account locks, password resets, live sessions, and Azure audit and diagnostic coverage."
+    )
+    if selected_user_id:
+        st.caption(f"Filtered to {selected_user_label}.")
+
+    security_metrics = st.columns(6)
+    if selected_user_id:
+        security_metrics[0].metric("User", selected_user_email or selected_user_label)
+        security_metrics[1].metric(f"Failed Logins ({security_label})", int(summary.get("failed_logins_window") or 0))
+        security_metrics[2].metric(f"Lock Events ({security_label})", int(summary.get("login_locks_window") or 0))
+        security_metrics[3].metric(
+            f"Reset Requests ({security_label})",
+            int(summary.get("password_reset_requests_window") or 0),
+        )
+        security_metrics[4].metric(
+            f"Admin Resets ({security_label})",
+            int(summary.get("admin_password_resets_window") or 0),
+        )
+        security_metrics[5].metric(f"Unique IPs ({security_label})", int(summary.get("unique_ips_window") or 0))
+    else:
+        security_metrics[0].metric("Locked Users Now", int(summary.get("locked_users_now") or 0))
+        security_metrics[1].metric(f"Failed Logins ({security_label})", int(summary.get("failed_logins_window") or 0))
+        security_metrics[2].metric(f"Lock Events ({security_label})", int(summary.get("login_locks_window") or 0))
+        security_metrics[3].metric(
+            f"Reset Requests ({security_label})",
+            int(summary.get("password_reset_requests_window") or 0),
+        )
+        security_metrics[4].metric(
+            f"Admin Resets ({security_label})",
+            int(summary.get("admin_password_resets_window") or 0),
+        )
+        security_metrics[5].metric(f"Unique IPs ({security_label})", int(summary.get("unique_ips_window") or 0))
+
+    session_metrics = st.columns(3)
+    session_metrics[0].metric(f"Active Sessions ({active_label})", int(summary.get("active_sessions") or 0))
+    session_metrics[1].metric("Open Sessions", int(summary.get("open_sessions") or 0))
+    session_metrics[2].metric("Active Users Now", int(summary.get("active_users_now") or 0))
+
+    cloud_security_status = dict(dashboard.get("cloud_security_status") or {})
+    cloud_summary = dict(cloud_security_status.get("summary") or {})
+    st.subheader("Cloud Audit Coverage")
+    workspace_hint = str(cloud_security_status.get("expected_workspace_id") or "").strip()
+    configured_resource_group = str(cloud_security_status.get("configured_resource_group") or "").strip()
+    resolved_resource_group = str(cloud_security_status.get("resource_group") or "").strip()
+    if workspace_hint:
+        st.caption(f"Expected Log Analytics workspace: `{workspace_hint}`")
+    if resolved_resource_group and configured_resource_group and resolved_resource_group != configured_resource_group:
+        st.caption(
+            f"Resolved resource group: `{resolved_resource_group}`. Configured hint: `{configured_resource_group}`."
+        )
+    error_text = str(cloud_security_status.get("error") or "").strip()
+    if not bool(cloud_security_status.get("available")):
+        st.warning(error_text or "Azure security observability status is unavailable.")
+    else:
+        coverage_metrics = st.columns(4)
+        coverage_metrics[0].metric(
+            "Healthy Resources",
+            f"{int(cloud_summary.get('healthy_count') or 0)}/{int(cloud_summary.get('resource_count') or 0)}",
+        )
+        coverage_metrics[1].metric(
+            "Audit Enabled",
+            f"{int(cloud_summary.get('audit_enabled_count') or 0)}/{int(cloud_summary.get('audit_expected_count') or 0)}",
+        )
+        coverage_metrics[2].metric(
+            "Diagnostics Enabled",
+            f"{int(cloud_summary.get('diagnostics_enabled_count') or 0)}/{int(cloud_summary.get('diagnostics_expected_count') or 0)}",
+        )
+        coverage_metrics[3].metric(
+            "Workspace Mismatches",
+            int(cloud_summary.get("workspace_mismatch_count") or 0),
+        )
+
+        if int(cloud_summary.get("workspace_mismatch_count") or 0) > 0 or int(cloud_summary.get("error_count") or 0) > 0:
+            st.warning("Some cloud audit or diagnostic resources are misconfigured or could not be inspected.")
+        elif int(cloud_summary.get("healthy_count") or 0) == int(cloud_summary.get("resource_count") or 0):
+            st.success("SQL auditing, SQL diagnostics, and Key Vault diagnostics are enabled on the tracked resources.")
+
+        cloud_resources = pd.DataFrame(cloud_security_status.get("resources") or [])
+        if cloud_resources.empty:
+            st.info("No cloud security resources were resolved for this environment.")
+        else:
+            if "workspace_ids" in cloud_resources.columns:
+                cloud_resources["workspace_ids"] = cloud_resources["workspace_ids"].apply(_format_access_admin_list)
+            if "diagnostic_setting_names" in cloud_resources.columns:
+                cloud_resources["diagnostic_setting_names"] = cloud_resources["diagnostic_setting_names"].apply(_format_access_admin_list)
+            if "enabled_log_categories" in cloud_resources.columns:
+                cloud_resources["enabled_log_categories"] = cloud_resources["enabled_log_categories"].apply(_format_access_admin_list)
+            if "enabled_metric_categories" in cloud_resources.columns:
+                cloud_resources["enabled_metric_categories"] = cloud_resources["enabled_metric_categories"].apply(_format_access_admin_list)
+            st.dataframe(
+                cloud_resources[
+                    [
+                        column
+                        for column in [
+                            "resource_type",
+                            "resource_name",
+                            "status",
+                            "audit_enabled",
+                            "diagnostics_enabled",
+                            "workspace_status",
+                            "diagnostic_setting_names",
+                            "enabled_log_categories",
+                            "enabled_metric_categories",
+                            "workspace_ids",
+                            "error",
+                        ]
+                        if column in cloud_resources.columns
+                    ]
+                ],
+                use_container_width=True,
+                hide_index=True,
+            )
+
+    active_sessions = pd.DataFrame(dashboard.get("active_sessions") or [])
+    st.subheader("Open Sessions" if not selected_user_id else "Open Sessions For Selected User")
+    if active_sessions.empty:
+        st.info("No open sessions found.")
+    else:
+        for timestamp_col in ["created_at", "last_seen_at", "expires_at"]:
+            if timestamp_col in active_sessions.columns:
+                active_sessions[timestamp_col] = active_sessions[timestamp_col].apply(_format_access_admin_timestamp)
+        if "user_agent" in active_sessions.columns:
+            active_sessions["user_agent"] = active_sessions["user_agent"].apply(_short_user_agent)
+        st.dataframe(
+            active_sessions[
+                [
+                    column
+                    for column in [
+                        "email",
+                        "display_name",
+                        "is_active_now",
+                        "created_at",
+                        "last_seen_at",
+                        "expires_at",
+                        "ip_address",
+                        "user_agent",
+                    ]
+                    if column in active_sessions.columns
+                ]
+            ],
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    security_events = pd.DataFrame(dashboard.get("recent_security_events") or [])
+    st.subheader("Recent Security Events" if not selected_user_id else "Security Events For Selected User")
+    if security_events.empty:
+        st.info("No recent security events recorded for this window.")
+    else:
+        if "created_at" in security_events.columns:
+            security_events["created_at"] = security_events["created_at"].apply(_format_access_admin_timestamp)
+        if "user_agent" in security_events.columns:
+            security_events["user_agent"] = security_events["user_agent"].apply(_short_user_agent)
+        if "detail" in security_events.columns:
+            security_events["detail_summary"] = security_events["detail"].apply(_format_access_admin_detail)
+        st.dataframe(
+            security_events[
+                [
+                    column
+                    for column in [
+                        "created_at",
+                        "event_type",
+                        "user_email",
+                        "email",
+                        "ip_address",
+                        "user_agent",
+                        "detail_summary",
+                    ]
+                    if column in security_events.columns
+                ]
+            ],
+            use_container_width=True,
+            hide_index=True,
+        )
+
+
+def _render_access_pending_invite_card(invite: dict[str, object], *, current_user: auth_service.UserContext) -> None:
+    invite_id = str(invite.get("id") or "").strip()
+    if not invite_id:
+        return
+
+    invite_email = str(invite.get("email") or "").strip() or "Unknown email"
+    invite_role = str(invite.get("role") or "investor").strip().lower() or "investor"
+    invite_status = str(invite.get("status") or "pending").strip().lower() or "pending"
+    portfolio_slug = str(invite.get("portfolio_slug") or "").strip()
+    share_value = invite.get("proposed_share_fraction")
+    share_label = _format_access_admin_share_percent(share_value)
+    expires_label = _format_pending_invite_expires(invite.get("expires_at")) or "n/a"
+    share_key = f"_access_pending_invite_share_pct_{invite_id}"
+
+    try:
+        current_share_pct = max(float(share_value or 0.0), 0.0) * 100.0
+    except Exception:
+        current_share_pct = 0.0
+    if share_key not in st.session_state:
+        st.session_state[share_key] = current_share_pct
+
+    detail_parts = [f"Role: {invite_role.title()}"]
+    if invite_role == "investor":
+        detail_parts.append(f"Stake: {share_label}")
+    if portfolio_slug:
+        detail_parts.append(f"Portfolio: {portfolio_slug}")
+    if invite_status != "pending":
+        detail_parts.append(f"Status: {invite_status.title()}")
+    detail_parts.append(f"Expires: {expires_label}")
+    detail_parts.append(f"Invite ID: {invite_id[:8]}")
+
+    with st.container(border=True):
+        st.markdown(f"**{invite_email}**")
+        st.caption(" | ".join(detail_parts))
+
+        action_cols = st.columns([1.8, 1.0, 1.0, 1.0])
+        if invite_role == "investor":
+            action_cols[0].number_input(
+                "Stake %",
+                min_value=0.0,
+                max_value=100.0,
+                step=0.25,
+                key=share_key,
+            )
+            if action_cols[1].button(
+                "Save Stake",
+                key=f"_access_pending_invite_save_{invite_id}",
+                use_container_width=True,
+            ):
+                update_result = auth_service.update_pending_invite(
+                    invite_id=invite_id,
+                    share_fraction=float(st.session_state.get(share_key) or 0.0) / 100.0,
+                    requested_by=current_user,
+                )
+                if update_result.get("ok"):
+                    updated_invite = update_result.get("invite") if isinstance(update_result.get("invite"), dict) else {}
+                    st.session_state[share_key] = max(
+                        float(updated_invite.get("proposed_share_fraction") or 0.0) * 100.0,
+                        0.0,
+                    )
+                    _queue_access_pending_invite_notice(
+                        level="success",
+                        message=str(update_result.get("message") or "Pending invite updated."),
+                    )
+                else:
+                    _queue_access_pending_invite_notice(
+                        level="error",
+                        message=str(update_result.get("message") or "Unable to update pending invite."),
+                    )
+        else:
+            action_cols[0].caption("Stake editing is only used for investor invites.")
+
+        if action_cols[2].button(
+            "Resend Invite",
+            key=f"_access_pending_invite_resend_{invite_id}",
+            use_container_width=True,
+        ):
+            resend_result = auth_service.resend_pending_invite(
+                invite_id=invite_id,
+                requested_by=current_user,
+            )
+            if resend_result.get("ok"):
+                _queue_access_pending_invite_notice(
+                    level="success",
+                    message=str(resend_result.get("message") or "Invite resent."),
+                    detail=str(resend_result.get("email_message") or ""),
+                    code="" if resend_result.get("email_sent") else str(resend_result.get("invite_url") or ""),
+                )
+            else:
+                _queue_access_pending_invite_notice(
+                    level="error",
+                    message=str(resend_result.get("message") or "Unable to resend invite."),
+                )
+
+        if action_cols[3].button(
+            "Delete Invite",
+            key=f"_access_pending_invite_delete_{invite_id}",
+            use_container_width=True,
+        ):
+            delete_result = auth_service.delete_pending_invite(
+                invite_id=invite_id,
+                requested_by=current_user,
+            )
+            if delete_result.get("ok"):
+                st.session_state.pop(share_key, None)
+                _queue_access_pending_invite_notice(
+                    level="success",
+                    message=str(delete_result.get("message") or "Pending invite deleted."),
+                )
+            else:
+                _queue_access_pending_invite_notice(
+                    level="error",
+                    message=str(delete_result.get("message") or "Unable to delete pending invite."),
+                )
 
 
 def _environment_label(app_track: str) -> str:
@@ -1180,19 +1907,207 @@ def _current_user_is_admin() -> bool:
     return bool(context.is_admin) if context is not None else False
 
 
+def _format_access_admin_timestamp(value: object) -> str:
+    timestamp = pd.to_datetime(value, errors="coerce", utc=True)
+    if pd.isna(timestamp):
+        return ""
+    return timestamp.strftime("%Y-%m-%d %H:%M UTC")
+
+
+def _format_access_admin_detail(detail: object) -> str:
+    if not isinstance(detail, dict):
+        return ""
+    ignored_keys = {"target_id", "target_label", "target_type", "target_url", "headline"}
+    preferred_keys = [
+        "surface",
+        "source",
+        "symbol",
+        "published_at",
+        "reason",
+        "failed_login_count",
+        "locked_until",
+        "portfolio_slug",
+        "role",
+        "app_track",
+    ]
+    parts: list[str] = []
+    ordered_items: list[tuple[str, object]] = []
+    for key in preferred_keys:
+        if key in detail:
+            ordered_items.append((key, detail.get(key)))
+    for key, value in detail.items():
+        if key in preferred_keys:
+            continue
+        ordered_items.append((str(key), value))
+    for key, value in ordered_items:
+        if key in ignored_keys:
+            continue
+        if value in (None, "", [], {}):
+            continue
+        if isinstance(value, float):
+            rendered = f"{value:.4f}".rstrip("0").rstrip(".")
+        elif isinstance(value, list):
+            rendered = ", ".join(str(item) for item in value[:4] if str(item).strip())
+        else:
+            rendered = str(value)
+        parts.append(f"{key}={rendered}")
+    return " | ".join(parts[:4])
+
+
+def _short_user_agent(user_agent: object, *, max_len: int = 72) -> str:
+    text = str(user_agent or "").strip()
+    if len(text) <= max_len:
+        return text
+    return text[: max_len - 3].rstrip() + "..."
+
+
+def _format_access_admin_list(values: object, *, max_items: int = 4) -> str:
+    if not isinstance(values, list):
+        return ""
+    items = [str(item).strip() for item in values if str(item).strip()]
+    if not items:
+        return ""
+    rendered = ", ".join(items[:max_items])
+    if len(items) > max_items:
+        rendered += f" (+{len(items) - max_items})"
+    return rendered
+
+
+def _current_workspace_section_name() -> str:
+    return _normalize_workspace_section(st.session_state.get("workspace_section"))
+
+
+def _record_usage_interaction(
+    *,
+    event_type: str,
+    detail: dict[str, object] | None = None,
+    section_name: str = "",
+) -> None:
+    if st.session_state.get("_ui_auth_mode") != "database":
+        return
+    current_user = _current_user_context()
+    if not isinstance(current_user, auth_service.UserContext):
+        return
+    payload = dict(detail or {})
+    payload.setdefault("app_track", (os.getenv("APP_TRACK") or "local").strip().lower())
+    auth_service.record_access_event(
+        event_type=str(event_type or "").strip().lower(),
+        event_category="usage",
+        user=current_user,
+        section_name=_normalize_workspace_section(section_name or _current_workspace_section_name()),
+        session_token=str(st.session_state.get("_ui_auth_session_id") or ""),
+        ip_address=_request_ip_address(),
+        user_agent=_request_user_agent(),
+        detail=payload,
+    )
+
+
+def _activity_link_key(prefix: str, *, label: str, url: str = "") -> str:
+    digest = hashlib.sha1(f"{prefix}|{label}|{url}".encode("utf-8")).hexdigest()[:12]
+    cleaned_prefix = re.sub(r"[^a-zA-Z0-9_]+", "_", str(prefix or "activity_link").strip()) or "activity_link"
+    return f"{cleaned_prefix}_{digest}"
+
+
+def _render_tracked_activity_link(
+    label: str,
+    url: str,
+    *,
+    key: str,
+    surface: str,
+    target_type: str = "content_link",
+    source: str = "",
+    published_at: str = "",
+    extra_detail: dict[str, object] | None = None,
+) -> None:
+    clean_label = str(label or "").strip()
+    clean_url = str(url or "").strip()
+    if not clean_label:
+        return
+    if not clean_url:
+        st.markdown(f"- {clean_label}")
+        return
+    payload = {
+        "surface": str(surface or "").strip(),
+        "source": str(source or "").strip(),
+        "published_at": str(published_at or "").strip(),
+        "target_type": str(target_type or "content_link").strip(),
+        "target_label": clean_label,
+        "target_id": clean_url,
+        "target_url": clean_url,
+    }
+    for detail_key, detail_value in dict(extra_detail or {}).items():
+        if detail_value in (None, "", [], {}):
+            continue
+        payload[str(detail_key)] = detail_value
+    st.link_button(
+        clean_label,
+        clean_url,
+        key=key,
+        type="tertiary",
+        on_click=_record_usage_interaction,
+        kwargs={
+            "event_type": "content_link_open",
+            "detail": payload,
+        },
+    )
+
+
+def _record_workspace_section_view(
+    *,
+    section_name: str,
+    current_user: auth_service.UserContext | None,
+    app_track: str = "",
+) -> None:
+    if st.session_state.get("_ui_auth_mode") != "database":
+        return
+    if not isinstance(current_user, auth_service.UserContext):
+        return
+
+    normalized_section = _normalize_workspace_section(section_name)
+    session_token = str(st.session_state.get("_ui_auth_session_id") or "")
+    signature = f"{session_token}:{normalized_section}"
+    if signature == str(st.session_state.get("_ui_last_recorded_section_view") or ""):
+        return
+
+    _log_event("section_selected", section=normalized_section)
+    auth_service.record_access_event(
+        event_type="section_view",
+        event_category="usage",
+        user=current_user,
+        section_name=normalized_section,
+        session_token=session_token,
+        ip_address=_request_ip_address(),
+        user_agent=_request_user_agent(),
+        detail={"app_track": app_track or "unknown"},
+    )
+    st.session_state["_ui_last_recorded_section_view"] = signature
+
+
 def _section_options() -> list[str]:
     options = list(BASE_SECTION_OPTIONS)
     if _current_user_is_admin():
+        options.insert(2, HOME_EXP_SECTION)
         options.append(ADMIN_SECTION)
     return options
 
 
 def _normalize_workspace_section(section_name: object) -> str:
     normalized = str(section_name or "").strip()
-    if normalized == "Homepage - v2":
-        return "Home"
-    if normalized in {"Homepage Exp", "Home Experimental"}:
-        return HOME_EXP_SECTION
+    alias_map = {
+        "Homepage - v2": "Home",
+        "Homepage Exp": HOME_EXP_SECTION,
+        "Home Experimental": HOME_EXP_SECTION,
+        "Daily Tape": HOME_EXP_SECTION,
+        "Agentic Omnibar": AGENTIC_OMNIBAR_SECTION,
+        "Agentic Ombibar": AGENTIC_OMNIBAR_SECTION,
+        "Portfolio Overview": PORTFOLIO_SECTION,
+        "Performance": PORTFOLIO_PERFORMANCE_SECTION,
+        "Market Opportunity": MARKET_EXPLORER_SECTION,
+        "FRED Macro": BROAD_ECONOMY_SECTION,
+        "Access Admin": ADMIN_SECTION,
+    }
+    if normalized in alias_map:
+        return alias_map[normalized]
     return normalized
 
 
@@ -1291,7 +2206,22 @@ def _auth_cookie_value() -> str:
     return str(value or "").strip()
 
 
+def _browser_session_cookie_enabled() -> bool:
+    return auth_service.allow_insecure_browser_session_cookie()
+
+
+def _render_auth_persistence_notice() -> None:
+    app_track = (os.getenv("APP_TRACK") or "").strip().lower()
+    if app_track in {"prod", "production"}:
+        return
+    if auth_service.browser_session_persistence_mode() != "session_only":
+        return
+    st.caption(auth_service.browser_session_persistence_message())
+
+
 def _render_auth_cookie_sync(action: str, value: str = "") -> None:
+    if action != "clear" and not _browser_session_cookie_enabled():
+        return
     cookie_name = json.dumps(_AUTH_COOKIE_NAME)
     cookie_value = json.dumps(value)
     if action == "clear":
@@ -1349,6 +2279,8 @@ def _invalidate_auth_session(session_id: str | None) -> None:
 
 
 def _restore_legacy_login_from_cookie() -> bool:
+    if not _browser_session_cookie_enabled():
+        return False
     session_id = _auth_cookie_value()
     if not session_id:
         return False
@@ -1369,6 +2301,8 @@ def _restore_legacy_login_from_cookie() -> bool:
 
 
 def _restore_database_login_from_cookie() -> bool:
+    if not _browser_session_cookie_enabled():
+        return False
     session_token = _auth_cookie_value()
     if not session_token:
         return False
@@ -1380,6 +2314,15 @@ def _restore_database_login_from_cookie() -> bool:
     st.session_state["_ui_auth_session_id"] = session_token
     st.session_state["_ui_auth_mode"] = "database"
     _store_user_context(context)
+    auth_service.record_access_event(
+        event_type="session_restored",
+        event_category="usage",
+        user=context,
+        session_token=session_token,
+        ip_address=_request_ip_address(),
+        user_agent=_request_user_agent(),
+        detail={"source": "cookie_restore"},
+    )
     return True
 
 
@@ -1401,6 +2344,7 @@ def _render_legacy_login_gate() -> None:
         "Welcome back",
         "Private client access to the Spectral Nature workspace for market intelligence, portfolio context, and daily research.",
     )
+    _render_auth_persistence_notice()
 
     if not username_expected or not password_expected:
         st.error("Dashboard authentication is enabled, but legacy login credentials are not configured.")
@@ -1443,6 +2387,7 @@ def _render_database_login_gate() -> None:
         "Welcome back",
         "Private client access to the Spectral Nature workspace for market intelligence, portfolio context, and daily research.",
     )
+    _render_auth_persistence_notice()
 
     if not auth_state.get("available"):
         st.error("Database-backed authentication is enabled, but the auth store is unavailable.")
@@ -1546,7 +2491,13 @@ def _render_database_login_gate() -> None:
             )
             st.success(str(result.get("message") or "If an account exists, reset instructions have been sent."))
             if not auth_state.get("email_delivery"):
-                st.caption("Email delivery is not configured in this environment. Contact an administrator for a reset link.")
+                email_status = auth_state.get("email_delivery_status") or {}
+                st.caption(
+                    str(
+                        email_status.get("user_message")
+                        or "Email delivery is not available right now. Contact an administrator for a reset link."
+                    )
+                )
 
     with reset_tab:
         with st.form("dashboard_reset_password", clear_on_submit=False):
@@ -1578,6 +2529,8 @@ def _enforce_login_gate() -> None:
         return
 
     if st.session_state.pop("_ui_clear_auth_cookie", False):
+        _render_auth_cookie_sync("clear")
+    elif not _browser_session_cookie_enabled() and _auth_cookie_value():
         _render_auth_cookie_sync("clear")
 
     if st.session_state.get("_ui_authenticated"):
@@ -1846,7 +2799,7 @@ def _render_invite_email_designer(*, current_user: auth_service.UserContext) -> 
 
 
 def _render_access_admin_section() -> None:
-    st.title("Access Admin")
+    st.title(ADMIN_SECTION)
     if st.session_state.get("_ui_auth_mode") != "database":
         st.info("Database-backed auth is required for user invites and password reset management.")
         return
@@ -1857,15 +2810,44 @@ def _render_access_admin_section() -> None:
         return
 
     auth_state = auth_service.initialize_auth_system()
+    email_status = auth_state.get("email_delivery_status") or {}
     st.caption(
         "Manage invite-based account creation, review pending invites, issue password reset links, and design invite emails."
     )
     st.caption(
         f"Email delivery: {'configured' if auth_state.get('email_delivery') else 'not configured'}"
     )
+    if not auth_state.get("email_delivery"):
+        st.caption(str(email_status.get("message") or "Email delivery is not configured."))
+    _show_access_pending_invite_notice()
+    user_rows = auth_service.list_users()
+    analytics_user_options: dict[str, dict[str, str]] = {"": {"label": "All users", "email": ""}}
+    for row in user_rows:
+        if not isinstance(row, dict):
+            continue
+        option_user_id = str(row.get("user_id") or "").strip()
+        option_email = str(row.get("email") or "").strip()
+        if not option_user_id or not option_email:
+            continue
+        option_display_name = str(row.get("display_name") or "").strip()
+        option_label = option_email if not option_display_name or option_display_name == option_email else f"{option_display_name} ({option_email})"
+        analytics_user_options[option_user_id] = {"label": option_label, "email": option_email}
 
-    access_tab, designer_tab = st.tabs(["Access Management", "Invite Email Designer"])
-    with access_tab:
+    admin_view_options = ["Access Management", "Usage", "Security", "Invite Email Designer"]
+    _prime_widget_choice(
+        "access_admin_view",
+        admin_view_options,
+        fallback="Access Management",
+        pending_key="_pending_access_admin_view",
+    )
+    admin_view = st.segmented_control(
+        "Admin View",
+        admin_view_options,
+        key="access_admin_view",
+        width="stretch",
+    )
+
+    if admin_view == "Access Management":
         invite_col, reset_col = st.columns(2)
         with invite_col:
             st.subheader("Create Invite")
@@ -1912,7 +2894,7 @@ def _render_access_admin_section() -> None:
                 else:
                     st.error(str(result.get("message") or "Reset issuance failed."))
 
-        users = pd.DataFrame(auth_service.list_users())
+        users = pd.DataFrame(user_rows)
         st.subheader("Users")
         if users.empty:
             st.info("No users found.")
@@ -1927,66 +2909,160 @@ def _render_access_admin_section() -> None:
                     "share_fraction",
                     "can_view_full_portfolio",
                     "status",
+                    "active_session_count",
+                    "open_session_count",
+                    "last_seen_at",
+                    "failed_login_count",
+                    "locked_until",
                     "last_login_at",
                 ]
                 if column in users.columns
             ]
             if "share_fraction" in users.columns:
                 users["share_fraction"] = pd.to_numeric(users["share_fraction"], errors="coerce") * 100.0
+            for timestamp_col in ["last_login_at", "last_seen_at", "locked_until"]:
+                if timestamp_col in users.columns:
+                    users[timestamp_col] = users[timestamp_col].apply(_format_access_admin_timestamp)
             st.dataframe(users[display_cols], use_container_width=True, hide_index=True)
 
-        invites = pd.DataFrame(auth_service.list_pending_invites())
+        invites = auth_service.list_pending_invites()
         st.subheader("Pending Invites")
-        if invites.empty:
+        if not invites:
             st.info("No pending invites.")
         else:
-            if "proposed_share_fraction" in invites.columns:
-                invites["proposed_share_fraction"] = pd.to_numeric(invites["proposed_share_fraction"], errors="coerce") * 100.0
-            invite_event = st.dataframe(
-                invites,
-                use_container_width=True,
-                hide_index=True,
-                on_select="rerun",
-                selection_mode="single-row",
-                key="_access_pending_invites_table",
-            )
-            selected_rows = _dataframe_selected_rows(invite_event)
-            selected_pending_invite_id = ""
-            selected_pending_invite_email = ""
-            if selected_rows:
-                selected_row_idx = selected_rows[0]
-                if 0 <= selected_row_idx < len(invites.index):
-                    selected_row = invites.iloc[selected_row_idx]
-                    selected_pending_invite_id = str(selected_row.get("id") or "").strip()
-                    selected_pending_invite_email = str(selected_row.get("email") or "").strip()
+            st.caption("Each invite now has its own row actions.")
+            for invite in invites:
+                if isinstance(invite, dict):
+                    _render_access_pending_invite_card(invite, current_user=current_user)
+    elif admin_view in {"Usage", "Security"}:
+        usage_window_days = _access_admin_int_state_value(
+            "_access_usage_window_days",
+            fallback=14,
+            allowed=(7, 14, 30, 90),
+        )
+        security_window_days = _access_admin_int_state_value(
+            "_access_security_window_days",
+            fallback=14,
+            allowed=(1, 7, 14, 30, 90),
+        )
+        active_window_minutes = _access_admin_int_state_value(
+            "_access_active_window_minutes",
+            fallback=30,
+            allowed=(15, 30, 60, 120),
+        )
+        sankey_user_limit = _access_admin_int_state_value(
+            "_access_usage_sankey_user_limit",
+            fallback=10,
+            allowed=(3, 5, 10, 15, 20),
+        )
 
-            info_col, action_col = st.columns([4.0, 1.2])
-            if selected_pending_invite_id:
-                short_invite_id = selected_pending_invite_id[:8]
-                if selected_pending_invite_email:
-                    info_col.caption(f"Selected invite: {selected_pending_invite_email} ({short_invite_id})")
-                else:
-                    info_col.caption(f"Selected invite id: {short_invite_id}")
-            else:
-                info_col.caption("Select a row in the Pending Invites table to enable deletion.")
-
-            if action_col.button(
-                "Delete Invite",
-                key="_access_pending_invite_delete_button",
-                use_container_width=True,
-                disabled=not bool(selected_pending_invite_id),
-            ):
-                delete_result = auth_service.delete_pending_invite(
-                    invite_id=selected_pending_invite_id,
-                    requested_by=current_user,
+        if admin_view == "Usage":
+            control_col_1, control_col_2, control_col_3, control_col_4 = st.columns([1, 1, 1.6, 0.9])
+            with control_col_1:
+                usage_window_days = int(
+                    st.selectbox(
+                        "Usage window",
+                        options=[7, 14, 30, 90],
+                        index=[7, 14, 30, 90].index(usage_window_days),
+                        key="_access_usage_window_days",
+                    )
                 )
-                if delete_result.get("ok"):
-                    st.success(str(delete_result.get("message") or "Pending invite deleted."))
-                    st.rerun()
-                else:
-                    st.error(str(delete_result.get("message") or "Unable to delete pending invite."))
+            with control_col_2:
+                active_window_minutes = int(
+                    st.selectbox(
+                        "Active session window",
+                        options=[15, 30, 60, 120],
+                        index=[15, 30, 60, 120].index(active_window_minutes),
+                        key="_access_active_window_minutes",
+                    )
+                )
+            with control_col_3:
+                selected_user_id = str(
+                    st.selectbox(
+                        "User filter",
+                        options=list(analytics_user_options.keys()),
+                        index=0,
+                        key="_access_usage_user_filter",
+                        format_func=lambda option_id: analytics_user_options.get(str(option_id or ""), {}).get("label", "All users"),
+                    )
+                    or ""
+                ).strip()
+            with control_col_4:
+                sankey_user_limit = int(
+                    st.selectbox(
+                        "Flow users",
+                        options=[3, 5, 10, 15, 20],
+                        index=[3, 5, 10, 15, 20].index(sankey_user_limit),
+                        key="_access_usage_sankey_user_limit",
+                    )
+                )
+        else:
+            control_col_1, control_col_2, control_col_3 = st.columns([1, 1, 1.8])
+            with control_col_1:
+                security_window_days = int(
+                    st.selectbox(
+                        "Security window",
+                        options=[1, 7, 14, 30, 90],
+                        index=[1, 7, 14, 30, 90].index(security_window_days),
+                        key="_access_security_window_days",
+                    )
+                )
+            with control_col_2:
+                active_window_minutes = int(
+                    st.selectbox(
+                        "Active session window",
+                        options=[15, 30, 60, 120],
+                        index=[15, 30, 60, 120].index(active_window_minutes),
+                        key="_access_active_window_minutes",
+                    )
+                )
+            with control_col_3:
+                selected_user_id = str(
+                    st.selectbox(
+                        "User filter",
+                        options=list(analytics_user_options.keys()),
+                        index=0,
+                        key="_access_usage_user_filter",
+                        format_func=lambda option_id: analytics_user_options.get(str(option_id or ""), {}).get("label", "All users"),
+                    )
+                    or ""
+                ).strip()
 
-    with designer_tab:
+        selected_user_meta = analytics_user_options.get(selected_user_id, {"label": "All users", "email": ""})
+        selected_user_label = str(selected_user_meta.get("label") or "All users")
+        selected_user_email = str(selected_user_meta.get("email") or "").strip()
+
+        with st.spinner(f"Loading {admin_view.lower()} analytics..."):
+            dashboard = auth_service.get_access_admin_dashboard(
+                usage_window_days=usage_window_days,
+                security_window_days=security_window_days,
+                active_window_minutes=active_window_minutes,
+                sankey_user_limit=sankey_user_limit,
+                user_id=selected_user_id,
+                user_email=selected_user_email,
+            )
+
+        if admin_view == "Usage":
+            _render_access_usage_admin_dashboard(
+                dashboard=dashboard,
+                selected_user_id=selected_user_id,
+                selected_user_label=selected_user_label,
+                selected_user_email=selected_user_email,
+                usage_window_days=usage_window_days,
+                active_window_minutes=active_window_minutes,
+                sankey_user_limit=sankey_user_limit,
+            )
+        else:
+            _render_access_security_admin_dashboard(
+                dashboard=dashboard,
+                selected_user_id=selected_user_id,
+                selected_user_label=selected_user_label,
+                selected_user_email=selected_user_email,
+                security_window_days=security_window_days,
+                active_window_minutes=active_window_minutes,
+            )
+
+    elif admin_view == "Invite Email Designer":
         _render_invite_email_designer(current_user=current_user)
 
 
@@ -2133,6 +3209,16 @@ def _open_ticker_snapshot_target(symbol: str, *, target: str) -> None:
     cleaned_target = str(target or "").strip().lower()
     if not cleaned_symbol or cleaned_target not in {"home", "home_v2", "home_exp", "market"}:
         return
+    _record_usage_interaction(
+        event_type="ticker_open",
+        detail={
+            "surface": cleaned_target,
+            "symbol": cleaned_symbol,
+            "target_type": "ticker",
+            "target_label": cleaned_symbol,
+            "target_id": cleaned_symbol,
+        },
+    )
     if cleaned_target == "home":
         st.session_state["home_selected_ticker"] = cleaned_symbol
         return
@@ -2645,7 +3731,7 @@ def _render_related_news_database_section(
         st.caption("No related database-backed news was available in the latest materialized snapshot.")
         return
     st.caption("Source: materialized `news_articles` dataset")
-    for _, row in rows.iterrows():
+    for index, (_, row) in enumerate(rows.iterrows()):
         headline = str(row.get("headline") or "Untitled").strip()
         source = str(row.get("source") or "News").strip()
         published_at = pd.to_datetime(row.get("published_at"), utc=True, errors="coerce")
@@ -2653,10 +3739,16 @@ def _render_related_news_database_section(
         url = str(row.get("url") or "").strip()
         excerpt = _clean_attention_copy(row.get("summary") or row.get("description"))
         meta = " | ".join(part for part in [source, published_label] if part)
-        if url:
-            st.markdown(f"- [{headline}]({url})")
-        else:
-            st.markdown(f"- {headline}")
+        _render_tracked_activity_link(
+            headline,
+            url,
+            key=_activity_link_key(f"related_news_{ticker}_{index}", label=headline, url=url),
+            surface="related_news_database",
+            target_type="news_article",
+            source=source,
+            published_at=published_label,
+            extra_detail={"ticker": str(ticker or "").upper().strip()},
+        )
         if excerpt:
             st.caption(excerpt)
         if meta:
@@ -2746,16 +3838,21 @@ def _render_compact_background_sections(
     if not evidence_links:
         st.caption("No relevant evidence links were available in the latest agentic run.")
         return
-    for item in evidence_links[:8]:
+    for index, item in enumerate(evidence_links[:8]):
         headline = str((item or {}).get("headline") or "Untitled").strip()
         source = str((item or {}).get("source") or "News").strip()
         published_at = pd.to_datetime((item or {}).get("published_at"), utc=True, errors="coerce")
         published_label = published_at.strftime("%Y-%m-%d") if pd.notna(published_at) else "n/a"
         url = str((item or {}).get("url") or "").strip()
-        if url:
-            st.markdown(f"- [{headline}]({url})")
-        else:
-            st.markdown(f"- {headline}")
+        _render_tracked_activity_link(
+            headline,
+            url,
+            key=_activity_link_key(f"ticker_background_evidence_{index}", label=headline, url=url),
+            surface="ticker_background_evidence",
+            target_type="evidence_link",
+            source=source,
+            published_at=published_label,
+        )
         st.caption(" | ".join(part for part in [source, published_label] if part))
 
 
@@ -3022,13 +4119,7 @@ def _attention_home_surface_summary(
 
 
 def _attention_mover_card_title(mover: dict[str, object]) -> str:
-    headline = str((mover or {}).get("headline") or "").strip()
-    if headline:
-        return headline
-    symbol = str((mover or {}).get("symbol") or "").strip().upper()
-    if symbol:
-        return symbol
-    return "Mover"
+    return attention_mover_card_title_service(mover if isinstance(mover, dict) else {})
 
 
 def _attention_bundle_title(bundle: dict[str, object], *, fallback: dict[str, object] | None = None) -> str:
@@ -3093,7 +4184,7 @@ def _set_workspace_ticker(ticker: str) -> str:
 
 
 def _open_attention_target(section_name: str, params: dict[str, object] | None = None) -> None:
-    target = str(section_name or "").strip() or "Market Opportunity"
+    target = _normalize_workspace_section(section_name) or MARKET_EXPLORER_SECTION
     payload = dict(params or {})
     ticker = str(payload.get("ticker") or "").upper().strip()
     market_view = str(payload.get("market_view") or "").strip()
@@ -3102,7 +4193,7 @@ def _open_attention_target(section_name: str, params: dict[str, object] | None =
     normalized_market_view = market_view or ("Commodity Section" if commodity_focus else "Markets")
 
     st.session_state["_pending_workspace_section"] = target
-    if target == "Market Opportunity":
+    if target == MARKET_EXPLORER_SECTION:
         st.session_state["_pending_market_view"] = normalized_market_view
         if normalized_market_view == "Commodity Section":
             st.session_state.pop("_pending_market_business_filter", None)
@@ -3117,7 +4208,7 @@ def _open_attention_target(section_name: str, params: dict[str, object] | None =
                 st.session_state["_pending_market_business_filter"] = business_filter
     if ticker:
         _set_workspace_ticker(ticker)
-        if target == "Market Opportunity" and normalized_market_view == "Commodity Section":
+        if target == MARKET_EXPLORER_SECTION and normalized_market_view == "Commodity Section":
             st.session_state["market_commodity_selected_ticker"] = ticker
             st.session_state["market_commodity_ticker_widget"] = ticker
     st.rerun()
@@ -3136,7 +4227,7 @@ def _open_homepage_research_bundle_from_omnibar(bundle_id: str, symbols: list[st
     if not normalized_bundle_id:
         _open_workspace_section("Home")
         return
-    _select_homepage_v2_bundle(normalized_bundle_id, symbols=symbols)
+    _select_homepage_v2_bundle(normalized_bundle_id, symbols=symbols, title=normalized_bundle_id)
     _queue_homepage_v2_active_panel(HOMEPAGE_V2_RESEARCH_PANEL)
     st.session_state["_pending_workspace_section"] = "Home"
     st.rerun()
@@ -3520,7 +4611,7 @@ def _build_agentic_omnibar_assistant_message(query: str, resolution: dict[str, o
     if any(str(item.get("kind") or "") == "bundle" for item in context_items):
         steps.append("- Open Home research for retained evidence and linked symbols.")
     if any(str(item.get("kind") or "") == "macro_release" for item in context_items):
-        steps.append("- Open FRED Macro to compare the prompt against the macro release backdrop.")
+        steps.append(f"- Open {BROAD_ECONOMY_SECTION} to compare the prompt against the macro release backdrop.")
     if not steps:
         steps.append("- Refine the prompt with a ticker, macro release, or concrete market question to tighten the first pass.")
     context_line = f"Starting context: {context_labels}." if context_labels else "Starting context is still broad."
@@ -3571,6 +4662,69 @@ def _dispatch_agentic_omnibar_progress(
         progress_callback(payload)
     except Exception:
         return
+
+
+def _humanize_agentic_omnibar_tool_name(tool_name: object) -> str:
+    clean_name = str(tool_name or "").strip().replace("_", " ")
+    return clean_name if clean_name else "the next data source"
+
+
+def _agentic_omnibar_progress_message(event: dict[str, object]) -> str:
+    stage = str(event.get("stage") or "").strip().lower()
+    intent = str(event.get("intent") or "").strip().lower()
+    matches = int(event.get("matches") or 0)
+    tool_label = _humanize_agentic_omnibar_tool_name(event.get("tool_name"))
+
+    if stage == "resolve_start":
+        return "Checking for direct matches."
+    if stage == "intent_ready":
+        if intent == "agent":
+            return "This needs analysis, so I am gathering evidence."
+        if intent == "search":
+            return "Found direct matches." if matches > 0 else "No direct match yet. Expanding the search."
+        if intent == "ambiguous":
+            return "This could be a lookup or an analysis request."
+        return "Finished reading the request."
+    if stage == "agent_dispatch":
+        return "Starting the analysis."
+    if stage == "start":
+        return "Setting up the analysis agent."
+    if stage == "tool_catalog_ready":
+        return "Loading the available data sources."
+    if stage == "planner_start":
+        return "Deciding the next step."
+    if stage == "tool_start":
+        return f"Checking {tool_label}."
+    if stage == "tool_complete":
+        return f"Added evidence from {tool_label}."
+    if stage == "tool_failed":
+        return f"{tool_label.capitalize()} did not return usable data. Trying another path."
+    if stage in {"planner_final", "final_synthesis_start"}:
+        return "Writing the answer."
+    if stage == "failed":
+        return "The analysis hit an error."
+    if stage in {"completed", "status"}:
+        return "Answer ready."
+
+    fallback = str(event.get("message") or "").strip()
+    return fallback if fallback else "Working through the request."
+
+
+def _render_agentic_omnibar_progress_panel(
+    progress_slot: object,
+    *,
+    current_message: str,
+    progress_history: list[str],
+) -> None:
+    recent_updates = [
+        item for item in list(progress_history[-4:]) if item and item != current_message
+    ]
+    with progress_slot.container(border=True):
+        st.markdown("#### Thinking")
+        st.caption("Chat + Search is working through your request.")
+        st.markdown(f"**{current_message}**")
+        if recent_updates:
+            st.markdown("\n".join(f"- {item}" for item in recent_updates))
 
 
 def _run_agentic_omnibar_resolution(
@@ -3632,7 +4786,7 @@ def _run_agentic_omnibar_resolution(
     _dispatch_agentic_omnibar_progress(
         progress_callback,
         stage="completed",
-        message="Omnibar response ready.",
+        message="Chat + Search response ready.",
         progress=1.0,
         intent=str(resolution.get("intent") or "search"),
     )
@@ -3744,6 +4898,73 @@ def _build_agentic_omnibar_tool_figure(render_payload: dict[str, object]) -> go.
     return fig
 
 
+def _render_agentic_omnibar_debug_panel(resolution: dict[str, object]) -> None:
+    agent_result = dict(resolution.get("agent_result") or {})
+    tool_calls = list(agent_result.get("tool_calls") or [])
+    transcript = list(st.session_state.get("agentic_omnibar_transcript") or [])
+
+    with st.expander("Admin Debug", expanded=False):
+        st.caption("Route")
+        route_cols = st.columns(4)
+        route_cols[0].metric("Intent", str(resolution.get("intent") or "n/a").capitalize())
+        route_cols[1].metric("Confidence", str(resolution.get("confidence_band") or "n/a").capitalize())
+        route_cols[2].metric("Mode", str(resolution.get("preferred_mode") or "auto").capitalize())
+        route_cols[3].metric("Matches", str(len(list(resolution.get("search_results") or []))))
+        st.caption(
+            f"request_id={resolution.get('request_id')} | policy_version={resolution.get('policy_version')}"
+        )
+
+        if agent_result:
+            st.caption("Agent")
+            agent_meta_cols = st.columns(4)
+            agent_meta_cols[0].metric("Agent Status", str(agent_result.get("status") or "n/a").capitalize())
+            agent_meta_cols[1].metric("Tool Calls", str(len(tool_calls)))
+            agent_meta_cols[2].metric("Agent Confidence", str(agent_result.get("confidence") or "low").capitalize())
+            agent_meta_cols[3].metric("Model", str(agent_result.get("model") or "n/a"))
+            limitations = [str(item).strip() for item in list(agent_result.get("limitations") or []) if str(item).strip()]
+            if limitations:
+                st.caption("Limitations: " + " | ".join(limitations[:3]))
+            if tool_calls:
+                with st.expander("Tool Calls", expanded=False):
+                    for tool_call in tool_calls:
+                        with st.container(border=True):
+                            header_cols = st.columns([3.2, 1.1, 1.7])
+                            with header_cols[0]:
+                                st.markdown(f"**{tool_call.get('tool_name') or 'tool'}**")
+                                try:
+                                    arguments_text = json.dumps(tool_call.get("arguments") or {}, sort_keys=True)
+                                except Exception:
+                                    arguments_text = str(tool_call.get("arguments") or {})
+                                st.caption(arguments_text)
+                            with header_cols[1]:
+                                st.metric("Status", str(tool_call.get("status") or "n/a").capitalize())
+                            with header_cols[2]:
+                                provenance = dict((tool_call.get("result_summary") or {}).get("provenance") or {})
+                                st.caption(
+                                    "datasets="
+                                    + ", ".join(str(item) for item in list(provenance.get("datasets") or [])[:4])
+                                )
+                            render_payload = dict((tool_call.get("result_summary") or {}).get("render_payload") or {})
+                            if render_payload:
+                                chart = _build_agentic_omnibar_tool_figure(render_payload)
+                                if chart is not None:
+                                    st.plotly_chart(
+                                        chart,
+                                        use_container_width=True,
+                                        config={"displayModeBar": False},
+                                    )
+                            preview_text = str((tool_call.get("result_summary") or {}).get("preview_text") or "").strip()
+                            if preview_text:
+                                st.write(preview_text)
+
+        if transcript:
+            with st.expander("Transcript", expanded=False):
+                for message in transcript:
+                    role = str(message.get("role") or "assistant").strip() or "assistant"
+                    with st.chat_message(role):
+                        st.markdown(str(message.get("content") or "").strip())
+
+
 def _render_agentic_omnibar_result_card(result: dict[str, object], *, request_id: str) -> None:
     kind = str(result.get("kind") or "").strip()
     label = str(result.get("label") or "Result").strip()
@@ -3772,13 +4993,13 @@ def _render_agentic_omnibar_result_card(result: dict[str, object], *, request_id
                     _open_attention_target(STOCK_INVESTIGATOR_SECTION, {"ticker": symbol})
             with action_cols[1]:
                 if st.button(
-                    "Open Market Opportunity",
+                    f"Open {MARKET_EXPLORER_SECTION}",
                     key=f"{request_id}_{kind}_{symbol}_market",
                     use_container_width=True,
                     disabled=not bool(symbol),
                 ):
                     _open_attention_target(
-                        "Market Opportunity",
+                        MARKET_EXPLORER_SECTION,
                         {
                             "ticker": symbol,
                             "market_view": "Markets",
@@ -3830,11 +5051,11 @@ def _render_agentic_omnibar_result_card(result: dict[str, object], *, request_id
 
         elif kind == "macro_release":
             if st.button(
-                "Open FRED Macro",
+                f"Open {BROAD_ECONOMY_SECTION}",
                 key=f"{request_id}_{kind}_{str(result.get('ref') or '')}_fred",
                 use_container_width=True,
             ):
-                _open_workspace_section("FRED Macro")
+                _open_workspace_section(BROAD_ECONOMY_SECTION)
 
 
 def _render_agentic_omnibar_section(
@@ -3855,7 +5076,7 @@ def _render_agentic_omnibar_section(
             label="Run attention refresh job",
         )
     with header_cols[2]:
-        if st.button("Clear Omnibar", key="agentic_omnibar_clear", use_container_width=True):
+        if st.button("Clear Chat + Search", key="agentic_omnibar_clear", use_container_width=True):
             for state_key in [
                 "agentic_omnibar_query",
                 "agentic_omnibar_mode",
@@ -3886,11 +5107,6 @@ def _render_agentic_omnibar_section(
     ) if tracked_symbols else {}
     symbol_catalog = _build_agentic_omnibar_symbol_catalog(beats, symbol_name_map)
 
-    st.info(
-        "This section uses the shared omnibar resolver for intent and the shared tool registry for agent answers. "
-        "When the query needs analysis, the agent can call any dataset or chart module exposed through the MCP/query surface."
-    )
-
     resolution = dict(st.session_state.get("agentic_omnibar_resolution") or {})
     progress_slot = st.empty()
     preferred_mode_options = ["auto", "search", "agent"]
@@ -3903,18 +5119,12 @@ def _render_agentic_omnibar_section(
             key="agentic_omnibar_query",
             placeholder="NVDA, CPI, payrolls, semis after CPI, or a bundle id",
         )
-        mode_cols = st.columns([1.7, 4.3])
-        with mode_cols[0]:
-            preferred_mode = st.selectbox(
-                "Preferred Mode",
-                preferred_mode_options,
-                key="agentic_omnibar_mode",
-                format_func=lambda value: str(value).capitalize(),
-            )
-        with mode_cols[1]:
-            st.caption(
-                "Auto keeps a strict fast path for exact matches. Search prioritizes lookup. Agent prioritizes analysis routing."
-            )
+        preferred_mode = st.selectbox(
+            "Preferred Mode",
+            preferred_mode_options,
+            key="agentic_omnibar_mode",
+            format_func=lambda value: str(value).capitalize(),
+        )
         submitted = st.form_submit_button("Resolve", type="primary")
 
     quick_query = ""
@@ -3940,34 +5150,30 @@ def _render_agentic_omnibar_section(
                 quick_mode = "search"
 
     def _run_resolution_with_feedback(active_query: str, active_mode: str) -> dict[str, object]:
-        progress_bar = None
-        progress_caption = None
         progress_history: list[str] = []
 
         def _progress_callback(event: dict[str, object]) -> None:
-            nonlocal progress_bar, progress_caption
-            message = str(event.get("message") or "Working through the omnibar request.").strip()
-            percent = int(round(max(0.0, min(float(event.get("progress") or 0.0), 1.0)) * 100))
-            if progress_bar is None or progress_caption is None:
-                with progress_slot.container(border=True):
-                    st.markdown("#### Omnibar Progress")
-                    progress_bar = st.progress(percent, text=message)
-                    progress_caption = st.empty()
-            else:
-                progress_bar.progress(percent, text=message)
+            message = _agentic_omnibar_progress_message(event)
             if not progress_history or progress_history[-1] != message:
                 progress_history.append(message)
-            progress_caption.caption(" | ".join(progress_history[-4:]))
+            _render_agentic_omnibar_progress_panel(
+                progress_slot,
+                current_message=message,
+                progress_history=progress_history,
+            )
 
-        return _run_agentic_omnibar_resolution(
-            cfg,
-            active_query,
-            active_mode,
-            beats,
-            symbol_catalog,
-            force_data_refresh=force_data_refresh,
-            progress_callback=_progress_callback,
-        )
+        try:
+            return _run_agentic_omnibar_resolution(
+                cfg,
+                active_query,
+                active_mode,
+                beats,
+                symbol_catalog,
+                force_data_refresh=force_data_refresh,
+                progress_callback=_progress_callback,
+            )
+        finally:
+            progress_slot.empty()
 
     if submitted:
         if _omnibar_normalize_text(query):
@@ -3997,62 +5203,12 @@ def _render_agentic_omnibar_section(
             st.write("- compare banks vs software")
         return
 
-    trace_cols = st.columns(4)
-    trace_cols[0].metric("Intent", str(resolution.get("intent") or "n/a").capitalize())
-    trace_cols[1].metric("Confidence", str(resolution.get("confidence_band") or "n/a").capitalize())
-    trace_cols[2].metric("Mode", str(resolution.get("preferred_mode") or "auto").capitalize())
-    trace_cols[3].metric("Matches", str(len(list(resolution.get("search_results") or []))))
-    st.caption(
-        f"request_id={resolution.get('request_id')} | policy_version={resolution.get('policy_version')}"
-    )
-
     agent_result = dict(resolution.get("agent_result") or {})
     agent_answer = str(agent_result.get("answer_markdown") or "").strip()
-    tool_calls = list(agent_result.get("tool_calls") or [])
     if agent_answer:
         with st.container(border=True):
             st.markdown("#### Agent Answer")
             st.markdown(agent_answer)
-            agent_meta_cols = st.columns(4)
-            agent_meta_cols[0].metric("Agent Status", str(agent_result.get("status") or "n/a").capitalize())
-            agent_meta_cols[1].metric("Tool Calls", str(len(tool_calls)))
-            agent_meta_cols[2].metric("Agent Confidence", str(agent_result.get("confidence") or "low").capitalize())
-            agent_meta_cols[3].metric("Model", str(agent_result.get("model") or "n/a"))
-            limitations = [str(item).strip() for item in list(agent_result.get("limitations") or []) if str(item).strip()]
-            if limitations:
-                st.caption("Limitations: " + " | ".join(limitations[:3]))
-            if tool_calls:
-                with st.expander("Agent Tool Calls", expanded=True):
-                    for tool_call in tool_calls:
-                        with st.container(border=True):
-                            header_cols = st.columns([3.2, 1.1, 1.7])
-                            with header_cols[0]:
-                                st.markdown(f"**{tool_call.get('tool_name') or 'tool'}**")
-                                try:
-                                    arguments_text = json.dumps(tool_call.get("arguments") or {}, sort_keys=True)
-                                except Exception:
-                                    arguments_text = str(tool_call.get("arguments") or {})
-                                st.caption(arguments_text)
-                            with header_cols[1]:
-                                st.metric("Status", str(tool_call.get("status") or "n/a").capitalize())
-                            with header_cols[2]:
-                                provenance = dict((tool_call.get("result_summary") or {}).get("provenance") or {})
-                                st.caption(
-                                    "datasets="
-                                    + ", ".join(str(item) for item in list(provenance.get("datasets") or [])[:4])
-                                )
-                            render_payload = dict((tool_call.get("result_summary") or {}).get("render_payload") or {})
-                            if render_payload:
-                                chart = _build_agentic_omnibar_tool_figure(render_payload)
-                                if chart is not None:
-                                    st.plotly_chart(
-                                        chart,
-                                        use_container_width=True,
-                                        config={"displayModeBar": False},
-                                    )
-                            preview_text = str((tool_call.get("result_summary") or {}).get("preview_text") or "").strip()
-                            if preview_text:
-                                st.write(preview_text)
 
     if str(resolution.get("intent") or "") == "ambiguous":
         st.warning("The omnibar could not confidently choose between direct lookup and analysis.")
@@ -4064,23 +5220,13 @@ def _render_agentic_omnibar_section(
             if st.button("Ask Spectral Nature", key="agentic_omnibar_force_agent", use_container_width=True):
                 resolution = _run_resolution_with_feedback(str(resolution.get("query") or ""), "agent")
 
-    if str(resolution.get("intent") or "") == "agent":
-        if agent_answer:
-            st.success("Answered through the shared tool agent. The transcript below stores the same local response for this workspace session.")
-        else:
-            st.success("Routed to agent mode. The transcript below stores the latest local planning turns for this workspace session.")
-
-    transcript = list(st.session_state.get("agentic_omnibar_transcript") or [])
-    if transcript:
-        with st.expander("Agent Route Transcript", expanded=True):
-            for message in transcript:
-                role = str(message.get("role") or "assistant").strip() or "assistant"
-                with st.chat_message(role):
-                    st.markdown(str(message.get("content") or "").strip())
+    if _current_user_is_admin():
+        _render_agentic_omnibar_debug_panel(resolution)
 
     search_results = list(resolution.get("search_results") or [])
     if not search_results:
-        st.info("No direct matches were found for this query yet.")
+        if str(resolution.get("intent") or "") != "agent" or not agent_answer:
+            st.info("No direct matches were found for this query yet.")
         return
 
     st.markdown("#### Resolved Matches")
@@ -4127,7 +5273,7 @@ def _render_homepage_v2_detail_panel(
     entity_id = str(row.get("entity_id") or "").upper().strip()
     subtitle = str(row.get("subtitle") or "").strip()
     source_label = str(row.get("source_label") or "").strip()
-    target_section = str(row.get("drilldown_section") or "Market Opportunity").strip() or "Market Opportunity"
+    target_section = _normalize_workspace_section(row.get("drilldown_section")) or MARKET_EXPLORER_SECTION
     params = _parse_drilldown_params(row.get("drilldown_params_json"))
 
     st.markdown(f"### {title}")
@@ -4200,27 +5346,40 @@ def _render_homepage_v2_detail_panel(
     if news_story:
         st.markdown(f"**News Summary**  \n{news_story}")
     if isinstance(headline_links, list):
-        for item in headline_links[:3]:
+        for index, item in enumerate(headline_links[:3]):
             headline = str((item or {}).get("headline") or "").strip()
             url = str((item or {}).get("url") or "").strip()
+            source = str((item or {}).get("source") or "News").strip()
+            published_at = pd.to_datetime((item or {}).get("published_at"), utc=True, errors="coerce")
+            published_label = published_at.strftime("%Y-%m-%d %H:%M UTC") if pd.notna(published_at) else ""
             if not headline:
                 continue
-            if url:
-                st.markdown(f"- [{headline}]({url})")
-            else:
-                st.markdown(f"- {headline}")
+            _render_tracked_activity_link(
+                headline,
+                url,
+                key=_activity_link_key(f"home_ticker_news_summary_{ticker}_{index}", label=headline, url=url),
+                surface="home_ticker_news_summary",
+                target_type="news_article",
+                source=source,
+                published_at=published_label,
+                extra_detail={"symbol": str(ticker or "").upper().strip()},
+            )
 
     if isinstance(filing_links, list) and filing_links:
         st.caption("Supporting filings")
-        for item in filing_links[:3]:
+        for index, item in enumerate(filing_links[:3]):
             label = str((item or {}).get("label") or "").strip()
             url = str((item or {}).get("url") or "").strip()
             if not label:
                 continue
-            if url:
-                st.markdown(f"- [{label}]({url})")
-            else:
-                st.markdown(f"- {label}")
+            _render_tracked_activity_link(
+                label,
+                url,
+                key=_activity_link_key(f"homepage_v2_filing_{entity_id}_{index}", label=label, url=url),
+                surface="homepage_v2_filing_link",
+                target_type="filing_link",
+                extra_detail={"symbol": entity_id},
+            )
 
     if st.button(
         f"Open {target_section}",
@@ -4245,7 +5404,7 @@ def _render_attention_card(
     entity_id = str(row.get("entity_id") or "").upper().strip()
     status = str(row.get("status") or "active").replace("_", " ").title()
     source_label = str(row.get("source_label") or "").strip()
-    target_section = str(row.get("drilldown_section") or "Market Opportunity").strip() or "Market Opportunity"
+    target_section = _normalize_workspace_section(row.get("drilldown_section")) or MARKET_EXPLORER_SECTION
 
     linked_news_raw = pd.to_numeric(row.get("linked_news_count"), errors="coerce")
     linked_news_count = int(linked_news_raw) if pd.notna(linked_news_raw) else 0
@@ -4342,7 +5501,7 @@ def _render_attention_card(
             if primary_source_line:
                 st.caption(primary_source_line)
             if isinstance(headline_links, list):
-                for item in headline_links[:2]:
+                for index, item in enumerate(headline_links[:2]):
                     headline = str((item or {}).get("headline") or "").strip()
                     if not headline:
                         continue
@@ -4350,23 +5509,33 @@ def _render_attention_card(
                     source = str((item or {}).get("source") or "News").strip()
                     published_at = pd.to_datetime((item or {}).get("published_at"), utc=True, errors="coerce")
                     published_label = published_at.strftime("%b %d") if pd.notna(published_at) else "n/a"
-                    if url:
-                        st.markdown(f"- [{headline}]({url})")
-                    else:
-                        st.markdown(f"- {headline}")
+                    _render_tracked_activity_link(
+                        headline,
+                        url,
+                        key=_activity_link_key(f"attention_card_primary_source_{entity_id}_{index}", label=headline, url=url),
+                        surface="attention_card_primary_source",
+                        target_type="news_article",
+                        source=source,
+                        published_at=published_label,
+                        extra_detail={"symbol": entity_id},
+                    )
                     st.caption(f"{source} | {published_label}")
             if isinstance(filing_links, list):
                 if any(str((item or {}).get("label") or "").strip() for item in filing_links[:2]):
                     st.caption("SEC filings")
-                for item in filing_links[:2]:
+                for index, item in enumerate(filing_links[:2]):
                     label = str((item or {}).get("label") or "").strip()
                     if not label:
                         continue
                     url = str((item or {}).get("url") or "").strip()
-                    if url:
-                        st.markdown(f"- [{label}]({url})")
-                    else:
-                        st.markdown(f"- {label}")
+                    _render_tracked_activity_link(
+                        label,
+                        url,
+                        key=_activity_link_key(f"attention_card_filing_{entity_id}_{index}", label=label, url=url),
+                        surface="attention_card_filing_link",
+                        target_type="filing_link",
+                        extra_detail={"symbol": entity_id},
+                    )
             if why_now_text and why_now_text != story_text:
                 st.caption(why_now_text)
             if expected_text:
@@ -4453,7 +5622,11 @@ def _render_market_event_card(
 
     anchor_row = row_lookup.get(supporting_ids[0]) if supporting_ids else None
     params = _parse_drilldown_params(anchor_row.get("drilldown_params_json")) if anchor_row is not None else {}
-    target_section = str(anchor_row.get("drilldown_section") or "Market Opportunity").strip() if anchor_row is not None else "Market Opportunity"
+    target_section = (
+        _normalize_workspace_section(anchor_row.get("drilldown_section"))
+        if anchor_row is not None
+        else MARKET_EXPLORER_SECTION
+    ) or MARKET_EXPLORER_SECTION
 
     with st.container(border=True):
         header_cols = st.columns([5.4, 1.3, 1.3])
@@ -4551,7 +5724,7 @@ def _render_attention_research_bundle_panel(
     evidence = bundle.get("evidence") or []
     if isinstance(evidence, list) and evidence:
         st.markdown("**Evidence**")
-        for item in evidence[:4]:
+        for index, item in enumerate(evidence[:4]):
             headline = str((item or {}).get("headline") or "").strip()
             summary = _attention_evidence_display_text(item or {})
             source = str((item or {}).get("source") or "Source").strip()
@@ -4560,10 +5733,15 @@ def _render_attention_research_bundle_panel(
             published_at = pd.to_datetime((item or {}).get("published_at"), utc=True, errors="coerce")
             published_label = published_at.strftime("%b %d %H:%M UTC") if pd.notna(published_at) else ""
             if headline:
-                if url:
-                    st.markdown(f"- [{headline}]({url})")
-                else:
-                    st.markdown(f"- {headline}")
+                _render_tracked_activity_link(
+                    headline,
+                    url,
+                    key=_activity_link_key(f"attention_bundle_evidence_{index}", label=headline, url=url),
+                    surface="attention_bundle_evidence",
+                    target_type="evidence_link",
+                    source=source,
+                    published_at=published_label,
+                )
             if summary:
                 st.caption(summary)
             meta_parts = [part for part in [source, authority.title() if authority else "", published_label] if part]
@@ -4576,16 +5754,20 @@ def _render_attention_research_bundle_panel(
     background_context = bundle.get("background_context") or []
     if isinstance(background_context, list) and background_context:
         st.markdown("**Background Context**")
-        for item in background_context[:3]:
+        for index, item in enumerate(background_context[:3]):
             headline = str((item or {}).get("headline") or "").strip()
             summary = _attention_evidence_display_text(item or {})
             source = str((item or {}).get("source") or "Source").strip()
             url = str((item or {}).get("url") or "").strip()
             if headline:
-                if url:
-                    st.markdown(f"- [{headline}]({url})")
-                else:
-                    st.markdown(f"- {headline}")
+                _render_tracked_activity_link(
+                    headline,
+                    url,
+                    key=_activity_link_key(f"attention_bundle_background_{index}", label=headline, url=url),
+                    surface="attention_bundle_background_context",
+                    target_type="background_link",
+                    source=source,
+                )
             if summary:
                 st.caption(summary)
             if source:
@@ -4826,12 +6008,256 @@ def _render_attention_home_mover_card(
             )
 
 
+@st.cache_data(ttl=21600, show_spinner=False)
+def _synthesize_attention_summary_audio_cached(
+    summary_text: str,
+    voice_id: str,
+    model_id: str,
+    output_format: str,
+    base_url: str,
+) -> bytes:
+    from services.elevenlabs_tts import ElevenLabsTTSClient, ElevenLabsTTSConfig
+
+    cfg = load_elevenlabs_tts_config()
+    if cfg is None:
+        raise ElevenLabsTTSAPIError("ElevenLabs is not configured.")
+    return ElevenLabsTTSClient(
+        ElevenLabsTTSConfig(
+            api_key=cfg.api_key,
+            voice_id=voice_id,
+            model_id=model_id,
+            output_format=output_format,
+            base_url=base_url,
+            timeout_seconds=cfg.timeout_seconds,
+        )
+    ).synthesize(summary_text)
+
+
+def _attention_summary_audio_task_key(
+    *,
+    audio_text: str,
+    voice_id: str,
+    model_id: str,
+    output_format: str,
+    base_url: str,
+) -> str:
+    return hashlib.sha256(
+        "||".join(
+            [
+                audio_text.strip(),
+                voice_id.strip(),
+                model_id.strip(),
+                output_format.strip(),
+                base_url.strip(),
+            ]
+        ).encode("utf-8")
+    ).hexdigest()
+
+
+def _ensure_attention_summary_audio_future(
+    *,
+    task_key: str,
+    audio_text: str,
+    voice_id: str,
+    model_id: str,
+    output_format: str,
+    base_url: str,
+) -> Future[bytes]:
+    with _ATTENTION_SUMMARY_AUDIO_LOCK:
+        future = _ATTENTION_SUMMARY_AUDIO_FUTURES.get(task_key)
+        if future is None:
+            future = _ATTENTION_SUMMARY_AUDIO_EXECUTOR.submit(
+                _synthesize_attention_summary_audio_cached,
+                audio_text,
+                voice_id,
+                model_id,
+                output_format,
+                base_url,
+            )
+            _ATTENTION_SUMMARY_AUDIO_FUTURES[task_key] = future
+        return future
+
+
+def _attention_summary_audio_session_key(task_key: str) -> str:
+    return f"attention_summary_audio::{task_key}"
+
+
+def _attention_summary_audio_error_session_key(task_key: str) -> str:
+    return f"attention_summary_audio_error::{task_key}"
+
+
+def _try_decode_attention_summary_audio(summary_payload: dict[str, object]) -> bytes:
+    encoded = str(summary_payload.get("audio_base64") or "").strip()
+    if not encoded:
+        return b""
+    try:
+        return base64.b64decode(encoded.encode("ascii"), validate=True)
+    except Exception:
+        return b""
+
+
+def _render_attention_summary_audio_player(
+    *,
+    audio_bytes: bytes,
+    mime_type: str,
+) -> None:
+    if not audio_bytes:
+        return
+    st.audio(audio_bytes, format=mime_type)
+
+
+def _render_attention_summary_async_audio_fallback(
+    *,
+    task_key: str,
+    audio_text: str,
+    elevenlabs_cfg: object,
+) -> None:
+    voice_id = str(getattr(elevenlabs_cfg, "voice_id", "") or "").strip()
+    model_id = str(getattr(elevenlabs_cfg, "model_id", "") or "").strip()
+    output_format = str(getattr(elevenlabs_cfg, "output_format", "") or "").strip()
+    base_url = str(getattr(elevenlabs_cfg, "base_url", "") or "").strip()
+    if not audio_text or not voice_id or not model_id or not output_format or not base_url:
+        return
+
+    @st.fragment(run_every=2)
+    def _audio_fragment() -> None:
+        audio_session_key = _attention_summary_audio_session_key(task_key)
+        error_session_key = _attention_summary_audio_error_session_key(task_key)
+        future = _ensure_attention_summary_audio_future(
+            task_key=task_key,
+            audio_text=audio_text,
+            voice_id=voice_id,
+            model_id=model_id,
+            output_format=output_format,
+            base_url=base_url,
+        )
+        if future.done():
+            try:
+                audio_bytes = future.result()
+            except ElevenLabsTTSAPIError as exc:
+                with _ATTENTION_SUMMARY_AUDIO_LOCK:
+                    _ATTENTION_SUMMARY_AUDIO_FUTURES.pop(task_key, None)
+                st.session_state[error_session_key] = f"Could not generate audio feed: {exc}"
+                st.rerun()
+            except Exception as exc:
+                with _ATTENTION_SUMMARY_AUDIO_LOCK:
+                    _ATTENTION_SUMMARY_AUDIO_FUTURES.pop(task_key, None)
+                st.session_state[error_session_key] = f"Unexpected audio feed error: {exc}"
+                st.rerun()
+            st.session_state[audio_session_key] = base64.b64encode(audio_bytes).decode("ascii")
+            st.session_state.pop(error_session_key, None)
+            with _ATTENTION_SUMMARY_AUDIO_LOCK:
+                _ATTENTION_SUMMARY_AUDIO_FUTURES.pop(task_key, None)
+            st.rerun()
+
+        with st.container(border=True):
+            st.markdown("#### Narration")
+            st.caption("Generating narration in the background. This snapshot did not include prebuilt audio yet.")
+            st.markdown("**Preparing audio feed...**")
+
+    _audio_fragment()
+
+
+def _render_attention_home_summary_card(
+    home_payload: dict[str, object],
+    *,
+    snapshot_label: str,
+    title: str = "Market Summary",
+) -> None:
+    stored_summary_payload = home_payload.get("homepage_summary")
+    summary_payload = dict(stored_summary_payload) if isinstance(stored_summary_payload, dict) else {}
+    if not summary_payload:
+        summary_payload = build_attention_home_summary_payload(home_payload)
+    summary_text = str(summary_payload.get("summary_text") or "").strip()
+    audio_text = str(summary_payload.get("audio_text") or summary_text).strip()
+    featured_symbols = [
+        str(symbol).upper().strip()
+        for symbol in list(summary_payload.get("featured_symbols") or [])
+        if str(symbol).strip()
+    ]
+    elevenlabs_cfg = load_elevenlabs_tts_config()
+    preloaded_audio_bytes = _try_decode_attention_summary_audio(summary_payload)
+    async_task_key = ""
+    async_audio_bytes = b""
+    async_audio_error = ""
+    if not preloaded_audio_bytes and audio_text and elevenlabs_cfg:
+        async_task_key = _attention_summary_audio_task_key(
+            audio_text=audio_text,
+            voice_id=str(getattr(elevenlabs_cfg, "voice_id", "") or ""),
+            model_id=str(getattr(elevenlabs_cfg, "model_id", "") or ""),
+            output_format=str(getattr(elevenlabs_cfg, "output_format", "") or ""),
+            base_url=str(getattr(elevenlabs_cfg, "base_url", "") or ""),
+        )
+        async_audio_encoded = str(
+            st.session_state.get(_attention_summary_audio_session_key(async_task_key)) or ""
+        ).strip()
+        async_audio_error = str(
+            st.session_state.get(_attention_summary_audio_error_session_key(async_task_key)) or ""
+        ).strip()
+        if async_audio_encoded:
+            try:
+                async_audio_bytes = base64.b64decode(async_audio_encoded.encode("ascii"), validate=True)
+            except Exception:
+                async_audio_bytes = b""
+
+    with st.container(border=True):
+        header_cols = st.columns([4.8, 1.2, 1.2, 1.2])
+        with header_cols[0]:
+            st.markdown(f"##### {title}")
+            meta = [item for item in [snapshot_label, f"{len(featured_symbols)} symbols" if featured_symbols else ""] if item]
+            if meta:
+                st.caption(" | ".join(meta))
+        with header_cols[1]:
+            st.metric("Events", str(summary_payload.get("event_count") or 0))
+        with header_cols[2]:
+            st.metric("Movers", str(summary_payload.get("must_read_count") or 0))
+        with header_cols[3]:
+            st.metric("Unresolved", str(summary_payload.get("unresolved_count") or 0))
+
+        if summary_text:
+            st.markdown(summary_text)
+        if featured_symbols:
+            st.caption(f"Key symbols: {', '.join(featured_symbols[:10])}")
+
+        if not audio_text:
+            return
+        if preloaded_audio_bytes:
+            _render_attention_summary_audio_player(
+                audio_bytes=preloaded_audio_bytes,
+                mime_type=str(summary_payload.get("audio_mime_type") or "audio/mpeg"),
+            )
+            return
+        if async_audio_bytes:
+            from services.elevenlabs_tts import audio_mime_type as elevenlabs_audio_mime_type
+
+            _render_attention_summary_audio_player(
+                audio_bytes=async_audio_bytes,
+                mime_type=elevenlabs_audio_mime_type(str(getattr(elevenlabs_cfg, "output_format", "") or "")),
+            )
+            return
+        if not elevenlabs_cfg:
+            st.caption(
+                "Set Key Vault secrets `elevenlabs-api-key` and `elevenlabs-voice-id`, "
+                "or local-only `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID`, to enable narration."
+            )
+            return
+        if async_audio_error:
+            st.warning(async_audio_error)
+            return
+
+        _render_attention_summary_async_audio_fallback(
+            task_key=async_task_key,
+            audio_text=audio_text,
+            elevenlabs_cfg=elevenlabs_cfg,
+        )
+
+
 def _render_home_attention(
     cfg: AppConfig,
     api: AlpacaAPI | None,
     *,
     force_data_refresh: bool,
-    page_title: str = "Daily Tape",
+    page_title: str = "Attention Tape",
     page_caption: str = "Today / 1d market tape: what changed versus expectation, why it changed today, and what else moved because of it.",
     show_trend_surface: bool = True,
     require_api: bool = True,
@@ -4892,6 +6318,11 @@ def _render_home_attention(
         st.info("No daily attention items were produced from the latest tape. Refresh after the market data sources update.")
         return
 
+    _render_attention_home_summary_card(
+        home_payload,
+        snapshot_label=snapshot_label,
+    )
+    st.markdown("---")
     st.subheader("Top Market Events Today")
     if not top_events:
         st.info("No market-wide events cleared the bar in the latest run.")
@@ -4993,8 +6424,20 @@ def _render_home_attention(
         )
 
 
-def _select_homepage_v2_bundle(bundle_id: str, symbols: list[str] | None = None) -> None:
-    st.session_state["homepage_v2_selected_bundle_id"] = str(bundle_id or "").strip()
+def _select_homepage_v2_bundle(bundle_id: str, symbols: list[str] | None = None, title: str = "") -> None:
+    normalized_bundle_id = str(bundle_id or "").strip()
+    if normalized_bundle_id:
+        _record_usage_interaction(
+            event_type="bundle_open",
+            detail={
+                "surface": "home_v2",
+                "target_type": "bundle",
+                "target_id": normalized_bundle_id,
+                "target_label": str(title or normalized_bundle_id).strip(),
+                "symbols": [str(symbol).upper().strip() for symbol in list(symbols or []) if str(symbol).strip()][:8],
+            },
+        )
+    st.session_state["homepage_v2_selected_bundle_id"] = normalized_bundle_id
     st.session_state["homepage_v2_active_panel"] = HOMEPAGE_V2_RESEARCH_PANEL
     current_ticker = str(st.session_state.get("homepage_v2_selected_ticker") or "").upper().strip()
     if current_ticker:
@@ -5010,8 +6453,20 @@ def _homepage_v2_surface_key(bundle_id: str, *, index: int, selected: bool) -> s
     return f"{prefix}_{cleaned}"
 
 
-def _select_homepage_exp_bundle(bundle_id: str, symbols: list[str] | None = None) -> None:
-    st.session_state["homepage_exp_selected_bundle_id"] = str(bundle_id or "").strip()
+def _select_homepage_exp_bundle(bundle_id: str, symbols: list[str] | None = None, title: str = "") -> None:
+    normalized_bundle_id = str(bundle_id or "").strip()
+    if normalized_bundle_id:
+        _record_usage_interaction(
+            event_type="bundle_open",
+            detail={
+                "surface": "home_exp",
+                "target_type": "bundle",
+                "target_id": normalized_bundle_id,
+                "target_label": str(title or normalized_bundle_id).strip(),
+                "symbols": [str(symbol).upper().strip() for symbol in list(symbols or []) if str(symbol).strip()][:8],
+            },
+        )
+    st.session_state["homepage_exp_selected_bundle_id"] = normalized_bundle_id
     st.session_state["homepage_exp_active_panel"] = HOMEPAGE_V2_RESEARCH_PANEL
     symbol_options = [str(symbol).upper().strip() for symbol in list(symbols or []) if str(symbol).strip()]
     current_ticker = str(st.session_state.get("homepage_exp_selected_ticker") or "").upper().strip()
@@ -5027,6 +6482,17 @@ def _open_homepage_exp_ticker(symbol: str, bundle_id: str = "") -> None:
     cleaned_bundle_id = str(bundle_id or "").strip()
     if not cleaned_symbol:
         return
+    _record_usage_interaction(
+        event_type="ticker_open",
+        detail={
+            "surface": "home_exp",
+            "symbol": cleaned_symbol,
+            "target_type": "ticker",
+            "target_label": cleaned_symbol,
+            "target_id": cleaned_symbol,
+            "bundle_id": cleaned_bundle_id,
+        },
+    )
     if cleaned_bundle_id:
         st.session_state["homepage_exp_selected_bundle_id"] = cleaned_bundle_id
     st.session_state["homepage_exp_selected_ticker"] = cleaned_symbol
@@ -5156,7 +6622,7 @@ def _render_homepage_v2_story_fragment(
                         type="tertiary",
                         help="Load retained research for this beat in the drilldown rail.",
                         on_click=_select_homepage_v2_bundle,
-                        args=(bundle_id, list(beat_symbols)),
+                        args=(bundle_id, list(beat_symbols), beat_sentence),
                     )
                 else:
                     st.markdown(f"##### {index + 1}. {beat_sentence}")
@@ -5307,7 +6773,7 @@ def _render_homepage_exp_story_fragment(
                         use_container_width=True,
                         type="tertiary",
                         on_click=_select_homepage_exp_bundle,
-                        args=(bundle_id, list(beat_symbols)),
+                        args=(bundle_id, list(beat_symbols), beat_sentence),
                     )
                 else:
                     st.markdown(f"##### {index + 1}. {beat_sentence}")
@@ -5407,48 +6873,7 @@ def _render_homepage_v2_graph_banner(home_payload: dict[str, object]) -> None:
         )
 
 def _build_homepage_narrative_beats(home_payload: dict[str, object]) -> list[dict[str, object]]:
-    top_events = list(home_payload.get("top_events") or [])
-    must_read = list(home_payload.get("must_read_movers") or [])
-    unresolved = list(home_payload.get("unresolved_large_moves") or [])
-
-    beats: list[dict[str, object]] = []
-    for event in top_events:
-        preview = _attention_home_bundle_preview(event, bundle={})
-        summary_text = _attention_home_surface_summary(preview, is_event=True)
-        beats.append(
-            {
-                "bundle_id": str(event.get("bundle_id") or "").strip(),
-                "sentence": str(event.get("event_title") or "").strip(),
-                "summary": summary_text,
-                "symbols": [str(item).upper().strip() for item in list(event.get("supporting_symbols") or []) if str(item).strip()],
-                "kind": "event",
-            }
-        )
-    for mover in must_read:
-        preview = _attention_home_bundle_preview(mover, bundle={})
-        summary_text = _attention_home_surface_summary(preview, is_event=False)
-        beats.append(
-            {
-                "bundle_id": str(mover.get("bundle_id") or "").strip(),
-                "sentence": _attention_mover_card_title(mover),
-                "summary": summary_text,
-                "symbols": [str(mover.get("symbol") or "").upper().strip()],
-                "kind": "mover",
-            }
-        )
-    for mover in unresolved:
-        preview = _attention_home_bundle_preview(mover, bundle={})
-        summary_text = _attention_home_surface_summary(preview, is_event=False)
-        beats.append(
-            {
-                "bundle_id": str(mover.get("bundle_id") or "").strip(),
-                "sentence": _attention_mover_card_title(mover),
-                "summary": summary_text or "Large move with insufficient retained evidence so far.",
-                "symbols": [str(mover.get("symbol") or "").upper().strip()],
-                "kind": "unresolved",
-            }
-        )
-    return beats
+    return build_attention_home_narrative_beats(home_payload if isinstance(home_payload, dict) else {})
 
 
 def _load_homepage_narrative_payload(cfg: AppConfig, *, force_data_refresh: bool) -> dict[str, object] | None:
@@ -5485,7 +6910,15 @@ def _render_homepage_v2(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_ref
         st.info("No daily narrative beats were produced from the latest market tape.")
         return
 
+    generated_at = pd.to_datetime(home_payload.get("generated_at_utc"), utc=True, errors="coerce")
+    snapshot_label = generated_at.strftime("%Y-%m-%d %H:%M UTC") if pd.notna(generated_at) else "just now"
+
     _render_homepage_v2_graph_banner(home_payload)
+    _render_attention_home_summary_card(
+        home_payload,
+        snapshot_label=snapshot_label,
+        title="Market Summary",
+    )
     _render_homepage_exp_story_fragment(
         cfg,
         beats,
@@ -5494,10 +6927,28 @@ def _render_homepage_v2(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_ref
     )
 
 
+def _render_experiment_placeholder_page(
+    cfg: AppConfig,
+    *,
+    force_data_refresh: bool,
+) -> None:
+    header_cols = st.columns([4.8, 1.4])
+    with header_cols[0]:
+        st.title(HOME_EXP_SECTION)
+        st.caption("Admin-only placeholder for experimental surfaces.")
+    with header_cols[1]:
+        force_data_refresh = force_data_refresh or _section_refresh_button(
+            "experiment_refresh",
+            source="attention",
+            label="Run attention refresh job",
+        )
+
+    st.info("The full Daily Tape workspace is disabled. Keep new experiments here until they are ready for wider use.")
+
+
 def _render_homepage_exp(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_refresh: bool) -> None:
-    _render_homepage_v2(
+    _render_experiment_placeholder_page(
         cfg,
-        api,
         force_data_refresh=force_data_refresh,
     )
 
@@ -5706,13 +7157,13 @@ def _render_stock_investigator_workspace(
         days = st.slider("Days", 60, 720, 365, step=30, key="stock_investigator_days")
     with control_cols[2]:
         if st.button(
-            "Open Market Opportunity",
+            f"Open {MARKET_EXPLORER_SECTION}",
             key="stock_investigator_open_market",
             use_container_width=True,
             disabled=not bool(ticker),
         ):
             _open_attention_target(
-                "Market Opportunity",
+                MARKET_EXPLORER_SECTION,
                 {
                     "ticker": ticker,
                     "market_view": "Markets",
@@ -7111,12 +8562,21 @@ with st.sidebar:
         st.caption(f"Cache policy: {cache_policy_path()}")
         if st.button("Logout", key="dashboard_logout", use_container_width=True):
             if st.session_state.get("_ui_auth_mode") == "database":
+                auth_service.record_access_event(
+                    event_type="logout",
+                    event_category="usage",
+                    user=current_user,
+                    session_token=str(st.session_state.get("_ui_auth_session_id") or ""),
+                    ip_address=_request_ip_address(),
+                    user_agent=_request_user_agent(),
+                )
                 auth_service.logout_session(str(st.session_state.get("_ui_auth_session_id") or ""))
             else:
                 _invalidate_auth_session(st.session_state.get("_ui_auth_session_id"))
             st.session_state["_ui_authenticated"] = False
             st.session_state["_ui_auth_session_id"] = None
             st.session_state["_ui_auth_mode"] = None
+            st.session_state.pop("_ui_last_recorded_section_view", None)
             _store_user_context(None)
             st.session_state["_ui_clear_auth_cookie"] = True
             st.rerun()
@@ -7125,7 +8585,7 @@ with st.sidebar:
         sidebar_buying_power = st.empty()
 
 _log_event("ui_sidebar_ready")
-_log_event("section_selected", section=section)
+_record_workspace_section_view(section_name=section, current_user=current_user, app_track=app_track)
 
 sidebar_connection.metric(
     "Live Data",
@@ -7189,13 +8649,10 @@ elif section == AGENTIC_OMNIBAR_SECTION:
         force_data_refresh=force_data_refresh,
     )
 
-elif section == "Daily Tape":
-    _render_home_attention(cfg, api, force_data_refresh=force_data_refresh)
-
-elif section == "Portfolio Overview":
+elif section == PORTFOLIO_SECTION:
     header_cols = st.columns([3.2, 1.6, 1.4])
     with header_cols[0]:
-        st.title("Portfolio Overview")
+        st.title(PORTFOLIO_SECTION)
         if current_user is not None and not current_user.can_view_full_portfolio:
             st.caption(f"Viewing your {_current_user_share_fraction() * 100:.2f}% economic share of the master portfolio.")
     with header_cols[1]:
@@ -7206,7 +8663,7 @@ elif section == "Portfolio Overview":
             source="equities",
             label="Run equities refresh job",
         )
-    if not _has_live_api(api, "Portfolio Overview requires a working live account connection."):
+    if not _has_live_api(api, f"{PORTFOLIO_SECTION} requires a working live account connection."):
         st.info("Restore the live account connection to load positions, portfolio history, and benchmark comparisons.")
     else:
         try:
@@ -7334,10 +8791,10 @@ elif section == "Portfolio Overview":
                 _log_event("compute_holding_roc_failed", error=str(exc)[:200])
                 st.warning(f"Could not compute momentum: {exc}")
 
-elif section == "Performance":
+elif section == PORTFOLIO_PERFORMANCE_SECTION:
     header_cols = st.columns([3.2, 1.6, 1.4])
     with header_cols[0]:
-        st.title("Performance")
+        st.title(PORTFOLIO_PERFORMANCE_SECTION)
         if current_user is not None and not current_user.can_view_full_portfolio:
             st.caption("Return-based metrics match the master portfolio while your ownership share remains fixed.")
     with header_cols[1]:
@@ -7350,7 +8807,7 @@ elif section == "Performance":
         )
     if not _has_live_api(
         api,
-        "Performance requires a working portfolio history snapshot or live account connection.",
+        f"{PORTFOLIO_PERFORMANCE_SECTION} requires a working portfolio history snapshot or live account connection.",
         allow_pipeline=True,
     ):
         st.info("Restore the live account connection or portfolio history snapshot to compute portfolio and benchmark performance.")
@@ -7389,10 +8846,10 @@ elif section == "Performance":
 elif section == ADMIN_SECTION:
     _render_access_admin_section()
 
-elif section == "FRED Macro":
+elif section == BROAD_ECONOMY_SECTION:
     header_cols = st.columns([5.2, 1.4])
     with header_cols[0]:
-        st.title("FRED Macro")
+        st.title(BROAD_ECONOMY_SECTION)
         st.caption(
             "Economic indicators sourced from FRED. Observations are loaded from FRED v2 bulk release downloads, "
             "then filtered interactively in-app."
@@ -7750,10 +9207,10 @@ elif section == "Pipeline Jobs":
         )
         st.dataframe(display, use_container_width=True, hide_index=True)
 
-elif section == "Market Opportunity":
+elif section == MARKET_EXPLORER_SECTION:
     header_cols = st.columns([4.8, 1.4])
     with header_cols[0]:
-        st.title("Market Opportunity")
+        st.title(MARKET_EXPLORER_SECTION)
     with header_cols[1]:
         force_data_refresh = force_data_refresh or _section_refresh_button(
             "market_opportunity_refresh",
@@ -7762,7 +9219,7 @@ elif section == "Market Opportunity":
         )
     if not _has_live_api(
         api,
-        "Market Opportunity requires a working live market connection or pipeline snapshots.",
+        f"{MARKET_EXPLORER_SECTION} requires a working live market connection or pipeline snapshots.",
         allow_pipeline=True,
     ):
         st.info("Restore the live market connection or configure pipeline snapshots to scan movers and load price history.")

@@ -3,28 +3,69 @@ from __future__ import annotations
 from services import emailer
 
 
-def test_email_delivery_configured_supports_default_secret_names(monkeypatch):
+def test_email_delivery_status_supports_default_secret_names(monkeypatch):
     monkeypatch.setenv("APP_SMTP_HOST", "smtp.azurecomm.net")
-    monkeypatch.delenv("APP_EMAIL_FROM", raising=False)
-    monkeypatch.delenv("EMAIL_FROM", raising=False)
-    monkeypatch.delenv("APP_SMTP_USERNAME", raising=False)
-    monkeypatch.delenv("SMTP_USERNAME", raising=False)
-    monkeypatch.delenv("APP_SMTP_PASSWORD", raising=False)
-    monkeypatch.delenv("SMTP_PASSWORD", raising=False)
 
-    def fake_resolve(env_names, *, secret_name_env=None, default_secret_name=None, placeholders=None):
+    def fake_describe(env_names, *, secret_name_env=None, default_secret_name=None, placeholders=None):
+        del env_names, secret_name_env, placeholders
         values = {
             "app-email-from": "noreply@example.com",
             "app-smtp-username": "smtp-user",
             "app-smtp-password": "smtp-pass",
         }
-        return values.get(default_secret_name, "")
+        return {
+            "resolved": True,
+            "value": values.get(default_secret_name, ""),
+            "source": "key_vault",
+            "secret_name": str(default_secret_name or ""),
+            "vault_name": "spectral-nature-kvault",
+            "reason": "",
+            "error_type": "",
+            "error_message": "",
+        }
 
-    monkeypatch.setattr(emailer, "resolve_secret_value", fake_resolve)
+    monkeypatch.setattr(emailer, "describe_secret_resolution", fake_describe)
 
-    assert emailer._smtp_username() == "smtp-user"
-    assert emailer._smtp_password() == "smtp-pass"
+    status = emailer.email_delivery_status()
+    assert status["configured"] is True
+    assert status["smtp_auth_configured"] is True
     assert emailer.email_delivery_configured() is True
+
+
+def test_email_delivery_status_reports_missing_sender_secret(monkeypatch):
+    monkeypatch.setenv("APP_SMTP_HOST", "smtp.azurecomm.net")
+
+    def fake_describe(env_names, *, secret_name_env=None, default_secret_name=None, placeholders=None):
+        del env_names, secret_name_env, placeholders
+        if default_secret_name == "app-email-from":
+            return {
+                "resolved": False,
+                "value": "",
+                "source": "",
+                "secret_name": "app-email-from",
+                "vault_name": "snpipelinekv03130136",
+                "reason": "key_vault_lookup_failed",
+                "error_type": "SecretNotFound",
+                "error_message": "Secret was not found.",
+            }
+        return {
+            "resolved": True,
+            "value": "configured",
+            "source": "key_vault",
+            "secret_name": str(default_secret_name or ""),
+            "vault_name": "spectral-nature-kvault",
+            "reason": "",
+            "error_type": "",
+            "error_message": "",
+        }
+
+    monkeypatch.setattr(emailer, "describe_secret_resolution", fake_describe)
+
+    status = emailer.email_delivery_status()
+
+    assert status["configured"] is False
+    assert "app-email-from" in status["message"]
+    assert "snpipelinekv03130136" in status["message"]
 
 
 def test_send_email_supports_inline_images(monkeypatch):
@@ -42,6 +83,26 @@ def test_send_email_supports_inline_images(monkeypatch):
         return values.get(default_secret_name, "")
 
     monkeypatch.setattr(emailer, "resolve_secret_value", fake_resolve)
+
+    def fake_describe(env_names, *, secret_name_env=None, default_secret_name=None, placeholders=None):
+        del env_names, secret_name_env, placeholders
+        values = {
+            "app-email-from": "noreply@example.com",
+            "app-smtp-username": "smtp-user",
+            "app-smtp-password": "smtp-pass",
+        }
+        return {
+            "resolved": True,
+            "value": values.get(default_secret_name, ""),
+            "source": "key_vault",
+            "secret_name": str(default_secret_name or ""),
+            "vault_name": "spectral-nature-kvault",
+            "reason": "",
+            "error_type": "",
+            "error_message": "",
+        }
+
+    monkeypatch.setattr(emailer, "describe_secret_resolution", fake_describe)
 
     sent: dict[str, object] = {}
 
@@ -92,3 +153,23 @@ def test_send_email_supports_inline_images(monkeypatch):
     message = sent["message"]
     image_content_ids = [part.get("Content-ID") for part in message.walk() if part.get_content_maintype() == "image"]
     assert "<sn_invite_logo>" in image_content_ids
+
+
+def test_send_email_returns_specific_status_message_when_not_configured(monkeypatch):
+    monkeypatch.setattr(
+        emailer,
+        "email_delivery_status",
+        lambda: {
+            "configured": False,
+            "message": "Sender address secret `app-email-from` was not found in Key Vault `snpipelinekv03130136`.",
+        },
+    )
+
+    result = emailer.send_email(
+        to_address="client@example.com",
+        subject="Invite",
+        text_body="Fallback text",
+    )
+
+    assert result.sent is False
+    assert "app-email-from" in result.message

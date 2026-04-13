@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 import sys
 from pathlib import Path
 
+import pytest
+
 
 APP_ROOT = Path(__file__).resolve().parents[1]
 if str(APP_ROOT) not in sys.path:
@@ -99,3 +101,54 @@ def test_agent_key_scopes_are_normalized(monkeypatch):
         api_auth.SCOPE_OMNIBAR_RESOLVE,
         api_auth.SCOPE_QUERY_EXECUTE,
     ]
+
+
+def test_access_token_secret_requires_dedicated_secret(monkeypatch):
+    monkeypatch.setattr(api_auth, "resolve_secret_value", lambda *args, **kwargs: "")
+    monkeypatch.delenv("API_ALLOW_EPHEMERAL_ACCESS_TOKEN_SECRET", raising=False)
+    monkeypatch.setenv("DASHBOARD_AUTH_PASSWORD", "legacy-password-should-not-be-used")
+
+    with pytest.raises(RuntimeError, match="API access token signing secret is not configured"):
+        api_auth._access_token_secret()
+
+
+def test_access_token_secret_can_use_ephemeral_fallback_when_explicitly_enabled(monkeypatch):
+    monkeypatch.setattr(api_auth, "resolve_secret_value", lambda *args, **kwargs: "")
+    monkeypatch.setenv("API_ALLOW_EPHEMERAL_ACCESS_TOKEN_SECRET", "1")
+
+    assert api_auth._access_token_secret()
+
+
+def test_legacy_session_bearer_is_disabled_by_default(monkeypatch):
+    context = _context()
+    monkeypatch.delenv("API_ALLOW_LEGACY_SESSION_BEARER", raising=False)
+    monkeypatch.setattr(
+        api_auth.auth_store,
+        "get_user_context_for_session",
+        lambda token_hash: {
+            **context.to_dict(),
+            "expires_at": datetime.now(timezone.utc),
+        },
+    )
+
+    principal = api_auth.principal_from_legacy_session_token("refresh-token")
+
+    assert principal is None
+
+
+def test_legacy_session_bearer_requires_explicit_opt_in(monkeypatch):
+    context = _context()
+    monkeypatch.setenv("API_ALLOW_LEGACY_SESSION_BEARER", "1")
+    monkeypatch.setattr(
+        api_auth.auth_store,
+        "get_user_context_for_session",
+        lambda token_hash: {
+            **context.to_dict(),
+            "expires_at": datetime.now(timezone.utc),
+        },
+    )
+
+    principal = api_auth.principal_from_legacy_session_token("refresh-token")
+
+    assert principal is not None
+    assert principal.auth_source == "legacy_session_token"

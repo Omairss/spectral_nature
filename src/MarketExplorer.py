@@ -23,6 +23,7 @@ sys.path.append("../analysis_modules")
 
 import markets
 import TechnicalAnalyzer
+import LinkedAuth
 from utils.perplexity_helper import summarize_ticker_news_with_perplexity
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -406,7 +407,6 @@ if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Robinhood Portfolio Performance')
     parser.add_argument('--username', required=True, help='Robinhood account username')
-    parser.add_argument('--password', required=True, help='Robinhood account password')
     parser.add_argument('--profile', action='store_true', help='Force refresh the option data')
     parser.add_argument('--market', action='store_true', help='Force refresh the option data')
     parser.add_argument('--all', action='store_true', help='Force refresh the option data')
@@ -416,8 +416,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     
-    rh_username = args.username
-    rh_password = args.password
+    rh_username, rh_password = LinkedAuth.resolve_robinhood_credentials(
+        username=args.username,
+    )
     force_refresh = args.force_refresh
     force_local = args.force_local
     test = args.test
@@ -434,4 +435,3 @@ if __name__ == "__main__":
         exit(1)
     
     print(main(rh_username, rh_password, cache_mode, test))
-
