@@ -463,6 +463,11 @@ def _planner_system_prompt(*, evidence_expected: bool) -> str:
             "Use research.market_impact_map when the prompt is about broad spillover or second-order effects. "
             "If a promising result URL needs a deeper read, use research.open_page. "
             "Tool use is encouraged, not forced, but a zero-tool final answer should be treated as a high bar."
+            " When asked about movers or statistically significant moves since a named event (e.g. 'Hormuz blockade', 'tariff announcement'):"
+            " (1) use research.live_event_evidence to find the event date from web evidence;"
+            " (2) use research.market_impact_map to get the relevant symbol list;"
+            " (3) call dataset.event_significance with the inferred event_date and those symbols."
+            " Do not ask the user for the date — infer it from research."
         )
     return prompt
 

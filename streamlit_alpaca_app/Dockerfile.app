@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements.txt ./requirements.txt
 RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN python -m playwright install --with-deps chromium
 
 COPY . .
 COPY data/stock_fundamental /app/data/stock_fundamental

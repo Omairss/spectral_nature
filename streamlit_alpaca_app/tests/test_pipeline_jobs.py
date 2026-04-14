@@ -7,7 +7,13 @@ from types import SimpleNamespace
 import numpy as np
 import pandas as pd
 
-from pipeline.jobs.attention_home_build import _news_payloads_from_articles_frame, build_attention_home_output_frames
+from pipeline.jobs.attention_home_build import (
+    AttentionHomeBuildError,
+    _build_materialized_homepage_summary,
+    _build_materialized_homepage_summary_with_trace,
+    _news_payloads_from_articles_frame,
+    build_attention_home_output_frames,
+)
 from pipeline.jobs.main import (
     JobContext,
     _build_quarterly_fundamentals_snapshot,
@@ -1064,6 +1070,143 @@ def test_run_attention_home_materializes_attention_home_and_research_outputs(mon
     assert homepage_summary["summary_text"]
     assert homepage_summary["audio_base64"]
     assert homepage_summary["voice_id"] == "voice-123"
+
+
+def test_build_materialized_homepage_summary_prefers_agentic_summary_when_llm_is_available(monkeypatch):
+    payload = {
+        "top_events": [
+            {
+                "event_title": "Energy and airlines are repricing together",
+                "supporting_symbols": ["USO", "UAL", "TLT"],
+            }
+        ]
+    }
+
+    monkeypatch.setattr(
+        "pipeline.jobs.attention_home_build.build_attention_agentic_summary",
+        lambda payload, *, llm_client: {
+            "headline": "Tape Summary",
+            "hypothesis": "Lower yields and easing supply-risk are tying the tape together.",
+            "summary_text": "**Market Hypothesis**\nLower yields and easing supply-risk are tying the tape together.",
+            "audio_text": "Market hypothesis: Lower yields and easing supply-risk are tying the tape together.",
+            "event_count": 1,
+            "must_read_count": 0,
+            "unresolved_count": 0,
+            "featured_symbols": ["USO", "UAL", "TLT"],
+            "beats": [],
+        },
+    )
+    monkeypatch.setattr(
+        "pipeline.jobs.attention_home_build.attach_attention_home_summary_audio",
+        lambda summary_payload: {
+            **dict(summary_payload),
+            "audio_base64": "YXVkaW8=",
+        },
+    )
+
+    summary = _build_materialized_homepage_summary(payload, llm_client=object())
+
+    assert summary["hypothesis"] == "Lower yields and easing supply-risk are tying the tape together."
+    assert summary["audio_base64"] == "YXVkaW8="
+
+
+def test_build_materialized_homepage_summary_falls_back_when_agentic_summary_fails(monkeypatch):
+    payload = {
+        "must_read_movers": [
+            {
+                "headline": "AAPL moves sharply today",
+                "symbol": "AAPL",
+                "what_changed_text": "AAPL rose 4.2% today.",
+                "why_now_text": "Investors are reacting to stronger checkout commentary.",
+            }
+        ]
+    }
+
+    monkeypatch.setattr(
+        "pipeline.jobs.attention_home_build.build_attention_agentic_summary",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("search unavailable")),
+    )
+    monkeypatch.setattr(
+        "pipeline.jobs.attention_home_build.attach_attention_home_summary_audio",
+        lambda summary_payload: dict(summary_payload),
+    )
+
+    summary = _build_materialized_homepage_summary(payload, llm_client=object())
+
+    assert "hypothesis" not in summary
+    assert summary["headline"] == "Tape Summary"
+    assert "What Matters Now" in summary["summary_text"]
+
+
+def test_build_materialized_homepage_summary_with_trace_returns_summary_trace_frames(monkeypatch):
+    payload = {"top_events": [{"event_title": "Energy and airlines are repricing together"}]}
+
+    monkeypatch.setattr(
+        "pipeline.jobs.attention_home_build.build_attention_agentic_summary_with_trace",
+        lambda payload, *, llm_client: (
+            {
+                "headline": "Tape Summary",
+                "hypothesis": "Lower yields are tying the tape together.",
+                "summary_text": "**Market Hypothesis**\nLower yields are tying the tape together.",
+                "audio_text": "Market hypothesis: Lower yields are tying the tape together.",
+            },
+            {
+                "attention_search_requests": pd.DataFrame([{"query_id": "query::summary", "research_scope": "home_summary"}]),
+                "attention_search_results": pd.DataFrame([{"result_id": "result::summary", "research_scope": "home_summary"}]),
+                "attention_source_documents": pd.DataFrame([{"document_id": "doc::summary", "research_scope": "home_summary"}]),
+                "attention_evidence_chunks": pd.DataFrame([{"chunk_id": "chunk::summary", "research_scope": "home_summary"}]),
+                "attention_claims": pd.DataFrame([{"claim_id": "claim::summary", "research_scope": "home_summary"}]),
+            },
+        ),
+    )
+    monkeypatch.setattr(
+        "pipeline.jobs.attention_home_build.attach_attention_home_summary_audio",
+        lambda summary_payload: {**dict(summary_payload), "audio_base64": "YXVkaW8="},
+    )
+
+    summary, trace = _build_materialized_homepage_summary_with_trace(payload, llm_client=object())
+
+    assert summary["audio_base64"] == "YXVkaW8="
+    assert trace["attention_search_requests"]["query_id"].tolist() == ["query::summary"]
+    assert trace["attention_evidence_chunks"]["research_scope"].tolist() == ["home_summary"]
+
+
+def test_run_attention_home_fails_when_required_mover_inputs_are_missing(monkeypatch):
+    progress_calls: list[dict[str, object]] = []
+    ctx = JobContext(
+        name="attention-home-build",
+        run_id="attention-missing-inputs",
+        asof=datetime(2026, 4, 13, 16, 20, tzinfo=timezone.utc),
+        universe_version="20260413",
+    )
+
+    monkeypatch.setattr("pipeline.jobs.main._load_latest_materialized_frame", lambda dataset_name: pd.DataFrame())
+    monkeypatch.setattr("pipeline.jobs.attention_home_build.load_llm_client", lambda: None)
+    monkeypatch.setattr(
+        "pipeline.jobs.main._job_progress",
+        lambda *args, **kwargs: progress_calls.append(
+            {
+                "stage": kwargs.get("stage"),
+                "message": kwargs.get("message"),
+                "status": kwargs.get("status"),
+            }
+        ),
+    )
+    monkeypatch.setattr(
+        "pipeline.jobs.main._persist_dataset",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("attention outputs should not persist")),
+    )
+
+    try:
+        run_attention_home(ctx, None)
+        raised = False
+    except AttentionHomeBuildError as exc:
+        raised = True
+        assert "daily_movers and macro_anchor_daily_movers were unavailable" in str(exc)
+
+    assert raised
+    assert progress_calls[-1]["stage"] == "failed"
+    assert progress_calls[-1]["status"] == "Failed"
 
 
 def test_build_portfolio_timeseries_snapshot_uses_shared_portfolio_builder(monkeypatch):

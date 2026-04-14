@@ -11,7 +11,6 @@ import streamlit as st
 from compute.fundamentals import latest_share_count
 from services.attention_feed_brief import build_attention_feed_brief
 from services.config import AppConfig
-from services.homepage_v2 import build_homepage_v2_digest
 from services.llm import LLMAPIError, load_llm_client
 from services.pipeline_store import load_latest_dataset_frame
 
@@ -957,43 +956,3 @@ def _load_attention_feed_brief_cached(
         brief = build_attention_feed_brief(brief_input, None)
         brief["error"] = f"{type(exc).__name__}: {exc}"
         return brief
-
-
-@st.cache_data(ttl=900, show_spinner=False)
-def _load_homepage_v2_digest_cached(
-    event_records_json: str,
-    *,
-    asof_time_utc: str,
-    max_sentences: int,
-) -> dict[str, object]:
-    try:
-        event_records = json.loads(event_records_json or "[]")
-    except Exception:
-        event_records = []
-    try:
-        digest = build_homepage_v2_digest(
-            event_records if isinstance(event_records, list) else [],
-            load_llm_client(),
-            asof_time_utc=asof_time_utc,
-            max_sentences=max_sentences,
-        )
-        digest["error"] = ""
-        return digest
-    except LLMAPIError as exc:
-        digest = build_homepage_v2_digest(
-            event_records if isinstance(event_records, list) else [],
-            None,
-            asof_time_utc=asof_time_utc,
-            max_sentences=max_sentences,
-        )
-        digest["error"] = str(exc)
-        return digest
-    except Exception as exc:
-        digest = build_homepage_v2_digest(
-            event_records if isinstance(event_records, list) else [],
-            None,
-            asof_time_utc=asof_time_utc,
-            max_sentences=max_sentences,
-        )
-        digest["error"] = f"{type(exc).__name__}: {exc}"
-        return digest

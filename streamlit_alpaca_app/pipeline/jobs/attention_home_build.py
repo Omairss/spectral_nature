@@ -9,6 +9,8 @@ import pandas as pd
 from services.attention_agentic import build_bottom_up_attention_artifacts, search_symbol_news_payload
 from services.attention_home_summary import (
     attach_attention_home_summary_audio,
+    build_attention_agentic_summary,
+    build_attention_agentic_summary_with_trace,
     build_attention_home_summary_payload,
 )
 from services.attention_home_1d import build_attention_entity_master, resolve_macro_anchor_symbols, shortlist_attention_symbols_1d
@@ -27,6 +29,10 @@ PersistDatasetFn = Callable[[str, pd.DataFrame, Any, Any | None], None]
 JobProgressFn = Callable[..., None]
 LoadFrameFn = Callable[[str], pd.DataFrame]
 ResearchProgressFn = Callable[[int, int, dict[str, Any]], None]
+
+
+class AttentionHomeBuildError(RuntimeError):
+    pass
 
 
 def _load_latest_materialized_frame(dataset_name: str) -> pd.DataFrame:
@@ -55,8 +61,24 @@ def _attention_home_search_backfill_limit() -> int:
     return max(parsed, 1)
 
 
-def _build_materialized_homepage_summary(payload: dict[str, Any]) -> dict[str, Any]:
-    summary_payload = build_attention_home_summary_payload(payload)
+def _has_symbol_inputs(frame: pd.DataFrame) -> bool:
+    return isinstance(frame, pd.DataFrame) and not frame.empty and "symbol" in frame.columns
+
+
+def _build_materialized_homepage_summary(
+    payload: dict[str, Any],
+    *,
+    llm_client: Any | None = None,
+) -> dict[str, Any]:
+    summary_payload: dict[str, Any]
+    if llm_client is not None:
+        try:
+            summary_payload = build_attention_agentic_summary(payload, llm_client=llm_client)
+        except Exception as exc:
+            print(f"[warn] attention-home-build agentic summary failed, falling back: {type(exc).__name__}: {exc}")
+            summary_payload = build_attention_home_summary_payload(payload)
+    else:
+        summary_payload = build_attention_home_summary_payload(payload)
     try:
         return attach_attention_home_summary_audio(summary_payload)
     except ElevenLabsTTSAPIError as exc:
@@ -65,6 +87,75 @@ def _build_materialized_homepage_summary(payload: dict[str, Any]) -> dict[str, A
     except Exception as exc:
         print(f"[warn] attention-home-build unexpected ElevenLabs narration error: {type(exc).__name__}: {exc}")
         return summary_payload
+
+
+def _build_materialized_homepage_summary_with_trace(
+    payload: dict[str, Any],
+    *,
+    llm_client: Any | None = None,
+) -> tuple[dict[str, Any], dict[str, pd.DataFrame]]:
+    summary_trace_frames: dict[str, pd.DataFrame] = {}
+    summary_payload: dict[str, Any]
+    if llm_client is not None:
+        try:
+            summary_payload, summary_trace_frames = build_attention_agentic_summary_with_trace(payload, llm_client=llm_client)
+        except Exception as exc:
+            print(f"[warn] attention-home-build agentic summary failed, falling back: {type(exc).__name__}: {exc}")
+            summary_payload = build_attention_home_summary_payload(payload)
+            summary_trace_frames = {}
+    else:
+        summary_payload = build_attention_home_summary_payload(payload)
+    try:
+        summary_payload = attach_attention_home_summary_audio(summary_payload)
+    except ElevenLabsTTSAPIError as exc:
+        print(f"[warn] attention-home-build ElevenLabs narration unavailable: {exc}")
+    except Exception as exc:
+        print(f"[warn] attention-home-build unexpected ElevenLabs narration error: {type(exc).__name__}: {exc}")
+    return summary_payload, summary_trace_frames
+
+
+_TRACE_DEDUPE_KEY_BY_DATASET: dict[str, str] = {
+    "attention_search_requests": "query_id",
+    "attention_search_results": "result_id",
+    "attention_source_documents": "document_id",
+    "attention_evidence_chunks": "chunk_id",
+    "attention_claims": "claim_id",
+}
+
+
+def _merge_trace_frame(existing: pd.DataFrame | None, extra: pd.DataFrame | None, *, dataset_name: str) -> pd.DataFrame:
+    existing_frame = existing.copy() if isinstance(existing, pd.DataFrame) else pd.DataFrame()
+    extra_frame = extra.copy() if isinstance(extra, pd.DataFrame) else pd.DataFrame()
+    if existing_frame.empty:
+        return extra_frame.reset_index(drop=True) if not extra_frame.empty else existing_frame
+    if extra_frame.empty:
+        return existing_frame.reset_index(drop=True)
+    merged = pd.concat([existing_frame, extra_frame], ignore_index=True, sort=False)
+    dedupe_key = _TRACE_DEDUPE_KEY_BY_DATASET.get(dataset_name)
+    if dedupe_key and dedupe_key in merged.columns:
+        merged = merged.drop_duplicates(subset=[dedupe_key], keep="first")
+    return merged.reset_index(drop=True)
+
+
+def _merge_summary_trace_frames(
+    frames: dict[str, pd.DataFrame],
+    summary_trace_frames: dict[str, pd.DataFrame],
+) -> dict[str, pd.DataFrame]:
+    merged = dict(frames or {})
+    for dataset_name in (
+        "attention_search_requests",
+        "attention_search_results",
+        "attention_source_documents",
+        "attention_evidence_chunks",
+        "attention_claims",
+    ):
+        merged[dataset_name] = _merge_trace_frame(
+            merged.get(dataset_name, pd.DataFrame()),
+            summary_trace_frames.get(dataset_name, pd.DataFrame()) if isinstance(summary_trace_frames, dict) else pd.DataFrame(),
+            dataset_name=dataset_name,
+        )
+    return merged
+
 
 
 def _normalize_symbol(value: object) -> str:
@@ -472,7 +563,9 @@ def build_attention_home_output_frames(
         }
     )
     payload["coverage_summary"] = coverage
-    payload["homepage_summary"] = _build_materialized_homepage_summary(payload)
+    homepage_summary, summary_trace_frames = _build_materialized_homepage_summary_with_trace(payload, llm_client=llm_client)
+    payload["homepage_summary"] = homepage_summary
+    artifacts.frames = _merge_summary_trace_frames(artifacts.frames, summary_trace_frames)
     artifacts.frames["attention_home_snapshots_1d"] = serialize_attention_home_payload(payload)
     if "attention_bundle_snapshots" not in artifacts.frames:
         artifacts.frames["attention_bundle_snapshots"] = serialize_attention_research_bundles(
@@ -594,10 +687,24 @@ def run_attention_home_build(
             progress_pct=progress_pct,
         )
 
+    daily_movers = load_materialized_frame_fn("daily_movers")
+    macro_movers = load_materialized_frame_fn("macro_anchor_daily_movers")
+    if not _has_symbol_inputs(daily_movers) and not _has_symbol_inputs(macro_movers):
+        message = "Attention home build failed because daily_movers and macro_anchor_daily_movers were unavailable."
+        job_progress_fn(
+            ctx,
+            conn,
+            stage="failed",
+            message=message,
+            progress_pct=100.0,
+            status="Failed",
+        )
+        raise AttentionHomeBuildError(message)
+
     persist_frames = build_attention_home_output_frames(
         ctx=ctx,
-        daily_movers=load_materialized_frame_fn("daily_movers"),
-        macro_movers=load_materialized_frame_fn("macro_anchor_daily_movers"),
+        daily_movers=daily_movers,
+        macro_movers=macro_movers,
         positions_frame=load_materialized_frame_fn("positions_snapshot"),
         price_history_frame=load_materialized_frame_fn("price_history"),
         attention_feed_frame=load_materialized_frame_fn("attention_feed"),
@@ -611,14 +718,16 @@ def run_attention_home_build(
     )
 
     if not persist_frames:
+        message = "Attention home build failed because it produced no output datasets."
         job_progress_fn(
             ctx,
             conn,
-            stage="skipped",
-            message="Attention home build skipped because required inputs were unavailable.",
+            stage="failed",
+            message=message,
             progress_pct=100.0,
+            status="Failed",
         )
-        return {}
+        raise AttentionHomeBuildError(message)
 
     job_progress_fn(
         ctx,
@@ -633,6 +742,7 @@ def run_attention_home_build(
 
 
 __all__ = [
+    "AttentionHomeBuildError",
     "build_attention_home_output_frames",
     "run_attention_home_build",
 ]

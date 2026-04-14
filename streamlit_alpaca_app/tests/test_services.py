@@ -26,6 +26,8 @@ from services.attention_home_1d import (
 )
 from services.attention_home_summary import (
     attach_attention_home_summary_audio,
+    build_attention_agentic_summary,
+    build_attention_agentic_summary_with_trace,
     build_attention_home_narrative_beats,
     build_attention_home_summary,
     build_attention_home_summary_payload,
@@ -52,7 +54,6 @@ from services import treasury_yields as treasury_module
 from services.homepage_v2 import (
     HOMEPAGE_V2_COMPANY_PANEL,
     HOMEPAGE_V2_RESEARCH_PANEL,
-    build_homepage_v2_digest,
     build_homepage_v2_market_digest,
     homepage_v2_editorial_links,
     homepage_v2_bundle_symbol_lookup,
@@ -2214,6 +2215,36 @@ def test_documents_from_search_results_uses_headline_when_snippet_missing():
     assert docs[0]["raw_text"] == title
 
 
+def test_documents_from_search_results_attach_index_metadata():
+    candidate = {"candidate_id": "candidate::BMY", "symbol": "BMY"}
+    docs = attention_agentic_module._documents_from_search_results(
+        candidate,
+        [
+            {
+                "result_id": "query::1::serpapi::ok",
+                "title": "BMY reports positive phase 3 trial data on April 3, 2026",
+                "snippet": "BMY and PFE both gained as investors focused on the late-stage clinical readout.",
+                "source": "Reuters",
+                "provider": "serpapi",
+                "published_at": "2026-04-03T01:00:00Z",
+                "authority_bucket": "wire",
+                "authority_rank": 1,
+                "query_id": "query::1",
+            }
+        ],
+        run_id="run-1",
+        asof_time_utc=pd.Timestamp("2026-04-03T02:00:00Z"),
+    )
+
+    assert len(docs) == 1
+    assert docs[0]["published_date"] == "2026-04-03"
+    assert docs[0]["primary_date"] == "2026-04-03"
+    assert "BMY" in docs[0]["mentioned_tickers_json"]
+    assert "PFE" in docs[0]["mentioned_tickers_json"]
+    assert "clinical_trial" in docs[0]["event_tags_json"]
+    assert "2026-04-03" in docs[0]["mentioned_dates_json"]
+
+
 def test_search_query_results_uses_tavily_rag_fallback_when_serp_is_irrelevant():
     class _SerpClient:
         def search(self, query, *, news=False, num=10):
@@ -2405,6 +2436,38 @@ def test_chunk_source_documents_skip_low_signal_analyst_rating_snippets():
     assert len(chunks) == 1
     assert "orders recovered" in chunks.iloc[0]["chunk_text"].lower()
     assert "analyst ratings page" not in chunks.iloc[0]["chunk_text"].lower()
+
+
+def test_chunk_source_documents_attach_searchable_metadata():
+    chunks = attention_agentic_module._chunk_source_documents(
+        [
+            {
+                "candidate_id": "candidate::USO",
+                "bundle_subject": "USO",
+                "document_id": "doc::USO::search::1",
+                "source_kind": "search",
+                "source_provider": "Reuters",
+                "source_authority_bucket": "wire",
+                "authority_rank": 1,
+                "title": "USO falls as oil pulls back on ceasefire hopes",
+                "url": "https://example.com/uso-oil",
+                "published_at": pd.Timestamp("2026-03-24T17:30:00Z"),
+                "raw_text": "USO and BNO fell on March 24, 2026 as oil eased and supply-risk faded after ceasefire headlines.",
+            }
+        ],
+        run_id="run-1",
+        asof_time_utc=pd.Timestamp("2026-03-24T18:00:00Z"),
+    )
+
+    assert len(chunks) == 1
+    row = chunks.iloc[0].to_dict()
+    assert row["source_kind"] == "search"
+    assert row["published_date"] == "2026-03-24"
+    assert "USO" in row["mentioned_tickers_json"]
+    assert "BNO" in row["mentioned_tickers_json"]
+    assert "oil" in row["mentioned_commodities_json"]
+    assert "geopolitics" in row["event_tags_json"]
+    assert "2026-03-24" in row["mentioned_dates_json"]
 
 
 def test_build_live_attention_research_bundle_filters_irrelevant_roundups_and_marks_unresolved():
@@ -3608,70 +3671,6 @@ def test_azure_openai_v1_config_does_not_default_api_version(monkeypatch):
     assert config.temperature == 1.0
 
 
-def test_build_homepage_v2_digest_uses_llm_mapping():
-    class FakeLLMClient:
-        def __init__(self):
-            self.calls: list[dict[str, object]] = []
-            self.config = SimpleNamespace(model="gpt-5.3-chat")
-
-        def generate_json(self, **kwargs):
-            self.calls.append(kwargs)
-            return {
-                "headline": "Markets turned into a concentrated anomaly tape.",
-                "dek": "A handful of names accounted for most of the past day's surprise moves.",
-                "beats": [
-                    {
-                        "beat_id": "beat-1",
-                        "sentence": "AAOI jumped to the front of the tape after a fresh filing sharpened the bull case.",
-                        "summary": "The stock moved above expectation and the filing context added a concrete catalyst. The tape treated it as an idiosyncratic story rather than a broad market move.",
-                        "event_ids": ["evt-aaoi"],
-                        "symbols": ["AAOI"],
-                    }
-                ],
-            }
-
-    digest = build_homepage_v2_digest(
-        [
-            {
-                "event_id": "evt-aaoi",
-                "symbol": "AAOI",
-                "title": "AAOI is outperforming expectation",
-                "story_text": "AAOI broke above expectation after a fresh catalyst.",
-                "news_summary_text": "Coverage focused on a material agreement and demand durability.",
-                "context_summary_text": "An 8-K pointed to a new material agreement.",
-            }
-        ],
-        FakeLLMClient(),
-        asof_time_utc=pd.Timestamp("2026-03-22T08:00:00Z"),
-        max_sentences=12,
-    )
-
-    assert digest["mode"] == "llm"
-    assert digest["headline"] == "Markets turned into a concentrated anomaly tape."
-    assert digest["beats"][0]["event_ids"] == ["evt-aaoi"]
-    assert digest["beats"][0]["symbols"] == ["AAOI"]
-
-
-def test_build_homepage_v2_digest_falls_back_without_llm():
-    digest = build_homepage_v2_digest(
-        [
-            {
-                "event_id": "evt-bx",
-                "symbol": "BX",
-                "title": "BX is outperforming expectation",
-                "story_text": "BX pushed above expectation on a sharp idiosyncratic move.",
-                "expected_vs_observed_text": "Observed return ran ahead of the model baseline.",
-                "news_summary_text": "News tied the move to improving private credit sentiment.",
-            }
-        ],
-        None,
-        asof_time_utc=pd.Timestamp("2026-03-22T08:00:00Z"),
-        max_sentences=12,
-    )
-
-    assert digest["mode"] == "fallback"
-    assert digest["beats"][0]["event_ids"] == ["evt-bx"]
-    assert "BX" in digest["beats"][0]["sentence"]
 
 
 def test_build_homepage_v2_market_digest_uses_market_event_titles_and_underlying_anomalies():
@@ -3801,6 +3800,284 @@ def test_build_attention_home_summary_drops_fragmentary_ellipsis_copy():
     assert "ent surge excessive" not in summary["summary_text"]
     assert "stronger demand" in summary["summary_text"].lower()
     assert "late-session buying pressure" in summary["audio_text"].lower()
+
+
+def test_plan_summary_research_uses_llm_queries():
+    from services.aql.collector import _plan_summary_research
+
+    class FakeLLMClient:
+        def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict):
+            assert schema_name == "attention_research_plan"
+            assert "home_payload" in user_prompt
+            return {
+                "research_subjects": [{"subject": "market tape", "role": "primary"}],
+                "hypotheses": [{"kind": "cross_market", "text": "A shared rates and risk narrative may connect the tape."}],
+                "queries": [
+                    {
+                        "query": "stocks Treasury yields airlines oil moving today why",
+                        "rationale": "Connect the main cross-market moves with one macro query.",
+                    },
+                    {
+                        "query": "market sector rotation today growth defensives rates",
+                        "rationale": "Check whether factor rotation is the cleaner explanation.",
+                    },
+                ],
+                "official_routes": ["news"],
+                "priority_entities": ["TLT", "USO", "UAL"],
+                "evidence_budget": 6,
+            }
+
+    payload = {
+        "top_events": [
+            {
+                "event_title": "Energy and airlines are repricing together",
+                "why_happened_text": "The tape tied the move to easing supply-risk and lower fuel pressure.",
+                "supporting_symbols": ["USO", "UAL", "TLT"],
+            }
+        ],
+        "must_read_movers": [
+            {
+                "headline": "AAOI moved sharply higher",
+                "symbol": "AAOI",
+                "why_now_text": "Fresh demand commentary sharpened the bull case.",
+            }
+        ],
+    }
+
+    queries = _plan_summary_research(payload, llm_client=FakeLLMClient())
+
+    assert queries == [
+        "stocks Treasury yields airlines oil moving today why",
+        "market sector rotation today growth defensives rates",
+    ]
+
+
+def test_build_attention_agentic_summary_adds_hypothesis_from_search_backed_claims():
+    payload = {
+        "run_id": "summary-test-run",
+        "generated_at_utc": "2026-03-24T18:00:00Z",
+        "top_events": [
+            {
+                "bundle_id": "event-1",
+                "event_title": "Energy and airlines are repricing together",
+                "what_happened_text": "Oil-linked instruments fell sharply while airlines and duration rallied.",
+                "why_happened_text": "The tape tied the move to easing supply-risk and lower fuel pressure.",
+                "affected_assets_summary_text": "Airlines and bonds both caught a bid.",
+                "supporting_symbols": ["USO", "UAL", "TLT"],
+            }
+        ],
+        "must_read_movers": [
+            {
+                "bundle_id": "symbol::AAPL",
+                "symbol": "AAPL",
+                "headline": "Apple moves sharply today",
+                "what_changed_text": "AAPL rose 4.2% today.",
+                "why_now_text": "Investors are reacting to stronger checkout commentary.",
+                "what_else_moved_text": "Related names also moved today.",
+                "cause_status": "supported",
+            }
+        ],
+        "unresolved_large_moves": [],
+    }
+
+    class FakeLLMClient:
+        def __init__(self):
+            self.calls: list[str] = []
+
+        def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict):
+            self.calls.append(schema_name)
+            if schema_name == "attention_research_plan":
+                return {
+                    "research_subjects": [{"subject": "market tape", "role": "primary"}],
+                    "hypotheses": [{"kind": "cross_market", "text": "A shared rates and fuel narrative may connect the tape."}],
+                    "queries": [
+                        {
+                            "query": "stocks Treasury yields airlines oil moving today why",
+                            "rationale": "Connect the cross-market moves with one macro query.",
+                        },
+                        {
+                            "query": "fuel prices airlines duration stocks today narrative",
+                            "rationale": "Check whether lower fuel costs and lower yields explain the mix.",
+                        },
+                    ],
+                    "official_routes": ["news"],
+                    "priority_entities": ["USO", "UAL", "TLT", "AAPL"],
+                    "evidence_budget": 6,
+                }
+            if schema_name == "attention_search_relevance":
+                return {"relevant_indices": [0], "reason": "The result is directly about the tape-level driver."}
+            if schema_name == "attention_home_hypothesis":
+                return {
+                    "hypothesis": "Lower yields and easing supply-risk appear to be the common thread, helping duration and fuel-sensitive names while pressuring oil-linked exposure.",
+                }
+            raise AssertionError(f"unexpected schema {schema_name}")
+
+    class FakeTavilyClient:
+        def __init__(self):
+            self.calls: list[tuple[str, int, str]] = []
+
+        def search(self, query: str, *, max_results: int, topic: str):
+            self.calls.append((query, max_results, topic))
+            return [
+                WebSearchResult(
+                    provider="tavily",
+                    title="Treasury yields ease as oil pulls back and airlines rally",
+                    url=f"https://example.com/{len(self.calls)}",
+                    snippet="Fresh market coverage said lower yields and easing supply-risk lifted airlines and other duration-sensitive parts of the tape while oil-linked assets fell.",
+                    source="Reuters",
+                    published_at="2026-03-24T17:30:00Z",
+                )
+            ]
+
+    llm_client = FakeLLMClient()
+    tavily_client = FakeTavilyClient()
+
+    summary = build_attention_agentic_summary(
+        payload,
+        llm_client=llm_client,
+        search_clients=[None, tavily_client],
+    )
+
+    assert summary["hypothesis"].startswith("Lower yields and easing supply-risk")
+    assert "**Market Hypothesis**" in summary["summary_text"]
+    assert "What matters now:" in summary["audio_text"]
+    assert "Market hypothesis:" in summary["audio_text"]
+    assert summary["event_count"] == 1
+    assert summary["must_read_count"] == 1
+    assert summary["research_queries"] == [
+        "stocks Treasury yields airlines oil moving today why",
+        "fuel prices airlines duration stocks today narrative",
+    ]
+    assert tavily_client.calls[0][2] == "news"
+    assert llm_client.calls == [
+        "attention_research_plan",
+        "attention_search_relevance",
+        "attention_search_relevance",
+        "attention_home_hypothesis",
+    ]
+
+
+def test_build_attention_agentic_summary_with_trace_returns_materializable_frames():
+    payload = {
+        "run_id": "summary-test-run",
+        "generated_at_utc": "2026-03-24T18:00:00Z",
+        "top_events": [
+            {
+                "bundle_id": "event-1",
+                "event_title": "Energy and airlines are repricing together",
+                "what_happened_text": "Oil-linked instruments fell sharply while airlines and duration rallied.",
+                "why_happened_text": "The tape tied the move to easing supply-risk and lower fuel pressure.",
+                "affected_assets_summary_text": "Airlines and bonds both caught a bid.",
+                "supporting_symbols": ["USO", "UAL", "TLT"],
+            }
+        ],
+        "must_read_movers": [],
+        "unresolved_large_moves": [],
+    }
+
+    class FakeLLMClient:
+        def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict):
+            del system_prompt, user_prompt, schema
+            if schema_name == "attention_research_plan":
+                return {
+                    "research_subjects": [{"subject": "market tape", "role": "primary"}],
+                    "hypotheses": [{"kind": "cross_market", "text": "A shared rates and fuel narrative may connect the tape."}],
+                    "queries": [{"query": "stocks Treasury yields airlines oil moving today why", "rationale": "Connect the tape."}],
+                    "official_routes": ["news"],
+                    "priority_entities": ["USO", "UAL", "TLT"],
+                    "evidence_budget": 6,
+                }
+            if schema_name == "attention_search_relevance":
+                return {"relevant_indices": [0], "reason": "Directly relevant."}
+            if schema_name == "attention_home_hypothesis":
+                return {"hypothesis": "Lower yields and easing supply-risk appear to be the common thread."}
+            raise AssertionError(f"unexpected schema {schema_name}")
+
+    class FakeTavilyClient:
+        def search(self, query: str, *, max_results: int, topic: str):
+            del query, max_results, topic
+            return [
+                WebSearchResult(
+                    provider="tavily",
+                    title="Treasury yields ease as oil pulls back and airlines rally",
+                    url="https://example.com/summary-trace",
+                    snippet="Fresh market coverage said lower yields and easing supply-risk lifted airlines while oil-linked assets fell.",
+                    source="Reuters",
+                    published_at="2026-03-24T17:30:00Z",
+                )
+            ]
+
+    summary, trace = build_attention_agentic_summary_with_trace(
+        payload,
+        llm_client=FakeLLMClient(),
+        search_clients=[None, FakeTavilyClient()],
+    )
+
+    assert summary["hypothesis"].startswith("Lower yields and easing supply-risk")
+    assert not trace["attention_search_requests"].empty
+    assert not trace["attention_search_results"].empty
+    assert not trace["attention_source_documents"].empty
+    assert not trace["attention_evidence_chunks"].empty
+    assert not trace["attention_claims"].empty
+    assert trace["attention_search_results"]["research_scope"].astype(str).eq("home_summary").all()
+    assert "mentioned_commodities_json" in trace["attention_evidence_chunks"].columns
+
+
+def test_supporting_claims_from_results_enrich_seeking_alpha_pages(monkeypatch):
+    from services.aql import summarizer as aql_summarizer
+
+    payload = {
+        "run_id": "summary-test-run",
+        "generated_at_utc": "2026-03-24T18:00:00Z",
+    }
+
+    class FakeLLMClient:
+        def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict):
+            del system_prompt, user_prompt, schema
+            if schema_name == "attention_search_relevance":
+                return {"relevant_indices": [0]}
+            raise AssertionError(f"unexpected schema {schema_name}")
+
+    class FakeTavilyClient:
+        def search(self, query: str, *, max_results: int, topic: str):
+            del query, max_results, topic
+            return [
+                WebSearchResult(
+                    provider="tavily",
+                    title="Seeking Alpha says AI infrastructure demand is supporting copper",
+                    url="https://seekingalpha.com/news/123456",
+                    snippet="Short snippet only.",
+                    source="Seeking Alpha",
+                    published_at="2026-03-24T17:30:00Z",
+                )
+            ]
+
+    monkeypatch.setattr(
+        aql_summarizer,
+        "browse_page",
+        lambda url, max_text_chars: {
+            "url": url,
+            "final_url": url,
+            "title": "Seeking Alpha article",
+            "excerpt": "AI infrastructure demand is lifting copper and related supply chain commentary.",
+            "text": (
+                "AI infrastructure demand is lifting copper and related supply chain commentary. "
+                "The article says data-center buildouts are raising demand expectations across the chain."
+            ),
+            "mode": "seeking_alpha_authenticated",
+            "warning": "",
+        },
+    )
+
+    claims = aql_summarizer._supporting_claims_from_results(
+        payload,
+        queries=["copper AI supply chain"],
+        llm_client=FakeLLMClient(),
+        search_clients=[None, FakeTavilyClient()],
+    )
+
+    assert claims
+    assert any("data-center buildouts are raising demand expectations" in item["claim_text"] for item in claims)
 
 
 def test_attach_attention_home_summary_audio_embeds_base64_metadata():
@@ -4029,6 +4306,42 @@ def test_fred_client_bulk_release_loader_returns_series_index_and_observations()
     assert not observations.empty
     assert series_index.iloc[0]["series_id"] == "CPIAUCSL"
     assert observations.iloc[-1]["value"] == 319.3
+
+
+def test_fred_client_retries_transient_500s(monkeypatch):
+    class FakeResponse:
+        def __init__(self, status_code: int, payload: dict[str, object], *, text: str = "", headers: dict[str, str] | None = None):
+            self.status_code = status_code
+            self._payload = payload
+            self.text = text
+            self.headers = headers or {}
+
+        def json(self):
+            return self._payload
+
+    responses = [
+        FakeResponse(500, {}, text='{"error_code":500,"error_message":"Internal Server Error"}'),
+        FakeResponse(200, {"seriess": [{"id": "CPIAUCSL"}]}),
+    ]
+    sleeps: list[float] = []
+
+    def fake_get(url: str, *, params=None, headers=None, timeout=None):
+        del url, params, headers, timeout
+        return responses.pop(0)
+
+    monkeypatch.setattr("services.fred.requests.get", fake_get)
+    monkeypatch.setattr("services.fred.time.sleep", lambda seconds: sleeps.append(seconds))
+    monkeypatch.setenv("FRED_HTTP_MAX_ATTEMPTS", "3")
+    monkeypatch.setenv("FRED_HTTP_INITIAL_BACKOFF_SECONDS", "0.1")
+    monkeypatch.setenv("FRED_HTTP_BACKOFF_MULTIPLIER", "2")
+    monkeypatch.setenv("FRED_HTTP_BACKOFF_JITTER_SECONDS", "0")
+
+    client = FREDClient("fake-key")
+
+    payload = client._request_v1("series", {"series_id": "CPIAUCSL"})
+
+    assert payload == {"seriess": [{"id": "CPIAUCSL"}]}
+    assert sleeps == [0.1]
 
 
 def test_build_fred_figure_can_overlay_stationary_percent_change_for_level_series():

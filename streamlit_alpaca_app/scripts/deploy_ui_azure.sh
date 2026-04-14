@@ -42,6 +42,7 @@ LLM_TEMPERATURE="${LLM_TEMPERATURE:-}"
 LLM_REASONING_EFFORT="${LLM_REASONING_EFFORT:-}"
 OPENAI_REASONING_EFFORT="${OPENAI_REASONING_EFFORT:-}"
 EMBEDDING_MODEL="${EMBEDDING_MODEL:-}"
+PIPELINE_CACHE_MAX_BYTES="${PIPELINE_CACHE_MAX_BYTES:-}"
 
 usage() {
   cat <<'EOF'
@@ -417,10 +418,14 @@ status_row() {
   fqdn="$(app_fqdn "$app_name")"
   image="$(containerapp_query "$app_name" "properties.template.containers[0].image")"
   ready_revision="$(containerapp_query "$app_name" "properties.latestReadyRevisionName")"
-  browser_cookie_value="$(app_env_value "$app_name" "UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE")"
-  auth_persistence_label="session only"
-  if truthy_value "$browser_cookie_value"; then
-    auth_persistence_label="browser cookie"
+  disable_cookie_value="$(app_env_value "$app_name" "UI_DISABLE_BROWSER_SESSION_COOKIE")"
+  legacy_allow_value="$(app_env_value "$app_name" "UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE")"
+  # Persistence is ON by default; only off if explicitly disabled.
+  auth_persistence_label="browser cookie (default)"
+  if truthy_value "$disable_cookie_value"; then
+    auth_persistence_label="session only (disabled)"
+  elif [[ -n "$legacy_allow_value" ]] && ! truthy_value "$legacy_allow_value"; then
+    auth_persistence_label="session only (legacy opt-out)"
   fi
   url="https://${fqdn}"
   http_code="$(root_http_code_for_url "$url")"
@@ -462,7 +467,7 @@ ${dev_row}
 
 - UI container apps live in resource group \`${RESOURCE_GROUP}\`.
 - Both apps use the same managed identity and Key Vault-based auth configuration.
-- Browser persistence is controlled by \`UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE\` and is tracked above for each app.
+- Browser session persistence is **on by default**. Disable with \`UI_DISABLE_BROWSER_SESSION_COOKIE=1\`. The legacy \`UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE=0\` also disables it.
 - Sidebar now displays \`Environment: production\` or \`Environment: development\` via \`APP_TRACK\`.
 - Keep Production stable by avoiding direct experimental changes to \`${PROD_CONTAINER_APP}\`.
 EOF
@@ -572,11 +577,9 @@ TARGET_SMTP_USE_SSL_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_SMTP_US
 TARGET_SMTP_USERNAME_SECRET_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_SMTP_USERNAME_SECRET" "${APP_SMTP_USERNAME_SECRET:-}")"
 TARGET_SMTP_PASSWORD_SECRET_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_SMTP_PASSWORD_SECRET" "${APP_SMTP_PASSWORD_SECRET:-}")"
 TARGET_EMAIL_FROM_SECRET_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_EMAIL_FROM_SECRET" "${APP_EMAIL_FROM_SECRET:-}")"
-TARGET_UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE_FALLBACK=""
-if [[ "$TARGET" == "prod" ]]; then
-  TARGET_UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE_FALLBACK="1"
-fi
-TARGET_UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE_VALUE="$(existing_or_override_env "$TARGET_APP" "UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE" "${UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE:-}" "${TARGET_UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE_FALLBACK}")"
+# Persistence is on by default; these vars are only needed to opt out.
+TARGET_UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE_VALUE="$(existing_or_override_env "$TARGET_APP" "UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE" "${UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE:-}")"
+TARGET_UI_DISABLE_BROWSER_SESSION_COOKIE_VALUE="$(existing_or_override_env "$TARGET_APP" "UI_DISABLE_BROWSER_SESSION_COOKIE" "${UI_DISABLE_BROWSER_SESSION_COOKIE:-}")"
 TARGET_LLM_API_KEY_SECRET_NAME_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "LLM_API_KEY_SECRET_NAME" "${LLM_API_KEY_SECRET_NAME:-}" "$PROMOTION_SOURCE_APP")"
 TARGET_OPENAI_API_KEY_SECRET_NAME_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "OPENAI_API_KEY_SECRET_NAME" "${OPENAI_API_KEY_SECRET_NAME:-}" "$PROMOTION_SOURCE_APP")"
 TARGET_LLM_PROVIDER_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "LLM_PROVIDER" "${LLM_PROVIDER:-}" "$PROMOTION_SOURCE_APP")"
@@ -593,6 +596,7 @@ TARGET_LLM_TEMPERATURE_VALUE="$(existing_or_override_or_source_env "$TARGET_APP"
 TARGET_LLM_REASONING_EFFORT_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "LLM_REASONING_EFFORT" "${LLM_REASONING_EFFORT:-}" "$PROMOTION_SOURCE_APP")"
 TARGET_OPENAI_REASONING_EFFORT_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "OPENAI_REASONING_EFFORT" "${OPENAI_REASONING_EFFORT:-}" "$PROMOTION_SOURCE_APP")"
 TARGET_EMBEDDING_MODEL_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "EMBEDDING_MODEL" "${EMBEDDING_MODEL:-}" "$PROMOTION_SOURCE_APP")"
+TARGET_PIPELINE_CACHE_MAX_BYTES_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "PIPELINE_CACHE_MAX_BYTES" "${PIPELINE_CACHE_MAX_BYTES:-}" "$PROMOTION_SOURCE_APP")"
 
 if [[ -n "$PROMOTE_FROM" ]]; then
   log "[1/5] Resolving image from ${PROMOTION_SOURCE_APP}"
@@ -625,6 +629,7 @@ maybe_append_env "APP_SMTP_USERNAME_SECRET" "$TARGET_SMTP_USERNAME_SECRET_VALUE"
 maybe_append_env "APP_SMTP_PASSWORD_SECRET" "$TARGET_SMTP_PASSWORD_SECRET_VALUE"
 maybe_append_env "APP_EMAIL_FROM_SECRET" "$TARGET_EMAIL_FROM_SECRET_VALUE"
 maybe_append_env "UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE" "$TARGET_UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE_VALUE"
+maybe_append_env "UI_DISABLE_BROWSER_SESSION_COOKIE" "$TARGET_UI_DISABLE_BROWSER_SESSION_COOKIE_VALUE"
 maybe_append_env "LLM_API_KEY_SECRET_NAME" "$TARGET_LLM_API_KEY_SECRET_NAME_VALUE"
 maybe_append_env "OPENAI_API_KEY_SECRET_NAME" "$TARGET_OPENAI_API_KEY_SECRET_NAME_VALUE"
 maybe_append_env "LLM_PROVIDER" "$TARGET_LLM_PROVIDER_VALUE"
@@ -636,11 +641,12 @@ maybe_append_env "LLM_BASE_URL" "$TARGET_LLM_BASE_URL_VALUE"
 maybe_append_env "OPENAI_BASE_URL" "$TARGET_OPENAI_BASE_URL_VALUE"
 maybe_append_env "AZURE_OPENAI_ENDPOINT" "$TARGET_AZURE_OPENAI_ENDPOINT_VALUE"
 maybe_append_env "AZURE_OPENAI_API_VERSION" "$TARGET_AZURE_OPENAI_API_VERSION_VALUE"
-maybe_append_env "LLM_TIMEOUT_SECONDS" "$TARGET_LLM_TIMEOUT_SECONDS_VALUE"
-maybe_append_env "LLM_TEMPERATURE" "$TARGET_LLM_TEMPERATURE_VALUE"
-maybe_append_env "LLM_REASONING_EFFORT" "$TARGET_LLM_REASONING_EFFORT_VALUE"
-maybe_append_env "OPENAI_REASONING_EFFORT" "$TARGET_OPENAI_REASONING_EFFORT_VALUE"
-maybe_append_env "EMBEDDING_MODEL" "$TARGET_EMBEDDING_MODEL_VALUE"
+  maybe_append_env "LLM_TIMEOUT_SECONDS" "$TARGET_LLM_TIMEOUT_SECONDS_VALUE"
+  maybe_append_env "LLM_TEMPERATURE" "$TARGET_LLM_TEMPERATURE_VALUE"
+  maybe_append_env "LLM_REASONING_EFFORT" "$TARGET_LLM_REASONING_EFFORT_VALUE"
+  maybe_append_env "OPENAI_REASONING_EFFORT" "$TARGET_OPENAI_REASONING_EFFORT_VALUE"
+  maybe_append_env "EMBEDDING_MODEL" "$TARGET_EMBEDDING_MODEL_VALUE"
+  maybe_append_env "PIPELINE_CACHE_MAX_BYTES" "$TARGET_PIPELINE_CACHE_MAX_BYTES_VALUE"
 
 PREVIOUS_LATEST_REVISION="$(containerapp_query "$TARGET_APP" "properties.latestRevisionName")"
 update_containerapp "$TARGET_APP" "$IMAGE_TO_DEPLOY" "${UPDATE_ENV_VARS[@]}"

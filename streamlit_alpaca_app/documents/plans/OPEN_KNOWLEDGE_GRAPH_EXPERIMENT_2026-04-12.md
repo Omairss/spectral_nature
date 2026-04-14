@@ -22,6 +22,16 @@ Current limits:
 - query resolution is deterministic-first with optional embeddings; it is not a fully vector-native retriever
 - agentic expansion can start from an unseen query, but quality still depends on the LLM and optional web-search runtime
 
+## Follow-up Fixes
+
+Date: 2026-04-13
+
+- replaced vague Experiment actions with clearer graph-builder actions
+- added step-by-step loading and status output during anchor search and draft building
+- fixed the LLM structured-output schema so optional-looking fields still satisfy strict JSON-schema response requirements
+- tightened resolver confidence gating so weak fuzzy matches do not masquerade as real anchors
+- added context and description search so open-ended terms like `fertilizer` map to relevant graph nodes instead of random nearest strings
+
 ## Goal
 
 Build an admin-only PoC on the `Experiment` page where a user can type an open-ended dependency seed such as `helium`, `ASML`, or `fertilizer`.

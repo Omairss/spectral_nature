@@ -685,6 +685,55 @@ def load_price_history(api: AlpacaAPI, symbol: str, days: int = 365) -> pd.DataF
     return frame[keep].dropna(subset=["timestamp", "close"]).sort_values("timestamp")
 
 
+def scan_event_significance(
+    api: AlpacaAPI,
+    *,
+    event_date: str,
+    symbols: list[str],
+    pre_window_days: int = 60,
+    post_window_days: int = 30,
+    benchmark: str = "SPY",
+) -> pd.DataFrame:
+    from compute.event_study import compute_event_significance
+
+    normalized = [AlpacaAPI._normalize_symbol(s) for s in symbols]
+    normalized = [s for s in normalized if s]
+    if not normalized:
+        return pd.DataFrame()
+
+    benchmark_sym = AlpacaAPI._normalize_symbol(benchmark) or "SPY"
+    all_symbols = list(dict.fromkeys(normalized + [benchmark_sym]))
+
+    event_dt = pd.to_datetime(event_date, utc=True, errors="coerce")
+    if pd.isna(event_dt):
+        return pd.DataFrame()
+
+    # Fetch enough history to cover estimation + event window with a buffer for weekends/holidays
+    calendar_buffer = int((pre_window_days + post_window_days) * 1.5) + 30
+    start = event_dt - timedelta(days=pre_window_days + calendar_buffer)
+    end = datetime.now(timezone.utc)
+
+    raw_bars = api.get_stock_bars(all_symbols, start=start, end=end, timeframe="1Day", feed="iex")
+
+    bars_clean: dict[str, pd.DataFrame] = {}
+    for sym, frame in raw_bars.items():
+        if frame is None or frame.empty:
+            continue
+        f = frame.copy()
+        if "timestamp" not in f.columns or "close" not in f.columns:
+            continue
+        f["timestamp"] = pd.to_datetime(f["timestamp"], utc=True, errors="coerce")
+        bars_clean[sym] = f[["timestamp", "close"]].dropna().sort_values("timestamp").reset_index(drop=True)
+
+    return compute_event_significance(
+        bars_clean,
+        event_date,
+        pre_window_days=pre_window_days,
+        post_window_days=post_window_days,
+        benchmark=benchmark_sym,
+    )
+
+
 def build_momentum_profiles_from_bars(
     bars: dict[str, pd.DataFrame],
     *,

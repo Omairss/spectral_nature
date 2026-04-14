@@ -8,7 +8,7 @@ from pathlib import Path
 import re
 from difflib import SequenceMatcher
 from functools import lru_cache
-from typing import Any
+from typing import Any, Callable
 import uuid
 
 import networkx as nx
@@ -37,6 +37,7 @@ except Exception:
 APP_ROOT = Path(__file__).resolve().parents[1]
 KNOWLEDGE_GRAPH_ROOT = APP_ROOT / "data" / "knowledge_graph"
 KNOWLEDGE_GRAPH_SEED_DIR = KNOWLEDGE_GRAPH_ROOT / "seed_graphs"
+StatusCallback = Callable[[str, str], None]
 
 
 def _now_utc() -> datetime:
@@ -45,6 +46,15 @@ def _now_utc() -> datetime:
 
 def _clean(value: object) -> str:
     return str(value or "").strip()
+
+
+def _emit_status(callback: StatusCallback | None, stage: str, detail: str = "") -> None:
+    if callback is None:
+        return
+    try:
+        callback(str(stage or "").strip(), str(detail or "").strip())
+    except Exception:
+        return
 
 
 def _json_dumps(value: object) -> str:
@@ -129,12 +139,58 @@ def _split_text_list(value: object) -> list[str]:
     return out
 
 
+def _string_parts(value: object) -> list[str]:
+    if isinstance(value, dict):
+        parts: list[str] = []
+        for item in value.values():
+            parts.extend(_string_parts(item))
+        return parts
+    if isinstance(value, (list, tuple, set)):
+        parts: list[str] = []
+        for item in value:
+            parts.extend(_string_parts(item))
+        return parts
+    text = _clean(value)
+    return [text] if text else []
+
+
 def _tokenize(value: object) -> set[str]:
     return {
         token
         for token in re.split(r"[^a-z0-9]+", _clean(value).lower())
         if token
     }
+
+
+def _search_document_for_node(node_id: str, node: dict[str, Any]) -> str:
+    label = _clean(node.get("canonical_label") or node_id)
+    description = _clean(node.get("description"))
+    aliases = _split_text_list(node.get("aliases"))
+    attributes = dict(node.get("attributes_json") or node.get("attributes") or {})
+    parts: list[str] = [label]
+    if aliases:
+        parts.append(", ".join(aliases[:10]))
+    if description:
+        parts.append(description)
+    parts.extend(_string_parts(attributes))
+    return " ".join(part for part in parts if part)
+
+
+def _typo_similarity_score(query: str, candidate: str) -> float:
+    query_clean = query.lower().strip()
+    candidate_clean = candidate.lower().strip()
+    if not query_clean or not candidate_clean:
+        return 0.0
+    if min(len(query_clean), len(candidate_clean)) < 4:
+        return 0.0
+    if abs(len(query_clean) - len(candidate_clean)) > max(2, int(max(len(query_clean), len(candidate_clean)) * 0.25)):
+        return 0.0
+    if query_clean[:1] != candidate_clean[:1]:
+        return 0.0
+    ratio = SequenceMatcher(None, query_clean, candidate_clean).ratio()
+    if ratio < 0.84:
+        return 0.0
+    return float(ratio * 0.9)
 
 
 def _cosine_similarity(left: list[float], right: list[float]) -> float:
@@ -553,6 +609,7 @@ def _baseline_records() -> tuple[list[dict[str, Any]], list[dict[str, Any]], lis
 def clear_knowledge_graph_cache() -> None:
     _baseline_records.cache_clear()
     _NODE_VECTOR_CACHE.clear()
+    _NODE_VECTOR_CACHE.clear()
 
 
 def _load_db_records() -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
@@ -743,19 +800,54 @@ def _deterministic_alias_score(query: str, alias: str, node_id: str, label: str)
     query_tokens = _tokenize(query_clean)
     alias_tokens = _tokenize(alias_clean)
     label_tokens = _tokenize(label_clean)
-    overlap_alias = len(query_tokens & alias_tokens) / max(len(query_tokens | alias_tokens), 1)
-    overlap_label = len(query_tokens & label_tokens) / max(len(query_tokens | label_tokens), 1)
+    overlap_alias_tokens = query_tokens & alias_tokens
+    overlap_label_tokens = query_tokens & label_tokens
+    overlap_alias = len(overlap_alias_tokens) / max(len(query_tokens), 1)
+    overlap_label = len(overlap_label_tokens) / max(len(query_tokens), 1)
     partial = 0.0
     if query_clean in alias_clean or alias_clean in query_clean:
         partial = 0.78
     elif query_clean in label_clean or label_clean in query_clean:
         partial = 0.74
-    seq = max(
-        SequenceMatcher(None, query_clean, alias_clean).ratio(),
-        SequenceMatcher(None, query_clean, label_clean).ratio(),
-        SequenceMatcher(None, query_clean, node_clean).ratio(),
+    token_score_alias = 0.0
+    token_score_label = 0.0
+    if overlap_alias_tokens:
+        alias_precision = len(overlap_alias_tokens) / max(len(alias_tokens), 1)
+        token_score_alias = 0.46 + (overlap_alias * 0.34) + (min(alias_precision, 0.5) * 0.14)
+    if overlap_label_tokens:
+        label_precision = len(overlap_label_tokens) / max(len(label_tokens), 1)
+        token_score_label = 0.44 + (overlap_label * 0.34) + (min(label_precision, 0.5) * 0.12)
+
+    return float(
+        max(
+            partial,
+            token_score_alias,
+            token_score_label,
+            _typo_similarity_score(query_clean, alias_clean),
+            _typo_similarity_score(query_clean, label_clean),
+            _typo_similarity_score(query_clean, node_clean),
+        )
     )
-    return float(max(partial, overlap_alias * 0.92, overlap_label * 0.88, seq * 0.65))
+
+
+def _document_context_score(query: str, node_id: str, node: dict[str, Any]) -> tuple[float, str]:
+    query_clean = _clean(query).lower()
+    query_tokens = _tokenize(query_clean)
+    if not query_tokens:
+        return 0.0, ""
+
+    document_text = _search_document_for_node(node_id, node)
+    document_clean = document_text.lower()
+    document_tokens = _tokenize(document_clean)
+    overlap = query_tokens & document_tokens
+    if not overlap:
+        return 0.0, ""
+
+    recall = len(overlap) / max(len(query_tokens), 1)
+    precision = len(overlap) / max(len(document_tokens), 1)
+    phrase_bonus = 0.1 if query_clean and query_clean in document_clean else 0.0
+    score = min(0.84, 0.42 + (recall * 0.32) + (min(precision, 0.2)) + phrase_bonus)
+    return float(score), ", ".join(sorted(overlap))
 
 
 def _embedding_scores(query: str, candidates: list[dict[str, Any]]) -> dict[str, float]:
@@ -822,12 +914,14 @@ def search_knowledge_graph_nodes(
     *,
     limit: int = 8,
     snapshot: dict[str, Any] | None = None,
+    status_callback: StatusCallback | None = None,
 ) -> list[dict[str, Any]]:
     normalized_query = _clean(query)
     if not normalized_query:
         return []
     snapshot = snapshot or load_knowledge_graph_snapshot()
     nodes_by_id = dict(snapshot.get("nodes_by_id") or {})
+    _emit_status(status_callback, "resolve_scan", "Scanning ids, labels, aliases, and node descriptions.")
 
     # Stage 1: deterministic string match across all node aliases
     candidate_rows: dict[str, dict[str, Any]] = {}
@@ -836,7 +930,7 @@ def search_knowledge_graph_nodes(
         aliases = list(node.get("aliases") or []) or [node_id, label]
         for alias in aliases:
             score = _deterministic_alias_score(normalized_query, alias, node_id, label)
-            if score <= 0.15:
+            if score <= 0.0:
                 continue
             existing = candidate_rows.get(node_id)
             row = {
@@ -845,9 +939,25 @@ def search_knowledge_graph_nodes(
                 "node_type": _clean(node.get("node_type")),
                 "description": _clean(node.get("description")),
                 "matched_alias": _clean(alias),
+                "match_source": "alias",
                 "score_deterministic": score,
             }
             if existing is None or score > _coerce_float(existing.get("score_deterministic")):
+                candidate_rows[node_id] = row
+
+        context_score, matched_terms = _document_context_score(normalized_query, node_id, node)
+        if context_score > 0.0:
+            existing = candidate_rows.get(node_id)
+            row = {
+                "node_id": node_id,
+                "canonical_label": label,
+                "node_type": _clean(node.get("node_type")),
+                "description": _clean(node.get("description")),
+                "matched_alias": f"context: {matched_terms}" if matched_terms else "context",
+                "match_source": "context",
+                "score_deterministic": context_score,
+            }
+            if existing is None or context_score > _coerce_float(existing.get("score_deterministic")):
                 candidate_rows[node_id] = row
 
     # Stage 2: semantic search across ALL nodes using pre-computed vectors.
@@ -856,6 +966,7 @@ def search_knowledge_graph_nodes(
     embedding_scores: dict[str, float] = {}
     node_vectors = _get_node_vectors(nodes_by_id)
     if node_vectors:
+        _emit_status(status_callback, "resolve_semantic", "Checking semantic similarity across the current node set.")
         embedding_client = load_embedding_client()
         if embedding_client is not None:
             try:
@@ -868,10 +979,14 @@ def search_knowledge_graph_nodes(
                 pass
 
     # Stage 3: merge — union of deterministic hits and strong semantic hits
-    SEMANTIC_ONLY_THRESHOLD = 0.60
-    all_node_ids = set(candidate_rows) | (
-        {nid for nid, s in embedding_scores.items() if s >= SEMANTIC_ONLY_THRESHOLD}
-    )
+    MIN_DETERMINISTIC_SCORE = 0.30
+    SEMANTIC_ONLY_THRESHOLD = 0.86
+    all_node_ids = {
+        node_id
+        for node_id, row in candidate_rows.items()
+        if _coerce_float(row.get("score_deterministic")) >= MIN_DETERMINISTIC_SCORE
+    }
+    all_node_ids.update({nid for nid, score in embedding_scores.items() if score >= SEMANTIC_ONLY_THRESHOLD})
     result_rows: dict[str, dict[str, Any]] = {}
     for node_id in all_node_ids:
         node = nodes_by_id.get(node_id, {})
@@ -891,14 +1006,20 @@ def search_knowledge_graph_nodes(
             "canonical_label": label,
             "node_type": _clean(node.get("node_type")),
             "description": _clean(node.get("description")),
-            "matched_alias": det_row.get("matched_alias") if det_row else label,
+            "matched_alias": det_row.get("matched_alias") if det_row else "semantic",
+            "match_source": det_row.get("match_source") if det_row else "semantic",
             "score_deterministic": det_score,
             "score_embedding": emb_score,
             "score": score,
         }
 
     ranked = sorted(result_rows.values(), key=lambda r: (r["score"], r["score_deterministic"]), reverse=True)
-    return ranked[: max(int(limit), 1)]
+    limited = ranked[: max(int(limit), 1)]
+    if limited:
+        _emit_status(status_callback, "resolve_done", f"Found {len(limited)} confident existing anchors.")
+    else:
+        _emit_status(status_callback, "resolve_done", "No confident existing anchors matched the query.")
+    return limited
 
 
 def _seed_selection_default(matches: list[dict[str, Any]]) -> list[str]:
@@ -1001,15 +1122,15 @@ _GRAPH_EXPANSION_SCHEMA: dict[str, Any] = {
             "type": "array",
             "items": {
                 "type": "object",
-                "required": ["id", "label", "node_type"],
+                "required": ["id", "label", "node_type", "description", "aliases", "confidence", "rationale"],
                 "properties": {
                     "id": {"type": "string"},
                     "label": {"type": "string"},
                     "node_type": {"type": "string"},
-                    "description": {"type": "string"},
-                    "aliases": {"type": "array", "items": {"type": "string"}},
-                    "confidence": {"type": "number"},
-                    "rationale": {"type": "string"},
+                    "description": {"type": ["string", "null"]},
+                    "aliases": {"type": ["array", "null"], "items": {"type": "string"}},
+                    "confidence": {"type": ["number", "null"]},
+                    "rationale": {"type": ["string", "null"]},
                 },
                 "additionalProperties": False,
             },
@@ -1018,19 +1139,31 @@ _GRAPH_EXPANSION_SCHEMA: dict[str, Any] = {
             "type": "array",
             "items": {
                 "type": "object",
-                "required": ["id", "source", "target", "relationship"],
+                "required": [
+                    "id",
+                    "source",
+                    "target",
+                    "relationship",
+                    "mechanism",
+                    "polarity",
+                    "directness",
+                    "severity",
+                    "confidence",
+                    "conditions",
+                    "rationale",
+                ],
                 "properties": {
                     "id": {"type": "string"},
                     "source": {"type": "string"},
                     "target": {"type": "string"},
                     "relationship": {"type": "string"},
-                    "mechanism": {"type": "string"},
-                    "polarity": {"type": "string"},
-                    "directness": {"type": "string"},
-                    "severity": {"type": "number"},
-                    "confidence": {"type": "number"},
-                    "conditions": {"type": "array", "items": {"type": "string"}},
-                    "rationale": {"type": "string"},
+                    "mechanism": {"type": ["string", "null"]},
+                    "polarity": {"type": ["string", "null"]},
+                    "directness": {"type": ["string", "null"]},
+                    "severity": {"type": ["number", "null"]},
+                    "confidence": {"type": ["number", "null"]},
+                    "conditions": {"type": ["array", "null"], "items": {"type": "string"}},
+                    "rationale": {"type": ["string", "null"]},
                 },
                 "additionalProperties": False,
             },
@@ -1047,9 +1180,11 @@ def _agentic_graph_expansion(
     seed_nodes: list[dict[str, Any]],
     context_nodes: list[dict[str, Any]],
     context_edges: list[dict[str, Any]],
+    status_callback: StatusCallback | None = None,
 ) -> dict[str, Any]:
     llm_client = load_llm_client()
     if llm_client is None:
+        _emit_status(status_callback, "agent_unavailable", "LLM runtime is unavailable. Building a local-only draft.")
         return {
             "summary": "",
             "nodes": [],
@@ -1057,6 +1192,7 @@ def _agentic_graph_expansion(
             "limitations": ["LLM runtime is unavailable, so no agentic graph suggestions were added."],
         }
 
+    _emit_status(status_callback, "research", "Collecting external context for the current query.")
     research_lines = _web_research_lines(query, seed_nodes)
     node_catalog_lines = [
         f"- id={_clean(node.get('node_id'))} | label={_clean(node.get('canonical_label'))} | type={_clean(node.get('node_type'))}"
@@ -1093,6 +1229,7 @@ def _agentic_graph_expansion(
         "Use existing ids when possible and add only the missing important neighbors."
     )
     try:
+        _emit_status(status_callback, "llm", "Asking the LLM for new node and edge suggestions.")
         return llm_client.generate_json(
             system_prompt=prompt,
             user_prompt=user_prompt,
@@ -1100,6 +1237,7 @@ def _agentic_graph_expansion(
             schema=_GRAPH_EXPANSION_SCHEMA,
         )
     except LLMAPIError as exc:
+        _emit_status(status_callback, "llm_error", f"LLM expansion failed. Falling back to the local neighborhood only: {exc}")
         return {
             "summary": "",
             "nodes": [],
@@ -1209,10 +1347,12 @@ def build_knowledge_graph_draft(
     selected_node_ids: list[str] | None = None,
     include_agentic_expansion: bool = True,
     snapshot: dict[str, Any] | None = None,
+    status_callback: StatusCallback | None = None,
 ) -> dict[str, Any]:
     normalized_query = _clean(query)
     snapshot = snapshot or load_knowledge_graph_snapshot()
-    matches = search_knowledge_graph_nodes(normalized_query, snapshot=snapshot)
+    _emit_status(status_callback, "draft_search", "Finding confident existing anchors for the query.")
+    matches = search_knowledge_graph_nodes(normalized_query, snapshot=snapshot, status_callback=status_callback)
     selected = [_clean(node_id) for node_id in list(selected_node_ids or []) if _clean(node_id)]
     if not selected:
         selected = _seed_selection_default(matches)
@@ -1226,6 +1366,18 @@ def build_knowledge_graph_draft(
             if _clean(item.get("node_id")) in dict(snapshot.get("nodes_by_id") or {})
         ]
 
+    if context_seed_ids:
+        _emit_status(
+            status_callback,
+            "draft_neighborhood",
+            f"Loading the local neighborhood around {len(context_seed_ids)} anchor node(s).",
+        )
+    else:
+        _emit_status(
+            status_callback,
+            "draft_neighborhood",
+            "No confident existing anchors were found. Starting from the raw query.",
+        )
     existing_nodes, existing_edges = _collect_seed_neighborhood(context_seed_ids, snapshot, depth=2, max_nodes=20)
     node_rows: list[dict[str, Any]] = []
     for row in existing_nodes:
@@ -1272,6 +1424,7 @@ def build_knowledge_graph_draft(
             seed_nodes=seed_nodes,
             context_nodes=existing_nodes,
             context_edges=existing_edges,
+            status_callback=status_callback,
         )
         proposed_nodes, proposed_edges, agentic_limitations, agentic_summary = _normalize_agentic_expansion(
             raw_expansion,
@@ -1314,6 +1467,12 @@ def build_knowledge_graph_draft(
             )
     elif normalized_query and not selected:
         limitations.append("No current node matched strongly enough, so the draft uses agent suggestions without a committed neighborhood.")
+
+    _emit_status(
+        status_callback,
+        "draft_done",
+        f"Draft ready with {len(node_rows)} node rows and {len(edge_rows)} edge rows.",
+    )
 
     return {
         "query": normalized_query,

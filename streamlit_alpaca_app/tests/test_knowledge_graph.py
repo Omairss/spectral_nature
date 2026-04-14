@@ -20,6 +20,17 @@ def test_search_knowledge_graph_nodes_resolves_helium_seed(monkeypatch):
     assert "helium" in {item["node_id"] for item in matches[:3]}
 
 
+def test_search_knowledge_graph_nodes_uses_context_and_avoids_weak_false_matches(monkeypatch):
+    snapshot = _isolated_snapshot(monkeypatch)
+
+    matches = kg.search_knowledge_graph_nodes("fertilizer", snapshot=snapshot)
+    top_ids = [item["node_id"] for item in matches[:5]]
+
+    assert {"UNG", "CORN", "WEAT", "SOYB"} & set(top_ids)
+    assert "uranium" not in top_ids
+    assert "nuclear_fuel" not in top_ids
+
+
 def test_build_knowledge_graph_draft_includes_seed_neighborhood(monkeypatch):
     snapshot = _isolated_snapshot(monkeypatch)
 
@@ -137,3 +148,11 @@ def test_plot_knowledge_graph_draft_returns_nonempty_figure(monkeypatch):
 
     assert fig.data
     assert fig.layout.title.text == "Knowledge Graph Draft"
+
+
+def test_graph_expansion_schema_requires_all_defined_item_properties():
+    node_item = kg._GRAPH_EXPANSION_SCHEMA["properties"]["nodes"]["items"]
+    edge_item = kg._GRAPH_EXPANSION_SCHEMA["properties"]["edges"]["items"]
+
+    assert set(node_item["required"]) == set(node_item["properties"])
+    assert set(edge_item["required"]) == set(edge_item["properties"])

@@ -1538,6 +1538,7 @@ def test_query_service_capabilities_include_resolution_hints():
     assert capabilities["datasets"]["portfolio_timeseries"]["resolution"] == "materialized_first"
     assert capabilities["datasets"]["attention_feed"]["resolution"] == "materialized"
     assert capabilities["datasets"]["attention_context"]["resolution"] == "materialized"
+    assert capabilities["datasets"]["attention_evidence_search"]["resolution"] == "materialized"
     assert capabilities["datasets"]["commodity_attention_feed"]["resolution"] == "materialized"
     assert capabilities["charts"]["technical_price_channel"]["resolution"] == "computed_from_signal_history"
     assert capabilities["datasets"]["price_history"]["required_params"] == ["ticker"]
@@ -1674,18 +1675,146 @@ def test_query_service_fetches_attention_datasets():
                 provenance=DataProvenance(mode="materialized", datasets=("attention_rollups",), details={"dataset_version_id": "rollups-v1"}),
             )
 
+        def resolve_attention_evidence_search(
+            self,
+            *,
+            query: str = "",
+            tickers: list[str] | None = None,
+            commodities: list[str] | None = None,
+            event_tags: list[str] | None = None,
+            dates: list[str] | None = None,
+            start_date: str | None = None,
+            end_date: str | None = None,
+            source_kinds: list[str] | None = None,
+            providers: list[str] | None = None,
+            research_scopes: list[str] | None = None,
+            run_id: str | None = None,
+            limit: int = 20,
+            force_refresh: bool = False,
+        ) -> ResolvedPayload:
+            assert query == "ceasefire oil"
+            assert tickers == ["USO"]
+            assert commodities == ["oil"]
+            assert event_tags == ["geopolitics"]
+            assert dates == ["2026-03-24"]
+            assert providers == ["Reuters"]
+            assert research_scopes == ["home_summary"]
+            assert run_id == "run-1"
+            assert limit == 4
+            assert start_date is None and end_date is None and source_kinds is None
+            assert force_refresh is False
+            return ResolvedPayload(
+                payload=pd.DataFrame({"chunk_id": ["chunk::1"], "search_score": [12.0]}),
+                provenance=DataProvenance(mode="materialized", datasets=("attention_evidence_chunks",), details={"dataset_version_id": "chunks-v1"}),
+            )
+
     service = QueryService(data_access=FakeAccess())
     attention_context = service.fetch_dataset("attention_context", {"ticker": "AAPL", "force_refresh": True})
     attention_feed = service.fetch_dataset("attention_feed", {"limit": 5, "entity_ids": ["TSLA"], "statuses": ["cooling"]})
     attention_rollups = service.fetch_dataset("attention_rollups", {"rollup_type": "business_lens", "limit": 3, "force_refresh": True})
+    attention_evidence = service.fetch_dataset(
+        "attention_evidence_search",
+        {
+            "query": "ceasefire oil",
+            "tickers": ["USO"],
+            "commodities": ["oil"],
+            "event_tags": ["geopolitics"],
+            "dates": ["2026-03-24"],
+            "providers": ["Reuters"],
+            "research_scopes": ["home_summary"],
+            "run_id": "run-1",
+            "limit": 4,
+        },
+    )
     commodity_attention_feed = service.fetch_dataset("commodity_attention_feed", {"limit": 2, "entity_ids": ["GLD"], "statuses": ["active"]})
     commodity_attention_rollups = service.fetch_dataset("commodity_attention_rollups", {"rollup_type": "commodity_focus", "limit": 2})
 
     assert attention_context.payload["symbol"] == "AAPL"
     assert attention_feed.payload["entity_id"].tolist() == ["TSLA"]
     assert attention_rollups.payload["rollup_name"].tolist() == ["All Market"]
+    assert attention_evidence.payload["chunk_id"].tolist() == ["chunk::1"]
     assert commodity_attention_feed.payload["entity_id"].tolist() == ["GLD"]
     assert commodity_attention_rollups.payload["rollup_name"].tolist() == ["Precious Metals"]
+
+
+def test_data_access_layer_resolve_attention_evidence_search_filters_materialized_chunks(monkeypatch):
+    evidence_chunks = pd.DataFrame(
+        [
+            {
+                "run_id": "run-1",
+                "bundle_subject": "USO",
+                "chunk_id": "chunk::1",
+                "document_id": "doc::1",
+                "title": "USO falls as oil pulls back on ceasefire hopes",
+                "display_excerpt": "USO and airlines moved as supply-risk eased.",
+                "chunk_text": "USO and BNO fell on March 24, 2026 as oil eased and supply-risk faded after ceasefire headlines.",
+                "source_kind": "search",
+                "source_provider": "Reuters",
+                "search_provider": "tavily",
+                "research_scope": "home_summary",
+                "published_at": pd.Timestamp("2026-03-24T17:30:00Z"),
+                "published_date": "2026-03-24",
+                "primary_date": "2026-03-24",
+                "mentioned_tickers_json": json.dumps(["USO", "BNO"]),
+                "mentioned_tickers_key": "|USO|BNO|",
+                "mentioned_commodities_json": json.dumps(["oil"]),
+                "mentioned_commodities_key": "|oil|",
+                "event_tags_json": json.dumps(["geopolitics", "supply_chain"]),
+                "event_tags_key": "|geopolitics|supply_chain|",
+                "mentioned_dates_json": json.dumps(["2026-03-24"]),
+                "mentioned_dates_key": "|2026-03-24|",
+                "authority_rank": 1,
+                "url": "https://example.com/uso",
+            },
+            {
+                "run_id": "run-1",
+                "bundle_subject": "AAPL",
+                "chunk_id": "chunk::2",
+                "document_id": "doc::2",
+                "title": "AAPL gains after product event",
+                "display_excerpt": "AAPL rose on launch commentary.",
+                "chunk_text": "AAPL rose after a product launch update.",
+                "source_kind": "search",
+                "source_provider": "Reuters",
+                "search_provider": "serpapi",
+                "research_scope": "symbol",
+                "published_at": pd.Timestamp("2026-03-24T17:30:00Z"),
+                "published_date": "2026-03-24",
+                "primary_date": "2026-03-24",
+                "mentioned_tickers_json": json.dumps(["AAPL"]),
+                "mentioned_tickers_key": "|AAPL|",
+                "mentioned_commodities_json": json.dumps([]),
+                "mentioned_commodities_key": "",
+                "event_tags_json": json.dumps(["product_launch"]),
+                "event_tags_key": "|product_launch|",
+                "mentioned_dates_json": json.dumps(["2026-03-24"]),
+                "mentioned_dates_key": "|2026-03-24|",
+                "authority_rank": 1,
+                "url": "https://example.com/aapl",
+            },
+        ]
+    )
+
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_try_pipeline_frame",
+        lambda self, dataset_name, force_refresh: (evidence_chunks.copy(), {"dataset_name": dataset_name, "dataset_version_id": "chunks-v1"}),
+    )
+
+    resolved = DataAccessLayer().resolve_attention_evidence_search(
+        query="ceasefire oil",
+        tickers=["USO"],
+        commodities=["oil"],
+        event_tags=["geopolitics"],
+        research_scopes=["home_summary"],
+        dates=["2026-03-24"],
+        limit=5,
+    )
+
+    assert resolved.provenance.datasets == ("attention_evidence_chunks",)
+    assert resolved.payload["chunk_id"].tolist() == ["chunk::1"]
+    assert resolved.payload.iloc[0]["mentioned_tickers"] == ["USO", "BNO"]
+    assert resolved.payload.iloc[0]["event_tags"] == ["geopolitics", "supply_chain"]
 
 
 def test_plotly_renderer_handles_filtered_metric_traces():

@@ -137,3 +137,46 @@ This is a curated list of reusable lessons for this repo. Highest-leverage items
 - For agentic research, a bounded page-read tool is useful even before full Playwright provisioning is in every deployed container.
 - Prefer a layered browser helper: use Playwright when available, then fall back to plain HTTP extraction so the feature stays useful instead of failing closed.
 - Keep the planner bias soft. Encourage tools for live analysis prompts, but do not force a fake research loop when retained context is already enough.
+
+## 19. Identity-driven Azure jobs need both deploy-time sync and runtime fallback
+
+- If a job sets `AZURE_CLIENT_ID`, the deploy path must also keep the matching user-assigned identity attached on every update, not only on first create.
+- Shared Azure credential helpers should try the configured managed identity first and then fall back to the default attached managed identity in Azure runtime.
+- Scheduled jobs should fail when required upstream datasets are missing. A green "skip" for required inputs hides stale data and makes incident detection slower.
+- When a deploy script resolves a user-assigned identity by name, also resolve and store its full ARM resource id. Container Apps job create and identity-assign paths need the id, not just the client id or name.
+
+## 20. Knowledge-graph search should return only confident anchors
+
+- A resolver should not force a nearest fuzzy or semantic match when confidence is weak. Returning the wrong anchor is worse than returning none.
+- Search open-ended graph nodes over descriptions and structured context, not only ids and short aliases.
+- For agentic graph building, use the raw query when there is no confident anchor instead of pretending an unrelated node is close enough.
+
+## 21. Keep homepage-summary enrichment in the shared summary layer
+
+- If the homepage summary needs a richer narrative, put the planning, search, evidence extraction, and synthesis in the shared AQL summary service instead of adding job-only formatting logic.
+- Let the materialization job decide between agentic and deterministic paths, then reuse the same audio-attachment step for both.
+- When an agentic summary depends on live search, require real evidence and fall back cleanly instead of letting the summary invent a tape-wide story.
+
+## 22. Authenticated research sources need three layers wired together
+
+- A login-capable helper alone is not enough. The runtime also needs secret resolution and browser packaging in the deployed image.
+- For paid or gated sources, keep credentials in Key Vault and pass only secret names through deploy-time env.
+- If one source should enrich an existing research loop, attach it at the shared page-browsing layer and let downstream claim extraction prefer captured page text over raw search snippets.
+
+## 23. Gated-page success must mean article text, not just HTTP 200
+
+- For anti-bot or paywalled sites, a browser helper should verify the returned content, not just whether navigation succeeded.
+- Treat known challenge pages and preview-only markers as failures, then retry or fall back explicitly.
+- A stealth browser session with persisted cookies can be meaningfully more reliable than generic Playwright, but it still needs content-level checks before the runtime can claim full access.
+
+## 24. Shared research indexes should extend the existing chunk trace, not fork from it
+
+- If multiple AQL paths already materialize `search_results -> source_documents -> evidence_chunks -> claims`, reuse that contract for new searchable evidence features instead of introducing a second corpus.
+- For cost and speed, start with deterministic metadata extraction on the materialized chunk frame before adding embeddings or a vector store.
+- Homepage-summary research is still research. If it searches the web and opens pages, that evidence should be merged into the same trace frames as symbol and event research.
+
+## 25. Local pipeline caches need hard bounds and must stay out of git
+
+- `cache/pipeline_store` is a convenience layer, not a durable store. Keep blob storage and dataset manifests as the source of truth.
+- A read-through cache in a long-lived container should prune itself after writes; otherwise harmless dataset reads slowly turn into disk pressure.
+- If runtime cache artifacts are useful locally but not canonical, ignore them in git and keep only a placeholder `.gitignore` in the directory.

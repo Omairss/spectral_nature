@@ -161,6 +161,16 @@ def _resolve_daily_movers(data_access: Any, params: dict[str, Any]) -> ResolvedP
     )
 
 
+def _resolve_event_significance(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
+    return data_access.resolve_event_significance(
+        event_date=_text(params, "event_date"),
+        symbols=list(_optional_list(params, "symbols") or []),
+        pre_window_days=_int_value(params, "pre_window_days", 60),
+        post_window_days=_int_value(params, "post_window_days", 30),
+        force_refresh=_force_refresh(params),
+    )
+
+
 def _resolve_momentum_profiles(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
     return data_access.resolve_momentum_profiles(
         days=_int_value(params, "days", 180),
@@ -268,6 +278,24 @@ def _resolve_attention_research_bundle(data_access: Any, params: dict[str, Any])
 def _resolve_attention_run_trace(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
     return data_access.resolve_attention_run_trace(
         _text(params, "run_id"),
+        force_refresh=_force_refresh(params),
+    )
+
+
+def _resolve_attention_evidence_search(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
+    return data_access.resolve_attention_evidence_search(
+        query=_text(params, "query"),
+        tickers=_optional_list(params, "tickers"),
+        commodities=_optional_list(params, "commodities"),
+        event_tags=_optional_list(params, "event_tags"),
+        dates=_optional_list(params, "dates"),
+        start_date=_optional_text(params, "start_date"),
+        end_date=_optional_text(params, "end_date"),
+        source_kinds=_optional_list(params, "source_kinds"),
+        providers=_optional_list(params, "providers"),
+        research_scopes=_optional_list(params, "research_scopes"),
+        run_id=_optional_text(params, "run_id"),
+        limit=_int_value(params, "limit", 20),
         force_refresh=_force_refresh(params),
     )
 
@@ -593,6 +621,17 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         resolution="materialized_first",
         handler=_resolve_daily_movers,
     ),
+    "event_significance": DatasetSpec(
+        params=(
+            param("event_date", "string", required=True, description="Event start date YYYY-MM-DD"),
+            param("symbols", "array", required=True, items_type="string", description="Tickers to evaluate"),
+            param("pre_window_days", "integer", description="Estimation window length in days before event (default 60)"),
+            param("post_window_days", "integer", description="Event window length in days after event (default 30)"),
+            param("force_refresh", "boolean"),
+        ),
+        resolution="live_computed",
+        handler=_resolve_event_significance,
+    ),
     "momentum_profiles": DatasetSpec(
         params=(
             param("days", "integer"),
@@ -695,6 +734,25 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         params=(param("run_id", "string", required=True), param("force_refresh", "boolean")),
         resolution="materialized",
         handler=_resolve_attention_run_trace,
+    ),
+    "attention_evidence_search": DatasetSpec(
+        params=(
+            param("query", "string"),
+            param("tickers", "array", items_type="string"),
+            param("commodities", "array", items_type="string"),
+            param("event_tags", "array", items_type="string"),
+            param("dates", "array", items_type="string"),
+            param("start_date", "string"),
+            param("end_date", "string"),
+            param("source_kinds", "array", items_type="string"),
+            param("providers", "array", items_type="string"),
+            param("research_scopes", "array", items_type="string"),
+            param("run_id", "string"),
+            param("limit", "integer"),
+            param("force_refresh", "boolean"),
+        ),
+        resolution="materialized",
+        handler=_resolve_attention_evidence_search,
     ),
     "option_chain": DatasetSpec(
         params=(

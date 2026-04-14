@@ -291,3 +291,87 @@ Never repeat:
 1. Ship the smallest reliable research improvement first, then harden the runtime later.
 2. Treat Playwright as a preferred deep-read layer, not a blocker for basic page extraction.
 3. When the product wants soft bias instead of hard requirements, implement that policy in the planner prompt and answer contract instead of in rigid gates.
+
+## 19. Let deployment env and attached job identity drift apart
+
+What went wrong:
+
+- I updated pipeline job env to point at a different managed identity client id, but the deployment update path did not reattach that identity on existing Azure Container App jobs.
+- The shared Azure credential path also assumed the configured managed identity would always be valid for the running container.
+- The attention job then treated missing required inputs as a skip, which hid the real failure behind a green job run and a stale homepage.
+
+Never repeat:
+
+1. Treat identity attachment as part of the normal update path, not just the create path.
+2. In Azure runtime, prefer a managed-identity chain that can fall back to the attached default identity when one configured client id is stale.
+3. If a scheduled job cannot load required source datasets, fail the run instead of skipping and leaving stale materialized outputs behind.
+
+## 20. Let weak resolver scores pretend they were real graph anchors
+
+What went wrong:
+
+- The knowledge-graph resolver allowed low-quality fuzzy matches from short aliases and generic string similarity.
+- That made unrelated nodes look like valid anchors for open-ended queries such as `fertilizer`.
+- The UI then presented those weak matches without enough execution-state feedback, which made the system look more hardcoded and less trustworthy than it was.
+
+Never repeat:
+
+1. Gate resolver output by confidence and return no anchor when the score is weak.
+2. Search rich node context such as descriptions and structured attributes before relying on generic string similarity.
+3. For long-running graph builders, expose the actual backend stages so users can tell whether the system is scanning the graph, researching, or calling the LLM.
+
+## 21. Treated optional browser code as if it meant deployed browser support
+
+What went wrong:
+
+- The repo already had Playwright-based helpers, but the shared app and pipeline images did not install Playwright or Chromium.
+- That made it too easy to overestimate what the deployed runtime could really do against gated sources such as Seeking Alpha.
+- Browser-authenticated research needs packaging, secret lookup, and runtime env wiring together.
+
+Never repeat:
+
+1. When adding a browser-backed feature to shared services, check the Dockerfiles and runtime dependencies before assuming the code path is live.
+2. Keep secret values in Key Vault and pass only secret names through deploy config.
+3. For authenticated page enrichment, wire the source at the shared browsing layer so every caller gets the same fallback behavior.
+
+## 22. Counted a loaded page as if it were full gated-content access
+
+What went wrong:
+
+- I initially treated “browser opened the page” as equivalent to “the runtime can access the article.”
+- Seeking Alpha was still returning an anti-bot page or preview shell in that path, so the helper looked healthy while the actual content was still blocked.
+- That would have let the summary loop enrich results with weak or wrong page text.
+
+Never repeat:
+
+1. For gated sources, verify the returned text contains real article signals and does not contain known challenge or preview markers.
+2. Run at least one live probe through the exact shared helper before claiming the runtime path works.
+3. Keep anti-bot handling, login, and content validation in the same source helper so callers do not each invent their own success rules.
+
+## 23. Let homepage-summary research live outside the shared evidence trace
+
+What went wrong:
+
+- The agentic homepage summary had its own search loop, but its requests, results, source documents, chunks, and claims were not being persisted into the main AQL trace datasets.
+- That meant a meaningful slice of external evidence was invisible to later search, debugging, and agent retrieval even though the system had already paid to collect it.
+- It also pushed the codebase toward parallel evidence paths instead of one shared corpus.
+
+Never repeat:
+
+1. If a workflow gathers external evidence, route it into the shared `search_results -> source_documents -> evidence_chunks -> claims` contract.
+2. Keep derived summaries lean, but persist the underlying trace separately so humans and agents can inspect it later.
+3. Before adding a new retrieval surface, check whether the real gap is missing metadata and missing persistence on the existing materialized chunk store.
+
+## 24. Let runtime cache artifacts behave like source files
+
+What went wrong:
+
+- `cache/pipeline_store` artifacts were allowed to accumulate in the repo and in local runtime storage as if they were durable project assets.
+- That created noisy git state and let local cache growth depend on how many different datasets a container happened to touch.
+- The cache had no shared size guardrail, so there was nothing stopping slow disk creep in long-lived containers.
+
+Never repeat:
+
+1. Ignore runtime cache artifacts in git unless there is a very explicit reason to version them.
+2. Put cache caps and pruning in the shared cache helper, not in one-off cleanup scripts.
+3. Treat blob/object storage plus manifests as the durable layer; local cache should always be disposable.

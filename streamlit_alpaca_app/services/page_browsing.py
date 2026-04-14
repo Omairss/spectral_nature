@@ -8,6 +8,8 @@ from urllib.parse import urlparse
 
 import requests
 
+from .seeking_alpha_access import browse_seeking_alpha_page, is_seeking_alpha_url
+
 
 DEFAULT_PAGE_TIMEOUT_SECONDS = 12
 DEFAULT_MAX_TEXT_CHARS = 5000
@@ -246,6 +248,18 @@ def browse_page(
     safe_timeout = max(int(timeout_seconds), 1)
     safe_max_chars = max(int(max_text_chars), 500)
     fallback_warning = ""
+
+    if prefer_browser and is_seeking_alpha_url(normalized_url):
+        try:
+            return _run_async(
+                browse_seeking_alpha_page(
+                    normalized_url,
+                    timeout_seconds=safe_timeout,
+                    max_text_chars=safe_max_chars,
+                )
+            )
+        except Exception as exc:
+            fallback_warning = _trim(str(exc), limit=220)
 
     if prefer_browser:
         try:

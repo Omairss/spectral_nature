@@ -295,6 +295,7 @@ ATTENTION_SENSITIVITY_ORDER = list(_ATTENTION_UI_POLICY.sensitivity_order)
 
 _AUTH_COOKIE_NAME = "spectral_nature_ui_session"
 _AUTH_COOKIE_TTL_SECONDS = 7 * 24 * 60 * 60
+_AUTH_COOKIE_REMEMBER_ME_TTL_SECONDS = 30 * 24 * 60 * 60
 APP_BRAND_NAME = "Spectral Nature"
 APP_BRAND_KICKER = "Torres Capital"
 APP_BRAND_SUBTITLE = "Research, portfolio context, and market structure in one refined workspace."
@@ -1882,7 +1883,6 @@ _load_fred_dashboard_cached = dashboard_loaders._load_fred_dashboard_cached
 _load_attention_feed_cached = dashboard_loaders._load_attention_feed_cached
 _load_attention_rollups_cached = dashboard_loaders._load_attention_rollups_cached
 _load_attention_feed_brief_cached = dashboard_loaders._load_attention_feed_brief_cached
-_load_homepage_v2_digest_cached = dashboard_loaders._load_homepage_v2_digest_cached
 
 _attention_event_key = attention_content._attention_event_key
 _clean_attention_copy = attention_content._clean_attention_copy
@@ -2231,40 +2231,41 @@ def _render_auth_persistence_notice() -> None:
     st.caption(auth_service.browser_session_persistence_message())
 
 
-def _render_auth_cookie_sync(action: str, value: str = "") -> None:
+def _render_auth_cookie_sync(action: str, value: str = "", persistent: bool = True) -> None:
     if action != "clear" and not _browser_session_cookie_enabled():
         return
     cookie_name = json.dumps(_AUTH_COOKIE_NAME)
     cookie_value = json.dumps(value)
+    doc_setup = (
+        "const docs = [document];"
+        "try { if (window.parent?.document) docs.push(window.parent.document); } catch (e) {}"
+        "try { if (window.top?.document) docs.push(window.top.document); } catch (e) {}"
+        "const seen = new Set();"
+        "const uniqueDocs = docs.filter((doc) => { if (!doc || seen.has(doc)) return false; seen.add(doc); return true; });"
+        "const secureAttr = (() => {"
+        "  try { return (window.top?.location?.protocol || window.parent?.location?.protocol || window.location.protocol) === 'https:' ? '; Secure' : ''; }"
+        "  catch (e) { return window.location.protocol === 'https:' ? '; Secure' : ''; }"
+        "})();"
+    )
     if action == "clear":
         cookie_script = (
-            "const docs = [document];"
-            "try { if (window.parent?.document) docs.push(window.parent.document); } catch (e) {}"
-            "try { if (window.top?.document) docs.push(window.top.document); } catch (e) {}"
-            "const seen = new Set();"
-            "const uniqueDocs = docs.filter((doc) => { if (!doc || seen.has(doc)) return false; seen.add(doc); return true; });"
-            "const secureAttr = (() => {"
-            "  try { return (window.top?.location?.protocol || window.parent?.location?.protocol || window.location.protocol) === 'https:' ? '; Secure' : ''; }"
-            "  catch (e) { return window.location.protocol === 'https:' ? '; Secure' : ''; }"
-            "})();"
-            f"const cookieStr = {cookie_name} + '=; Max-Age=0; path=/; SameSite=Lax' + secureAttr;"
-            "uniqueDocs.forEach((doc) => { try { doc.cookie = cookieStr; } catch (e) {} });"
+            doc_setup
+            + f"const cookieStr = {cookie_name} + '=; Max-Age=0; path=/; SameSite=Lax' + secureAttr;"
+            + "uniqueDocs.forEach((doc) => { try { doc.cookie = cookieStr; } catch (e) {} });"
+        )
+    elif persistent:
+        cookie_script = (
+            f"const maxAge = {_AUTH_COOKIE_REMEMBER_ME_TTL_SECONDS};"
+            + doc_setup
+            + f"const cookieStr = {cookie_name} + '=' + encodeURIComponent({cookie_value}) + '; Max-Age=' + maxAge + '; path=/; SameSite=Lax' + secureAttr;"
+            + "uniqueDocs.forEach((doc) => { try { doc.cookie = cookieStr; } catch (e) {} });"
         )
     else:
+        # Session cookie: no Max-Age, cleared when the browser closes
         cookie_script = (
-            "const maxAge = "
-            f"{_AUTH_COOKIE_TTL_SECONDS};"
-            "const docs = [document];"
-            "try { if (window.parent?.document) docs.push(window.parent.document); } catch (e) {}"
-            "try { if (window.top?.document) docs.push(window.top.document); } catch (e) {}"
-            "const seen = new Set();"
-            "const uniqueDocs = docs.filter((doc) => { if (!doc || seen.has(doc)) return false; seen.add(doc); return true; });"
-            "const secureAttr = (() => {"
-            "  try { return (window.top?.location?.protocol || window.parent?.location?.protocol || window.location.protocol) === 'https:' ? '; Secure' : ''; }"
-            "  catch (e) { return window.location.protocol === 'https:' ? '; Secure' : ''; }"
-            "})();"
-            f"const cookieStr = {cookie_name} + '=' + encodeURIComponent({cookie_value}) + '; Max-Age=' + maxAge + '; path=/; SameSite=Lax' + secureAttr;"
-            "uniqueDocs.forEach((doc) => { try { doc.cookie = cookieStr; } catch (e) {} });"
+            doc_setup
+            + f"const cookieStr = {cookie_name} + '=' + encodeURIComponent({cookie_value}) + '; path=/; SameSite=Lax' + secureAttr;"
+            + "uniqueDocs.forEach((doc) => { try { doc.cookie = cookieStr; } catch (e) {} });"
         )
     components_html(f"<script>{cookie_script}</script>", height=0)
 
@@ -2431,6 +2432,7 @@ def _render_database_login_gate() -> None:
         with st.form("dashboard_login_db", clear_on_submit=False):
             email = st.text_input("Email")
             password = st.text_input("Password", type="password")
+            remember_me = st.checkbox("Remember me", value=True)
             submitted = st.form_submit_button("Login", type="primary")
         if submitted:
             result = auth_service.authenticate_user(
@@ -2438,6 +2440,7 @@ def _render_database_login_gate() -> None:
                 password=password,
                 user_agent=_request_user_agent(),
                 ip_address=_request_ip_address(),
+                remember_me=remember_me,
             )
             if result.get("ok"):
                 context = result.get("context")
@@ -2447,7 +2450,7 @@ def _render_database_login_gate() -> None:
                     st.session_state["_ui_auth_session_id"] = session_token
                     st.session_state["_ui_auth_mode"] = "database"
                     _store_user_context(context)
-                    _render_auth_cookie_sync("set", session_token)
+                    _render_auth_cookie_sync("set", session_token, persistent=remember_me)
                     st.rerun()
             else:
                 st.error(str(result.get("message") or "Login failed."))
@@ -2486,7 +2489,7 @@ def _render_database_login_gate() -> None:
                         st.session_state["_ui_auth_session_id"] = session_token
                         st.session_state["_ui_auth_mode"] = "database"
                         _store_user_context(context)
-                        _render_auth_cookie_sync("set", session_token)
+                        _render_auth_cookie_sync("set", session_token, persistent=True)
                         st.success("Account created. Loading your workspace...")
                         st.rerun()
                 else:
@@ -6168,11 +6171,6 @@ def _render_attention_summary_async_audio_fallback(
                 _ATTENTION_SUMMARY_AUDIO_FUTURES.pop(task_key, None)
             st.rerun()
 
-        with st.container(border=True):
-            st.markdown("#### Narration")
-            st.caption("Generating narration in the background. This snapshot did not include prebuilt audio yet.")
-            st.markdown("**Preparing audio feed...**")
-
     _audio_fragment()
 
 
@@ -6188,11 +6186,6 @@ def _render_attention_home_summary_card(
         summary_payload = build_attention_home_summary_payload(home_payload)
     summary_text = str(summary_payload.get("summary_text") or "").strip()
     audio_text = str(summary_payload.get("audio_text") or summary_text).strip()
-    featured_symbols = [
-        str(symbol).upper().strip()
-        for symbol in list(summary_payload.get("featured_symbols") or [])
-        if str(symbol).strip()
-    ]
     elevenlabs_cfg = load_elevenlabs_tts_config()
     preloaded_audio_bytes = _try_decode_attention_summary_audio(summary_payload)
     async_task_key = ""
@@ -6219,23 +6212,8 @@ def _render_attention_home_summary_card(
                 async_audio_bytes = b""
 
     with st.container(border=True):
-        header_cols = st.columns([4.8, 1.2, 1.2, 1.2])
-        with header_cols[0]:
-            st.markdown(f"##### {title}")
-            meta = [item for item in [snapshot_label, f"{len(featured_symbols)} symbols" if featured_symbols else ""] if item]
-            if meta:
-                st.caption(" | ".join(meta))
-        with header_cols[1]:
-            st.metric("Events", str(summary_payload.get("event_count") or 0))
-        with header_cols[2]:
-            st.metric("Movers", str(summary_payload.get("must_read_count") or 0))
-        with header_cols[3]:
-            st.metric("Unresolved", str(summary_payload.get("unresolved_count") or 0))
-
         if summary_text:
             st.markdown(summary_text)
-        if featured_symbols:
-            st.caption(f"Key symbols: {', '.join(featured_symbols[:10])}")
 
         if not audio_text:
             return
@@ -6254,13 +6232,8 @@ def _render_attention_home_summary_card(
             )
             return
         if not elevenlabs_cfg:
-            st.caption(
-                "Set Key Vault secrets `elevenlabs-api-key` and `elevenlabs-voice-id`, "
-                "or local-only `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID`, to enable narration."
-            )
             return
         if async_audio_error:
-            st.warning(async_audio_error)
             return
 
         _render_attention_summary_async_audio_fallback(
@@ -6978,6 +6951,94 @@ def _render_experiment_placeholder_page(
             return "admin"
         return str(current_user.email or current_user.user_id or current_user.label or "admin").strip() or "admin"
 
+    def _run_knowledge_graph_search(query_text: str, graph_snapshot: dict[str, object]) -> list[dict[str, object]]:
+        stage_labels = {
+            "resolve_scan": "Scanning ids, aliases, and descriptions in the current graph.",
+            "resolve_semantic": "Checking semantic similarity across existing nodes.",
+            "resolve_done": "Finished scanning the current graph.",
+        }
+        status_box = st.status("Finding existing anchors", expanded=True)
+
+        def _status_callback(stage: str, detail: str) -> None:
+            message = str(detail or stage_labels.get(stage) or stage.replace("_", " ").title()).strip()
+            if message:
+                status_box.write(message)
+
+        try:
+            matches = search_knowledge_graph_nodes(
+                query_text,
+                snapshot=graph_snapshot,
+                status_callback=_status_callback,
+            )
+        except Exception as exc:
+            status_box.update(label="Existing anchor scan failed", state="error", expanded=True)
+            status_box.write(f"{type(exc).__name__}: {exc}")
+            return []
+
+        if matches:
+            status_box.update(
+                label=f"Found {len(matches)} existing anchor(s)",
+                state="complete",
+                expanded=False,
+            )
+        else:
+            status_box.update(
+                label="No confident existing anchors found",
+                state="complete",
+                expanded=False,
+            )
+        return matches
+
+    def _run_knowledge_graph_builder(
+        query_text: str,
+        *,
+        graph_snapshot: dict[str, object],
+        selected_ids: list[str],
+        include_agentic: bool,
+    ) -> dict[str, object] | None:
+        stage_labels = {
+            "draft_search": "Finding existing anchors for the query.",
+            "draft_neighborhood": "Loading the nearby neighborhood from the committed graph.",
+            "research": "Collecting optional external research context.",
+            "llm": "Asking the LLM for proposed nodes and edges.",
+            "llm_error": "LLM expansion failed. Keeping the local draft only.",
+            "agent_unavailable": "LLM runtime is unavailable. Keeping the local draft only.",
+            "draft_done": "Draft graph is ready.",
+        }
+        status_box = st.status("Running graph builder", expanded=True)
+
+        def _status_callback(stage: str, detail: str) -> None:
+            message = str(detail or stage_labels.get(stage) or stage.replace("_", " ").title()).strip()
+            if message:
+                status_box.write(message)
+
+        try:
+            draft_payload = build_knowledge_graph_draft(
+                query_text,
+                selected_node_ids=selected_ids,
+                include_agentic_expansion=include_agentic,
+                snapshot=graph_snapshot,
+                status_callback=_status_callback,
+            )
+        except Exception as exc:
+            status_box.update(label="Graph builder failed", state="error", expanded=True)
+            status_box.write(f"{type(exc).__name__}: {exc}")
+            return None
+
+        limitation_lines = [
+            str(item).strip()
+            for item in list(draft_payload.get("limitations") or [])
+            if str(item).strip()
+        ]
+        if limitation_lines:
+            status_box.write("Limits: " + " | ".join(limitation_lines[:3]))
+        status_box.update(
+            label=f"Draft ready: {len(list(draft_payload.get('nodes') or []))} nodes, {len(list(draft_payload.get('edges') or []))} edges",
+            state="complete",
+            expanded=False,
+        )
+        return draft_payload
+
     snapshot = load_knowledge_graph_snapshot()
     runtime_status = knowledge_graph_runtime_status()
 
@@ -7035,21 +7096,24 @@ def _render_experiment_placeholder_page(
         key="knowledge_graph_include_agentic",
     )
     resolve_clicked = control_cols[1].button(
-        "Resolve Query",
+        "Find Existing Anchors",
         key="knowledge_graph_resolve_query",
         use_container_width=True,
         disabled=not normalized_query,
     )
     generate_clicked = control_cols[2].button(
-        "Generate Draft Graph",
+        "Run Graph Builder",
         key="knowledge_graph_generate_draft",
         use_container_width=True,
         type="primary",
         disabled=not normalized_query,
     )
+    st.caption(
+        "Find Existing Anchors only scans the current knowledge graph. Run Graph Builder also expands a reviewable draft from those anchors and the raw query."
+    )
 
     if resolve_clicked and normalized_query:
-        matches = search_knowledge_graph_nodes(normalized_query, snapshot=snapshot)
+        matches = _run_knowledge_graph_search(normalized_query, snapshot)
         st.session_state["_knowledge_graph_matches"] = matches
         st.session_state["_knowledge_graph_resolved_query"] = normalized_query
         st.session_state["knowledge_graph_selected_node_ids"] = default_seed_node_ids_from_matches(matches)
@@ -7061,14 +7125,15 @@ def _render_experiment_placeholder_page(
     matches = list(st.session_state.get("_knowledge_graph_matches") or []) if resolved_query == normalized_query else []
 
     if matches:
-        st.subheader("Closest Existing Nodes")
+        st.subheader("Existing Anchors")
         match_frame = pd.DataFrame(
             [
                 {
                     "node_id": str(item.get("node_id") or ""),
                     "label": str(item.get("canonical_label") or ""),
                     "type": str(item.get("node_type") or ""),
-                    "matched_alias": str(item.get("matched_alias") or ""),
+                    "match_source": str(item.get("match_source") or ""),
+                    "matched_on": str(item.get("matched_alias") or ""),
                     "score": float(item.get("score") or 0.0),
                 }
                 for item in matches
@@ -7101,26 +7166,27 @@ def _render_experiment_placeholder_page(
             help="These seed nodes anchor the local neighborhood before agent suggestions are added.",
         )
     elif normalized_query and resolved_query == normalized_query:
-        st.info("No close committed nodes were found. You can still generate a draft directly from the raw query.")
+        st.info("No confident existing anchors were found. You can still run the graph builder directly from the raw query.")
 
     if generate_clicked and normalized_query:
-        draft = build_knowledge_graph_draft(
+        draft = _run_knowledge_graph_builder(
             normalized_query,
-            selected_node_ids=list(st.session_state.get("knowledge_graph_selected_node_ids") or []),
-            include_agentic_expansion=bool(include_agentic_expansion),
-            snapshot=snapshot,
+            graph_snapshot=snapshot,
+            selected_ids=list(st.session_state.get("knowledge_graph_selected_node_ids") or []),
+            include_agentic=bool(include_agentic_expansion),
         )
-        st.session_state["_knowledge_graph_matches"] = list(draft.get("seed_matches") or [])
-        st.session_state["_knowledge_graph_resolved_query"] = normalized_query
-        if not list(st.session_state.get("knowledge_graph_selected_node_ids") or []):
-            st.session_state["knowledge_graph_selected_node_ids"] = default_seed_node_ids_from_matches(
-                list(draft.get("seed_matches") or [])
-            )
-        st.session_state["_knowledge_graph_draft"] = draft
-        st.session_state["_knowledge_graph_draft_query"] = normalized_query
-        st.session_state["_knowledge_graph_draft_key"] = hashlib.sha1(
-            json.dumps(draft, sort_keys=True, default=str).encode("utf-8")
-        ).hexdigest()[:12]
+        if isinstance(draft, dict):
+            st.session_state["_knowledge_graph_matches"] = list(draft.get("seed_matches") or [])
+            st.session_state["_knowledge_graph_resolved_query"] = normalized_query
+            if not list(st.session_state.get("knowledge_graph_selected_node_ids") or []):
+                st.session_state["knowledge_graph_selected_node_ids"] = default_seed_node_ids_from_matches(
+                    list(draft.get("seed_matches") or [])
+                )
+            st.session_state["_knowledge_graph_draft"] = draft
+            st.session_state["_knowledge_graph_draft_query"] = normalized_query
+            st.session_state["_knowledge_graph_draft_key"] = hashlib.sha1(
+                json.dumps(draft, sort_keys=True, default=str).encode("utf-8")
+            ).hexdigest()[:12]
 
     draft = st.session_state.get("_knowledge_graph_draft")
     draft_query = str(st.session_state.get("_knowledge_graph_draft_query") or "").strip()

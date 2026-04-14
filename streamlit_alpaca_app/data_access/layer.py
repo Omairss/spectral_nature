@@ -51,7 +51,8 @@ from services.data_cache import (
 from services.edgar import EdgarClient
 from services.fred import load_fred_api_key, load_fred_dashboard
 from services.llm import load_embedding_client, load_llm_client
-from services.market import load_price_history, scan_commodity_regimes, scan_correlation_phase_shifts, scan_daily_movers, scan_momentum_profiles
+from services.aql.evidence_index import parse_json_list
+from services.market import load_price_history, scan_commodity_regimes, scan_correlation_phase_shifts, scan_daily_movers, scan_event_significance, scan_momentum_profiles
 from services.options import analyze_option_candidates, load_option_chain, load_option_surface, select_option_surface_window
 from services.pipeline_store import latest_job_status_table, load_latest_dataset_frame, pipeline_store_configured, start_source_refresh_job
 from services.treasury_yields import TreasuryYieldError, load_treasury_yield_curve
@@ -137,6 +138,49 @@ def _coerce_bool_or_none(value: object) -> bool | None:
     if lowered in {"false", "0", "no"}:
         return False
     return None
+
+
+def _query_tokens(value: object) -> list[str]:
+    tokens = [token for token in re.split(r"[^a-z0-9]+", _coerce_text(value).lower()) if len(token) >= 2]
+    return _dedupe_text_items(tokens)
+
+
+def _key_contains_any(value: object, targets: list[str]) -> bool:
+    haystack = _coerce_text(value)
+    if not haystack or not targets:
+        return False
+    return any(f"|{target}|" in haystack for target in targets)
+
+
+def _dates_match_filters(
+    row: pd.Series,
+    *,
+    exact_dates: list[str],
+    start_date: pd.Timestamp | None,
+    end_date: pd.Timestamp | None,
+) -> bool:
+    candidates = parse_json_list(row.get("mentioned_dates_json"))
+    published_date = _coerce_text(row.get("published_date"))
+    primary_date = _coerce_text(row.get("primary_date"))
+    if published_date:
+        candidates.append(published_date)
+    if primary_date:
+        candidates.append(primary_date)
+    candidates = _dedupe_text_items(candidates)
+    if exact_dates and not any(item in exact_dates for item in candidates):
+        return False
+    if start_date is None and end_date is None:
+        return True
+    for value in candidates:
+        parsed = pd.to_datetime(value, utc=True, errors="coerce")
+        if pd.isna(parsed):
+            continue
+        if start_date is not None and parsed < start_date:
+            continue
+        if end_date is not None and parsed > end_date:
+            continue
+        return True
+    return False
 
 
 def _is_relevant_bundle_news_item(item: dict[str, Any] | None) -> bool:
@@ -1505,6 +1549,37 @@ class DataAccessLayer:
         )
         return self._resolved(frame, mode="on_demand", datasets=("daily_movers",), details={"symbols": sorted(universe)})
 
+    def resolve_event_significance(
+        self,
+        *,
+        event_date: str,
+        symbols: list[str],
+        pre_window_days: int = 60,
+        post_window_days: int = 30,
+        force_refresh: bool = False,
+    ) -> ResolvedPayload:
+        clean_symbols = sorted({str(s).upper().strip() for s in symbols if str(s).strip()})
+        symbol_scope = dataset_scope("event-sig", ",".join(clean_symbols) + f"_{event_date}_{pre_window_days}_{post_window_days}")
+        cache_key = f"{_alpaca_cache_scope(self.cfg)}__{symbol_scope}" if self.cfg is not None else f"missing-config__{symbol_scope}"
+        frame = cached_frame(
+            "event_significance",
+            cache_key,
+            lambda: scan_event_significance(
+                _make_api(self.cfg),
+                event_date=event_date,
+                symbols=clean_symbols,
+                pre_window_days=pre_window_days,
+                post_window_days=post_window_days,
+            ),
+            force_refresh=force_refresh,
+        )
+        return self._resolved(
+            frame,
+            mode="on_demand",
+            datasets=("event_significance",),
+            details={"event_date": event_date, "symbols": clean_symbols, "pre_window_days": pre_window_days, "post_window_days": post_window_days},
+        )
+
     def resolve_momentum_profiles(self, *, days: int = 180, symbols: list[str] | None = None, force_refresh: bool = False) -> ResolvedPayload:
         requested_symbols = sorted({str(symbol).upper().strip() for symbol in (symbols or []) if str(symbol).strip()})
         materialized = self._try_pipeline_frame("momentum_profiles", force_refresh=force_refresh)
@@ -2563,6 +2638,166 @@ class DataAccessLayer:
                 "rows": scoped.head(50).to_dict(orient="records"),
             }
         return self._resolved(trace, mode="materialized", datasets=ATTENTION_TRACE_DATASETS, details={"run_id": normalized_run_id, "frames": details})
+
+    def resolve_attention_evidence_search(
+        self,
+        *,
+        query: str = "",
+        tickers: list[str] | None = None,
+        commodities: list[str] | None = None,
+        event_tags: list[str] | None = None,
+        dates: list[str] | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        source_kinds: list[str] | None = None,
+        providers: list[str] | None = None,
+        research_scopes: list[str] | None = None,
+        run_id: str | None = None,
+        limit: int = 20,
+        force_refresh: bool = False,
+    ) -> ResolvedPayload:
+        materialized = self._try_pipeline_frame("attention_evidence_chunks", force_refresh=force_refresh)
+        if materialized is None:
+            return self._resolved(
+                pd.DataFrame(),
+                mode="materialized" if self.materialized_only else "on_demand",
+                datasets=("attention_evidence_chunks",),
+                details={"warning": "attention_evidence_chunks unavailable"},
+            )
+
+        frame, details = materialized
+        if frame.empty:
+            return self._resolved(
+                frame.reset_index(drop=True),
+                mode="materialized",
+                datasets=("attention_evidence_chunks",),
+                details={**details, "filters": {"query": _coerce_text(query)}},
+            )
+
+        out = frame.copy()
+        for column in (
+            "bundle_subject",
+            "title",
+            "display_excerpt",
+            "chunk_text",
+            "source_kind",
+            "source_provider",
+            "search_provider",
+            "research_scope",
+            "mentioned_tickers_key",
+            "mentioned_commodities_key",
+            "event_tags_key",
+        ):
+            if column not in out.columns:
+                out[column] = ""
+
+        exact_dates = _dedupe_text_items([_coerce_text(value) for value in list(dates or []) if _coerce_text(value)])
+        parsed_start = pd.to_datetime(start_date, utc=True, errors="coerce") if _coerce_text(start_date) else pd.NaT
+        parsed_end = pd.to_datetime(end_date, utc=True, errors="coerce") if _coerce_text(end_date) else pd.NaT
+        parsed_start = None if pd.isna(parsed_start) else parsed_start
+        parsed_end = None if pd.isna(parsed_end) else parsed_end
+
+        normalized_run_id = _coerce_text(run_id)
+        if normalized_run_id and "run_id" in out.columns:
+            out = out[out["run_id"].astype(str) == normalized_run_id].copy()
+
+        normalized_scopes = [_coerce_text(value).lower() for value in list(research_scopes or []) if _coerce_text(value)]
+        if normalized_scopes:
+            out = out[out["research_scope"].astype(str).str.lower().isin(set(normalized_scopes))].copy()
+
+        normalized_source_kinds = [_coerce_text(value).lower() for value in list(source_kinds or []) if _coerce_text(value)]
+        if normalized_source_kinds:
+            out = out[out["source_kind"].astype(str).str.lower().isin(set(normalized_source_kinds))].copy()
+
+        normalized_providers = [_coerce_text(value).lower() for value in list(providers or []) if _coerce_text(value)]
+        if normalized_providers:
+            provider_series = out["source_provider"].astype(str).str.lower()
+            search_provider_series = out["search_provider"].astype(str).str.lower()
+            out = out[provider_series.isin(set(normalized_providers)) | search_provider_series.isin(set(normalized_providers))].copy()
+
+        normalized_tickers = [_coerce_text(value).upper() for value in list(tickers or []) if _coerce_text(value)]
+        if normalized_tickers:
+            out = out[
+                out["bundle_subject"].astype(str).str.upper().isin(set(normalized_tickers))
+                | out["mentioned_tickers_key"].map(lambda value: _key_contains_any(value, normalized_tickers))
+            ].copy()
+
+        normalized_commodities = [_coerce_text(value).lower() for value in list(commodities or []) if _coerce_text(value)]
+        if normalized_commodities:
+            out = out[out["mentioned_commodities_key"].map(lambda value: _key_contains_any(str(value).lower(), normalized_commodities))].copy()
+
+        normalized_event_tags = [_coerce_text(value).lower() for value in list(event_tags or []) if _coerce_text(value)]
+        if normalized_event_tags:
+            out = out[out["event_tags_key"].map(lambda value: _key_contains_any(str(value).lower(), normalized_event_tags))].copy()
+
+        if exact_dates or parsed_start is not None or parsed_end is not None:
+            out = out[out.apply(lambda row: _dates_match_filters(row, exact_dates=exact_dates, start_date=parsed_start, end_date=parsed_end), axis=1)].copy()
+
+        query_text = _coerce_text(query)
+        query_tokens = _query_tokens(query_text)
+        out["search_score"] = 0.0
+        if query_tokens:
+            out["_search_blob"] = (
+                out["title"].astype(str)
+                + " "
+                + out["display_excerpt"].astype(str)
+                + " "
+                + out["chunk_text"].astype(str)
+            ).str.lower()
+            token_scores = sum(out["_search_blob"].str.contains(token, regex=False).astype(int) for token in query_tokens)
+            phrase_bonus = out["_search_blob"].str.contains(query_text.lower(), regex=False).astype(int) * 4
+            out["search_score"] = out["search_score"] + token_scores.astype(float) * 6.0 + phrase_bonus.astype(float)
+            out = out[(token_scores + phrase_bonus) > 0].copy()
+
+        if normalized_tickers:
+            out["search_score"] = (
+                out["search_score"]
+                + out["bundle_subject"].astype(str).str.upper().isin(set(normalized_tickers)).astype(float) * 8.0
+                + out["mentioned_tickers_key"].map(lambda value: 4.0 if _key_contains_any(value, normalized_tickers) else 0.0)
+            )
+        if normalized_commodities:
+            out["search_score"] = out["search_score"] + out["mentioned_commodities_key"].map(lambda value: 3.0 if _key_contains_any(str(value).lower(), normalized_commodities) else 0.0)
+        if normalized_event_tags:
+            out["search_score"] = out["search_score"] + out["event_tags_key"].map(lambda value: 3.0 if _key_contains_any(str(value).lower(), normalized_event_tags) else 0.0)
+
+        out["search_score"] = out["search_score"] + (4 - pd.to_numeric(out.get("authority_rank"), errors="coerce").fillna(3)).clip(lower=0, upper=4)
+        out["published_at"] = pd.to_datetime(out.get("published_at"), utc=True, errors="coerce")
+        out = out.sort_values(
+            by=["search_score", "published_at", "authority_rank"],
+            ascending=[False, False, True],
+            na_position="last",
+        ).head(max(int(limit), 1)).reset_index(drop=True)
+
+        out["mentioned_tickers"] = out.get("mentioned_tickers_json", pd.Series(dtype=object)).map(parse_json_list)
+        out["mentioned_commodities"] = out.get("mentioned_commodities_json", pd.Series(dtype=object)).map(parse_json_list)
+        out["event_tags"] = out.get("event_tags_json", pd.Series(dtype=object)).map(parse_json_list)
+        out["mentioned_dates"] = out.get("mentioned_dates_json", pd.Series(dtype=object)).map(parse_json_list)
+        drop_columns = [column for column in ("mentioned_tickers_key", "mentioned_commodities_key", "event_tags_key", "mentioned_dates_key", "_search_blob") if column in out.columns]
+        if drop_columns:
+            out = out.drop(columns=drop_columns)
+
+        return self._resolved(
+            out,
+            mode="materialized",
+            datasets=("attention_evidence_chunks",),
+            details={
+                **details,
+                "filters": {
+                    "query": query_text,
+                    "tickers": normalized_tickers,
+                    "commodities": normalized_commodities,
+                    "event_tags": normalized_event_tags,
+                    "dates": exact_dates,
+                    "start_date": _coerce_text(start_date),
+                    "end_date": _coerce_text(end_date),
+                    "source_kinds": normalized_source_kinds,
+                    "providers": normalized_providers,
+                    "research_scopes": normalized_scopes,
+                    "run_id": normalized_run_id,
+                    "limit": max(int(limit), 1),
+                },
+            },
+        )
 
     def resolve_attention_feed(
         self,

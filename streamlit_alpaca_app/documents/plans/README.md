@@ -46,11 +46,15 @@ Use the docs as follows:
 - `ATTENTION_LAYER_PLAN.md`: historical layer-design context
 - `ATTENTION_FRED_INTEGRATION_PLAN_2026-04-06.md`: phased architecture plan to integrate FRED into attention scoring
 - `AGENTIC_TICKER_BACKGROUND_TAVILY_2026-04-03.md`: background enrichment plan and Tavily integration notes
+- `AGENTIC_SUMMARY_2026-04-13.md`: whole-tape homepage summary planning, search, and hypothesis synthesis
+- `AQL_EVIDENCE_INDEX_2026-04-14.md`: shared deterministic indexing and search contract for AQL evidence chunks, including homepage summary research
 - `BMY_BACKGROUND_FALLBACK_FIX_2026-04-03.md`: targeted ticker-background recovery notes
 - `COMMODITY_PRELOAD_ROOT_CAUSE_FIX_2026-04-09.md`: commodity preload recovery and alignment plan
 - `DEPENDENCY_GRAPH_INTEGRATION_2026-04-10.md`: JSON-backed dependency graph feature plan and commodity-dashboard seam
 - `CHAT_SEARCH_RESEARCH_ENABLEMENT_2026-04-12.md`: plan to make Chat + Search use retained narratives, live evidence, and config-driven impact expansion for analysis prompts
 - `MARKET_OPPORTUNITY_PRECOMPUTE_RECOVERY_PLAN.md`: market precompute recovery work
+- `PIPELINE_IDENTITY_AND_FRED_RETRY_FIX_2026-04-13.md`: root cause and source fixes for the attention job identity drift plus FRED retry hardening
+- `PIPELINE_CACHE_GUARDRAILS_2026-04-14.md`: local pipeline-store cache bounds plus git-ignore cleanup for runtime cache artifacts
 - `PORTFOLIO_LIVE_MODE_FIX_PLAN.md`: live portfolio-mode reliability work
 - `UNIVERSE_EXPANSION_PLAN_V2.md`: universe expansion design
 - `SEEKING_ALPHA_NOTEBOOK_2026-04-08.md`: notebook and helper design for headed Playwright extraction from Seeking Alpha

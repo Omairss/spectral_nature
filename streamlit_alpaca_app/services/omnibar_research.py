@@ -95,6 +95,13 @@ def query_needs_evidence(query: str) -> bool:
             "today",
             "latest",
             "recent",
+            "since ",
+            "movers since",
+            "biggest move",
+            "statistically",
+            "significant",
+            "event study",
+            "abnormal return",
         )
     ):
         return True

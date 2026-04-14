@@ -6,6 +6,7 @@ from io import BytesIO
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import time
 from typing import Any
@@ -29,6 +30,7 @@ except Exception:
 APP_ROOT = Path(__file__).resolve().parents[1]
 PIPELINE_CACHE_ROOT = APP_ROOT / "cache" / "pipeline_store"
 PIPELINE_METADATA_CACHE_SECONDS = max(int((os.getenv("PIPELINE_METADATA_CACHE_SECONDS") or "30").strip() or "30"), 0)
+PIPELINE_CACHE_MAX_BYTES_DEFAULT = 256 * 1024 * 1024
 
 
 @dataclass(frozen=True)
@@ -183,8 +185,134 @@ def _metadata_cache_path(dataset_name: str) -> Path:
     return PIPELINE_CACHE_ROOT / "_metadata" / f"{safe_dataset}.json"
 
 
+def _pipeline_cache_max_bytes() -> int:
+    raw = (os.getenv("PIPELINE_CACHE_MAX_BYTES") or "").strip()
+    if not raw:
+        return PIPELINE_CACHE_MAX_BYTES_DEFAULT
+    try:
+        return max(int(raw), 0)
+    except Exception:
+        return PIPELINE_CACHE_MAX_BYTES_DEFAULT
+
+
+def _pipeline_cache_enabled() -> bool:
+    return _pipeline_cache_max_bytes() > 0
+
+
+def _path_size_bytes(path: Path) -> int:
+    try:
+        if path.is_file():
+            return int(path.stat().st_size)
+    except Exception:
+        return 0
+    if not path.exists():
+        return 0
+    total = 0
+    try:
+        for child in path.rglob("*"):
+            try:
+                if child.is_file():
+                    total += int(child.stat().st_size)
+            except Exception:
+                continue
+    except Exception:
+        return 0
+    return total
+
+
+def _path_mtime_epoch(path: Path) -> float:
+    try:
+        return float(path.stat().st_mtime)
+    except Exception:
+        return 0.0
+
+
+def _cache_paths_overlap(left: Path, right: Path) -> bool:
+    return left == right or left in right.parents or right in left.parents
+
+
+def _iter_prunable_cache_paths() -> list[Path]:
+    if not PIPELINE_CACHE_ROOT.exists():
+        return []
+    candidates: list[Path] = []
+    metadata_dir = PIPELINE_CACHE_ROOT / "_metadata"
+    if metadata_dir.exists():
+        try:
+            for child in metadata_dir.iterdir():
+                if child.name.startswith("."):
+                    continue
+                candidates.append(child)
+        except Exception:
+            pass
+    try:
+        for dataset_dir in PIPELINE_CACHE_ROOT.iterdir():
+            if dataset_dir.name.startswith(".") or dataset_dir.name == "_metadata" or not dataset_dir.is_dir():
+                continue
+            try:
+                for child in dataset_dir.iterdir():
+                    if child.name.startswith("."):
+                        continue
+                    candidates.append(child)
+            except Exception:
+                continue
+    except Exception:
+        return []
+    return sorted(candidates, key=lambda path: (_path_mtime_epoch(path), str(path)))
+
+
+def _remove_empty_cache_dirs(start: Path) -> None:
+    current = start
+    while current != PIPELINE_CACHE_ROOT and current.exists():
+        try:
+            next(current.iterdir())
+            break
+        except StopIteration:
+            try:
+                current.rmdir()
+            except Exception:
+                break
+            current = current.parent
+        except Exception:
+            break
+
+
+def _delete_cache_path(path: Path) -> None:
+    if not path.exists():
+        return
+    try:
+        if path.is_dir():
+            shutil.rmtree(path)
+        else:
+            path.unlink()
+            _remove_empty_cache_dirs(path.parent)
+    except Exception:
+        return
+
+
+def _prune_pipeline_cache(*, keep_paths: tuple[Path, ...] = ()) -> None:
+    max_bytes = _pipeline_cache_max_bytes()
+    if max_bytes <= 0 or not PIPELINE_CACHE_ROOT.exists():
+        return
+    keep = tuple(path.resolve() for path in keep_paths if path.exists())
+    usage = _path_size_bytes(PIPELINE_CACHE_ROOT)
+    if usage <= max_bytes:
+        return
+    for candidate in _iter_prunable_cache_paths():
+        try:
+            resolved = candidate.resolve()
+        except Exception:
+            resolved = candidate
+        if any(_cache_paths_overlap(resolved, keep_path) for keep_path in keep):
+            continue
+        size_before = _path_size_bytes(candidate)
+        _delete_cache_path(candidate)
+        usage = max(0, usage - size_before)
+        if usage <= max_bytes:
+            break
+
+
 def _read_cached_metadata(dataset_name: str) -> PipelineDataset | None:
-    if PIPELINE_METADATA_CACHE_SECONDS <= 0:
+    if PIPELINE_METADATA_CACHE_SECONDS <= 0 or not _pipeline_cache_enabled():
         return None
     path = _metadata_cache_path(dataset_name)
     if not path.exists():
@@ -203,7 +331,7 @@ def _read_cached_metadata(dataset_name: str) -> PipelineDataset | None:
 
 
 def _write_cached_metadata(dataset_name: str, dataset: PipelineDataset | None) -> None:
-    if PIPELINE_METADATA_CACHE_SECONDS <= 0 or dataset is None:
+    if PIPELINE_METADATA_CACHE_SECONDS <= 0 or dataset is None or not _pipeline_cache_enabled():
         return
     path = _metadata_cache_path(dataset_name)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -219,6 +347,11 @@ def _write_cached_metadata(dataset_name: str, dataset: PipelineDataset | None) -
         },
     }
     path.write_text(json.dumps(payload), encoding="utf-8")
+    max_bytes = _pipeline_cache_max_bytes()
+    if _path_size_bytes(path) > max_bytes:
+        _delete_cache_path(path)
+        return
+    _prune_pipeline_cache(keep_paths=(path,))
 
 
 def _get_env(name: str, default: str = "") -> str:
@@ -317,6 +450,8 @@ def _local_frame_cache_path(dataset: PipelineDataset) -> Path:
 
 
 def _read_local_frame_cache(dataset: PipelineDataset) -> pd.DataFrame | None:
+    if not _pipeline_cache_enabled():
+        return None
     path = _local_frame_cache_path(dataset)
     if not path.exists():
         return None
@@ -328,9 +463,16 @@ def _read_local_frame_cache(dataset: PipelineDataset) -> pd.DataFrame | None:
 
 
 def _write_local_frame_cache(dataset: PipelineDataset, frame: pd.DataFrame) -> None:
+    if not _pipeline_cache_enabled():
+        return
     path = _local_frame_cache_path(dataset)
     path.parent.mkdir(parents=True, exist_ok=True)
     frame.to_pickle(path)
+    max_bytes = _pipeline_cache_max_bytes()
+    if _path_size_bytes(path) > max_bytes:
+        _delete_cache_path(path)
+        return
+    _prune_pipeline_cache(keep_paths=(path,))
 
 
 def _read_blob_json(blob_path: str) -> dict[str, Any] | None:

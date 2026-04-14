@@ -150,7 +150,15 @@ def auth_mode() -> str:
 
 
 def allow_insecure_browser_session_cookie() -> bool:
-    return (os.getenv("UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE") or "").strip().lower() in _TRUE_VALUES
+    # Opt-out takes priority.
+    if (os.getenv("UI_DISABLE_BROWSER_SESSION_COOKIE") or "").strip().lower() in _TRUE_VALUES:
+        return False
+    # Explicit opt-out via the legacy allow flag (set to 0/false).
+    legacy = (os.getenv("UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE") or "").strip().lower()
+    if legacy and legacy not in _TRUE_VALUES:
+        return False
+    # Default: enabled. Persistent sessions are expected behavior on HTTPS deployments.
+    return True
 
 
 def browser_session_persistence_mode() -> str:
@@ -158,15 +166,12 @@ def browser_session_persistence_mode() -> str:
 
 
 def browser_session_persistence_message() -> str:
-    if allow_insecure_browser_session_cookie():
+    if not allow_insecure_browser_session_cookie():
         return (
-            "Browser-persistent login is enabled through a readable cookie. "
-            "Use this only in controlled local or migration environments."
+            "Browser-persistent login is disabled in this environment. "
+            "Reloading or reopening the page requires signing in again."
         )
-    return (
-        "Browser-persistent login is disabled in this environment. "
-        "Reloading or reopening the page requires signing in again."
-    )
+    return ""
 
 
 def database_auth_bootstrap_configured() -> bool:
@@ -203,6 +208,14 @@ def _session_ttl_seconds() -> int:
         return max(int(raw), 300)
     except Exception:
         return 7 * 24 * 60 * 60
+
+
+def _remember_me_ttl_seconds() -> int:
+    raw = (os.getenv("AUTH_REMEMBER_ME_TTL_SECONDS") or str(30 * 24 * 60 * 60)).strip()
+    try:
+        return max(int(raw), 300)
+    except Exception:
+        return 30 * 24 * 60 * 60
 
 
 def _invite_ttl_hours() -> int:
@@ -1127,6 +1140,7 @@ def authenticate_user(
     password: str,
     user_agent: str = "",
     ip_address: str = "",
+    remember_me: bool = True,
 ) -> dict[str, Any]:
     normalized_email = str(email or "").strip()
     record = auth_store.get_user_for_login(email)
@@ -1212,11 +1226,12 @@ def authenticate_user(
         return {"ok": False, "message": "Account is missing an active portfolio membership."}
 
     auth_store.clear_failed_login(context.user_id)
+    session_ttl = _remember_me_ttl_seconds() if remember_me else _session_ttl_seconds()
     session_token = generate_token()
     session_row = auth_store.create_session(
         user_id=context.user_id,
         session_token_hash=token_digest(session_token),
-        expires_at=_now_utc() + timedelta(seconds=_session_ttl_seconds()),
+        expires_at=_now_utc() + timedelta(seconds=session_ttl),
         user_agent=user_agent,
         ip_address=ip_address,
     )
@@ -1231,6 +1246,7 @@ def authenticate_user(
             "session_id": str((session_row or {}).get("id") or ""),
             "portfolio_slug": context.portfolio_slug,
             "role": context.role,
+            "remember_me": remember_me,
         },
     )
     return {
@@ -1238,6 +1254,7 @@ def authenticate_user(
         "message": "",
         "context": context,
         "session_token": session_token,
+        "remember_me": remember_me,
     }
 
 
@@ -1383,7 +1400,7 @@ def accept_invite(
     session_row = auth_store.create_session(
         user_id=context.user_id,
         session_token_hash=token_digest(session_token),
-        expires_at=_now_utc() + timedelta(seconds=_session_ttl_seconds()),
+        expires_at=_now_utc() + timedelta(seconds=_remember_me_ttl_seconds()),
         user_agent=user_agent,
         ip_address=ip_address,
     )

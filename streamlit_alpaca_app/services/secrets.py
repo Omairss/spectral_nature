@@ -9,10 +9,17 @@ from typing import Any
 
 
 try:
-    from azure.identity import AzureCliCredential, DefaultAzureCredential, EnvironmentCredential, ManagedIdentityCredential
+    from azure.identity import (
+        AzureCliCredential,
+        ChainedTokenCredential,
+        DefaultAzureCredential,
+        EnvironmentCredential,
+        ManagedIdentityCredential,
+    )
     from azure.keyvault.secrets import SecretClient
 except Exception:
     AzureCliCredential = None
+    ChainedTokenCredential = None
     DefaultAzureCredential = None
     EnvironmentCredential = None
     ManagedIdentityCredential = None
@@ -112,6 +119,26 @@ def build_azure_credential():
             except Exception:
                 pass
 
+    if ManagedIdentityCredential is not None and _running_in_azure_runtime():
+        managed_identity_credentials: list[Any] = []
+        configured_client_id = _managed_identity_client_id()
+        if configured_client_id:
+            try:
+                managed_identity_credentials.append(ManagedIdentityCredential(client_id=configured_client_id))
+            except Exception:
+                pass
+        try:
+            managed_identity_credentials.append(ManagedIdentityCredential())
+        except Exception:
+            pass
+        if len(managed_identity_credentials) == 1:
+            return managed_identity_credentials[0]
+        if len(managed_identity_credentials) > 1 and ChainedTokenCredential is not None:
+            try:
+                return ChainedTokenCredential(*managed_identity_credentials)
+            except Exception:
+                pass
+
     if AzureCliCredential is not None:
         config_dir = _ensure_writable_azure_cli_config_dir()
         if config_dir:
@@ -119,13 +146,6 @@ def build_azure_credential():
                 return AzureCliCredential(process_timeout=10)
             except Exception:
                 pass
-
-    if ManagedIdentityCredential is not None and _running_in_azure_runtime():
-        try:
-            client_id = _managed_identity_client_id() or None
-            return ManagedIdentityCredential(client_id=client_id)
-        except Exception:
-            pass
 
     if DefaultAzureCredential is None:
         return None

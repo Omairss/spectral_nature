@@ -70,6 +70,7 @@ AZURE_OPENAI_ENDPOINT="${AZURE_OPENAI_ENDPOINT:-}"
 LLM_TEMPERATURE="${LLM_TEMPERATURE:-}"
 LLM_REASONING_EFFORT="${LLM_REASONING_EFFORT:-}"
 LLM_ENV_SOURCE_JOBS="${LLM_ENV_SOURCE_JOBS:-attention-home-build news-ingest-and-features}"
+PIPELINE_CACHE_MAX_BYTES="${PIPELINE_CACHE_MAX_BYTES:-}"
 
 UNIVERSE_BUILDER_CRON="${UNIVERSE_BUILDER_CRON:-20 13 * * 1-5}"
 EQUITIES_INTRADAY_PRELOAD_CRON="${EQUITIES_INTRADAY_PRELOAD_CRON:-35 13,16,18,20 * * 1-5}"
@@ -79,7 +80,12 @@ OPTIONS_LIQUID_UNIVERSE_CRON="${OPTIONS_LIQUID_UNIVERSE_CRON:-45 14,20 * * 1-5}"
 NEWS_INGEST_AND_FEATURES_CRON="${NEWS_INGEST_AND_FEATURES_CRON:-5 14,16,18,20 * * 1-5}"
 ATTENTION_HOME_BUILD_CRON="${ATTENTION_HOME_BUILD_CRON:-20 14,16,18,20 * * 1-5}"
 ATTENTION_HOME_RESEARCH_LIMIT="${ATTENTION_HOME_RESEARCH_LIMIT:-12}"
+ATTENTION_HOME_SEEKING_ALPHA_PAGE_LIMIT="${ATTENTION_HOME_SEEKING_ALPHA_PAGE_LIMIT:-2}"
+ATTENTION_HOME_SEEKING_ALPHA_PAGE_MAX_CHARS="${ATTENTION_HOME_SEEKING_ALPHA_PAGE_MAX_CHARS:-2800}"
 ENTITY_TAXONOMY_REFRESH_CRON="${ENTITY_TAXONOMY_REFRESH_CRON:-0 9 1 * *}"
+SEEKING_ALPHA_USERNAME_SECRET_NAME="${SEEKING_ALPHA_USERNAME_SECRET_NAME:-seeking-alpha-username}"
+SEEKING_ALPHA_PASSWORD_SECRET_NAME="${SEEKING_ALPHA_PASSWORD_SECRET_NAME:-seeking-alpha-password}"
+SEEKING_ALPHA_BROWSER_HEADLESS="${SEEKING_ALPHA_BROWSER_HEADLESS:-true}"
 
 job_exists() {
   local job_name="$1"
@@ -101,6 +107,15 @@ require_keyvault_secret() {
     echo "Add or rotate the secret in Key Vault before deploying pipeline jobs."
     exit 1
   fi
+}
+
+sync_job_identity() {
+  local job_name="$1"
+  az containerapp job identity assign \
+    --name "$job_name" \
+    --resource-group "$RESOURCE_GROUP" \
+    --user-assigned "$UAMI_ID" \
+    --output none
 }
 
 job_env_value() {
@@ -318,6 +333,7 @@ else
   UAMI_SHOW_ARGS=(--name "$UAMI_NAME" --resource-group "$RESOURCE_GROUP")
 fi
 
+UAMI_ID="$(az identity show "${UAMI_SHOW_ARGS[@]}" --query id -o tsv)"
 UAMI_PRINCIPAL_ID="$(az identity show "${UAMI_SHOW_ARGS[@]}" --query principalId -o tsv)"
 UAMI_CLIENT_ID="$(az identity show "${UAMI_SHOW_ARGS[@]}" --query clientId -o tsv)"
 
@@ -389,7 +405,13 @@ create_or_update_job () {
   maybe_append_env "AZURE_OPENAI_ENDPOINT" "$AZURE_OPENAI_ENDPOINT"
   maybe_append_env "LLM_TEMPERATURE" "$LLM_TEMPERATURE"
   maybe_append_env "LLM_REASONING_EFFORT" "$LLM_REASONING_EFFORT"
+  maybe_append_env "PIPELINE_CACHE_MAX_BYTES" "$PIPELINE_CACHE_MAX_BYTES"
   maybe_append_env "ATTENTION_HOME_RESEARCH_LIMIT" "$ATTENTION_HOME_RESEARCH_LIMIT"
+  maybe_append_env "ATTENTION_HOME_SEEKING_ALPHA_PAGE_LIMIT" "$ATTENTION_HOME_SEEKING_ALPHA_PAGE_LIMIT"
+  maybe_append_env "ATTENTION_HOME_SEEKING_ALPHA_PAGE_MAX_CHARS" "$ATTENTION_HOME_SEEKING_ALPHA_PAGE_MAX_CHARS"
+  maybe_append_env "SEEKING_ALPHA_USERNAME_SECRET_NAME" "$SEEKING_ALPHA_USERNAME_SECRET_NAME"
+  maybe_append_env "SEEKING_ALPHA_PASSWORD_SECRET_NAME" "$SEEKING_ALPHA_PASSWORD_SECRET_NAME"
+  maybe_append_env "SEEKING_ALPHA_BROWSER_HEADLESS" "$SEEKING_ALPHA_BROWSER_HEADLESS"
 
   while (($#)); do
     JOB_ENV_VARS+=("$1")
@@ -412,6 +434,7 @@ create_or_update_job () {
       --memory "$memory" \
       --set-env-vars "${JOB_ENV_VARS[@]}" \
       --output none
+    sync_job_identity "$job_name"
   else
     echo "  - creating ${job_name} (${cron})"
     az containerapp job create \
@@ -432,6 +455,7 @@ create_or_update_job () {
       --mi-user-assigned "$UAMI_ID" \
       --env-vars "${JOB_ENV_VARS[@]}" \
       --output none
+    sync_job_identity "$job_name"
   fi
 }
 

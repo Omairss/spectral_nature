@@ -3,12 +3,15 @@ from __future__ import annotations
 from datetime import datetime
 from functools import lru_cache
 import os
+import random
+import time
 from typing import Any
 
 import pandas as pd
 import plotly.graph_objects as go
 import requests
 from plotly.subplots import make_subplots
+from services.secrets import build_azure_credential
 
 from compute.fred import (
     FRED_CATEGORY_BLURBS,
@@ -27,12 +30,67 @@ class FredAPIError(RuntimeError):
     pass
 
 
+_FRED_RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
+
+
 def _load_fred_api_key_from_env() -> str:
     for env_var in ("FRED_API_KEY", "FRED_KEY"):
         value = (os.getenv(env_var) or "").strip()
         if value and value.lower() not in {"your_key_here", "demo"}:
             return value
     return ""
+
+
+def _float_env(name: str, default: float, *, minimum: float = 0.0) -> float:
+    raw = (os.getenv(name) or "").strip()
+    if not raw:
+        return default
+    try:
+        parsed = float(raw)
+    except Exception:
+        return default
+    return max(parsed, minimum)
+
+
+def _int_env(name: str, default: int, *, minimum: int = 1) -> int:
+    raw = (os.getenv(name) or "").strip()
+    if not raw:
+        return default
+    try:
+        parsed = int(raw)
+    except Exception:
+        return default
+    return max(parsed, minimum)
+
+
+def _fred_http_max_attempts() -> int:
+    return _int_env("FRED_HTTP_MAX_ATTEMPTS", 5, minimum=1)
+
+
+def _fred_http_initial_backoff_seconds() -> float:
+    return _float_env("FRED_HTTP_INITIAL_BACKOFF_SECONDS", 1.0, minimum=0.0)
+
+
+def _fred_http_backoff_multiplier() -> float:
+    return _float_env("FRED_HTTP_BACKOFF_MULTIPLIER", 2.0, minimum=1.0)
+
+
+def _fred_http_backoff_jitter_seconds() -> float:
+    return _float_env("FRED_HTTP_BACKOFF_JITTER_SECONDS", 0.25, minimum=0.0)
+
+
+def _fred_retry_delay_seconds(attempt: int, headers: dict[str, Any] | None = None) -> float:
+    retry_after = str((headers or {}).get("Retry-After") or "").strip()
+    if retry_after:
+        try:
+            return max(float(retry_after), 0.0)
+        except Exception:
+            pass
+    delay = _fred_http_initial_backoff_seconds() * (_fred_http_backoff_multiplier() ** max(int(attempt) - 1, 0))
+    jitter = _fred_http_backoff_jitter_seconds()
+    if jitter > 0:
+        delay += random.uniform(0.0, jitter)
+    return delay
 
 
 @lru_cache(maxsize=4)
@@ -42,7 +100,6 @@ def _load_secret_from_keyvault(
     vault_name: str | None = None,
 ) -> str:
     try:
-        from azure.identity import DefaultAzureCredential
         from azure.keyvault.secrets import SecretClient
     except Exception as exc:
         raise FredAPIError("Azure Key Vault dependencies are not available.") from exc
@@ -53,7 +110,9 @@ def _load_secret_from_keyvault(
         resolved_vault_url = f"https://{resolved_vault_name}.vault.azure.net"
 
     try:
-        credential = DefaultAzureCredential()
+        credential = build_azure_credential()
+        if credential is None:
+            raise FredAPIError("Azure credentials are not available.")
         client = SecretClient(vault_url=resolved_vault_url, credential=credential)
         return str(client.get_secret(secret_name).value or "").strip()
     except Exception as exc:
@@ -87,23 +146,57 @@ class FREDClient:
         if not self.api_key:
             raise FredAPIError("FRED_API_KEY is required to load macro data.")
 
+    def _request_json(
+        self,
+        path: str,
+        params: dict[str, Any],
+        *,
+        headers: dict[str, str] | None = None,
+        timeout: int,
+    ) -> dict[str, Any]:
+        url = f"{self.base_url}/{path.lstrip('/')}"
+        max_attempts = _fred_http_max_attempts()
+        for attempt in range(1, max_attempts + 1):
+            try:
+                resp = requests.get(url, params=params, headers=headers, timeout=timeout)
+            except (requests.ConnectionError, requests.Timeout) as exc:
+                if attempt >= max_attempts:
+                    raise FredAPIError(
+                        f"FRED request failed after {attempt} attempts: {type(exc).__name__}: {exc}"
+                    ) from exc
+                print(
+                    f"[warn] FRED request retrying path={path} attempt={attempt}/{max_attempts} "
+                    f"error={type(exc).__name__}"
+                )
+                time.sleep(_fred_retry_delay_seconds(attempt))
+                continue
+
+            if resp.status_code < 400:
+                return resp.json()
+
+            if resp.status_code in _FRED_RETRYABLE_STATUS_CODES and attempt < max_attempts:
+                print(
+                    f"[warn] FRED request retrying path={path} status={resp.status_code} "
+                    f"attempt={attempt}/{max_attempts}"
+                )
+                time.sleep(_fred_retry_delay_seconds(attempt, getattr(resp, "headers", None)))
+                continue
+
+            raise FredAPIError(f"FRED API {resp.status_code}: {resp.text}")
+
+        raise FredAPIError(f"FRED request failed after {max_attempts} attempts.")
+
     def _request_v1(self, path: str, params: dict[str, Any]) -> dict[str, Any]:
         payload = dict(params)
         payload["api_key"] = self.api_key
         payload["file_type"] = "json"
-        resp = requests.get(f"{self.base_url}/{path.lstrip('/')}", params=payload, timeout=25)
-        if resp.status_code >= 400:
-            raise FredAPIError(f"FRED API {resp.status_code}: {resp.text}")
-        return resp.json()
+        return self._request_json(path, payload, timeout=25)
 
     def _request_v2(self, path: str, params: dict[str, Any]) -> dict[str, Any]:
         headers = {"Authorization": f"Bearer {self.api_key}"}
         payload = dict(params)
         payload.setdefault("format", "json")
-        resp = requests.get(f"{self.base_url}/{path.lstrip('/')}", params=payload, headers=headers, timeout=60)
-        if resp.status_code >= 400:
-            raise FredAPIError(f"FRED API {resp.status_code}: {resp.text}")
-        return resp.json()
+        return self._request_json(path, payload, headers=headers, timeout=60)
 
     def get_series_metadata(self, series_id: str) -> dict[str, Any]:
         payload = self._request_v1("series", {"series_id": series_id})

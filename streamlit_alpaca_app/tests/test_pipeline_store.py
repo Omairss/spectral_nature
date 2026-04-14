@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from datetime import datetime, timezone
 from io import BytesIO
@@ -249,3 +250,49 @@ def test_load_latest_dataset_frame_uses_local_frame_cache(monkeypatch, tmp_path)
     assert second_meta == metadata
     assert first["entity_id"].tolist() == ["ABBV", "TSLA"]
     assert second["entity_id"].tolist() == ["ABBV", "TSLA"]
+
+
+def test_prune_pipeline_cache_removes_oldest_entries_when_limit_exceeded(monkeypatch, tmp_path):
+    monkeypatch.setattr(pipeline_store, "PIPELINE_CACHE_ROOT", tmp_path)
+    monkeypatch.setattr(pipeline_store, "_pipeline_cache_max_bytes", lambda: 150)
+
+    old_dir = tmp_path / "attention_feed" / "attention_feed__old"
+    old_dir.mkdir(parents=True)
+    (old_dir / "frame.pkl").write_bytes(b"a" * 90)
+
+    new_dir = tmp_path / "attention_feed" / "attention_feed__new"
+    new_dir.mkdir(parents=True)
+    keep_path = new_dir / "frame.pkl"
+    keep_path.write_bytes(b"b" * 90)
+
+    old_mtime = datetime(2026, 4, 1, tzinfo=timezone.utc).timestamp()
+    new_mtime = datetime(2026, 4, 2, tzinfo=timezone.utc).timestamp()
+    os.utime(old_dir, (old_mtime, old_mtime))
+    os.utime(old_dir / "frame.pkl", (old_mtime, old_mtime))
+    os.utime(new_dir, (new_mtime, new_mtime))
+    os.utime(keep_path, (new_mtime, new_mtime))
+
+    pipeline_store._prune_pipeline_cache(keep_paths=(keep_path,))
+
+    assert keep_path.exists()
+    assert not old_dir.exists()
+    assert pipeline_store._path_size_bytes(tmp_path) <= 150
+
+
+def test_write_local_frame_cache_skips_oversize_frame(monkeypatch, tmp_path):
+    metadata = pipeline_store.PipelineDataset(
+        dataset_name="attention_feed",
+        dataset_version_id="attention_feed__20260320T012554Z__16918b7a",
+        blob_path="datasets/attention_feed/part-16918b7a.parquet",
+        asof_time_utc="2026-03-20T01:25:54Z",
+        ingested_at_utc="2026-03-20T01:26:02Z",
+        row_count=2,
+    )
+    frame = pd.DataFrame({"value": ["x" * 256 for _ in range(128)]})
+
+    monkeypatch.setattr(pipeline_store, "PIPELINE_CACHE_ROOT", tmp_path)
+    monkeypatch.setattr(pipeline_store, "_pipeline_cache_max_bytes", lambda: 128)
+
+    pipeline_store._write_local_frame_cache(metadata, frame)
+
+    assert not pipeline_store._local_frame_cache_path(metadata).exists()

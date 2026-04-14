@@ -213,20 +213,36 @@ def test_get_auth_email_delivery_status_reports_missing_public_base_url(monkeypa
     assert "APP_PUBLIC_BASE_URL" in status["message"]
 
 
-def test_browser_session_cookie_is_disabled_by_default(monkeypatch):
+def test_browser_session_cookie_is_enabled_by_default(monkeypatch):
     monkeypatch.delenv("UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE", raising=False)
+    monkeypatch.delenv("UI_DISABLE_BROWSER_SESSION_COOKIE", raising=False)
+
+    assert auth_service.allow_insecure_browser_session_cookie() is True
+    assert auth_service.browser_session_persistence_mode() == "browser_cookie"
+    assert auth_service.browser_session_persistence_message() == ""
+
+
+def test_browser_session_cookie_disabled_via_opt_out_flag(monkeypatch):
+    monkeypatch.setenv("UI_DISABLE_BROWSER_SESSION_COOKIE", "1")
 
     assert auth_service.allow_insecure_browser_session_cookie() is False
     assert auth_service.browser_session_persistence_mode() == "session_only"
     assert "disabled" in auth_service.browser_session_persistence_message().lower()
 
 
-def test_browser_session_cookie_requires_explicit_opt_in(monkeypatch):
+def test_browser_session_cookie_legacy_opt_in_still_works(monkeypatch):
+    monkeypatch.delenv("UI_DISABLE_BROWSER_SESSION_COOKIE", raising=False)
     monkeypatch.setenv("UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE", "1")
 
     assert auth_service.allow_insecure_browser_session_cookie() is True
     assert auth_service.browser_session_persistence_mode() == "browser_cookie"
-    assert "readable cookie" in auth_service.browser_session_persistence_message().lower()
+
+
+def test_browser_session_cookie_legacy_explicit_zero_disables(monkeypatch):
+    monkeypatch.delenv("UI_DISABLE_BROWSER_SESSION_COOKIE", raising=False)
+    monkeypatch.setenv("UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE", "0")
+
+    assert auth_service.allow_insecure_browser_session_cookie() is False
 
 
 def test_issue_invite_returns_specific_delivery_message_when_sender_secret_missing(monkeypatch):
