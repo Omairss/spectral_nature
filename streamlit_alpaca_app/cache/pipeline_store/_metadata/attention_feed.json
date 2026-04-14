@@ -1,1 +1,0 @@
-{"cached_at_epoch": 1775098431.6468472, "dataset": {"dataset_name": "attention_feed", "dataset_version_id": "attention_feed__20260320T012554Z__16918b7a", "blob_path": "datasets/attention_feed/dt=2026-03-20/asof=2026-03-20T01-25-54Z/universe=20260313/part-16918b7a.parquet", "asof_time_utc": "2026-03-20T01:25:54Z", "ingested_at_utc": "2026-03-20T01:26:02Z", "row_count": 3}}

@@ -7,6 +7,8 @@
 streamlit_alpaca_app/infra/.generated/
 streamlit_alpaca_app/infra/deployment.outputs.env
 streamlit_alpaca_app/infra/email_delivery.outputs.env
+streamlit_alpaca_app/cache/pipeline_store/*
+!streamlit_alpaca_app/cache/pipeline_store/.gitignore
 
 .ssh/*
 data/*
