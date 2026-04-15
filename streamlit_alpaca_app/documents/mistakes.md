@@ -375,3 +375,65 @@ Never repeat:
 1. Ignore runtime cache artifacts in git unless there is a very explicit reason to version them.
 2. Put cache caps and pruning in the shared cache helper, not in one-off cleanup scripts.
 3. Treat blob/object storage plus manifests as the durable layer; local cache should always be disposable.
+
+## 25. Treated agentic collection as if it automatically produced agentic writing
+
+What went wrong:
+
+- I improved search, page access, Seeking Alpha reading, and evidence indexing, but the final homepage and event-card writers still compressed that evidence too aggressively.
+- The summary flow still relies on a single short-paragraph hypothesis prompt, first-chunk bias, and a small top-claim slice.
+- The event-card path still allows canned theme fallbacks to stand in for actual gap-driven follow-up research.
+
+Why that was a mistake:
+
+- It made the system look weaker than the underlying retrieval stack really is.
+- Users saw generic lines such as `with no clear catalyst` or `most plausible chain` and reasonably concluded that the agent was not thinking hard enough.
+- The system was doing more work under the hood than the final copy made visible.
+
+Never repeat:
+
+1. When upgrading research access, also check whether the writer is still losing too much source context before the final synthesis step.
+2. Treat generic final phrasing as a quality failure that should trigger either another research pass or a clearer unresolved explanation.
+3. Do not reuse one compact summary format across homepage summaries, narrative cards, and audio when those surfaces need different density and evidence presentation.
+
+## 26. Reached for advanced agent tricks before locking down evidence retention and retrieval
+
+What went wrong:
+
+- It was tempting to focus on multi-agent orchestration, speculation, and deeper planning patterns before the evidence layer was actually trustworthy.
+- That would have added complexity on top of a system that was still clipping documents, overusing snippets, and retrieving the first few chunks instead of the best evidence.
+- Fancy orchestration does not rescue weak storage and retrieval fundamentals.
+
+Never repeat:
+
+1. Fix retention and retrieval before adding more agent choreography.
+2. Treat source-of-truth evidence quality as the prerequisite for any deeper agent behavior.
+3. Borrow advanced architecture patterns selectively, based on the current bottleneck rather than what looks most impressive.
+
+## 27. Let the fetch layer stop at snippets even when richer text was already available
+
+What went wrong:
+
+- Search providers and page readers were sometimes returning richer text or raw payloads, but the pipeline normalized those results down to short snippets before document building.
+- The homepage-summary path then chunked and ranked that thinner representation, which made the later writer look weaker than the upstream retrieval really was.
+- A tight character cap on Seeking Alpha enrichment compounded the problem by making opened pages behave like oversized snippets.
+
+Never repeat:
+
+1. Carry provider raw payloads and richer provider text forward when the fetch layer has them.
+2. Prefer page text, then provider text, then snippet fallback when building canonical source documents.
+3. When a retrieval path depends on long-form content, raise or justify the text budget explicitly instead of inheriting a convenience cap.
+
+## 28. Kept source documents only inside the latest materialized frame
+
+What went wrong:
+
+- Even after improving retention inside the current run, raw source documents still only lived inside the latest parquet frame.
+- That meant reopening a document later depended on the latest dataset cache and made cross-run history harder than it needed to be.
+- The system had more document value than the storage model reflected.
+
+Never repeat:
+
+1. Give retained documents a stable canonical id and content hash as early as possible.
+2. Store the raw document durably in blob storage before treating the parquet frame as the only home for the content.
+3. Keep a lightweight metadata table in Postgres so later retrieval does not need to rediscover where a document lives.

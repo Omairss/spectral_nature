@@ -26,6 +26,7 @@ from .extractor import (
     _chunk_source_documents,
     _documents_from_search_results,
     _fallback_claims_from_chunks,
+    _rank_evidence_chunks,
     _serialize_claims_frame,
 )
 
@@ -376,7 +377,7 @@ def _enrich_seeking_alpha_results(result_rows: list[dict[str, Any]]) -> list[dic
     if limit <= 0:
         return list(result_rows or [])
 
-    max_chars = _env_int("ATTENTION_HOME_SEEKING_ALPHA_PAGE_MAX_CHARS", 2800, minimum=1200, maximum=6000)
+    max_chars = _env_int("ATTENTION_HOME_SEEKING_ALPHA_PAGE_MAX_CHARS", 12000, minimum=3000, maximum=20000)
     seen_urls: set[str] = set()
     opened = 0
     enriched_rows: list[dict[str, Any]] = []
@@ -455,6 +456,8 @@ def _collect_summary_research_trace(
             tavily_client=tavily_client,
             llm_client=llm_client,
             budget=6,
+            include_provider_payload=True,
+            include_provider_text=True,
         )
         request_rows.extend(query_requests)
         result_rows.extend(query_results)
@@ -482,7 +485,11 @@ def _collect_summary_research_trace(
         asof_time_utc=asof_time_utc,
     )
     if not chunks.empty:
-        chunks = chunks.copy()
+        chunks = _rank_evidence_chunks(
+            chunks,
+            candidate=candidate,
+            asof_time_utc=asof_time_utc,
+        )
         chunks["research_scope"] = "home_summary"
     claims = _fallback_claims_from_chunks(
         candidate,

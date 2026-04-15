@@ -15,6 +15,7 @@ from typing import Any
 import pandas as pd
 
 from ..market import COMMODITY_PROXY_METADATA, default_universe_symbols
+from ..saa.storage import build_canonical_document_fields
 from ._shared import _coerce_text, _json_dumps, _normalize_symbol
 
 
@@ -324,6 +325,7 @@ def annotate_source_documents(
                 asof_time_utc=asof_time_utc,
             )
         )
+        item.update(build_canonical_document_fields(item))
         annotated.append(item)
     return annotated
 

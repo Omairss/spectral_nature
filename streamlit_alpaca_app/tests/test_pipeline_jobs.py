@@ -21,6 +21,7 @@ from pipeline.jobs.main import (
     _build_equity_price_history_snapshot,
     _build_portfolio_timeseries_snapshot,
     _db_mark_job_start,
+    _persist_dataset,
     _resolve_equity_symbols,
     _upload_frame,
     run_attention_home,
@@ -54,6 +55,62 @@ def test_upload_frame_persists_empty_frames(monkeypatch):
     assert uploaded[0][0] == path
     assert uploaded[0][1] > 0
     assert uploaded[0][2] == "application/octet-stream"
+
+
+def test_persist_dataset_retains_attention_source_documents_before_upload(monkeypatch):
+    captured: dict[str, object] = {}
+    ctx = JobContext(
+        name="attention-home-build",
+        run_id="attention-retention-run",
+        asof=datetime(2026, 4, 14, 18, 0, tzinfo=timezone.utc),
+        universe_version="20260414",
+    )
+    frame = pd.DataFrame(
+        [
+            {
+                "document_id": "doc::1",
+                "title": "Copper outlook improves on AI demand",
+                "raw_text": "Copper demand is rising because AI data-center buildouts are expanding.",
+            }
+        ]
+    )
+
+    def _fake_retention(*args, **kwargs):
+        captured["retention_called"] = True
+        original = args[1].copy()
+        original["raw_text_blob_path"] = ["saa/raw_documents/test.json"]
+        return original
+
+    def _fake_upload_frame(dataset_name, uploaded_frame, local_ctx):
+        captured["uploaded_dataset_name"] = dataset_name
+        captured["uploaded_frame"] = uploaded_frame.copy()
+        return "datasets/attention_source_documents/test.parquet"
+
+    def _fake_upload_manifest(dataset_name, path, uploaded_frame, local_ctx):
+        return {
+            "dataset_version_id": "attention_source_documents__20260414T180000Z__attentio",
+            "dataset_name": dataset_name,
+            "run_id": local_ctx.run_id,
+            "asof_time_utc": local_ctx.asof.isoformat(),
+            "ingested_at_utc": local_ctx.asof.isoformat(),
+            "universe_version": local_ctx.universe_version,
+            "blob_path": path,
+            "row_count": int(len(uploaded_frame)),
+            "schema_columns": list(uploaded_frame.columns),
+        }
+
+    monkeypatch.setattr("pipeline.jobs.main.persist_retained_source_documents", _fake_retention)
+    monkeypatch.setattr("pipeline.jobs.main._upload_frame", _fake_upload_frame)
+    monkeypatch.setattr("pipeline.jobs.main._upload_manifest", _fake_upload_manifest)
+    monkeypatch.setattr("pipeline.jobs.main._db_upsert_dataset_version", lambda *args, **kwargs: None)
+    monkeypatch.setattr("pipeline.jobs.main._job_progress", lambda *args, **kwargs: None)
+
+    _persist_dataset("attention_source_documents", frame, ctx, conn=None)
+
+    assert captured["retention_called"] is True
+    uploaded_frame = captured["uploaded_frame"]
+    assert isinstance(uploaded_frame, pd.DataFrame)
+    assert uploaded_frame.loc[0, "raw_text_blob_path"] == "saa/raw_documents/test.json"
 
 
 def test_pipeline_store_lists_attention_datasets_under_derivatives():

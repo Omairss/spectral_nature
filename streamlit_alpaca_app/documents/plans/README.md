@@ -43,11 +43,16 @@ Use the docs as follows:
 
 - `ATTENTION_FEED_IMPLEMENTATION_PLAN.md`: canonical implementation plan for the attention feed stack
 - `ATTENTION_FEED_EVENT_REDESIGN_PLAN.md`: product and background context for the event redesign
+- `ATTENTION_RESEARCH_QUALITY_FIX_2026-04-14.md`: root-cause notes and staged fix plan for flat homepage hypotheses, clipped homepage beats, and generic `Why It Happened` event-card copy
 - `ATTENTION_LAYER_PLAN.md`: historical layer-design context
 - `ATTENTION_FRED_INTEGRATION_PLAN_2026-04-06.md`: phased architecture plan to integrate FRED into attention scoring
 - `AGENTIC_TICKER_BACKGROUND_TAVILY_2026-04-03.md`: background enrichment plan and Tavily integration notes
 - `AGENTIC_SUMMARY_2026-04-13.md`: whole-tape homepage summary planning, search, and hypothesis synthesis
 - `AQL_EVIDENCE_INDEX_2026-04-14.md`: shared deterministic indexing and search contract for AQL evidence chunks, including homepage summary research
+- `AQL_NLP_IR_AGENT_ARCHITECTURE_2026-04-14.md`: north-star architecture for AQL plus `SAA`, the supporting search and retrieval system with durable full-text retention, hybrid retrieval, explicit agent loops, and evidence-pack writers
+- `AQL_SAA_PHASE0_RETENTION_RETRIEVAL_2026-04-14.md`: implemented Phase 0 fix for richer search-result retention, better homepage-summary document capture, and ranked chunk retrieval
+- `AQL_SAA_PHASE1_RETENTION_FOUNDATION_2026-04-14.md`: implemented Phase 1 retention foundation with canonical document ids, durable raw-document blobs, and Postgres metadata for retained source documents
+- `AQL_SAA_V1_IMPLEMENTATION_ROADMAP_2026-04-14.md`: concrete build roadmap for AQL plus SAA v1, including workstreams, phases, acceptance criteria, module boundaries, and rollout order
 - `BMY_BACKGROUND_FALLBACK_FIX_2026-04-03.md`: targeted ticker-background recovery notes
 - `COMMODITY_PRELOAD_ROOT_CAUSE_FIX_2026-04-09.md`: commodity preload recovery and alignment plan
 - `DEPENDENCY_GRAPH_INTEGRATION_2026-04-10.md`: JSON-backed dependency graph feature plan and commodity-dashboard seam

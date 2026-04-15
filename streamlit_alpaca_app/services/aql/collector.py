@@ -100,6 +100,19 @@ def _default_tavily_general_query(query: str, symbol: str, company_name: str) ->
     return f"{subject} latest developments pipeline approvals clinical trial FDA partnership guidance"
 
 
+def _provider_payload_json(value: object) -> str:
+    if not isinstance(value, dict) or not value:
+        return ""
+    return _json_dumps(value)
+
+
+def _provider_result_text(item: WebSearchResult) -> str:
+    raw_text = _coerce_text(getattr(item, "raw_text", ""))
+    if raw_text:
+        return raw_text
+    return _coerce_text(item.snippet)
+
+
 def _llm_search_relevance_flags(
     *,
     query: str,
@@ -275,9 +288,11 @@ def search_symbol_news_payload(
                     {
                         "title": title,
                         "snippet": snippet,
+                        "provider_text": _provider_result_text(item),
                         "source": _coerce_text(item.source) or "SerpApi",
                         "url": _coerce_text(item.url),
                         "published_at": _coerce_text(item.published_at),
+                        "provider_payload_json": _provider_payload_json(item.raw),
                     }
                 )
             if hasattr(serp_client, "search_ai_overview"):
@@ -290,9 +305,11 @@ def search_symbol_news_payload(
                         {
                             "title": _coerce_text(ai_overview.title) or f"{normalized_symbol} AI Overview",
                             "snippet": _coerce_text(ai_overview.snippet),
+                            "provider_text": _provider_result_text(ai_overview),
                             "source": _coerce_text(ai_overview.source) or "Google AI Overview",
                             "url": _coerce_text(ai_overview.url),
                             "published_at": _coerce_text(ai_overview.published_at),
+                            "provider_payload_json": _provider_payload_json(ai_overview.raw),
                         }
                     )
             serp_flags = _llm_search_relevance_flags(
@@ -312,12 +329,13 @@ def search_symbol_news_payload(
                 article_rows.append(
                     {
                         "headline": _coerce_text(row.get("title")),
-                        "summary": _evidence_text(row.get("snippet"), row.get("title")),
-                        "description": _evidence_text(row.get("snippet"), row.get("title")),
+                        "summary": _evidence_text(row.get("provider_text") or row.get("snippet"), row.get("title")),
+                        "description": _evidence_text(row.get("provider_text") or row.get("snippet"), row.get("title")),
                         "source": _coerce_text(row.get("source")) or "SerpApi",
                         "provider": "serpapi",
                         "published_at": pd.to_datetime(row.get("published_at"), utc=True, errors="coerce"),
                         "url": _coerce_text(row.get("url")),
+                        "provider_payload_json": _coerce_text(row.get("provider_payload_json")),
                     }
                 )
             sources.append("serpapi")
@@ -351,9 +369,11 @@ def search_symbol_news_payload(
                     {
                         "title": title,
                         "snippet": snippet,
+                        "provider_text": _provider_result_text(item),
                         "source": _coerce_text(item.source) or "Tavily",
                         "url": _coerce_text(item.url),
                         "published_at": _coerce_text(item.published_at),
+                        "provider_payload_json": _provider_payload_json(item.raw),
                     }
                 )
             tavily_flags = _llm_search_relevance_flags(
@@ -371,12 +391,13 @@ def search_symbol_news_payload(
                 article_rows.append(
                     {
                         "headline": _coerce_text(row.get("title")) or f"{normalized_symbol} web result",
-                        "summary": _evidence_text(row.get("snippet"), row.get("title")),
-                        "description": _evidence_text(row.get("snippet"), row.get("title")),
+                        "summary": _evidence_text(row.get("provider_text") or row.get("snippet"), row.get("title")),
+                        "description": _evidence_text(row.get("provider_text") or row.get("snippet"), row.get("title")),
                         "source": _coerce_text(row.get("source")) or "Tavily",
                         "provider": "tavily",
                         "published_at": pd.to_datetime(row.get("published_at"), utc=True, errors="coerce"),
                         "url": _coerce_text(row.get("url")),
+                        "provider_payload_json": _coerce_text(row.get("provider_payload_json")),
                     }
                 )
             sources.append("tavily")
@@ -401,6 +422,8 @@ def _search_query_results(
     tavily_client: TavilySearchClient | None,
     llm_client: LLMClient | None,
     budget: int,
+    include_provider_payload: bool = False,
+    include_provider_text: bool = False,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     request_rows: list[dict[str, Any]] = []
     result_rows: list[dict[str, Any]] = []
@@ -454,9 +477,11 @@ def _search_query_results(
                 {
                     "title": _coerce_text(item.title),
                     "snippet": _coerce_text(item.snippet),
+                    "provider_text": _provider_result_text(item),
                     "source": _coerce_text(item.source),
                     "url": _coerce_text(item.url),
                     "published_at": _coerce_text(item.published_at),
+                    "provider_payload_json": _provider_payload_json(item.raw),
                 }
             )
         serp_flags = _llm_search_relevance_flags(
@@ -490,12 +515,15 @@ def _search_query_results(
                     "title": title,
                     "url": _coerce_text(row.get("url")),
                     "snippet": snippet,
+                    "provider_text": _coerce_text(row.get("provider_text")) if include_provider_text else "",
                     "error_text": "",
                     "result_kind": "result",
                     "source": _coerce_text(row.get("source")) or "serpapi",
                     "published_at": _coerce_text(row.get("published_at")),
                     "authority_bucket": authority_bucket,
                     "authority_rank": authority_rank,
+                    "query_text": query,
+                    "provider_payload_json": _coerce_text(row.get("provider_payload_json")) if include_provider_payload else "",
                 }
             )
 
@@ -561,9 +589,11 @@ def _search_query_results(
                 {
                     "title": _coerce_text(item.title),
                     "snippet": _coerce_text(item.snippet),
+                    "provider_text": _provider_result_text(item),
                     "source": _coerce_text(item.source),
                     "url": _coerce_text(item.url),
                     "published_at": _coerce_text(item.published_at),
+                    "provider_payload_json": _provider_payload_json(item.raw),
                 }
             )
         tavily_flags = _llm_search_relevance_flags(
@@ -592,12 +622,15 @@ def _search_query_results(
                     "title": title,
                     "url": _coerce_text(row.get("url")),
                     "snippet": snippet,
+                    "provider_text": _coerce_text(row.get("provider_text")) if include_provider_text else "",
                     "error_text": "",
                     "result_kind": "result",
                     "source": _coerce_text(row.get("source")) or "tavily",
                     "published_at": _coerce_text(row.get("published_at")),
                     "authority_bucket": authority_bucket,
                     "authority_rank": authority_rank,
+                    "query_text": tavily_query,
+                    "provider_payload_json": _coerce_text(row.get("provider_payload_json")) if include_provider_payload else "",
                 }
             )
     return request_rows, result_rows

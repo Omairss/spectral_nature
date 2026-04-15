@@ -2370,6 +2370,61 @@ def test_search_query_results_skips_tavily_when_serp_is_relevant():
     assert any(row.get("provider") == "serpapi" for row in result_rows)
 
 
+def test_search_query_results_can_retain_provider_payload_and_provider_text():
+    class _TavilyClient:
+        def search(self, query, *, max_results=10, topic=None):
+            del query, max_results, topic
+            return [
+                WebSearchResult(
+                    provider="tavily",
+                    title="Copper demand rises on AI data-center buildout",
+                    url="https://example.com/copper-ai",
+                    snippet="Short snippet.",
+                    raw_text=(
+                        "AI data-center buildouts are raising copper and power-equipment demand across the supply chain. "
+                        "Contractors and utilities are revising expected project schedules."
+                    ),
+                    source="Seeking Alpha",
+                    published_at="2026-04-03T10:00:00Z",
+                    raw={"title": "Copper demand rises on AI data-center buildout", "raw_content": "Full Tavily raw content body"},
+                )
+            ]
+
+    class _RelevantLLM:
+        def generate_json(self, **kwargs):
+            schema_name = kwargs.get("schema_name")
+            if schema_name == "attention_search_relevance":
+                return {"relevant_indices": [0], "reason": "Relevant macro supply-chain result."}
+            return {
+                "use_tavily": True,
+                "tavily_topic": "general",
+                "tavily_query": "copper AI supply chain demand",
+                "reason": "Use Tavily fallback.",
+            }
+
+    request_rows, result_rows = attention_agentic_module._search_query_results(
+        "copper AI supply chain demand",
+        candidate_id="candidate::summary",
+        symbol="",
+        company_name="Market Tape",
+        run_id="run-1",
+        asof_time_utc=pd.Timestamp("2026-04-03T12:00:00Z"),
+        serp_client=None,
+        tavily_client=_TavilyClient(),
+        llm_client=_RelevantLLM(),
+        budget=4,
+        include_provider_payload=True,
+        include_provider_text=True,
+    )
+
+    assert request_rows
+    assert result_rows
+    row = result_rows[0]
+    assert row["provider_text"].startswith("AI data-center buildouts are raising copper")
+    assert row["provider_payload_json"]
+    assert row["query_text"] == "copper AI supply chain demand"
+
+
 def test_fallback_claims_from_chunks_skip_provider_error_chunks():
     chunks = pd.DataFrame(
         [
@@ -2409,6 +2464,40 @@ def test_fallback_claims_from_chunks_skip_provider_error_chunks():
     assert "usage limit" not in claims[0]["claim_text"].lower()
 
 
+def test_documents_from_search_results_prefer_provider_text_and_retain_payload():
+    docs = attention_agentic_module._documents_from_search_results(
+        {"candidate_id": "candidate::summary", "symbol": "", "company_name": "Market Tape"},
+        [
+            {
+                "result_id": "query::1::tavily::1",
+                "title": "Copper demand rises on AI data-center buildout",
+                "snippet": "Short snippet only.",
+                "provider_text": (
+                    "AI data-center buildouts are raising copper and power-equipment demand across the supply chain. "
+                    "Contractors and utilities are revising expected project schedules."
+                ),
+                "provider_payload_json": json.dumps({"raw_content": "Full retained provider payload"}),
+                "source": "Seeking Alpha",
+                "provider": "tavily",
+                "url": "https://example.com/copper-ai",
+                "published_at": "2026-04-03T10:00:00Z",
+                "authority_bucket": "web",
+                "authority_rank": 3,
+                "query_id": "query::1",
+                "query_text": "copper AI supply chain demand",
+            }
+        ],
+        run_id="run-1",
+        asof_time_utc=pd.Timestamp("2026-04-03T12:00:00Z"),
+    )
+
+    assert len(docs) == 1
+    assert docs[0]["raw_text"].startswith("AI data-center buildouts are raising copper")
+    assert docs[0]["raw_text_origin"] == "provider_text"
+    assert docs[0]["provider_payload_json"]
+    assert docs[0]["query_text"] == "copper AI supply chain demand"
+
+
 def test_chunk_source_documents_skip_low_signal_analyst_rating_snippets():
     chunks = attention_agentic_module._chunk_source_documents(
         [
@@ -2436,6 +2525,53 @@ def test_chunk_source_documents_skip_low_signal_analyst_rating_snippets():
     assert len(chunks) == 1
     assert "orders recovered" in chunks.iloc[0]["chunk_text"].lower()
     assert "analyst ratings page" not in chunks.iloc[0]["chunk_text"].lower()
+
+
+def test_fallback_claims_from_chunks_rank_best_evidence_first():
+    chunks = pd.DataFrame(
+        [
+            {
+                "chunk_id": "chunk::old",
+                "title": "Old background note",
+                "display_excerpt": "Background context from last week with little new signal.",
+                "chunk_text": "Background context from last week with little new signal.",
+                "published_at": pd.Timestamp("2026-03-25T00:00:00Z"),
+                "authority_rank": 3,
+                "source_authority_bucket": "web",
+                "source_provider": "Blog",
+                "query_text": "Treasury yields airlines oil moving today why",
+                "mentioned_tickers_json": "[]",
+                "event_tags_json": "[]",
+                "raw_text_origin": "snippet",
+            },
+            {
+                "chunk_id": "chunk::fresh",
+                "title": "Treasury yields ease as oil falls and airlines rally",
+                "display_excerpt": "Same-day coverage said lower yields and easing supply-risk lifted airlines while oil-linked assets fell.",
+                "chunk_text": "Same-day coverage said lower yields and easing supply-risk lifted airlines while oil-linked assets fell.",
+                "published_at": pd.Timestamp("2026-04-03T10:00:00Z"),
+                "authority_rank": 1,
+                "source_authority_bucket": "wire",
+                "source_provider": "Reuters",
+                "query_text": "Treasury yields airlines oil moving today why",
+                "mentioned_tickers_json": json.dumps(["UAL", "USO"]),
+                "event_tags_json": json.dumps(["macro", "sector_rotation"]),
+                "raw_text_origin": "provider_text",
+            },
+        ]
+    )
+
+    claims = attention_agentic_module._fallback_claims_from_chunks(
+        {"symbol": "", "company_name": "Market Tape"},
+        chunks,
+        run_id="run-1",
+        asof_time_utc=pd.Timestamp("2026-04-03T12:00:00Z"),
+        hypotheses=[{"kind": "cross_market"}],
+    )
+
+    assert claims
+    assert claims[0]["source"] == "Reuters"
+    assert "lower yields" in claims[0]["claim_text"].lower()
 
 
 def test_chunk_source_documents_attach_searchable_metadata():
@@ -4021,6 +4157,8 @@ def test_build_attention_agentic_summary_with_trace_returns_materializable_frame
     assert not trace["attention_claims"].empty
     assert trace["attention_search_results"]["research_scope"].astype(str).eq("home_summary").all()
     assert "mentioned_commodities_json" in trace["attention_evidence_chunks"].columns
+    assert "retrieval_rank" in trace["attention_evidence_chunks"].columns
+    assert "provider_payload_json" in trace["attention_search_results"].columns
 
 
 def test_supporting_claims_from_results_enrich_seeking_alpha_pages(monkeypatch):

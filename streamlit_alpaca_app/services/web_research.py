@@ -37,6 +37,7 @@ class WebSearchResult:
     title: str
     url: str
     snippet: str = ""
+    raw_text: str = ""
     source: str = ""
     published_at: str = ""
     raw: dict[str, Any] | None = None
@@ -96,13 +97,14 @@ def load_tavily_config() -> TavilyConfig | None:
     api_key = _resolve_tavily_api_key()
     if not api_key:
         return None
+    include_raw_content_raw = _clean(os.getenv("TAVILY_INCLUDE_RAW_CONTENT"))
     return TavilyConfig(
         api_key=api_key,
         timeout_seconds=_timeout_seconds(),
         topic=_clean(os.getenv("TAVILY_TOPIC")) or "news",
         search_depth=_clean(os.getenv("TAVILY_SEARCH_DEPTH")) or "advanced",
         include_answer=(_clean(os.getenv("TAVILY_INCLUDE_ANSWER")) or "").lower() in {"1", "true", "yes", "on"},
-        include_raw_content=(_clean(os.getenv("TAVILY_INCLUDE_RAW_CONTENT")) or "").lower() in {"1", "true", "yes", "on"},
+        include_raw_content=True if not include_raw_content_raw else include_raw_content_raw.lower() in {"1", "true", "yes", "on"},
     )
 
 
@@ -144,6 +146,7 @@ class SerpAPISearchClient:
                     title=_clean(item.get("title")),
                     url=_clean(item.get("link")),
                     snippet=_clean(item.get("snippet") or item.get("summary")),
+                    raw_text=_clean(item.get("snippet") or item.get("summary")),
                     source=_source_label(item.get("source")),
                     published_at=_clean(item.get("date")),
                     raw=item,
@@ -199,6 +202,7 @@ class SerpAPISearchClient:
             title=title,
             url=source_url,
             snippet=snippet,
+            raw_text=snippet,
             source="Google AI Overview",
             published_at="",
             raw=overview,
@@ -242,6 +246,7 @@ class TavilySearchClient:
                     title=_clean(item.get("title")),
                     url=_clean(item.get("url")),
                     snippet=_clean(item.get("content")),
+                    raw_text=_clean(item.get("raw_content") or item.get("content")),
                     source=_source_label(item.get("source") or item.get("domain")),
                     published_at=_clean(item.get("published_date")),
                     raw=item,

@@ -180,3 +180,28 @@ This is a curated list of reusable lessons for this repo. Highest-leverage items
 - `cache/pipeline_store` is a convenience layer, not a durable store. Keep blob storage and dataset manifests as the source of truth.
 - A read-through cache in a long-lived container should prune itself after writes; otherwise harmless dataset reads slowly turn into disk pressure.
 - If runtime cache artifacts are useful locally but not canonical, ignore them in git and keep only a placeholder `.gitignore` in the directory.
+
+## 26. Agentic research quality depends more on gap detection than on adding one more source
+
+- A system can browse, search, and even read long-form pages such as Seeking Alpha, but still sound flat if it compresses evidence too early and never asks what is still missing.
+- First-chunk and first-claim bias is a real quality problem. Rank chunks by relevance and freshness before writing, instead of trusting the first few paragraphs of a page.
+- Homepage summaries and event cards need different writers. Reusing feed-style surface summaries in tight homepage bullets makes the output feel clipped and repetitive.
+- Generic phrases such as `with no clear catalyst` or `most plausible chain` are useful fallback language, but they should also be treated as quality signals that may justify another research pass.
+
+## 27. Borrow advanced agent patterns selectively and only after the evidence layer is sound
+
+- Coordinator-worker orchestration, scratchpads, live progress summaries, and consolidation gates are useful patterns for AQL + SAA.
+- Speculative execution and remote deep-planning are not good first fixes when the real bottleneck is weak retention and weak retrieval.
+- Before importing advanced agent architecture ideas, first check whether the system is still throwing away fetched content or writing from low-quality retrieval.
+
+## 28. Retained provider text is often more valuable than the snippet, and chunk ranking matters immediately
+
+- Search adapters should carry richer provider text and raw payloads forward when they are available. Otherwise the system pays for better retrieval but still writes from thin snippets.
+- A small ranking layer over chunks improves quality quickly. Replacing first-chunk and `head(6)` bias is a high-leverage fix even before a full lexical + vector retrieval stack exists.
+- If a premium or browsed source is worth opening, its retained text budget must be large enough to matter; a very low char cap turns page browsing back into snippet collection.
+
+## 29. Durable document storage should start with stable document ids, not a brand-new retrieval stack
+
+- Once AQL source documents have stable canonical ids and content hashes, later retrieval and cross-run history work becomes much simpler.
+- The first durable SAA layer does not need a new search engine on day one. Blob storage plus Postgres metadata is enough to stop raw-document loss and make documents reopenable.
+- Store the full raw document in blob, but keep the dataset frame and chunk rows carrying the canonical id so later retrieval layers can join back to the durable source of truth.

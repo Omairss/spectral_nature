@@ -55,6 +55,7 @@ from services.market import (
 )
 from services.options import build_option_snapshot_surface, load_option_chain
 from services.pipeline_store import load_latest_dataset_frame
+from services.saa.storage import bootstrap_saa_storage, persist_retained_source_documents
 from services.secrets import resolve_secret_value
 from services.simfin_refresh import build_quarterly_fundamentals_frame, simfin_refresh_configured
 from services.treasury_yields import TreasuryYieldError, load_treasury_yield_datasets
@@ -224,6 +225,7 @@ def _db_bootstrap(conn: Any) -> None:
         )
     conn.commit()
     bootstrap_entity_taxonomy_tables(conn)
+    bootstrap_saa_storage(conn)
 
 
 def _db_mark_job_start(conn: Any, ctx: JobContext) -> None:
@@ -481,15 +483,30 @@ def _upload_manifest(dataset_name: str, path: str, frame: pd.DataFrame, ctx: Job
 
 
 def _persist_dataset(dataset_name: str, frame: pd.DataFrame, ctx: JobContext, conn: Any | None) -> None:
-    path = _upload_frame(dataset_name, frame, ctx)
-    manifest = _upload_manifest(dataset_name, path, frame, ctx)
+    prepared_frame = frame.copy() if isinstance(frame, pd.DataFrame) else pd.DataFrame()
+    if dataset_name == "attention_source_documents" and not prepared_frame.empty:
+        try:
+            prepared_frame = persist_retained_source_documents(
+                dataset_name,
+                prepared_frame,
+                dataset_version_id=_dataset_version_id(dataset_name, ctx),
+                run_id=ctx.run_id,
+                asof_time_utc=ctx.asof,
+                universe_version=ctx.universe_version,
+                conn=conn,
+                upload_bytes_fn=_upload_bytes,
+            )
+        except Exception as exc:
+            print(f"[warn] failed to retain source documents for `{dataset_name}`: {type(exc).__name__}: {exc}")
+    path = _upload_frame(dataset_name, prepared_frame, ctx)
+    manifest = _upload_manifest(dataset_name, path, prepared_frame, ctx)
     if manifest and conn is not None:
         _db_upsert_dataset_version(conn, manifest, ctx)
     _job_progress(
         ctx,
         conn,
         stage="persist_dataset",
-        message=f"Persisted dataset `{dataset_name}` rows={len(frame)}.",
+        message=f"Persisted dataset `{dataset_name}` rows={len(prepared_frame)}.",
     )
 
 

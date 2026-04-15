@@ -29,6 +29,143 @@ from ._shared import (
 )
 from .collector import _candidate_company_name, _candidate_subject
 
+DEFAULT_MAX_CHUNKS_PER_DOCUMENT = 18
+DEFAULT_MAX_CHUNK_CHARS = 1000
+DEFAULT_MAX_CLAIM_CHUNKS = 12
+
+
+def _normalize_chunk_pieces(raw_text: str) -> list[str]:
+    paragraphs = [piece.strip() for piece in re.split(r"\n\s*\n+", raw_text) if piece.strip()]
+    if not paragraphs:
+        paragraphs = [raw_text.strip()]
+    pieces: list[str] = []
+    for paragraph in paragraphs:
+        sentences = [piece.strip() for piece in re.split(r"(?<=[.!?])\s+", paragraph) if piece.strip()]
+        if not sentences:
+            sentences = [paragraph]
+        for sentence in sentences:
+            if len(sentence) <= DEFAULT_MAX_CHUNK_CHARS:
+                pieces.append(sentence)
+                continue
+            clause_parts = [piece.strip() for piece in re.split(r"(?<=[,;:])\s+", sentence) if piece.strip()]
+            if clause_parts:
+                pieces.extend(clause_parts)
+            else:
+                pieces.append(sentence)
+    return [piece for piece in pieces if piece]
+
+
+def _document_chunk_texts(raw_text: str, *, max_chunks: int = DEFAULT_MAX_CHUNKS_PER_DOCUMENT) -> list[str]:
+    pieces = _normalize_chunk_pieces(raw_text)
+    if not pieces:
+        return []
+    filtered_pieces = [piece for piece in pieces if not _is_low_signal_claim_text(piece)]
+    if filtered_pieces:
+        pieces = filtered_pieces
+    chunk_texts: list[str] = []
+    current = ""
+    for piece in pieces:
+        candidate = f"{current}\n\n{piece}".strip() if current else piece
+        if current and len(candidate) > DEFAULT_MAX_CHUNK_CHARS:
+            chunk_texts.append(current)
+            current = piece
+        else:
+            current = candidate
+    if current:
+        chunk_texts.append(current)
+    return [_trim(chunk, DEFAULT_MAX_CHUNK_CHARS) for chunk in chunk_texts[: max(int(max_chunks), 1)] if _coerce_text(chunk)]
+
+
+def _parse_json_list(value: object) -> list[str]:
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return []
+        try:
+            parsed = json.loads(text)
+        except Exception:
+            parsed = text
+    else:
+        parsed = value
+    return [item for item in _safe_list(parsed) if _coerce_text(item)]
+
+
+def _token_overlap_score(text: object, query: object) -> float:
+    text_tokens = {
+        token
+        for token in re.split(r"[^a-z0-9]+", _coerce_text(text).lower())
+        if len(token) >= 3
+    }
+    query_tokens = {
+        token
+        for token in re.split(r"[^a-z0-9]+", _coerce_text(query).lower())
+        if len(token) >= 3
+    }
+    if not text_tokens or not query_tokens:
+        return 0.0
+    overlap = text_tokens & query_tokens
+    if not overlap:
+        return 0.0
+    return min(len(overlap) / max(len(query_tokens), 1), 1.0)
+
+
+def _rank_chunk_score(
+    row: pd.Series,
+    *,
+    candidate: dict[str, Any],
+    asof_time_utc: pd.Timestamp,
+) -> float:
+    title = _coerce_text(row.get("title"))
+    text = _coerce_text(row.get("chunk_text"))
+    query_text = _coerce_text(row.get("query_text"))
+    authority_rank = int(row.get("authority_rank") or 3)
+    freshness = _freshness_score(pd.to_datetime(row.get("published_at"), utc=True, errors="coerce"), asof_time_utc)
+    symbol = _normalize_symbol(candidate.get("symbol"))
+    company_name = _candidate_company_name(candidate)
+    title_blob = f"{title} {text}"
+
+    score = 0.0
+    score += freshness * 0.38
+    score += max(0.0, 0.18 - authority_rank * 0.04)
+    score += _token_overlap_score(title_blob, query_text) * 0.2
+    if symbol and symbol in title_blob.upper():
+        score += 0.14
+    if company_name and company_name.lower() in title_blob.lower():
+        score += 0.12
+    if _parse_json_list(row.get("mentioned_tickers_json")):
+        score += 0.05
+    if _parse_json_list(row.get("event_tags_json")):
+        score += 0.04
+    if _coerce_text(row.get("raw_text_origin")) in {"page_text", "provider_text"}:
+        score += 0.08
+    if _coerce_text(row.get("source_authority_bucket")) == "official":
+        score += 0.06
+    if _is_low_signal(row.get("title"), text):
+        score -= 0.2
+    return round(score, 4)
+
+
+def _rank_evidence_chunks(
+    chunks: pd.DataFrame,
+    *,
+    candidate: dict[str, Any],
+    asof_time_utc: pd.Timestamp,
+) -> pd.DataFrame:
+    if not isinstance(chunks, pd.DataFrame) or chunks.empty:
+        return chunks if isinstance(chunks, pd.DataFrame) else pd.DataFrame()
+    ranked = chunks.copy()
+    ranked["retrieval_score"] = ranked.apply(
+        lambda row: _rank_chunk_score(row, candidate=candidate, asof_time_utc=asof_time_utc),
+        axis=1,
+    )
+    ranked = ranked.sort_values(
+        ["retrieval_score", "published_at", "authority_rank"],
+        ascending=[False, False, True],
+        na_position="last",
+    ).reset_index(drop=True)
+    ranked["retrieval_rank"] = range(1, len(ranked) + 1)
+    return ranked
+
 
 def _documents_from_search_results(
     candidate: dict[str, Any],
@@ -43,15 +180,19 @@ def _documents_from_search_results(
         title = _coerce_text(row.get("title"))
         snippet = _coerce_text(row.get("snippet"))
         page_text = _coerce_text(row.get("page_text"))
-        snippet_or_title = page_text or _evidence_text(snippet, title)
-        if not title and not snippet and not page_text:
+        provider_text = _coerce_text(row.get("provider_text"))
+        evidence_preview = provider_text or snippet
+        provider_payload_json = _coerce_text(row.get("provider_payload_json"))
+        raw_text = page_text or provider_text or _evidence_text(snippet, title)
+        raw_text_origin = "page_text" if page_text else ("provider_text" if provider_text else "snippet")
+        if not title and not snippet and not page_text and not provider_text:
             continue
         from ._shared import _is_irrelevant_news_text
-        if _is_irrelevant_news_text(title, snippet):
+        if _is_irrelevant_news_text(title, evidence_preview):
             continue
-        if _is_provider_error_text(title) or _is_provider_error_text(snippet):
+        if _is_provider_error_text(title) or _is_provider_error_text(evidence_preview):
             continue
-        if _is_low_signal(title, snippet) and not _normalize_symbol(candidate.get("symbol")) in f"{title} {snippet}".upper():
+        if _is_low_signal(title, evidence_preview) and not _normalize_symbol(candidate.get("symbol")) in f"{title} {evidence_preview}".upper():
             continue
         doc_id = f"doc::{_coerce_text(row.get('result_id'))}"
         out.append(
@@ -68,10 +209,22 @@ def _documents_from_search_results(
                 "title": title,
                 "url": _coerce_text(row.get("url")),
                 "published_at": pd.to_datetime(row.get("published_at"), utc=True, errors="coerce"),
-                "raw_text": snippet_or_title,
-                "display_excerpt": _display_excerpt(snippet_or_title, title),
+                "raw_text": raw_text,
+                "raw_text_origin": raw_text_origin,
+                "raw_text_chars": len(raw_text),
+                "display_excerpt": _display_excerpt(raw_text, title),
                 "search_provider": _coerce_text(row.get("provider")),
-                "source_trace": _json_dumps({"source": "search", "query_id": _coerce_text(row.get("query_id"))}),
+                "query_text": _coerce_text(row.get("query_text")),
+                "provider_payload_json": provider_payload_json,
+                "provider_text": provider_text,
+                "source_trace": _json_dumps(
+                    {
+                        "source": "search",
+                        "query_id": _coerce_text(row.get("query_id")),
+                        "query_text": _coerce_text(row.get("query_text")),
+                        "raw_text_origin": raw_text_origin,
+                    }
+                ),
             }
         )
     return annotate_source_documents(out, asof_time_utc=asof_time_utc)
@@ -89,15 +242,15 @@ def _chunk_source_documents(
         raw_text = _coerce_text(doc.get("raw_text"))
         if not raw_text:
             continue
-        pieces = [piece.strip() for piece in re.split(r"\n\s*\n+|(?<=[.!?])\s+", raw_text) if piece.strip()]
-        if not pieces:
-            pieces = [raw_text]
+        chunk_texts_for_doc = _document_chunk_texts(raw_text)
+        if not chunk_texts_for_doc:
+            continue
         chunk_texts = []
         chunk_rows = []
-        for idx, piece in enumerate(pieces[:3]):
+        for idx, piece in enumerate(chunk_texts_for_doc):
             chunk_id = f"{_coerce_text(doc.get('document_id'))}::chunk::{idx + 1}"
             display_excerpt = _display_excerpt(piece, doc.get("title"))
-            chunk_text = _trim(piece, 700)
+            chunk_text = _trim(piece, DEFAULT_MAX_CHUNK_CHARS)
             if not chunk_text or _is_low_signal_claim_text(chunk_text):
                 continue
             metadata = build_evidence_metadata(
@@ -115,9 +268,14 @@ def _chunk_source_documents(
                     "candidate_id": _coerce_text(doc.get("candidate_id")),
                     "bundle_subject": _coerce_text(doc.get("bundle_subject")),
                     "document_id": _coerce_text(doc.get("document_id")),
+                    "canonical_document_id": _coerce_text(doc.get("canonical_document_id")),
+                    "canonical_url": _coerce_text(doc.get("canonical_url")),
+                    "url_host": _coerce_text(doc.get("url_host")),
                     "chunk_id": chunk_id,
                     "chunk_text": chunk_text,
                     "display_excerpt": display_excerpt or _trim(chunk_text, 180),
+                    "chunk_index": idx + 1,
+                    "document_chunk_count": len(chunk_texts_for_doc),
                     "source_kind": _coerce_text(doc.get("source_kind")),
                     "source_provider": _coerce_text(doc.get("source_provider")),
                     "source_authority_bucket": _coerce_text(doc.get("source_authority_bucket")),
@@ -125,6 +283,14 @@ def _chunk_source_documents(
                     "title": _coerce_text(doc.get("title")),
                     "url": _coerce_text(doc.get("url")),
                     "published_at": pd.to_datetime(doc.get("published_at"), utc=True, errors="coerce"),
+                    "query_text": _coerce_text(doc.get("query_text")),
+                    "provider_payload_json": _coerce_text(doc.get("provider_payload_json")),
+                    "provider_text": _coerce_text(doc.get("provider_text")),
+                    "raw_text_origin": _coerce_text(doc.get("raw_text_origin")),
+                    "raw_text_chars": int(doc.get("raw_text_chars") or len(raw_text)),
+                    "document_identity_sha256": _coerce_text(doc.get("document_identity_sha256")),
+                    "document_content_sha256": _coerce_text(doc.get("document_content_sha256")),
+                    "provider_payload_sha256": _coerce_text(doc.get("provider_payload_sha256")),
                     "published_date": _coerce_text(metadata.get("published_date") or doc.get("published_date")),
                     "primary_date": _coerce_text(metadata.get("primary_date") or doc.get("primary_date")),
                     "mentioned_tickers_json": _coerce_text(metadata.get("mentioned_tickers_json")),
@@ -166,7 +332,12 @@ def _fallback_claims_from_chunks(
     company_name = _candidate_company_name(candidate).upper()
     out: list[dict[str, Any]] = []
     hypothesis_names = [_coerce_text(item.get("kind")) for item in hypotheses if _coerce_text(item.get("kind"))]
-    for _, row in chunks.head(6).iterrows():
+    ranked_chunks = _rank_evidence_chunks(
+        chunks,
+        candidate=candidate,
+        asof_time_utc=asof_time_utc,
+    )
+    for _, row in ranked_chunks.head(DEFAULT_MAX_CLAIM_CHUNKS).iterrows():
         text = _coerce_text(row.get("display_excerpt") or row.get("chunk_text"))
         if not text:
             continue
@@ -247,6 +418,11 @@ def _extract_claims(
         "Only retain high-signal claims. Prefer same-day explanations over stale context. "
         "Do not emit generic filing labels as claims."
     )
+    ranked_chunks = _rank_evidence_chunks(
+        chunks,
+        candidate=candidate,
+        asof_time_utc=asof_time_utc,
+    )
     user_prompt = json.dumps(
         {
             "subject": _candidate_subject(candidate),
@@ -257,10 +433,11 @@ def _extract_claims(
                     "chunk_id": _coerce_text(row.get("chunk_id")),
                     "title": _coerce_text(row.get("title")),
                     "text": _coerce_text(row.get("chunk_text")),
+                    "query_text": _coerce_text(row.get("query_text")),
                     "published_at": _coerce_text(pd.to_datetime(row.get("published_at"), utc=True, errors="coerce").isoformat() if pd.notna(pd.to_datetime(row.get("published_at"), utc=True, errors="coerce")) else ""),
                     "authority_bucket": _coerce_text(row.get("source_authority_bucket")),
                 }
-                for _, row in chunks.head(6).iterrows()
+                for _, row in ranked_chunks.head(DEFAULT_MAX_CLAIM_CHUNKS).iterrows()
             ],
         },
         ensure_ascii=False,
@@ -278,7 +455,7 @@ def _extract_claims(
     claims: list[dict[str, Any]] = []
     chunk_lookup = {
         _coerce_text(row.get("chunk_id")): row
-        for _, row in chunks.iterrows()
+        for _, row in ranked_chunks.iterrows()
         if _coerce_text(row.get("chunk_id"))
     }
     for item in list(data.get("claims") or [])[:8]:
