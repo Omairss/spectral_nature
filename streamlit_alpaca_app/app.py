@@ -299,7 +299,7 @@ _AUTH_COOKIE_REMEMBER_ME_TTL_SECONDS = 30 * 24 * 60 * 60
 APP_BRAND_NAME = "Spectral Nature"
 APP_BRAND_KICKER = "Torres Capital"
 APP_BRAND_SUBTITLE = "Research, portfolio context, and market structure in one refined workspace."
-_APP_SHELL_STYLE_VERSION = "2026-04-03-brand-assets-v4"
+_APP_SHELL_STYLE_VERSION = "2026-04-14-vertical-nav-v1"
 _INLINE_LOADING_STYLE_VERSION = "2026-04-02-inline-loading-v1"
 _INVITE_THEME_WIDGET_PREFIX = "_access_invite_theme_"
 _INVITE_TEMPLATE_INIT_KEY = "_access_invite_template_editor_initialized"
@@ -1360,6 +1360,15 @@ def _ensure_app_shell_styles() -> None:
             letter-spacing: 0.2em;
             text-transform: uppercase;
         }
+        .sn-sidebar-logo-link {
+            display: block;
+            text-decoration: none;
+            opacity: 0.9;
+            transition: opacity 0.15s;
+        }
+        .sn-sidebar-logo-link:hover {
+            opacity: 1;
+        }
         .sn-sidebar-logo {
             width: 100%;
             max-width: 15.5rem;
@@ -1637,6 +1646,54 @@ def _ensure_app_shell_styles() -> None:
             border: 1px solid var(--sn-line);
             background: var(--sn-card);
         }
+        /* Vertical nav tabs */
+        .sn-nav-label {
+            margin: 0.6rem 0 0.3rem 0;
+            padding: 0 0.1rem;
+            color: var(--sn-accent) !important;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+        [class*="st-key-sn_nav_"] {
+            margin-bottom: 0 !important;
+        }
+        [class*="st-key-sn_nav_"] button {
+            width: 100%;
+            justify-content: flex-start;
+            text-align: left;
+            padding: 0.44rem 0.65rem !important;
+            border: none !important;
+            background: transparent !important;
+            color: var(--sn-muted-strong) !important;
+            font-size: 0.87rem;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            min-height: 0;
+            box-shadow: none !important;
+            line-height: 1.3;
+        }
+        [class*="st-key-sn_nav_"] button > div {
+            justify-content: flex-start;
+            text-align: left;
+        }
+        [class*="st-key-sn_nav_"] button p {
+            font-size: 0.87rem;
+            text-align: left;
+        }
+        [class*="st-key-sn_nav_"] button:hover {
+            background: rgba(168, 184, 201, 0.07) !important;
+            color: var(--sn-ink) !important;
+        }
+        [class*="st-key-sn_nav_active_"] button {
+            background: rgba(168, 184, 201, 0.1) !important;
+            color: var(--sn-ink) !important;
+            font-weight: 650 !important;
+        }
+        [class*="st-key-sn_nav_active_"] button:hover {
+            background: rgba(168, 184, 201, 0.12) !important;
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -1673,7 +1730,7 @@ def _render_sidebar_editorial_links(*, placement: str = "sidebar_brand") -> None
         st.markdown("".join(editorial_markup_parts), unsafe_allow_html=True)
 
 
-def _render_sidebar_brand_panel(app_track: str) -> None:
+def _render_sidebar_brand_panel() -> None:
 
     logo_markup = _inline_image_markup(
         APP_SIDEBAR_LOGO_PATH,
@@ -1682,7 +1739,7 @@ def _render_sidebar_brand_panel(app_track: str) -> None:
     )
     has_logo = bool(logo_markup)
     brand_markup = (
-        f"<div class='sn-sidebar-logo'>{logo_markup}</div>"
+        f"<a href='?nav=home' class='sn-sidebar-logo-link'><div class='sn-sidebar-logo'>{logo_markup}</div></a>"
         if logo_markup
         else ""
     )
@@ -2310,6 +2367,7 @@ def _restore_legacy_login_from_cookie() -> bool:
     st.session_state["_ui_auth_session_id"] = session_id
     st.session_state["_ui_auth_mode"] = "legacy"
     _store_user_context(None)
+    _apply_post_login_destination()
     return True
 
 
@@ -2327,6 +2385,7 @@ def _restore_database_login_from_cookie() -> bool:
     st.session_state["_ui_auth_session_id"] = session_token
     st.session_state["_ui_auth_mode"] = "database"
     _store_user_context(context)
+    _apply_post_login_destination()
     auth_service.record_access_event(
         event_type="session_restored",
         event_category="usage",
@@ -2342,10 +2401,8 @@ def _restore_database_login_from_cookie() -> bool:
 def _render_login_gate_sidebar() -> None:
     app_track = (os.getenv("APP_TRACK") or "local").strip().lower()
     with st.sidebar:
-        _render_sidebar_brand_panel(app_track)
+        _render_sidebar_brand_panel()
         _render_sidebar_editorial_links(placement="sidebar_brand")
-        if app_track:
-            st.caption(f"Environment: {_environment_label(app_track)}")
 
 
 def _render_legacy_login_gate() -> None:
@@ -2385,8 +2442,10 @@ def _render_legacy_login_gate() -> None:
             st.session_state["_ui_authenticated"] = True
             st.session_state["_ui_auth_session_id"] = session_id
             st.session_state["_ui_auth_mode"] = "legacy"
+            st.session_state.pop("_show_login_form", None)
             _store_user_context(None)
             _render_auth_cookie_sync("set", session_id)
+            _apply_post_login_destination()
             return
         st.error("Invalid username or password.")
     st.stop()
@@ -2449,8 +2508,10 @@ def _render_database_login_gate() -> None:
                     st.session_state["_ui_authenticated"] = True
                     st.session_state["_ui_auth_session_id"] = session_token
                     st.session_state["_ui_auth_mode"] = "database"
+                    st.session_state.pop("_show_login_form", None)
                     _store_user_context(context)
                     _render_auth_cookie_sync("set", session_token, persistent=remember_me)
+                    _apply_post_login_destination()
                     st.rerun()
             else:
                 st.error(str(result.get("message") or "Login failed."))
@@ -2488,8 +2549,10 @@ def _render_database_login_gate() -> None:
                         st.session_state["_ui_authenticated"] = True
                         st.session_state["_ui_auth_session_id"] = session_token
                         st.session_state["_ui_auth_mode"] = "database"
+                        st.session_state.pop("_show_login_form", None)
                         _store_user_context(context)
                         _render_auth_cookie_sync("set", session_token, persistent=True)
+                        _apply_post_login_destination()
                         st.success("Account created. Loading your workspace...")
                         st.rerun()
                 else:
@@ -2537,12 +2600,55 @@ def _render_database_login_gate() -> None:
     st.stop()
 
 
+def _handle_auth_cookie_maintenance() -> None:
+    """Run cookie cleanup logic. Always call this once per render before auth routing."""
+    if not _auth_enabled():
+        return
+    if st.session_state.pop("_ui_clear_auth_cookie", False):
+        _render_auth_cookie_sync("clear")
+    elif not _browser_session_cookie_enabled() and _auth_cookie_value():
+        _render_auth_cookie_sync("clear")
+
+
+def _try_restore_session_from_cookie() -> bool:
+    """Attempt to restore an authenticated session from a browser cookie.
+    Returns True if the session was successfully restored."""
+    if not _auth_enabled():
+        return False
+    if st.session_state.get("_ui_authenticated"):
+        return True
+    if auth_service.database_auth_enabled():
+        return _restore_database_login_from_cookie()
+    return _restore_legacy_login_from_cookie()
+
+
+def _apply_post_login_destination() -> None:
+    """After successful login, navigate to the section the user was trying to reach."""
+    dest = st.session_state.pop("_pre_auth_destination", None)
+    if dest:
+        st.session_state["_pending_workspace_section"] = dest
+
+
+def _render_section_back_button(key: str) -> None:
+    """Render a ← Back button that navigates to the previously visited section."""
+    section_opts = _section_options()
+    prev = _normalize_workspace_section(st.session_state.get("_prev_workspace_section", ""))
+    if not prev or prev not in section_opts:
+        return
+    if st.button("← Back", key=key, use_container_width=True):
+        st.session_state["_pending_workspace_section"] = prev
+        st.rerun()
+
+
 def _enforce_login_gate() -> None:
     if not _auth_enabled():
         st.session_state["_ui_authenticated"] = True
         st.session_state["_ui_auth_mode"] = "disabled"
         return
 
+    # Cookie maintenance and restore are expected to have run already via
+    # _handle_auth_cookie_maintenance() and _try_restore_session_from_cookie().
+    # This guard handles cases where _enforce_login_gate is called directly.
     if st.session_state.pop("_ui_clear_auth_cookie", False):
         _render_auth_cookie_sync("clear")
     elif not _browser_session_cookie_enabled() and _auth_cookie_value():
@@ -2814,7 +2920,18 @@ def _render_invite_email_designer(*, current_user: auth_service.UserContext) -> 
 
 
 def _render_access_admin_section() -> None:
-    st.title(ADMIN_SECTION)
+    header_cols = st.columns([4.6, 1.4, 1.4])
+    with header_cols[0]:
+        st.title(ADMIN_SECTION)
+    with header_cols[1]:
+        _render_section_back_button("admin_back")
+    with header_cols[2]:
+        _section_refresh_button(
+            "admin_attention_refresh",
+            source="attention",
+            label="Run attention refresh job",
+        )
+
     if st.session_state.get("_ui_auth_mode") != "database":
         st.info("Database-backed auth is required for user invites and password reset management.")
         return
@@ -5089,11 +5206,7 @@ def _render_agentic_omnibar_section(
             "One bar for navigation, retained research lookup, and tool-backed agent answers."
         )
     with header_cols[1]:
-        force_data_refresh = force_data_refresh or _section_refresh_button(
-            "agentic_omnibar_refresh",
-            source="attention",
-            label="Run attention refresh job",
-        )
+        _render_section_back_button("agentic_omnibar_back")
     with header_cols[2]:
         if st.button("Clear Chat + Search", key="agentic_omnibar_clear", use_container_width=True):
             for state_key in [
@@ -6258,11 +6371,7 @@ def _render_home_attention(
         st.title(page_title)
         st.caption(page_caption)
     with header_cols[1]:
-        force_data_refresh = force_data_refresh or _section_refresh_button(
-            "home_attention_refresh",
-            source="attention",
-            label="Run attention refresh job",
-        )
+        _render_section_back_button("home_attention_back")
 
     if require_api and api is None:
         st.info("Configure the live market connection to enable the daily tape, market context, and research bundle lookups.")
@@ -6883,11 +6992,9 @@ def _load_homepage_narrative_payload(cfg: AppConfig, *, force_data_refresh: bool
 
 
 def _render_homepage_v2(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_refresh: bool) -> None:
-    force_data_refresh = force_data_refresh or _section_refresh_button(
-        "homepage_v2_refresh",
-        source="attention",
-        label="Run attention refresh job",
-    )
+    _, _back_col = st.columns([5, 1.4])
+    with _back_col:
+        _render_section_back_button("homepage_v2_back")
 
     home_payload = _load_homepage_narrative_payload(
         cfg,
@@ -8785,9 +8892,27 @@ Strong momentum with a shallow pullback usually signals leadership. Weak momentu
 
 
 _ensure_app_shell_styles()
+
+# Detect logo click (?nav=home) and queue navigation to Home.
+if _query_param_value("nav") == "home":
+    try:
+        del st.query_params["nav"]
+    except Exception:
+        pass
+    st.session_state["_pending_workspace_section"] = "Home"
+
+# Run cookie maintenance and attempt session restore before routing decisions.
+_handle_auth_cookie_maintenance()
+_try_restore_session_from_cookie()
+if not _auth_enabled():
+    st.session_state["_ui_authenticated"] = True
+    st.session_state.setdefault("_ui_auth_mode", "disabled")
+
+app_track = (os.getenv("APP_TRACK") or "local").strip().lower()
+
 with _timed("load_config"):
-    _enforce_login_gate()
     cfg = load_config()
+
 api: AlpacaAPI | None = None
 account: dict[str, object] = {}
 startup_error_summary: str | None = None
@@ -8829,7 +8954,31 @@ else:
     with _timed("create_api_client"):
         api = _make_api(cfg)
 
-app_track = (os.getenv("APP_TRACK") or "local").strip().lower()
+# Determine where the user wants to go before the auth gate fires.
+_routing_pending = _normalize_workspace_section(st.session_state.get("_pending_workspace_section", ""))
+_routing_current = _normalize_workspace_section(st.session_state.get("workspace_section", ""))
+_routing_target = _routing_pending or _routing_current or "Home"
+_show_login_forced = bool(st.session_state.get("_show_login_form", False))
+_is_authenticated = bool(st.session_state.get("_ui_authenticated"))
+
+# Public home path: unauthenticated visitor heading to Home (or no destination).
+if not _is_authenticated and _auth_enabled() and not _show_login_forced and _routing_target == "Home":
+    with st.sidebar:
+        _render_sidebar_brand_panel()
+        _render_sidebar_editorial_links(placement="sidebar_brand")
+        if st.button("Sign in", type="primary", use_container_width=True, key="public_home_signin"):
+            st.session_state["_show_login_form"] = True
+            st.rerun()
+    _render_homepage_v2(cfg, None, force_data_refresh=False)
+    st.stop()
+
+# Gate: unauthenticated visitor trying to reach a specific section.
+if not _is_authenticated and _auth_enabled():
+    if _routing_target and _routing_target != "Home":
+        st.session_state["_pre_auth_destination"] = _routing_target
+    _enforce_login_gate()
+    # _enforce_login_gate calls st.stop() if login not yet completed.
+
 cache_disabled = (os.getenv("APP_DISABLE_CACHE") or "").strip().lower() in {"1", "true", "yes", "on"}
 force_refresh_default_raw = os.getenv("APP_FORCE_DATA_REFRESH_DEFAULT")
 if force_refresh_default_raw is None or not str(force_refresh_default_raw).strip():
@@ -8840,9 +8989,14 @@ source_refresh_flags = dict(st.session_state.get("_source_force_refresh", {}))
 st.session_state["_source_force_refresh"] = source_refresh_flags
 _consume_cross_page_inspector_query_params()
 section_options = _section_options()
+
+# Track previous section for the ← Back button before resolving any pending change.
+_section_before_transition = _normalize_workspace_section(st.session_state.get("workspace_section"))
 pending_workspace_section = _normalize_workspace_section(st.session_state.pop("_pending_workspace_section", ""))
 current_workspace_section = _normalize_workspace_section(st.session_state.get("workspace_section"))
 if pending_workspace_section in section_options:
+    if pending_workspace_section != current_workspace_section:
+        st.session_state["_prev_workspace_section"] = _section_before_transition
     st.session_state["workspace_section"] = pending_workspace_section
 elif current_workspace_section in section_options:
     st.session_state["workspace_section"] = current_workspace_section
@@ -8852,20 +9006,17 @@ elif st.session_state.get("workspace_section") not in section_options:
 current_user = _current_user_context()
 
 with st.sidebar:
-    _render_sidebar_brand_panel(app_track)
+    _render_sidebar_brand_panel()
     _render_sidebar_editorial_links(placement="sidebar_brand")
-    if app_track:
-        st.caption(f"Environment: {_environment_label(app_track)}")
-    if current_user is not None:
-        st.caption(f"Signed in as {current_user.label}")
-        if current_user.can_view_full_portfolio:
-            st.caption("Access: Full portfolio")
-        else:
-            st.caption(f"Portfolio share: {_current_user_share_fraction() * 100:.2f}%")
-    elif st.session_state.get("_ui_auth_mode") == "legacy":
-        st.caption("Signed in via legacy admin login")
-
-    section = st.selectbox("Workspace", section_options, key="workspace_section")
+    _nav_current = _normalize_workspace_section(st.session_state.get("workspace_section", section_options[0]))
+    st.markdown('<p class="sn-nav-label">Navigate</p>', unsafe_allow_html=True)
+    for _nav_opt in section_options:
+        _nav_slug = _nav_opt.lower().replace(" ", "_").replace("-", "_")
+        _nav_key = f"sn_nav_active_{_nav_slug}" if _nav_opt == _nav_current else f"sn_nav_{_nav_slug}"
+        if st.button(_nav_opt, key=_nav_key, use_container_width=True):
+            st.session_state["_pending_workspace_section"] = _nav_opt
+            st.rerun()
+    section = _nav_current
 
     with st.expander("Workspace Status", expanded=False):
         if pipeline_store_configured():
