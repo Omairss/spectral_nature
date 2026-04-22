@@ -8,6 +8,7 @@ from typing import Any
 
 import pandas as pd
 
+from ..llm import COPY_STYLE_RULE, get_prompt, register_copy_prompt
 from .constants import (
     EVENT_WRITER_SCHEMA,
     EVENT_WRITER_SYSTEM_PROMPT,
@@ -39,6 +40,23 @@ from ._shared import (
 from .extractor import _claim_entities
 from .collector import _candidate_subject
 
+SYMBOL_BUNDLE_SYSTEM_PROMPT = register_copy_prompt(
+    name="Symbol Bundle (what_changed / why_happened / spillover)",
+    file="services/aql/writer.py",
+    prompt=(
+        f"{COPY_STYLE_RULE} "
+        "You write plain-language market research summaries. "
+        "Use only the supplied claims and facts. Keep the surface summary to at most two sentences. "
+        "Do not invent causes. "
+        "Do not write generic tape titles like 'moves sharply today' or 'rises on today's tape'. "
+        "Use the most specific company or catalyst title supported by the supplied evidence. "
+        "Avoid ticker/percent tape recaps across all text fields. "
+        "Explain mechanism: state why the move happened and how that transmits to prices, margins, demand, or risk appetite. "
+        "Do not use ticker/percent lists as the main why-today explanation. "
+        "What-else-moved text should describe spillover and avoid repeating what-changed text verbatim. "
+        "When Treasury yield context is relevant, summarize direction and transmission in plain language without quoting bp numbers."
+    ),
+)
 
 def _fallback_symbol_writer(
     candidate: dict[str, Any],
@@ -101,18 +119,7 @@ def _write_symbol_bundle(
     fallback = _fallback_symbol_writer(candidate, claims, peer_moves, cause_status, yield_facts=yield_facts)
     if llm_client is None:
         return fallback
-    system_prompt = (
-        "You write plain-language market research summaries. "
-        "Use only the supplied claims and facts. Keep the surface summary to at most two sentences. "
-        "Do not invent causes. Avoid jargon. "
-        "Do not write generic tape titles like 'moves sharply today' or 'rises on today's tape'. "
-        "Use the most specific company or catalyst title supported by the supplied evidence. "
-        "Avoid ticker/percent tape recaps across all text fields. "
-        "Explain mechanism, not tape recap: state why the move happened and how that transmits to prices, margins, demand, or risk appetite. "
-        "Do not use ticker/percent lists as the main why-today explanation. "
-        "What-else-moved text should describe spillover and avoid repeating what-changed text verbatim. "
-        "When Treasury yield context is relevant, summarize direction and transmission in plain language without quoting bp numbers."
-    )
+    system_prompt = get_prompt(SYMBOL_BUNDLE_SYSTEM_PROMPT)
     user_prompt = json.dumps(
         {
             "subject": _candidate_subject(candidate),
@@ -532,7 +539,7 @@ def _write_event_bundle(
     )
     try:
         data = llm_client.generate_json(
-            system_prompt=EVENT_WRITER_SYSTEM_PROMPT,
+            system_prompt=get_prompt(EVENT_WRITER_SYSTEM_PROMPT),
             user_prompt=user_prompt,
             schema_name="attention_event_writer",
             schema=EVENT_WRITER_SCHEMA,

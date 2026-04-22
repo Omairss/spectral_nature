@@ -69,11 +69,12 @@ def _build_materialized_homepage_summary(
     payload: dict[str, Any],
     *,
     llm_client: Any | None = None,
+    embedding_client: Any | None = None,
 ) -> dict[str, Any]:
     summary_payload: dict[str, Any]
     if llm_client is not None:
         try:
-            summary_payload = build_attention_agentic_summary(payload, llm_client=llm_client)
+            summary_payload = build_attention_agentic_summary(payload, llm_client=llm_client, embedding_client=embedding_client)
         except Exception as exc:
             print(f"[warn] attention-home-build agentic summary failed, falling back: {type(exc).__name__}: {exc}")
             summary_payload = build_attention_home_summary_payload(payload)
@@ -93,12 +94,17 @@ def _build_materialized_homepage_summary_with_trace(
     payload: dict[str, Any],
     *,
     llm_client: Any | None = None,
+    embedding_client: Any | None = None,
 ) -> tuple[dict[str, Any], dict[str, pd.DataFrame]]:
     summary_trace_frames: dict[str, pd.DataFrame] = {}
     summary_payload: dict[str, Any]
     if llm_client is not None:
         try:
-            summary_payload, summary_trace_frames = build_attention_agentic_summary_with_trace(payload, llm_client=llm_client)
+            summary_payload, summary_trace_frames = build_attention_agentic_summary_with_trace(
+                payload,
+                llm_client=llm_client,
+                embedding_client=embedding_client,
+            )
         except Exception as exc:
             print(f"[warn] attention-home-build agentic summary failed, falling back: {type(exc).__name__}: {exc}")
             summary_payload = build_attention_home_summary_payload(payload)
@@ -563,7 +569,51 @@ def build_attention_home_output_frames(
         }
     )
     payload["coverage_summary"] = coverage
-    homepage_summary, summary_trace_frames = _build_materialized_homepage_summary_with_trace(payload, llm_client=llm_client)
+
+    # --- Signal extraction: dense market + macro signals for the LLM summary ---
+    try:
+        from compute.signal_extraction import (
+            extract_signals_from_bars,
+            extract_signals_from_phase_shift_summary,
+        )
+        from compute.fred import build_fred_signal_dicts
+
+        # Market signals from the full price history (not the 120-day attention window)
+        full_price_history_frame = load_materialized_frame_fn("price_history")
+        full_bars = bars_by_symbol_from_price_history(
+            full_price_history_frame,
+            shortlist,
+            asof_time_utc=ctx.asof,
+            lookback_days=504,  # 2yr for signal extraction
+        )
+        market_signals = extract_signals_from_bars(full_bars, category="equity")
+
+        # Cross-series signals from precomputed correlation phase shifts
+        phase_summary_frame = load_materialized_frame_fn("correlation_phase_shift_summary")
+        cross_signals = extract_signals_from_phase_shift_summary(phase_summary_frame)
+
+        # FRED macro signals from precomputed observations
+        fred_obs_frame = load_materialized_frame_fn("fred_observations")
+        fred_signals = build_fred_signal_dicts(fred_obs_frame)
+
+        payload["market_signals"] = market_signals
+        payload["cross_series_signals"] = cross_signals
+        payload["fred_signals"] = fred_signals
+        print(
+            f"[info] attention-home-build signal extraction: "
+            f"market={len(market_signals)} cross={len(cross_signals)} fred={len(fred_signals)}"
+        )
+    except Exception as exc:
+        print(f"[warn] attention-home-build signal extraction failed (non-fatal): {type(exc).__name__}: {exc}")
+        payload.setdefault("market_signals", [])
+        payload.setdefault("cross_series_signals", [])
+        payload.setdefault("fred_signals", [])
+
+    homepage_summary, summary_trace_frames = _build_materialized_homepage_summary_with_trace(
+        payload,
+        llm_client=llm_client,
+        embedding_client=embedding_client,
+    )
     payload["homepage_summary"] = homepage_summary
     artifacts.frames = _merge_summary_trace_frames(artifacts.frames, summary_trace_frames)
     artifacts.frames["attention_home_snapshots_1d"] = serialize_attention_home_payload(payload)

@@ -18,13 +18,15 @@ from ..elevenlabs_tts import (
     load_elevenlabs_tts_config,
 )
 from ..page_browsing import browse_page
+from ..saa.storage import prepare_retained_evidence_chunks, search_prepared_evidence_chunks
 from .collector import _plan_summary_research, _search_query_results
 from .config import _load_search_clients
-from .constants import LLMClient
-from .evidence_index import annotate_source_documents
+from .constants import EmbeddingClient, LLMClient
+from ..llm import COPY_STYLE_RULE, LLMAPIError, get_config_param, get_prompt, load_llm_client, register_config_param, register_copy_prompt
 from .extractor import (
     _chunk_source_documents,
     _documents_from_search_results,
+    _extract_claims,
     _fallback_claims_from_chunks,
     _rank_evidence_chunks,
     _serialize_claims_frame,
@@ -45,11 +47,52 @@ def _normalize_text(text: object) -> str:
     return clean
 
 
+# --- Display limits (applied at UI render time — changes take effect instantly) ---
+_P_BEAT_HIGHLIGHT_SENTENCES = register_config_param(
+    "Beat highlight max sentences", group="Display Limits", default=2,
+    description="Max sentences kept per beat highlight bullet",
+)
+_P_SECTION_BULLET_CHARS = register_config_param(
+    "Section bullet char limit", group="Display Limits", default=400,
+    description="Max characters per bullet in summary sections",
+)
+_P_AUDIO_MAX_CHARS = register_config_param(
+    "Audio text char limit", group="Display Limits", default=1400,
+    description="Max characters for spoken audio summary",
+)
+_P_HYPOTHESIS_CHARS = register_config_param(
+    "Hypothesis char limit", group="Display Limits", default=420,
+    description="Max characters for the synthesized market hypothesis",
+)
+_P_SENTENCE_FRAGMENT_MAX = register_config_param(
+    "Sentence fragment max sentences", group="Display Limits", default=1,
+    description="Max sentences kept in sentence-fragment extraction",
+)
+
+# --- LLM context params (applied at pipeline job time — changes require re-run) ---
+_P_HYPOTHESIS_BEATS = register_config_param(
+    "Hypothesis context beats", group="LLM Context Window", default=6,
+    description="Max beats passed to the hypothesis LLM call",
+)
+_P_HYPOTHESIS_CLAIMS = register_config_param(
+    "Hypothesis context claims", group="LLM Context Window", default=8,
+    description="Max supporting claims passed to the hypothesis LLM call",
+)
+_P_HYPOTHESIS_QUERIES = register_config_param(
+    "Hypothesis context queries", group="LLM Context Window", default=5,
+    description="Max research queries passed to the hypothesis LLM call",
+)
+_P_BEAT_SYMBOLS = register_config_param(
+    "Beat context symbols", group="LLM Context Window", default=4,
+    description="Max symbols shown per beat in LLM context",
+)
+
+
 def _looks_fragmentary_text(text: object) -> bool:
     clean = _normalize_text(text)
     if not clean:
         return True
-    return "..." in clean
+    return clean.rstrip().endswith("...")
 
 
 def _split_sentences(text: object) -> list[str]:
@@ -109,7 +152,7 @@ def _ensure_sentence(text: object) -> str:
 
 
 def _sentence_fragment(text: object) -> str:
-    clean = _narration_ready_text(text, max_sentences=1)
+    clean = _narration_ready_text(text, max_sentences=3)
     if not clean:
         return ""
     return clean.rstrip(".!?").strip()
@@ -201,16 +244,12 @@ def build_attention_home_narrative_beats(home_payload: dict[str, object]) -> lis
 
 
 def _beat_highlight(beat: dict[str, object]) -> str:
-    sentence = _sentence_fragment(beat.get("sentence"))
-    summary = _narration_ready_text(beat.get("summary"), max_sentences=2)
-
-    if sentence and sentence.upper() == sentence and len(sentence) <= 8:
-        sentence = ""
-
-    if sentence and summary and sentence.lower() not in summary.lower():
-        return _ensure_sentence(f"{sentence}: {summary}")
+    summary = _narration_ready_text(beat.get("summary"), max_sentences=6)
     if summary:
         return _ensure_sentence(summary)
+    sentence = _sentence_fragment(beat.get("sentence"))
+    if sentence and sentence.upper() == sentence and len(sentence) <= 8:
+        return ""
     return _ensure_sentence(sentence)
 
 
@@ -221,7 +260,7 @@ def _count_phrase(count: int, singular: str, plural: str | None = None) -> str:
 
 
 def _build_section_lines(title: str, items: list[str]) -> list[str]:
-    clean_items = [_trim_text(_ensure_sentence(item), limit=220) for item in items if _coerce_text(item)]
+    clean_items = [_trim_text(_ensure_sentence(item), limit=2000) for item in items if _coerce_text(item)]
     if not clean_items:
         return []
     lines = [f"**{title}**"]
@@ -242,68 +281,44 @@ def build_attention_home_summary(
     mover_beats = [beat for beat in beats if str(beat.get("kind")) == "mover"]
     unresolved_beats = [beat for beat in beats if str(beat.get("kind")) == "unresolved"]
 
-    lead_parts: list[str] = []
-    if event_beats:
-        lead_parts.append(_count_phrase(len(event_beats), "top event"))
-    if mover_beats:
-        lead_parts.append(_count_phrase(len(mover_beats), "key mover"))
-    if unresolved_beats:
-        lead_parts.append(_count_phrase(len(unresolved_beats), "unresolved move"))
+    signal_context = _build_signal_context_text(home_payload)
+    llm_result = _llm_home_summary(beats, signal_context=signal_context)
 
-    overview_text = ""
-    if lead_parts:
-        overview_text = _ensure_sentence(f"What matters now: {_join_human(lead_parts)}")
-    elif beats:
-        overview_text = "What matters now: several distinct moves across the tape."
-    else:
-        overview_text = "No tape items were available in the latest snapshot."
-
-    event_highlights = [
-        _beat_highlight(beat)
-        for beat in event_beats[: max(int(max_event_highlights), 0)]
-    ]
-    mover_highlights = [
-        _beat_highlight(beat)
-        for beat in mover_beats[: max(int(max_mover_highlights), 0)]
-    ]
-    unresolved_highlights = [
-        _beat_highlight(beat)
-        for beat in unresolved_beats[: max(int(max_unresolved_highlights), 0)]
-    ]
-
-    summary_lines: list[str] = []
-    if overview_text:
-        summary_lines.extend(["**What Matters Now**", overview_text])
-    for section_title, items in [
-        ("Top Events", event_highlights),
-        ("Key Movers", mover_highlights),
-        ("Still Unresolved", unresolved_highlights),
-    ]:
-        section_lines = _build_section_lines(section_title, items)
-        if section_lines:
+    if llm_result:
+        overview_text = _coerce_text(llm_result.get("overview"))
+        summary_lines: list[str] = []
+        if overview_text:
+            summary_lines.append(overview_text)
+        for section in list(llm_result.get("sections") or []):
+            title = _coerce_text(section.get("title"))
+            bullets = [_coerce_text(b) for b in list(section.get("bullets") or []) if _coerce_text(b)]
+            if not title or not bullets:
+                continue
             if summary_lines:
                 summary_lines.append("")
-            summary_lines.extend(section_lines)
-
-    audio_sentences = [overview_text]
-    audio_sentences.extend(
-        f"Top event: {_narration_ready_text(item, max_sentences=2)}"
-        for item in event_highlights
-        if _coerce_text(item)
-    )
-    audio_sentences.extend(
-        f"Key mover: {_narration_ready_text(item, max_sentences=2)}"
-        for item in mover_highlights
-        if _coerce_text(item)
-    )
-    audio_sentences.extend(
-        f"Still unresolved: {_narration_ready_text(item, max_sentences=2)}"
-        for item in unresolved_highlights
-        if _coerce_text(item)
-    )
+            summary_lines.append(f"**{title}**")
+            summary_lines.extend(f"- {b}" for b in bullets)
+        audio_text = _trim_text(_coerce_text(llm_result.get("audio_text")) or overview_text, limit=4000)
+    else:
+        # Fallback — used only when LLM is unavailable
+        event_highlights = [_beat_highlight(b) for b in event_beats[:max(int(max_event_highlights), 0)]]
+        mover_highlights = [_beat_highlight(b) for b in mover_beats[:max(int(max_mover_highlights), 0)]]
+        unresolved_highlights = [_beat_highlight(b) for b in unresolved_beats[:max(int(max_unresolved_highlights), 0)]]
+        overview_text = ""
+        summary_lines = []
+        for section_title, items in [
+            ("Events", event_highlights),
+            ("Movers", mover_highlights),
+            ("Unresolved", unresolved_highlights),
+        ]:
+            section_lines = _build_section_lines(section_title, items)
+            if section_lines:
+                if summary_lines:
+                    summary_lines.append("")
+                summary_lines.extend(section_lines)
+        audio_text = _trim_text(" ".join(h for h in event_highlights + mover_highlights + unresolved_highlights if h), limit=4000)
 
     summary_text = "\n".join(line for line in summary_lines if line is not None).strip()
-    audio_text = _trim_text(" ".join(sentence for sentence in audio_sentences if _coerce_text(sentence)), limit=max(int(max_chars), 240))
     return {
         "headline": "Tape Summary",
         "summary_text": summary_text,
@@ -314,6 +329,102 @@ def build_attention_home_summary(
         "featured_symbols": _unique_symbols(beats),
         "beats": beats,
     }
+
+
+_HOME_SUMMARY_SYSTEM_PROMPT = register_copy_prompt(
+    name="Homepage Summary (overview / sections / audio_text)",
+    file="services/aql/summarizer.py",
+    prompt=(
+        "You are writing the homepage summary for a professional financial markets dashboard. "
+        f"{COPY_STYLE_RULE}\n"
+        "Given today's market events, movers, and structural signals, write:\n"
+        "1. overview: One sentence (under 30 words) on the single most important thing happening. "
+        "Name the actual asset classes, sectors, or moves. Never start with 'What matters now' or count items.\n"
+        "2. sections: Group items into 2-3 natural sections with titles that say what happened "
+        "(e.g. 'Healthcare splits by industry' not 'Top Events'). Each bullet is one specific sentence. "
+        "When market structure or macro signals reinforce or contradict the tape, weave that context in "
+        "(e.g. 'rising despite decelerating CPI', 'decoupling from SPY with r2=0.9'). "
+        "Do not create a separate 'signals' section — integrate them into the narrative.\n"
+        "3. audio_text: 2-3 sentences spoken aloud as a markets desk anchor would say them."
+    ),
+)
+
+
+def _build_signal_context_text(home_payload: dict[str, object]) -> str:
+    """Build a compact text block from signal dicts in the home payload."""
+    try:
+        from compute.signal_extraction import format_signals_for_prompt, format_cross_signals_for_prompt
+    except ImportError:
+        return ""
+    parts: list[str] = []
+    market_signals = home_payload.get("market_signals")
+    if isinstance(market_signals, list) and market_signals:
+        parts.append(format_signals_for_prompt(market_signals, label="Market structure signals"))
+    fred_signals = home_payload.get("fred_signals")
+    if isinstance(fred_signals, list) and fred_signals:
+        parts.append(format_signals_for_prompt(fred_signals, label="Macro regime signals"))
+    cross_signals = home_payload.get("cross_series_signals")
+    if isinstance(cross_signals, list) and cross_signals:
+        parts.append(format_cross_signals_for_prompt(cross_signals, label="Cross-series signals"))
+    return "\n\n".join(parts)
+
+_HOME_SUMMARY_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "overview": {"type": "string"},
+        "sections": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "title": {"type": "string"},
+                    "bullets": {"type": "array", "items": {"type": "string"}},
+                },
+                "required": ["title", "bullets"],
+            },
+        },
+        "audio_text": {"type": "string"},
+    },
+    "required": ["overview", "sections", "audio_text"],
+}
+
+
+def _llm_home_summary(
+    beats: list[dict[str, object]],
+    *,
+    signal_context: str = "",
+) -> dict[str, Any] | None:
+    llm_client = load_llm_client()
+    if llm_client is None:
+        return None
+    beat_lines = []
+    for beat in beats:
+        kind = str(beat.get("kind") or "")
+        sentence = _coerce_text(beat.get("sentence"))
+        summary = _coerce_text(beat.get("summary"))
+        symbols = ", ".join(str(s) for s in list(beat.get("symbols") or [])[:int(get_config_param(_P_BEAT_SYMBOLS))])
+        line = f"[{kind}] {sentence}"
+        if symbols:
+            line += f" ({symbols})"
+        if summary:
+            line += f" — {summary}"
+        beat_lines.append(line)
+    context = "\n".join(beat_lines)
+    user_prompt = f"Today's tape:\n{context}"
+    if signal_context:
+        user_prompt += f"\n\n{signal_context}"
+    try:
+        result = llm_client.generate_json(
+            system_prompt=get_prompt(_HOME_SUMMARY_SYSTEM_PROMPT),
+            user_prompt=user_prompt,
+            schema_name="home_summary",
+            schema=_HOME_SUMMARY_SCHEMA,
+        )
+        return result
+    except (LLMAPIError, Exception):
+        return None
 
 
 _ATTENTION_HOME_HYPOTHESIS_SCHEMA: dict[str, Any] = {
@@ -372,40 +483,205 @@ def _is_seeking_alpha_result(row: dict[str, Any]) -> bool:
     return host == "seekingalpha.com" or host.endswith(".seekingalpha.com") or source == "seeking alpha"
 
 
-def _enrich_seeking_alpha_results(result_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    limit = _env_int("ATTENTION_HOME_SEEKING_ALPHA_PAGE_LIMIT", 2, minimum=0, maximum=4)
-    if limit <= 0:
+def _result_text_length(row: dict[str, Any]) -> int:
+    return len(_coerce_text(row.get("page_text")) or _coerce_text(row.get("provider_text")) or _coerce_text(row.get("snippet")))
+
+
+def _page_enrichment_priority(row: dict[str, Any], *, min_text_chars: int) -> float:
+    authority_rank = int(row.get("authority_rank") or 3)
+    text_len = _result_text_length(row)
+    source = _coerce_text(row.get("source")).lower()
+    score = 0.0
+    score += max(0.0, 2.4 - authority_rank * 0.4)
+    score += max(0.0, float(min_text_chars - min(text_len, min_text_chars)) / max(float(min_text_chars), 1.0))
+    if _is_seeking_alpha_result(row):
+        score += 2.0
+    if source in {"reuters", "bloomberg", "financial times", "the wall street journal", "cnbc", "sec edgar"}:
+        score += 0.9
+    return round(score, 3)
+
+
+def _enrich_result_pages(result_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    total_limit = _env_int("ATTENTION_HOME_PAGE_ENRICH_LIMIT", 4, minimum=0, maximum=8)
+    seeking_alpha_limit = _env_int("ATTENTION_HOME_SEEKING_ALPHA_PAGE_LIMIT", 2, minimum=0, maximum=4)
+    if total_limit <= 0:
         return list(result_rows or [])
 
-    max_chars = _env_int("ATTENTION_HOME_SEEKING_ALPHA_PAGE_MAX_CHARS", 12000, minimum=3000, maximum=20000)
+    max_chars = _env_int("ATTENTION_HOME_PAGE_ENRICH_MAX_CHARS", 12000, minimum=3000, maximum=20000)
+    min_text_chars = _env_int("ATTENTION_HOME_PAGE_ENRICH_MIN_TEXT_CHARS", 220, minimum=80, maximum=1200)
+    enriched_rows = [dict(row or {}) for row in list(result_rows or [])]
+    candidate_rows: list[tuple[int, float, bool]] = []
     seen_urls: set[str] = set()
-    opened = 0
-    enriched_rows: list[dict[str, Any]] = []
-
-    for row in list(result_rows or []):
-        item = dict(row or {})
+    for idx, item in enumerate(enriched_rows):
         url = _coerce_text(item.get("url"))
-        if opened >= limit or not url or url in seen_urls or not _is_seeking_alpha_result(item):
-            enriched_rows.append(item)
+        if not url or url in seen_urls or _coerce_text(item.get("result_kind")) == "error":
             continue
-
         seen_urls.add(url)
+        if _coerce_text(item.get("page_text")):
+            continue
+        text_len = _result_text_length(item)
+        is_sa = _is_seeking_alpha_result(item)
+        if text_len >= min_text_chars and not is_sa:
+            continue
+        candidate_rows.append((idx, _page_enrichment_priority(item, min_text_chars=min_text_chars), is_sa))
+
+    opened = 0
+    opened_seeking_alpha = 0
+    for idx, _, is_seeking_alpha in sorted(candidate_rows, key=lambda item: (-item[1], item[0])):
+        if opened >= total_limit:
+            break
+        if is_seeking_alpha and opened_seeking_alpha >= seeking_alpha_limit:
+            continue
+        item = enriched_rows[idx]
+        url = _coerce_text(item.get("url"))
+        if not url:
+            continue
         try:
             page = browse_page(url, max_text_chars=max_chars)
         except Exception:
-            enriched_rows.append(item)
             continue
-
         page_text = _coerce_text(page.get("text"))
-        if page_text:
-            item["page_text"] = page_text
-            item["snippet"] = _coerce_text(page.get("excerpt")) or _coerce_text(item.get("snippet"))
-            item["source"] = _coerce_text(item.get("source")) or "Seeking Alpha"
-            item["browse_mode"] = _coerce_text(page.get("mode"))
-            item["browse_warning"] = _coerce_text(page.get("warning"))
-            opened += 1
-        enriched_rows.append(item)
+        if not page_text:
+            continue
+        item["page_text"] = page_text
+        item["snippet"] = _coerce_text(page.get("excerpt")) or _coerce_text(item.get("snippet")) or _coerce_text(item.get("title"))
+        item["source"] = _coerce_text(item.get("source")) or ("Seeking Alpha" if is_seeking_alpha else _coerce_text(item.get("provider")))
+        item["browse_mode"] = _coerce_text(page.get("mode"))
+        item["browse_warning"] = _coerce_text(page.get("warning"))
+        opened += 1
+        if is_seeking_alpha:
+            opened_seeking_alpha += 1
     return enriched_rows
+
+
+def _retrieve_summary_evidence_chunks(
+    chunks: pd.DataFrame,
+    *,
+    queries: list[str],
+    run_id: str,
+    asof_time_utc: pd.Timestamp,
+    candidate: dict[str, Any],
+    embedding_client: EmbeddingClient | None = None,
+) -> pd.DataFrame:
+    if not isinstance(chunks, pd.DataFrame) or chunks.empty:
+        return pd.DataFrame()
+    prepared_chunks, _ = prepare_retained_evidence_chunks(
+        chunks,
+        dataset_name="attention_evidence_chunks",
+        dataset_version_id=f"attention_home_summary__{run_id}",
+        run_id=run_id,
+        asof_time_utc=asof_time_utc,
+    )
+    if prepared_chunks.empty:
+        return prepared_chunks
+    prepared_chunks = prepared_chunks.copy()
+    prepared_chunks["research_scope"] = "home_summary"
+    retrieved_frames: list[pd.DataFrame] = []
+    for query in list(queries or []):
+        retrieved = search_prepared_evidence_chunks(
+            prepared_chunks,
+            query=query,
+            research_scopes=["home_summary"],
+            run_id=run_id,
+            limit=6,
+            use_semantic=True,
+            embedding_client=embedding_client,
+        )
+        if isinstance(retrieved, pd.DataFrame) and not retrieved.empty:
+            retrieved_frames.append(retrieved)
+    if retrieved_frames:
+        merged_scores = (
+            pd.concat(retrieved_frames, ignore_index=True, sort=False)
+            .sort_values(["search_score", "published_at", "authority_rank"], ascending=[False, False, True], na_position="last")
+            .drop_duplicates(subset=["chunk_record_id"], keep="first")
+        )
+        score_columns = [
+            column
+            for column in ("chunk_record_id", "search_score", "score_embedding", "score_lexical", "score_rerank", "match_source", "query_embedding_model")
+            if column in merged_scores.columns
+        ]
+        if score_columns:
+            prepared_chunks = prepared_chunks.merge(
+                merged_scores[score_columns],
+                on="chunk_record_id",
+                how="left",
+            )
+    prepared_chunks = _rank_evidence_chunks(
+        prepared_chunks,
+        candidate=candidate,
+        asof_time_utc=asof_time_utc,
+    )
+    return prepared_chunks
+
+
+def _summary_trace_top_sources(chunks: pd.DataFrame, *, limit: int = 4) -> list[dict[str, Any]]:
+    if not isinstance(chunks, pd.DataFrame) or chunks.empty:
+        return []
+    ranked = chunks.copy()
+    sort_columns = [column for column in ("search_score", "retrieval_score", "published_at") if column in ranked.columns]
+    if sort_columns:
+        ascending = [False if column != "published_at" else False for column in sort_columns]
+        ranked = ranked.sort_values(sort_columns, ascending=ascending, na_position="last")
+    dedupe_keys = [column for column in ("canonical_document_id", "url", "title") if column in ranked.columns]
+    if dedupe_keys:
+        ranked = ranked.drop_duplicates(subset=dedupe_keys, keep="first")
+    rows: list[dict[str, Any]] = []
+    for _, row in ranked.head(max(int(limit), 1)).iterrows():
+        rows.append(
+            {
+                "source": _coerce_text(row.get("source_provider")) or _coerce_text(row.get("search_provider")),
+                "title": _coerce_text(row.get("title")),
+                "url": _coerce_text(row.get("url")) or _coerce_text(row.get("canonical_url")),
+                "match_source": _coerce_text(row.get("match_source")),
+                "raw_text_origin": _coerce_text(row.get("raw_text_origin")),
+            }
+        )
+    return rows
+
+
+def _summary_trace_supporting_claims(
+    claims: list[dict[str, Any]],
+    *,
+    chunks: pd.DataFrame,
+    limit: int = 3,
+) -> list[dict[str, Any]]:
+    if not claims:
+        return []
+    chunk_lookup: dict[str, pd.Series] = {}
+    if isinstance(chunks, pd.DataFrame) and not chunks.empty and "chunk_id" in chunks.columns:
+        chunk_lookup = {
+            _coerce_text(row.get("chunk_id")): row
+            for _, row in chunks.iterrows()
+            if _coerce_text(row.get("chunk_id"))
+        }
+    rows: list[dict[str, Any]] = []
+    ordered = sorted(
+        list(claims or []),
+        key=lambda item: (
+            -float(item.get("confidence_score") or 0.0),
+            -float(item.get("relevance_score") or 0.0),
+            -float(item.get("causal_score") or 0.0),
+        ),
+    )
+    for item in ordered[: max(int(limit), 1)]:
+        chunk_ids = list(item.get("evidence_chunk_ids") or [])
+        chunk_row = chunk_lookup.get(_coerce_text(chunk_ids[0])) if chunk_ids else None
+        source = _coerce_text(item.get("source"))
+        if not source and chunk_row is not None:
+            source = _coerce_text(chunk_row.get("source_provider"))
+        text = _coerce_text(item.get("claim_text"))
+        if not text:
+            continue
+        rows.append(
+            {
+                "text": text,
+                "source": source,
+                "confidence_score": float(item.get("confidence_score") or 0.0),
+                "title": _coerce_text(chunk_row.get("title")) if chunk_row is not None else "",
+                "url": _coerce_text(chunk_row.get("url")) if chunk_row is not None else "",
+            }
+        )
+    return rows
 
 
 def _supporting_claims_from_results(
@@ -414,12 +690,14 @@ def _supporting_claims_from_results(
     queries: list[str],
     llm_client: LLMClient,
     search_clients: list[Any] | None,
+    embedding_client: EmbeddingClient | None = None,
 ) -> list[dict[str, Any]]:
     trace = _collect_summary_research_trace(
         home_payload,
         queries=queries,
         llm_client=llm_client,
         search_clients=search_clients,
+        embedding_client=embedding_client,
     )
     return list(trace.get("claims") or [])
 
@@ -430,6 +708,7 @@ def _collect_summary_research_trace(
     queries: list[str],
     llm_client: LLMClient,
     search_clients: list[Any] | None,
+    embedding_client: EmbeddingClient | None = None,
 ) -> dict[str, Any]:
     if not queries:
         return {"request_rows": [], "result_rows": [], "documents": [], "chunks": pd.DataFrame(), "claims": []}
@@ -467,14 +746,11 @@ def _collect_summary_research_trace(
     for row in result_rows:
         row["research_scope"] = "home_summary"
 
-    result_rows = _enrich_seeking_alpha_results(result_rows)
-    documents = annotate_source_documents(
-        _documents_from_search_results(
-            candidate,
-            result_rows,
-            run_id=run_id,
-            asof_time_utc=asof_time_utc,
-        ),
+    result_rows = _enrich_result_pages(result_rows)
+    documents = _documents_from_search_results(
+        candidate,
+        result_rows,
+        run_id=run_id,
         asof_time_utc=asof_time_utc,
     )
     for row in documents:
@@ -483,21 +759,34 @@ def _collect_summary_research_trace(
         documents,
         run_id=run_id,
         asof_time_utc=asof_time_utc,
+        embedding_client=embedding_client,
     )
     if not chunks.empty:
-        chunks = _rank_evidence_chunks(
-            chunks,
-            candidate=candidate,
-            asof_time_utc=asof_time_utc,
-        )
         chunks["research_scope"] = "home_summary"
-    claims = _fallback_claims_from_chunks(
+        chunks = _retrieve_summary_evidence_chunks(
+            chunks,
+            queries=queries,
+            run_id=run_id,
+            asof_time_utc=asof_time_utc,
+            candidate=candidate,
+            embedding_client=embedding_client,
+        )
+    claims = _extract_claims(
         candidate,
         chunks,
         run_id=run_id,
         asof_time_utc=asof_time_utc,
         hypotheses=[{"kind": "cross_market", "text": "A shared cross-market explanation may connect the tape."}],
+        llm_client=llm_client,
     )
+    if not claims:
+        claims = _fallback_claims_from_chunks(
+            candidate,
+            chunks,
+            run_id=run_id,
+            asof_time_utc=asof_time_utc,
+            hypotheses=[{"kind": "cross_market", "text": "A shared cross-market explanation may connect the tape."}],
+        )
     claims = sorted(
         claims,
         key=lambda item: (
@@ -514,6 +803,8 @@ def _collect_summary_research_trace(
         "documents": documents,
         "chunks": chunks,
         "claims": claims,
+        "top_sources": _summary_trace_top_sources(chunks),
+        "supporting_claims": _summary_trace_supporting_claims(claims, chunks=chunks),
     }
 
 
@@ -523,6 +814,7 @@ def _synthesize_attention_home_hypothesis(
     claims: list[dict[str, Any]],
     queries: list[str],
     llm_client: LLMClient,
+    signal_context: str = "",
 ) -> str:
     evidence_rows = [
         {
@@ -537,34 +829,40 @@ def _synthesize_attention_home_hypothesis(
     if not evidence_rows:
         raise RuntimeError("No supporting claims available for homepage hypothesis")
 
+    user_data = {
+        "beats": [
+            {
+                "kind": _coerce_text(beat.get("kind")),
+                "sentence": _coerce_text(beat.get("sentence")),
+                "summary": _coerce_text(beat.get("summary")),
+                "symbols": [str(symbol).upper().strip() for symbol in list(beat.get("symbols") or []) if str(symbol).strip()],
+            }
+            for beat in beats[:int(get_config_param(_P_HYPOTHESIS_BEATS))]
+        ],
+        "supporting_claims": evidence_rows[:int(get_config_param(_P_HYPOTHESIS_CLAIMS))],
+        "research_queries": queries[:int(get_config_param(_P_HYPOTHESIS_QUERIES))],
+    }
+    user_prompt = json.dumps(user_data, ensure_ascii=False, default=str)
+    if signal_context:
+        user_prompt += f"\n\n{signal_context}"
+
     data = llm_client.generate_json(
         system_prompt=(
             "You write a market hypothesis for a homepage summary. "
-            "Use the supplied beats and evidence only. "
-            "Explain the likely macro, sector, or cross-asset narrative in one short paragraph using simple language. "
-            "Do not repeat each beat. Do not speculate beyond the evidence."
+            "Use the supplied beats, evidence, and structural signals. "
+            "Explain the likely macro, sector, or cross-asset narrative in one tight paragraph of 2 to 3 sentences using simple language. "
+            "Name the concrete themes behind the tape, not vague rotations. "
+            "When market structure signals (trend acceleration, regime shifts, correlation breaks, z-score extremes) "
+            "reinforce or contradict the tape, reference them concretely. "
+            "When useful, mention the strongest source families or catalysts behind the call. "
+            "Do not repeat each beat. Do not speculate beyond the evidence. "
+            "Avoid generic phrases like 'with no clear catalyst' or 'rotation toward risk' unless the evidence truly supports them."
         ),
-        user_prompt=json.dumps(
-            {
-                "beats": [
-                    {
-                        "kind": _coerce_text(beat.get("kind")),
-                        "sentence": _coerce_text(beat.get("sentence")),
-                        "summary": _coerce_text(beat.get("summary")),
-                        "symbols": [str(symbol).upper().strip() for symbol in list(beat.get("symbols") or []) if str(symbol).strip()],
-                    }
-                    for beat in beats[:6]
-                ],
-                "supporting_claims": evidence_rows[:6],
-                "research_queries": queries[:5],
-            },
-            ensure_ascii=False,
-            default=str,
-        ),
+        user_prompt=user_prompt,
         schema_name="attention_home_hypothesis",
         schema=_ATTENTION_HOME_HYPOTHESIS_SCHEMA,
     )
-    hypothesis = _trim_text(data.get("hypothesis"), limit=420)
+    hypothesis = _trim_text(data.get("hypothesis"), limit=2000)
     if not hypothesis:
         raise RuntimeError("Homepage hypothesis synthesis returned empty text")
     return hypothesis
@@ -572,7 +870,7 @@ def _synthesize_attention_home_hypothesis(
 
 def _prepend_hypothesis_section(summary_text: object, hypothesis: object) -> str:
     base_text = _coerce_text(summary_text)
-    hypothesis_text = _trim_text(hypothesis, limit=420)
+    hypothesis_text = _trim_text(hypothesis, limit=2000)
     if not hypothesis_text:
         return base_text
     lines = ["**Market Hypothesis**", hypothesis_text]
@@ -585,6 +883,7 @@ def build_attention_agentic_summary(
     home_payload: dict[str, object],
     *,
     llm_client: LLMClient,
+    embedding_client: EmbeddingClient | None = None,
     search_clients: list[Any] | None = None,
     max_search_queries: int = 5,
     max_chars: int = 1400,
@@ -592,6 +891,7 @@ def build_attention_agentic_summary(
     summary, _ = build_attention_agentic_summary_with_trace(
         home_payload,
         llm_client=llm_client,
+        embedding_client=embedding_client,
         search_clients=search_clients,
         max_search_queries=max_search_queries,
         max_chars=max_chars,
@@ -603,6 +903,7 @@ def build_attention_agentic_summary_with_trace(
     home_payload: dict[str, object],
     *,
     llm_client: LLMClient,
+    embedding_client: EmbeddingClient | None = None,
     search_clients: list[Any] | None = None,
     max_search_queries: int = 5,
     max_chars: int = 1400,
@@ -623,6 +924,7 @@ def build_attention_agentic_summary_with_trace(
         queries=queries,
         llm_client=llm_client,
         search_clients=search_clients,
+        embedding_client=embedding_client,
     )
     claims = list(trace.get("claims") or [])
     if not claims:
@@ -633,12 +935,13 @@ def build_attention_agentic_summary_with_trace(
         claims=claims,
         queries=queries,
         llm_client=llm_client,
+        signal_context=_build_signal_context_text(home_payload),
     )
 
     summary_text = _prepend_hypothesis_section(base_summary.get("summary_text"), hypothesis)
     audio_text = _trim_text(
         f"Market hypothesis: {_coerce_text(hypothesis)} {_coerce_text(base_summary.get('audio_text'))}",
-        limit=max(int(max_chars), 240),
+        limit=4000,
     )
 
     summary = {
@@ -647,6 +950,8 @@ def build_attention_agentic_summary_with_trace(
         "summary_text": summary_text,
         "audio_text": audio_text or _coerce_text(base_summary.get("audio_text")) or hypothesis,
         "research_queries": queries,
+        "top_sources": list(trace.get("top_sources") or []),
+        "supporting_claims": list(trace.get("supporting_claims") or []),
     }
     asof_time_utc = _summary_asof_time(home_payload)
     trace_frames = {
@@ -690,6 +995,71 @@ def build_attention_home_summary_payload(
             if str(symbol).strip()
         ],
     }
+
+
+def apply_display_limits(summary: dict[str, Any]) -> dict[str, Any]:
+    """Apply UI-layer display limits to a summary payload.
+
+    These limits are tunable in Admin → LLM Config → Display Limits
+    and take effect instantly without a pipeline re-run.
+    """
+    result = dict(summary)
+
+    # --- Audio text ---
+    audio_limit = int(get_config_param(_P_AUDIO_MAX_CHARS))
+    raw_audio = _coerce_text(result.get("audio_text"))
+    if raw_audio:
+        result["audio_text"] = _trim_text(raw_audio, limit=max(audio_limit, 240))
+
+    # --- Hypothesis ---
+    hyp_limit = int(get_config_param(_P_HYPOTHESIS_CHARS))
+    raw_hypothesis = _coerce_text(result.get("hypothesis"))
+    if raw_hypothesis:
+        result["hypothesis"] = _trim_text(raw_hypothesis, limit=hyp_limit)
+
+    # --- Summary text: truncate bullets and re-compose hypothesis header ---
+    raw_summary = _coerce_text(result.get("summary_text"))
+    if raw_summary:
+        bullet_limit = int(get_config_param(_P_SECTION_BULLET_CHARS))
+        max_sentences = int(get_config_param(_P_BEAT_HIGHLIGHT_SENTENCES))
+        fragment_sentences = int(get_config_param(_P_SENTENCE_FRAGMENT_MAX))
+        lines = raw_summary.split("\n")
+        processed: list[str] = []
+        in_hypothesis = False
+        for line in lines:
+            # Skip the old hypothesis block — we'll re-prepend
+            if line.strip() == "**Market Hypothesis**":
+                in_hypothesis = True
+                continue
+            if in_hypothesis:
+                if line.strip() == "" and processed:
+                    in_hypothesis = False
+                elif line.startswith("**"):
+                    in_hypothesis = False
+                else:
+                    continue
+            if not in_hypothesis and line.startswith("- "):
+                bullet_text = line[2:]
+                trimmed = _trim_text(
+                    _narration_ready_text(bullet_text, max_sentences=max_sentences),
+                    limit=bullet_limit,
+                )
+                if not trimmed:
+                    trimmed = _trim_text(
+                        _narration_ready_text(bullet_text, max_sentences=fragment_sentences),
+                        limit=bullet_limit,
+                    )
+                processed.append(f"- {trimmed}" if trimmed else line)
+            else:
+                processed.append(line)
+
+        base_text = "\n".join(processed).strip()
+        if result.get("hypothesis"):
+            result["summary_text"] = _prepend_hypothesis_section(base_text, result["hypothesis"])
+        else:
+            result["summary_text"] = base_text
+
+    return result
 
 
 def attach_attention_home_summary_audio(

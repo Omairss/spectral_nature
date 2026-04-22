@@ -437,3 +437,168 @@ Never repeat:
 1. Give retained documents a stable canonical id and content hash as early as possible.
 2. Store the raw document durably in blob storage before treating the parquet frame as the only home for the content.
 3. Keep a lightweight metadata table in Postgres so later retrieval does not need to rediscover where a document lives.
+
+## 29. Stopped at durable storage without exposing a shared read path
+
+What went wrong:
+
+- A durable raw-document layer helps, but by itself it still leaves humans and agents without a clean historical query surface.
+- That pushes debugging and research back toward latest-frame inspection even after the real source of truth has improved.
+- Storage without access keeps too much of the value trapped in implementation details.
+
+Never repeat:
+
+1. After adding durable storage, add a shared read contract immediately.
+2. Expose both search and direct open paths, because one without the other is awkward for real research use.
+3. Keep the first read path simple and reliable before adding heavier retrieval machinery.
+
+## 30. Improved historical research at the document layer but still left the reasoning units behind
+
+What went wrong:
+
+- Reopenable documents are useful, but AQL does not actually reason over whole documents. It reasons over evidence chunks.
+- That meant the first historical SAA query layer still left a gap between what humans could reopen and what the runtime actually used to write.
+- Historical debugging could still fall back to latest-frame chunk inspection, which weakened the value of the new retained corpus.
+
+Never repeat:
+
+1. After durable documents, move immediately to durable chunk history.
+2. Keep the searchable unit aligned with the reasoning unit whenever possible.
+3. Do not treat document search alone as “historical retrieval complete” when downstream logic still depends on chunk-level evidence.
+
+## 31. Mixed retrieval-match logic with rerank logic
+
+What went wrong:
+
+- The early chunk search score mixed true match signals with recency and authority boosts.
+- That made semantic-only matches harder to detect because almost every recent authoritative row looked like at least a weak lexical hit.
+- The result was a blur between “this row matched the query” and “this row is worth ranking higher once it matched.”
+
+Never repeat:
+
+1. Keep lexical and semantic match signals separate from rerank bonuses.
+2. Use authority and freshness to order results, not to decide whether a result matched.
+3. When adding hybrid retrieval, explicitly track where each hit came from: lexical, semantic, or both.
+
+## 32. Trusted a vendor bulk endpoint as the only refresh path
+
+What went wrong:
+
+- The curated FRED loader depended on the v2 bulk release endpoint even though the stable v1 per-series endpoints still had current data.
+- That made one vendor auth mismatch look like a full data outage.
+- There was no automatic fallback, so the pipeline either failed or kept serving stale materialized data.
+
+Never repeat:
+
+1. Keep a stable per-series fallback when a vendor bulk endpoint is new, stricter, or less battle-tested.
+2. Test credentials against the exact endpoint the runtime uses, not only adjacent endpoints from the same provider.
+3. Build one shared payload shape first, then let multiple fetch strategies feed it.
+
+## 33. Stopped the first FRED curation pass too early
+
+What went wrong:
+
+- The initial curated dashboard had enough hard-data series to look reasonable, but it still missed key market-pricing and transmission signals.
+- That left the panel better at describing the economy than at spotting regime shifts the way a macro PM would.
+- Housing activity without home prices, inflation without breakevens, and policy rates without curve or real-rate context were all avoidable gaps.
+
+Never repeat:
+
+1. For any macro dashboard, explicitly check hard data, market pricing, and transmission channels before calling the first pass complete.
+2. Add the minimum useful rates layer early: front end, long end, curve, real yield, and breakevens.
+3. Make sure housing and consumer coverage include both activity and balance-sheet or price context.
+
+## 34. Assumed the homepage summary was using SAA just because SAA existed
+
+What went wrong:
+
+- The repo had better retention, chunk history, and hybrid retrieval work in SAA, but the homepage summary still used its own local search-to-chunk path.
+- That meant the deployed UI changed only a little even after the underlying retrieval system improved.
+- The homepage summary also hid its research trace, so it was easy to miss that the writing surface and the retrieval surface were still disconnected.
+
+Never repeat:
+
+1. After building a new shared retrieval layer, explicitly trace which product surfaces consume it and which still bypass it.
+2. Verify a live run by inspecting retained documents, chunk embeddings, and the actual materialized summary payload, not only by checking that the deploy succeeded.
+3. When a surface becomes agentic, add a small visible trace so users can see the queries, sources, and evidence it actually used.
+
+## 35. Let Seeking Alpha auth retries sit inside the homepage critical path
+
+What went wrong:
+
+- The homepage summary path could spend minutes inside Seeking Alpha auth attempts after the rest of the research work was already done.
+- That made the UI look stale even when the new summary code was deployed, because the write landed too late.
+- The runtime also tried to log in before proving the target page actually needed auth.
+
+Never repeat:
+
+1. For gated sources, fetch the target page first and authenticate only when the response is clearly gated or redirected to login.
+2. Treat blocked login pages as fast-fail conditions, not something to keep retrying inside a user-facing summary path.
+3. Measure the product effect, not just the helper behavior. A slow fallback is still a broken UI path.
+
+## 37. **[HIGH PRIORITY]** Hardcoded user-facing copy with templates and if/elif dispatch
+
+What went wrong:
+
+- Homepage section headers ("Top Events", "Key Movers", "Unresolved Large Moves") were hardcoded string literals in `app.py` and `summarizer.py`.
+- Attention card copy was assembled from fixed template strings with if/elif dispatch by theme: `"Oil is {direction}, which points to supply-risk pressure across the tape."`, `"{symbol} rose/fell {intensity} today relative to its recent baseline."`, etc.
+- Intensity words ("modestly", "meaningfully", "sharply"), causal phrasing ("which points to", "which signals"), and narrative structure were all hardcoded.
+- Even after replacing keyword-based classification with LLM calls, the output strings feeding the UI were still templates.
+- The result looked mechanical and low-trust to users even though the underlying data was real.
+
+Why this is a structural mistake:
+
+- Templates produce copy that sounds like templates. Users notice immediately.
+- if/elif theme dispatch cannot handle novel situations — it silently falls through to generic fallbacks.
+- Every new theme, direction, or asset class requires a code change instead of being handled naturally.
+- It decouples the copy quality from the data quality: good signals still produce canned sentences.
+
+Never repeat:
+
+1. **No hardcoded sentence templates for user-facing copy.** Any string the user reads that contains a data value must be LLM-generated, not assembled by string interpolation.
+2. **No if/elif dispatch for copy variation.** Theme, direction, intensity, and tone differences must be expressed as LLM prompt context, not as branching code.
+3. **Section headers and labels must come from the data or the LLM**, not from hardcoded strings, unless they are purely structural UI chrome (e.g. a button label).
+4. **Test copy quality, not just copy presence.** A test that asserts `"oil" in text` is not enough — verify the sentence reads naturally for the given inputs.
+5. When auditing a feature, check the final user-visible string, not just the service layer. If the final string has `{variable}` shape, it is a template and must be replaced.
+
+## 36. Assumed Azure embeddings were active because the code constructed an embedding client
+
+What went wrong:
+
+- The runtime built an Azure embedding client but still pointed embedding requests at the chat deployment.
+- That meant semantic retrieval never actually turned on, even though the code path looked wired.
+- Without checking the live Azure deployments, it was easy to mistake “embedding code exists” for “semantic retrieval is live.”
+
+Never repeat:
+
+1. Verify the exact Azure embedding deployment name before calling embeddings in production code.
+2. Keep chat and embedding deployments as separate config values.
+3. If the embedding deployment is not configured, disable embeddings explicitly instead of letting silent request failures pile up.
+
+## 38. Trusted a materialized macro summary even though the raw observation frame was already available
+
+What went wrong:
+
+- The Broad Economy page loaded `fred_summary` as if it were the source of truth, even though `fred_observations` was already present beside it.
+- That let one metadata drift issue break every `YoY` field and left stale summary dates visible even when the repair logic could have been derived from the observation frame.
+- The UI ended up reflecting the quirks of a cached summary table instead of the more reliable raw time series.
+
+Never repeat:
+
+1. When both summary and raw observations are stored, rebuild the summary from observations on read unless there is a strong reason not to.
+2. Treat stored summary tables as a performance convenience, not as an independent source of truth.
+3. Check whether a broken derived field can be recomputed from existing raw data before debugging the UI layer.
+
+## 39. Let an optional deploy-script lookup fail the whole rollout under `set -e`
+
+What went wrong:
+
+- `deploy_pipeline_azure.sh` used a helper to look up optional donor env values from existing jobs.
+- That helper returned `1` when nothing was found, which is reasonable in isolation but fatal inside command substitution under `set -e`.
+- The result was an unnecessary deploy failure before any real validation or rollout work happened.
+
+Never repeat:
+
+1. If a helper represents an optional lookup, make "not found" return success with empty output.
+2. Audit shell helpers for `set -e` behavior, not just logical correctness.
+3. Fix deploy reliability issues at source immediately when they block validation, because they will recur on every future rollout.

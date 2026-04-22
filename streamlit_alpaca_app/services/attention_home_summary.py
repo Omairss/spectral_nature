@@ -1,5 +1,6 @@
 # Thin shim — all code lives in services/aql/
 from .aql import (
+    apply_display_limits,
     attach_attention_home_summary_audio,
     attention_mover_card_title,
     build_attention_agentic_summary,
@@ -10,6 +11,7 @@ from .aql import (
 )
 
 __all__ = [
+    "apply_display_limits",
     "attach_attention_home_summary_audio",
     "attention_mover_card_title",
     "build_attention_agentic_summary",

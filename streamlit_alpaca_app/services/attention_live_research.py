@@ -9,7 +9,7 @@ import pandas as pd
 
 from .attention_agentic import build_bottom_up_attention_bundle
 from .attention_home_1d import build_attention_research_bundle
-from .llm import AzureOpenAIChatJSONClient, OpenAIChatJSONClient
+from .llm import COPY_STYLE_RULE, AzureOpenAIChatJSONClient, LLMAPIError, OpenAIChatJSONClient, get_prompt, load_llm_client, register_copy_prompt
 from .runtime_policy import source_authority_policy
 from .web_research import (
     SerpAPISearchClient,
@@ -93,23 +93,33 @@ OIL_PROXY_SYMBOLS = {"USO", "BNO"}
 RISK_PROXY_SYMBOLS = {"SPY", "QQQ", "IWM", "DIA", "LQD", "HYG", "XLF", "XLK"}
 DEFENSIVE_PROXY_SYMBOLS = {"GLD", "SLV", "PPLT", "PALL", "VIXY", "UVXY"}
 
-EVENT_THEME_KEYWORDS: dict[str, tuple[str, ...]] = {
-    "oil": ("oil", "crude", "wti", "brent", "gasoline", "iran", "de-escalation", "ceasefire", "supply"),
-    "rates": ("treasury", "yield", "bond", "fed", "rates", "inflation"),
-    "defensives": ("gold", "haven", "defensive", "volatility", "risk-off"),
-    "risk": ("stocks", "equities", "risk-on", "risk off", "small caps", "airlines"),
+_EVENT_SEARCH_QUERY_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "search_query": {"type": "string"},
+    },
+    "required": ["search_query"],
 }
-
-EVENT_QUERY_TEMPLATES: dict[tuple[str, str], str] = {
-    ("oil", "down"): "oil prices down today iran de-escalation airlines stocks bonds",
-    ("oil", "up"): "oil prices up today supply risk airlines stocks bonds",
-    ("rates", "up"): "treasury rally today lower yields stocks bonds",
-    ("rates", "down"): "yields higher today rates scare stocks bonds",
-    ("defensives", "up"): "gold volatility up today defensive move stocks",
-    ("defensives", "down"): "gold volatility down today risk-on stocks",
-    ("risk", "up"): "stocks rally today risk on small caps airlines",
-    ("risk", "down"): "stocks fall today risk off defensives bonds",
+_EVENT_TAPE_WHY_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "narrative": {"type": "string"},
+    },
+    "required": ["narrative"],
 }
+_event_theme_keywords_cache: dict[str, list[str]] = {}
+_event_tape_why_cache: dict[tuple[str, str], str] = {}
+_TAPE_NARRATIVE_SYSTEM_PROMPT = register_copy_prompt(
+    name="Tape Narrative Sentence (live research event)",
+    file="services/attention_live_research.py",
+    prompt=(
+        f"{COPY_STYLE_RULE} "
+        "Write one sentence (under 25 words) explaining what this market theme move "
+        "signals for the broader tape. Be specific about the directional implication."
+    ),
+)
 
 RESEARCH_SYNTHESIS_SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -185,6 +195,18 @@ def _safe_list(value: object) -> list[Any]:
     return [value]
 
 
+_SOURCE_BUCKET_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "bucket": {"type": "string", "enum": ["official", "wire", "press", "web"]},
+    },
+    "required": ["bucket"],
+}
+_source_bucket_cache: dict[str, tuple[str, int]] = {}
+_BUCKET_RANK: dict[str, int] = {"official": 0, "wire": 1, "press": 2, "web": 3}
+
+
 def _source_authority_bucket(source: object) -> tuple[str, int]:
     text = _coerce_text(source).lower()
     if not text:
@@ -196,7 +218,35 @@ def _source_authority_bucket(source: object) -> tuple[str, int]:
         return "wire", 1
     if any(token in text for token in policy.press_tokens):
         return "press", 2
-    return "web", 3
+    # Unknown source — ask LLM once per source name
+    cache_key = text[:80]
+    if cache_key in _source_bucket_cache:
+        return _source_bucket_cache[cache_key]
+    llm_client = load_llm_client()
+    if llm_client is None:
+        return "web", 3
+    try:
+        result = llm_client.generate_json(
+            system_prompt=(
+                "Classify a financial news source into one authority bucket: "
+                "'official' (SEC/EDGAR, government, central bank, exchange filings), "
+                "'wire' (Reuters, Bloomberg, AP, Dow Jones, PR Newswire, Business Wire), "
+                "'press' (major newspapers, magazines, established financial news sites), "
+                "'web' (blogs, social media, unknown, miscellaneous). "
+                "Return the single most appropriate bucket."
+            ),
+            user_prompt=f"Source name: {text[:120]}",
+            schema_name="source_bucket",
+            schema=_SOURCE_BUCKET_SCHEMA,
+        )
+        bucket = str(result.get("bucket") or "").strip().lower()
+        if bucket not in _BUCKET_RANK:
+            bucket = "web"
+    except (LLMAPIError, Exception):
+        bucket = "web"
+    pair = (bucket, _BUCKET_RANK[bucket])
+    _source_bucket_cache[cache_key] = pair
+    return pair
 
 
 def _title_case_bucket(bucket: str) -> str:
@@ -219,9 +269,39 @@ def _mention_score(text: str, symbol: str, company_name: str) -> float:
     return min(score, 1.0)
 
 
+def _llm_event_theme_keywords(theme: str) -> list[str]:
+    if theme in _event_theme_keywords_cache:
+        return _event_theme_keywords_cache[theme]
+    llm_client = load_llm_client()
+    if llm_client is None:
+        _event_theme_keywords_cache[theme] = []
+        return []
+    try:
+        result = llm_client.generate_json(
+            system_prompt=(
+                "You generate keyword lists for financial market theme classification. "
+                "Return 8-12 short lowercase keywords or phrases that commonly appear in financial "
+                "news when this market theme is active."
+            ),
+            user_prompt=f"Generate keywords for the '{theme}' market theme.",
+            schema_name="event_theme_keywords",
+            schema={
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {"keywords": {"type": "array", "items": {"type": "string"}}},
+                "required": ["keywords"],
+            },
+        )
+        keywords = [str(k).strip().lower() for k in result.get("keywords") or [] if str(k).strip()]
+    except (LLMAPIError, Exception):
+        keywords = []
+    _event_theme_keywords_cache[theme] = keywords
+    return keywords
+
+
 def _event_keyword_score(text: str, theme: str) -> float:
     blob = f" {str(text or '').lower()} "
-    keywords = EVENT_THEME_KEYWORDS.get(_coerce_text(theme).lower(), ())
+    keywords = _llm_event_theme_keywords(_coerce_text(theme).lower())
     hits = sum(1 for keyword in keywords if keyword in blob)
     return min(hits * 0.18, 0.72)
 
@@ -707,19 +787,39 @@ def search_symbol_news_payload(
 def _event_search_query(event: dict[str, Any]) -> str:
     theme = _coerce_text(event.get("event_type")).lower() or "generic"
     direction = _coerce_text(event.get("anchor_direction")).lower() or "down"
-    query = EVENT_QUERY_TEMPLATES.get((theme, direction))
-    if query:
-        return query
+    event_title = _coerce_text(event.get("event_title"))
+    anchor_symbol = _normalize_symbol(event.get("anchor_symbol"))
     supporting_symbols = [
         _normalize_symbol(symbol)
         for symbol in list(event.get("supporting_symbols") or [])
         if _normalize_symbol(symbol)
     ]
-    anchor_symbol = _normalize_symbol(event.get("anchor_symbol"))
+    llm_client = load_llm_client()
+    if llm_client is not None:
+        try:
+            symbol_context = ", ".join(([anchor_symbol] if anchor_symbol else []) + supporting_symbols[:4])
+            result = llm_client.generate_json(
+                system_prompt=(
+                    "You generate concise financial news search queries. "
+                    "Return a single search query string that would find relevant market news articles today."
+                ),
+                user_prompt=(
+                    f"Market event: {event_title or theme} ({direction})\n"
+                    f"Theme: {theme}, Direction: {direction}\n"
+                    f"Key symbols: {symbol_context}\n"
+                    "Generate a targeted search query to find relevant financial news."
+                ),
+                schema_name="event_search_query",
+                schema=_EVENT_SEARCH_QUERY_SCHEMA,
+            )
+            query = str(result.get("search_query") or "").strip()
+            if query:
+                return query
+        except (LLMAPIError, Exception):
+            pass
     parts = [anchor_symbol] if anchor_symbol else []
     parts.extend(supporting_symbols[:3])
-    suffix = "market move today"
-    return " ".join(part for part in parts if part) + f" {suffix}"
+    return " ".join(part for part in parts if part) + " market move today"
 
 
 def search_market_event_news_payload(
@@ -1131,23 +1231,26 @@ def _quality_label(retained: list[dict[str, Any]], background: list[dict[str, An
 def _event_tape_why_text(theme: str, direction: str) -> str:
     theme = _coerce_text(theme).lower()
     direction = _coerce_text(direction).lower() or "down"
-    if theme == "oil":
-        if direction == "down":
-            return "Oil is lower, which points to less supply-risk and less inflation pressure across the tape."
-        return "Oil is higher, which points to more supply-risk and more inflation pressure across the tape."
-    if theme == "rates":
-        if direction == "up":
-            return "Treasuries are rallying, which points to lower yields and a relief move in rate-sensitive assets."
-        return "Treasuries are falling, which points to higher yields and more pressure on risk assets."
-    if theme == "defensives":
-        if direction == "up":
-            return "Defensive assets are rising, which points to a more cautious tone."
-        return "Defensive demand is easing, which lines up with a broader relief move."
-    if theme == "risk":
-        if direction == "up":
-            return "Risk assets are rising together, which points to a broader risk-on move."
-        return "Risk assets are weakening together, which points to a broader risk-off move."
-    return "The move is real, but the retained evidence is still too thin to support a stronger event-level explanation."
+    cache_key = (theme, direction)
+    if cache_key in _event_tape_why_cache:
+        return _event_tape_why_cache[cache_key]
+    llm_client = load_llm_client()
+    if llm_client is not None:
+        try:
+            result = llm_client.generate_json(
+                system_prompt=get_prompt(_TAPE_NARRATIVE_SYSTEM_PROMPT),
+                user_prompt=f"Theme: {theme}\nDirection: {direction}\nWrite the tape narrative sentence.",
+                schema_name="event_tape_narrative",
+                schema=_EVENT_TAPE_WHY_SCHEMA,
+            )
+            narrative = str(result.get("narrative") or "").strip()
+        except (LLMAPIError, Exception):
+            narrative = ""
+    else:
+        narrative = ""
+    text = narrative or "The move is real, but the retained evidence is still too thin to support a stronger event-level explanation."
+    _event_tape_why_cache[cache_key] = text
+    return text
 
 
 def _judge_event_cause_status(evidence_rows: list[dict[str, Any]]) -> tuple[str, str]:

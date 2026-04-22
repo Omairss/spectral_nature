@@ -184,6 +184,14 @@ def _click_first_sync(page: Any, selectors: list[str]) -> bool:
     return True
 
 
+def _page_text_sync(page: Any, *, limit: int = 2_000) -> str:
+    try:
+        text = _clean(page.locator("body").inner_text())
+    except Exception:
+        text = ""
+    return _trim(text, limit=limit)
+
+
 def _looks_logged_in_sync(page: Any) -> bool:
     current_url = _clean(getattr(page, "url", "")).lower()
     if "/account/login" in current_url:
@@ -258,32 +266,37 @@ def _login_with_scrapling_session(
     ]
 
     def _login_action(page: Any) -> None:
-        page.wait_for_timeout(800)
+        page.wait_for_timeout(300)
         _dismiss_cookie_banner_sync(page)
 
         if _looks_logged_in_sync(page):
             return
 
+        current_url = _clean(getattr(page, "url", "")).lower()
+        page_text = _page_text_sync(page)
+        if "/account/login" in current_url and _contains_marker(current_url, page_text, markers=_ACCESS_DENIED_MARKERS):
+            raise SeekingAlphaAccessError("Seeking Alpha login page is blocked by anti-bot protections.")
+
         if not _fill_first_sync(page, email_selectors, username):
             raise SeekingAlphaAccessError("Could not find the Seeking Alpha email field.")
 
-        page.wait_for_timeout(300)
+        page.wait_for_timeout(150)
         if _visible_locator_sync(page, password_selectors) is None:
             _click_first_sync(page, continue_selectors)
-            page.wait_for_timeout(1_200)
+            page.wait_for_timeout(500)
 
         if not _fill_first_sync(page, password_selectors, password):
             raise SeekingAlphaAccessError("Could not find the Seeking Alpha password field.")
 
-        page.wait_for_timeout(300)
+        page.wait_for_timeout(150)
         if not _click_first_sync(page, submit_selectors):
             raise SeekingAlphaAccessError("Could not find the Seeking Alpha sign-in button.")
 
         try:
-            page.wait_for_load_state("networkidle", timeout=min(timeout_ms, 8_000))
+            page.wait_for_load_state("networkidle", timeout=min(timeout_ms, 4_000))
         except Exception:
             pass
-        page.wait_for_timeout(5_000)
+        page.wait_for_timeout(800)
 
     session.fetch(DEFAULT_SEEKING_ALPHA_LOGIN_URL, page_action=_login_action)
 
@@ -402,17 +415,27 @@ def _browse_seeking_alpha_page_with_scrapling(
         solve_cloudflare=True,
         user_data_dir=str(profile_dir),
     ) as session:
-        if credentials["username"] and credentials["password"]:
+        if not (credentials["username"] and credentials["password"]):
+            warning = "Seeking Alpha credentials were not found. Attempted public page access only."
+
+        response = session.fetch(url)
+        response_url = _clean(getattr(response, "url", "")).lower()
+        response_status = int(getattr(response, "status", 0) or 0)
+        response_text = _response_text(response)
+
+        if "/account/login" in response_url:
+            if not (credentials["username"] and credentials["password"]):
+                raise SeekingAlphaAccessError("Seeking Alpha redirected to login and no credentials were available.")
+            if response_status >= 400 or _contains_marker(response_url, response_text, markers=_ACCESS_DENIED_MARKERS):
+                raise SeekingAlphaAccessError("Seeking Alpha redirected to a blocked login page.")
             _login_with_scrapling_session(
                 session,
                 username=credentials["username"],
                 password=credentials["password"],
                 timeout_ms=timeout_ms,
             )
-        else:
-            warning = "Seeking Alpha credentials were not found. Attempted public page access only."
+            response = session.fetch(url)
 
-        response = session.fetch(url)
         payload = _build_scrapling_payload(
             response,
             url=url,
@@ -490,6 +513,14 @@ async def _click_first(page: "Page", selectors: list[str]) -> bool:
     return True
 
 
+async def _page_text(page: "Page", *, limit: int = 2_000) -> str:
+    try:
+        text = _clean(await page.locator("body").inner_text(timeout=2_000))
+    except Exception:
+        text = ""
+    return _trim(text, limit=limit)
+
+
 async def _looks_logged_in(page: "Page") -> bool:
     current_url = _clean(page.url).lower()
     if "/account/login" in current_url:
@@ -534,11 +565,15 @@ async def _login(page: "Page", *, username: str, password: str, timeout_ms: int)
         raise SeekingAlphaAccessError("Seeking Alpha credentials are required for authenticated page access.")
 
     await page.goto(DEFAULT_SEEKING_ALPHA_LOGIN_URL, wait_until="domcontentloaded", timeout=timeout_ms)
-    await page.wait_for_timeout(800)
+    await page.wait_for_timeout(300)
     await _dismiss_cookie_banner(page)
 
     if await _looks_logged_in(page):
         return
+
+    page_text = await _page_text(page)
+    if "/account/login" in _clean(page.url).lower() and _contains_marker(page.url, page_text, markers=_ACCESS_DENIED_MARKERS):
+        raise SeekingAlphaAccessError("Seeking Alpha login page is blocked by anti-bot protections.")
 
     email_selectors = [
         "input[type='email']",
@@ -569,7 +604,7 @@ async def _login(page: "Page", *, username: str, password: str, timeout_ms: int)
 
     if await _visible_locator(page, password_selectors) is None:
         await _click_first(page, continue_selectors)
-        await page.wait_for_timeout(500)
+        await page.wait_for_timeout(300)
 
     if not await _fill_first(page, password_selectors, password):
         raise SeekingAlphaAccessError("Could not find the Seeking Alpha password field.")
@@ -578,10 +613,10 @@ async def _login(page: "Page", *, username: str, password: str, timeout_ms: int)
         raise SeekingAlphaAccessError("Could not find the Seeking Alpha sign-in button.")
 
     try:
-        await page.wait_for_load_state("networkidle", timeout=min(timeout_ms, 8_000))
+        await page.wait_for_load_state("networkidle", timeout=min(timeout_ms, 4_000))
     except Exception:
         pass
-    await page.wait_for_timeout(1_200)
+    await page.wait_for_timeout(600)
 
     if await _looks_logged_in(page):
         return
@@ -684,21 +719,14 @@ async def _browse_seeking_alpha_page_with_playwright_auth(
             context.set_default_timeout(timeout_ms)
             page = await _page_for_context(context)
 
-            if credentials["username"] and credentials["password"]:
-                await _login(
-                    page,
-                    username=credentials["username"],
-                    password=credentials["password"],
-                    timeout_ms=timeout_ms,
-                )
-            else:
-                warning = "Seeking Alpha credentials were not found. Attempted public page access only."
-
             await page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
             await _dismiss_cookie_banner(page)
 
             if "/account/login" in _clean(page.url).lower():
                 if credentials["username"] and credentials["password"]:
+                    page_text = await _page_text(page)
+                    if _contains_marker(page.url, page_text, markers=_ACCESS_DENIED_MARKERS):
+                        raise SeekingAlphaAccessError("Seeking Alpha redirected to a blocked login page.")
                     await _login(
                         page,
                         username=credentials["username"],
@@ -708,6 +736,8 @@ async def _browse_seeking_alpha_page_with_playwright_auth(
                     await page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
                 else:
                     raise SeekingAlphaAccessError("Seeking Alpha redirected to login and no credentials were available.")
+            elif not (credentials["username"] and credentials["password"]):
+                warning = "Seeking Alpha credentials were not found. Attempted public page access only."
 
             try:
                 await page.wait_for_load_state("networkidle", timeout=min(timeout_ms, 4_000))
@@ -725,6 +755,30 @@ async def _browse_seeking_alpha_page_with_playwright_auth(
 
             if not text:
                 raise SeekingAlphaAccessError("No visible page text was captured from Seeking Alpha.")
+
+            if _contains_marker(title, text, markers=_PREVIEW_GATED_MARKERS):
+                if credentials["username"] and credentials["password"]:
+                    await _login(
+                        page,
+                        username=credentials["username"],
+                        password=credentials["password"],
+                        timeout_ms=timeout_ms,
+                    )
+                    await page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+                    try:
+                        await page.wait_for_load_state("networkidle", timeout=min(timeout_ms, 4_000))
+                    except Exception:
+                        pass
+                    await _wait_for_content_root(page)
+                    await page.wait_for_timeout(600)
+                    title = _clean(await page.title())
+                    description = await _meta_description(page)
+                    text_blocks = await _extract_text_blocks(page, max_blocks=80)
+                    text = _trim("\n".join(text_blocks), limit=max(max_text_chars, 500))
+                    excerpt = _trim(description or (text_blocks[0] if text_blocks else title), limit=320)
+                    final_url = _clean(page.url) or url
+                if _contains_marker(title, text, markers=_PREVIEW_GATED_MARKERS):
+                    raise SeekingAlphaAccessError("Seeking Alpha page is still preview-gated after login.")
 
             return {
                 "url": url,

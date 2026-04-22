@@ -24,6 +24,7 @@ from .constants import (
     _MACRO_RELATIONSHIP_CHECK_COLUMNS,
     _MACRO_RELATIONSHIP_SCHEMA_VERSION,
 )
+from ..llm import LLMAPIError, load_llm_client
 from ._shared import (
     _coerce_float,
     _coerce_text,
@@ -301,6 +302,59 @@ def _macro_release_supporting_rows(
     return anchors.sort_values(["abs_change_pct", "candidate_score"], ascending=[False, False], na_position="last").head(max(int(limit), 1)).copy()
 
 
+_LLM_MACRO_ASSESSMENT_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "is_market_moving": {"type": "boolean"},
+        "reason": {"type": "string"},
+    },
+    "required": ["is_market_moving", "reason"],
+}
+_macro_market_moving_cache: dict[str, bool] = {}
+
+
+def _llm_macro_release_is_market_moving(
+    *,
+    release_name: str,
+    importance_tier: str,
+    surprise_score: float,
+    surprise_threshold: float,
+    component_text: str,
+) -> bool | None:
+    """Use LLM to assess whether a macro release warrants promotion to top events.
+
+    Returns None if LLM is unavailable or errors — caller should fall back to rule.
+    """
+    cache_key = f"{release_name}::{importance_tier}::{round(surprise_score, 1)}"
+    if cache_key in _macro_market_moving_cache:
+        return _macro_market_moving_cache[cache_key]
+    llm_client = load_llm_client()
+    if llm_client is None:
+        return None
+    try:
+        result = llm_client.generate_json(
+            system_prompt=(
+                "You are a macro analyst. Assess whether a macro data release warrants immediate market attention. "
+                "Consider the release importance tier, surprise score relative to threshold, and the component data. "
+                "Return true if the release is likely to be market-moving and should be promoted to top events."
+            ),
+            user_prompt=(
+                f"Release: {release_name}\n"
+                f"Importance tier: {importance_tier}\n"
+                f"Surprise score: {surprise_score:.1f} (threshold: {surprise_threshold:.1f})\n"
+                f"Components: {component_text[:400] if component_text else 'N/A'}"
+            ),
+            schema_name="macro_market_moving",
+            schema=_LLM_MACRO_ASSESSMENT_SCHEMA,
+        )
+        is_market_moving = bool(result.get("is_market_moving"))
+    except (LLMAPIError, Exception):
+        return None
+    _macro_market_moving_cache[cache_key] = is_market_moving
+    return is_market_moving
+
+
 def _build_macro_release_events(
     *,
     fred_summary_frame: pd.DataFrame | None,
@@ -390,7 +444,24 @@ def _build_macro_release_events(
             f"{release_name} updated. {component_text}" if component_text else f"{release_name} updated.",
             320,
         )
-        is_forced = importance_tier == "high" and surprise_score >= surprise_threshold
+        rule_forced = importance_tier == "high" and surprise_score >= surprise_threshold
+        # For borderline cases (high tier, score within 20% below threshold), ask LLM.
+        in_ambiguous_zone = (
+            importance_tier == "high"
+            and not rule_forced
+            and surprise_score >= surprise_threshold * 0.8
+        )
+        if in_ambiguous_zone:
+            llm_assessment = _llm_macro_release_is_market_moving(
+                release_name=release_name,
+                importance_tier=importance_tier,
+                surprise_score=surprise_score,
+                surprise_threshold=surprise_threshold,
+                component_text=component_text,
+            )
+            is_forced = llm_assessment if llm_assessment is not None else rule_forced
+        else:
+            is_forced = rule_forced
         promotion_reason = (
             f"Forced into top events: {importance_tier} importance and surprise_score {surprise_score:.1f} >= {surprise_threshold:.1f}."
             if is_forced

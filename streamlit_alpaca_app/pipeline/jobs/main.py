@@ -55,7 +55,7 @@ from services.market import (
 )
 from services.options import build_option_snapshot_surface, load_option_chain
 from services.pipeline_store import load_latest_dataset_frame
-from services.saa.storage import bootstrap_saa_storage, persist_retained_source_documents
+from services.saa.storage import bootstrap_saa_storage, persist_retained_evidence_chunks, persist_retained_source_documents
 from services.secrets import resolve_secret_value
 from services.simfin_refresh import build_quarterly_fundamentals_frame, simfin_refresh_configured
 from services.treasury_yields import TreasuryYieldError, load_treasury_yield_datasets
@@ -498,6 +498,18 @@ def _persist_dataset(dataset_name: str, frame: pd.DataFrame, ctx: JobContext, co
             )
         except Exception as exc:
             print(f"[warn] failed to retain source documents for `{dataset_name}`: {type(exc).__name__}: {exc}")
+    if dataset_name == "attention_evidence_chunks" and not prepared_frame.empty:
+        try:
+            prepared_frame = persist_retained_evidence_chunks(
+                dataset_name,
+                prepared_frame,
+                dataset_version_id=_dataset_version_id(dataset_name, ctx),
+                run_id=ctx.run_id,
+                asof_time_utc=ctx.asof,
+                conn=conn,
+            )
+        except Exception as exc:
+            print(f"[warn] failed to retain evidence chunks for `{dataset_name}`: {type(exc).__name__}: {exc}")
     path = _upload_frame(dataset_name, prepared_frame, ctx)
     manifest = _upload_manifest(dataset_name, path, prepared_frame, ctx)
     if manifest and conn is not None:

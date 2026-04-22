@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 import os
+import re
 from typing import Any
 
 import requests
@@ -14,6 +15,255 @@ class LLMAPIError(RuntimeError):
     pass
 
 
+# Words/phrases the LLM must never use in user-facing copy.
+# These are matched case-insensitively and replaced with plain alternatives or removed.
+_JARGON_REPLACEMENTS: list[tuple[str, str]] = [
+    (r"\bidiosyncratic(?:ally)?\b", "stock-specific"),
+    (r"\bnuanced\b", ""),
+    (r"\bmultifaceted\b", ""),
+    (r"\brobust\b", "strong"),
+    (r"\bgranular\b", "detailed"),
+    (r"\blocalized\b", ""),
+    (r"\bleverag(?:e|ing|ed)\b", "use"),
+    (r"\bsynerg(?:y|ies|istic)\b", ""),
+    (r"\bparadigm\b", "model"),
+    (r"\bactionable\b", "useful"),
+    (r"\bholistic\b", "overall"),
+    (r"\bbespoke\b", "custom"),
+    (r"\bcutting-edge\b", ""),
+    (r"\bbest-in-class\b", ""),
+    (r"\bgame-changer\b", ""),
+    (r"\bdeep.dive\b", "look"),
+    (r"\bsurfacing\b", "showing"),
+    (r"\bunpack(?:ing|ed)?\b", "explain"),
+]
+
+# Style rule for all system prompts that generate user-facing copy.
+# Import this and include it in any prompt that writes text shown to users.
+COPY_STYLE_RULE = (
+    "Write like a trader speaking plainly — short sentences, real numbers, no jargon. "
+    "Never use: idiosyncratic, nuanced, multifaceted, robust, granular, leverage (as a verb), "
+    "synergy, paradigm, actionable, holistic, bespoke, cutting-edge, game-changer, deep-dive, "
+    "unpack, or surface (as a verb meaning 'explain'). "
+    "If cause is unclear, say 'no clear catalyst confirmed' — do not invent a reason."
+)
+
+
+def strip_jargon(text: str) -> str:
+    """Remove or replace known jargon words from any user-facing copy string."""
+    if not text:
+        return text
+    result = text
+    for pattern, replacement in _JARGON_REPLACEMENTS:
+        result = re.sub(pattern, replacement, result, flags=re.IGNORECASE)
+    # Collapse double spaces left by empty replacements
+    result = re.sub(r"  +", " ", result).strip()
+    return result
+
+
+def _strip_jargon_from_dict(obj: Any) -> Any:
+    """Recursively apply strip_jargon to all string values in a dict/list structure."""
+    if isinstance(obj, str):
+        return strip_jargon(obj)
+    if isinstance(obj, dict):
+        return {k: _strip_jargon_from_dict(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_strip_jargon_from_dict(item) for item in obj]
+    return obj
+
+
+# Registry of user-facing system prompts.
+# key -> {"name": str, "file": str, "default": str}
+_PROMPT_REGISTRY: dict[str, dict[str, str]] = {}
+# Runtime overrides loaded from the database.
+_PROMPT_OVERRIDES: dict[str, str] = {}
+_OVERRIDES_LOADED = False
+
+
+def _prompt_key(name: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+
+
+def register_copy_prompt(name: str, file: str, prompt: str) -> str:
+    """Register a user-facing system prompt. Returns the key for use with get_prompt()."""
+    key = _prompt_key(name)
+    _PROMPT_REGISTRY[key] = {"name": name, "file": file, "default": prompt}
+    return key
+
+
+def get_prompt(key: str) -> str:
+    """Resolve the active prompt for a registered key (override or default)."""
+    override = _PROMPT_OVERRIDES.get(key)
+    if override is not None:
+        return override
+    info = _PROMPT_REGISTRY.get(key)
+    if info:
+        return info["default"]
+    return key
+
+
+def list_copy_prompts() -> list[dict[str, str]]:
+    """Return all registered prompts with their active (override or default) values."""
+    entries = []
+    for key, info in _PROMPT_REGISTRY.items():
+        override = _PROMPT_OVERRIDES.get(key)
+        entries.append({
+            "key": key,
+            "name": info["name"],
+            "file": info["file"],
+            "default": info["default"],
+            "prompt": override if override is not None else info["default"],
+            "is_override": override is not None,
+        })
+    return entries
+
+
+def set_copy_prompt_override(key: str, value: str | None) -> None:
+    """Set or clear a prompt override in memory. Call save_prompt_overrides() to persist."""
+    if value is None or value.strip() == _PROMPT_REGISTRY.get(key, {}).get("default", "").strip():
+        _PROMPT_OVERRIDES.pop(key, None)
+    else:
+        _PROMPT_OVERRIDES[key] = value.strip()
+
+
+# --- Config parameter registry (numeric limits, grouped with prompts) ---
+# key -> {"name": str, "group": str, "default": int|float, "description": str}
+_PARAM_REGISTRY: dict[str, dict[str, Any]] = {}
+
+
+def register_config_param(name: str, group: str, default: int | float, description: str) -> str:
+    """Register a tunable config parameter. Returns the key for use with get_config_param()."""
+    key = f"param:{_prompt_key(name)}"
+    _PARAM_REGISTRY[key] = {"name": name, "group": group, "default": default, "description": description}
+    return key
+
+
+def get_config_param(key: str) -> int | float:
+    """Resolve the active value for a registered config parameter."""
+    override = _PROMPT_OVERRIDES.get(key)
+    if override is not None:
+        try:
+            info = _PARAM_REGISTRY.get(key, {})
+            default = info.get("default", 0)
+            return type(default)(override)
+        except (ValueError, TypeError):
+            pass
+    info = _PARAM_REGISTRY.get(key)
+    if info:
+        return info["default"]
+    return 0
+
+
+def list_config_params() -> list[dict[str, Any]]:
+    """Return all registered config parameters with active values, grouped."""
+    entries = []
+    for key, info in _PARAM_REGISTRY.items():
+        override = _PROMPT_OVERRIDES.get(key)
+        active = info["default"]
+        is_override = False
+        if override is not None:
+            try:
+                active = type(info["default"])(override)
+                is_override = True
+            except (ValueError, TypeError):
+                pass
+        entries.append({
+            "key": key,
+            "name": info["name"],
+            "group": info["group"],
+            "default": info["default"],
+            "value": active,
+            "description": info["description"],
+            "is_override": is_override,
+        })
+    return entries
+
+
+def set_config_param_override(key: str, value: int | float | None) -> None:
+    """Set or clear a config parameter override. Call save_prompt_overrides() to persist."""
+    info = _PARAM_REGISTRY.get(key)
+    if info and (value is None or value == info["default"]):
+        _PROMPT_OVERRIDES.pop(key, None)
+    elif value is not None:
+        _PROMPT_OVERRIDES[key] = str(value)
+
+
+def _copy_style_rule_key() -> str:
+    return "__copy_style_rule__"
+
+
+def get_active_copy_style_rule() -> str:
+    """Return the active copy style rule (override or default)."""
+    return _PROMPT_OVERRIDES.get(_copy_style_rule_key(), COPY_STYLE_RULE)
+
+
+def set_copy_style_rule_override(value: str | None) -> None:
+    key = _copy_style_rule_key()
+    if value is None or value.strip() == COPY_STYLE_RULE.strip():
+        _PROMPT_OVERRIDES.pop(key, None)
+    else:
+        _PROMPT_OVERRIDES[key] = value.strip()
+
+
+def save_prompt_overrides() -> bool:
+    """Persist all prompt overrides to the database. Returns True on success."""
+    try:
+        from .pipeline_store import _db_connect
+    except ImportError:
+        return False
+    conn = _db_connect()
+    if conn is None:
+        return False
+    try:
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "CREATE TABLE IF NOT EXISTS llm_prompt_overrides ("
+                    "  key TEXT PRIMARY KEY,"
+                    "  value TEXT NOT NULL,"
+                    "  updated_at TIMESTAMPTZ DEFAULT NOW()"
+                    ")"
+                )
+                cur.execute("DELETE FROM llm_prompt_overrides")
+                for key, value in _PROMPT_OVERRIDES.items():
+                    cur.execute(
+                        "INSERT INTO llm_prompt_overrides (key, value) VALUES (%s, %s)",
+                        (key, value),
+                    )
+        return True
+    except Exception:
+        return False
+    finally:
+        conn.close()
+
+
+def load_prompt_overrides() -> None:
+    """Load prompt overrides from the database into memory."""
+    global _OVERRIDES_LOADED
+    if _OVERRIDES_LOADED:
+        return
+    _OVERRIDES_LOADED = True
+    try:
+        from .pipeline_store import _db_connect
+    except ImportError:
+        return
+    conn = _db_connect()
+    if conn is None:
+        return
+    try:
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT key, value FROM llm_prompt_overrides"
+                )
+                for row in cur.fetchall():
+                    _PROMPT_OVERRIDES[row[0]] = row[1]
+    except Exception:
+        pass
+    finally:
+        conn.close()
+
+
 @dataclass(frozen=True)
 class LLMConfig:
     provider: str
@@ -21,6 +271,7 @@ class LLMConfig:
     model: str
     base_url: str
     deployment: str = ""
+    embedding_deployment: str = ""
     api_version: str = ""
     timeout_seconds: int = 60
     temperature: float = 0.2
@@ -136,6 +387,10 @@ def load_llm_config() -> LLMConfig | None:
     reasoning_effort = _normalized_reasoning_effort(
         _clean(os.getenv("LLM_REASONING_EFFORT")) or _clean(os.getenv("OPENAI_REASONING_EFFORT"))
     )
+    embedding_model = _clean(os.getenv("EMBEDDING_MODEL")) or "text-embedding-3-small"
+    embedding_deployment = _clean(os.getenv("EMBEDDING_DEPLOYMENT")) or _clean(
+        os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
+    )
 
     return LLMConfig(
         provider=provider,
@@ -143,11 +398,12 @@ def load_llm_config() -> LLMConfig | None:
         model=model,
         base_url=base_url.rstrip("/"),
         deployment=deployment,
+        embedding_deployment=embedding_deployment,
         api_version=api_version,
         timeout_seconds=timeout_seconds,
         temperature=temperature,
         reasoning_effort=reasoning_effort,
-        embedding_model=_clean(os.getenv("EMBEDDING_MODEL")) or "text-embedding-3-small",
+        embedding_model=embedding_model,
     )
 
 
@@ -232,7 +488,7 @@ class OpenAIChatJSONClient:
 
         if not raw:
             raise LLMAPIError("LLM returned empty content.")
-        return _extract_first_json_object(raw)
+        return _strip_jargon_from_dict(_extract_first_json_object(raw))
 
 
 class AzureOpenAIChatJSONClient:
@@ -313,7 +569,7 @@ class AzureOpenAIChatJSONClient:
         raw = _clean(message.get("content"))
         if not raw:
             raise LLMAPIError("LLM returned empty content.")
-        return _extract_first_json_object(raw)
+        return _strip_jargon_from_dict(_extract_first_json_object(raw))
 
 
 class OpenAIEmbeddingClient:
@@ -364,8 +620,8 @@ class AzureOpenAIEmbeddingClient:
             raise LLMAPIError("Missing LLM API key.")
         if not config.base_url:
             raise LLMAPIError("Missing Azure OpenAI endpoint.")
-        if not config.deployment:
-            raise LLMAPIError("Missing Azure OpenAI deployment.")
+        if not (config.embedding_deployment or config.embedding_model):
+            raise LLMAPIError("Missing Azure OpenAI embedding deployment.")
         self.config = config
         self.session = session or requests.Session()
 
@@ -381,7 +637,7 @@ class AzureOpenAIEmbeddingClient:
             },
             params={"api-version": self.config.api_version} if self.config.api_version else None,
             json={
-                "model": self.config.deployment,
+                "model": self.config.embedding_deployment or self.config.embedding_model,
                 "input": clean_texts,
             },
             timeout=self.config.timeout_seconds,
@@ -423,6 +679,8 @@ def load_embedding_client() -> OpenAIEmbeddingClient | AzureOpenAIEmbeddingClien
     if config.provider == "openai":
         return OpenAIEmbeddingClient(config)
     if config.provider == "azure_openai":
+        if not config.embedding_deployment:
+            return None
         return AzureOpenAIEmbeddingClient(config)
     raise LLMAPIError(f"Unsupported LLM provider: {config.provider}")
 

@@ -7,8 +7,28 @@ from typing import Any
 
 import pandas as pd
 
-from .llm import LLMAPIError, OpenAIChatJSONClient
+from .llm import COPY_STYLE_RULE, LLMAPIError, OpenAIChatJSONClient, get_prompt, register_copy_prompt
 
+_FILING_ANALYST_SYSTEM_PROMPT = register_copy_prompt(
+    name="SEC Filing Analyst (evidence extraction)",
+    file="services/attention_context_llm.py",
+    prompt=(
+        f"{COPY_STYLE_RULE} "
+        "You are an SEC filing analyst. Use only the provided filing metadata and filing text. "
+        "Do not invent facts, numbers, or motives. Summaries should be concise and readable."
+    ),
+)
+
+_ATTENTION_NARRATIVE_SYSTEM_PROMPT = register_copy_prompt(
+    name="Attention Feed Narrative (anomaly + EDGAR context)",
+    file="services/attention_context_llm.py",
+    prompt=(
+        f"{COPY_STYLE_RULE} "
+        "You write short, human-readable market narratives for an attention feed. "
+        "Use only the supplied anomaly metadata and EDGAR-derived evidence. "
+        "Be concrete and explicitly reflect uncertainty when evidence is thin."
+    ),
+)
 
 EVIDENCE_COLUMNS = [
     "symbol",
@@ -217,10 +237,7 @@ def build_edgar_evidence(
     generated_at = _coerce_timestamp(asof_time_utc if asof_time_utc is not None else datetime.now(timezone.utc))
     rows: list[dict[str, Any]] = []
 
-    system_prompt = (
-        "You are an SEC filing analyst. Use only the provided filing metadata and filing text. "
-        "Do not invent facts, numbers, or motives. Summaries should be concise and readable."
-    )
+    system_prompt = get_prompt(_FILING_ANALYST_SYSTEM_PROMPT)
 
     for _, filing in filings.iterrows():
         document_hash = _coerce_text(filing.get("document_text_hash"))
@@ -310,11 +327,7 @@ def build_attention_context_narratives(
 
     generated_at = _coerce_timestamp(asof_time_utc if asof_time_utc is not None else datetime.now(timezone.utc))
     rows: list[dict[str, Any]] = []
-    system_prompt = (
-        "You write short, human-readable market narratives for an attention feed. "
-        "Use only the supplied anomaly metadata and EDGAR-derived evidence. "
-        "Be concrete, avoid hype, and explicitly reflect uncertainty when evidence is thin."
-    )
+    system_prompt = get_prompt(_ATTENTION_NARRATIVE_SYSTEM_PROMPT)
 
     for _, attention_row in seed.iterrows():
         symbol = _coerce_text(attention_row.get("symbol"))

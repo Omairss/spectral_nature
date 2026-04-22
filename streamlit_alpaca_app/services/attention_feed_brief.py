@@ -4,8 +4,21 @@ import json
 import re
 from typing import Any
 
-from .llm import AzureOpenAIChatJSONClient, OpenAIChatJSONClient
+from .llm import COPY_STYLE_RULE, AzureOpenAIChatJSONClient, OpenAIChatJSONClient, get_prompt, register_copy_prompt
 
+
+FEED_BRIEF_SYSTEM_PROMPT = register_copy_prompt(
+    name="Feed Card Brief (lead / cluster / headline / company / watchpoint)",
+    file="services/attention_feed_brief.py",
+    prompt=(
+        f"{COPY_STYLE_RULE} "
+        "You write market-attention feed cards for readers who may know nothing about the company. "
+        "Boil down the essentials of the market dynamic in plain English. "
+        "Never restate residuals, z-scores, observed-vs-expected percentages, or other model metrics in prose. "
+        "Those belong in charts. Focus on what the market thinks is happening, what headline is reinforcing it, "
+        "what the company does, and what any specialist term means."
+    ),
+)
 
 FEED_BRIEF_SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -223,13 +236,7 @@ def build_attention_feed_brief(
     }
 
     data = llm_client.generate_json(
-        system_prompt=(
-            "You write market-attention feed cards for readers who may know nothing about the company. "
-            "Boil down the essentials of the market dynamic in plain English. "
-            "Never restate residuals, z-scores, observed-vs-expected percentages, or other model metrics in prose. "
-            "Those belong in charts. Focus on what the market thinks is happening, what headline is reinforcing it, "
-            "what the company does, and what any specialist term means."
-        ),
+        system_prompt=get_prompt(FEED_BRIEF_SYSTEM_PROMPT),
         user_prompt=(
             "Create a concise feed brief from the supplied context.\n"
             "- `lead_text`: 1-2 sentences that explain the market dynamic for a cold reader.\n"

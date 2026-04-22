@@ -8,6 +8,7 @@ from typing import Any
 
 from data_access.layer import DataAccessLayer
 from services.attention_home_summary import build_attention_home_narrative_beats
+from services.llm import LLMAPIError, load_llm_client
 
 
 OMNIBAR_POLICY_VERSION = "streamlit-agentic-omnibar-v1"
@@ -133,12 +134,48 @@ def _match_score(query: str, candidates: list[str]) -> float:
     return min(0.88, 0.34 + coverage * 0.42 + min(0.12, hits * 0.05))
 
 
-def _confidence_band(intent: str, top_score: float) -> str:
+_CONFIDENCE_BAND_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "band": {"type": "string", "enum": ["high", "medium", "low"]},
+    },
+    "required": ["band"],
+}
+_confidence_band_cache: dict[str, str] = {}
+
+
+def _confidence_band(intent: str, top_score: float, *, query: str = "", top_label: str = "") -> str:
     if intent == "navigate" or top_score >= 0.92:
         return "high"
-    if top_score >= 0.7:
-        return "medium"
-    return "low"
+    if top_score < 0.5:
+        return "low"
+    cache_key = f"{intent}::{round(top_score, 2)}::{top_label[:40]}"
+    if cache_key in _confidence_band_cache:
+        return _confidence_band_cache[cache_key]
+    llm_client = load_llm_client()
+    if llm_client is None:
+        band = "medium" if top_score >= 0.7 else "low"
+        _confidence_band_cache[cache_key] = band
+        return band
+    try:
+        result = llm_client.generate_json(
+            system_prompt=(
+                "Assess search result confidence for a financial dashboard omnibar. "
+                "Given the intent type, match score, and top result label, "
+                "return 'high' (clear match), 'medium' (plausible but uncertain), or 'low' (weak match)."
+            ),
+            user_prompt=f"intent={intent}, score={top_score:.2f}, top_result={top_label!r}, query={query!r}",
+            schema_name="confidence_band",
+            schema=_CONFIDENCE_BAND_SCHEMA,
+        )
+        band = str(result.get("band") or "").strip().lower()
+        if band not in {"high", "medium", "low"}:
+            band = "medium" if top_score >= 0.7 else "low"
+    except (LLMAPIError, Exception):
+        band = "medium" if top_score >= 0.7 else "low"
+    _confidence_band_cache[cache_key] = band
+    return band
 
 def _load_symbol_name_map(
     layer: DataAccessLayer,
@@ -459,7 +496,12 @@ def resolve_omnibar(
         "request_id": request_id,
         "intent": intent,
         "policy_version": OMNIBAR_POLICY_VERSION,
-        "confidence_band": _confidence_band(intent, top_score),
+        "confidence_band": _confidence_band(
+            intent,
+            top_score,
+            query=normalized_query,
+            top_label=_normalize_text(search_results[0].get("label")) if search_results else "",
+        ),
         "confidence": round(top_score, 4),
         "query_echo": normalized_query,
         "preferred_mode": normalized_mode,

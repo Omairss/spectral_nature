@@ -22,6 +22,7 @@ from compute.fred import (
     format_fred_value,
     fred_categories,
     fred_specs_by_category,
+    normalize_fred_frequency_short,
     utc_today_naive,
 )
 
@@ -77,6 +78,15 @@ def _fred_http_backoff_multiplier() -> float:
 
 def _fred_http_backoff_jitter_seconds() -> float:
     return _float_env("FRED_HTTP_BACKOFF_JITTER_SECONDS", 0.25, minimum=0.0)
+
+
+def _fred_bulk_mode() -> str:
+    raw = (os.getenv("FRED_BULK_MODE") or "v1_only").strip().lower()
+    if raw in {"disable", "disabled", "off", "false", "0", "v1_only"}:
+        return "v1_only"
+    if raw in {"require", "required", "bulk_only"}:
+        return "require"
+    return "prefer"
 
 
 def _fred_retry_delay_seconds(attempt: int, headers: dict[str, Any] | None = None) -> float:
@@ -258,7 +268,9 @@ class FREDClient:
                         "series_id": series_id,
                         "title": series.get("title"),
                         "frequency": series.get("frequency"),
-                        "frequency_short": series.get("frequency_short") or series.get("frequency"),
+                        "frequency_short": normalize_fred_frequency_short(
+                            series.get("frequency_short") or series.get("frequency")
+                        ),
                         "units": series.get("units"),
                         "units_short": series.get("units_short") or series.get("units"),
                         "seasonal_adjustment": series.get("seasonal_adjustment"),
@@ -297,58 +309,88 @@ class FREDClient:
                 .reset_index(drop=True)
             )
         return series_index, observations
-def load_fred_dashboard(api_key: str, years: int = 10) -> dict[str, object]:
-    client = FREDClient(api_key)
-    observation_start = utc_today_naive() - pd.DateOffset(years=max(int(years), 1))
 
+
+def _observation_start_label(observation_start: pd.Timestamp) -> str:
+    ts = pd.to_datetime(observation_start, errors="coerce")
+    if pd.isna(ts):
+        return str(observation_start or "")
+    return ts.strftime("%Y-%m-%d")
+
+
+def _release_index_row(release: dict[str, Any]) -> dict[str, Any]:
+    release_id = pd.to_numeric(release.get("id"), errors="coerce")
+    if pd.isna(release_id):
+        raise FredAPIError(f"FRED release id is missing for release payload: {release}")
+    return {
+        "release_id": int(release_id),
+        "release_name": release.get("name"),
+        "press_release": bool(release.get("press_release")),
+        "link": release.get("link"),
+    }
+
+
+def _series_index_row(spec: FredSeriesSpec, metadata: dict[str, Any], release: dict[str, Any]) -> dict[str, Any]:
+    release_id = pd.to_numeric(release.get("id"), errors="coerce")
+    return {
+        "series_id": spec.series_id,
+        "title": metadata.get("title") or spec.label,
+        "frequency": metadata.get("frequency"),
+        "frequency_short": normalize_fred_frequency_short(metadata.get("frequency_short") or metadata.get("frequency")),
+        "units": metadata.get("units"),
+        "units_short": metadata.get("units_short") or metadata.get("units"),
+        "seasonal_adjustment": metadata.get("seasonal_adjustment_short") or metadata.get("seasonal_adjustment"),
+        "last_updated": pd.to_datetime(metadata.get("last_updated"), utc=True, errors="coerce"),
+        "notes": metadata.get("notes"),
+        "release_id": int(release_id) if pd.notna(release_id) else None,
+        "release_name": release.get("name"),
+        "press_release": bool(release.get("press_release")),
+        "link": release.get("link"),
+    }
+
+
+def _build_release_catalog(client: FREDClient) -> tuple[dict[str, dict[str, Any]], dict[int, dict[str, Any]], pd.DataFrame]:
     release_by_series: dict[str, dict[str, Any]] = {}
-    release_index_rows: list[dict[str, Any]] = []
     release_catalog: dict[int, dict[str, Any]] = {}
+    release_index_rows: list[dict[str, Any]] = []
     for spec in FRED_SERIES_SPECS:
         release = client.get_series_release(spec.series_id)
-        release_id = int(release["id"])
         release_by_series[spec.series_id] = release
-        if release_id not in release_catalog:
-            release_row = {
-                "release_id": release_id,
-                "release_name": release.get("name"),
-                "press_release": bool(release.get("press_release")),
-                "link": release.get("link"),
-            }
-            release_catalog[release_id] = release_row
-            release_index_rows.append(release_row)
+        release_row = _release_index_row(release)
+        release_id = int(release_row["release_id"])
+        if release_id in release_catalog:
+            continue
+        release_catalog[release_id] = release_row
+        release_index_rows.append(release_row)
+    release_index = pd.DataFrame(release_index_rows)
+    if not release_index.empty:
+        release_index = release_index.sort_values(["release_name", "release_id"], na_position="last").reset_index(drop=True)
+    return release_by_series, release_catalog, release_index
 
-    series_index_parts: list[pd.DataFrame] = []
-    observation_parts: list[pd.DataFrame] = []
-    for release_id, release_row in release_catalog.items():
-        release_series_index, release_observations = client.get_release_observations_bulk(release_id)
-        if not release_series_index.empty:
-            release_series_index = release_series_index.copy()
-            release_series_index["release_id"] = release_id
-            release_series_index["release_name"] = release_row["release_name"]
-            series_index_parts.append(release_series_index)
-        if not release_observations.empty:
-            release_observations = release_observations[release_observations["date"] >= observation_start].copy()
-            if not release_observations.empty:
-                release_observations["release_id"] = release_id
-                observation_parts.append(release_observations)
 
-    series_index = pd.concat(series_index_parts, ignore_index=True) if series_index_parts else pd.DataFrame()
+def _finalize_fred_dashboard_payload(
+    *,
+    series_index: pd.DataFrame,
+    observations: pd.DataFrame,
+    release_index: pd.DataFrame,
+) -> dict[str, object]:
     if not series_index.empty:
         series_index = (
             series_index.sort_values(["release_name", "title", "series_id"], na_position="last")
             .drop_duplicates(subset=["series_id"], keep="first")
             .reset_index(drop=True)
         )
-    observations = pd.concat(observation_parts, ignore_index=True) if observation_parts else pd.DataFrame(
-        columns=["series_id", "date", "value", "release_id"]
-    )
+    else:
+        series_index = pd.DataFrame()
+
     if not observations.empty:
         observations = (
             observations.sort_values(["series_id", "date"])
             .drop_duplicates(subset=["series_id", "date"], keep="last")
             .reset_index(drop=True)
         )
+    else:
+        observations = pd.DataFrame(columns=["series_id", "date", "value", "release_id"])
 
     metadata_by_id = {
         str(row["series_id"]): row.dropna().to_dict()
@@ -362,17 +404,114 @@ def load_fred_dashboard(api_key: str, years: int = 10) -> dict[str, object]:
         series_data[spec.series_id] = frame.reset_index(drop=True)
         summary_rows.append(build_fred_series_summary(spec, metadata, frame.reset_index(drop=True)))
 
-    summary = pd.DataFrame(summary_rows)
     return {
-        "summary": summary,
+        "summary": pd.DataFrame(summary_rows),
         "series_data": series_data,
         "metadata": metadata_by_id,
         "specs_by_category": fred_specs_by_category(),
         "category_blurbs": FRED_CATEGORY_BLURBS,
         "series_index": series_index,
         "observations": observations,
-        "release_index": pd.DataFrame(release_index_rows),
+        "release_index": release_index,
     }
+
+
+def _load_fred_dashboard_from_bulk(
+    client: FREDClient,
+    *,
+    observation_start: pd.Timestamp,
+    release_catalog: dict[int, dict[str, Any]],
+    release_index: pd.DataFrame,
+) -> dict[str, object]:
+    series_index_parts: list[pd.DataFrame] = []
+    observation_parts: list[pd.DataFrame] = []
+    for release_id, release_row in release_catalog.items():
+        release_series_index, release_observations = client.get_release_observations_bulk(release_id)
+        if not release_series_index.empty:
+            release_series_index = release_series_index.copy()
+            release_series_index["release_id"] = release_id
+            release_series_index["release_name"] = release_row["release_name"]
+            release_series_index["press_release"] = release_row["press_release"]
+            release_series_index["link"] = release_row["link"]
+            series_index_parts.append(release_series_index)
+        if not release_observations.empty:
+            release_observations = release_observations[release_observations["date"] >= observation_start].copy()
+            if not release_observations.empty:
+                release_observations["release_id"] = release_id
+                observation_parts.append(release_observations)
+
+    series_index = pd.concat(series_index_parts, ignore_index=True) if series_index_parts else pd.DataFrame()
+    observations = pd.concat(observation_parts, ignore_index=True) if observation_parts else pd.DataFrame(
+        columns=["series_id", "date", "value", "release_id"]
+    )
+    return _finalize_fred_dashboard_payload(
+        series_index=series_index,
+        observations=observations,
+        release_index=release_index.copy(),
+    )
+
+
+def _load_fred_dashboard_from_series(
+    client: FREDClient,
+    *,
+    observation_start: pd.Timestamp,
+    release_by_series: dict[str, dict[str, Any]],
+    release_index: pd.DataFrame,
+) -> dict[str, object]:
+    observation_start_label = _observation_start_label(observation_start)
+    series_index_rows: list[dict[str, Any]] = []
+    observation_parts: list[pd.DataFrame] = []
+    for spec in FRED_SERIES_SPECS:
+        metadata = client.get_series_metadata(spec.series_id)
+        release = release_by_series[spec.series_id]
+        series_index_rows.append(_series_index_row(spec, metadata, release))
+
+        frame = client.get_series_observations(spec.series_id, observation_start_label)
+        if frame.empty:
+            continue
+        release_id = pd.to_numeric(release.get("id"), errors="coerce")
+        frame = frame.copy()
+        frame["series_id"] = spec.series_id
+        if pd.notna(release_id):
+            frame["release_id"] = int(release_id)
+        observation_parts.append(frame[["series_id", "date", "value", "release_id"]])
+
+    series_index = pd.DataFrame(series_index_rows)
+    observations = pd.concat(observation_parts, ignore_index=True) if observation_parts else pd.DataFrame(
+        columns=["series_id", "date", "value", "release_id"]
+    )
+    return _finalize_fred_dashboard_payload(
+        series_index=series_index,
+        observations=observations,
+        release_index=release_index.copy(),
+    )
+
+
+def load_fred_dashboard(api_key: str, years: int = 10) -> dict[str, object]:
+    client = FREDClient(api_key)
+    observation_start = utc_today_naive() - pd.DateOffset(years=max(int(years), 1))
+    release_by_series, release_catalog, release_index = _build_release_catalog(client)
+    bulk_mode = _fred_bulk_mode()
+
+    if bulk_mode != "v1_only":
+        try:
+            return _load_fred_dashboard_from_bulk(
+                client,
+                observation_start=observation_start,
+                release_catalog=release_catalog,
+                release_index=release_index,
+            )
+        except Exception as exc:
+            if bulk_mode == "require":
+                raise
+            print(f"[warn] FRED bulk loader unavailable; falling back to per-series v1 requests: {type(exc).__name__}: {exc}")
+
+    return _load_fred_dashboard_from_series(
+        client,
+        observation_start=observation_start,
+        release_by_series=release_by_series,
+        release_index=release_index,
+    )
 
 def _is_rate_like_series(metadata: dict[str, Any]) -> bool:
     units_blob = " ".join(

@@ -1539,6 +1539,9 @@ def test_query_service_capabilities_include_resolution_hints():
     assert capabilities["datasets"]["attention_feed"]["resolution"] == "materialized"
     assert capabilities["datasets"]["attention_context"]["resolution"] == "materialized"
     assert capabilities["datasets"]["attention_evidence_search"]["resolution"] == "materialized"
+    assert capabilities["datasets"]["saa_document_search"]["resolution"] == "service_backed"
+    assert capabilities["datasets"]["saa_chunk_search"]["resolution"] == "service_backed"
+    assert capabilities["datasets"]["saa_document"]["required_params"] == ["canonical_document_id"]
     assert capabilities["datasets"]["commodity_attention_feed"]["resolution"] == "materialized"
     assert capabilities["charts"]["technical_price_channel"]["resolution"] == "computed_from_signal_history"
     assert capabilities["datasets"]["price_history"]["required_params"] == ["ticker"]
@@ -1815,6 +1818,208 @@ def test_data_access_layer_resolve_attention_evidence_search_filters_materialize
     assert resolved.payload["chunk_id"].tolist() == ["chunk::1"]
     assert resolved.payload.iloc[0]["mentioned_tickers"] == ["USO", "BNO"]
     assert resolved.payload.iloc[0]["event_tags"] == ["geopolitics", "supply_chain"]
+
+
+def test_query_service_fetch_dataset_supports_saa_document_and_chunk_search():
+    class FakeAccess:
+        def resolve_saa_document_search(
+            self,
+            *,
+            query: str = "",
+            tickers: list[str] | None = None,
+            commodities: list[str] | None = None,
+            event_tags: list[str] | None = None,
+            dates: list[str] | None = None,
+            start_date: str | None = None,
+            end_date: str | None = None,
+            source_kinds: list[str] | None = None,
+            providers: list[str] | None = None,
+            run_id: str | None = None,
+            limit: int = 20,
+        ) -> ResolvedPayload:
+            assert query == "ceasefire oil"
+            assert tickers == ["USO"]
+            assert commodities == ["oil"]
+            assert event_tags == ["geopolitics"]
+            assert dates == ["2026-03-24"]
+            assert providers == ["Reuters"]
+            assert run_id == "run-1"
+            assert limit == 4
+            return ResolvedPayload(
+                payload=pd.DataFrame({"canonical_document_id": ["saa_doc::uso"], "search_score": [13.0]}),
+                provenance=DataProvenance(mode="service_backed", datasets=("saa_documents",), details={}),
+            )
+
+        def resolve_saa_chunk_search(
+            self,
+            *,
+            query: str = "",
+            tickers: list[str] | None = None,
+            commodities: list[str] | None = None,
+            event_tags: list[str] | None = None,
+            dates: list[str] | None = None,
+            start_date: str | None = None,
+            end_date: str | None = None,
+            source_kinds: list[str] | None = None,
+            providers: list[str] | None = None,
+            research_scopes: list[str] | None = None,
+            run_id: str | None = None,
+            canonical_document_id: str | None = None,
+            limit: int = 20,
+            use_semantic: bool = True,
+        ) -> ResolvedPayload:
+            assert query == "ceasefire oil"
+            assert tickers == ["USO"]
+            assert commodities == ["oil"]
+            assert event_tags == ["geopolitics"]
+            assert dates == ["2026-03-24"]
+            assert providers == ["Reuters"]
+            assert research_scopes == ["home_summary"]
+            assert run_id == "run-1"
+            assert canonical_document_id == "saa_doc::uso"
+            assert limit == 4
+            assert use_semantic is False
+            return ResolvedPayload(
+                payload=pd.DataFrame({"chunk_record_id": ["saa_chunk::uso"], "search_score": [14.0]}),
+                provenance=DataProvenance(mode="service_backed", datasets=("saa_evidence_chunks",), details={}),
+            )
+
+        def resolve_saa_document(self, canonical_document_id: str, *, include_raw_text: bool = True) -> ResolvedPayload:
+            assert canonical_document_id == "saa_doc::uso"
+            assert include_raw_text is False
+            return ResolvedPayload(
+                payload={"canonical_document_id": canonical_document_id, "title": "USO falls", "raw_text_blob_path": "saa/raw_documents/uso.json"},
+                provenance=DataProvenance(mode="service_backed", datasets=("saa_documents",), details={}),
+            )
+
+    service = QueryService(data_access=FakeAccess())
+    search_resolved = service.fetch_dataset(
+        "saa_document_search",
+        {
+            "query": "ceasefire oil",
+            "tickers": ["USO"],
+            "commodities": ["oil"],
+            "event_tags": ["geopolitics"],
+            "dates": ["2026-03-24"],
+            "providers": ["Reuters"],
+            "run_id": "run-1",
+            "limit": 4,
+        },
+    )
+    chunk_search_resolved = service.fetch_dataset(
+        "saa_chunk_search",
+        {
+            "query": "ceasefire oil",
+            "tickers": ["USO"],
+            "commodities": ["oil"],
+            "event_tags": ["geopolitics"],
+            "dates": ["2026-03-24"],
+            "providers": ["Reuters"],
+            "research_scopes": ["home_summary"],
+            "run_id": "run-1",
+            "canonical_document_id": "saa_doc::uso",
+            "limit": 4,
+            "use_semantic": False,
+        },
+    )
+    doc_resolved = service.fetch_dataset(
+        "saa_document",
+        {"canonical_document_id": "saa_doc::uso", "include_raw_text": False},
+    )
+
+    assert search_resolved.payload["canonical_document_id"].tolist() == ["saa_doc::uso"]
+    assert chunk_search_resolved.payload["chunk_record_id"].tolist() == ["saa_chunk::uso"]
+    assert doc_resolved.payload["canonical_document_id"] == "saa_doc::uso"
+
+
+def test_data_access_layer_resolve_saa_document_and_chunk_search(monkeypatch):
+    import data_access.layer as layer_module
+
+    monkeypatch.setattr(
+        layer_module,
+        "search_retained_documents",
+        lambda **kwargs: pd.DataFrame(
+            [
+                {
+                    "canonical_document_id": "saa_doc::uso",
+                    "bundle_subject": "USO",
+                    "title": "USO falls as oil pulls back on ceasefire hopes",
+                    "display_excerpt": "USO and airlines moved as supply-risk eased.",
+                    "search_score": 13.0,
+                    "mentioned_tickers": ["USO", "BNO"],
+                    "event_tags": ["geopolitics", "supply_chain"],
+                }
+            ]
+        ),
+    )
+    monkeypatch.setattr(
+        layer_module,
+        "search_retained_evidence_chunks",
+        lambda **kwargs: pd.DataFrame(
+            [
+                {
+                    "chunk_record_id": "saa_chunk::uso",
+                    "canonical_document_id": "saa_doc::uso",
+                    "chunk_text": "USO and BNO fell on March 24, 2026 as oil eased after ceasefire headlines.",
+                    "display_excerpt": "USO and airlines moved as supply-risk eased.",
+                    "research_scope": "home_summary",
+                    "search_score": 14.0,
+                    "mentioned_tickers": ["USO", "BNO"],
+                    "event_tags": ["geopolitics", "supply_chain"],
+                }
+            ]
+        ),
+    )
+    monkeypatch.setattr(
+        layer_module,
+        "load_retained_document_metadata",
+        lambda canonical_document_id: {
+            "canonical_document_id": canonical_document_id,
+            "title": "USO falls as oil pulls back on ceasefire hopes",
+            "raw_text_blob_path": "saa/raw_documents/uso.json",
+            "search_text": "USO and BNO fell after ceasefire headlines.",
+        },
+    )
+    monkeypatch.setattr(
+        layer_module,
+        "load_retained_document",
+        lambda canonical_document_id: {
+            "canonical_document_id": canonical_document_id,
+            "raw_text": "USO and BNO fell on March 24, 2026 as oil eased after ceasefire headlines.",
+        },
+    )
+
+    search_resolved = DataAccessLayer().resolve_saa_document_search(
+        query="ceasefire oil",
+        tickers=["USO"],
+        commodities=["oil"],
+        event_tags=["geopolitics"],
+        dates=["2026-03-24"],
+        providers=["Reuters"],
+        run_id="run-1",
+        limit=5,
+    )
+    chunk_search_resolved = DataAccessLayer().resolve_saa_chunk_search(
+        query="ceasefire oil",
+        tickers=["USO"],
+        commodities=["oil"],
+        event_tags=["geopolitics"],
+        dates=["2026-03-24"],
+        providers=["Reuters"],
+        research_scopes=["home_summary"],
+        run_id="run-1",
+        canonical_document_id="saa_doc::uso",
+        limit=5,
+        use_semantic=False,
+    )
+    doc_resolved = DataAccessLayer().resolve_saa_document("saa_doc::uso", include_raw_text=True)
+
+    assert search_resolved.provenance.datasets == ("saa_documents",)
+    assert search_resolved.payload["canonical_document_id"].tolist() == ["saa_doc::uso"]
+    assert chunk_search_resolved.provenance.datasets == ("saa_evidence_chunks",)
+    assert chunk_search_resolved.payload["chunk_record_id"].tolist() == ["saa_chunk::uso"]
+    assert doc_resolved.provenance.mode == "service_backed"
+    assert doc_resolved.payload["raw_text"].startswith("USO and BNO fell")
 
 
 def test_plotly_renderer_handles_filtered_metric_traces():

@@ -28,10 +28,11 @@ from streamlit.components.v1 import html as components_html
 from compute.portfolio import normalize_timeseries_view
 from data_access.layer import DataAccessLayer
 from presentation import attention_content, dashboard_loaders
-from services import auth_service, omnibar_agent as omnibar_agent_service
+from services import api_auth, auth_service, omnibar_agent as omnibar_agent_service
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
 from services.analytics import build_metric_bar, build_portfolio_vs_benchmarks_fig, select_signed_ranked
 from services.attention_home_summary import (
+    apply_display_limits,
     attention_mover_card_title as attention_mover_card_title_service,
     build_attention_home_narrative_beats,
     build_attention_home_summary_payload,
@@ -82,6 +83,18 @@ from services.knowledge_graph import (
     load_knowledge_graph_snapshot,
     plot_knowledge_graph_draft,
     search_knowledge_graph_nodes,
+)
+from services.llm import (
+    COPY_STYLE_RULE,
+    get_active_copy_style_rule,
+    list_config_params,
+    list_copy_prompts,
+    load_llm_config,
+    load_prompt_overrides,
+    save_prompt_overrides,
+    set_config_param_override,
+    set_copy_prompt_override,
+    set_copy_style_rule_override,
 )
 from services.runtime_policy import attention_ui_policy, presentation_layer_only_enabled, section_data_available
 from services.secrets import resolve_secret_value
@@ -2919,6 +2932,372 @@ def _render_invite_email_designer(*, current_user: auth_service.UserContext) -> 
         st.code(str(preview_payload.get("text_body") or ""), language="text")
 
 
+def _render_llm_config_admin() -> None:
+    load_prompt_overrides()
+
+    st.subheader("LLM Configuration")
+    config = load_llm_config()
+    if config is None:
+        st.warning("No LLM is configured. Set LLM_API_KEY (or OPENAI_API_KEY) to enable.")
+    else:
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Provider", config.provider)
+        col2.metric("Model", config.model or config.deployment)
+        col3.metric("Temperature", str(config.temperature))
+        if config.reasoning_effort:
+            st.caption(f"Reasoning effort: {config.reasoning_effort}")
+
+    st.divider()
+    st.subheader("Copy Style Rule")
+    st.caption("Shared rule appended to every user-facing system prompt.")
+    active_rule = get_active_copy_style_rule()
+    edited_rule = st.text_area(
+        "Copy Style Rule",
+        value=active_rule,
+        height=120,
+        key="llm_admin_copy_style_rule",
+        label_visibility="collapsed",
+    )
+    rule_changed = edited_rule.strip() != active_rule.strip()
+
+    st.divider()
+    st.subheader("System Prompts & Tuning Parameters")
+    st.caption("Edit prompts and numeric limits below. Changes apply after saving. Pipeline prompts take effect on next job run.")
+    # Ensure modules are imported so their register_copy_prompt calls run.
+    import services.attention_market_events  # noqa: F401
+    import services.attention_feed_brief  # noqa: F401
+    import services.attention_home_1d  # noqa: F401
+    import services.attention_live_research  # noqa: F401
+    import services.attention_context_llm  # noqa: F401
+    import services.aql.summarizer  # noqa: F401
+    import services.aql.writer  # noqa: F401
+    import services.aql.constants  # noqa: F401
+    import services.omnibar_agent  # noqa: F401
+    prompts = list_copy_prompts()
+    config_params = list_config_params()
+    params_by_group: dict[str, list[dict]] = {}
+    for param in config_params:
+        params_by_group.setdefault(param["group"], []).append(param)
+
+    prompt_edits: dict[str, str] = {}
+    param_edits: dict[str, float | int] = {}
+    any_prompt_changed = False
+    any_param_changed = False
+    if not prompts and not config_params:
+        st.info("No prompts or parameters registered yet.")
+    for entry in prompts:
+        label = entry["name"]
+        if entry.get("is_override"):
+            label += "  (overridden)"
+        with st.expander(f"{label}  —  {entry['file']}"):
+            edited = st.text_area(
+                entry["name"],
+                value=entry["prompt"],
+                height=200,
+                key=f"llm_admin_prompt_{entry['key']}",
+                label_visibility="collapsed",
+            )
+            prompt_edits[entry["key"]] = edited
+            if edited.strip() != entry["prompt"].strip():
+                any_prompt_changed = True
+            if entry.get("is_override"):
+                if st.button("Reset to default", key=f"llm_admin_reset_{entry['key']}"):
+                    set_copy_prompt_override(entry["key"], None)
+                    saved = save_prompt_overrides()
+                    if saved:
+                        st.success(f"Reset '{entry['name']}' to default.")
+                        st.rerun()
+                    else:
+                        st.error("Failed to save — check database connection.")
+
+    _GROUP_DESCRIPTIONS = {
+        "Display Limits": "Applied at render time — changes take effect instantly.",
+        "LLM Context Window": "Applied at pipeline job time — changes require a pipeline re-run.",
+    }
+    if params_by_group:
+        st.divider()
+        st.subheader("Tuning Parameters")
+        for group_name, group_params in sorted(params_by_group.items()):
+            st.markdown(f"**{group_name}**")
+            group_desc = _GROUP_DESCRIPTIONS.get(group_name)
+            if group_desc:
+                st.caption(group_desc)
+            for param in group_params:
+                col_label, col_input, col_default = st.columns([3, 1.5, 1.5])
+                with col_label:
+                    override_tag = " *(overridden)*" if param.get("is_override") else ""
+                    st.markdown(f"{param['name']}{override_tag}")
+                    st.caption(param["description"])
+                with col_input:
+                    is_int = isinstance(param["default"], int)
+                    edited_val = st.number_input(
+                        param["name"],
+                        value=param["value"] if is_int else float(param["value"]),
+                        step=1 if is_int else 0.1,
+                        key=f"llm_admin_param_{param['key']}",
+                        label_visibility="collapsed",
+                    )
+                    param_edits[param["key"]] = edited_val
+                    if edited_val != param["value"]:
+                        any_param_changed = True
+                with col_default:
+                    st.caption(f"Default: {param['default']}")
+                    if param.get("is_override"):
+                        if st.button("Reset", key=f"llm_admin_param_reset_{param['key']}"):
+                            set_config_param_override(param["key"], None)
+                            saved = save_prompt_overrides()
+                            if saved:
+                                st.success(f"Reset '{param['name']}' to default.")
+                                st.rerun()
+                            else:
+                                st.error("Failed to save — check database connection.")
+
+    st.divider()
+    save_disabled = not (rule_changed or any_prompt_changed or any_param_changed)
+    if st.button("Save all changes", type="primary", disabled=save_disabled):
+        if rule_changed:
+            set_copy_style_rule_override(edited_rule)
+        for key, edited_text in prompt_edits.items():
+            registry_entry = next((p for p in prompts if p["key"] == key), None)
+            if registry_entry and edited_text.strip() != registry_entry["default"].strip():
+                set_copy_prompt_override(key, edited_text)
+            elif registry_entry:
+                set_copy_prompt_override(key, None)
+        for key, edited_val in param_edits.items():
+            registry_entry = next((p for p in config_params if p["key"] == key), None)
+            if registry_entry and edited_val != registry_entry["default"]:
+                set_config_param_override(key, edited_val)
+            elif registry_entry:
+                set_config_param_override(key, None)
+        saved = save_prompt_overrides()
+        if saved:
+            st.success("Saved. UI prompts take effect immediately. Pipeline prompts take effect on next job run.")
+            st.rerun()
+        else:
+            st.error("Failed to save — check database connection.")
+
+
+def _render_api_keys_admin(
+    *,
+    current_user: auth_service.UserContext,
+    user_rows: list[dict[str, Any]],
+) -> None:
+    """Admin UI for creating, viewing, revoking agent API keys, and API reference."""
+    st.divider()
+    st.subheader("API Keys")
+    st.caption("Create scoped API keys for scripts, agents, or external integrations. Keys are shown once on creation.")
+
+    # --- Create key form ---
+    user_options: dict[str, str] = {"": "No user (standalone agent key)"}
+    for row in user_rows:
+        if not isinstance(row, dict):
+            continue
+        uid = str(row.get("user_id") or "").strip()
+        email = str(row.get("email") or "").strip()
+        if uid and email:
+            display_name = str(row.get("display_name") or "").strip()
+            user_options[uid] = f"{display_name} ({email})" if display_name and display_name != email else email
+
+    with st.form("admin_create_api_key", clear_on_submit=True):
+        key_name = st.text_input("Key name", placeholder="e.g. research-export-script")
+        assigned_user_id = str(
+            st.selectbox("Assign to user", options=list(user_options.keys()), format_func=lambda uid: user_options.get(uid, uid))
+            or ""
+        ).strip()
+        available_scopes = sorted(api_auth.AGENT_SCOPE_ALLOWLIST)
+        selected_scopes = st.multiselect("Scopes", options=available_scopes, default=available_scopes)
+        expires_days = st.selectbox("Expires in", options=[None, 7, 30, 90, 365], format_func=lambda v: "Never" if v is None else f"{v} days")
+        key_notes = st.text_input("Notes", placeholder="Optional description")
+        create_submitted = st.form_submit_button("Create API key", type="primary")
+
+    if create_submitted:
+        if not str(key_name or "").strip():
+            st.error("Key name is required.")
+        else:
+            expires_at = None
+            if expires_days is not None:
+                expires_at = datetime.now(timezone.utc) + timedelta(days=int(expires_days))
+            created_by = assigned_user_id if assigned_user_id else (current_user.user_id if current_user else None)
+            result = api_auth.create_agent_api_key(
+                name=str(key_name).strip(),
+                scopes=selected_scopes,
+                created_by=created_by,
+                expires_at=expires_at,
+                notes=str(key_notes or "").strip(),
+            )
+            raw_key = result.get("api_key", "")
+            st.success("API key created. Copy the key now — it will not be shown again.")
+            st.code(raw_key, language="text")
+            if assigned_user_id:
+                st.caption(f"Assigned to: {user_options.get(assigned_user_id, assigned_user_id)}")
+
+    # --- List existing keys ---
+    st.divider()
+    st.subheader("Existing Keys")
+    existing_keys = api_auth.list_agent_api_keys()
+    if not existing_keys:
+        st.info("No API keys have been created yet.")
+    else:
+        for key_row in existing_keys:
+            if not isinstance(key_row, dict):
+                continue
+            key_id = str(key_row.get("id") or "")
+            key_name_display = str(key_row.get("name") or "unnamed")
+            key_prefix = str(key_row.get("key_prefix") or "")
+            key_status = str(key_row.get("status") or "unknown")
+            key_scopes = list(key_row.get("scopes") or [])
+            key_created_at = key_row.get("created_at")
+            key_last_used = key_row.get("last_used_at")
+            key_expires = key_row.get("expires_at")
+            key_created_by = str(key_row.get("created_by") or "").strip()
+            key_notes_text = str(key_row.get("notes") or "").strip()
+
+            # Find assigned user name
+            assigned_label = ""
+            if key_created_by:
+                assigned_label = user_options.get(key_created_by, key_created_by)
+
+            status_icon = "active" if key_status == "active" else "revoked"
+            with st.expander(f"{key_name_display}  |  {key_prefix}...  |  {status_icon}", expanded=False):
+                info_cols = st.columns([1, 1, 1])
+                with info_cols[0]:
+                    st.caption(f"Status: **{key_status}**")
+                    st.caption(f"Prefix: `{key_prefix}`")
+                    if assigned_label:
+                        st.caption(f"Assigned to: {assigned_label}")
+                with info_cols[1]:
+                    st.caption(f"Created: {_format_access_admin_timestamp(key_created_at)}")
+                    st.caption(f"Last used: {_format_access_admin_timestamp(key_last_used) if key_last_used else 'never'}")
+                    if key_expires:
+                        st.caption(f"Expires: {_format_access_admin_timestamp(key_expires)}")
+                with info_cols[2]:
+                    st.caption(f"Scopes: {', '.join(key_scopes) if key_scopes else 'none'}")
+                    if key_notes_text:
+                        st.caption(f"Notes: {key_notes_text}")
+                if key_status == "active":
+                    if st.button("Revoke", key=f"revoke_key_{key_id}", type="secondary"):
+                        api_auth.revoke_agent_api_key(
+                            key_id=key_id,
+                            revoked_by=current_user.user_id if current_user else None,
+                        )
+                        st.success(f"Key '{key_name_display}' revoked.")
+                        st.rerun()
+
+    # --- API Reference ---
+    st.divider()
+    st.subheader("API Reference")
+    st.caption("Use your API key with the `X-API-Key` header or as a `Bearer` token. All endpoints return JSON.")
+
+    _API_REF = """
+**Authentication** — include with every request:
+```
+X-API-Key: snak_YOUR_KEY
+```
+
+---
+
+**Datasets** — the core data query pattern. Replace `{name}` with any dataset below.
+
+```bash
+curl -X POST https://HOST/v1/dataset/{name} \\
+  -H "X-API-Key: snak_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"params": {}}'
+```
+
+| Dataset | Required Params | Description |
+|---------|----------------|-------------|
+| `attention_home_1d` | — | Today's homepage snapshot: top events, must-read movers, summary |
+| `attention_research_bundle` | `bundle_id` | Full research bundle (what changed, why, spillover, background) |
+| `attention_ticker_snapshot` | `ticker` | Ticker attention card with events and context |
+| `attention_ticker_background` | `ticker` | Background research for a ticker |
+| `attention_feed` | — | Scored attention feed across all entities |
+| `attention_rollups` | — | Aggregated attention rollups by theme/sector |
+| `saa_document_search` | — | Search retained documents (filter by `tickers`, `providers`, `start_date`, `end_date`) |
+| `saa_chunk_search` | — | Search evidence chunks with lexical + semantic matching |
+| `saa_document` | `canonical_document_id` | Single document with full raw text |
+| `recent_news` | `ticker` | Recent news articles for a ticker |
+| `price_history` | `ticker` | Historical price data |
+| `technical_signal_summary` | `ticker` | Technical signal snapshot |
+| `positions` | — | Current portfolio positions |
+| `daily_movers` | — | Today's biggest movers |
+| `fred_dashboard` | — | Macro economic dashboard (FRED data) |
+| `yield_curve_summary` | — | Current yield curve snapshot |
+| `option_chain` | `ticker` | Options chain data |
+
+---
+
+**Example: Get homepage summary**
+```bash
+curl -X POST https://HOST/v1/dataset/attention_home_1d \\
+  -H "X-API-Key: snak_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"params": {}}'
+```
+
+**Example: Search documents about AAPL from the last week**
+```bash
+curl -X POST https://HOST/v1/dataset/saa_document_search \\
+  -H "X-API-Key: snak_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"params": {"tickers": ["AAPL"], "start_date": "2026-04-11", "limit": 20}}'
+```
+
+**Example: Get a research bundle**
+```bash
+curl -X POST https://HOST/v1/dataset/attention_research_bundle \\
+  -H "X-API-Key: snak_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"params": {"bundle_id": "symbol::AAPL"}}'
+```
+
+**Example: Search evidence chunks**
+```bash
+curl -X POST https://HOST/v1/dataset/saa_chunk_search \\
+  -H "X-API-Key: snak_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"params": {"query": "Iran oil sanctions", "providers": ["tavily"], "limit": 10}}'
+```
+
+---
+
+**Research Export** — bulk download of all research in a time window as a zip file.
+
+```bash
+# 1. Start export
+curl -X POST https://HOST/v1/research/export \\
+  -H "X-API-Key: snak_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"start_date": "2026-04-11", "end_date": "2026-04-18"}'
+# Returns: {"job_id": "exp-...", "status": "building"}
+
+# 2. Poll for completion
+curl https://HOST/v1/research/export/JOB_ID \\
+  -H "X-API-Key: snak_YOUR_KEY"
+# Returns: {"status": "ready", "download_url": "https://..."}
+
+# 3. Download (no auth needed)
+curl -o export.zip "DOWNLOAD_URL"
+```
+
+---
+
+**Other endpoints**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/v1/capabilities` | List all available datasets and charts |
+| `POST` | `/v1/query` | Generic query (specify `operation`, `name`, `params`) |
+| `POST` | `/v1/chart/{name}` | Get chart data (e.g. `portfolio_vs_benchmarks`, `technical_price_channel`) |
+| `POST` | `/v1/omnibar/resolve` | Resolve a search/analysis query |
+| `GET` | `/v1/omnibar/suggestions` | Get omnibar suggestions |
+| `GET` | `/v1/agent/tools` | List available agent tools (MCP compatible) |
+| `POST` | `/v1/agent/tools/{name}/invoke` | Invoke an agent tool |
+| `POST` | `/v1/agent/rpc` | JSON-RPC endpoint (MCP compatible) |
+"""
+    st.markdown(_API_REF)
+
+
 def _render_access_admin_section() -> None:
     header_cols = st.columns([4.6, 1.4, 1.4])
     with header_cols[0]:
@@ -2965,7 +3344,7 @@ def _render_access_admin_section() -> None:
         option_label = option_email if not option_display_name or option_display_name == option_email else f"{option_display_name} ({option_email})"
         analytics_user_options[option_user_id] = {"label": option_label, "email": option_email}
 
-    admin_view_options = ["Access Management", "Usage", "Security", "Invite Email Designer"]
+    admin_view_options = ["Access Management", "Usage", "Security", "Invite Email Designer", "LLM Config"]
     _prime_widget_choice(
         "access_admin_view",
         admin_view_options,
@@ -3066,6 +3445,8 @@ def _render_access_admin_section() -> None:
             for invite in invites:
                 if isinstance(invite, dict):
                     _render_access_pending_invite_card(invite, current_user=current_user)
+
+        _render_api_keys_admin(current_user=current_user, user_rows=user_rows)
     elif admin_view in {"Usage", "Security"}:
         usage_window_days = _access_admin_int_state_value(
             "_access_usage_window_days",
@@ -3196,6 +3577,8 @@ def _render_access_admin_section() -> None:
 
     elif admin_view == "Invite Email Designer":
         _render_invite_email_designer(current_user=current_user)
+    elif admin_view == "LLM Config":
+        _render_llm_config_admin()
 
 
 def _has_live_api(api: AlpacaAPI | None, message: str, *, allow_pipeline: bool = False) -> bool:
@@ -6293,10 +6676,44 @@ def _render_attention_home_summary_card(
     snapshot_label: str,
     title: str = "Market Summary",
 ) -> None:
+    def _render_summary_trace(summary_payload: dict[str, object]) -> None:
+        queries = [str(item).strip() for item in list(summary_payload.get("research_queries") or []) if str(item).strip()]
+        top_sources = [item for item in list(summary_payload.get("top_sources") or []) if isinstance(item, dict)]
+        supporting_claims = [item for item in list(summary_payload.get("supporting_claims") or []) if isinstance(item, dict)]
+        if not queries and not top_sources and not supporting_claims:
+            return
+        with st.expander("Research trace", expanded=False):
+            if queries:
+                st.markdown("**Searches run**")
+                for query in queries[:4]:
+                    st.markdown(f"- `{query}`")
+            if top_sources:
+                st.markdown("**Sources used**")
+                for item in top_sources[:4]:
+                    source = str(item.get("source") or "Source").strip()
+                    title_text = str(item.get("title") or "").strip()
+                    url = str(item.get("url") or "").strip()
+                    match_source = str(item.get("match_source") or "").strip()
+                    suffix = f" ({match_source})" if match_source else ""
+                    if url:
+                        st.markdown(f"- **{source}**: [{title_text or url}]({url}){suffix}")
+                    else:
+                        st.markdown(f"- **{source}**: {title_text or 'Untitled'}{suffix}")
+            if supporting_claims:
+                st.markdown("**Supporting evidence**")
+                for item in supporting_claims[:3]:
+                    text = str(item.get("text") or "").strip()
+                    source = str(item.get("source") or "").strip()
+                    if not text:
+                        continue
+                    label = f"**{source}**: " if source else ""
+                    st.markdown(f"- {label}{text}")
+
     stored_summary_payload = home_payload.get("homepage_summary")
     summary_payload = dict(stored_summary_payload) if isinstance(stored_summary_payload, dict) else {}
     if not summary_payload:
         summary_payload = build_attention_home_summary_payload(home_payload)
+    summary_payload = apply_display_limits(summary_payload)
     summary_text = str(summary_payload.get("summary_text") or "").strip()
     audio_text = str(summary_payload.get("audio_text") or summary_text).strip()
     elevenlabs_cfg = load_elevenlabs_tts_config()
@@ -6327,6 +6744,7 @@ def _render_attention_home_summary_card(
     with st.container(border=True):
         if summary_text:
             st.markdown(summary_text)
+        _render_summary_trace(summary_payload)
 
         if not audio_text:
             return
@@ -9321,8 +9739,8 @@ elif section == BROAD_ECONOMY_SECTION:
     with header_cols[0]:
         st.title(BROAD_ECONOMY_SECTION)
         st.caption(
-            "Economic indicators sourced from FRED. Observations are loaded from FRED v2 bulk release downloads, "
-            "then filtered interactively in-app."
+            "Economic indicators sourced from FRED. The dashboard now defaults to the fresher per-series path, "
+            "with derived YoY and stationarized views rebuilt from the underlying observations."
         )
     with header_cols[1]:
         force_data_refresh = force_data_refresh or _section_refresh_button(
@@ -9345,15 +9763,8 @@ elif section == BROAD_ECONOMY_SECTION:
             language="bash",
         )
     else:
-        fred_control_cols = st.columns([2, 1])
-        with fred_control_cols[0]:
-            lookback_years = st.slider("Lookback (years)", 3, 20, 10, step=1)
-        with fred_control_cols[1]:
-            show_stationary_overlay = st.checkbox(
-                "Overlay stationarized change",
-                value=False,
-                help="Adds an obs-to-obs transformed series on a secondary axis. Level series use percent change; rate-like series use first differences.",
-            )
+        lookback_years = st.slider("Lookback (years)", 3, 20, 10, step=1)
+        show_stationary_overlay = True
         fred_cache_key = f"{_fred_cache_scope(fred_api_key)}__{lookback_years}y"
         fred_cache_ready = cache_bundle_exists(
             "fred_dashboard",
@@ -9363,12 +9774,12 @@ elif section == BROAD_ECONOMY_SECTION:
         load_fred_now = st.button(
             "Load FRED Data",
             type="primary" if not fred_cache_ready else "secondary",
-            help="Cold bulk downloads can take a while on remote sessions. Cached data loads immediately.",
+            help="Cold FRED loads can take a while on remote sessions. Cached data loads immediately.",
         )
         allow_fred_defer = (not pipeline_store_configured()) and (not cache_disabled)
         if allow_fred_defer and not fred_cache_ready and not load_fred_now and not force_data_refresh:
             st.info(
-                "FRED bulk downloads are deferred until requested. This prevents the app from appearing to hang on "
+                "FRED downloads are deferred until requested. This prevents the app from appearing to hang on "
                 "a cold remote load. Click `Load FRED Data` once, or use cached data on the next visit."
             )
             st.stop()
@@ -9398,21 +9809,6 @@ elif section == BROAD_ECONOMY_SECTION:
             st.info("No macro indicators were returned from FRED.")
             st.stop()
 
-        if not series_index.empty:
-            release_count = int(release_index["release_id"].nunique()) if not release_index.empty else 0
-            series_count = int(series_index["series_id"].nunique())
-            bulk_cols = st.columns(3)
-            with bulk_cols[0]:
-                st.metric("Loaded Releases", f"{release_count}")
-            with bulk_cols[1]:
-                st.metric("Loaded Series", f"{series_count}")
-            with bulk_cols[2]:
-                st.metric("Curated Indicators", f"{len(summary)}")
-            st.caption(
-                "FRED v2 bulk is release-scoped rather than full-catalog. This dashboard loads the releases needed "
-                "for inflation, labor, housing, credit distress, and money-supply analysis."
-            )
-
         overview = summary.copy()
         overview["latest"] = [
             format_fred_value(value, units)
@@ -9427,133 +9823,56 @@ elif section == BROAD_ECONOMY_SECTION:
             for value, units in zip(overview["yoy_delta"], overview["units_short"])
         ]
         overview["latest_date"] = pd.to_datetime(overview["latest_date"], errors="coerce").dt.strftime("%Y-%m-%d")
-        st.subheader("Indicator Snapshot")
-        st.dataframe(
-            overview[["category", "indicator", "latest", "prev", "yoy", "latest_date"]],
-            use_container_width=True,
-            hide_index=True,
+        st.caption(
+            "Stationarized change is on by default across Broad Economy. Level series use obs-to-obs percent change; "
+            "rate-like series use first differences."
         )
 
-        if not series_index.empty and not observations.empty:
-            st.subheader("Series Explorer")
-            explorer_series = series_index.copy()
-            if "title" not in explorer_series.columns:
-                if "source_title" in explorer_series.columns:
-                    explorer_series["title"] = explorer_series["source_title"]
-                else:
-                    explorer_series["title"] = explorer_series.get("series_id", pd.Series(dtype=str)).astype(str)
-            if "notes" not in explorer_series.columns:
-                explorer_series["notes"] = ""
-            if "frequency" not in explorer_series.columns:
-                explorer_series["frequency"] = explorer_series.get(
-                    "frequency_short",
-                    pd.Series(pd.NA, index=explorer_series.index),
-                )
-            if "units" not in explorer_series.columns:
-                explorer_series["units"] = explorer_series.get(
-                    "units_short",
-                    pd.Series(pd.NA, index=explorer_series.index),
-                )
-            if "release_name" not in explorer_series.columns:
-                explorer_series["release_name"] = pd.Series(pd.NA, index=explorer_series.index)
-            explorer_cols = st.columns([2, 1])
-            with explorer_cols[0]:
-                search_query = st.text_input(
-                    "Search loaded series",
-                    key="fred_series_search",
-                    placeholder="cpi, mortgage, delinquency, money stock",
-                ).strip()
-            with explorer_cols[1]:
-                release_options = sorted(explorer_series["release_name"].dropna().astype(str).unique().tolist())
-                selected_release_names = st.multiselect(
-                    "Filter releases",
-                    release_options,
-                    key="fred_release_filter",
-                )
+        money_supply_specs = {spec.series_id: spec for spec in specs_by_category.get("Money Supply", [])}
+        m2_spec = money_supply_specs.get("M2SL")
+        if m2_spec is not None:
+            m2_row = summary[summary["series_id"] == m2_spec.series_id]
+            m2_meta = metadata_by_id.get(m2_spec.series_id, {})
+            m2_frame = series_data.get(m2_spec.series_id, pd.DataFrame())
+            m2_latest_value = m2_row["latest_value"].iloc[0] if not m2_row.empty else None
+            m2_prev_delta = m2_row["prev_delta"].iloc[0] if not m2_row.empty else None
+            m2_yoy_delta = m2_row["yoy_delta"].iloc[0] if not m2_row.empty else None
+            m2_latest_date = pd.to_datetime(m2_row["latest_date"].iloc[0], errors="coerce") if not m2_row.empty else pd.NaT
 
-            filtered_series = explorer_series.copy()
-            if selected_release_names:
-                filtered_series = filtered_series[filtered_series["release_name"].isin(selected_release_names)]
-            if search_query:
-                search_mask = (
-                    filtered_series["series_id"].astype(str).str.contains(search_query, case=False, na=False)
-                    | filtered_series["title"].astype(str).str.contains(search_query, case=False, na=False)
-                    | filtered_series["notes"].astype(str).str.contains(search_query, case=False, na=False)
+            st.subheader("M2 Money Supply")
+            hero_metric_cols = st.columns(4)
+            with hero_metric_cols[0]:
+                st.metric(
+                    "Latest",
+                    format_fred_value(m2_latest_value, m2_meta.get("units_short")),
                 )
-                filtered_series = filtered_series[search_mask]
+            with hero_metric_cols[1]:
+                st.metric(
+                    "Obs-to-obs",
+                    format_fred_delta(m2_prev_delta, m2_meta.get("units_short")),
+                )
+            with hero_metric_cols[2]:
+                st.metric(
+                    "YoY",
+                    format_fred_delta(m2_yoy_delta, m2_meta.get("units_short")),
+                )
+            with hero_metric_cols[3]:
+                st.metric("Last Obs", m2_latest_date.strftime("%Y-%m-%d") if pd.notna(m2_latest_date) else "n/a")
 
-            filtered_series = filtered_series.sort_values(["release_name", "title", "series_id"], na_position="last")
-            st.dataframe(
-                filtered_series[["release_name", "series_id", "title", "frequency", "units"]].head(250),
+            st.plotly_chart(
+                build_fred_figure(
+                    m2_spec,
+                    m2_meta,
+                    m2_frame,
+                    show_stationary_overlay=show_stationary_overlay,
+                ),
                 use_container_width=True,
-                hide_index=True,
+                key="broad-economy-m2-hero-chart",
             )
 
-            if not filtered_series.empty:
-                option_rows = filtered_series[["series_id", "title"]].drop_duplicates().copy()
-                option_labels = option_rows.apply(
-                    lambda row: f"{row['series_id']} | {row['title']}",
-                    axis=1,
-                ).tolist()
-                label_by_series = {label.split(" | ", 1)[0]: label for label in option_labels}
-                selected_series_id = st.session_state.get("fred_explorer_series_id")
-                if selected_series_id not in label_by_series:
-                    selected_series_id = option_rows.iloc[0]["series_id"]
-                selected_label = st.selectbox(
-                    "Explorer series",
-                    option_labels,
-                    index=option_labels.index(label_by_series[selected_series_id]),
-                    key="fred_explorer_series_label",
-                )
-                selected_series_id = selected_label.split(" | ", 1)[0]
-                st.session_state["fred_explorer_series_id"] = selected_series_id
-
-                selected_meta = metadata_by_id.get(selected_series_id, {})
-                selected_frame = observations[observations["series_id"] == selected_series_id][["date", "value"]].copy()
-                selected_spec = FredSeriesSpec(
-                    "Explorer",
-                    selected_series_id,
-                    str(selected_meta.get("title") or selected_series_id),
-                    "",
-                )
-                selected_summary = build_fred_series_summary(selected_spec, selected_meta, selected_frame)
-
-                explorer_metric_cols = st.columns(3)
-                with explorer_metric_cols[0]:
-                    st.metric(
-                        "Latest",
-                        format_fred_value(selected_summary.get("latest_value"), selected_meta.get("units_short")),
-                        format_fred_delta(selected_summary.get("prev_delta"), selected_meta.get("units_short")),
-                    )
-                with explorer_metric_cols[1]:
-                    st.metric(
-                        "YoY",
-                        format_fred_delta(selected_summary.get("yoy_delta"), selected_meta.get("units_short")),
-                    )
-                with explorer_metric_cols[2]:
-                    last_obs = pd.to_datetime(selected_summary.get("latest_date"), errors="coerce")
-                    st.metric("Last Obs", last_obs.strftime("%Y-%m-%d") if pd.notna(last_obs) else "n/a")
-
-                selected_release_name = str(selected_meta.get("release_name") or "n/a")
-                selected_frequency = str(selected_meta.get("frequency_short") or selected_meta.get("frequency") or "")
-                st.caption(
-                    f"{selected_release_name} | {selected_frequency} | Units: {selected_meta.get('units_short') or selected_meta.get('units') or 'n/a'}"
-                )
-                selected_notes = str(selected_meta.get("notes") or "").strip()
-                if selected_notes:
-                    st.caption(selected_notes[:600] + ("..." if len(selected_notes) > 600 else ""))
-                st.plotly_chart(
-                    build_fred_figure(
-                        selected_spec,
-                        selected_meta,
-                        selected_frame,
-                        show_stationary_overlay=show_stationary_overlay,
-                    ),
-                    use_container_width=True,
-                )
-
-        tabs = st.tabs(fred_categories())
-        for tab, category in zip(tabs, fred_categories()):
+        category_labels = [*fred_categories(), "Series Explorer"]
+        tabs = st.tabs(category_labels)
+        for tab, category in zip(tabs[: len(fred_categories())], fred_categories()):
             with tab:
                 st.caption(category_blurbs.get(category, ""))
                 category_summary = summary[summary["category"] == category].copy()
@@ -9598,14 +9917,160 @@ elif section == BROAD_ECONOMY_SECTION:
                             format_fred_delta(prev_delta, meta.get("units_short")),
                         )
                         date_label = latest_date.strftime("%Y-%m-%d") if pd.notna(latest_date) else "n/a"
+                        frequency_label = str(meta.get("frequency") or meta.get("frequency_short") or "")
                         st.caption(
                             f"{spec.blurb} | YoY: {format_fred_delta(yoy_delta, meta.get('units_short'))} | "
-                            f"{meta.get('frequency_short', '')} | Last obs: {date_label}"
+                            f"{frequency_label} | Last obs: {date_label}"
                         )
                         st.plotly_chart(
                             build_fred_figure(spec, meta, frame, show_stationary_overlay=show_stationary_overlay),
                             use_container_width=True,
+                            key=f"broad-economy-category-chart-{category}-{spec.series_id}",
                         )
+
+        with tabs[-1]:
+            if series_index.empty or observations.empty:
+                st.info("Series Explorer becomes available when both loaded series metadata and observations are present.")
+            else:
+                explorer_series = series_index.copy()
+                if "title" not in explorer_series.columns:
+                    if "source_title" in explorer_series.columns:
+                        explorer_series["title"] = explorer_series["source_title"]
+                    else:
+                        explorer_series["title"] = explorer_series.get("series_id", pd.Series(dtype=str)).astype(str)
+                if "notes" not in explorer_series.columns:
+                    explorer_series["notes"] = ""
+                if "frequency" not in explorer_series.columns:
+                    explorer_series["frequency"] = explorer_series.get(
+                        "frequency_short",
+                        pd.Series(pd.NA, index=explorer_series.index),
+                    )
+                if "units" not in explorer_series.columns:
+                    explorer_series["units"] = explorer_series.get(
+                        "units_short",
+                        pd.Series(pd.NA, index=explorer_series.index),
+                    )
+                if "release_name" not in explorer_series.columns:
+                    explorer_series["release_name"] = pd.Series(pd.NA, index=explorer_series.index)
+
+                explorer_cols = st.columns([2, 1])
+                with explorer_cols[0]:
+                    search_query = st.text_input(
+                        "Search loaded series",
+                        key="fred_series_search",
+                        placeholder="cpi, mortgage, delinquency, money stock",
+                    ).strip()
+                with explorer_cols[1]:
+                    release_options = sorted(explorer_series["release_name"].dropna().astype(str).unique().tolist())
+                    selected_release_names = st.multiselect(
+                        "Filter releases",
+                        release_options,
+                        key="fred_release_filter",
+                    )
+
+                filtered_series = explorer_series.copy()
+                if selected_release_names:
+                    filtered_series = filtered_series[filtered_series["release_name"].isin(selected_release_names)]
+                if search_query:
+                    search_mask = (
+                        filtered_series["series_id"].astype(str).str.contains(search_query, case=False, na=False)
+                        | filtered_series["title"].astype(str).str.contains(search_query, case=False, na=False)
+                        | filtered_series["notes"].astype(str).str.contains(search_query, case=False, na=False)
+                    )
+                    filtered_series = filtered_series[search_mask]
+
+                filtered_series = filtered_series.sort_values(["release_name", "title", "series_id"], na_position="last")
+                st.dataframe(
+                    filtered_series[["release_name", "series_id", "title", "frequency", "units"]].head(250),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+
+                if not filtered_series.empty:
+                    option_rows = filtered_series[["series_id", "title"]].drop_duplicates().copy()
+                    option_labels = option_rows.apply(
+                        lambda row: f"{row['series_id']} | {row['title']}",
+                        axis=1,
+                    ).tolist()
+                    label_by_series = {label.split(" | ", 1)[0]: label for label in option_labels}
+                    selected_series_id = st.session_state.get("fred_explorer_series_id")
+                    if selected_series_id not in label_by_series:
+                        selected_series_id = option_rows.iloc[0]["series_id"]
+                    selected_label = st.selectbox(
+                        "Explorer series",
+                        option_labels,
+                        index=option_labels.index(label_by_series[selected_series_id]),
+                        key="fred_explorer_series_label",
+                    )
+                    selected_series_id = selected_label.split(" | ", 1)[0]
+                    st.session_state["fred_explorer_series_id"] = selected_series_id
+
+                    selected_meta = metadata_by_id.get(selected_series_id, {})
+                    selected_frame = observations[observations["series_id"] == selected_series_id][["date", "value"]].copy()
+                    selected_spec = FredSeriesSpec(
+                        "Explorer",
+                        selected_series_id,
+                        str(selected_meta.get("title") or selected_series_id),
+                        "",
+                    )
+                    selected_summary = build_fred_series_summary(selected_spec, selected_meta, selected_frame)
+
+                    explorer_metric_cols = st.columns(3)
+                    with explorer_metric_cols[0]:
+                        st.metric(
+                            "Latest",
+                            format_fred_value(selected_summary.get("latest_value"), selected_meta.get("units_short")),
+                            format_fred_delta(selected_summary.get("prev_delta"), selected_meta.get("units_short")),
+                        )
+                    with explorer_metric_cols[1]:
+                        st.metric(
+                            "YoY",
+                            format_fred_delta(selected_summary.get("yoy_delta"), selected_meta.get("units_short")),
+                        )
+                    with explorer_metric_cols[2]:
+                        last_obs = pd.to_datetime(selected_summary.get("latest_date"), errors="coerce")
+                        st.metric("Last Obs", last_obs.strftime("%Y-%m-%d") if pd.notna(last_obs) else "n/a")
+
+                    selected_release_name = str(selected_meta.get("release_name") or "n/a")
+                    selected_frequency = str(selected_meta.get("frequency") or selected_meta.get("frequency_short") or "")
+                    st.caption(
+                        f"{selected_release_name} | {selected_frequency} | Units: {selected_meta.get('units_short') or selected_meta.get('units') or 'n/a'}"
+                    )
+                    selected_notes = str(selected_meta.get("notes") or "").strip()
+                    if selected_notes:
+                        st.caption(selected_notes[:600] + ("..." if len(selected_notes) > 600 else ""))
+                    st.plotly_chart(
+                        build_fred_figure(
+                            selected_spec,
+                            selected_meta,
+                            selected_frame,
+                            show_stationary_overlay=show_stationary_overlay,
+                        ),
+                        use_container_width=True,
+                        key=f"broad-economy-explorer-chart-{selected_spec.series_id}",
+                    )
+
+        st.subheader("Indicator Snapshot")
+        st.dataframe(
+            overview[["category", "indicator", "latest", "prev", "yoy", "latest_date"]],
+            use_container_width=True,
+            hide_index=True,
+        )
+
+        if not series_index.empty:
+            release_count = int(release_index["release_id"].nunique()) if not release_index.empty else 0
+            series_count = int(series_index["series_id"].nunique())
+            bulk_cols = st.columns(3)
+            with bulk_cols[0]:
+                st.metric("Loaded Releases", f"{release_count}")
+            with bulk_cols[1]:
+                st.metric("Loaded Series", f"{series_count}")
+            with bulk_cols[2]:
+                st.metric("Curated Indicators", f"{len(summary)}")
+            st.caption(
+                "The curated dashboard tracks the releases and series needed for inflation, labor, growth, housing, "
+                "credit distress, policy, and money-supply analysis."
+            )
 
 elif section == "Pipeline Jobs":
     st.title("Pipeline Jobs")

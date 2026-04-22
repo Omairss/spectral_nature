@@ -153,7 +153,7 @@ def test_build_fred_dashboard_from_pipeline_shapes_materialized_payload():
 
     payload = build_fred_dashboard_from_pipeline(summary, observations, years=2)
 
-    assert payload["summary"]["series_id"].tolist() == ["CPIAUCSL"]
+    assert "CPIAUCSL" in payload["summary"]["series_id"].tolist()
     assert payload["metadata"]["CPIAUCSL"]["title"] == "Consumer Price Index"
     assert payload["series_data"]["CPIAUCSL"]["value"].tolist() == [310.0, 315.0]
     assert "release_name" in payload["series_index"].columns

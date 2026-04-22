@@ -46,6 +46,7 @@ from .pipeline import (
 from .clusterer import recompute_attention_candidate_graph
 from .collector import search_symbol_news_payload
 from .summarizer import (
+    apply_display_limits,
     attach_attention_home_summary_audio,
     attention_mover_card_title,
     build_attention_agentic_summary,
@@ -57,6 +58,7 @@ from .summarizer import (
 
 __all__ = [
     "AgenticAttentionArtifacts",
+    "apply_display_limits",
     "attach_attention_home_summary_audio",
     "attention_mover_card_title",
     "build_attention_agentic_summary",

@@ -17,8 +17,10 @@ class FredSeriesSpec:
 FRED_CATEGORY_BLURBS: dict[str, str] = {
     "Inflation": "Headline and core inflation gauges from BLS and BEA.",
     "Labor (BLS)": "Employment, unemployment, and wage pressure indicators from the BLS.",
-    "Housing": "Construction and permit activity to track housing-cycle momentum.",
+    "Growth": "Output, spending, and savings indicators to track real-economy momentum.",
+    "Housing": "Activity, mortgage, and price indicators to track the housing cycle.",
     "Credit Distress": "Delinquency and spread measures that tend to deteriorate before credit stress is obvious elsewhere.",
+    "Policy & Liquidity": "Rates, real yields, breakevens, dollar, bank credit, and liquidity series that shape financial conditions.",
     "Money Supply": "Monetary aggregates showing liquidity expansion or contraction.",
 }
 
@@ -31,12 +33,31 @@ FRED_SERIES_SPECS: tuple[FredSeriesSpec, ...] = (
     FredSeriesSpec("Labor (BLS)", "UNRATE", "Unemployment Rate", "U-3 unemployment rate."),
     FredSeriesSpec("Labor (BLS)", "PAYEMS", "Nonfarm Payrolls", "Total nonfarm employees."),
     FredSeriesSpec("Labor (BLS)", "CES0500000003", "Avg Hourly Earnings", "Average hourly earnings for private employees."),
+    FredSeriesSpec("Labor (BLS)", "JTSJOL", "Job Openings", "JOLTS job openings, a useful labor-demand gauge."),
+    FredSeriesSpec("Labor (BLS)", "CIVPART", "Labor Force Participation", "Share of the working-age population in the labor force."),
+    FredSeriesSpec("Labor (BLS)", "ICSA", "Initial Jobless Claims", "Weekly initial unemployment insurance claims."),
+    FredSeriesSpec("Growth", "INDPRO", "Industrial Production", "Factory, mining, and utility output."),
+    FredSeriesSpec("Growth", "RSAFS", "Retail Sales", "Advance real-economy demand gauge from retail sales."),
+    FredSeriesSpec("Growth", "PCEC96", "Real Consumption", "Inflation-adjusted personal consumption expenditures."),
+    FredSeriesSpec("Growth", "PSAVERT", "Personal Saving Rate", "Household saving buffer and spending-cushion gauge."),
     FredSeriesSpec("Housing", "HOUST", "Housing Starts", "Privately owned housing units started."),
     FredSeriesSpec("Housing", "PERMIT", "Building Permits", "Privately owned housing permits issued."),
     FredSeriesSpec("Housing", "MORTGAGE30US", "30Y Mortgage Rate", "Average 30-year fixed mortgage rate."),
+    FredSeriesSpec("Housing", "CSUSHPINSA", "Case-Shiller National", "National home-price index."),
     FredSeriesSpec("Credit Distress", "DRCLACBS", "Consumer Loan Delinquency", "Delinquency rate on consumer loans."),
     FredSeriesSpec("Credit Distress", "DRCCLACBS", "Credit Card Delinquency", "Delinquency rate on credit card loans."),
     FredSeriesSpec("Credit Distress", "BAMLH0A0HYM2", "High Yield OAS", "Option-adjusted spread for U.S. high yield bonds."),
+    FredSeriesSpec("Credit Distress", "BAMLC0A4CBBB", "BBB OAS", "Investment-grade spread proxy for broad corporate credit stress."),
+    FredSeriesSpec("Policy & Liquidity", "DGS2", "2Y Treasury Yield", "Front-end Treasury yield and policy-expectations proxy."),
+    FredSeriesSpec("Policy & Liquidity", "DGS10", "10Y Treasury Yield", "Benchmark long Treasury yield for growth and inflation pricing."),
+    FredSeriesSpec("Policy & Liquidity", "T10Y2Y", "10Y-2Y Curve", "Classic curve-slope and inversion signal."),
+    FredSeriesSpec("Policy & Liquidity", "DFII10", "10Y Real Yield", "10-year TIPS real yield and discount-rate proxy."),
+    FredSeriesSpec("Policy & Liquidity", "T5YIE", "5Y Breakeven", "Five-year market-implied inflation compensation."),
+    FredSeriesSpec("Policy & Liquidity", "T10YIE", "10Y Breakeven", "Ten-year market-implied inflation compensation."),
+    FredSeriesSpec("Policy & Liquidity", "FEDFUNDS", "Fed Funds Rate", "Effective fed funds target corridor anchor."),
+    FredSeriesSpec("Policy & Liquidity", "DTWEXBGS", "Broad Dollar Index", "Trade-weighted broad U.S. dollar index."),
+    FredSeriesSpec("Policy & Liquidity", "BUSLOANS", "Commercial Bank Loans", "Bank-credit growth and lending-transmission proxy."),
+    FredSeriesSpec("Policy & Liquidity", "WALCL", "Fed Balance Sheet", "Total assets held by the Federal Reserve."),
     FredSeriesSpec("Money Supply", "M1SL", "M1", "Narrow money stock."),
     FredSeriesSpec("Money Supply", "M2SL", "M2", "Broad money stock."),
     FredSeriesSpec("Money Supply", "WM2NS", "Weekly M2", "Weekly, non-seasonally adjusted M2."),
@@ -58,8 +79,45 @@ def utc_today_naive() -> pd.Timestamp:
     return pd.Timestamp.utcnow().tz_localize(None).normalize()
 
 
+def normalize_fred_frequency_short(value: Any) -> str:
+    if value is None:
+        return ""
+    try:
+        if pd.isna(value):
+            return ""
+    except Exception:
+        pass
+
+    raw = str(value).strip()
+    if not raw:
+        return ""
+
+    key = raw.upper()
+    if key in {"D", "B", "W", "BW", "M", "Q", "SA", "A"} or key.startswith("WE"):
+        return key
+
+    if key.startswith("DAILY"):
+        return "D"
+    if key.startswith("BUSINESS"):
+        return "B"
+    if key.startswith("WEEKLY"):
+        return "W"
+    if key.startswith("BIWEEKLY"):
+        return "BW"
+    if key.startswith("MONTHLY"):
+        return "M"
+    if key.startswith("QUARTERLY"):
+        return "Q"
+    if key.startswith("SEMI"):
+        return "SA"
+    if key.startswith("ANNUAL") or key.startswith("YEARLY"):
+        return "A"
+
+    return raw
+
+
 def _periods_per_year(frequency_short: str) -> int | None:
-    key = str(frequency_short or "").upper()
+    key = normalize_fred_frequency_short(frequency_short)
     if key in {"D", "B"}:
         return 252
     if key in {"W", "WEF", "WETH", "WEW", "WETU", "WEM", "WESU", "WESA"}:
@@ -141,6 +199,7 @@ def format_fred_delta(value: float | None, units_short: str | None) -> str:
 
 
 def build_fred_series_summary(spec: FredSeriesSpec, metadata: dict[str, Any], frame: pd.DataFrame) -> dict[str, object]:
+    frequency_short = normalize_fred_frequency_short(metadata.get("frequency_short") or metadata.get("frequency"))
     latest_row = _latest_valid(frame)
     if latest_row is None:
         return {
@@ -148,7 +207,7 @@ def build_fred_series_summary(spec: FredSeriesSpec, metadata: dict[str, Any], fr
             "series_id": spec.series_id,
             "indicator": spec.label,
             "units_short": metadata.get("units_short") or metadata.get("units"),
-            "frequency_short": metadata.get("frequency_short"),
+            "frequency_short": frequency_short,
             "latest_date": pd.NaT,
             "latest_value": None,
             "prev_delta": None,
@@ -158,14 +217,14 @@ def build_fred_series_summary(spec: FredSeriesSpec, metadata: dict[str, Any], fr
 
     latest_value = float(latest_row["value"])
     previous_value = float(frame.iloc[-2]["value"]) if len(frame) >= 2 else None
-    periods = _periods_per_year(str(metadata.get("frequency_short") or ""))
+    periods = _periods_per_year(frequency_short)
     yoy_value = float(frame.iloc[-(periods + 1)]["value"]) if periods is not None and len(frame) > periods else None
     return {
         "category": spec.category,
         "series_id": spec.series_id,
         "indicator": spec.label,
         "units_short": metadata.get("units_short") or metadata.get("units"),
-        "frequency_short": metadata.get("frequency_short"),
+        "frequency_short": frequency_short,
         "latest_date": pd.to_datetime(latest_row["date"], errors="coerce"),
         "latest_value": latest_value,
         "prev_delta": _value_delta(latest_value, previous_value),
@@ -197,8 +256,12 @@ def build_fred_dashboard_from_pipeline(
         obs_frame["value"] = pd.to_numeric(obs_frame["value"], errors="coerce")
 
     summary_frame["series_id"] = summary_frame.get("series_id", pd.Series(dtype=str)).astype(str)
+    if "frequency_short" in summary_frame.columns:
+        summary_frame["frequency_short"] = summary_frame["frequency_short"].map(normalize_fred_frequency_short)
     if "series_id" in series_index_frame.columns:
         series_index_frame["series_id"] = series_index_frame["series_id"].astype(str)
+    if "frequency_short" in series_index_frame.columns:
+        series_index_frame["frequency_short"] = series_index_frame["frequency_short"].map(normalize_fred_frequency_short)
 
     summary_lookup = (
         summary_frame.drop_duplicates(subset=["series_id"], keep="first").set_index("series_id")
@@ -305,12 +368,28 @@ def build_fred_dashboard_from_pipeline(
         metadata_by_id[series_id] = row.dropna().to_dict()
 
     series_data: dict[str, pd.DataFrame] = {}
+    summary_rows: list[dict[str, object]] = []
     if not obs_frame.empty and "series_id" in obs_frame.columns:
         for series_id, frame in obs_frame.groupby("series_id", sort=False):
             series_data[str(series_id)] = frame[[col for col in ["date", "value"] if col in frame.columns]].reset_index(drop=True)
 
+    for spec in FRED_SERIES_SPECS:
+        metadata = dict(metadata_by_id.get(spec.series_id, {}))
+        if not summary_lookup.empty and spec.series_id in summary_lookup.index:
+            lookup_row = summary_lookup.loc[spec.series_id]
+            if isinstance(lookup_row, pd.DataFrame):
+                lookup_row = lookup_row.iloc[0]
+            for key, value in lookup_row.items():
+                if key not in metadata and pd.notna(value):
+                    metadata[key] = value
+        metadata["frequency_short"] = normalize_fred_frequency_short(
+            metadata.get("frequency_short") or metadata.get("frequency")
+        )
+        frame = series_data.get(spec.series_id, pd.DataFrame(columns=["date", "value"]))
+        summary_rows.append(build_fred_series_summary(spec, metadata, frame.reset_index(drop=True)))
+
     return {
-        "summary": summary_frame.reset_index(drop=True),
+        "summary": pd.DataFrame(summary_rows).reset_index(drop=True),
         "series_data": series_data,
         "metadata": metadata_by_id,
         "specs_by_category": fred_specs_by_category(),
@@ -321,15 +400,31 @@ def build_fred_dashboard_from_pipeline(
     }
 
 
+def build_fred_signal_dicts(
+    observations: pd.DataFrame,
+    *,
+    metadata_by_id: dict[str, dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
+    """Extract dense signal dicts for all FRED series from observation data.
+
+    Wraps ``compute.signal_extraction.extract_fred_signals`` with the shared
+    ``FRED_SERIES_SPECS`` so callers don't need to assemble specs themselves.
+    """
+    from compute.signal_extraction import extract_fred_signals
+    return extract_fred_signals(observations, list(FRED_SERIES_SPECS), metadata_by_id=metadata_by_id)
+
+
 __all__ = [
     "FRED_CATEGORY_BLURBS",
     "FRED_SERIES_SPECS",
     "FredSeriesSpec",
     "build_fred_dashboard_from_pipeline",
+    "build_fred_signal_dicts",
     "build_fred_series_summary",
     "format_fred_delta",
     "format_fred_value",
     "fred_categories",
     "fred_specs_by_category",
+    "normalize_fred_frequency_short",
     "utc_today_naive",
 ]

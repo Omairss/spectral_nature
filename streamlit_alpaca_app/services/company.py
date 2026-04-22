@@ -4,12 +4,14 @@ from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from pathlib import Path
 import re
+from typing import Any
 from urllib.parse import quote
 
 import pandas as pd
 import requests
 
 from .alpaca_api import AlpacaAPI, AlpacaAPIError
+from .llm import LLMAPIError, load_llm_client
 from .market import commodity_proxy_profile, narrative_business_lens_for_symbol
 
 
@@ -67,22 +69,14 @@ BUSINESS_NARRATIVE_HINTS: dict[str, str] = {
     "Healthcare & Life Sciences": "drug uptake, reimbursement, medical utilization, and pipeline or tooling demand",
 }
 
-NEWS_THEME_KEYWORDS: list[tuple[str, list[str]]] = [
-    ("AI rollout", [" ai ", "artificial intelligence", "copilot", "model", "llm", "on-device ai", "ai spending", "ai capex"]),
-    ("data center buildout", ["data center", "datacenter", "gpu cluster", "training cluster", "server demand", "rack build"]),
-    ("product cycle", ["product cycle", "replacement cycle", "upgrade cycle", "device", "iphone", "launch"]),
-    ("services monetization", ["services", "subscription", "attach rate", "installed base", "monetization"]),
-    ("cloud and enterprise spend", ["cloud", "enterprise", "software", "seat growth", "data center", "workload"]),
-    ("digital ad demand", ["advertising", "ad spend", "ad market", "performance marketing", "brand budgets"]),
-    ("consumer spending", ["consumer", "traffic", "inventory", "value", "spending", "merchandise"]),
-    ("housing demand", ["housing", "mortgage", "affordability", "homebuilder", "home sales", "repair and remodel"]),
-    ("travel demand", ["travel", "booking", "airline", "hotel", "mobility", "rides"]),
-    ("commodity prices", ["oil", "copper", "gold", "gas", "commodity", "metals", "mining"]),
-    ("supply tightness", ["shortage", "tight supply", "supply tightness", "supply squeeze", "inventory draw", "inventories", "physical supply", "mine disruption", "smelter", "shortfall", "bottleneck"]),
-    ("electrification buildout", ["electrification", "grid", "transmission", "battery", "power demand", "load growth"]),
-    ("drug pipeline", ["drug", "trial", "approval", "therapy", "obesity", "pipeline", "clinical"]),
-    ("regulation", ["regulation", "antitrust", "tariff", "policy", "approval", "scrutiny"]),
-]
+_NEWS_THEMES_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "themes": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["themes"],
+}
 
 REGIME_TEXT: dict[str, str] = {
     "Trend continuation": "Price action still looks like a trend-continuation story rather than a broken setup.",
@@ -389,13 +383,25 @@ def _extract_news_themes(payload: dict[str, object] | None) -> list[str]:
     if not blob.strip():
         return []
 
-    scored: list[tuple[int, str]] = []
-    for theme, keywords in NEWS_THEME_KEYWORDS:
-        score = sum(blob.count(keyword.lower()) for keyword in keywords)
-        if score > 0:
-            scored.append((score, theme))
-    scored.sort(key=lambda item: (-item[0], item[1]))
-    return [theme for _, theme in scored[:3]]
+    llm_client = load_llm_client()
+    if llm_client is None:
+        return []
+    try:
+        result = llm_client.generate_json(
+            system_prompt=(
+                "Identify up to 3 investment narrative themes present in these financial news headlines. "
+                "Examples: 'AI rollout', 'data center buildout', 'drug pipeline', 'travel demand', "
+                "'cloud and enterprise spend', 'consumer spending', 'commodity prices', 'regulation'. "
+                "Return only themes clearly present in the text. Return fewer if fewer apply."
+            ),
+            user_prompt=f"News text: {blob[:1200]}",
+            schema_name="news_themes",
+            schema=_NEWS_THEMES_SCHEMA,
+        )
+        themes = [str(t).strip() for t in result.get("themes") or [] if str(t).strip()][:3]
+    except (LLMAPIError, Exception):
+        themes = []
+    return themes
 
 
 def _top_news_sources(payload: dict[str, object] | None, limit: int = 3) -> list[str]:
@@ -478,7 +484,7 @@ def _compose_attention_news_story(
         return f"{source_prefix} is clustering around {theme_text}, which lines up with the {matched_lenses[0].lower()} narrative."
     if themes:
         theme_text = _join_phrases([theme.lower() for theme in themes[:2]])
-        return f"{source_prefix} is clustering around {theme_text}, which helps explain why the move looks idiosyncratic."
+        return f"{source_prefix} is clustering around {theme_text}, though no single catalyst has been confirmed."
     if source_text:
         return f"{source_prefix} is providing the clearest narrative context behind the current move."
     return ""

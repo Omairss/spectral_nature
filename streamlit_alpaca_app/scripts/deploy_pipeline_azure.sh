@@ -62,6 +62,7 @@ POSTGRES_CONNECTION_STRING_SECRET_NAME="${POSTGRES_CONNECTION_STRING_SECRET_NAME
 APCA_API_KEY_SECRET_NAME="${APCA_API_KEY_SECRET_NAME:-apca-api-key}"
 APCA_API_SECRET_KEY_SECRET_NAME="${APCA_API_SECRET_KEY_SECRET_NAME:-apca-api-secret-key}"
 FRED_API_KEY_SECRET_NAME="${FRED_API_KEY_SECRET_NAME:-Fred}"
+FRED_BULK_MODE="${FRED_BULK_MODE:-v1_only}"
 LLM_API_KEY_SECRET_NAME="${LLM_API_KEY_SECRET_NAME:-${AZURE_OPENAI_API_KEY_SECRET_NAME:-}}"
 LLM_PROVIDER="${LLM_PROVIDER:-}"
 LLM_MODEL="${LLM_MODEL:-}"
@@ -69,6 +70,8 @@ LLM_DEPLOYMENT="${LLM_DEPLOYMENT:-}"
 AZURE_OPENAI_ENDPOINT="${AZURE_OPENAI_ENDPOINT:-}"
 LLM_TEMPERATURE="${LLM_TEMPERATURE:-}"
 LLM_REASONING_EFFORT="${LLM_REASONING_EFFORT:-}"
+EMBEDDING_MODEL="${EMBEDDING_MODEL:-}"
+EMBEDDING_DEPLOYMENT="${EMBEDDING_DEPLOYMENT:-}"
 LLM_ENV_SOURCE_JOBS="${LLM_ENV_SOURCE_JOBS:-attention-home-build news-ingest-and-features}"
 PIPELINE_CACHE_MAX_BYTES="${PIPELINE_CACHE_MAX_BYTES:-}"
 TAVILY_INCLUDE_RAW_CONTENT="${TAVILY_INCLUDE_RAW_CONTENT:-true}"
@@ -145,7 +148,7 @@ first_nonempty_job_env_value() {
       return 0
     fi
   done
-  return 1
+  return 0
 }
 
 hydrate_llm_env_defaults() {
@@ -203,6 +206,20 @@ hydrate_llm_env_defaults() {
     if [[ -n "$value" ]]; then
       LLM_REASONING_EFFORT="$value"
       hydrated_keys+=("LLM_REASONING_EFFORT")
+    fi
+  fi
+  if [[ -z "$EMBEDDING_MODEL" ]]; then
+    value="$(first_nonempty_job_env_value "EMBEDDING_MODEL" "${donor_jobs[@]}")"
+    if [[ -n "$value" ]]; then
+      EMBEDDING_MODEL="$value"
+      hydrated_keys+=("EMBEDDING_MODEL")
+    fi
+  fi
+  if [[ -z "$EMBEDDING_DEPLOYMENT" ]]; then
+    value="$(first_nonempty_job_env_value "EMBEDDING_DEPLOYMENT" "${donor_jobs[@]}")"
+    if [[ -n "$value" ]]; then
+      EMBEDDING_DEPLOYMENT="$value"
+      hydrated_keys+=("EMBEDDING_DEPLOYMENT")
     fi
   fi
   if ((${#hydrated_keys[@]} > 0)); then
@@ -406,7 +423,10 @@ create_or_update_job () {
   maybe_append_env "AZURE_OPENAI_ENDPOINT" "$AZURE_OPENAI_ENDPOINT"
   maybe_append_env "LLM_TEMPERATURE" "$LLM_TEMPERATURE"
   maybe_append_env "LLM_REASONING_EFFORT" "$LLM_REASONING_EFFORT"
+  maybe_append_env "EMBEDDING_MODEL" "$EMBEDDING_MODEL"
+  maybe_append_env "EMBEDDING_DEPLOYMENT" "$EMBEDDING_DEPLOYMENT"
   maybe_append_env "PIPELINE_CACHE_MAX_BYTES" "$PIPELINE_CACHE_MAX_BYTES"
+  maybe_append_env "FRED_BULK_MODE" "$FRED_BULK_MODE"
   maybe_append_env "TAVILY_INCLUDE_RAW_CONTENT" "$TAVILY_INCLUDE_RAW_CONTENT"
   maybe_append_env "ATTENTION_HOME_RESEARCH_LIMIT" "$ATTENTION_HOME_RESEARCH_LIMIT"
   maybe_append_env "ATTENTION_HOME_SEEKING_ALPHA_PAGE_LIMIT" "$ATTENTION_HOME_SEEKING_ALPHA_PAGE_LIMIT"

@@ -15,7 +15,7 @@ if str(APP_ROOT) not in sys.path:
 
 from data_access.contracts import QueryRequest, QueryValidationError, coerce_object
 from data_access.query_service import QueryService
-from services import agent_tools, api_auth, auth_service, auth_store, omnibar as omnibar_service
+from services import agent_tools, api_auth, auth_service, auth_store, omnibar as omnibar_service, research_export
 
 
 def _auth_enabled() -> bool:
@@ -290,6 +290,11 @@ class OmnibarResolveRequest(BaseModel):
     query: str
     preferred_mode: str = "auto"
     force_refresh: bool = False
+
+
+class ResearchExportRequest(BaseModel):
+    start_date: str
+    end_date: str
 
 
 app = FastAPI(
@@ -592,3 +597,40 @@ async def agent_rpc(
     if response is None:
         return Response(status_code=status.HTTP_204_NO_CONTENT)
     return response
+
+
+# ---------------------------------------------------------------------------
+# Research export
+# ---------------------------------------------------------------------------
+
+
+@app.post("/v1/research/export")
+def start_research_export(
+    payload: ResearchExportRequest,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    _ensure_scopes(principal, [api_auth.SCOPE_QUERY_EXECUTE, api_auth.SCOPE_DATASET_READ])
+    start = str(payload.start_date or "").strip()
+    end = str(payload.end_date or "").strip()
+    if not start or not end:
+        raise _error("start_date and end_date are required.", status.HTTP_400_BAD_REQUEST)
+    created_by = None
+    if principal.user_context is not None:
+        created_by = principal.user_context.user_id
+    return research_export.create_export_job(
+        start_date=start,
+        end_date=end,
+        created_by=created_by,
+    )
+
+
+@app.get("/v1/research/export/{job_id}")
+def get_research_export(
+    job_id: str,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    _ensure_scopes(principal, [api_auth.SCOPE_QUERY_EXECUTE, api_auth.SCOPE_DATASET_READ])
+    result = research_export.get_export_job(job_id)
+    if result is None:
+        raise _error(f"Export job '{job_id}' not found.", status.HTTP_404_NOT_FOUND)
+    return result

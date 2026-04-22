@@ -118,6 +118,13 @@ def _required_float(params: dict[str, Any], key: str) -> float:
     return float(params.get(key))
 
 
+def _bool_value(params: dict[str, Any], key: str, default: bool) -> bool:
+    value = params.get(key)
+    if value is None:
+        return bool(default)
+    return bool(value)
+
+
 def _optional_float(params: dict[str, Any], key: str) -> float | None:
     return float(params[key]) if params.get(key) is not None else None
 
@@ -297,6 +304,48 @@ def _resolve_attention_evidence_search(data_access: Any, params: dict[str, Any])
         run_id=_optional_text(params, "run_id"),
         limit=_int_value(params, "limit", 20),
         force_refresh=_force_refresh(params),
+    )
+
+
+def _resolve_saa_document_search(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
+    return data_access.resolve_saa_document_search(
+        query=_text(params, "query"),
+        tickers=_optional_list(params, "tickers"),
+        commodities=_optional_list(params, "commodities"),
+        event_tags=_optional_list(params, "event_tags"),
+        dates=_optional_list(params, "dates"),
+        start_date=_optional_text(params, "start_date"),
+        end_date=_optional_text(params, "end_date"),
+        source_kinds=_optional_list(params, "source_kinds"),
+        providers=_optional_list(params, "providers"),
+        run_id=_optional_text(params, "run_id"),
+        limit=_int_value(params, "limit", 20),
+    )
+
+
+def _resolve_saa_chunk_search(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
+    return data_access.resolve_saa_chunk_search(
+        query=_text(params, "query"),
+        tickers=_optional_list(params, "tickers"),
+        commodities=_optional_list(params, "commodities"),
+        event_tags=_optional_list(params, "event_tags"),
+        dates=_optional_list(params, "dates"),
+        start_date=_optional_text(params, "start_date"),
+        end_date=_optional_text(params, "end_date"),
+        source_kinds=_optional_list(params, "source_kinds"),
+        providers=_optional_list(params, "providers"),
+        research_scopes=_optional_list(params, "research_scopes"),
+        run_id=_optional_text(params, "run_id"),
+        canonical_document_id=_optional_text(params, "canonical_document_id"),
+        limit=_int_value(params, "limit", 20),
+        use_semantic=_bool_value(params, "use_semantic", True),
+    )
+
+
+def _resolve_saa_document(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
+    return data_access.resolve_saa_document(
+        _text(params, "canonical_document_id"),
+        include_raw_text=_bool_value(params, "include_raw_text", True),
     )
 
 
@@ -753,6 +802,51 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         ),
         resolution="materialized",
         handler=_resolve_attention_evidence_search,
+    ),
+    "saa_document_search": DatasetSpec(
+        params=(
+            param("query", "string"),
+            param("tickers", "array", items_type="string"),
+            param("commodities", "array", items_type="string"),
+            param("event_tags", "array", items_type="string"),
+            param("dates", "array", items_type="string"),
+            param("start_date", "string"),
+            param("end_date", "string"),
+            param("source_kinds", "array", items_type="string"),
+            param("providers", "array", items_type="string"),
+            param("run_id", "string"),
+            param("limit", "integer"),
+        ),
+        resolution="service_backed",
+        handler=_resolve_saa_document_search,
+    ),
+    "saa_chunk_search": DatasetSpec(
+        params=(
+            param("query", "string"),
+            param("tickers", "array", items_type="string"),
+            param("commodities", "array", items_type="string"),
+            param("event_tags", "array", items_type="string"),
+            param("dates", "array", items_type="string"),
+            param("start_date", "string"),
+            param("end_date", "string"),
+            param("source_kinds", "array", items_type="string"),
+            param("providers", "array", items_type="string"),
+            param("research_scopes", "array", items_type="string"),
+            param("run_id", "string"),
+            param("canonical_document_id", "string"),
+            param("limit", "integer"),
+            param("use_semantic", "boolean"),
+        ),
+        resolution="service_backed",
+        handler=_resolve_saa_chunk_search,
+    ),
+    "saa_document": DatasetSpec(
+        params=(
+            param("canonical_document_id", "string", required=True),
+            param("include_raw_text", "boolean"),
+        ),
+        resolution="service_backed",
+        handler=_resolve_saa_document,
     ),
     "option_chain": DatasetSpec(
         params=(

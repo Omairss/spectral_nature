@@ -1213,7 +1213,6 @@ def _agentic_graph_expansion(
         "Prefer 3 to 8 nodes and 3 to 10 edges. "
         "If you are unsure, return fewer items. "
         "For new nodes, create concise stable ids in snake_case. "
-        "Return only JSON."
     )
     user_prompt = (
         f"Query: {query}\n\n"

@@ -55,6 +55,7 @@ from services.aql.evidence_index import parse_json_list
 from services.market import load_price_history, scan_commodity_regimes, scan_correlation_phase_shifts, scan_daily_movers, scan_event_significance, scan_momentum_profiles
 from services.options import analyze_option_candidates, load_option_chain, load_option_surface, select_option_surface_window
 from services.pipeline_store import latest_job_status_table, load_latest_dataset_frame, pipeline_store_configured, start_source_refresh_job
+from services.saa import load_retained_document, load_retained_document_metadata, search_retained_documents, search_retained_evidence_chunks
 from services.treasury_yields import TreasuryYieldError, load_treasury_yield_curve
 from services.universe import build_liquidity_ranked_equity_universe
 
@@ -2796,6 +2797,184 @@ class DataAccessLayer:
                     "run_id": normalized_run_id,
                     "limit": max(int(limit), 1),
                 },
+            },
+        )
+
+    def resolve_saa_document_search(
+        self,
+        *,
+        query: str = "",
+        tickers: list[str] | None = None,
+        commodities: list[str] | None = None,
+        event_tags: list[str] | None = None,
+        dates: list[str] | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        source_kinds: list[str] | None = None,
+        providers: list[str] | None = None,
+        run_id: str | None = None,
+        limit: int = 20,
+    ) -> ResolvedPayload:
+        normalized_tickers = [_coerce_text(value).upper() for value in list(tickers or []) if _coerce_text(value)]
+        normalized_commodities = [_coerce_text(value).lower() for value in list(commodities or []) if _coerce_text(value)]
+        normalized_event_tags = [_coerce_text(value).lower() for value in list(event_tags or []) if _coerce_text(value)]
+        exact_dates = _dedupe_text_items([_coerce_text(value) for value in list(dates or []) if _coerce_text(value)])
+        normalized_source_kinds = [_coerce_text(value).lower() for value in list(source_kinds or []) if _coerce_text(value)]
+        normalized_providers = [_coerce_text(value).lower() for value in list(providers or []) if _coerce_text(value)]
+        normalized_run_id = _coerce_text(run_id)
+        query_text = _coerce_text(query)
+        out = search_retained_documents(
+            query=query_text,
+            tickers=normalized_tickers,
+            commodities=normalized_commodities,
+            event_tags=normalized_event_tags,
+            dates=exact_dates,
+            start_date=_coerce_text(start_date) or None,
+            end_date=_coerce_text(end_date) or None,
+            source_kinds=normalized_source_kinds,
+            providers=normalized_providers,
+            run_id=normalized_run_id or None,
+            limit=max(int(limit), 1),
+        )
+        if isinstance(out, pd.DataFrame) and not out.empty:
+            drop_columns = [column for column in ("search_text", "metadata_json") if column in out.columns]
+            if drop_columns:
+                out = out.drop(columns=drop_columns)
+        return self._resolved(
+            out.reset_index(drop=True),
+            mode="service_backed",
+            datasets=("saa_documents",),
+            details={
+                "filters": {
+                    "query": query_text,
+                    "tickers": normalized_tickers,
+                    "commodities": normalized_commodities,
+                    "event_tags": normalized_event_tags,
+                    "dates": exact_dates,
+                    "start_date": _coerce_text(start_date),
+                    "end_date": _coerce_text(end_date),
+                    "source_kinds": normalized_source_kinds,
+                    "providers": normalized_providers,
+                    "run_id": normalized_run_id,
+                    "limit": max(int(limit), 1),
+                },
+                "row_count": int(len(out)),
+                **({"warning": "no_retained_documents_matched"} if out.empty else {}),
+            },
+        )
+
+    def resolve_saa_chunk_search(
+        self,
+        *,
+        query: str = "",
+        tickers: list[str] | None = None,
+        commodities: list[str] | None = None,
+        event_tags: list[str] | None = None,
+        dates: list[str] | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        source_kinds: list[str] | None = None,
+        providers: list[str] | None = None,
+        research_scopes: list[str] | None = None,
+        run_id: str | None = None,
+        canonical_document_id: str | None = None,
+        limit: int = 20,
+        use_semantic: bool = True,
+    ) -> ResolvedPayload:
+        normalized_tickers = [_coerce_text(value).upper() for value in list(tickers or []) if _coerce_text(value)]
+        normalized_commodities = [_coerce_text(value).lower() for value in list(commodities or []) if _coerce_text(value)]
+        normalized_event_tags = [_coerce_text(value).lower() for value in list(event_tags or []) if _coerce_text(value)]
+        exact_dates = _dedupe_text_items([_coerce_text(value) for value in list(dates or []) if _coerce_text(value)])
+        normalized_source_kinds = [_coerce_text(value).lower() for value in list(source_kinds or []) if _coerce_text(value)]
+        normalized_providers = [_coerce_text(value).lower() for value in list(providers or []) if _coerce_text(value)]
+        normalized_scopes = [_coerce_text(value).lower() for value in list(research_scopes or []) if _coerce_text(value)]
+        normalized_run_id = _coerce_text(run_id)
+        normalized_document_id = _coerce_text(canonical_document_id)
+        query_text = _coerce_text(query)
+        out = search_retained_evidence_chunks(
+            query=query_text,
+            tickers=normalized_tickers,
+            commodities=normalized_commodities,
+            event_tags=normalized_event_tags,
+            dates=exact_dates,
+            start_date=_coerce_text(start_date) or None,
+            end_date=_coerce_text(end_date) or None,
+            source_kinds=normalized_source_kinds,
+            providers=normalized_providers,
+            research_scopes=normalized_scopes,
+            run_id=normalized_run_id or None,
+            canonical_document_id=normalized_document_id or None,
+            limit=max(int(limit), 1),
+            use_semantic=bool(use_semantic),
+        )
+        if isinstance(out, pd.DataFrame) and not out.empty:
+            drop_columns = [column for column in ("search_text", "metadata_json", "embedding_vector_json") if column in out.columns]
+            if drop_columns:
+                out = out.drop(columns=drop_columns)
+        return self._resolved(
+            out.reset_index(drop=True),
+            mode="service_backed",
+            datasets=("saa_evidence_chunks",),
+            details={
+                "filters": {
+                    "query": query_text,
+                    "tickers": normalized_tickers,
+                    "commodities": normalized_commodities,
+                    "event_tags": normalized_event_tags,
+                    "dates": exact_dates,
+                    "start_date": _coerce_text(start_date),
+                    "end_date": _coerce_text(end_date),
+                    "source_kinds": normalized_source_kinds,
+                    "providers": normalized_providers,
+                    "research_scopes": normalized_scopes,
+                    "run_id": normalized_run_id,
+                    "canonical_document_id": normalized_document_id,
+                    "limit": max(int(limit), 1),
+                    "use_semantic": bool(use_semantic),
+                },
+                "row_count": int(len(out)),
+                **({"warning": "no_retained_chunks_matched"} if out.empty else {}),
+            },
+        )
+
+    def resolve_saa_document(
+        self,
+        canonical_document_id: str,
+        *,
+        include_raw_text: bool = True,
+    ) -> ResolvedPayload:
+        normalized_id = _coerce_text(canonical_document_id)
+        if not normalized_id:
+            return self._resolved(
+                {},
+                mode="service_backed",
+                datasets=("saa_documents",),
+                details={"warning": "canonical_document_id_required"},
+            )
+        metadata = load_retained_document_metadata(normalized_id)
+        if metadata is None:
+            return self._resolved(
+                {},
+                mode="service_backed",
+                datasets=("saa_documents",),
+                details={"canonical_document_id": normalized_id, "warning": "retained_document_not_found"},
+            )
+        payload = dict(metadata)
+        if include_raw_text:
+            retained = load_retained_document(normalized_id) or {}
+            if isinstance(retained, dict):
+                payload.update(retained)
+        else:
+            payload.pop("search_text", None)
+            payload.pop("metadata_json", None)
+        return self._resolved(
+            payload,
+            mode="service_backed",
+            datasets=("saa_documents",),
+            details={
+                "canonical_document_id": normalized_id,
+                "include_raw_text": bool(include_raw_text),
+                "has_blob": bool(_coerce_text(payload.get("raw_text_blob_path"))),
             },
         )
 

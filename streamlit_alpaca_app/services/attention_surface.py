@@ -6,6 +6,8 @@ from typing import Any
 
 import pandas as pd
 
+from .llm import LLMAPIError, load_llm_client
+
 CAUSAL_LANGUAGE_PATTERNS = (
     r"\bbecause\b",
     r"\bdue to\b",
@@ -291,14 +293,7 @@ def attention_home_surface_summary(
     cause_status = _coerce_text(preview.get("cause_status")).lower()
 
     if looks_like_stat_dump_text(why_text) and not has_causal_language(why_text):
-        if cause_status == "continuation":
-            why_text = "No clear new same-day catalyst was confirmed, and the move appears to be extending an earlier narrative."
-        elif cause_status == "conflicting":
-            why_text = "Coverage remains conflicting, and no single cause is clearly dominant yet."
-        elif cause_status in {"supported", "same_day_confirmation"}:
-            why_text = "Same-day coverage supports the move, but reporting is still clarifying the transmission channel."
-        else:
-            why_text = "Cause remains unresolved; the move is real, but retained evidence is still thin."
+        why_text = ""
 
     if what_changed_text:
         parts.append(what_changed_text)
@@ -310,9 +305,7 @@ def attention_home_surface_summary(
             parts.append(what_else_moved_text)
 
     summary = " ".join(part for part in parts if part).strip()
-    if summary:
-        return summary
-    return "Large move flagged by the daily tape, but the retained evidence is still too thin to support a better surface summary."
+    return summary
 
 
 def hydrate_home_item_with_bundle(

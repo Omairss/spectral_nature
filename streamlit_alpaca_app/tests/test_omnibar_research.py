@@ -5,14 +5,25 @@ import pandas as pd
 from services import omnibar_research
 
 
-def test_query_needs_evidence_for_geopolitical_outlook():
-    assert omnibar_research.query_needs_evidence(
-        "How are things going to pan out now that there's no agreement in Iran US talks"
-    ) is True
-    assert omnibar_research.query_needs_evidence("AAPL") is False
 
+def test_market_impact_map_highlights_oil_and_spillover_symbols(monkeypatch):
+    monkeypatch.setattr(
+        omnibar_research,
+        "_llm_query_intent",
+        lambda query, llm_client, max_symbols: {
+            "event_type": "oil",
+            "direction": "up",
+            "theme_label": "oil supply risk",
+            "evidence_needed": True,
+            "rows": [
+                {"symbol": "USO", "role": "oil ETF", "expected_bias": "up", "why": ""},
+                {"symbol": "CVX", "role": "energy equity", "expected_bias": "up", "why": ""},
+                {"symbol": "BDRY", "role": "shipping proxy", "expected_bias": "up", "why": ""},
+                {"symbol": "JETS", "role": "airlines", "expected_bias": "down", "why": ""},
+            ],
+        },
+    )
 
-def test_market_impact_map_highlights_oil_and_spillover_symbols():
     payload = omnibar_research.market_impact_map(
         query="How are things going to pan out now that there's no agreement in Iran US talks",
         max_symbols=8,
@@ -94,6 +105,20 @@ def test_live_event_evidence_uses_impact_symbols_when_no_focus_symbols(monkeypat
     monkeypatch.setattr(omnibar_research, "search_market_event_news_payload", _fake_search_market_event_news_payload)
     monkeypatch.setattr(omnibar_research, "search_symbol_news_payload", _fake_search_symbol_news_payload)
     monkeypatch.setattr(omnibar_research, "load_llm_client", lambda: None)
+    monkeypatch.setattr(
+        omnibar_research,
+        "_llm_query_intent",
+        lambda query, llm_client, max_symbols: {
+            "event_type": "oil",
+            "direction": "up",
+            "theme_label": "oil supply risk",
+            "evidence_needed": True,
+            "rows": [
+                {"symbol": "USO", "role": "oil ETF", "expected_bias": "up", "why": ""},
+                {"symbol": "CVX", "role": "energy equity", "expected_bias": "up", "why": ""},
+            ],
+        },
+    )
     monkeypatch.setattr(
         omnibar_research,
         "resolve_omnibar",

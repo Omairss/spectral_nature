@@ -276,6 +276,7 @@ def search_symbol_news_payload(
     serp_preview: list[dict[str, str]] = []
     serp_relevant_count = 0
     serp_candidates: list[dict[str, str]] = []
+    serp_failed = False
 
     if serp_client is not None:
         try:
@@ -341,11 +342,12 @@ def search_symbol_news_payload(
             sources.append("serpapi")
         except WebResearchError as exc:
             errors.append(str(exc))
+            serp_failed = True
 
-    use_tavily = bool(tavily_client is not None and serp_client is None)
+    use_tavily = bool(tavily_client is not None and (serp_client is None or serp_failed))
     tavily_topic = "news"
     tavily_query = query_base
-    if tavily_client is not None and serp_client is not None:
+    if tavily_client is not None and serp_client is not None and not serp_failed:
         use_tavily, tavily_topic, tavily_query, _ = _llm_tavily_route_decision(
             query=query_base,
             symbol=normalized_symbol,
@@ -432,6 +434,7 @@ def _search_query_results(
     normalized_company = _coerce_text(company_name)
     serp_preview: list[dict[str, str]] = []
     serp_relevant_count = 0
+    serp_failed = False
 
     if serp_client is not None:
         request_rows.append(
@@ -447,6 +450,9 @@ def _search_query_results(
         )
         try:
             results = serp_client.search(query, news=True, num=max(min(int(budget), 6), 1))
+        except WebResearchError:
+            serp_failed = True
+            results = []
         except Exception as exc:
             error_text = _trim(str(exc), 180)
             result_rows.append(
@@ -527,11 +533,11 @@ def _search_query_results(
                 }
             )
 
-    use_tavily = bool(tavily_client is not None and serp_client is None)
+    use_tavily = bool(tavily_client is not None and (serp_client is None or serp_failed))
     tavily_topic = "news"
     tavily_query = query
     route_reason = "serp_unavailable" if use_tavily else "serp_results_relevant"
-    if tavily_client is not None and serp_client is not None:
+    if tavily_client is not None and serp_client is not None and not serp_failed:
         use_tavily, tavily_topic, tavily_query, route_reason = _llm_tavily_route_decision(
             query=query,
             symbol=normalized_symbol,
@@ -977,7 +983,7 @@ def _fallback_summary_research_plan(home_payload: dict[str, Any]) -> dict[str, A
         "hypotheses": [
             {"kind": "cross_market", "text": "A shared macro or sector narrative may be driving several tape items at once."},
             {"kind": "sector_rotation", "text": "Sector rotation or factor positioning may explain the mix of winners and losers."},
-            {"kind": "unresolved", "text": "Some moves may still be idiosyncratic or unresolved despite the broader tape pattern."},
+            {"kind": "unresolved", "text": "Some moves may still be stock-specific or unresolved despite the broader tape pattern."},
         ],
         "queries": deduped_queries,
         "official_routes": ["news"],
@@ -1053,7 +1059,6 @@ def _plan_candidate_research(candidate: dict[str, Any], peer_symbols: list[str],
     system_prompt = (
         "You are planning bottom-up market-move research. "
         "Use only the supplied facts. Do not use canned oil/rates/risk templates. "
-        "Return compact JSON with queries and official routes."
     )
     user_prompt = _json.dumps(
         {

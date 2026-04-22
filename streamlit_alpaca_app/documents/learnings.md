@@ -205,3 +205,63 @@ This is a curated list of reusable lessons for this repo. Highest-leverage items
 - Once AQL source documents have stable canonical ids and content hashes, later retrieval and cross-run history work becomes much simpler.
 - The first durable SAA layer does not need a new search engine on day one. Blob storage plus Postgres metadata is enough to stop raw-document loss and make documents reopenable.
 - Store the full raw document in blob, but keep the dataset frame and chunk rows carrying the canonical id so later retrieval layers can join back to the durable source of truth.
+
+## 30. Historical search needs a lightweight query surface before it needs a full retrieval engine
+
+- Once retained documents exist, the next bottleneck is usually access, not embeddings. A simple shared search and document-open contract is enough to unlock a lot of value quickly.
+- Keep search results lightweight. Return excerpt, ids, providers, and tags, but keep full raw text behind a direct document-open path.
+- A good early retrieval layer can be Postgres filters plus stored search text and simple ranking. That is often enough to stop latest-frame-only debugging and research.
+
+## 31. Historical research needs chunk access, not just document access
+
+- Once documents are reopenable, the next missing layer is usually chunk history, because the system reasons over chunks, not whole documents.
+- Persist chunk history at dataset-write time, not as a sidecar export later. That keeps the stored research units aligned with the actual AQL pipeline.
+- Keep chunk search lightweight at first: structured SQL filters plus simple ranking is enough to make historical evidence practically usable before a full hybrid retrieval stack exists.
+
+## 32. Vendor bulk endpoints should be optional when the stable per-series path still works
+
+- If a curated dashboard only needs a few dozen important series, keep the stable per-series path available even if a bulk endpoint looks cleaner on paper.
+- Put the fetch strategy behind one shared payload contract so `bulk` and `fallback` loaders can swap without touching the UI or pipeline job logic.
+- Validate secrets against the exact live endpoint that matters. A key working on `v1` does not prove it will work on `v2` bulk.
+
+## 33. Hybrid retrieval can start by reusing stored chunk embeddings
+
+- If the pipeline already generates chunk embeddings, the cheapest next retrieval upgrade is usually to persist and reuse them rather than standing up a new vector system immediately.
+- Separate match signals from rerank signals. Query overlap and semantic similarity should decide whether a row matched; recency and authority should only refine ordering afterward.
+- One query embedding plus a bounded candidate pool is a good early hybrid pattern. It improves recall without making every search expensive.
+
+## 34. A macro dashboard needs market pricing and transmission, not just hard data
+
+- Inflation, labor, and housing activity are necessary but not enough for a trading-oriented macro panel.
+- Add the market-implied layer early: curve shape, real yields, breakevens, dollar, and bank-credit flow often move before the slower monthly macro series.
+- A small curated set is still fine, but it should span three lenses at once: hard data, market pricing, and transmission channels.
+
+## 35. A better retrieval layer does not change the UI unless the writing surface actually uses it
+
+- It is not enough to build hybrid retrieval in SAA and assume the homepage summary will improve automatically. The writing surface has to route through that same evidence path.
+- If a summary still only writes from a local search-to-chunk shortcut, the richer retained corpus and semantic scoring can sit unused while the UI looks unchanged.
+- When a surface becomes more agentic, expose a small visible trace too. Otherwise it is hard to tell the difference between “no research happened” and “research happened but the UI hid it.”
+
+## 36. Gated-source auth has to fail fast inside user-facing research loops
+
+- A gated-source helper can be technically correct and still be a product bug if it burns minutes before falling back.
+- Try the target page first, then authenticate only when the page is clearly gated or redirected to login.
+- If the login page itself is blocked by anti-bot protections, surface that quickly and move on instead of stalling the whole summary path.
+
+## 37. Azure semantic retrieval is not real until the embedding deployment exists
+
+- Loading an embedding client object is not enough. You have to verify that the actual Azure embedding deployment is provisioned and callable.
+- If Azure does not have an embedding deployment, skip embeddings explicitly instead of silently retrying a chat deployment for embedding requests.
+- Keep chat deployment and embedding deployment separate in config and deploy scripts. They are different runtime contracts.
+
+## 38. Derived macro summaries should be rebuilt from the raw observation frame when possible
+
+- If the materialized layer already stores the raw observation history, derived fields such as `latest_date`, `prev_delta`, and `YoY` should be recomputed from that history instead of trusted blindly from a stale summary table.
+- This is especially important when vendor metadata contracts drift, because one bad frequency label can make every `YoY` field look missing even though the observations are fine.
+- The raw observations should be the source of truth; the summary row should be treated as a cache, not as a second authority.
+
+## 39. Optional shell lookups must not return a fatal status under `set -e`
+
+- In deploy scripts, a helper that means "nothing found" should not return a non-zero status if callers use command substitution under `set -e`.
+- For optional config hydration, empty output is enough. Returning `1` can abort the whole deploy even when nothing is actually wrong.
+- Treat missing donor env values as a normal branch, not as an error path.

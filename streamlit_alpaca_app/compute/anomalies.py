@@ -805,7 +805,7 @@ def _build_attention_story(row: pd.Series) -> str:
     if anomaly_type == "news_confirmed_move":
         driver = (
             f"{linked_news_count} fresh headline{'s are' if linked_news_count != 1 else ' is'} reinforcing the move, "
-            "so this looks more idiosyncratic than market-wide."
+            "so this looks more stock-specific than market-wide."
         )
     elif anomaly_type in {"correlation_break", "decoupling"}:
         driver = "It is breaking from its usual benchmark or peer correlation, which points to a stock-specific move."

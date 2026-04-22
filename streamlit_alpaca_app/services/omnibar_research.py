@@ -1,18 +1,50 @@
 from __future__ import annotations
 
+import json
 import re
 from typing import Any
 
 import pandas as pd
 
 from data_access.layer import DataAccessLayer
-from services import attention_market_events as market_events_module
 from services.attention_agentic import search_symbol_news_payload
 from services.attention_live_research import search_market_event_news_payload
 from services.llm import load_llm_client
-from services.market import COMMODITY_FOCUS_UNIVERSES, commodity_proxy_profile
 from services.omnibar import resolve_omnibar
 from .page_browsing import browse_page
+
+
+_QUERY_INTENT_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "event_type": {
+            "type": "string",
+            "enum": ["oil", "rates", "defensives", "risk", "generic"],
+        },
+        "direction": {"type": "string", "enum": ["up", "down"]},
+        "theme_label": {"type": "string"},
+        "evidence_needed": {
+            "type": "boolean",
+            "description": "True if the query requires fresh external evidence (news, macro data, live prices) to answer. False for simple lookups or ticker queries.",
+        },
+        "relevant_symbols": {"type": "array", "items": {"type": "string"}},
+        "symbol_roles": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "symbol": {"type": "string"},
+                    "role": {"type": "string"},
+                    "expected_bias": {"type": "string", "enum": ["up", "down"]},
+                },
+                "required": ["symbol", "role", "expected_bias"],
+            },
+        },
+    },
+    "required": ["event_type", "direction", "theme_label", "relevant_symbols", "symbol_roles", "evidence_needed"],
+}
 
 
 def _clean(value: object) -> str:
@@ -64,216 +96,101 @@ def _layer(layer: DataAccessLayer | None = None) -> DataAccessLayer:
     return DataAccessLayer.from_environment()
 
 
-def query_needs_evidence(query: str) -> bool:
-    normalized = _clean(query).lower()
-    if not normalized:
-        return False
-    if _normalize_symbol(normalized):
-        return False
-    if any(
-        phrase in normalized
-        for phrase in (
-            "pan out",
-            "what happens next",
-            "what changed",
-            "why ",
-            "how ",
-            "impact ",
-            "implications",
-            "outlook",
-            "now that",
-            "after ",
-            "amid ",
-            "talks",
-            "agreement",
-            "ceasefire",
-            "iran",
-            "tariff",
-            "fomc",
-            "cpi",
-            "payrolls",
-            "today",
-            "latest",
-            "recent",
-            "since ",
-            "movers since",
-            "biggest move",
-            "statistically",
-            "significant",
-            "event study",
-            "abnormal return",
+def _llm_query_intent(query: str, *, llm_client: object, max_symbols: int) -> dict[str, Any]:
+    """Extract theme, direction, evidence need, and relevant symbols from a free-form query via LLM.
+
+    Returns a best-effort result. On LLM failure returns a generic/empty baseline.
+    """
+    baseline: dict[str, Any] = {
+        "event_type": "generic",
+        "direction": "down",
+        "theme_label": "general market",
+        "evidence_needed": True,
+        "rows": [],
+    }
+    if llm_client is None or not hasattr(llm_client, "generate_json"):
+        return baseline
+    try:
+        data = llm_client.generate_json(
+            system_prompt=(
+                "You are a market-theme classifier for a financial research platform. "
+                "Given a user query, classify it and infer the directional impact on financial markets. "
+                "event_type must be one of: oil, rates, defensives, risk, generic. "
+                "Use 'rates' for interest rates, inflation, central banks, CPI, PPI, PCE, NFP, or any economic data release. "
+                "Use 'oil' for energy, commodities, or geopolitical supply risk. "
+                "Use 'defensives' for gold, safe havens, volatility, or risk-off moves. "
+                "Use 'risk' for equities, growth, earnings, or sector-specific moves. "
+                "Use 'generic' only when nothing else fits. "
+                "direction is 'up' for stress/supply-risk/hawkish reads, 'down' for relief/dovish/risk-on reads. "
+                "evidence_needed is true when the query requires fresh external data to answer (news, macro releases, "
+                "live prices, recent events). False for simple ticker lookups or questions answerable from static knowledge. "
+                "relevant_symbols: US-listed ETFs or large-caps most likely impacted — include proxies "
+                "(TLT/IEF for rates, USO/XLE for oil, GLD/VIXY for defensives, SPY/QQQ for broad risk). "
+                f"Return at most {max_symbols} symbols."
+            ),
+            user_prompt=json.dumps({"query": query}, ensure_ascii=False),
+            schema_name="query_market_intent",
+            schema=_QUERY_INTENT_SCHEMA,
         )
-    ):
-        return True
-    if "?" in normalized and len(re.findall(r"[a-z0-9]+", normalized)) >= 4:
-        return True
-    return False
+        if not isinstance(data, dict):
+            return baseline
+        event_type = str(data.get("event_type") or "generic").lower()
+        direction = str(data.get("direction") or "down").lower()
+        if event_type not in {"oil", "rates", "defensives", "risk", "generic"}:
+            event_type = "generic"
+        if direction not in {"up", "down"}:
+            direction = "down"
+        seen: set[str] = set()
+        rows: list[dict[str, Any]] = []
+        for item in list(data.get("symbol_roles") or []):
+            if not isinstance(item, dict):
+                continue
+            symbol = _normalize_symbol(item.get("symbol"))
+            if not symbol or symbol in seen:
+                continue
+            seen.add(symbol)
+            rows.append({
+                "symbol": symbol,
+                "role": _clean(item.get("role")) or "market proxy",
+                "expected_bias": str(item.get("expected_bias") or direction).lower(),
+                "why": "",
+            })
+        for raw in list(data.get("relevant_symbols") or []):
+            symbol = _normalize_symbol(raw)
+            if not symbol or symbol in seen:
+                continue
+            seen.add(symbol)
+            rows.append({"symbol": symbol, "role": "market proxy", "expected_bias": direction, "why": ""})
+        return {
+            "event_type": event_type,
+            "direction": direction,
+            "theme_label": _clean(data.get("theme_label")) or event_type,
+            "evidence_needed": bool(data.get("evidence_needed", True)),
+            "rows": rows[:max_symbols],
+        }
+    except Exception:
+        return baseline
 
 
-def _query_theme(query: str) -> str:
-    normalized = _clean(query).lower()
-    if any(token in normalized for token in ("oil", "crude", "brent", "wti", "gasoline", "iran", "hormuz", "opec")):
-        return "oil"
-    if any(token in normalized for token in ("treasury", "yield", "rates", "bond", "fed", "inflation")):
-        return "rates"
-    if any(token in normalized for token in ("gold", "haven", "defensive", "precious", "volatility")):
-        return "defensives"
-    if any(token in normalized for token in ("stocks", "equities", "risk", "airlines", "travel")):
-        return "risk"
-    return "generic"
-
-
-def _query_direction(query: str, theme: str) -> str:
-    normalized = _clean(query).lower()
-    relief_tokens = (
-        "agreement",
-        "deal",
-        "ceasefire",
-        "truce",
-        "de-escalation",
-        "talks resume",
-        "progress",
-        "relief",
-    )
-    stress_tokens = (
-        "no agreement",
-        "no deal",
-        "stalled",
-        "collapse",
-        "breakdown",
-        "escalation",
-        "attack",
-        "strike",
-        "sanction",
-        "risk",
-    )
-    relief_hit = any(token in normalized for token in relief_tokens)
-    stress_hit = any(token in normalized for token in stress_tokens)
-    if theme == "oil":
-        if relief_hit and not stress_hit:
-            return "down"
-        if stress_hit:
-            return "up"
-        return "up"
-    if theme == "risk":
-        if relief_hit and not stress_hit:
-            return "up"
-        if stress_hit:
-            return "down"
-    if theme == "defensives":
-        if relief_hit and not stress_hit:
-            return "down"
-        if stress_hit:
-            return "up"
-    return "up" if relief_hit else ("down" if stress_hit else "down")
-
-
-def _role_text(symbol: str) -> str:
-    normalized = _normalize_symbol(symbol)
-    if normalized in set(getattr(market_events_module, "_ENERGY_EQUITY_SYMBOLS", set())):
-        return "energy equity"
-    if normalized in set(getattr(market_events_module, "_TRAVEL_SYMBOLS", set())):
-        return "travel and airline sensitivity"
-    if normalized in set(getattr(market_events_module, "_RATE_SYMBOLS", set())):
-        return "rates proxy"
-    if normalized in set(getattr(market_events_module, "_DEFENSIVE_SYMBOLS", set())):
-        return "defensive proxy"
-    if normalized in set(COMMODITY_FOCUS_UNIVERSES.get("Shipping & Logistics", [])):
-        return "shipping and freight proxy"
-    profile = commodity_proxy_profile(normalized)
-    if _clean(profile.get("name")):
-        return _clean(profile.get("commodity")) or "commodity proxy"
-    return "market proxy"
-
-
-def _market_impact_rows(theme: str, direction: str, *, max_symbols: int) -> list[dict[str, Any]]:
-    oil_symbols = sorted(set(getattr(market_events_module, "_OIL_DRIVER_SYMBOLS", set())))
-    energy_symbols = sorted(set(getattr(market_events_module, "_ENERGY_EQUITY_SYMBOLS", set())))
-    travel_symbols = sorted(set(getattr(market_events_module, "_TRAVEL_SYMBOLS", set())))
-    broad_symbols = sorted(set(getattr(market_events_module, "_BROAD_MARKET_SYMBOLS", set())))
-    rate_symbols = sorted(set(getattr(market_events_module, "_RATE_SYMBOLS", set())))
-    defensive_symbols = sorted(set(getattr(market_events_module, "_DEFENSIVE_SYMBOLS", set())))
-    shipping_symbols = list(COMMODITY_FOCUS_UNIVERSES.get("Shipping & Logistics", []))
-
-    symbol_order: list[tuple[str, str]]
-    if theme == "oil" and direction == "up":
-        symbol_order = (
-            [(symbol, "up") for symbol in ["USO", "BNO", "UGA", "CVX", "XOM", "XLE", "BDRY"] if symbol in (oil_symbols + energy_symbols + shipping_symbols)]
-            + [(symbol, "down") for symbol in ["JETS", "UAL", "DAL", "AAL", "SPY"] if symbol in (travel_symbols + broad_symbols)]
-            + [(symbol, "up") for symbol in ["GLD", "IEF"] if symbol in (defensive_symbols + rate_symbols)]
-        )
-    elif theme == "oil" and direction == "down":
-        symbol_order = (
-            [(symbol, "down") for symbol in ["USO", "BNO", "UGA", "CVX", "XOM", "XLE"] if symbol in (oil_symbols + energy_symbols)]
-            + [(symbol, "up") for symbol in ["JETS", "UAL", "DAL", "AAL", "SPY"] if symbol in (travel_symbols + broad_symbols)]
-            + [(symbol, "down") for symbol in ["GLD", "IEF"] if symbol in (defensive_symbols + rate_symbols)]
-        )
-    elif theme == "rates":
-        symbol_order = (
-            [(symbol, "up" if direction == "up" else "down") for symbol in ["TLT", "IEF", "SHY"] if symbol in rate_symbols]
-            + [(symbol, "up" if direction == "up" else "down") for symbol in ["SPY", "QQQ", "IWM"] if symbol in broad_symbols]
-        )
-    elif theme == "defensives":
-        symbol_order = (
-            [(symbol, "up" if direction == "up" else "down") for symbol in ["GLD", "SLV", "VIXY"] if symbol in defensive_symbols]
-            + [(symbol, "down" if direction == "up" else "up") for symbol in ["SPY", "QQQ"] if symbol in broad_symbols]
-        )
-    else:
-        symbol_order = (
-            [(symbol, "up" if direction == "up" else "down") for symbol in ["SPY", "QQQ", "IWM"] if symbol in broad_symbols]
-            + [(symbol, "up" if direction == "up" else "down") for symbol in ["JETS", "UAL"] if symbol in travel_symbols]
-        )
-
-    rows: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    for symbol, bias in symbol_order:
-        normalized = _normalize_symbol(symbol)
-        if not normalized or normalized in seen:
-            continue
-        seen.add(normalized)
-        rows.append(
-            {
-                "symbol": normalized,
-                "role": _role_text(normalized),
-                "expected_bias": bias,
-                "why": (
-                    "Higher supply-risk would likely support oil-linked and energy names."
-                    if theme == "oil" and bias == "up"
-                    else "Relief in oil and inflation pressure would likely help travel and broad-risk names."
-                    if theme == "oil" and bias == "up" and normalized in travel_symbols
-                    else "This is a second-order market sensitivity linked to the same theme."
-                ),
-            }
-        )
-        if len(rows) >= max_symbols:
-            break
-    return rows
-
-
-def market_impact_map(
-    *,
-    query: str,
-    max_symbols: int = 8,
-) -> dict[str, Any]:
+def market_impact_map(*, query: str, max_symbols: int = 8) -> dict[str, Any]:
     normalized_query = _clean(query)
-    theme = _query_theme(normalized_query)
-    direction = _query_direction(normalized_query, theme)
-    rows = _market_impact_rows(theme, direction, max_symbols=max(int(max_symbols), 1))
-    focus_symbols = [str(row.get("symbol")) for row in rows if _normalize_symbol(row.get("symbol"))][: max(int(max_symbols), 1)]
+    safe_max = max(int(max_symbols), 1)
+    intent = _llm_query_intent(normalized_query, llm_client=load_llm_client(), max_symbols=safe_max)
+    theme = intent["event_type"]
+    direction = intent["direction"]
+    rows = intent["rows"]
+    focus_symbols = [str(row["symbol"]) for row in rows if _normalize_symbol(row.get("symbol"))][:safe_max]
     direction_text = {"up": "higher", "down": "lower"}.get(direction, direction)
-    llm_lines = [
-        f"Theme: {theme}. Expected first read: {direction_text}.",
-    ]
+    llm_lines = [f"Theme: {theme}. Expected first read: {direction_text}."]
     if focus_symbols:
         llm_lines.append("Likely impacted symbols to check next: " + ", ".join(focus_symbols[:6]) + ".")
     for row in rows[:6]:
-        llm_lines.append(
-            f"{row.get('symbol')}: {row.get('role')} expected bias={row.get('expected_bias')}."
-        )
+        llm_lines.append(f"{row['symbol']}: {row['role']} expected bias={row['expected_bias']}.")
     return {
         "query": normalized_query,
         "theme": theme,
         "expected_direction": direction,
+        "evidence_needed": intent["evidence_needed"],
         "focus_symbols": focus_symbols,
         "summary": rows,
         "llm_context_text": " ".join(llm_lines),
@@ -481,6 +398,7 @@ def live_event_evidence(
     direction = _clean(impact.get("expected_direction")) or "down"
 
     selected_symbols = _symbol_list(focus_symbols)
+    explicitly_resolved = bool(selected_symbols)
     if not selected_symbols:
         resolution = resolve_omnibar(
             query=query,
@@ -493,12 +411,13 @@ def live_event_evidence(
             for item in list(resolution.get("search_results") or [])
             if _clean(item.get("kind")).lower() == "symbol"
         ]
+        explicitly_resolved = bool(selected_symbols)
     if not selected_symbols:
         selected_symbols = [str(item) for item in list(impact.get("focus_symbols") or [])]
     selected_symbols = list(dict.fromkeys([symbol for symbol in selected_symbols if symbol]))[:4]
 
     rows: list[dict[str, Any]] = []
-    if theme != "generic" or query_needs_evidence(query):
+    if impact.get("evidence_needed", True):
         event_payload = search_market_event_news_payload(
             {
                 "event_type": theme,
@@ -509,8 +428,12 @@ def live_event_evidence(
         )
         rows.extend(_news_rows_from_payload(event_payload, scope="market_event"))
 
+    # Only run per-symbol news search for symbols that came from the user or resolved
+    # directly from the query. Fallback market-proxy symbols (SPY, TLT, etc.) are passed
+    # to the event search above for relevance scoring but are not worth individual searches
+    # for queries that didn't resolve to specific securities.
     llm_client = load_llm_client()
-    for symbol in selected_symbols[:4]:
+    for symbol in (selected_symbols if explicitly_resolved else [])[:4]:
         company_name = _asset_name(resolved_layer, symbol, force_refresh=force_refresh)
         payload = search_symbol_news_payload(
             symbol,
@@ -606,6 +529,5 @@ __all__ = [
     "live_event_evidence",
     "market_impact_map",
     "open_page",
-    "query_needs_evidence",
     "retained_context",
 ]

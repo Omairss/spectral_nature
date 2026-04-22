@@ -6,6 +6,17 @@ import json
 import numpy as np
 import pandas as pd
 
+from compute.signal_extraction import (
+    log_slope as _log_slope,
+    linear_slope as _linear_slope,
+    trend_r2 as _trend_r2,
+    window_return_pct as _window_return_pct,
+    ratio_minus_one as _ratio_minus_one,
+    mean_finite as _mean_finite,
+    rolling_compound as _rolling_compound,
+    zscore_series as _zscore,
+    rolling_beta as _rolling_beta,
+)
 from .alpaca_api import AlpacaAPI
 from .dependency_graphs import dependency_graph_edges_frame
 
@@ -496,30 +507,10 @@ def commodity_dependency_graph(symbols: list[str] | None = None) -> pd.DataFrame
     ].reset_index(drop=True)
 
 
-def _log_slope(series: pd.Series, window: int) -> float:
-    values = pd.to_numeric(series, errors="coerce").dropna().tail(window)
-    if len(values) < window or (values <= 0).any():
-        return np.nan
-    y = np.log(values.to_numpy(dtype=float))
-    x = np.arange(len(y), dtype=float)
-    slope, _ = np.polyfit(x, y, 1)
-    return float(slope)
 
-
-def _trend_r2(series: pd.Series, window: int) -> float:
-    values = pd.to_numeric(series, errors="coerce").dropna().tail(window)
-    if len(values) < window or (values <= 0).any():
-        return np.nan
-    y = np.log(values.to_numpy(dtype=float))
-    x = np.arange(len(y), dtype=float)
-    slope, intercept = np.polyfit(x, y, 1)
-    fitted = slope * x + intercept
-    ss_res = float(np.sum((y - fitted) ** 2))
-    ss_tot = float(np.sum((y - y.mean()) ** 2))
-    if ss_tot == 0:
-        return 1.0
-    r2 = 1.0 - (ss_res / ss_tot)
-    return float(np.clip(r2, 0.0, 1.0))
+# _log_slope, _trend_r2, _window_return_pct, _ratio_minus_one, _mean_finite,
+# _rolling_compound, _zscore, _rolling_beta are imported from
+# compute.signal_extraction at the top of this module.
 
 
 def _sparkline(series: pd.Series, window: int, points: int = 24) -> list[float]:
@@ -536,53 +527,6 @@ def _sparkline(series: pd.Series, window: int, points: int = 24) -> list[float]:
     return [round((float(value) / base) * 100.0, 2) for value in sampled]
 
 
-def _window_return_pct(series: pd.Series, window: int) -> float:
-    values = pd.to_numeric(series, errors="coerce").dropna().tail(window)
-    if len(values) < window:
-        return np.nan
-    start = float(values.iloc[0])
-    end = float(values.iloc[-1])
-    if start == 0:
-        return np.nan
-    return ((end / start) - 1.0) * 100.0
-
-
-def _ratio_minus_one(numerator: float, denominator: float) -> float:
-    if not np.isfinite(numerator) or not np.isfinite(denominator) or denominator == 0:
-        return np.nan
-    return float(numerator / denominator - 1.0)
-
-
-def _mean_finite(values: list[float]) -> float:
-    finite = [float(value) for value in values if np.isfinite(value)]
-    if not finite:
-        return np.nan
-    return float(np.mean(finite))
-
-
-def _rolling_compound(returns: pd.Series, window: int) -> pd.Series:
-    clean = pd.to_numeric(returns, errors="coerce")
-    if window <= 1:
-        return clean
-    return (1.0 + clean).rolling(window).apply(np.prod, raw=True) - 1.0
-
-
-def _zscore(values: pd.Series) -> pd.Series:
-    numeric = pd.to_numeric(values, errors="coerce")
-    valid = numeric.dropna()
-    if len(valid) < 2:
-        return pd.Series(np.zeros(len(numeric)), index=numeric.index, dtype=float)
-    std = float(valid.std(ddof=0))
-    if std == 0:
-        return pd.Series(np.zeros(len(numeric)), index=numeric.index, dtype=float)
-    return (numeric - float(valid.mean())) / std
-
-
-def _rolling_beta(asset_returns: pd.Series, benchmark_returns: pd.Series, window: int) -> pd.Series:
-    cov = pd.to_numeric(asset_returns, errors="coerce").rolling(window).cov(pd.to_numeric(benchmark_returns, errors="coerce"))
-    var = pd.to_numeric(benchmark_returns, errors="coerce").rolling(window).var()
-    beta = cov / var.replace(0, np.nan)
-    return beta.replace([np.inf, -np.inf], np.nan)
 
 
 def _normalized_price_matrix(close_matrix: pd.DataFrame) -> pd.DataFrame:

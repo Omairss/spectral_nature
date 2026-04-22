@@ -6,12 +6,14 @@ from typing import Any, Callable
 
 from data_access.query_service import QueryService
 from .agent_tools import build_tool_catalog, invoke_tool
-from .omnibar_research import query_needs_evidence
 from .llm import (
+    COPY_STYLE_RULE,
     AzureOpenAIChatJSONClient,
     LLMAPIError,
     OpenAIChatJSONClient,
+    get_prompt,
     load_llm_client,
+    register_copy_prompt,
 )
 
 
@@ -61,6 +63,16 @@ _STEP_SCHEMA: dict[str, Any] = {
         "needs_more_tools",
     ],
 }
+
+_AGENT_FINAL_SYSTEM_PROMPT = register_copy_prompt(
+    name="Omnibar Agent Final Answer (markdown response to user)",
+    file="services/omnibar_agent.py",
+    prompt=(
+        f"You are the Spectral Nature omnibar agent. {COPY_STYLE_RULE} "
+        "Write a grounded markdown answer from the collected tool evidence only. "
+        "When live external evidence was used, lightly reference one or two supporting sources or URLs."
+    ),
+)
 
 _FINAL_SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -442,9 +454,11 @@ def _fallback_answer(query: str, tool_calls: list[dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
-def _planner_system_prompt(*, evidence_expected: bool) -> str:
-    prompt = (
-        "You are the Spectral Nature omnibar agent. "
+_PLANNER_SYSTEM_PROMPT = register_copy_prompt(
+    name="Omnibar Agent Planner (tool-calling reasoning)",
+    file="services/omnibar_agent.py",
+    prompt=(
+        f"You are the Spectral Nature omnibar agent. {COPY_STYLE_RULE} "
         "Answer the user's question by calling the available tools when needed. "
         "Use tools for factual retrieval, comparisons, macro releases, company context, portfolio context, "
         "technicals, options, and charts. "
@@ -454,22 +468,21 @@ def _planner_system_prompt(*, evidence_expected: bool) -> str:
         "Once a tool result directly contains the requested fact, stop and answer. "
         "Do not repeat a tool with materially identical arguments. "
         "Avoid broad query tools when a domain-specific dataset already returned the needed value. "
-        "When you have enough evidence, return action='final' with a concise markdown answer grounded only in tool results."
-    )
-    if evidence_expected:
-        prompt += (
-            " This prompt looks like time-sensitive analysis. "
-            "Strongly prefer using research.retained_context and/or research.live_event_evidence before answering. "
-            "Use research.market_impact_map when the prompt is about broad spillover or second-order effects. "
-            "If a promising result URL needs a deeper read, use research.open_page. "
-            "Tool use is encouraged, not forced, but a zero-tool final answer should be treated as a high bar."
-            " When asked about movers or statistically significant moves since a named event (e.g. 'Hormuz blockade', 'tariff announcement'):"
-            " (1) use research.live_event_evidence to find the event date from web evidence;"
-            " (2) use research.market_impact_map to get the relevant symbol list;"
-            " (3) call dataset.event_significance with the inferred event_date and those symbols."
-            " Do not ask the user for the date — infer it from research."
-        )
-    return prompt
+        "When you have enough evidence, return action='final' with a concise markdown answer grounded only in tool results. "
+        "For time-sensitive or analytical queries, prefer research.retained_context and/or research.live_event_evidence before answering. "
+        "Use research.market_impact_map when the question is about broad spillover or second-order effects. "
+        "If a promising result URL needs a deeper read, use research.open_page. "
+        "When asked about movers or statistically significant moves since a named event: "
+        "(1) use research.live_event_evidence to find the event date; "
+        "(2) use research.market_impact_map to get the relevant symbol list; "
+        "(3) call dataset.event_significance with the inferred event_date and those symbols. "
+        "Do not ask the user for the date — infer it from research."
+    ),
+)
+
+
+def _planner_system_prompt() -> str:
+    return get_prompt(_PLANNER_SYSTEM_PROMPT)
 
 
 def _planner_user_prompt(
@@ -478,11 +491,9 @@ def _planner_user_prompt(
     tool_catalog: list[dict[str, Any]],
     tool_calls: list[dict[str, Any]],
     max_tool_calls: int,
-    evidence_expected: bool,
 ) -> str:
     return (
         f"User question:\n{query}\n\n"
-        f"Evidence expectation: {'high' if evidence_expected else 'normal'}.\n\n"
         f"Tool budget: {max_tool_calls - len(tool_calls)} remaining out of {max_tool_calls}.\n\n"
         "Available tools:\n"
         f"{_tool_catalog_prompt(tool_catalog)}\n\n"
@@ -526,7 +537,6 @@ def run_omnibar_agent(
 ) -> dict[str, Any]:
     normalized_query = _clean(query)
     run_id = f"agrun_{uuid.uuid4().hex[:10]}"
-    evidence_expected = query_needs_evidence(normalized_query)
     if not normalized_query:
         return {
             "run_id": run_id,
@@ -589,13 +599,12 @@ def run_omnibar_agent(
                 tool_call_count=len(tool_calls),
             )
             decision = resolved_llm.generate_json(
-                system_prompt=_planner_system_prompt(evidence_expected=evidence_expected),
+                system_prompt=_planner_system_prompt(),
                 user_prompt=_planner_user_prompt(
                     query=normalized_query,
                     tool_catalog=tool_catalog,
                     tool_calls=tool_calls,
                     max_tool_calls=max_tool_calls,
-                    evidence_expected=evidence_expected,
                 ),
                 schema_name="omnibar_agent_step",
                 schema=_STEP_SCHEMA,
@@ -781,11 +790,7 @@ def run_omnibar_agent(
                 tool_call_count=len(tool_calls),
             )
             final_payload = resolved_llm.generate_json(
-                system_prompt=(
-                    "You are the Spectral Nature omnibar agent. "
-                    "Write a grounded markdown answer from the collected tool evidence only. "
-                    "When live external evidence was used, lightly reference one or two supporting sources or URLs."
-                ),
+                system_prompt=get_prompt(_AGENT_FINAL_SYSTEM_PROMPT),
                 user_prompt=_final_user_prompt(query=normalized_query, tool_calls=tool_calls),
                 schema_name="omnibar_agent_final",
                 schema=_FINAL_SCHEMA,
@@ -839,7 +844,6 @@ def run_omnibar_agent(
         "answer_markdown": answer_markdown,
         "confidence": final_confidence,
         "limitations": limitations,
-        "evidence_expected": evidence_expected,
         "error": None if status == "completed" else "Agent did not produce an answer.",
     }
 

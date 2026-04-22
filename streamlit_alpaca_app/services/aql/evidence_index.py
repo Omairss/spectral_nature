@@ -14,6 +14,7 @@ from typing import Any
 
 import pandas as pd
 
+from ..llm import LLMAPIError, load_llm_client
 from ..market import COMMODITY_PROXY_METADATA, default_universe_symbols
 from ..saa.storage import build_canonical_document_fields
 from ._shared import _coerce_text, _json_dumps, _normalize_symbol
@@ -52,49 +53,27 @@ _COMMON_NON_TICKERS = {
     "USA",
     "USD",
 }
-_COMMODITY_TAG_ALIASES: dict[str, tuple[str, ...]] = {
-    "oil": ("oil", "crude", "wti", "brent", "gasoline", "opec", "hormuz"),
-    "natural_gas": ("natural gas", "nat gas", "lng", "henry hub"),
-    "gold": ("gold", "bullion"),
-    "silver": ("silver",),
-    "platinum": ("platinum",),
-    "palladium": ("palladium",),
-    "copper": ("copper",),
-    "base_metals": ("base metals", "aluminum", "zinc", "nickel"),
-    "rare_earths": ("rare earth", "rare earths"),
-    "lithium": ("lithium",),
-    "uranium": ("uranium", "nuclear fuel"),
-    "agriculture": ("agriculture", "crop", "grains", "softs", "food inflation"),
-    "corn": ("corn",),
-    "wheat": ("wheat",),
-    "soybeans": ("soybean", "soybeans"),
-    "coffee": ("coffee",),
-    "sugar": ("sugar",),
-    "cocoa": ("cocoa",),
-    "cotton": ("cotton",),
-    "shipping": ("dry bulk", "freight", "shipping", "tankers"),
-}
-_EVENT_TAG_KEYWORDS: dict[str, tuple[str, ...]] = {
-    "earnings": ("earnings", "results", "quarter", "quarterly"),
-    "guidance": ("guidance", "outlook", "raises forecast", "cuts forecast"),
-    "m_and_a": ("acquisition", "acquire", "merger", "takeover", "buyout"),
-    "partnership": ("partnership", "partnered", "collaboration"),
-    "contract": ("contract", "award", "order", "deal win", "purchase agreement"),
-    "approval": ("approval", "approved", "clearance", "authorization"),
-    "clinical_trial": ("trial", "phase 1", "phase 2", "phase 3", "clinical"),
-    "sec_filing": ("8-k", "10-k", "10-q", "sec filing", "proxy statement", "form 4"),
-    "analyst_rating": ("price target", "upgraded", "downgraded", "analyst"),
-    "buyback_dividend": ("buyback", "repurchase", "dividend"),
-    "financing": ("offering", "convertible", "debt", "refinancing", "capital raise"),
-    "litigation": ("lawsuit", "litigation", "settlement", "court"),
-    "restructuring": ("restructuring", "bankruptcy", "chapter 11", "layoff"),
-    "product_launch": ("launch", "rollout", "unveil", "release"),
-    "ai_datacenter": ("ai", "artificial intelligence", "gpu", "data center", "datacenter"),
-    "supply_chain": ("supply chain", "inventory draw", "shortage", "bottleneck", "supply squeeze"),
-    "geopolitics": ("ceasefire", "iran", "tariff", "sanction", "war", "geopolitical"),
-    "rates": ("treasury", "yield", "bond", "fed", "rate cut", "rate hike"),
-    "inflation": ("inflation", "cpi", "ppi"),
-    "jobs": ("jobs report", "jobless", "payrolls", "unemployment"),
+_KNOWN_EVENT_TAGS: frozenset[str] = frozenset({
+    "earnings", "guidance", "m_and_a", "partnership", "contract",
+    "approval", "clinical_trial", "sec_filing", "analyst_rating",
+    "buyback_dividend", "financing", "litigation", "restructuring",
+    "product_launch", "ai_datacenter", "supply_chain", "geopolitics",
+    "rates", "inflation", "jobs",
+})
+_KNOWN_COMMODITY_TAGS: frozenset[str] = frozenset({
+    "oil", "natural_gas", "gold", "silver", "platinum", "palladium",
+    "copper", "base_metals", "rare_earths", "lithium", "uranium",
+    "agriculture", "corn", "wheat", "soybeans", "coffee", "sugar",
+    "cocoa", "cotton", "shipping",
+})
+_TAG_EXTRACTION_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "event_tags": {"type": "array", "items": {"type": "string"}},
+        "commodity_tags": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["event_tags", "commodity_tags"],
 }
 _SOURCE_KIND_EVENT_TAGS: dict[str, tuple[str, ...]] = {
     "sec": ("sec_filing",),
@@ -254,23 +233,38 @@ def _commodity_tags_from_tickers(tickers: list[str]) -> list[str]:
     return tags
 
 
-def _extract_commodity_tags(text: object, *, tickers: list[str]) -> list[str]:
-    normalized = f" {_normalized_text(text)} "
-    tags = _commodity_tags_from_tickers(tickers)
-    for tag, aliases in _COMMODITY_TAG_ALIASES.items():
-        if any(f" {alias.lower()} " in normalized for alias in aliases):
-            tags.append(tag)
-    return _dedupe_preserve_order(tags)
-
-
-def _extract_event_tags(text: object, *, source_kind: object = "") -> list[str]:
-    normalized = f" {_normalized_text(text)} "
-    tags: list[str] = []
-    for tag, keywords in _EVENT_TAG_KEYWORDS.items():
-        if any(f" {keyword.lower()} " in normalized for keyword in keywords):
-            tags.append(tag)
-    tags.extend(_SOURCE_KIND_EVENT_TAGS.get(_coerce_text(source_kind).lower(), ()))
-    return _dedupe_preserve_order(tags)
+def _llm_extract_tags(
+    text: str,
+    *,
+    tickers: list[str],
+    source_kind: str,
+    llm_client: Any,
+) -> tuple[list[str], list[str]]:
+    commodity_tags = _commodity_tags_from_tickers(tickers)
+    source_event_tags = list(_SOURCE_KIND_EVENT_TAGS.get(source_kind.lower(), ()))
+    if llm_client is None:
+        return source_event_tags, commodity_tags
+    excerpt = text[:1200]
+    try:
+        result = llm_client.generate_json(
+            system_prompt=(
+                "Extract financial event and commodity tags from news text. "
+                f"Valid event tags: {', '.join(sorted(_KNOWN_EVENT_TAGS))}. "
+                f"Valid commodity tags: {', '.join(sorted(_KNOWN_COMMODITY_TAGS))}. "
+                "Return only tags clearly present in the text. Return empty arrays if nothing applies."
+            ),
+            user_prompt=f"Text: {excerpt}",
+            schema_name="tag_extraction",
+            schema=_TAG_EXTRACTION_SCHEMA,
+        )
+    except (LLMAPIError, Exception):
+        return source_event_tags, commodity_tags
+    raw_event_tags = [str(t).strip() for t in result.get("event_tags") or []]
+    raw_commodity_tags = [str(t).strip() for t in result.get("commodity_tags") or []]
+    event_tags = [t for t in raw_event_tags if t in _KNOWN_EVENT_TAGS] + source_event_tags
+    extra_commodity_tags = [t for t in raw_commodity_tags if t in _KNOWN_COMMODITY_TAGS]
+    commodity_tags.extend(extra_commodity_tags)
+    return _dedupe_preserve_order(event_tags), _dedupe_preserve_order(commodity_tags)
 
 
 def build_evidence_metadata(
@@ -285,8 +279,12 @@ def build_evidence_metadata(
     search_text = " ".join(part for part in [_coerce_text(title), _coerce_text(text)] if part)
     mentioned_tickers = _extract_tickers(search_text, bundle_subject=bundle_subject)
     mentioned_dates = _extract_mentioned_dates(search_text, asof_time_utc=asof_time_utc)
-    mentioned_commodities = _extract_commodity_tags(search_text, tickers=mentioned_tickers)
-    event_tags = _extract_event_tags(search_text, source_kind=source_kind)
+    event_tags, mentioned_commodities = _llm_extract_tags(
+        search_text,
+        tickers=mentioned_tickers,
+        source_kind=_coerce_text(source_kind).lower(),
+        llm_client=load_llm_client(),
+    )
     published_date = _published_date_text(published_at)
     primary_date = published_date or (mentioned_dates[0] if mentioned_dates else "")
     ticker_fields = _json_key_fields(mentioned_tickers)

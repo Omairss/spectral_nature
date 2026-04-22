@@ -44,6 +44,8 @@ Use the docs as follows:
 - `ATTENTION_FEED_IMPLEMENTATION_PLAN.md`: canonical implementation plan for the attention feed stack
 - `ATTENTION_FEED_EVENT_REDESIGN_PLAN.md`: product and background context for the event redesign
 - `ATTENTION_RESEARCH_QUALITY_FIX_2026-04-14.md`: root-cause notes and staged fix plan for flat homepage hypotheses, clipped homepage beats, and generic `Why It Happened` event-card copy
+- `ATTENTION_HOME_SUMMARY_SAA_WIRING_2026-04-15.md`: source fix for routing homepage summary evidence through shared SAA retrieval, retaining fuller page text, and showing a compact research trace in the UI
+- `ATTENTION_HOME_UI_RUNTIME_FIX_2026-04-15.md`: runtime fixes for the homepage UI trace, fail-fast Seeking Alpha access, and explicit Azure embedding deployment behavior
 - `ATTENTION_LAYER_PLAN.md`: historical layer-design context
 - `ATTENTION_FRED_INTEGRATION_PLAN_2026-04-06.md`: phased architecture plan to integrate FRED into attention scoring
 - `AGENTIC_TICKER_BACKGROUND_TAVILY_2026-04-03.md`: background enrichment plan and Tavily integration notes
@@ -52,11 +54,18 @@ Use the docs as follows:
 - `AQL_NLP_IR_AGENT_ARCHITECTURE_2026-04-14.md`: north-star architecture for AQL plus `SAA`, the supporting search and retrieval system with durable full-text retention, hybrid retrieval, explicit agent loops, and evidence-pack writers
 - `AQL_SAA_PHASE0_RETENTION_RETRIEVAL_2026-04-14.md`: implemented Phase 0 fix for richer search-result retention, better homepage-summary document capture, and ranked chunk retrieval
 - `AQL_SAA_PHASE1_RETENTION_FOUNDATION_2026-04-14.md`: implemented Phase 1 retention foundation with canonical document ids, durable raw-document blobs, and Postgres metadata for retained source documents
+- `AQL_SAA_PHASE2_QUERY_SURFACE_2026-04-14.md`: implemented Phase 2 historical query surface for retained SAA documents, including shared search and direct document-open paths
+- `AQL_SAA_PHASE3_HISTORICAL_CHUNK_SEARCH_2026-04-14.md`: implemented Phase 3 chunk-history retention and historical chunk search over durable SAA evidence
+- `AQL_SAA_PHASE4_HYBRID_RETRIEVAL_2026-04-14.md`: implemented Phase 4 hybrid retrieval over retained chunks, combining structured filters, lexical scoring, and optional semantic reranking from stored embeddings
 - `AQL_SAA_V1_IMPLEMENTATION_ROADMAP_2026-04-14.md`: concrete build roadmap for AQL plus SAA v1, including workstreams, phases, acceptance criteria, module boundaries, and rollout order
 - `BMY_BACKGROUND_FALLBACK_FIX_2026-04-03.md`: targeted ticker-background recovery notes
 - `COMMODITY_PRELOAD_ROOT_CAUSE_FIX_2026-04-09.md`: commodity preload recovery and alignment plan
 - `DEPENDENCY_GRAPH_INTEGRATION_2026-04-10.md`: JSON-backed dependency graph feature plan and commodity-dashboard seam
 - `CHAT_SEARCH_RESEARCH_ENABLEMENT_2026-04-12.md`: plan to make Chat + Search use retained narratives, live evidence, and config-driven impact expansion for analysis prompts
+- `BROAD_ECONOMY_FRED_SOURCE_UI_FIX_2026-04-19.md`: source and layout fix for stale Broad Economy dates, broken YoY, stationarized-default charts, and a reordered macro page
+- `RESEARCH_EXPORT_API_2026-04-18.md`: unified `/v1/research/export` endpoint joining documents, chunks, summaries, and raw text into a single organized dump for iOS, agents, and export
+- `FRED_MACRO_PM_COVERAGE_2026-04-15.md`: expansion of the curated FRED dashboard with macro PM series for rates, curve, breakevens, dollar, bank credit, consumption, savings, and home prices
+- `FRED_V1_FALLBACK_2026-04-14.md`: source fix for preferring FRED v2 bulk but falling back to curated v1 series loads when bulk auth is unavailable
 - `MARKET_OPPORTUNITY_PRECOMPUTE_RECOVERY_PLAN.md`: market precompute recovery work
 - `PIPELINE_IDENTITY_AND_FRED_RETRY_FIX_2026-04-13.md`: root cause and source fixes for the attention job identity drift plus FRED retry hardening
 - `PIPELINE_CACHE_GUARDRAILS_2026-04-14.md`: local pipeline-store cache bounds plus git-ignore cleanup for runtime cache artifacts

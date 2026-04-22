@@ -140,6 +140,21 @@ def _rank_chunk_score(
         score += 0.08
     if _coerce_text(row.get("source_authority_bucket")) == "official":
         score += 0.06
+    try:
+        score += min(max(float(row.get("search_score") or 0.0), 0.0), 12.0) * 0.05
+    except Exception:
+        pass
+    try:
+        score += min(max(float(row.get("score_embedding") or 0.0), 0.0), 1.0) * 0.16
+    except Exception:
+        pass
+    match_source = _coerce_text(row.get("match_source")).lower()
+    if match_source == "hybrid":
+        score += 0.08
+    elif match_source == "semantic":
+        score += 0.05
+    elif match_source == "lexical":
+        score += 0.03
     if _is_low_signal(row.get("title"), text):
         score -= 0.2
     return round(score, 4)
@@ -213,6 +228,9 @@ def _documents_from_search_results(
                 "raw_text_origin": raw_text_origin,
                 "raw_text_chars": len(raw_text),
                 "display_excerpt": _display_excerpt(raw_text, title),
+                "page_text": page_text,
+                "browse_mode": _coerce_text(row.get("browse_mode")),
+                "browse_warning": _coerce_text(row.get("browse_warning")),
                 "search_provider": _coerce_text(row.get("provider")),
                 "query_text": _coerce_text(row.get("query_text")),
                 "provider_payload_json": provider_payload_json,
