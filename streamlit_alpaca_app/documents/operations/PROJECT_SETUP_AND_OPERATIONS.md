@@ -365,7 +365,7 @@ From active job schedules:
 
 Fundamentals are generated inside equities preload, but throttled to once per `FUNDAMENTALS_MIN_REFRESH_HOURS` (default 24h).
 Taxonomy refresh runs once a month by default and publishes the DB-backed entity taxonomy snapshot for NASDAQ and NYSE listings.
-For setup and runtime flow charts, see `documents/infra/TAXONOMY_PIPELINE_FLOW.md`.
+For setup and runtime flow charts, see `documents/architecture/data_pipelines/TAXONOMY_PIPELINE_FLOW.md`.
 
 ---
 

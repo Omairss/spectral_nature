@@ -913,7 +913,7 @@ Do not start with sandbox execution.
 
 Async two-step export of all retained research data in a time window, delivered as a zip file.
 
-See `documents/plans/RESEARCH_EXPORT_API_2026-04-18.md` for full design and folder structure.
+See `documents/architecture/agents/RESEARCH_EXPORT_API_2026-04-18.md` for full design and folder structure.
 
 ### `POST /v1/research/export`
 
@@ -989,4 +989,4 @@ curl -o export.zip "DOWNLOAD_URL_FROM_ABOVE"
 - `documents/plans/spectral_nature_2/IPHONE_APP_STRATEGY_2026-04-05.md`
 - `documents/plans/spectral_nature_2/IPHONE_MVP_SCAFFOLD_2026-04-06.md`
 - `documents/plans/spectral_nature_2/AGENTIC_API_AUTH_MCP_2026-04-07.md`
-- `documents/plans/RESEARCH_EXPORT_API_2026-04-18.md`
+- `documents/architecture/agents/RESEARCH_EXPORT_API_2026-04-18.md`

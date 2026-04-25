@@ -8,6 +8,7 @@ from .aql import (
     build_attention_home_narrative_beats,
     build_attention_home_summary,
     build_attention_home_summary_payload,
+    verify_hypothesis,
 )
 
 __all__ = [
@@ -19,4 +20,5 @@ __all__ = [
     "build_attention_home_narrative_beats",
     "build_attention_home_summary",
     "build_attention_home_summary_payload",
+    "verify_hypothesis",
 ]

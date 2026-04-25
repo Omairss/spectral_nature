@@ -7,23 +7,25 @@ from typing import Any
 
 import pandas as pd
 
-from .llm import COPY_STYLE_RULE, LLMAPIError, OpenAIChatJSONClient, get_prompt, register_copy_prompt
+from .llm import NARRATIVE_STYLE_RULE, LLMAPIError, OpenAIChatJSONClient, get_prompt, register_narrative_prompt
 
-_FILING_ANALYST_SYSTEM_PROMPT = register_copy_prompt(
+_FILING_ANALYST_SYSTEM_PROMPT = register_narrative_prompt(
     name="SEC Filing Analyst (evidence extraction)",
     file="services/attention_context_llm.py",
+    group="Attention Pipeline",
     prompt=(
-        f"{COPY_STYLE_RULE} "
+        f"{NARRATIVE_STYLE_RULE} "
         "You are an SEC filing analyst. Use only the provided filing metadata and filing text. "
         "Do not invent facts, numbers, or motives. Summaries should be concise and readable."
     ),
 )
 
-_ATTENTION_NARRATIVE_SYSTEM_PROMPT = register_copy_prompt(
+_ATTENTION_NARRATIVE_SYSTEM_PROMPT = register_narrative_prompt(
     name="Attention Feed Narrative (anomaly + EDGAR context)",
     file="services/attention_context_llm.py",
+    group="Attention Pipeline",
     prompt=(
-        f"{COPY_STYLE_RULE} "
+        f"{NARRATIVE_STYLE_RULE} "
         "You write short, human-readable market narratives for an attention feed. "
         "Use only the supplied anomaly metadata and EDGAR-derived evidence. "
         "Be concrete and explicitly reflect uncertainty when evidence is thin."

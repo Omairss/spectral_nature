@@ -10,6 +10,7 @@ When a doc below mentions `documents/...`, treat that as a path relative to `str
 
 Keep docs here:
 
+- `architecture/`: durable architecture, system design, and cross-service contracts
 - `plans/`: active implementation notes, recovery plans, and short design docs
 - `operations/`: setup, deploy, and operator runbooks
 - `infra/`: tracked infra references and live-status trackers
@@ -108,6 +109,7 @@ Run the API or Streamlit UI with container ports exposed:
 ## Documentation map
 
 - `documents/README.md`: doc hub and runtime overview
+- `documents/architecture/README.md`: durable architecture map, grouped by system area
 - `documents/learnings.md`: reusable takeaways across sessions
 - `documents/mistakes.md`: repeated mistakes and guardrails
 - `documents/operations/PROJECT_SETUP_AND_OPERATIONS.md`: contributor setup and deployment workflow
@@ -257,8 +259,9 @@ The setup script writes local-only outputs to `infra/.generated/email_delivery.l
 - The `macro-fred-daily` job now also materializes official Treasury yield datasets: `yield_curve_observations`, `yield_curve_summary`, and `yield_curve_facts_1d`.
 - The `attention-home-build` job materializes the homepage attention datasets and research bundles from upstream snapshots; the UI is intended to read those outputs rather than compute inline.
 - The `entity-taxonomy-refresh` job materializes `us_equity_listings` and `entity_taxonomy_labels`, and it is scheduled monthly by default.
-- A flow-chart version of the taxonomy setup lives in `documents/infra/TAXONOMY_PIPELINE_FLOW.md`.
-- Active design plans live under `documents/plans/`.
+- A flow-chart version of the taxonomy setup lives in `documents/architecture/data_pipelines/TAXONOMY_PIPELINE_FLOW.md`.
+- Durable architecture and design docs live under `documents/architecture/`.
+- Active implementation, recovery, and short working plans live under `documents/plans/`.
 - Treasury direct yields are used for official daily rate facts; FRED remains available for broader macro history and dashboard context.
 - Benchmarks used: `SPY, DIA, QQQ, VOO, BRK.B, ARKK`.
 - Live data loaders now persist CSV caches under `streamlit_alpaca_app/cache/data/`.

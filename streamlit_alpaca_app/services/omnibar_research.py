@@ -9,9 +9,35 @@ import pandas as pd
 from data_access.layer import DataAccessLayer
 from services.attention_agentic import search_symbol_news_payload
 from services.attention_live_research import search_market_event_news_payload
-from services.llm import load_llm_client
+from services.llm import get_config_param, load_llm_client, register_config_param
 from services.omnibar import resolve_omnibar
 from .page_browsing import browse_page
+
+# --- Configurable limits (exposed in Admin > LLM Config > Tuning Parameters) ---
+_P_LIVE_EVENT_MAX_RESULTS = register_config_param(
+    "Live event evidence max results",
+    group="Chat + Search",
+    default=6,
+    description="Default max articles returned by live_event_evidence",
+)
+_P_LIVE_EVENT_MAX_SYMBOLS = register_config_param(
+    "Live event max symbols",
+    group="Chat + Search",
+    default=8,
+    description="Max symbols to resolve for live event evidence searches",
+)
+_P_RETAINED_CONTEXT_MAX_ITEMS = register_config_param(
+    "Retained context max items",
+    group="Chat + Search",
+    default=5,
+    description="Default max items returned by retained_context",
+)
+_P_SUMMARY_TRIM_LIMIT = register_config_param(
+    "Research summary text trim limit",
+    group="Chat + Search",
+    default=220,
+    description="Max chars for summary text in research results",
+)
 
 
 _QUERY_INTENT_SCHEMA: dict[str, Any] = {
@@ -20,13 +46,18 @@ _QUERY_INTENT_SCHEMA: dict[str, Any] = {
     "properties": {
         "event_type": {
             "type": "string",
-            "enum": ["oil", "rates", "defensives", "risk", "generic"],
+            "enum": ["oil", "rates", "defensives", "risk", "squeeze", "earnings", "sector", "generic"],
         },
         "direction": {"type": "string", "enum": ["up", "down"]},
         "theme_label": {"type": "string"},
         "evidence_needed": {
             "type": "boolean",
             "description": "True if the query requires fresh external evidence (news, macro data, live prices) to answer. False for simple lookups or ticker queries.",
+        },
+        "search_keywords": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Key phrases from the query to preserve in search (e.g. 'short squeeze', 'earnings miss'). Extract the specific terms, not categories.",
         },
         "relevant_symbols": {"type": "array", "items": {"type": "string"}},
         "symbol_roles": {
@@ -43,7 +74,7 @@ _QUERY_INTENT_SCHEMA: dict[str, Any] = {
             },
         },
     },
-    "required": ["event_type", "direction", "theme_label", "relevant_symbols", "symbol_roles", "evidence_needed"],
+    "required": ["event_type", "direction", "theme_label", "relevant_symbols", "symbol_roles", "evidence_needed", "search_keywords"],
 }
 
 
@@ -115,17 +146,22 @@ def _llm_query_intent(query: str, *, llm_client: object, max_symbols: int) -> di
             system_prompt=(
                 "You are a market-theme classifier for a financial research platform. "
                 "Given a user query, classify it and infer the directional impact on financial markets. "
-                "event_type must be one of: oil, rates, defensives, risk, generic. "
+                "event_type must be one of: oil, rates, defensives, risk, squeeze, earnings, sector, generic. "
                 "Use 'rates' for interest rates, inflation, central banks, CPI, PPI, PCE, NFP, or any economic data release. "
                 "Use 'oil' for energy, commodities, or geopolitical supply risk. "
                 "Use 'defensives' for gold, safe havens, volatility, or risk-off moves. "
-                "Use 'risk' for equities, growth, earnings, or sector-specific moves. "
+                "Use 'squeeze' for short squeezes, gamma squeezes, or heavily-shorted stock moves. "
+                "Use 'earnings' for earnings reports, beats, misses, or guidance. "
+                "Use 'sector' for sector rotation, industry-specific trends, or thematic moves. "
+                "Use 'risk' for broad equity risk, growth scares, or systemic market moves. "
                 "Use 'generic' only when nothing else fits. "
                 "direction is 'up' for stress/supply-risk/hawkish reads, 'down' for relief/dovish/risk-on reads. "
                 "evidence_needed is true when the query requires fresh external data to answer (news, macro releases, "
                 "live prices, recent events). False for simple ticker lookups or questions answerable from static knowledge. "
-                "relevant_symbols: US-listed ETFs or large-caps most likely impacted — include proxies "
-                "(TLT/IEF for rates, USO/XLE for oil, GLD/VIXY for defensives, SPY/QQQ for broad risk). "
+                "search_keywords: extract the key domain-specific phrases from the query that should be preserved "
+                "in any search (e.g. 'short squeeze', 'earnings miss', 'tariff impact'). Do not generalize. "
+                "relevant_symbols: the actual US-listed tickers most directly impacted by the event described. "
+                "Use the specific stocks/ETFs the query is about, not generic market proxies. "
                 f"Return at most {max_symbols} symbols."
             ),
             user_prompt=json.dumps({"query": query}, ensure_ascii=False),
@@ -136,10 +172,11 @@ def _llm_query_intent(query: str, *, llm_client: object, max_symbols: int) -> di
             return baseline
         event_type = str(data.get("event_type") or "generic").lower()
         direction = str(data.get("direction") or "down").lower()
-        if event_type not in {"oil", "rates", "defensives", "risk", "generic"}:
+        if event_type not in {"oil", "rates", "defensives", "risk", "squeeze", "earnings", "sector", "generic"}:
             event_type = "generic"
         if direction not in {"up", "down"}:
             direction = "down"
+        search_keywords = [str(k).strip() for k in list(data.get("search_keywords") or []) if str(k).strip()]
         seen: set[str] = set()
         rows: list[dict[str, Any]] = []
         for item in list(data.get("symbol_roles") or []):
@@ -166,6 +203,7 @@ def _llm_query_intent(query: str, *, llm_client: object, max_symbols: int) -> di
             "direction": direction,
             "theme_label": _clean(data.get("theme_label")) or event_type,
             "evidence_needed": bool(data.get("evidence_needed", True)),
+            "search_keywords": search_keywords,
             "rows": rows[:max_symbols],
         }
     except Exception:
@@ -191,6 +229,7 @@ def market_impact_map(*, query: str, max_symbols: int = 8) -> dict[str, Any]:
         "theme": theme,
         "expected_direction": direction,
         "evidence_needed": intent["evidence_needed"],
+        "search_keywords": intent.get("search_keywords") or [],
         "focus_symbols": focus_symbols,
         "summary": rows,
         "llm_context_text": " ".join(llm_lines),
@@ -208,10 +247,11 @@ def _asset_name(layer: DataAccessLayer, symbol: str, *, force_refresh: bool) -> 
 
 
 def _bundle_summary(payload: dict[str, Any]) -> str:
+    trim_limit = int(get_config_param(_P_SUMMARY_TRIM_LIMIT))
     for key in ("surface_summary_text", "what_happened_text", "why_happened_text", "headline", "event_title"):
         text = _clean(payload.get(key))
         if text:
-            return _trim(text, limit=220)
+            return _trim(text, limit=trim_limit)
     return ""
 
 
@@ -226,7 +266,7 @@ def _background_summary(payload: dict[str, Any]) -> str:
     ):
         text = _clean(payload.get(key))
         if text:
-            return _trim(text, limit=220)
+            return _trim(text, limit=int(get_config_param(_P_SUMMARY_TRIM_LIMIT)))
     return ""
 
 
@@ -239,7 +279,8 @@ def retained_context(
     layer: DataAccessLayer | None = None,
 ) -> dict[str, Any]:
     resolved_layer = _layer(layer)
-    safe_limit = _safe_int(max_items, 5, minimum=1, maximum=8)
+    default_items = int(get_config_param(_P_RETAINED_CONTEXT_MAX_ITEMS))
+    safe_limit = _safe_int(max_items if max_items != 5 else default_items, default_items, minimum=1, maximum=12)
     resolution = resolve_omnibar(
         query=query,
         preferred_mode="search",
@@ -265,7 +306,7 @@ def retained_context(
                     "kind": "bundle",
                     "ref": bundle_id,
                     "label": _clean(result.get("label")) or bundle_id,
-                    "summary_text": _bundle_summary(payload) or _trim(result.get("subtitle"), limit=220),
+                    "summary_text": _bundle_summary(payload) or _trim(result.get("subtitle"), limit=int(get_config_param(_P_SUMMARY_TRIM_LIMIT))),
                     "source_line": _clean(payload.get("source_summary") or payload.get("source_line")),
                     "supporting_symbols": ", ".join(_symbol_list(payload.get("related_symbols") if isinstance(payload.get("related_symbols"), list) else result.get("symbols"))[:4]),
                 }
@@ -297,7 +338,7 @@ def retained_context(
                     "kind": "macro_release",
                     "ref": ref,
                     "label": _clean(result.get("label")) or ref,
-                    "summary_text": _trim(result.get("subtitle"), limit=220),
+                    "summary_text": _trim(result.get("subtitle"), limit=int(get_config_param(_P_SUMMARY_TRIM_LIMIT))),
                     "company_name": "",
                     "source_line": "Macro release context",
                 }
@@ -374,7 +415,7 @@ def _news_rows_from_payload(
                 "scope": scope,
                 "symbol": symbol,
                 "headline": headline,
-                "summary_text": _trim(summary or headline, limit=220),
+                "summary_text": _trim(summary or headline, limit=int(get_config_param(_P_SUMMARY_TRIM_LIMIT))),
                 "source": _clean(article.get("source")),
                 "published_at": published_at.isoformat() if pd.notna(published_at) else "",
                 "url": url,
@@ -392,8 +433,10 @@ def live_event_evidence(
     layer: DataAccessLayer | None = None,
 ) -> dict[str, Any]:
     resolved_layer = _layer(layer)
-    safe_limit = _safe_int(max_results, 6, minimum=1, maximum=10)
-    impact = market_impact_map(query=query, max_symbols=8)
+    default_results = int(get_config_param(_P_LIVE_EVENT_MAX_RESULTS))
+    safe_limit = _safe_int(max_results if max_results != 6 else default_results, default_results, minimum=1, maximum=15)
+    max_sym = int(get_config_param(_P_LIVE_EVENT_MAX_SYMBOLS))
+    impact = market_impact_map(query=query, max_symbols=max_sym)
     theme = _clean(impact.get("theme")) or "generic"
     direction = _clean(impact.get("expected_direction")) or "down"
 
@@ -423,17 +466,22 @@ def live_event_evidence(
                 "event_type": theme,
                 "anchor_direction": direction,
                 "supporting_symbols": selected_symbols,
+                # Pass the original query as event_title so the search query
+                # preserves the user's actual phrasing (e.g. "short squeeze")
+                # instead of only using the classified theme/proxy symbols.
+                "event_title": _clean(query),
             },
             max_results=max(min(safe_limit, 6), 3),
         )
         rows.extend(_news_rows_from_payload(event_payload, scope="market_event"))
 
     # Only run per-symbol news search for symbols that came from the user or resolved
-    # directly from the query. Fallback market-proxy symbols (SPY, TLT, etc.) are passed
-    # to the event search above for relevance scoring but are not worth individual searches
-    # for queries that didn't resolve to specific securities.
+    # Search per-symbol news for explicitly resolved symbols (up to 4) or
+    # intent-classified symbols (up to 2) since the classifier now returns
+    # actual affected tickers rather than generic proxies.
     llm_client = load_llm_client()
-    for symbol in (selected_symbols if explicitly_resolved else [])[:4]:
+    symbol_search_limit = 4 if explicitly_resolved else 2
+    for symbol in selected_symbols[:symbol_search_limit]:
         company_name = _asset_name(resolved_layer, symbol, force_refresh=force_refresh)
         payload = search_symbol_news_payload(
             symbol,
@@ -492,6 +540,73 @@ def live_event_evidence(
     }
 
 
+def search_evidence(
+    *,
+    query: str,
+    tickers: list[str] | None = None,
+    max_results: int = 10,
+) -> dict[str, Any]:
+    """Search the retained SAA evidence store for matching documents and chunks."""
+    from .saa import search_retained_evidence_chunks
+
+    normalized_query = _clean(query)
+    safe_limit = _safe_int(max_results, 10, minimum=1, maximum=20)
+    normalized_tickers = _symbol_list(tickers)
+
+    frame = search_retained_evidence_chunks(
+        query=normalized_query,
+        tickers=normalized_tickers or None,
+        limit=safe_limit,
+        use_semantic=False,
+    )
+
+    rows: list[dict[str, Any]] = []
+    if not frame.empty:
+        for _, row in frame.iterrows():
+            title = _clean(row.get("title"))
+            chunk_text = _clean(row.get("chunk_text"))
+            source_provider = _clean(row.get("source_provider"))
+            published_date = _clean(row.get("published_date"))
+            mentioned_tickers = _clean(row.get("mentioned_tickers_key"))
+            url = _clean(row.get("canonical_url") if "canonical_url" in frame.columns else "")
+            rows.append({
+                "title": title,
+                "chunk_text": _trim(chunk_text, limit=300),
+                "source": source_provider,
+                "published_date": published_date,
+                "tickers": mentioned_tickers,
+                "url": url,
+            })
+
+    llm_lines = [f"SAA evidence search for '{normalized_query}': {len(rows)} result(s)."]
+    if normalized_tickers:
+        llm_lines.append("Ticker filter: " + ", ".join(normalized_tickers) + ".")
+    for row in rows[:safe_limit]:
+        title = row.get("title") or ""
+        source = row.get("source") or ""
+        date = row.get("published_date") or ""
+        tickers_text = row.get("tickers") or ""
+        chunk = row.get("chunk_text") or ""
+        line = f"{title}"
+        if source:
+            line += f" ({source})"
+        if date:
+            line += f" [{date}]"
+        if tickers_text:
+            line += f" tickers={tickers_text}"
+        if chunk:
+            line += f": {chunk}"
+        llm_lines.append(line)
+
+    return {
+        "query": normalized_query,
+        "tickers": normalized_tickers,
+        "result_count": len(rows),
+        "summary": rows,
+        "llm_context_text": " ".join(item for item in llm_lines if item),
+    }
+
+
 def open_page(
     *,
     url: str,
@@ -530,4 +645,5 @@ __all__ = [
     "market_impact_map",
     "open_page",
     "retained_context",
+    "search_evidence",
 ]

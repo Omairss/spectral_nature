@@ -1,6 +1,6 @@
 # Attention Layer Implementation Plan
 
-Implementation note: use `ATTENTION_FEED_IMPLEMENTATION_PLAN.md` as the canonical build plan. This file is retained as historical layer-design context.
+Implementation note: use `documents/architecture/attention/ATTENTION_FEED_IMPLEMENTATION_PLAN.md` as the canonical build plan. This file is retained as historical layer-design context.
 
 ## Goal
 
@@ -66,7 +66,7 @@ New materialized datasets:
 4. `attention_feed`
 5. `attention_rollups`
 
-These datasets must follow the same append-only, versioned semantics already described in `documents/architecture/PIPELINE_REDESIGN.md`.
+These datasets must follow the same append-only, versioned semantics already described in `documents/architecture/overall/PIPELINE_REDESIGN.md`.
 
 ## Exact Dataset Schemas
 
@@ -201,7 +201,7 @@ Allowed `anomaly_type` values in Phase 1:
 
 Note:
 
-- `technical_regime_shift` is reserved in action copy logic but is not emitted by the current anomaly classifier.
+- `technical_regime_shift` is reserved in action-text logic but is not emitted by the current anomaly classifier.
 
 Allowed `status` values:
 

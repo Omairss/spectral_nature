@@ -301,6 +301,14 @@ def test_get_access_admin_dashboard_filters_selected_user_and_hydrates_activity(
                     )
                 ],
             },
+            {
+                "columns": ["email", "label", "section_view_count", "other_event_count", "total_event_count", "last_activity_at"],
+                "rows": [("admin@example.com", "Admin User", 10, 5, 15, now)],
+            },
+            {
+                "columns": ["ip_address", "event_count", "unique_user_count", "security_event_count", "last_seen_at", "users"],
+                "rows": [("1.2.3.4", 12, 2, 3, now, "Ivy Investor, Admin User")],
+            },
         ]
     )
     fake_conn = _FakeConnection(cursor)
@@ -331,7 +339,11 @@ def test_get_access_admin_dashboard_filters_selected_user_and_hydrates_activity(
     assert dashboard["selected_user_targets"][0]["event_count"] == 3
     assert dashboard["selected_user_activity"][0]["target_label"] == "AAPL"
     assert dashboard["selected_user_activity"][0]["detail"]["surface"] == "home_v2"
-    assert len(cursor.executed) == 13
+    assert dashboard["admin_usage"][0]["label"] == "Admin User"
+    assert dashboard["admin_usage"][0]["total_event_count"] == 15
+    assert dashboard["access_ips"][0]["ip_address"] == "1.2.3.4"
+    assert dashboard["access_ips"][0]["event_count"] == 12
+    assert len(cursor.executed) == 15
     assert "WHERE user_id = %s::uuid" in cursor.executed[1][0]
     assert user_id in tuple(cursor.executed[5][1] or ())
     assert "investor@example.com" in tuple(cursor.executed[5][1] or ())

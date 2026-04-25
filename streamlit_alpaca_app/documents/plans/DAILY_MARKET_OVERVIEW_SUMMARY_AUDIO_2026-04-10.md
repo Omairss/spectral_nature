@@ -1,13 +1,13 @@
-# Daily Tape Summary + Audio Plan
+# Daily Market Overview Summary + Audio Plan
 
 ## Goal
 
-- Add one top summary card on the Daily Tape page that rolls up the activity shown in the cards below it.
+- Add one top summary card on the Daily Market Overview page that rolls up the activity shown in the cards below it.
 - Let the user generate an audio version of that summary text through ElevenLabs.
 
 ## Approach
 
-1. Move the Daily Tape beat-building logic into a shared service so the app and omnibar use the same source.
+1. Move the Daily Market Overview beat-building logic into a shared service so the app and omnibar use the same source.
 2. Build one deterministic summary payload from:
    - `top_events`
    - `must_read_movers`
@@ -21,7 +21,7 @@
 
 ## Reliability Notes
 
-- The summary card should be built from the same retained surface summaries already used by the tape cards.
+- The summary card should be built from the same retained surface summaries already used by the market overview cards.
 - Audio generation should be user-triggered, not automatic on every page load, to avoid surprise latency and spend.
 - Voice choice should be configured, not hardcoded.
 

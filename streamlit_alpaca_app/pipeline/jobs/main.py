@@ -55,7 +55,7 @@ from services.market import (
 )
 from services.options import build_option_snapshot_surface, load_option_chain
 from services.pipeline_store import load_latest_dataset_frame
-from services.saa.storage import bootstrap_saa_storage, persist_retained_evidence_chunks, persist_retained_source_documents
+from services.saa import bootstrap_saa_storage, persist_retained_evidence_chunks, persist_retained_source_documents
 from services.secrets import resolve_secret_value
 from services.simfin_refresh import build_quarterly_fundamentals_frame, simfin_refresh_configured
 from services.treasury_yields import TreasuryYieldError, load_treasury_yield_datasets
@@ -999,6 +999,54 @@ def _build_quarterly_fundamentals_snapshot(symbols: list[str]) -> tuple[pd.DataF
     return fundamentals, details
 
 
+def _resolve_fundamentals_symbols(conn: Any | None = None) -> list[str]:
+    """Resolve symbols for the standalone fundamentals job.
+
+    Uses UNIVERSE_SYMBOLS env override first, then falls back to the
+    persisted universe_snapshot in the pipeline database.
+    """
+    explicit = _symbols_from_env()
+    if explicit:
+        print(f"[info] fundamentals: using explicit UNIVERSE_SYMBOLS override with {len(explicit)} symbol(s)")
+        return explicit
+
+    try:
+        frame, _ = load_latest_dataset_frame("universe_snapshot")
+    except Exception as exc:
+        print(f"[warn] fundamentals: failed to load universe_snapshot: {type(exc).__name__}: {exc}")
+        frame = pd.DataFrame()
+
+    if not frame.empty and "symbol" in frame.columns:
+        symbols = [str(s).upper().strip() for s in frame["symbol"].dropna().unique() if str(s).strip()]
+        if symbols:
+            print(f"[info] fundamentals: using universe_snapshot with {len(symbols)} symbol(s)")
+            return symbols
+
+    raise RuntimeError("unable to resolve symbols for fundamentals: set UNIVERSE_SYMBOLS or run universe-builder first")
+
+
+def run_fundamentals(ctx: JobContext, conn: Any | None = None) -> None:
+    _job_progress(ctx, conn, stage="starting", message="Starting quarterly fundamentals refresh.", progress_pct=1.0)
+    symbols = _resolve_fundamentals_symbols(conn)
+    _job_progress(ctx, conn, stage="symbols_resolved", message=f"Resolved {len(symbols)} symbols.", progress_pct=10.0)
+
+    fundamentals, details = _build_quarterly_fundamentals_snapshot(symbols)
+    provider = str(details.get("provider") or "local").strip() or "local"
+    data_dir = str(details.get("data_dir") or "").strip()
+    row_count = len(fundamentals) if not fundamentals.empty else 0
+    print(f"[info] fundamentals source={provider} rows={row_count}" + (f" data_dir={data_dir}" if data_dir else ""))
+
+    if fundamentals.empty:
+        message = "Fundamentals refresh produced no data"
+        print(f"[warn] {message}")
+        _job_progress(ctx, conn, stage="failed", message=message, progress_pct=100.0, status="Failed")
+        raise RuntimeError(message)
+
+    _job_progress(ctx, conn, stage="persist", message=f"Persisting {row_count} fundamentals rows.", progress_pct=80.0)
+    _persist_dataset("quarterly_fundamentals", fundamentals, ctx, conn)
+    _job_progress(ctx, conn, stage="done", message=f"Fundamentals refresh complete: {row_count} rows from {provider}.", progress_pct=100.0)
+
+
 def _build_treasury_yield_snapshots(*, asof_time_utc: datetime | pd.Timestamp | None = None) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     years = max(int(os.getenv("TREASURY_YIELD_LOOKBACK_YEARS", "3")), 1)
     payload = load_treasury_yield_datasets(years=years, end_date=asof_time_utc)
@@ -1288,23 +1336,7 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
         except Exception as exc:
             print(f"[warn] anomaly layer skipped: {type(exc).__name__}: {exc}")
 
-        try:
-            _job_progress(ctx, conn, stage="fundamentals", message="Refreshing quarterly fundamentals when stale.", progress_pct=90.0)
-            fundamentals_min_refresh_hours = max(float(os.getenv("FUNDAMENTALS_MIN_REFRESH_HOURS", "24")), 1.0)
-            fundamentals_fresh = bool(conn is not None and _db_dataset_is_fresh(conn, "quarterly_fundamentals", fundamentals_min_refresh_hours))
-            if fundamentals_fresh:
-                print(f"[info] fundamentals preload skipped: latest snapshot is < {fundamentals_min_refresh_hours:g}h old")
-            else:
-                fundamentals, details = _build_quarterly_fundamentals_snapshot(symbols)
-                provider = str(details.get("provider") or "local").strip() or "local"
-                data_dir = str(details.get("data_dir") or "").strip()
-                if data_dir:
-                    print(f"[info] fundamentals source={provider} data_dir={data_dir}")
-                else:
-                    print(f"[info] fundamentals source={provider}")
-                _persist_dataset("quarterly_fundamentals", fundamentals, ctx, conn)
-        except Exception as exc:
-            print(f"[warn] fundamentals preload skipped: {type(exc).__name__}: {exc}")
+        # Fundamentals refresh moved to standalone job: fundamentals-quarterly-refresh
     except AlpacaAPIError as exc:
         print(f"[error] equities preload failed: {exc}")
 
@@ -1943,6 +1975,7 @@ def main() -> None:
         "news-ingest-and-features": run_news,
         "attention-home-build": run_attention_home,
         "entity-taxonomy-refresh": run_entity_taxonomy,
+        "fundamentals-quarterly-refresh": run_fundamentals,
     }
 
     handler = dispatch.get(ctx.name)

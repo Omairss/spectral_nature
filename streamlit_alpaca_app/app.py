@@ -59,6 +59,8 @@ from services.fred import (
 from services.pipeline_store import (
     SOURCE_DATASETS,
     SOURCE_JOB_MAP,
+    dataset_version_history,
+    job_run_history,
     latest_job_status_table,
     load_latest_dataset_frame,
     pipeline_store_configured,
@@ -85,16 +87,15 @@ from services.knowledge_graph import (
     search_knowledge_graph_nodes,
 )
 from services.llm import (
-    COPY_STYLE_RULE,
-    get_active_copy_style_rule,
+    get_active_narrative_style_rule,
     list_config_params,
-    list_copy_prompts,
+    list_narrative_prompts,
     load_llm_config,
     load_prompt_overrides,
     save_prompt_overrides,
     set_config_param_override,
-    set_copy_prompt_override,
-    set_copy_style_rule_override,
+    set_narrative_prompt_override,
+    set_narrative_style_rule_override,
 )
 from services.runtime_policy import attention_ui_policy, presentation_layer_only_enabled, section_data_available
 from services.secrets import resolve_secret_value
@@ -203,6 +204,19 @@ if not LOGGER.handlers:
 LOGGER.setLevel(logging.INFO)
 LOGGER.propagate = False
 
+# Log LLM/embedding readiness once per app session so operators can see
+# which capabilities are actually live (mistakes.md #15, #36).
+if "_llm_readiness_logged" not in st.session_state:
+    try:
+        from services.llm import check_llm_readiness
+        _readiness = check_llm_readiness()
+        for _key, _val in _readiness.items():
+            LOGGER.info("LLM readiness: %s = %s", _key, _val)
+        st.session_state["_llm_readiness_logged"] = True
+    except Exception as _exc:
+        LOGGER.warning("LLM readiness check failed: %s", _exc)
+        st.session_state["_llm_readiness_logged"] = True
+
 HOME_EXP_SECTION = "Experiment"
 AGENTIC_OMNIBAR_SECTION = "Chat + Search"
 STOCK_INVESTIGATOR_SECTION = "Stock Investigator"
@@ -221,7 +235,6 @@ BASE_SECTION_OPTIONS = [
     STOCK_INVESTIGATOR_SECTION,
     "Option Strategizer",
     BROAD_ECONOMY_SECTION,
-    "Pipeline Jobs",
 ]
 OMNIBAR_POLICY_VERSION = "streamlit-agentic-omnibar-v1"
 OMNIBAR_MACRO_RELEASES: tuple[dict[str, object], ...] = (
@@ -282,6 +295,7 @@ JOB_LABELS = {
     "news-ingest-and-features": "News Snapshot Refresh",
     "attention-home-build": "Attention Home Build",
     "entity-taxonomy-refresh": "Entity Taxonomy Refresh",
+    "fundamentals-quarterly-refresh": "Fundamentals Quarterly Refresh",
 }
 
 MARKET_MOMENTUM_SCAN_DAYS = 3650
@@ -798,6 +812,8 @@ def _render_access_usage_admin_dashboard(
         )
 
     user_usage = pd.DataFrame(dashboard.get("user_usage") or [])
+    if not user_usage.empty and "role" in user_usage.columns and not selected_user_id:
+        user_usage = user_usage[user_usage["role"].str.lower() != "admin"].copy()
     st.subheader("Who Is Using It" if not selected_user_id else "Selected User Overview")
     if user_usage.empty:
         st.info("No user usage rows are available yet.")
@@ -966,6 +982,56 @@ def _render_access_security_admin_dashboard(
     session_metrics[0].metric(f"Active Sessions ({active_label})", int(summary.get("active_sessions") or 0))
     session_metrics[1].metric("Open Sessions", int(summary.get("open_sessions") or 0))
     session_metrics[2].metric("Active Users Now", int(summary.get("active_users_now") or 0))
+
+    admin_usage = pd.DataFrame(dashboard.get("admin_usage") or [])
+    st.subheader("Admin Usage")
+    if admin_usage.empty:
+        st.info("No admin usage recorded in this window.")
+    else:
+        admin_chart = px.bar(
+            admin_usage,
+            x="label",
+            y="total_event_count",
+            text="total_event_count",
+            color="label",
+            custom_data=["section_view_count", "other_event_count"],
+        )
+        admin_chart.update_traces(
+            hovertemplate="Admin=%{x}<br>Total=%{y}<br>Section Views=%{customdata[0]}<br>Other=%{customdata[1]}<extra></extra>"
+        )
+        admin_chart.update_layout(
+            margin=dict(l=20, r=20, t=20, b=20),
+            xaxis_title="",
+            yaxis_title="Events",
+            showlegend=False,
+        )
+        st.plotly_chart(admin_chart, use_container_width=True)
+
+    access_ips = pd.DataFrame(dashboard.get("access_ips") or [])
+    st.subheader("Access IPs")
+    if access_ips.empty:
+        st.info("No access IP data recorded in this window.")
+    else:
+        if "last_seen_at" in access_ips.columns:
+            access_ips["last_seen_at"] = access_ips["last_seen_at"].apply(_format_access_admin_timestamp)
+        st.dataframe(
+            access_ips[
+                [
+                    column
+                    for column in [
+                        "ip_address",
+                        "event_count",
+                        "unique_user_count",
+                        "security_event_count",
+                        "users",
+                        "last_seen_at",
+                    ]
+                    if column in access_ips.columns
+                ]
+            ],
+            use_container_width=True,
+            hide_index=True,
+        )
 
     cloud_security_status = dict(dashboard.get("cloud_security_status") or {})
     cloud_summary = dict(cloud_security_status.get("summary") or {})
@@ -1312,7 +1378,7 @@ def _ensure_app_shell_styles() -> None:
             background: var(--sn-card-strong);
             box-shadow: var(--sn-shadow-soft);
         }
-        .sn-sidebar-brand-copy {
+        .sn-sidebar-brand-text {
             display: flex;
             flex-direction: column;
             gap: 0.12rem;
@@ -1463,7 +1529,7 @@ def _ensure_app_shell_styles() -> None:
             font-weight: 680;
             line-height: 1.02;
         }
-        .sn-page-copy {
+        .sn-page-text {
             max-width: 58rem;
             color: var(--sn-muted-strong);
             font-size: 0.94rem;
@@ -1659,6 +1725,15 @@ def _ensure_app_shell_styles() -> None:
             border: 1px solid var(--sn-line);
             background: var(--sn-card);
         }
+        /* Sidebar replay date picker — compact, matches nav feel */
+        [class*="st-key-homepage_replay_date"] {
+            margin: 0.3rem 0 0.1rem 0;
+        }
+        [class*="st-key-homepage_replay_date"] input {
+            font-size: 0.82rem !important;
+            padding: 0.3rem 0.5rem !important;
+            min-height: 0 !important;
+        }
         /* Vertical nav tabs */
         .sn-nav-label {
             margin: 0.6rem 0 0.3rem 0;
@@ -1765,7 +1840,7 @@ def _render_sidebar_brand_panel() -> None:
         (
             "<div class='sn-sidebar-brand'>"
             f"{brand_markup}"
-            "<div class='sn-sidebar-brand-copy'>"
+            "<div class='sn-sidebar-brand-text'>"
             f"{title_markup}"
             "<div class='sn-sidebar-brand-signoff'>"
             f"<div class='sn-sidebar-brand-subtitle'>by {html.escape(APP_BRAND_KICKER)}</div>"
@@ -1783,7 +1858,7 @@ def _render_page_intro(kicker: str, title: str, body: str) -> None:
             "<div class='sn-page-intro'>"
             f"<div class='sn-page-kicker'>{html.escape(kicker)}</div>"
             f"<div class='sn-page-title'>{html.escape(title)}</div>"
-            f"<div class='sn-page-copy'>{html.escape(body)}</div>"
+            f"<div class='sn-page-text'>{html.escape(body)}</div>"
             "</div>"
         ),
         unsafe_allow_html=True,
@@ -1955,8 +2030,8 @@ _load_attention_rollups_cached = dashboard_loaders._load_attention_rollups_cache
 _load_attention_feed_brief_cached = dashboard_loaders._load_attention_feed_brief_cached
 
 _attention_event_key = attention_content._attention_event_key
-_clean_attention_copy = attention_content._clean_attention_copy
-_raw_attention_copy = attention_content._raw_attention_copy
+_clean_attention_text = attention_content._clean_attention_text
+_raw_attention_text = attention_content._raw_attention_text
 _attention_evidence_display_text = attention_content._attention_evidence_display_text
 _attention_story_text = attention_content._attention_story_text
 _headline_items_from_news_payload = attention_content._headline_items_from_news_payload
@@ -2179,7 +2254,7 @@ def _normalize_workspace_section(section_name: object) -> str:
         "Homepage - v2": "Home",
         "Homepage Exp": HOME_EXP_SECTION,
         "Home Experimental": HOME_EXP_SECTION,
-        "Daily Tape": HOME_EXP_SECTION,
+        "Daily Market Overview": HOME_EXP_SECTION,
         "Agentic Omnibar": AGENTIC_OMNIBAR_SECTION,
         "Agentic Ombibar": AGENTIC_OMNIBAR_SECTION,
         "Portfolio Overview": PORTFOLIO_SECTION,
@@ -2187,6 +2262,7 @@ def _normalize_workspace_section(section_name: object) -> str:
         "Market Opportunity": MARKET_EXPLORER_SECTION,
         "FRED Macro": BROAD_ECONOMY_SECTION,
         "Access Admin": ADMIN_SECTION,
+        "Pipeline Jobs": ADMIN_SECTION,
     }
     if normalized in alias_map:
         return alias_map[normalized]
@@ -2820,11 +2896,11 @@ def _render_invite_email_designer(*, current_user: auth_service.UserContext) -> 
                 notice={"level": "success", "message": "New template saved and activated."},
             )
 
-    copy_col, color_col = st.columns(2)
-    with copy_col:
+    text_col, color_col = st.columns(2)
+    with text_col:
         st.text_input("Kicker", key=_invite_theme_widget_state_key("kicker"))
         st.text_input("Headline", key=_invite_theme_widget_state_key("headline"))
-        st.text_area("Intro Copy", key=_invite_theme_widget_state_key("intro_text"), height=120)
+        st.text_area("Intro Text", key=_invite_theme_widget_state_key("intro_text"), height=120)
         st.text_input("CTA Button Label", key=_invite_theme_widget_state_key("cta_label"))
         st.checkbox("Show Graph", key=_invite_theme_widget_state_key("show_graph"))
         st.text_area("Graph Caption", key=_invite_theme_widget_state_key("graph_caption"), height=90)
@@ -2948,14 +3024,14 @@ def _render_llm_config_admin() -> None:
             st.caption(f"Reasoning effort: {config.reasoning_effort}")
 
     st.divider()
-    st.subheader("Copy Style Rule")
+    st.subheader("Narrative Style Rule")
     st.caption("Shared rule appended to every user-facing system prompt.")
-    active_rule = get_active_copy_style_rule()
+    active_rule = get_active_narrative_style_rule()
     edited_rule = st.text_area(
-        "Copy Style Rule",
+        "Narrative Style Rule",
         value=active_rule,
         height=120,
-        key="llm_admin_copy_style_rule",
+        key="llm_admin_narrative_style_rule",
         label_visibility="collapsed",
     )
     rule_changed = edited_rule.strip() != active_rule.strip()
@@ -2963,7 +3039,7 @@ def _render_llm_config_admin() -> None:
     st.divider()
     st.subheader("System Prompts & Tuning Parameters")
     st.caption("Edit prompts and numeric limits below. Changes apply after saving. Pipeline prompts take effect on next job run.")
-    # Ensure modules are imported so their register_copy_prompt calls run.
+    # Ensure modules are imported so their register_narrative_prompt calls run.
     import services.attention_market_events  # noqa: F401
     import services.attention_feed_brief  # noqa: F401
     import services.attention_home_1d  # noqa: F401
@@ -2973,7 +3049,7 @@ def _render_llm_config_admin() -> None:
     import services.aql.writer  # noqa: F401
     import services.aql.constants  # noqa: F401
     import services.omnibar_agent  # noqa: F401
-    prompts = list_copy_prompts()
+    prompts = list_narrative_prompts()
     config_params = list_config_params()
     params_by_group: dict[str, list[dict]] = {}
     for param in config_params:
@@ -2985,34 +3061,50 @@ def _render_llm_config_admin() -> None:
     any_param_changed = False
     if not prompts and not config_params:
         st.info("No prompts or parameters registered yet.")
+
+    _PROMPT_GROUP_DESCRIPTIONS = {
+        "Chat + Search": "Powers the omnibar research agent. Changes take effect on the next query.",
+        "Attention Pipeline": "Generate feed cards, narratives, and event text. Changes take effect on next pipeline run.",
+        "AQL / Research": "Write research summaries, hypotheses, and event analysis. Changes take effect on next pipeline run.",
+    }
+    prompts_by_group: dict[str, list[dict]] = {}
     for entry in prompts:
-        label = entry["name"]
-        if entry.get("is_override"):
-            label += "  (overridden)"
-        with st.expander(f"{label}  —  {entry['file']}"):
-            edited = st.text_area(
-                entry["name"],
-                value=entry["prompt"],
-                height=200,
-                key=f"llm_admin_prompt_{entry['key']}",
-                label_visibility="collapsed",
-            )
-            prompt_edits[entry["key"]] = edited
-            if edited.strip() != entry["prompt"].strip():
-                any_prompt_changed = True
+        prompts_by_group.setdefault(entry.get("group") or "Other", []).append(entry)
+
+    for group_name, group_prompts in sorted(prompts_by_group.items()):
+        st.markdown(f"**{group_name}**")
+        group_desc = _PROMPT_GROUP_DESCRIPTIONS.get(group_name)
+        if group_desc:
+            st.caption(group_desc)
+        for entry in group_prompts:
+            label = entry["name"]
             if entry.get("is_override"):
-                if st.button("Reset to default", key=f"llm_admin_reset_{entry['key']}"):
-                    set_copy_prompt_override(entry["key"], None)
-                    saved = save_prompt_overrides()
-                    if saved:
-                        st.success(f"Reset '{entry['name']}' to default.")
-                        st.rerun()
-                    else:
-                        st.error("Failed to save — check database connection.")
+                label += "  (overridden)"
+            with st.expander(f"{label}  —  {entry['file']}"):
+                edited = st.text_area(
+                    entry["name"],
+                    value=entry["prompt"],
+                    height=200,
+                    key=f"llm_admin_prompt_{entry['key']}",
+                    label_visibility="collapsed",
+                )
+                prompt_edits[entry["key"]] = edited
+                if edited.strip() != entry["prompt"].strip():
+                    any_prompt_changed = True
+                if entry.get("is_override"):
+                    if st.button("Reset to default", key=f"llm_admin_reset_{entry['key']}"):
+                        set_narrative_prompt_override(entry["key"], None)
+                        saved = save_prompt_overrides()
+                        if saved:
+                            st.success(f"Reset '{entry['name']}' to default.")
+                            st.rerun()
+                        else:
+                            st.error("Failed to save — check database connection.")
 
     _GROUP_DESCRIPTIONS = {
         "Display Limits": "Applied at render time — changes take effect instantly.",
         "LLM Context Window": "Applied at pipeline job time — changes require a pipeline re-run.",
+        "Chat + Search": "Applied to the omnibar agent — changes take effect on the next query.",
     }
     if params_by_group:
         st.divider()
@@ -3056,13 +3148,13 @@ def _render_llm_config_admin() -> None:
     save_disabled = not (rule_changed or any_prompt_changed or any_param_changed)
     if st.button("Save all changes", type="primary", disabled=save_disabled):
         if rule_changed:
-            set_copy_style_rule_override(edited_rule)
+            set_narrative_style_rule_override(edited_rule)
         for key, edited_text in prompt_edits.items():
             registry_entry = next((p for p in prompts if p["key"] == key), None)
             if registry_entry and edited_text.strip() != registry_entry["default"].strip():
-                set_copy_prompt_override(key, edited_text)
+                set_narrative_prompt_override(key, edited_text)
             elif registry_entry:
-                set_copy_prompt_override(key, None)
+                set_narrative_prompt_override(key, None)
         for key, edited_val in param_edits.items():
             registry_entry = next((p for p in config_params if p["key"] == key), None)
             if registry_entry and edited_val != registry_entry["default"]:
@@ -3126,7 +3218,7 @@ def _render_api_keys_admin(
                 notes=str(key_notes or "").strip(),
             )
             raw_key = result.get("api_key", "")
-            st.success("API key created. Copy the key now — it will not be shown again.")
+            st.success("API key created. Save the key now; it will not be shown again.")
             st.code(raw_key, language="text")
             if assigned_user_id:
                 st.caption(f"Assigned to: {user_options.get(assigned_user_id, assigned_user_id)}")
@@ -3344,7 +3436,7 @@ def _render_access_admin_section() -> None:
         option_label = option_email if not option_display_name or option_display_name == option_email else f"{option_display_name} ({option_email})"
         analytics_user_options[option_user_id] = {"label": option_label, "email": option_email}
 
-    admin_view_options = ["Access Management", "Usage", "Security", "Invite Email Designer", "LLM Config"]
+    admin_view_options = ["Access Management", "Pipeline Jobs", "Usage", "Security", "LLM Config"]
     _prime_widget_choice(
         "access_admin_view",
         admin_view_options,
@@ -3447,6 +3539,12 @@ def _render_access_admin_section() -> None:
                     _render_access_pending_invite_card(invite, current_user=current_user)
 
         _render_api_keys_admin(current_user=current_user, user_rows=user_rows)
+
+        st.markdown("---")
+        with st.expander("Invite Email Designer", expanded=False):
+            _render_invite_email_designer(current_user=current_user)
+    elif admin_view == "Pipeline Jobs":
+        _render_pipeline_admin(source_refresh_flags=st.session_state.get("_source_force_refresh", {}))
     elif admin_view in {"Usage", "Security"}:
         usage_window_days = _access_admin_int_state_value(
             "_access_usage_window_days",
@@ -3575,8 +3673,6 @@ def _render_access_admin_section() -> None:
                 active_window_minutes=active_window_minutes,
             )
 
-    elif admin_view == "Invite Email Designer":
-        _render_invite_email_designer(current_user=current_user)
     elif admin_view == "LLM Config":
         _render_llm_config_admin()
 
@@ -3621,6 +3717,191 @@ def _section_refresh_button(key: str, *, source: str | None = None, label: str =
     if clicked:
         st.caption("Refreshing cached data for this view.")
     return bool(clicked)
+
+
+def _render_pipeline_admin(*, source_refresh_flags: dict[str, bool]) -> None:
+    """Pipeline Jobs admin tab: timeline, failure/row-count plots, job control table."""
+
+    history_days_options = [3, 7, 14, 30]
+    _prime_widget_choice("_pipeline_admin_history_days", [str(d) for d in history_days_options], fallback="7", pending_key="_pending_pipeline_admin_history_days")
+    history_days = int(
+        st.selectbox(
+            "History window (days)",
+            options=history_days_options,
+            index=history_days_options.index(int(st.session_state.get("_pipeline_admin_history_days", 7))),
+            key="_pipeline_admin_history_days",
+        )
+    )
+
+    with st.spinner("Loading pipeline history..."):
+        with _timed("load_job_run_history"):
+            runs = job_run_history(days=history_days)
+        with _timed("load_dataset_version_history"):
+            datasets = dataset_version_history(days=history_days)
+        with _timed("load_job_status_table"):
+            status_table = latest_job_status_table()
+
+    # ── Timeline ────────────────────────────────────────────────────────
+    st.subheader("Job Run Timeline")
+    if runs.empty:
+        st.info("No job runs in this window.")
+    else:
+        timeline_df = runs.dropna(subset=["start_time_utc"]).copy()
+        # Fill missing end times with now (still running)
+        timeline_df["end_time_utc"] = timeline_df["end_time_utc"].fillna(pd.Timestamp.now(tz="UTC"))
+        timeline_df["label"] = timeline_df["job_name"].map(
+            lambda n: JOB_LABELS.get(n, n.replace("-", " ").title())
+        )
+        status_color_map = {
+            "Succeeded": "#2ecc71",
+            "Running": "#3498db",
+            "Failed": "#e74c3c",
+            "Warning": "#f39c12",
+        }
+        fig_timeline = px.timeline(
+            timeline_df,
+            x_start="start_time_utc",
+            x_end="end_time_utc",
+            y="label",
+            color="status",
+            color_discrete_map=status_color_map,
+            hover_data=["job_name", "run_id", "progress_stage"],
+        )
+        fig_timeline.update_layout(
+            height=max(250, len(timeline_df["label"].unique()) * 50),
+            yaxis_title="",
+            xaxis_title="",
+            showlegend=True,
+            legend_title_text="Status",
+            margin=dict(l=0, r=0, t=10, b=0),
+        )
+        st.plotly_chart(fig_timeline, use_container_width=True)
+
+    # ── Failures ────────────────────────────────────────────────────────
+    st.subheader("Failures")
+    if runs.empty or (runs["status"] != "Failed").all():
+        st.caption("No failures in this window.")
+    else:
+        failed = runs[runs["status"] == "Failed"].copy()
+        failed["date"] = failed["start_time_utc"].dt.date
+        failure_counts = failed.groupby(["date", "job_name"]).size().reset_index(name="failures")
+        failure_counts["label"] = failure_counts["job_name"].map(
+            lambda n: JOB_LABELS.get(n, n.replace("-", " ").title())
+        )
+        fig_fail = px.bar(
+            failure_counts,
+            x="date",
+            y="failures",
+            color="label",
+            barmode="stack",
+        )
+        fig_fail.update_layout(
+            height=280,
+            yaxis_title="Failures",
+            xaxis_title="",
+            legend_title_text="Job",
+            margin=dict(l=0, r=0, t=10, b=0),
+        )
+        st.plotly_chart(fig_fail, use_container_width=True)
+
+    # ── Dataset Row Counts ──────────────────────────────────────────────
+    st.subheader("Dataset Row Counts")
+    if datasets.empty:
+        st.caption("No dataset snapshots in this window.")
+    else:
+        # Show the top datasets by volume
+        top_datasets = datasets.groupby("dataset_name")["row_count"].sum().nlargest(12).index.tolist()
+        plot_data = datasets[datasets["dataset_name"].isin(top_datasets)].copy()
+        fig_rows = px.scatter(
+            plot_data,
+            x="ingested_at_utc",
+            y="row_count",
+            color="dataset_name",
+            hover_data=["run_id"],
+            labels={"row_count": "Rows", "ingested_at_utc": "Ingested", "dataset_name": "Dataset"},
+        )
+        fig_rows.update_traces(mode="lines+markers", marker=dict(size=5))
+        fig_rows.update_layout(
+            height=350,
+            yaxis_title="Row Count",
+            xaxis_title="",
+            legend_title_text="Dataset",
+            margin=dict(l=0, r=0, t=10, b=0),
+        )
+        st.plotly_chart(fig_rows, use_container_width=True)
+
+    # ── Latest Status Metrics ───────────────────────────────────────────
+    st.subheader("Latest Status")
+    if not status_table.empty and "status" in status_table.columns:
+        succeeded = int((status_table["status"] == "Succeeded").sum())
+        running = int((status_table["status"] == "Running").sum())
+        failing = int((status_table["status"] == "Failed").sum())
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Succeeded", succeeded)
+        c2.metric("Running", running)
+        c3.metric("Failed", failing)
+
+    # ── Job Controls Table ──────────────────────────────────────────────
+    st.subheader("Job Controls")
+    st.caption("Trigger remote snapshot refresh jobs.")
+    groups = _job_control_groups()
+    for group in groups:
+        job_name = str(group["job_name"])
+        sources = [SOURCE_LABELS.get(sk, sk.title()) for sk in group["sources"]]
+        datasets_list = [str(d) for d in group["datasets"]]
+        dataset_preview = ", ".join(datasets_list[:4])
+        if len(datasets_list) > 4:
+            dataset_preview += f", +{len(datasets_list) - 4} more"
+
+        cols = st.columns([3, 2, 1.2])
+        with cols[0]:
+            st.markdown(f"**{group['label']}** — {', '.join(sources)}")
+            st.caption(f"`{job_name}` · Datasets: {dataset_preview}")
+        with cols[1]:
+            # Show latest status for this job
+            if not status_table.empty and "job_name" in status_table.columns:
+                job_row = status_table[status_table["job_name"] == job_name]
+                if not job_row.empty:
+                    status_val = str(job_row.iloc[0].get("status", ""))
+                    start_val = str(job_row.iloc[0].get("start_time_utc", ""))
+                    msg_val = str(job_row.iloc[0].get("message", ""))[:80]
+                    st.caption(f"{status_val} · {start_val}")
+                    if msg_val:
+                        st.caption(msg_val)
+        with cols[2]:
+            if st.button("Refresh", key=f"admin_run_job_{job_name}", use_container_width=True):
+                ok, msg = start_source_refresh_job(str(group["sources"][0]))
+                if ok:
+                    for source_key in group["sources"]:
+                        source_refresh_flags[str(source_key)] = True
+                    st.session_state["_source_force_refresh"] = source_refresh_flags
+                    st.success(msg)
+                else:
+                    st.warning(msg)
+
+    # ── Detailed Run Table ──────────────────────────────────────────────
+    with st.expander("Detailed Run History", expanded=False):
+        if runs.empty:
+            st.info("No run history available.")
+        else:
+            display_runs = runs.copy()
+            display_runs["label"] = display_runs["job_name"].map(
+                lambda n: JOB_LABELS.get(n, n.replace("-", " ").title())
+            )
+            display_runs = display_runs.rename(columns={
+                "label": "Job",
+                "run_id": "Run",
+                "status": "Status",
+                "start_time_utc": "Start (UTC)",
+                "end_time_utc": "End (UTC)",
+                "error_summary": "Error",
+                "progress_stage": "Stage",
+            })
+            st.dataframe(
+                display_runs[["Job", "Run", "Status", "Start (UTC)", "End (UTC)", "Stage", "Error"]],
+                use_container_width=True,
+                hide_index=True,
+            )
 
 
 def _job_control_groups() -> list[dict[str, object]]:
@@ -3708,6 +3989,26 @@ def _render_overview_fundamentals(
     if not has_any:
         st.caption("No quarterly fundamentals were available for this ticker.")
         return
+    # Staleness check: warn when the most recent report_date is more than 150 days ago.
+    _fundamentals_staleness_days = 150
+    try:
+        _latest_report_dates = []
+        for _fkey in ["income", "balance", "cashflow"]:
+            _fframe = (scoped or {}).get(_fkey, pd.DataFrame())
+            if isinstance(_fframe, pd.DataFrame) and not _fframe.empty and "report_date" in _fframe.columns:
+                _parsed = pd.to_datetime(_fframe["report_date"], errors="coerce").dropna()
+                if not _parsed.empty:
+                    _latest_report_dates.append(_parsed.max())
+        if _latest_report_dates:
+            _most_recent = max(_latest_report_dates)
+            _age_days = (pd.Timestamp.now() - _most_recent).days
+            if _age_days > _fundamentals_staleness_days:
+                st.warning(
+                    f"Fundamentals data may be stale — last reported quarter ended "
+                    f"{_most_recent.strftime('%b %Y')} ({_age_days} days ago)."
+                )
+    except Exception:
+        pass
     _render_fundamental_statement_charts(normalized_ticker, scoped, quarterly_titles=True)
 
 
@@ -4252,7 +4553,7 @@ def _render_related_news_database_section(
         published_at = pd.to_datetime(row.get("published_at"), utc=True, errors="coerce")
         published_label = published_at.strftime("%Y-%m-%d %H:%M UTC") if pd.notna(published_at) else "n/a"
         url = str(row.get("url") or "").strip()
-        excerpt = _clean_attention_copy(row.get("summary") or row.get("description"))
+        excerpt = _clean_attention_text(row.get("summary") or row.get("description"))
         meta = " | ".join(part for part in [source, published_label] if part)
         _render_tracked_activity_link(
             headline,
@@ -5208,6 +5509,12 @@ def _agentic_omnibar_progress_message(event: dict[str, object]) -> str:
         return "Loading the available data sources."
     if stage == "planner_start":
         return "Deciding the next step."
+    if stage == "planner_heartbeat":
+        elapsed = int(event.get("elapsed_seconds") or 0)
+        return f"Still thinking... ({elapsed}s)"
+    if stage == "planner_reasoning":
+        reasoning = str(event.get("reasoning") or "").strip()
+        return reasoning if reasoning else "Thinking about the next step."
     if stage == "tool_start":
         return f"Checking {tool_label}."
     if stage == "tool_complete":
@@ -5225,25 +5532,259 @@ def _agentic_omnibar_progress_message(event: dict[str, object]) -> str:
     return fallback if fallback else "Working through the request."
 
 
-def _render_agentic_omnibar_progress_panel(
-    progress_slot: object,
-    *,
-    current_message: str,
-    progress: float,
-    progress_history: list[str],
+_METRIC_STOP_WORDS = frozenset({
+    "THE", "AND", "FOR", "THIS", "BUT", "NOT", "WITH", "FROM", "ETF", "RSI",
+    "USD", "EUR", "GDP", "CPI", "PCE", "NFP", "YOY", "QOQ", "MOM", "EPS",
+    "IPO", "CEO", "CFO", "COO", "SEC", "FED", "OIL", "GAS", "ALL", "ANY",
+    "BPS", "RHS", "LHS", "AVG", "MAX", "MIN", "NET", "PRE", "YTD",
+})
+
+
+def _extract_answer_metrics(answer_text: str) -> list[dict[str, str]]:
+    """Extract ticker:percentage pairs from answer text for metric cards."""
+    metrics: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for match in re.finditer(r"\b([A-Z]{2,5})\b[^a-zA-Z\n]*?([+-]?\d+\.?\d*%)", answer_text):
+        ticker = match.group(1)
+        value = match.group(2)
+        if ticker in seen or ticker in _METRIC_STOP_WORDS:
+            continue
+        seen.add(ticker)
+        try:
+            numeric = float(value.rstrip("%").replace("+", ""))
+        except ValueError:
+            numeric = 0.0
+        metrics.append({"ticker": ticker, "value": value, "direction": "up" if numeric >= 0 else "down"})
+    return metrics[:6]
+
+
+def _render_answer_metrics(metrics: list[dict[str, str]]) -> None:
+    """Render extracted ticker metrics as a horizontal strip of cards."""
+    if not metrics:
+        return
+    cols = st.columns(min(len(metrics), 6))
+    for i, m in enumerate(metrics):
+        with cols[i]:
+            st.metric(m["ticker"], m["value"])
+
+
+def _render_source_evidence_strip(sources: list[dict[str, str]]) -> None:
+    """Render Perplexity-style numbered source cards."""
+    unique: list[dict[str, str]] = []
+    seen_urls: set[str] = set()
+    for src in sources:
+        if not isinstance(src, dict):
+            continue
+        url = str(src.get("url") or "").strip()
+        if not url or url in seen_urls:
+            continue
+        seen_urls.add(url)
+        unique.append(src)
+    if not unique:
+        return
+    display = unique[:5]
+    cols = st.columns(min(len(display), 5))
+    for i, src in enumerate(display):
+        url = str(src.get("url") or "").strip()
+        label = str(src.get("label") or "").strip()
+        domain = url.split("//")[-1].split("/")[0].replace("www.", "")[:30]
+        short_label = (label[:45] + "...") if len(label) > 48 else label if label else domain
+        with cols[i]:
+            with st.container(border=True):
+                st.markdown(f"**{i + 1}**&ensp;[{short_label}]({url})")
+                st.caption(domain)
+
+
+def _render_thinking_trace_content(
+    trace: list[dict[str, object]],
+    agent_result: dict[str, object] | None = None,
+    key_prefix: str = "trace",
 ) -> None:
-    percent = int(round(max(0.0, min(float(progress or 0.0), 1.0)) * 100))
-    recent_updates = [
-        item for item in list(progress_history[-4:]) if item and item != current_message
-    ]
-    with progress_slot.container(border=True):
-        st.markdown("#### Thinking")
-        st.caption("Chat + Search is working through your request.")
-        st.progress(percent, text=current_message)
-        st.markdown(f"**{current_message}**")
-        st.caption(f"{percent}% complete")
-        if recent_updates:
-            st.markdown("\n".join(f"- {item}" for item in recent_updates))
+    """Render verbose thinking trace inside an expanded st.status widget."""
+    if not trace:
+        tool_calls = list((agent_result or {}).get("tool_calls") or [])
+        for tc in tool_calls:
+            tool_name = str(tc.get("tool_name") or "tool")
+            tc_status = str(tc.get("status") or "unknown")
+            try:
+                args_text = json.dumps(tc.get("arguments") or {}, sort_keys=True, default=str)
+            except Exception:
+                args_text = str(tc.get("arguments") or {})
+            st.code(f"{tool_name}({args_text})", language="python")
+            preview = str((tc.get("result_summary") or {}).get("preview_text") or "").strip()
+            if preview:
+                st.caption(f"← [{tc_status}] {preview}")
+            else:
+                st.caption(f"← [{tc_status}]")
+        return
+
+    for step_idx, step in enumerate(trace):
+        step_type = str(step.get("type") or "")
+        if step_type == "reasoning":
+            st.markdown(f"*{step.get('text', '')}*")
+        elif step_type == "tool_start":
+            st.code(f"{step.get('tool_name', '')}({step.get('args_text', '')})", language="python")
+        elif step_type == "tool_complete":
+            preview = str(step.get("preview") or "")
+            if preview:
+                st.caption(f"← {preview}")
+            rp = step.get("render_payload")
+            if isinstance(rp, dict) and rp.get("kind") == "chart_model":
+                try:
+                    import plotly.graph_objects as _go_trace
+                except ImportError:
+                    _go_trace = None
+                if _go_trace is not None:
+                    try:
+                        chart_model = dict(rp.get("chart_model") or {})
+                        traces_list = list(chart_model.get("traces") or [])
+                        datasets = dict(chart_model.get("datasets") or {})
+                        if traces_list and datasets:
+                            fig = _go_trace.Figure()
+                            for trace_spec in traces_list[:6]:
+                                trace_spec = dict(trace_spec)
+                                ds_name = str(trace_spec.get("dataset") or "")
+                                x_col = str(trace_spec.get("x") or "")
+                                y_col = str(trace_spec.get("y") or "")
+                                trace_type = str(trace_spec.get("type") or "scatter").lower()
+                                label = str(trace_spec.get("name") or trace_spec.get("label") or y_col)
+                                ds_rows = list(datasets.get(ds_name) or [])
+                                if not ds_rows or not x_col or not y_col:
+                                    continue
+                                x_vals = [row.get(x_col) for row in ds_rows if isinstance(row, dict)]
+                                y_vals = [row.get(y_col) for row in ds_rows if isinstance(row, dict)]
+                                if trace_type == "bar":
+                                    fig.add_trace(_go_trace.Bar(x=x_vals, y=y_vals, name=label))
+                                else:
+                                    fig.add_trace(_go_trace.Scatter(x=x_vals, y=y_vals, mode="lines", name=label))
+                            chart_title = str(chart_model.get("title") or "")
+                            fig.update_layout(
+                                height=250,
+                                margin=dict(l=30, r=10, t=30 if chart_title else 10, b=20),
+                                title_text=chart_title if chart_title else None,
+                            )
+                            st.plotly_chart(fig, use_container_width=True, key=f"{key_prefix}_chart_{step_idx}")
+                    except Exception:
+                        pass
+            links = step.get("source_links")
+            if isinstance(links, list) and links:
+                link_parts = []
+                for link in links[:5]:
+                    if isinstance(link, dict):
+                        url = str(link.get("url") or "").strip()
+                        lbl = str(link.get("label") or url).strip()
+                        if url:
+                            link_parts.append(f"[{lbl}]({url})")
+                if link_parts:
+                    st.caption("Sources: " + " · ".join(link_parts))
+        elif step_type == "message":
+            st.markdown(f"- {step.get('text', '')}")
+
+
+def _render_inline_search_results(
+    results: list[dict[str, object]],
+    request_id: str,
+) -> None:
+    """Render search results as compact inline cards with one primary action."""
+    for result in results[:4]:
+        kind = str(result.get("kind") or "").strip()
+        label = str(result.get("label") or "Result").strip()
+        subtitle = str(result.get("subtitle") or "").strip()
+        with st.container(border=True):
+            result_cols = st.columns([5, 2])
+            with result_cols[0]:
+                st.markdown(f"**{label}**")
+                if subtitle:
+                    st.caption(subtitle)
+            with result_cols[1]:
+                if kind == "symbol":
+                    symbol = str(result.get("symbol") or result.get("ref") or "").upper().strip()
+                    if st.button("Open →", key=f"{request_id}_{kind}_{symbol}_open", use_container_width=True, disabled=not bool(symbol)):
+                        _open_attention_target(STOCK_INVESTIGATOR_SECTION, {"ticker": symbol})
+                elif kind == "bundle":
+                    bundle_id = str(result.get("bundle_id") or result.get("ref") or "").strip()
+                    symbols = [str(item).upper().strip() for item in list(result.get("symbols") or []) if str(item).strip()]
+                    if st.button("Open →", key=f"{request_id}_{kind}_{bundle_id}_open", use_container_width=True, disabled=not bool(bundle_id)):
+                        _open_homepage_research_bundle_from_omnibar(bundle_id, symbols=symbols)
+                elif kind == "macro_release":
+                    ref = str(result.get("ref") or "").strip()
+                    if st.button("Open →", key=f"{request_id}_{kind}_{ref}_open", use_container_width=True):
+                        _open_workspace_section(BROAD_ECONOMY_SECTION)
+
+
+def _render_omnibar_welcome(beats: list[dict[str, object]]) -> None:
+    """Render the empty-state welcome screen with clickable example prompts."""
+    st.markdown("#### What would you like to research?")
+    examples: list[str] = []
+    for beat in beats[:2]:
+        sentence = str(beat.get("sentence") or "").strip()
+        if sentence:
+            examples.append(sentence[:65])
+    defaults = ["What's driving oil stocks today?", "Analyze semis after CPI", "Compare banks vs software"]
+    while len(examples) < 3 and defaults:
+        examples.append(defaults.pop(0))
+    cols = st.columns(min(len(examples), 3))
+    for i, ex in enumerate(examples[:3]):
+        with cols[i]:
+            if st.button(ex, key=f"omnibar_welcome_{i}", use_container_width=True):
+                st.session_state["_omnibar_pending_query"] = ex
+                st.rerun()
+
+
+def _render_agent_response_message(msg: dict[str, object]) -> None:
+    """Render a saved assistant message from chat history."""
+    trace = list(msg.get("thinking_trace") or [])
+    agent_result = dict(msg.get("agent_result") or {})
+    error = str(msg.get("error") or "").strip()
+
+    # Error message
+    if error:
+        st.error(f"The research agent encountered an error: {error}")
+
+    # Source evidence strip
+    sources = list(msg.get("source_links") or [])
+    if sources:
+        _render_source_evidence_strip(sources)
+
+    # Key metrics
+    answer = str(msg.get("content") or "").strip()
+    if answer and not error:
+        metrics = _extract_answer_metrics(answer)
+        if metrics:
+            _render_answer_metrics(metrics)
+
+    # Answer text
+    if answer and not error:
+        st.markdown(answer)
+
+    # Confidence and limitations
+    confidence = str(msg.get("confidence") or "").strip()
+    limitations = [str(item).strip() for item in list(msg.get("limitations") or []) if str(item).strip()]
+    if confidence or limitations:
+        footer_parts = []
+        if confidence:
+            footer_parts.append(f"Confidence: **{confidence}**")
+        if limitations:
+            footer_parts.append(" · ".join(limitations[:2]))
+        st.caption(" | ".join(footer_parts))
+
+    # Thinking trace — explicit expander
+    msg_id = str(msg.get("msg_id") or "hist")
+    if trace:
+        with st.expander(f"Thinking Trace ({len(trace)} steps)", expanded=False):
+            _render_thinking_trace_content(trace, agent_result, key_prefix=f"hist_{msg_id}")
+
+    # Search results
+    search_results = list(msg.get("search_results") or [])
+    if search_results:
+        _render_inline_search_results(search_results, msg_id)
+
+    # Dig deeper
+    if answer and not error:
+        if st.button("Dig deeper", key=f"dig_{msg.get('msg_id', '')}"):
+            original_query = str(msg.get("query") or "").strip()
+            st.session_state["_omnibar_pending_query"] = f"{original_query} — verify and expand with more evidence"
+            st.rerun()
 
 
 def _run_agentic_omnibar_resolution(
@@ -5255,6 +5796,7 @@ def _run_agentic_omnibar_resolution(
     *,
     force_data_refresh: bool,
     progress_callback: object | None = None,
+    conversation_history: list[dict[str, object]] | None = None,
     ) -> dict[str, object]:
     normalized_query = _omnibar_normalize_text(query)
     _dispatch_agentic_omnibar_progress(
@@ -5298,6 +5840,7 @@ def _run_agentic_omnibar_resolution(
             query=normalized_query,
             force_refresh=force_data_refresh,
             progress_callback=_agent_progress_bridge,
+            conversation_history=conversation_history,
         )
     st.session_state["agentic_omnibar_resolution"] = resolution
     if str(resolution.get("intent") or "") == "agent":
@@ -5471,6 +6014,7 @@ def _render_agentic_omnibar_debug_panel(resolution: dict[str, object]) -> None:
                                         chart,
                                         use_container_width=True,
                                         config={"displayModeBar": False},
+                                        key=f"debug_chart_{call_id}",
                                     )
                             preview_text = str((tool_call.get("result_summary") or {}).get("preview_text") or "").strip()
                             if preview_text:
@@ -5484,124 +6028,27 @@ def _render_agentic_omnibar_debug_panel(resolution: dict[str, object]) -> None:
                         st.markdown(str(message.get("content") or "").strip())
 
 
-def _render_agentic_omnibar_result_card(result: dict[str, object], *, request_id: str) -> None:
-    kind = str(result.get("kind") or "").strip()
-    label = str(result.get("label") or "Result").strip()
-    subtitle = str(result.get("subtitle") or "").strip()
-    score = float(result.get("score") or 0.0)
-    with st.container(border=True):
-        header_cols = st.columns([4.5, 1.1])
-        with header_cols[0]:
-            st.markdown(f"**{label}**")
-            if subtitle:
-                st.caption(subtitle)
-        with header_cols[1]:
-            st.metric("Score", f"{score:.2f}")
-
-        if kind == "symbol":
-            symbol = str(result.get("symbol") or result.get("ref") or "").upper().strip()
-            bundle_ids = [str(item).strip() for item in list(result.get("bundle_ids") or []) if str(item).strip()]
-            action_cols = st.columns(3)
-            with action_cols[0]:
-                if st.button(
-                    "Open Stock Investigator",
-                    key=f"{request_id}_{kind}_{symbol}_stock",
-                    use_container_width=True,
-                    disabled=not bool(symbol),
-                ):
-                    _open_attention_target(STOCK_INVESTIGATOR_SECTION, {"ticker": symbol})
-            with action_cols[1]:
-                if st.button(
-                    f"Open {MARKET_EXPLORER_SECTION}",
-                    key=f"{request_id}_{kind}_{symbol}_market",
-                    use_container_width=True,
-                    disabled=not bool(symbol),
-                ):
-                    _open_attention_target(
-                        MARKET_EXPLORER_SECTION,
-                        {
-                            "ticker": symbol,
-                            "market_view": "Markets",
-                            "business_filter": _market_business_filter_for_symbol(symbol),
-                        },
-                    )
-            with action_cols[2]:
-                home_label = "Open Home Research" if bundle_ids else "Open Home Company"
-                if st.button(
-                    home_label,
-                    key=f"{request_id}_{kind}_{symbol}_home",
-                    use_container_width=True,
-                    disabled=not bool(symbol),
-                ):
-                    if bundle_ids:
-                        _open_homepage_research_bundle_from_omnibar(bundle_ids[0], symbols=[symbol])
-                    else:
-                        _open_homepage_company_from_omnibar(symbol)
-
-        elif kind == "bundle":
-            bundle_id = str(result.get("bundle_id") or result.get("ref") or "").strip()
-            symbols = [str(item).upper().strip() for item in list(result.get("symbols") or []) if str(item).strip()]
-            primary_symbol = symbols[0] if symbols else ""
-            action_cols = st.columns(3)
-            with action_cols[0]:
-                if st.button(
-                    "Open Home Research",
-                    key=f"{request_id}_{kind}_{bundle_id}_research",
-                    use_container_width=True,
-                    disabled=not bool(bundle_id),
-                ):
-                    _open_homepage_research_bundle_from_omnibar(bundle_id, symbols=symbols)
-            with action_cols[1]:
-                if st.button(
-                    "Open Home Company",
-                    key=f"{request_id}_{kind}_{bundle_id}_company",
-                    use_container_width=True,
-                    disabled=not bool(primary_symbol),
-                ):
-                    _open_homepage_company_from_omnibar(primary_symbol, bundle_id=bundle_id)
-            with action_cols[2]:
-                if st.button(
-                    "Open Stock Investigator",
-                    key=f"{request_id}_{kind}_{bundle_id}_stock",
-                    use_container_width=True,
-                    disabled=not bool(primary_symbol),
-                ):
-                    _open_attention_target(STOCK_INVESTIGATOR_SECTION, {"ticker": primary_symbol})
-
-        elif kind == "macro_release":
-            if st.button(
-                f"Open {BROAD_ECONOMY_SECTION}",
-                key=f"{request_id}_{kind}_{str(result.get('ref') or '')}_fred",
-                use_container_width=True,
-            ):
-                _open_workspace_section(BROAD_ECONOMY_SECTION)
-
-
 def _render_agentic_omnibar_section(
     cfg: AppConfig,
     *,
     force_data_refresh: bool,
 ) -> None:
-    header_cols = st.columns([4.6, 1.4, 1.4])
-    with header_cols[0]:
-        st.title(AGENTIC_OMNIBAR_SECTION)
-        st.caption(
-            "One bar for navigation, retained research lookup, and tool-backed agent answers."
-        )
+    # ── Minimal header ──
+    header_cols = st.columns([5.5, 1.2, 1.3])
     with header_cols[1]:
         _render_section_back_button("agentic_omnibar_back")
     with header_cols[2]:
-        if st.button("Clear Chat + Search", key="agentic_omnibar_clear", use_container_width=True):
+        if st.button("Clear", key="agentic_omnibar_clear", use_container_width=True):
             for state_key in [
-                "agentic_omnibar_query",
-                "agentic_omnibar_mode",
+                "agentic_omnibar_chat",
                 "agentic_omnibar_resolution",
                 "agentic_omnibar_transcript",
-                "agentic_omnibar_last_signature",
+                "agentic_omnibar_thinking_trace",
             ]:
                 st.session_state.pop(state_key, None)
             st.rerun()
 
+    # ── Load context ──
     home_payload = _load_homepage_narrative_payload(
         cfg,
         force_data_refresh=force_data_refresh,
@@ -5622,136 +6069,248 @@ def _render_agentic_omnibar_section(
     ) if tracked_symbols else {}
     symbol_catalog = _build_agentic_omnibar_symbol_catalog(beats, symbol_name_map)
 
-    resolution = dict(st.session_state.get("agentic_omnibar_resolution") or {})
-    progress_slot = st.empty()
-    preferred_mode_options = ["auto", "search", "agent"]
-    if str(st.session_state.get("agentic_omnibar_mode") or "").strip().lower() not in preferred_mode_options:
-        st.session_state["agentic_omnibar_mode"] = "auto"
+    # ── Chat history ──
+    if "agentic_omnibar_chat" not in st.session_state:
+        st.session_state["agentic_omnibar_chat"] = []
+    chat: list[dict[str, object]] = st.session_state["agentic_omnibar_chat"]
 
-    with st.form("agentic_omnibar_resolve_form", clear_on_submit=False):
-        query = st.text_input(
-            "Resolve a symbol, release, bundle, or analysis prompt",
-            key="agentic_omnibar_query",
-            placeholder="NVDA, CPI, payrolls, semis after CPI, or a bundle id",
-        )
-        preferred_mode = st.selectbox(
-            "Preferred Mode",
-            preferred_mode_options,
-            key="agentic_omnibar_mode",
-            format_func=lambda value: str(value).capitalize(),
-        )
-        submitted = st.form_submit_button("Resolve", type="primary")
+    # ── Empty state ──
+    if not chat:
+        _render_omnibar_welcome(beats)
 
-    quick_query = ""
-    quick_mode = "auto"
-    quick_cols = st.columns(3)
-    quick_entries = list(beats[:3])
-    for index, beat in enumerate(quick_entries):
-        label = _omnibar_trim(str(beat.get("sentence") or "Research bundle"), limit=38)
-        with quick_cols[index % 3]:
-            if st.button(label, key=f"agentic_omnibar_quick_beat_{index}", use_container_width=True):
-                quick_query = str(beat.get("bundle_id") or beat.get("sentence") or "").strip()
-                quick_mode = "search"
+    # ── Render history ──
+    for msg in chat:
+        with st.chat_message(str(msg.get("role") or "assistant")):
+            if msg.get("role") == "assistant":
+                _render_agent_response_message(msg)
+            else:
+                st.markdown(str(msg.get("content") or ""))
 
-    macro_cols = st.columns(3)
-    for index, release in enumerate(OMNIBAR_MACRO_RELEASES[:3]):
-        with macro_cols[index % 3]:
-            if st.button(
-                str(release.get("label") or "Macro"),
-                key=f"agentic_omnibar_macro_{index}",
-                use_container_width=True,
-            ):
-                quick_query = str(release.get("aliases", [""])[0] or "").strip()
-                quick_mode = "search"
+    # ── Input handling ──
+    pending_query = st.session_state.pop("_omnibar_pending_query", None)
+    typed_query = st.chat_input("Ask about any market, ticker, or event...")
+    active_query = str(pending_query or typed_query or "").strip()
 
-    def _run_resolution_with_feedback(active_query: str, active_mode: str) -> dict[str, object]:
-        progress_history: list[str] = []
+    if active_query:
+        # Add user message to history
+        chat.append({"role": "user", "content": active_query})
+        with st.chat_message("user"):
+            st.markdown(active_query)
 
-        def _progress_callback(event: dict[str, object]) -> None:
-            message = _agentic_omnibar_progress_message(event)
-            progress = max(0.0, min(float(event.get("progress") or 0.0), 1.0))
-            if not progress_history or progress_history[-1] != message:
-                progress_history.append(message)
-            _render_agentic_omnibar_progress_panel(
-                progress_slot,
-                current_message=message,
-                progress=progress,
-                progress_history=progress_history,
-            )
-
-        try:
-            return _run_agentic_omnibar_resolution(
+        # Run agent with live progress and render structured response
+        # Pass prior turns (everything before the just-appended user message)
+        # so the agent can resolve follow-up references.
+        prior_turns = chat[:-1] if len(chat) > 1 else []
+        with st.chat_message("assistant"):
+            msg_data = _run_and_render_agent_live(
                 cfg,
                 active_query,
-                active_mode,
                 beats,
                 symbol_catalog,
                 force_data_refresh=force_data_refresh,
-                progress_callback=_progress_callback,
+                conversation_history=prior_turns,
             )
-        finally:
-            progress_slot.empty()
 
-    if submitted:
-        if _omnibar_normalize_text(query):
-            resolution = _run_resolution_with_feedback(query, preferred_mode)
-        else:
-            st.warning("Enter a query to resolve.")
-    elif quick_query:
-        resolution = _run_resolution_with_feedback(quick_query, quick_mode)
+        # Save assistant message to history
+        chat.append({"role": "assistant", **msg_data})
+        st.session_state["agentic_omnibar_chat"] = chat
 
-    if not beats:
-        st.caption("No retained narrative beats are available yet, so the omnibar is operating with ticker and macro-release fallbacks.")
-
-    if not resolution:
-        st.markdown("#### Suggested entries")
-        suggestion_cols = st.columns(2)
-        with suggestion_cols[0]:
-            if beats:
-                st.caption("Today's retained research")
-                for beat in beats[:4]:
-                    st.write(f"- {_omnibar_trim(beat.get('sentence'), limit=100)}")
-            else:
-                st.caption("Try an exact ticker like `AAPL` or a macro release like `CPI`.")
-        with suggestion_cols[1]:
-            st.caption("Try analysis-style prompts")
-            st.write("- semis after CPI")
-            st.write("- what changed in payrolls")
-            st.write("- compare banks vs software")
-        return
-
-    agent_result = dict(resolution.get("agent_result") or {})
-    agent_answer = str(agent_result.get("answer_markdown") or "").strip()
-    if agent_answer:
-        with st.container(border=True):
-            st.markdown("#### Agent Answer")
-            st.markdown(agent_answer)
-
-    if str(resolution.get("intent") or "") == "ambiguous":
-        st.warning("The omnibar could not confidently choose between direct lookup and analysis.")
-        action_cols = st.columns(2)
-        with action_cols[0]:
-            if st.button("Resolve as Search", key="agentic_omnibar_force_search", use_container_width=True):
-                resolution = _run_resolution_with_feedback(str(resolution.get("query") or ""), "search")
-        with action_cols[1]:
-            if st.button("Ask Spectral Nature", key="agentic_omnibar_force_agent", use_container_width=True):
-                resolution = _run_resolution_with_feedback(str(resolution.get("query") or ""), "agent")
-
-    if _current_user_is_admin():
-        _render_agentic_omnibar_debug_panel(resolution)
-
-    search_results = list(resolution.get("search_results") or [])
-    if not search_results:
-        if str(resolution.get("intent") or "") != "agent" or not agent_answer:
-            st.info("No direct matches were found for this query yet.")
-        return
-
-    st.markdown("#### Resolved Matches")
-    for result in search_results:
-        _render_agentic_omnibar_result_card(
-            result,
-            request_id=str(resolution.get("request_id") or "omni"),
+    # ── Admin debug (last resolution) ──
+    if _current_user_is_admin() and chat:
+        last_assistant = next(
+            (m for m in reversed(chat) if m.get("role") == "assistant"),
+            None,
         )
+        if last_assistant and last_assistant.get("resolution"):
+            _render_agentic_omnibar_debug_panel(dict(last_assistant["resolution"]))
+
+
+def _run_and_render_agent_live(
+    cfg: AppConfig,
+    query: str,
+    beats: list[dict[str, object]],
+    symbol_catalog: dict[str, dict[str, object]],
+    *,
+    force_data_refresh: bool,
+    conversation_history: list[dict[str, object]] | None = None,
+) -> dict[str, object]:
+    """Run the agent with live st.status progress, render structured response, return history dict."""
+    thinking_trace: list[dict[str, object]] = []
+    source_links_all: list[dict[str, str]] = []
+    tool_count = 0
+
+    status_widget = st.status("Researching...", expanded=True)
+
+    def _progress_callback(event: dict[str, object]) -> None:
+        nonlocal tool_count
+        stage = str(event.get("stage") or "").strip().lower()
+        message = _agentic_omnibar_progress_message(event)
+
+        if stage == "planner_start":
+            iteration = int(event.get("iteration") or 1)
+            prior_tools = int(event.get("tool_call_count") or 0)
+            if prior_tools > 0:
+                status_widget.update(label=f"Thinking... (step {iteration}, {prior_tools} source{'s' if prior_tools != 1 else ''} so far)")
+            else:
+                status_widget.update(label=f"Thinking... (step {iteration})")
+        elif stage == "planner_heartbeat":
+            elapsed = int(event.get("elapsed_seconds") or 0)
+            iteration = int(event.get("iteration") or 1)
+            prior_tools = int(event.get("tool_call_count") or 0)
+            parts = [f"step {iteration}"]
+            if prior_tools > 0:
+                parts.append(f"{prior_tools} source{'s' if prior_tools != 1 else ''}")
+            parts.append(f"{elapsed}s")
+            status_widget.update(label=f"Thinking... ({', '.join(parts)})")
+        elif stage == "planner_reasoning":
+            reasoning = str(event.get("reasoning") or "").strip()
+            if reasoning:
+                thinking_trace.append({"type": "reasoning", "text": reasoning})
+                with status_widget:
+                    st.caption(reasoning)
+        elif stage == "tool_start":
+            tool_count += 1
+            tool_name = str(event.get("tool_name") or "")
+            tool_args = event.get("tool_arguments")
+            try:
+                args_text = json.dumps(tool_args or {}, sort_keys=True, default=str)
+            except Exception:
+                args_text = str(tool_args or {})
+            if len(args_text) > 120:
+                args_text = args_text[:117] + "..."
+            thinking_trace.append({"type": "tool_start", "tool_name": tool_name, "args_text": args_text})
+            human_tool = _humanize_agentic_omnibar_tool_name(tool_name)
+            with status_widget:
+                st.markdown(f"→ **{human_tool}**")
+            status_widget.update(label=f"Checking {human_tool}... (step {tool_count})")
+        elif stage == "tool_complete":
+            preview = str(event.get("result_preview") or "").strip()
+            trace_entry: dict[str, object] = {"type": "tool_complete", "preview": preview}
+            links = event.get("source_links")
+            if isinstance(links, list) and links:
+                source_links_all.extend(links)
+                trace_entry["source_links"] = links
+            render_payload = event.get("render_payload")
+            if isinstance(render_payload, dict) and render_payload.get("kind") == "chart_model":
+                trace_entry["render_payload"] = render_payload
+            if preview or render_payload or links:
+                thinking_trace.append(trace_entry)
+        elif stage == "planner_final":
+            status_widget.update(label=f"Writing answer from {tool_count} source{'s' if tool_count != 1 else ''}...")
+        elif stage == "final_synthesis_start":
+            status_widget.update(label=f"Synthesizing answer from {tool_count} source{'s' if tool_count != 1 else ''}...")
+        elif stage == "tool_catalog_ready":
+            tool_total = int(event.get("tool_count") or 0)
+            if tool_total > 0:
+                status_widget.update(label=f"Loaded {tool_total} tools, thinking...")
+        elif stage not in {"completed", "status", "resolve_start", "intent_ready", "agent_dispatch", "start"}:
+            thinking_trace.append({"type": "message", "text": message})
+
+    import time as _time_mod
+    run_start = _time_mod.monotonic()
+
+    resolution: dict[str, object] = {}
+    run_error: str = ""
+    try:
+        resolution = _run_agentic_omnibar_resolution(
+            cfg,
+            query,
+            "auto",
+            beats,
+            symbol_catalog,
+            force_data_refresh=force_data_refresh,
+            progress_callback=_progress_callback,
+            conversation_history=conversation_history,
+        )
+    except Exception as exc:
+        run_error = str(exc)
+
+    duration = round(_time_mod.monotonic() - run_start, 1)
+
+    # Close status — show error state if failed
+    if run_error:
+        status_widget.update(
+            label=f"Error after {duration:.0f}s ({tool_count} source{'s' if tool_count != 1 else ''} checked)",
+            state="error",
+            expanded=False,
+        )
+    else:
+        status_widget.update(
+            label=f"Researched {tool_count} source{'s' if tool_count != 1 else ''} · {duration:.0f}s",
+            state="complete",
+            expanded=False,
+        )
+
+    # ── Render structured response ──
+    agent_result = dict(resolution.get("agent_result") or {})
+    answer = str(agent_result.get("answer_markdown") or "").strip()
+    confidence = str(agent_result.get("confidence") or "").strip()
+    limitations = [str(item).strip() for item in list(agent_result.get("limitations") or []) if str(item).strip()]
+    search_results = list(resolution.get("search_results") or [])
+    request_id = str(resolution.get("request_id") or "live")
+
+    # Error message
+    if run_error:
+        st.error(f"The research agent encountered an error: {run_error}")
+
+    # Source evidence strip
+    if source_links_all:
+        _render_source_evidence_strip(source_links_all)
+
+    # Key metrics
+    if answer:
+        metrics = _extract_answer_metrics(answer)
+        if metrics:
+            _render_answer_metrics(metrics)
+
+    # Answer
+    if answer:
+        st.markdown(answer)
+    elif not search_results and not run_error:
+        st.markdown("No answer could be generated for this query.")
+
+    # Confidence + limitations footer
+    if confidence or limitations:
+        footer_parts = []
+        if confidence:
+            footer_parts.append(f"Confidence: **{confidence}**")
+        if limitations:
+            footer_parts.append(" · ".join(limitations[:2]))
+        st.caption(" | ".join(footer_parts))
+
+    # Thinking trace — explicit expander so it's always findable
+    if thinking_trace:
+        with st.expander(f"Thinking Trace ({len(thinking_trace)} steps)", expanded=False):
+            _render_thinking_trace_content(thinking_trace, agent_result, key_prefix=f"live_{request_id}")
+
+    # Search results (simplified)
+    if search_results:
+        _render_inline_search_results(search_results, request_id)
+
+    # Dig deeper button
+    if answer:
+        if st.button("Dig deeper", key=f"dig_live_{request_id}"):
+            st.session_state["_omnibar_pending_query"] = f"{query} — verify and expand with more evidence"
+            st.rerun()
+
+    # Return data for history re-rendering
+    return {
+        "content": answer or run_error or "No answer available.",
+        "answer": answer,
+        "query": query,
+        "source_links": source_links_all,
+        "thinking_trace": thinking_trace,
+        "confidence": confidence,
+        "limitations": limitations,
+        "search_results": search_results,
+        "tool_count": tool_count,
+        "duration_seconds": duration,
+        "intent": str(resolution.get("intent") or ""),
+        "resolution": resolution,
+        "agent_result": agent_result,
+        "error": run_error,
+        "msg_id": request_id,
+    }
 
 
 def _attention_key_points_text(row: pd.Series) -> str:
@@ -5963,8 +6522,8 @@ def _render_attention_card(
         llm_source_line = str((context_payload or {}).get("llm_source_line") or "").strip()
         llm_supporting_points = (context_payload or {}).get("llm_supporting_points", [])
         filing_links = (context_payload or {}).get("top_filing_links", [])
-        why_now_text = _clean_attention_copy(row.get("why_now_text"))
-        expected_text = _clean_attention_copy(row.get("expected_vs_observed_text"))
+        why_now_text = _clean_attention_text(row.get("why_now_text"))
+        expected_text = _clean_attention_text(row.get("expected_vs_observed_text"))
         key_points_text = _attention_key_points_text(row)
         chart = _build_attention_micro_chart(row)
 
@@ -6128,9 +6687,9 @@ def _render_market_event_card(
     title = str(event.get("event_title") or "Market event").strip()
     anchor_symbol = str(event.get("anchor_symbol") or "").upper().strip()
     confidence_label = str(event.get("confidence_label") or "Developing").strip()
-    what_happened_text = _raw_attention_copy(event.get("what_happened_text"))
-    why_happened_text = _raw_attention_copy(event.get("why_happened_text"))
-    affected_assets_summary_text = _raw_attention_copy(event.get("affected_assets_summary_text"))
+    what_happened_text = _raw_attention_text(event.get("what_happened_text"))
+    why_happened_text = _raw_attention_text(event.get("why_happened_text"))
+    affected_assets_summary_text = _raw_attention_text(event.get("affected_assets_summary_text"))
     headline_text = str(event.get("headline_text") or "").strip()
     source_line = str(event.get("source_line") or "").strip()
     supporting_ids = [str(value).strip() for value in list(event.get("supporting_event_ids") or []) if str(value).strip()]
@@ -6199,9 +6758,9 @@ def _render_attention_research_bundle_panel(
 ) -> None:
     bundle_type = str(bundle.get("bundle_type") or "").strip()
     if bundle_type == "event":
-        what_happened = _raw_attention_copy(bundle.get("what_happened_text"))
-        why_happened = _raw_attention_copy(bundle.get("why_happened_text"))
-        affected_assets = _raw_attention_copy(bundle.get("affected_assets_summary_text"))
+        what_happened = _raw_attention_text(bundle.get("what_happened_text"))
+        why_happened = _raw_attention_text(bundle.get("why_happened_text"))
+        affected_assets = _raw_attention_text(bundle.get("affected_assets_summary_text"))
         if what_happened:
             st.markdown(f"**What Happened**  \n{what_happened}")
         if why_happened:
@@ -6209,9 +6768,9 @@ def _render_attention_research_bundle_panel(
         if affected_assets:
             st.markdown(f"**Affected Assets**  \n{affected_assets}")
     else:
-        what_changed = _raw_attention_copy(bundle.get("what_changed_text"))
-        why_now = _raw_attention_copy(bundle.get("why_now_text"))
-        what_else_moved = _raw_attention_copy(bundle.get("what_else_moved_text"))
+        what_changed = _raw_attention_text(bundle.get("what_changed_text"))
+        why_now = _raw_attention_text(bundle.get("why_now_text"))
+        what_else_moved = _raw_attention_text(bundle.get("what_else_moved_text"))
         if what_changed:
             st.markdown(f"**What Changed Vs Expectation**  \n{what_changed}")
         if why_now:
@@ -6367,9 +6926,9 @@ def _render_attention_home_event_card(
     toggle_key = _bundle_toggle_key(bundle_id, key_prefix)
     bundle = research_bundle if isinstance(research_bundle, dict) else {}
     payload = bundle if bundle else event
-    what_happened = _raw_attention_copy(payload.get("what_happened_text") or event.get("what_happened_text"))
-    why_happened = _raw_attention_copy(payload.get("why_happened_text") or event.get("why_happened_text"))
-    affected_assets = _raw_attention_copy(payload.get("affected_assets_summary_text") or event.get("affected_assets_summary_text"))
+    what_happened = _raw_attention_text(payload.get("what_happened_text") or event.get("what_happened_text"))
+    why_happened = _raw_attention_text(payload.get("why_happened_text") or event.get("why_happened_text"))
+    affected_assets = _raw_attention_text(payload.get("affected_assets_summary_text") or event.get("affected_assets_summary_text"))
     event_title = str(payload.get("event_title") or event.get("event_title") or "Market event").strip()
     supporting_symbols = [
         str(item).upper().strip()
@@ -6462,9 +7021,9 @@ def _render_attention_home_mover_card(
     toggle_key = _bundle_toggle_key(bundle_id, key_prefix)
     bundle = research_bundle if isinstance(research_bundle, dict) else {}
     payload = bundle if bundle else mover
-    what_changed = _raw_attention_copy(payload.get("what_changed_text") or mover.get("what_changed_text"))
-    why_today = _raw_attention_copy(payload.get("why_now_text") or mover.get("why_now_text"))
-    what_else_moved = _raw_attention_copy(payload.get("what_else_moved_text") or mover.get("what_else_moved_text"))
+    what_changed = _raw_attention_text(payload.get("what_changed_text") or mover.get("what_changed_text"))
+    why_today = _raw_attention_text(payload.get("why_now_text") or mover.get("why_now_text"))
+    what_else_moved = _raw_attention_text(payload.get("what_else_moved_text") or mover.get("what_else_moved_text"))
     with st.container(border=True):
         header_cols = st.columns([4.8, 1.0, 1.5])
         with header_cols[0]:
@@ -6779,8 +7338,8 @@ def _render_home_attention(
     api: AlpacaAPI | None,
     *,
     force_data_refresh: bool,
-    page_title: str = "Attention Tape",
-    page_caption: str = "Today / 1d market tape: what changed versus expectation, why it changed today, and what else moved because of it.",
+    page_title: str = "Attention Market Overview",
+    page_caption: str = "Today / 1d market activity: what changed versus expectation, why it changed today, and what else moved because of it.",
     show_trend_surface: bool = True,
     require_api: bool = True,
 ) -> None:
@@ -6792,13 +7351,13 @@ def _render_home_attention(
         _render_section_back_button("home_attention_back")
 
     if require_api and api is None:
-        st.info("Configure the live market connection to enable the daily tape, market context, and research bundle lookups.")
+        st.info("Configure the live market connection to enable the daily market overview, market context, and research bundle lookups.")
         return
 
     try:
         with _inline_loading_banner(
-            "Loading today's attention tape",
-            "Pulling the latest precomputed snapshot for top events, standout movers, and unresolved tape signals.",
+            "Loading today's attention overview",
+            "Pulling the latest precomputed snapshot for top events, standout movers, and unresolved market signals.",
         ):
             home_payload = _load_attention_home_1d_cached(
                 cfg,
@@ -6833,7 +7392,7 @@ def _render_home_attention(
         st.caption("Pipeline snapshots are not configured, so this page is running on the live on-demand fallback.")
 
     if not top_events and not must_read and not unresolved:
-        st.info("No daily attention items were produced from the latest tape. Refresh after the market data sources update.")
+        st.info("No daily attention items were produced from the latest market activity. Refresh after the market data sources update.")
         return
 
     _render_attention_home_summary_card(
@@ -7398,7 +7957,7 @@ def _load_homepage_narrative_payload(cfg: AppConfig, *, force_data_refresh: bool
     try:
         with _inline_loading_banner(
             "Loading today's narrative home",
-            "Assembling the day-only homepage summary from the latest event tape and research snapshot.",
+            "Assembling the day-only homepage summary from the latest event set and research snapshot.",
         ):
             return _load_attention_home_1d_cached(
                 cfg,
@@ -7409,21 +7968,47 @@ def _load_homepage_narrative_payload(cfg: AppConfig, *, force_data_refresh: bool
         return None
 
 
+def _load_homepage_replay_payload(target_date: str) -> dict[str, object] | None:
+    """Load a full homepage payload for a historical date."""
+    try:
+        from data_access.layer import resolve_homepage_asof
+
+        with _inline_loading_banner(
+            f"Loading {target_date} snapshot",
+            f"Retrieving the stored homepage from {target_date}.",
+        ):
+            replay = resolve_homepage_asof(target_date)
+        home_payload = replay.get("home_payload")
+        if not isinstance(home_payload, dict) or not home_payload:
+            st.warning(f"No homepage snapshot found for {target_date}.")
+            return None
+        return home_payload
+    except Exception as exc:
+        st.warning(f"Could not load historical snapshot: {exc}")
+        return None
+
+
 def _render_homepage_v2(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_refresh: bool) -> None:
     _, _back_col = st.columns([5, 1.4])
     with _back_col:
         _render_section_back_button("homepage_v2_back")
 
-    home_payload = _load_homepage_narrative_payload(
-        cfg,
-        force_data_refresh=force_data_refresh,
-    )
+    # --- Historical replay: read date from sidebar selector ---
+    replay_date = st.session_state.get("_homepage_replay_date")
+
+    if replay_date is not None:
+        home_payload = _load_homepage_replay_payload(replay_date)
+    else:
+        home_payload = _load_homepage_narrative_payload(
+            cfg,
+            force_data_refresh=force_data_refresh,
+        )
     if not isinstance(home_payload, dict):
         return
 
     beats = _build_homepage_narrative_beats(home_payload)
     if not beats:
-        st.info("No daily narrative beats were produced from the latest market tape.")
+        st.info("No daily narrative beats were produced from the latest market activity.")
         return
 
     generated_at = pd.to_datetime(home_payload.get("generated_at_utc"), utc=True, errors="coerce")
@@ -9384,6 +9969,18 @@ if not _is_authenticated and _auth_enabled() and not _show_login_forced and _rou
     with st.sidebar:
         _render_sidebar_brand_panel()
         _render_sidebar_editorial_links(placement="sidebar_brand")
+        _pub_replay_today = pd.Timestamp.now(tz="UTC").normalize().date()
+        _pub_replay_selected = st.date_input(
+            "Snapshot date",
+            value=_pub_replay_today,
+            max_value=_pub_replay_today,
+            key="homepage_replay_date",
+            label_visibility="collapsed",
+        )
+        if _pub_replay_selected is not None and _pub_replay_selected < _pub_replay_today:
+            st.session_state["_homepage_replay_date"] = str(_pub_replay_selected)
+        else:
+            st.session_state.pop("_homepage_replay_date", None)
         if st.button("Sign in", type="primary", use_container_width=True, key="public_home_signin"):
             st.session_state["_show_login_form"] = True
             st.rerun()
@@ -9426,6 +10023,20 @@ current_user = _current_user_context()
 with st.sidebar:
     _render_sidebar_brand_panel()
     _render_sidebar_editorial_links(placement="sidebar_brand")
+    # Snapshot date picker — only meaningful on Home, but always rendered
+    # in the sidebar to keep the key stable across section changes.
+    _replay_today = pd.Timestamp.now(tz="UTC").normalize().date()
+    _replay_selected = st.date_input(
+        "Snapshot date",
+        value=_replay_today,
+        max_value=_replay_today,
+        key="homepage_replay_date",
+        label_visibility="collapsed",
+    )
+    if _replay_selected is not None and _replay_selected < _replay_today:
+        st.session_state["_homepage_replay_date"] = str(_replay_selected)
+    else:
+        st.session_state.pop("_homepage_replay_date", None)
     _nav_current = _normalize_workspace_section(st.session_state.get("workspace_section", section_options[0]))
     st.markdown('<p class="sn-nav-label">Navigate</p>', unsafe_allow_html=True)
     for _nav_opt in section_options:
@@ -10071,76 +10682,6 @@ elif section == BROAD_ECONOMY_SECTION:
                 "The curated dashboard tracks the releases and series needed for inflation, labor, growth, housing, "
                 "credit distress, policy, and money-supply analysis."
             )
-
-elif section == "Pipeline Jobs":
-    st.title("Pipeline Jobs")
-    st.caption("Run remote snapshot refresh jobs here, then inspect the latest execution status below.")
-    st.info(
-        "Page-level `Refresh cached data` buttons bypass the local CSV cache for the current view. "
-        "The controls below trigger the remote pipeline jobs that rebuild snapshot data."
-    )
-
-    if source_refresh_flags:
-        if st.button("Clear local refresh overrides", key="clear_source_refresh_overrides"):
-            source_refresh_flags = {}
-            st.session_state["_source_force_refresh"] = source_refresh_flags
-            st.rerun()
-
-    job_cards = st.columns(2)
-    for index, group in enumerate(_job_control_groups()):
-        with job_cards[index % 2]:
-            job_name = str(group["job_name"])
-            sources = [SOURCE_LABELS.get(source_key, source_key.title()) for source_key in group["sources"]]
-            datasets = [str(item) for item in group["datasets"]]
-            st.markdown(f"#### {group['label']}")
-            st.caption(f"Job: `{job_name}`")
-            st.caption("Covers: " + ", ".join(sources))
-            if datasets:
-                preview = ", ".join(datasets[:4])
-                if len(datasets) > 4:
-                    preview += f", +{len(datasets) - 4} more"
-                st.caption(f"Datasets: {preview}")
-            if st.button("Run refresh job", key=f"run_job_{job_name}", use_container_width=True):
-                ok, msg = start_source_refresh_job(str(group["sources"][0]))
-                if ok:
-                    for source_key in group["sources"]:
-                        source_refresh_flags[str(source_key)] = True
-                    st.session_state["_source_force_refresh"] = source_refresh_flags
-                    st.success(msg)
-                else:
-                    st.warning(msg)
-            st.markdown("---")
-
-    with st.spinner("Loading latest job executions..."):
-        with _timed("load_job_status_table"):
-            status_table = latest_job_status_table()
-
-    if status_table.empty:
-        st.info("No job status rows returned.")
-    else:
-        succeeded = int((status_table["status"] == "Succeeded").sum()) if "status" in status_table.columns else 0
-        running = int((status_table["status"] == "Running").sum()) if "status" in status_table.columns else 0
-        failing = int((status_table["status"] == "Failed").sum()) if "status" in status_table.columns else 0
-
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Succeeded", succeeded)
-        c2.metric("Running", running)
-        c3.metric("Failed", failing)
-
-        display = status_table.rename(
-            columns={
-                "job_name": "Job Name",
-                "run": "Run",
-                "status": "Status",
-                "progress_stage": "Stage",
-                "progress_pct": "Progress %",
-                "heartbeat_time_utc": "Heartbeat (UTC)",
-                "start_time_utc": "Start (UTC)",
-                "end_time_utc": "End (UTC)",
-                "message": "Message",
-            }
-        )
-        st.dataframe(display, use_container_width=True, hide_index=True)
 
 elif section == MARKET_EXPLORER_SECTION:
     header_cols = st.columns([4.8, 1.4])

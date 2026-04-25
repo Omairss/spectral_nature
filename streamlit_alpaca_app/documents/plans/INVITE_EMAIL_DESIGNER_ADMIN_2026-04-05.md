@@ -12,7 +12,7 @@ Provide an admin-facing invite template system with two built-in templates and f
 ## Requirements Covered
 
 - live invite email preview in Access Admin
-- editable look-and-feel controls (copy + palette + graph toggle)
+- editable look-and-feel controls (text + palette + graph toggle)
 - template library persistence in `app_settings`
 - default dark template with white logo + dark chart
 - white template kept as built-in current style

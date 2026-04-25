@@ -2,7 +2,7 @@
 
 ## Goal
 
-- Make the Experiment page tape summary easier to scan and easier to listen to.
+- Make the Experiment page market summary easier to scan and easier to listen to.
 - Stop depending on local ElevenLabs secrets for normal runtime setup.
 - Store the ElevenLabs API key in Azure Key Vault instead of repo or local env files.
 

@@ -1,4 +1,17 @@
 #!/usr/bin/env bash
+# Deploy the pipeline container (scheduled jobs) to Azure Container Apps.
+#
+# Source directories this container runs:
+#   pipeline/, compute/, services/aql/, services/saa/,
+#   services/attention_home_summary.py, services/attention_agentic.py,
+#   services/attention_live_research.py, services/attention_market_events.py,
+#   services/attention_home_1d.py, services/attention_ticker_snapshots.py,
+#   services/omnibar*.py, services/web_research.py, services/page_browsing.py,
+#   services/seeking_alpha_access.py, services/signals.py,
+#   data_access/, requirements.txt
+#
+# If your change is only in app.py, presentation/, or config/, you likely
+# need deploy_ui_azure.sh instead. Run scripts/which_deploy.sh to check.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -90,6 +103,9 @@ ENTITY_TAXONOMY_REFRESH_CRON="${ENTITY_TAXONOMY_REFRESH_CRON:-0 9 1 * *}"
 SEEKING_ALPHA_USERNAME_SECRET_NAME="${SEEKING_ALPHA_USERNAME_SECRET_NAME:-seeking-alpha-username}"
 SEEKING_ALPHA_PASSWORD_SECRET_NAME="${SEEKING_ALPHA_PASSWORD_SECRET_NAME:-seeking-alpha-password}"
 SEEKING_ALPHA_BROWSER_HEADLESS="${SEEKING_ALPHA_BROWSER_HEADLESS:-true}"
+
+SIMFIN_API_KEY_SECRET_NAME="${SIMFIN_API_KEY_SECRET_NAME:-SimFinAPI}"
+FUNDAMENTALS_QUARTERLY_REFRESH_CRON="${FUNDAMENTALS_QUARTERLY_REFRESH_CRON:-0 12 * * 1-5}"
 
 job_exists() {
   local job_name="$1"
@@ -434,6 +450,8 @@ create_or_update_job () {
   maybe_append_env "SEEKING_ALPHA_USERNAME_SECRET_NAME" "$SEEKING_ALPHA_USERNAME_SECRET_NAME"
   maybe_append_env "SEEKING_ALPHA_PASSWORD_SECRET_NAME" "$SEEKING_ALPHA_PASSWORD_SECRET_NAME"
   maybe_append_env "SEEKING_ALPHA_BROWSER_HEADLESS" "$SEEKING_ALPHA_BROWSER_HEADLESS"
+  maybe_append_env "SIMFIN_API_KEY_SECRET" "$SIMFIN_API_KEY_SECRET_NAME"
+  maybe_append_env "SIMFIN_API_KEY_SECRET_NAME" "$SIMFIN_API_KEY_SECRET_NAME"
 
   while (($#)); do
     JOB_ENV_VARS+=("$1")
@@ -501,6 +519,13 @@ create_or_update_job \
   "TAXONOMY_LISTINGS_TIMEOUT_SECONDS=60" \
   "TAXONOMY_LLM_BATCH_SIZE=25" \
   "LLM_TIMEOUT_SECONDS=180"
+create_or_update_job \
+  "fundamentals-quarterly-refresh" \
+  "${FUNDAMENTALS_QUARTERLY_REFRESH_CRON}" \
+  3600 \
+  0.5 \
+  1Gi \
+  "SIMFIN_REFRESH_ENABLED=true"
 
 echo "[11/11] Capturing deployment outputs"
 mkdir -p "$(dirname "$DEPLOY_OUTPUTS_FILE")"

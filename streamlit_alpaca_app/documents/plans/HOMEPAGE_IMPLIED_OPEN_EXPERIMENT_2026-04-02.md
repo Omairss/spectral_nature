@@ -21,9 +21,9 @@ Make the homepage narrative thread feel less like a list of utility buttons and 
 - bind ticker-highlight state to the selected beat as well as the selected symbol so clicking a stock does not light up unrelated repeated tickers elsewhere in the narrative thread
 - keep the company-background rail header visually aligned with retained research so the interface does not feel like it changes modes after a ticker click
 - remove callback-side `st.rerun()` calls from ticker selection handlers because Streamlit already reruns after `on_click`, and the extra call only emits a warning
-- remove small state labels and tooltip copy that restate the obvious once headline and ticker surfaces are already clickable
+- remove small state labels and tooltip text that restate the obvious once headline and ticker surfaces are already clickable
 - keep the rail title inside the same bordered shell as its content so retained research and company background share one visual structure
-- shorten empty-state copy so the homepage reads like a product surface rather than a guided demo
+- shorten empty-state text so the homepage reads like a product surface rather than a guided demo
 
 ## Guardrails
 

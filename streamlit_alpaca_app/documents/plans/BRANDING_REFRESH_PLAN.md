@@ -6,7 +6,7 @@ Make Spectral Nature read like a polished consumer-facing product rather than an
 
 ## Scope
 
-- remove exposed `Streamlit` and `Alpaca` references from user-facing UI copy
+- remove exposed `Streamlit` and `Alpaca` references from user-facing UI text
 - hide default framework chrome that weakens the brand
 - establish a cleaner app shell with a distinct sidebar wordmark, softer surfaces, and more deliberate hierarchy
 - keep infrastructure names and package paths unchanged unless changing them materially improves operator experience
@@ -16,7 +16,7 @@ Make Spectral Nature read like a polished consumer-facing product rather than an
 - browser title now uses `Spectral Nature`
 - a reusable shell stylesheet now controls background, cards, buttons, tabs, and sidebar presentation
 - the sidebar now renders a branded identity panel instead of surfacing framework/provider labels
-- login and homepage use clearer product copy
+- login and homepage use clearer product text
 - local startup instructions now prefer `scripts/run_ui_local.sh` so docs and UI setup snippets do not expose raw framework commands
 - the shell was corrected back to a dark theme after the light palette caused contrast and layout regressions against the existing dark charts and dashboard surfaces
 - the shell now uses flatter graphite surfaces, restrained steel accents, and lower-contrast shadows instead of decorative cyan and teal gradients

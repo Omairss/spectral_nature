@@ -78,7 +78,7 @@ Use existing code instead of building a second research system:
   - driver and beneficiary symbols
 - `services/market.py`
   - commodity and proxy catalogs
-- `documents/plans/DEPENDENCY_GRAPH_INTEGRATION_2026-04-10.md`
+- `documents/architecture/agents/DEPENDENCY_GRAPH_INTEGRATION_2026-04-10.md`
   - config-driven relationship expansion instead of Python hardcoding
 
 ## Recommended design

@@ -8,7 +8,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from .llm import COPY_STYLE_RULE, LLMAPIError, get_prompt, load_llm_client, register_copy_prompt
 from .runtime_policy import attention_candidate_policy, source_authority_policy
 
 ENTITY_MASTER_COLUMNS = [
@@ -102,18 +101,6 @@ _MODEL_MATH_PATTERNS = (
     r"\b20-day baseline\b",
     r"\bversus an expected\b",
     r"\bleaving a residual\b",
-)
-
-_MOVER_COPY_SYSTEM_PROMPT = register_copy_prompt(
-    name="Mover Copy (one-sentence move description)",
-    file="services/attention_home_1d.py",
-    prompt=(
-        f"{COPY_STYLE_RULE} "
-        "Write one sentence (under 25 words) describing this asset's price move today. "
-        "Be specific about the magnitude and direction. "
-        "Do not use the words 'modestly', 'meaningfully', or 'sharply'. "
-        "Do not use template phrasing like 'relative to its recent baseline'."
-    ),
 )
 
 def _coerce_text(value: object) -> str:
@@ -237,7 +224,7 @@ def _looks_like_model_math_text(text: object) -> bool:
     return any(re.search(pattern, clean) for pattern in _MODEL_MATH_PATTERNS)
 
 
-def _looks_like_numeric_tape_sentence(text: object) -> bool:
+def _looks_like_numeric_market_activity_sentence(text: object) -> bool:
     clean = _coerce_text(text)
     if not clean:
         return False
@@ -259,7 +246,7 @@ def _clean_source_explanation(text: object, *, limit: int = 240) -> str:
     for sentence in sentences:
         if _looks_like_model_math_text(sentence):
             continue
-        if _looks_like_numeric_tape_sentence(sentence):
+        if _looks_like_numeric_market_activity_sentence(sentence):
             continue
         kept.append(sentence)
     if kept:
@@ -516,65 +503,6 @@ def _confidence_from_candidate(evidence_rows: list[dict[str, Any]], surprise_z: 
     ):
         return "Medium"
     return "Developing"
-
-
-_MOVER_COPY_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "sentence": {"type": "string"},
-    },
-    "required": ["sentence"],
-}
-_mover_copy_cache: dict[str, str] = {}
-
-
-def _move_vs_expectation_text(
-    symbol: str,
-    change_pct: float,
-    expected_move_pct: float,
-    surprise_z: float,
-    *,
-    security_name: str = "",
-) -> str:
-    cache_key = f"{symbol}::{round(change_pct, 1)}::{round(surprise_z, 1) if np.isfinite(surprise_z) else ''}"
-    if cache_key in _mover_copy_cache:
-        return _mover_copy_cache[cache_key]
-    llm_client = load_llm_client()
-    if llm_client is not None:
-        move_str = f"{change_pct:+.1f}%"
-        vs_baseline = (
-            f" vs a baseline expectation of {expected_move_pct:+.1f}%"
-            if np.isfinite(expected_move_pct)
-            else ""
-        )
-        surprise_str = (
-            f" (surprise z-score: {surprise_z:.1f})"
-            if np.isfinite(surprise_z)
-            else ""
-        )
-        name_str = f" ({security_name})" if security_name else ""
-        try:
-            result = llm_client.generate_json(
-                system_prompt=get_prompt(_MOVER_COPY_SYSTEM_PROMPT),
-                user_prompt=(
-                    f"Symbol: {symbol}{name_str}\n"
-                    f"Move today: {move_str}{vs_baseline}{surprise_str}"
-                ),
-                schema_name="mover_copy",
-                schema=_MOVER_COPY_SCHEMA,
-            )
-            sentence = str(result.get("sentence") or "").strip()
-        except (LLMAPIError, Exception):
-            sentence = ""
-        if sentence:
-            _mover_copy_cache[cache_key] = sentence
-            return sentence
-    # Fallback — used only when LLM is unavailable
-    direction = "rose" if change_pct >= 0 else "fell"
-    sentence = f"{symbol} {direction} {abs(change_pct):.1f}% today."
-    _mover_copy_cache[cache_key] = sentence
-    return sentence
 
 
 def _compute_expectation_stats(frame: pd.DataFrame | None) -> tuple[float, float, float]:
@@ -921,13 +849,7 @@ def build_attention_event_candidates_1d(
             or _coerce_text(mover_row.get("company_name"))
             or ""
         )
-        what_changed_text = _move_vs_expectation_text(
-            symbol,
-            change_pct,
-            expected_move_pct if np.isfinite(expected_move_pct) else float("nan"),
-            surprise_z,
-            security_name=security_name,
-        )
+        what_changed_text = ""
         headline = _headline_text_from_evidence(
             symbol,
             evidence_rows,

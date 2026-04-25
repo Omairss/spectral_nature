@@ -48,9 +48,10 @@ Default cadence:
 
 - once per month at `0 9 1 * *` UTC
 
-Taxonomy flow charts and setup notes live in:
+Pipeline architecture and taxonomy flow charts live in:
 
-- `documents/infra/TAXONOMY_PIPELINE_FLOW.md`
+- `documents/architecture/data_pipelines/PIPELINE_ARCHITECTURE.md`
+- `documents/architecture/data_pipelines/TAXONOMY_PIPELINE_FLOW.md`
 
 ## Output
 

@@ -47,18 +47,21 @@ This document defines the canonical architecture for cached dashboard reads.
 - Attention
   - Job: `attention-home-build`
   - Datasets: `attention_home_1d`, `attention_research_bundles`, `attention_candidates_1d`, `attention_claims`, `attention_event_clusters_1d`, `attention_ticker_snapshots_1d`, `attention_ticker_background_snapshots`, `attention_web_search_news`
-  - Dashboard: Home, Daily Tape, attention drilldowns, attention graph views
+  - Dashboard: Home, Daily Market Overview, attention drilldowns, attention graph views
 
 - Taxonomy
   - Job: `entity-taxonomy-refresh`
   - Datasets: `us_equity_listings`, `entity_taxonomy_labels`
   - Dashboard: Attention entity labeling, sector/industry/peer-group lookup
-  - Detailed flow: `documents/infra/TAXONOMY_PIPELINE_FLOW.md`
+  - Detailed flow: `documents/architecture/data_pipelines/TAXONOMY_PIPELINE_FLOW.md`
 
 - Fundamentals
-  - Job: `equities-intraday-preload`
+  - Job: `fundamentals-quarterly-refresh` (standalone; previously embedded in `equities-intraday-preload`)
   - Datasets: `quarterly_fundamentals`
+  - Source: SimFin API (requires `SIMFIN_API_KEY` in Key Vault as secret `SimFinAPI`; falls back to bundled CSV files when unavailable)
+  - Schedule: weekdays at 12:00 UTC (configurable via `FUNDAMENTALS_QUARTERLY_REFRESH_CRON`)
   - Dashboard: Fundamental Strategizer, Market Opportunity fundamentals block
+  - Staleness: UI shows a warning above fundamentals charts when the most recent report date is >150 days old
 
 - Derivatives
   - Job: `equities-intraday-preload`
@@ -79,6 +82,53 @@ Sidebar source buttons trigger pipeline jobs directly using Azure CLI via `start
 - Derivatives
 
 These controls are operational triggers, not data readers. Readers still use snapshot-first logic.
+
+## Historical Replay
+
+Every dataset version is retained in Postgres (`dataset_versions`) and Blob Storage.
+The `dataset_versions` table records `asof_time_utc` per version, so any past day's
+snapshot can be retrieved without re-running the pipeline or calling the LLM.
+
+### How it works
+
+- `pipeline_store.dataset_metadata_asof(dataset_name, target_date)` — returns the
+  newest `ready` version whose `asof_time_utc` falls on or before `target_date`.
+- `pipeline_store.load_dataset_frame_asof(dataset_name, target_date)` — loads the
+  blob parquet for that version (with local cache).
+- `data_access.layer.resolve_homepage_asof(target_date)` — loads a complete homepage
+  from stored outputs.  No LLM calls, no live API calls.
+
+### Homepage replay dependencies
+
+A full historical homepage requires four datasets, all produced in the same
+`attention-home-build` job run:
+
+| Dataset | Contains |
+|---|---|
+| `attention_home_1d` | Summary text, audio text, hypothesis, graph figure JSON, top events, must-read movers, unresolved moves, taxonomy trends, entity master, coverage summary |
+| `attention_ticker_snapshots_1d` | Per-symbol sparkline chart (data URI), company name, market cap label |
+| `attention_research_bundles` | Detailed per-event research (loaded on click in the UI) |
+| `attention_ticker_background_snapshots` | Deeper ticker profiles with news context |
+
+All narrative content, charts, and the relationship graph are **precomputed and
+stored** — the replay reads them directly.  The only thing missing from a
+historical view vs. the live view is that ticker snapshot profiles won't fall back
+to the live Alpaca API for symbols not in the stored snapshot.
+
+### UI access
+
+The homepage includes a date picker (top right). Selecting a past date loads
+that day's stored snapshot instead of the latest.
+
+### API access
+
+```
+POST /v1/dataset/homepage_replay
+{"target_date": "2026-04-20"}
+```
+
+Returns `home_payload`, `ticker_snapshots`, and `dataset_metadata` with provenance
+(version IDs and asof timestamps for each loaded dataset).
 
 ## Notes
 

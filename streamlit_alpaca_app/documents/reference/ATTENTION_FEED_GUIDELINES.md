@@ -15,7 +15,7 @@ If a card or drilldown cannot answer those questions cleanly, it is not ready.
 ## Hard Rules
 
 - Do not mix `1w`, `1mo`, `3mo`, or `1yr` logic into homepage ranking.
-- Do not let generic anomaly copy drive final homepage or drilldown prose.
+- Do not let generic anomaly text drive final homepage or drilldown prose.
 - Do not classify sector or macro role from keywords alone.
 - Do not write uncited causal prose.
 - Do not let a stale filing headline masquerade as a same-day catalyst.
@@ -95,7 +95,7 @@ Old official documents can still be low-quality evidence for `why today`.
 - Extract material sections and facts.
 - Distinguish `fresh catalyst` from `background context`.
 - Routine or stale filings must not become the lead explanation for a sharp move.
-- Auditor changes, governance notices, and similar filings should only drive copy if there is explicit evidence that the market is reacting to them.
+- Auditor changes, governance notices, and similar filings should only drive narrative if there is explicit evidence that the market is reacting to them.
 
 ## Search And Retrieval Rules
 
@@ -105,7 +105,7 @@ Old official documents can still be low-quality evidence for `why today`.
 - Dedupe repeated syndications and duplicate articles.
 - Reject broad roundup articles as a primary explanation for a single-name move unless they truly discuss that name in substance.
 
-## Copy Rules
+## Narrative Rules
 
 Allowed in the final product:
 
@@ -114,7 +114,7 @@ Allowed in the final product:
 - concise spillover summary
 - explicit uncertainty when needed
 
-Not allowed in final product copy:
+Not allowed in final product text:
 
 - residual math prose
 - z-score prose as explanation
@@ -166,7 +166,7 @@ Each drilldown must include:
 
 These are explicitly forbidden:
 
-- oil `jumps` copy when oil ETFs are down sharply
+- oil `jumps` wording when oil ETFs are down sharply
 - `Unknown | Unknown` on a well-known company with available structured metadata
 - an unrelated Benzinga roundup article inside a focused single-name drilldown
 - a March 5 filing being treated as the cause of a March 24 move without supporting evidence
@@ -181,4 +181,4 @@ These are explicitly forbidden:
 
 ## Success Test
 
-If a user opens the product on a major tape day, they should immediately see the obvious things they need to read, trust the explanations that are present, and understand when the system is still uncertain.
+If a user opens the product on a major market-activity day, they should immediately see the obvious things they need to read, trust the explanations that are present, and understand when the system is still uncertain.

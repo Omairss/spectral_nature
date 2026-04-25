@@ -1,8 +1,29 @@
 #!/usr/bin/env bash
+# Deploy the UI (Streamlit) container to Azure Container Apps.
+#
+# Source directories this container serves at request time:
+#   app.py, presentation/, config/, branding/, services/* (UI-facing only),
+#   data_access/, requirements.txt
+#
+# If your change is in pipeline/, compute/, services/aql/, services/saa/,
+# or services/attention_*_summary.py etc., you likely need
+# deploy_pipeline_azure.sh instead. Run scripts/which_deploy.sh to check.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
+
+# Deploy guard: warn if no UI-relevant files changed.
+if [[ -x "$ROOT_DIR/scripts/which_deploy.sh" ]]; then
+  if ! "$ROOT_DIR/scripts/which_deploy.sh" --check ui 2>/dev/null; then
+    echo ""
+    read -r -p "Continue anyway? [y/N] " confirm
+    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+      echo "Aborted."
+      exit 0
+    fi
+  fi
+fi
 
 DEFAULT_DEPLOYMENT_ENV_FILE="infra/.generated/deployment.local.env"
 LEGACY_DEPLOYMENT_ENV_FILE="infra/deployment.outputs.env"

@@ -1,0 +1,49 @@
+# Market Data Architecture
+
+Market Data owns raw and derived market datasets used by Attention, AQL, agents, data pipelines, and UI.
+
+## Ownership
+
+This module owns:
+
+- price and volume data
+- universe and liquidity selection
+- fundamentals and statement-derived metrics
+- options surfaces
+- macro and rate datasets
+- ownership-derived metrics
+- anomaly detection and signal extraction
+
+## Current Code
+
+- `services/market.py`
+- `services/fundamentals.py`
+- `services/options.py`
+- `services/fred.py`
+- `services/treasury_yields.py`
+- `services/universe.py`
+- `compute/anomalies.py`
+- `compute/fundamentals.py`
+- `compute/signals.py`
+- `compute/signal_extraction.py`
+- `compute/treasury_yields.py`
+- `compute/ownership.py`
+
+## Target Contract
+
+Consumers should call market data through stable loaders and compute APIs. Attention, AQL, agents, and UI should not duplicate raw market transforms.
+
+## Boundary Rules
+
+- Market Data may call vendor clients, data access, compute transforms, and runtime config.
+- Market Data should not call AQL, agents, or UI.
+- Attention-specific event language belongs in Attention or AQL, not Market Data.
+- UI chart rendering belongs in presentation or UI layers.
+
+## Migration Steps
+
+1. Use `services.market_data` as the stable namespace while legacy files remain in place.
+2. Move Plotly rendering out of market/fundamental services when a neutral chart model exists.
+3. Move reusable anomaly and signal extraction functions behind explicit public exports.
+4. Retarget Attention and agents to public market data APIs.
+5. Move files under `services/market_data/` after callers use the namespace.

@@ -11,13 +11,13 @@ from typing import Any
 import pandas as pd
 
 from ..llm import (
-    COPY_STYLE_RULE,
+    NARRATIVE_STYLE_RULE,
     AzureOpenAIChatJSONClient,
     AzureOpenAIEmbeddingClient,
     OpenAIChatJSONClient,
     OpenAIEmbeddingClient,
     get_prompt,
-    register_copy_prompt,
+    register_narrative_prompt,
 )
 
 LLMClient = OpenAIChatJSONClient | AzureOpenAIChatJSONClient
@@ -304,6 +304,50 @@ SEARCH_ROUTER_SCHEMA: dict[str, Any] = {
     "required": ["use_tavily", "tavily_topic", "tavily_query", "reason"],
 }
 
+HYPOTHESIS_VERIFICATION_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "verdict": {
+            "type": "string",
+            "enum": ["supported", "weak", "conflicting", "unsupported"],
+        },
+        "confidence": {
+            "type": "string",
+            "enum": ["high", "medium", "low"],
+        },
+        "supporting_claims": {
+            "type": "array",
+            "items": {"type": "string"},
+        },
+        "contradicting_claims": {
+            "type": "array",
+            "items": {"type": "string"},
+        },
+        "gap_queries": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "query": {"type": "string"},
+                    "rationale": {"type": "string"},
+                },
+                "required": ["query", "rationale"],
+            },
+        },
+        "reasoning": {"type": "string"},
+    },
+    "required": [
+        "verdict",
+        "confidence",
+        "supporting_claims",
+        "contradicting_claims",
+        "gap_queries",
+        "reasoning",
+    ],
+}
+
 SEARCH_RELEVANCE_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
@@ -378,11 +422,12 @@ EVENT_WRITER_SCHEMA: dict[str, Any] = {
     ],
 }
 
-EVENT_WRITER_SYSTEM_PROMPT = register_copy_prompt(
+EVENT_WRITER_SYSTEM_PROMPT = register_narrative_prompt(
     name="Event Writer (surface_summary / why_happened_text / affected_assets)",
     file="services/aql/constants.py → used in aql/writer.py",
+    group="AQL / Research",
     prompt=(
-        f"{COPY_STYLE_RULE} "
+        f"{NARRATIVE_STYLE_RULE} "
         "You are a senior cross-asset strategist writing for PMs. "
         "Use only supplied facts and claims; do not invent facts. "
         "Write specific, mechanism-first summaries — NOT wordy. "
@@ -390,11 +435,11 @@ EVENT_WRITER_SYSTEM_PROMPT = register_copy_prompt(
         "Critical rule for why_happened_text: lead with a causal chain in plain English before any numbers. "
         "Structure: catalyst → transmission channel → market pricing reaction. "
         "Transmission channels must be concrete (input costs, margins, volumes, funding costs, duration, policy, demand, or risk appetite). "
-        "Do not write generic tape titles. Keep the title anchored to the strongest supported event theme. "
-        "Avoid ticker and percentage tape recaps across all text fields. "
+        "Do not write generic market-activity titles. Keep the title anchored to the strongest supported event theme. "
+        "Avoid ticker and percentage recaps across all text fields. "
         "Do not list more than two tickers in why_happened_text. "
         "Never open why_happened_text with Treasury, yield, ticker, or percentage statistics. "
-        "what_happened_text summarizes the directional relationship across the cluster, not a tape enumeration. "
+        "what_happened_text summarizes the directional relationship across the cluster, not a market-activity enumeration. "
         "affected_assets_summary_text focuses on second-order spillover and cross-asset breadth. "
         "If causality is mixed, say so in plain language. "
         "When Treasury yield context is relevant, summarize direction and transmission in plain language without quoting bp numbers unless the rate move itself is the event."

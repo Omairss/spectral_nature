@@ -6,7 +6,7 @@ Presentation mode exposed false empty states for some symbols such as `VRDN`:
 
 - next-week forecast showed "Not enough history" even when `technical_signal_history` existed
 - recent news was empty when `news_articles` had no symbol rows
-- company overview degraded to generic copy because `asset_metadata` is not materialized
+- company overview degraded to generic text because `asset_metadata` is not materialized
 
 ## Root Cause
 
@@ -31,7 +31,7 @@ Two different gaps were conflated:
 
 - symbols with price/signal history no longer show false forecast-empty states in presentation mode
 - symbols missing `news_articles` can still show search-backed news/context after the attention build job reruns
-- company overview copy regains a real company name and news themes instead of generic placeholder text
+- company overview text regains a real company name and news themes instead of generic placeholder text
 
 ## Deployment Verification
 

@@ -100,9 +100,9 @@ def _load_graph_payload(path: Path) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ValueError(f"{path}: dependency graph file must contain an object")
     payload = validate_dependency_graph_payload(payload, source=str(path))
-    payload_copy = json.loads(json.dumps(payload))
-    payload_copy["_path"] = str(path)
-    return payload_copy
+    payload_with_path = json.loads(json.dumps(payload))
+    payload_with_path["_path"] = str(path)
+    return payload_with_path
 
 
 @lru_cache(maxsize=1)

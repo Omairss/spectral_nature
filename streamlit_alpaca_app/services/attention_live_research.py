@@ -7,9 +7,12 @@ from typing import Any
 
 import pandas as pd
 
+from .aql._shared import _judge_cause_status as _aql_judge_cause_status
+from .aql._shared import _quality_label as _aql_quality_label
+from .aql.collector import search_symbol_news_payload
 from .attention_agentic import build_bottom_up_attention_bundle
 from .attention_home_1d import build_attention_research_bundle
-from .llm import COPY_STYLE_RULE, AzureOpenAIChatJSONClient, LLMAPIError, OpenAIChatJSONClient, get_prompt, load_llm_client, register_copy_prompt
+from .llm import NARRATIVE_STYLE_RULE, AzureOpenAIChatJSONClient, LLMAPIError, OpenAIChatJSONClient, get_prompt, load_llm_client, register_narrative_prompt
 from .runtime_policy import source_authority_policy
 from .web_research import (
     SerpAPISearchClient,
@@ -101,7 +104,7 @@ _EVENT_SEARCH_QUERY_SCHEMA: dict[str, Any] = {
     },
     "required": ["search_query"],
 }
-_EVENT_TAPE_WHY_SCHEMA: dict[str, Any] = {
+_EVENT_MARKET_ACTIVITY_WHY_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
@@ -110,14 +113,15 @@ _EVENT_TAPE_WHY_SCHEMA: dict[str, Any] = {
     "required": ["narrative"],
 }
 _event_theme_keywords_cache: dict[str, list[str]] = {}
-_event_tape_why_cache: dict[tuple[str, str], str] = {}
-_TAPE_NARRATIVE_SYSTEM_PROMPT = register_copy_prompt(
-    name="Tape Narrative Sentence (live research event)",
+_event_market_activity_why_cache: dict[tuple[str, str], str] = {}
+_MARKET_ACTIVITY_NARRATIVE_SYSTEM_PROMPT = register_narrative_prompt(
+    name="Market Activity Narrative Sentence (live research event)",
     file="services/attention_live_research.py",
+    group="Attention Pipeline",
     prompt=(
-        f"{COPY_STYLE_RULE} "
+        f"{NARRATIVE_STYLE_RULE} "
         "Write one sentence (under 25 words) explaining what this market theme move "
-        "signals for the broader tape. Be specific about the directional implication."
+        "signals for broader market activity. Be specific about the directional implication."
     ),
 )
 
@@ -324,8 +328,19 @@ def _event_relevance_score(text: str, theme: str, symbols: list[str]) -> float:
     return min(theme_score + symbol_score, 1.0)
 
 
-def _passes_event_relevance_gate(headline: str, snippet: str, theme: str, symbols: list[str]) -> bool:
-    relevance = _event_relevance_score(f"{headline} {snippet}", theme, symbols)
+def _passes_event_relevance_gate(
+    headline: str, snippet: str, theme: str, symbols: list[str],
+    query_text: str = "",
+) -> bool:
+    text = f"{headline} {snippet}"
+    relevance = _event_relevance_score(text, theme, symbols)
+    # Check if the article matches the user's original query terms
+    if query_text:
+        query_words = [w.lower() for w in query_text.split() if len(w) > 2]
+        blob = text.lower()
+        query_hits = sum(1 for w in query_words if w in blob)
+        if query_hits >= 2:
+            return True
     if relevance < 0.32:
         return False
     if _is_low_signal_article(headline, snippet) and relevance < 0.62:
@@ -517,7 +532,7 @@ def _format_move_value(move: float) -> str:
     return f"{float(move):+.1f}%"
 
 
-def _looks_like_numeric_tape_recap(text: object) -> bool:
+def _looks_like_numeric_market_activity_recap(text: object) -> bool:
     clean = _coerce_text(text)
     if not clean:
         return False
@@ -700,90 +715,6 @@ def merge_news_payloads(*payloads: dict[str, Any] | None) -> dict[str, Any]:
     }
 
 
-def search_symbol_news_payload(
-    symbol: str,
-    *,
-    company_name: str = "",
-    max_results: int = 8,
-    serp_client: SerpAPISearchClient | None = None,
-    tavily_client: TavilySearchClient | None = None,
-) -> dict[str, Any]:
-    normalized_symbol = _normalize_symbol(symbol)
-    if not normalized_symbol:
-        return {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
-
-    if serp_client is None:
-        cfg = load_serpapi_config()
-        serp_client = SerpAPISearchClient(cfg) if cfg is not None else None
-    if tavily_client is None:
-        cfg = load_tavily_config()
-        tavily_client = TavilySearchClient(cfg) if cfg is not None else None
-
-    query_base = f"{normalized_symbol} stock today"
-    if company_name:
-        query_base = f"{company_name} {normalized_symbol} stock today"
-
-    article_rows: list[dict[str, Any]] = []
-    sources: list[str] = []
-    errors: list[str] = []
-
-    if serp_client is not None:
-        try:
-            for item in serp_client.search(query_base, news=True, num=max(max_results, 3)):
-                title = _coerce_text(item.title)
-                snippet = _coerce_text(item.snippet)
-                if not title:
-                    continue
-                if not _passes_search_relevance_gate(title, snippet, normalized_symbol, company_name):
-                    continue
-                if _is_low_signal_article(title, snippet) and _mention_score(title, normalized_symbol, company_name) < 0.75:
-                    continue
-                article_rows.append(
-                    {
-                        "headline": title,
-                        "summary": snippet,
-                        "description": snippet,
-                        "source": _coerce_text(item.source) or "SerpApi",
-                        "published_at": pd.to_datetime(item.published_at, utc=True, errors="coerce"),
-                        "url": _coerce_text(item.url),
-                    }
-                )
-            sources.append("serpapi")
-        except WebResearchError as exc:
-            errors.append(str(exc))
-
-    if tavily_client is not None:
-        try:
-            for item in tavily_client.search(query_base, max_results=max(max_results // 2, 3), topic="news"):
-                title = _coerce_text(item.title)
-                snippet = _coerce_text(item.snippet)
-                if not title and not snippet:
-                    continue
-                if not _passes_search_relevance_gate(title, snippet, normalized_symbol, company_name):
-                    continue
-                if _is_low_signal_article(title, snippet) and _mention_score(title, normalized_symbol, company_name) < 0.75:
-                    continue
-                article_rows.append(
-                    {
-                        "headline": title or f"{normalized_symbol} web result",
-                        "summary": snippet,
-                        "description": snippet,
-                        "source": _coerce_text(item.source) or "Tavily",
-                        "published_at": pd.to_datetime(item.published_at, utc=True, errors="coerce"),
-                        "url": _coerce_text(item.url),
-                    }
-                )
-            sources.append("tavily")
-        except WebResearchError as exc:
-            errors.append(str(exc))
-
-    frame = _to_article_frame(article_rows).head(max(int(max_results), 1))
-    fallback_summary = None
-    if errors and frame.empty:
-        fallback_summary = errors[0]
-    return {"articles": frame, "fallback_summary": fallback_summary, "source": "+".join(sources) if sources else None}
-
-
 def _event_search_query(event: dict[str, Any]) -> str:
     theme = _coerce_text(event.get("event_type")).lower() or "generic"
     direction = _coerce_text(event.get("anchor_direction")).lower() or "down"
@@ -804,10 +735,12 @@ def _event_search_query(event: dict[str, Any]) -> str:
                     "Return a single search query string that would find relevant market news articles today."
                 ),
                 user_prompt=(
+                    f"User's original question: {event_title}\n"
                     f"Market event: {event_title or theme} ({direction})\n"
                     f"Theme: {theme}, Direction: {direction}\n"
                     f"Key symbols: {symbol_context}\n"
-                    "Generate a targeted search query to find relevant financial news."
+                    "Generate a targeted search query to find relevant financial news. "
+                    "Preserve the user's key terms (e.g. 'short squeeze') in the query."
                 ),
                 schema_name="event_search_query",
                 schema=_EVENT_SEARCH_QUERY_SCHEMA,
@@ -819,6 +752,8 @@ def _event_search_query(event: dict[str, Any]) -> str:
             pass
     parts = [anchor_symbol] if anchor_symbol else []
     parts.extend(supporting_symbols[:3])
+    if event_title:
+        return f"{event_title} {' '.join(parts[:2])} today".strip()
     return " ".join(part for part in parts if part) + " market move today"
 
 
@@ -840,6 +775,7 @@ def search_market_event_news_payload(
         tavily_client = TavilySearchClient(cfg) if cfg is not None else None
 
     theme = _coerce_text(event.get("event_type")).lower() or "generic"
+    event_title = _coerce_text(event.get("event_title"))
     symbols = [
         _normalize_symbol(symbol)
         for symbol in list(event.get("supporting_symbols") or [])
@@ -857,7 +793,7 @@ def search_market_event_news_payload(
                 snippet = _coerce_text(item.snippet)
                 if not title:
                     continue
-                if not _passes_event_relevance_gate(title, snippet, theme, symbols):
+                if not _passes_event_relevance_gate(title, snippet, theme, symbols, query_text=event_title):
                     continue
                 article_rows.append(
                     {
@@ -880,7 +816,7 @@ def search_market_event_news_payload(
                 snippet = _coerce_text(item.snippet)
                 if not title and not snippet:
                     continue
-                if not _passes_event_relevance_gate(title, snippet, theme, symbols):
+                if not _passes_event_relevance_gate(title, snippet, theme, symbols, query_text=event_title):
                     continue
                 article_rows.append(
                     {
@@ -1133,115 +1069,48 @@ def _normalize_filing_evidence(
     return rows
 
 
-def _judge_cause_status(evidence_rows: list[dict[str, Any]]) -> tuple[str, str]:
-    if not evidence_rows:
-        return "unresolved", "unresolved"
-
-    strong_same_day = [
-        item
-        for item in evidence_rows
-        if item.get("is_same_day")
-        and (
-            float(item.get("causal_score") or 0.0) >= 0.72
-            or (
-                int(item.get("authority_rank") or 9) <= 1
-                and float(item.get("causal_score") or 0.0) >= 0.62
-                and float(item.get("relevance_score") or 0.0) >= 0.65
-            )
+def _evidence_rows_as_aql_claims(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    claims: list[dict[str, Any]] = []
+    for item in rows:
+        if not isinstance(item, dict):
+            continue
+        claims.append(
+            {
+                "claim_text": _best_evidence_excerpt(item, limit=260) or _coerce_text(item.get("headline")),
+                "is_same_day": bool(item.get("is_same_day")),
+                "causal_score": float(item.get("causal_score") or 0.0),
+                "relevance_score": float(item.get("relevance_score") or 0.0),
+                "supports_hypothesis": _coerce_text(item.get("theme_tag")) or "unresolved",
+                "source": _coerce_text(item.get("source")),
+                "source_authority_bucket": _coerce_text(item.get("authority_bucket")),
+                "authority_rank": int(item.get("authority_rank") or 9),
+            }
         )
-        and int(item.get("authority_rank") or 9) <= 2
-    ]
-    if strong_same_day:
-        themes = {str(item.get("theme_tag") or "") for item in strong_same_day if str(item.get("theme_tag") or "")}
-        if len(themes) >= 2 and not any(theme == "general" for theme in themes):
-            return "conflicting", "conflicting"
-        return "supported", "fresh_catalyst"
+    return claims
 
-    authoritative_same_day = _same_day_authoritative_rows(
-        evidence_rows,
-        min_causal=0.5,
-        min_relevance=0.58,
-    )
-    corroborating_same_day = _corroborating_same_day_rows(
-        evidence_rows,
-        min_causal=0.46,
-        min_relevance=0.52,
-    )
-    if authoritative_same_day and corroborating_same_day:
-        return "supported", "same_day_confirmation"
 
-    medium_same_day = [
-        item
-        for item in evidence_rows
-        if item.get("is_same_day")
-        and float(item.get("causal_score") or 0.0) >= 0.52
-        and float(item.get("relevance_score") or 0.0) >= 0.58
-    ]
-    if medium_same_day:
-        return "supported", "same_day_confirmation"
-
-    older_context = [
-        item
-        for item in evidence_rows
-        if not item.get("is_same_day") and float(item.get("causal_score") or 0.0) >= 0.58 and float(item.get("relevance_score") or 0.0) >= 0.6
-    ]
-    if older_context:
-        return "continuation", "continuation"
-
-    return "unresolved", "unresolved"
+def _judge_cause_status(evidence_rows: list[dict[str, Any]]) -> tuple[str, str]:
+    return _aql_judge_cause_status(_evidence_rows_as_aql_claims(evidence_rows))
 
 
 def _quality_label(retained: list[dict[str, Any]], background: list[dict[str, Any]], cause_status: str) -> tuple[str, str]:
-    strong = [item for item in retained if float(item.get("causal_score") or 0.0) >= 0.7]
-    same_day = _same_day_rows(retained)
-    authoritative_same_day = _same_day_authoritative_rows(
-        retained,
-        min_causal=0.5,
-        min_relevance=0.58,
-    )
-    if cause_status == "supported" and (
-        (strong and min(int(item.get("authority_rank") or 9) for item in strong) <= 1 and len(strong) >= 2)
-        or (authoritative_same_day and len(same_day) >= 2)
-    ):
-        evidence_quality = "High"
-    elif cause_status == "supported" and authoritative_same_day:
-        evidence_quality = "Medium"
-    elif retained and min(int(item.get("authority_rank") or 9) for item in retained) <= 2:
-        evidence_quality = "Medium"
-    elif retained or background:
-        evidence_quality = "Developing"
-    else:
-        evidence_quality = "Low"
-
-    if len(same_day) >= 2:
-        freshness_quality = "High"
-    elif len(same_day) == 1:
-        only = same_day[0]
-        if int(only.get("authority_rank") or 9) <= 1 or float(only.get("freshness_score") or 0.0) >= 0.95:
-            freshness_quality = "High"
-        else:
-            freshness_quality = "Medium"
-    elif background:
-        freshness_quality = "Low"
-    else:
-        freshness_quality = "Low"
-    return evidence_quality, freshness_quality
+    return _aql_quality_label(_evidence_rows_as_aql_claims(list(retained or []) + list(background or [])), cause_status)
 
 
-def _event_tape_why_text(theme: str, direction: str) -> str:
+def _event_market_activity_why_text(theme: str, direction: str) -> str:
     theme = _coerce_text(theme).lower()
     direction = _coerce_text(direction).lower() or "down"
     cache_key = (theme, direction)
-    if cache_key in _event_tape_why_cache:
-        return _event_tape_why_cache[cache_key]
+    if cache_key in _event_market_activity_why_cache:
+        return _event_market_activity_why_cache[cache_key]
     llm_client = load_llm_client()
     if llm_client is not None:
         try:
             result = llm_client.generate_json(
-                system_prompt=get_prompt(_TAPE_NARRATIVE_SYSTEM_PROMPT),
-                user_prompt=f"Theme: {theme}\nDirection: {direction}\nWrite the tape narrative sentence.",
-                schema_name="event_tape_narrative",
-                schema=_EVENT_TAPE_WHY_SCHEMA,
+                system_prompt=get_prompt(_MARKET_ACTIVITY_NARRATIVE_SYSTEM_PROMPT),
+                user_prompt=f"Theme: {theme}\nDirection: {direction}\nWrite the market activity narrative sentence.",
+                schema_name="event_market_activity_narrative",
+                schema=_EVENT_MARKET_ACTIVITY_WHY_SCHEMA,
             )
             narrative = str(result.get("narrative") or "").strip()
         except (LLMAPIError, Exception):
@@ -1249,7 +1118,7 @@ def _event_tape_why_text(theme: str, direction: str) -> str:
     else:
         narrative = ""
     text = narrative or "The move is real, but the retained evidence is still too thin to support a stronger event-level explanation."
-    _event_tape_why_cache[cache_key] = text
+    _event_market_activity_why_cache[cache_key] = text
     return text
 
 
@@ -1328,8 +1197,8 @@ def _fallback_event_why_text(
     if cause_status == "conflicting":
         return "Coverage points to multiple competing macro explanations today, and no single event narrative is clearly dominant yet."
     if cause_status == "continuation":
-        return market_context or _event_tape_why_text(theme, direction)
-    return market_context or _event_tape_why_text(theme, direction)
+        return market_context or _event_market_activity_why_text(theme, direction)
+    return market_context or _event_market_activity_why_text(theme, direction)
 
 
 def _best_background_item(background: list[dict[str, Any]]) -> dict[str, Any]:
@@ -1458,9 +1327,9 @@ def _synthesize_with_llm(
         }
 
     system_prompt = (
-        "You write concise market drilldown copy. Use only the supplied evidence. "
+        "You write concise market drilldown text. Use only the supplied evidence. "
         "Do not invent catalysts. Distinguish same-day evidence from older background context. "
-        "Avoid ticker/percent tape recaps in all text fields. "
+        "Avoid ticker/percent market recaps in all text fields. "
         "If there is no clear same-day catalyst, say so plainly."
     )
     user_prompt = json.dumps(
@@ -1515,9 +1384,9 @@ def _synthesize_with_llm(
         }
     why_now_text = _coerce_text(data.get("why_now_text")) or fallback_why_text
     what_else_moved_text = _coerce_text(data.get("what_else_moved_text")) or fallback_what_else_moved_text
-    if _looks_like_numeric_tape_recap(why_now_text):
+    if _looks_like_numeric_market_activity_recap(why_now_text):
         why_now_text = fallback_why_text
-    if _looks_like_numeric_tape_recap(what_else_moved_text):
+    if _looks_like_numeric_market_activity_recap(what_else_moved_text):
         what_else_moved_text = fallback_what_else_moved_text
     return {
         "why_now_text": why_now_text,

@@ -41,14 +41,14 @@ The coordinator keeps a scratchpad (temp dir) for durable cross-worker state —
 
 Claude Code runs a "speculation" agent in the background on the most likely next user action. Key design:
 
-- Uses a **copy-on-write overlay filesystem**: writes go to a temp overlay dir, reads are redirected to the overlay if a file was already written there. Main filesystem is untouched until the user accepts.
+- Uses an **overlay filesystem with isolated writes**: writes go to a temp overlay dir, reads are redirected to the overlay if a file was already written there. Main filesystem is untouched until the user accepts.
 - **Boundary detection**: speculation stops (aborts) the moment it hits a non-read-only Bash command, a file edit without permission, or an unknown tool. It stores the `boundary` (what caused the stop + file path/command).
 - On accept: the overlay is atomically copied to main, speculated messages are injected into the real conversation.
 - On reject/abort: overlay is cleaned up, no side effects.
 - **Pipelined suggestion**: when speculation completes, it immediately pre-generates the *next* prompt suggestion and starts the next speculation round. This creates a cascading pipeline.
 
 **AQL application:**  
-- Run the next attention pipeline cycle speculatively in a staging area. Only promote if quality gates pass (confidence score, dedup, entity check). This is exactly a copy-on-write staging model.
+- Run the next attention pipeline cycle speculatively in a staging area. Only promote if quality gates pass (confidence score, dedup, entity check). This is an isolated-write staging model.
 - Pre-start the next cycle as the current one finishes. Instead of `collect → wait → next collect`, the next collect starts as soon as the previous write phase finishes.
 - The "boundary detection" idea: AQL jobs could declare `is_destructive` or `requires_approval` markers, and a supervisor stops at those boundaries pending an explicit trigger.
 
@@ -169,7 +169,7 @@ ULTRAPLAN offloads complex planning to a remote Opus session with a 30-minute ti
 - The model is read from a GrowthBook feature flag — easy to swap
 
 **AQL application:**  
-For AQL's north-star "deep research" mode (from `AQL_NLP_IR_AGENT_ARCHITECTURE_2026-04-14.md`), this pattern applies directly:
+For AQL's north-star "deep research" mode (from `documents/architecture/AQL/AQL_NLP_IR_AGENT_ARCHITECTURE_2026-04-14.md`), this pattern applies directly:
 - For complex hypotheses (e.g. "why did BMY underperform vs sector?"), offload to a long-running Opus session
 - The attention pipeline generates a seed hypothesis brief; Opus researches it deeply
 - Results come back as a structured evidence pack, injected into the AQL assembler
@@ -223,7 +223,7 @@ When the scratchpad feature is enabled, workers get a shared scratchpad director
 > Use this for durable cross-worker knowledge — structure files however fits the work."
 
 **AQL application:**  
-Between AQL pipeline stages, a shared staging directory serves the same role. The collector writes raw search results there. The extractor reads and writes claims there. The writer reads claims and writes event bundles there. The assembler reads event bundles and writes the final tape there.
+Between AQL pipeline stages, a shared staging directory serves the same role. The collector writes raw search results there. The extractor reads and writes claims there. The writer reads claims and writes event bundles there. The assembler reads event bundles and writes the final market overview there.
 
 This is cleaner than passing data through function arguments across the pipeline — each stage owns its portion of the scratchpad and doesn't need to know about the others' implementations.
 

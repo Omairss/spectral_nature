@@ -17,7 +17,7 @@ This map points to the current source-of-truth docs for:
 - Use this first for requirements, constraints, adopted clarifications, and implementation order.
 
 2. `agent_omnibar/OTHER_TASK_RESPONSE_2026-04-08.md`
-- Explicit copy-ready response after resolution.
+- Explicit ready-to-send response after resolution.
 - Use this when another task asks for the concrete settled position.
 
 3. `SN2_NEGOTIATION_BASELINE_2026-04-07.md`
@@ -49,7 +49,7 @@ This map points to the current source-of-truth docs for:
 
 ## Macro + Attention Reuse
 
-1. `documents/plans/ATTENTION_FRED_INTEGRATION_PLAN_2026-04-06.md`
+1. `documents/architecture/data_pipelines/ATTENTION_FRED_INTEGRATION_PLAN_2026-04-06.md`
 - Macro release and context reuse requirements.
 
 ## Omnibar Doc Hub
@@ -57,7 +57,7 @@ This map points to the current source-of-truth docs for:
 1. `agent_omnibar/README.md`
 - Entrypoint directory for omnibar-specific referencing.
 2. `agent_omnibar/OTHER_TASK_RESPONSE_2026-04-08.md`
-- Copy-ready response for the separate omnibar task.
+- Ready-to-send response for the separate omnibar task.
 
 ## Reading Order
 
@@ -67,4 +67,4 @@ This map points to the current source-of-truth docs for:
 4. `AGENTIC_API_AUTH_MCP_2026-04-07.md`
 5. `HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md`
 6. `IPHONE_MVP_SCAFFOLD_2026-04-06.md`
-7. `documents/plans/ATTENTION_FRED_INTEGRATION_PLAN_2026-04-06.md` (if macro reuse is in scope)
+7. `documents/architecture/data_pipelines/ATTENTION_FRED_INTEGRATION_PLAN_2026-04-06.md` (if macro reuse is in scope)

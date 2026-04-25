@@ -34,7 +34,7 @@ Upgrade account invite emails from plain text to a professional branded format w
 ## Reliability Notes
 
 - CID attachments are generally more consistent for email-client rendering than base64 `data:` URIs.
-- If branding assets are unavailable, the send path still succeeds with text + HTML fallback copy.
+- If branding assets are unavailable, the send path still succeeds with text + HTML fallback content.
 
 ## Validation
 

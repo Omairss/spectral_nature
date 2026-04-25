@@ -2,7 +2,7 @@
 
 ## Objective
 
-Create a working native iPhone client scaffold that talks to Spectral Nature data through a stable backend API seam, without copying business logic into mobile code.
+Create a working native iPhone client scaffold that talks to Spectral Nature data through a stable backend API seam, without duplicating business logic into mobile code.
 
 Update (2026-04-07):
 

@@ -73,6 +73,7 @@ class DatasetSpec:
     params: tuple[ParamSpec, ...]
     resolution: str
     handler: DatasetHandler
+    description: str = ""
 
 
 @dataclass(frozen=True)
@@ -80,18 +81,22 @@ class ChartSpec:
     params: tuple[ParamSpec, ...]
     resolution: str
     handler: ChartHandler
+    description: str = ""
 
 
 def _capabilities(specs: dict[str, DatasetSpec] | dict[str, ChartSpec]) -> dict[str, dict[str, Any]]:
-    return {
-        name: {
+    result: dict[str, dict[str, Any]] = {}
+    for name, spec in specs.items():
+        entry: dict[str, Any] = {
             "params": [item.name for item in spec.params],
             "required_params": [item.name for item in spec.params if item.required],
             "param_schema": _input_schema(spec.params),
             "resolution": spec.resolution,
         }
-        for name, spec in specs.items()
-    }
+        if spec.description:
+            entry["description"] = spec.description
+        result[name] = entry
+    return result
 
 
 def _force_refresh(params: dict[str, Any]) -> bool:
@@ -273,6 +278,31 @@ def _resolve_attention_ticker_background(data_access: Any, params: dict[str, Any
 
 def _resolve_attention_home_1d(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
     return data_access.resolve_attention_home_1d(force_refresh=_force_refresh(params))
+
+
+def _resolve_homepage_replay(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
+    target_date = str(params.get("target_date") or "").strip()
+    if not target_date:
+        return ResolvedPayload(payload={"error": "target_date is required"}, provenance=None)
+    from data_access.layer import resolve_homepage_asof
+    replay = resolve_homepage_asof(target_date)
+    # Convert non-serializable fields for API response
+    home_payload = replay.get("home_payload") or {}
+    ticker_snapshots = replay.get("ticker_snapshots") or {}
+    meta = replay.get("metadata") or {}
+    meta_summary = {
+        k: {"asof_time_utc": v.asof_time_utc, "version_id": v.dataset_version_id} if v else None
+        for k, v in meta.items()
+    }
+    return ResolvedPayload(
+        payload={
+            "target_date": target_date,
+            "home_payload": home_payload,
+            "ticker_snapshots": ticker_snapshots,
+            "dataset_metadata": meta_summary,
+        },
+        provenance=None,
+    )
 
 
 def _resolve_attention_research_bundle(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
@@ -669,6 +699,7 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         params=(param("symbols", "array", items_type="string"), param("force_refresh", "boolean")),
         resolution="materialized_first",
         handler=_resolve_daily_movers,
+        description="Today's biggest movers with price changes and volume. Use for questions about what moved today or recent daily performance.",
     ),
     "event_significance": DatasetSpec(
         params=(
@@ -680,6 +711,7 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         ),
         resolution="live_computed",
         handler=_resolve_event_significance,
+        description="Statistical significance test for how symbols moved after a specific event date vs their pre-event baseline.",
     ),
     "momentum_profiles": DatasetSpec(
         params=(
@@ -733,16 +765,19 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         params=(param("force_refresh", "boolean"),),
         resolution="materialized_first",
         handler=_resolve_yield_curve_summary,
+        description="Current Treasury yield curve with key rates (2Y, 5Y, 10Y, 30Y) and inversion status.",
     ),
     "yield_curve_observations": DatasetSpec(
         params=(param("days", "integer"), param("force_refresh", "boolean")),
         resolution="materialized_first",
         handler=_resolve_yield_curve_observations,
+        description="Historical yield curve observations over time. Use for questions about how rates have changed.",
     ),
     "yield_curve_facts_1d": DatasetSpec(
         params=(param("force_refresh", "boolean"),),
         resolution="materialized_first",
         handler=_resolve_yield_curve_facts_1d,
+        description="Today's yield curve analysis: shape, slope changes, notable shifts, and what they signal.",
     ),
     "recent_news": DatasetSpec(
         params=(
@@ -774,6 +809,11 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         resolution="materialized_first_then_on_demand",
         handler=_resolve_attention_home_1d,
     ),
+    "homepage_replay": DatasetSpec(
+        params=(param("target_date", "string", required=True),),
+        resolution="materialized",
+        handler=_resolve_homepage_replay,
+    ),
     "attention_research_bundle": DatasetSpec(
         params=(param("bundle_id", "string", required=True), param("force_refresh", "boolean")),
         resolution="materialized_first_then_on_demand",
@@ -802,6 +842,7 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         ),
         resolution="materialized",
         handler=_resolve_attention_evidence_search,
+        description="Search the internal research evidence index by keyword, ticker, commodity, date, or event tag. Returns source documents and extracted claims.",
     ),
     "saa_document_search": DatasetSpec(
         params=(
@@ -883,31 +924,37 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         params=(param("years", "integer"), param("force_refresh", "boolean")),
         resolution="materialized_first",
         handler=_resolve_fred_dashboard,
+        description="FRED macro data: M2 money supply, M1, CPI, unemployment, GDP, yield rates, credit spreads, housing starts, and more. Use for any question about money supply, inflation, interest rates, or macro indicators.",
     ),
     "macro_release_events_1d": DatasetSpec(
         params=(param("force_refresh", "boolean"),),
         resolution="materialized",
         handler=_resolve_macro_release_events_1d,
+        description="Recent macro data releases and economic events with market impact assessment. Use for questions about what macro data came out recently.",
     ),
     "macro_relationship_checks_1d": DatasetSpec(
         params=(param("force_refresh", "boolean"),),
         resolution="materialized",
         handler=_resolve_macro_relationship_checks_1d,
+        description="Cross-asset macro relationship analysis: correlations and divergences between macro indicators and market movements.",
     ),
     "macro_causal_graph_edges_v1": DatasetSpec(
         params=(param("force_refresh", "boolean"),),
         resolution="materialized",
         handler=_resolve_macro_causal_graph_edges_v1,
+        description="Causal graph edges linking macro events to market impacts. Shows which macro drivers are influencing which assets.",
     ),
     "attention_hypotheses_1d": DatasetSpec(
         params=(param("force_refresh", "boolean"),),
         resolution="materialized",
         handler=_resolve_attention_hypotheses_1d,
+        description="Pre-computed market hypotheses and theses generated from today's attention data. Use to see what narratives the system is tracking.",
     ),
     "attention_macro_context_1d": DatasetSpec(
         params=(param("force_refresh", "boolean"),),
         resolution="materialized",
         handler=_resolve_attention_macro_context_1d,
+        description="Current macro environment context: regime, liquidity conditions, risk appetite, and how macro factors are shaping today's market.",
     ),
     "attention_feed": DatasetSpec(
         params=(

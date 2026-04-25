@@ -16,7 +16,9 @@ from .pipeline import (
     build_bottom_up_attention_bundle,
     build_bottom_up_attention_home,
 )
-from .clusterer import recompute_attention_candidate_graph, _graph_edges
+from compute.signal_extraction import _history_correlation_map
+from ..attention_signal_graph import _graph_edges
+from .clusterer import recompute_attention_candidate_graph
 from .collector import (
     search_symbol_news_payload,
     _candidate_context_documents,
@@ -24,7 +26,7 @@ from .collector import (
 )
 from .extractor import _chunk_source_documents, _documents_from_search_results, _fallback_claims_from_chunks
 from .writer import _write_event_bundle, _fallback_event_writer
-from ._shared import _augment_candidate_frame, _history_correlation_map
+from ._shared import _augment_candidate_frame
 from .config import _load_search_clients
 
 __all__ = [

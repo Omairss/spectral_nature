@@ -1,10 +1,10 @@
 # Agentic Ticker Background (Tavily-Backed) - 2026-04-03
 
 ## Goal
-Route Home ticker background copy through the agentic research path so company/background/recent-news text is evidence-led (including Tavily-backed web research) instead of deterministic template text.
+Route Home ticker background text through the agentic research path so company/background/recent-news text is evidence-led (including Tavily-backed web research) instead of deterministic template text.
 
 ## Problem
-`resolve_attention_ticker_background()` previously returned only materialized ticker-background snapshots. Those snapshots were generated from deterministic helper text (`build_company_description` + `summarize_recent_news`), which produced verbose but low-information copy.
+`resolve_attention_ticker_background()` previously returned only materialized ticker-background snapshots. Those snapshots were generated from deterministic helper text (`build_company_description` + `summarize_recent_news`), which produced verbose but low-information text.
 
 ## Design
 1. Keep existing background snapshot contract for UI compatibility.
@@ -237,7 +237,7 @@ Both pass.
 ## 2026-04-03 Update (Company Background Quality)
 
 ### Problem
-- Background copy could degrade into template text like:
+- Background text could degrade into template text like:
   - `... is being tracked here as an individual company narrative inside the market dashboard.`
 - Company names also leaked listing suffixes (`Class A Common Stock`) into background text.
 

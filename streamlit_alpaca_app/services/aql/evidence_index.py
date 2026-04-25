@@ -16,7 +16,7 @@ import pandas as pd
 
 from ..llm import LLMAPIError, load_llm_client
 from ..market import COMMODITY_PROXY_METADATA, default_universe_symbols
-from ..saa.storage import build_canonical_document_fields
+from ..saa import build_canonical_document_fields
 from ._shared import _coerce_text, _json_dumps, _normalize_symbol
 
 

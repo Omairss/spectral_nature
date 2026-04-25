@@ -1,7 +1,7 @@
 # BMY Background Fallback Fix (2026-04-03)
 
 ## Problem
-`resolve_attention_ticker_background("BMY")` was returning fallback copy:
+`resolve_attention_ticker_background("BMY")` was returning fallback text:
 - `No relevant catalyst found in web coverage...`
 - no evidence links
 

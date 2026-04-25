@@ -19,11 +19,11 @@ def _attention_event_key(row: pd.Series) -> str:
     return str(row.get("_homepage_v2_event_id") or row.get("event_id") or f"{symbol}-{horizon}").strip()
 
 
-def _clean_attention_copy(text: object) -> str:
-    return attention_surface_module.clean_attention_copy(text)
+def _clean_attention_text(text: object) -> str:
+    return attention_surface_module.clean_attention_text(text)
 
 
-def _raw_attention_copy(text: object) -> str:
+def _raw_attention_text(text: object) -> str:
     clean = " ".join(str(text or "").split())
     return "" if clean.lower() == "nan" else clean
 
@@ -35,17 +35,17 @@ def _attention_evidence_display_text(item: dict[str, object]) -> str:
         item.get("excerpt"),
         item.get("summary"),
     ]:
-        text = _clean_attention_copy(candidate)
+        text = _clean_attention_text(candidate)
         if text and text.lower() != headline:
             return text
     return ""
 
 
 def _attention_story_text(row: pd.Series) -> str:
-    story = _clean_attention_copy(row.get("story_text"))
+    story = _clean_attention_text(row.get("story_text"))
     if story:
         return story
-    why_now = _clean_attention_copy(row.get("why_now_text"))
+    why_now = _clean_attention_text(row.get("why_now_text"))
     if why_now:
         return why_now
     entity_id = str(row.get("entity_id") or "").upper().strip()
@@ -69,7 +69,7 @@ def _headline_items_from_news_payload(
         rows.append(
             {
                 "headline": headline,
-                "summary": _raw_attention_copy(item.get("summary")) or _raw_attention_copy(item.get("description")),
+                "summary": _raw_attention_text(item.get("summary")) or _raw_attention_text(item.get("description")),
                 "source": str(item.get("source") or "").strip(),
                 "url": str(item.get("url") or "").strip(),
                 "published_at": published_at.isoformat() if pd.notna(published_at) else "",
@@ -106,7 +106,7 @@ def _build_attention_brief_input(
         "title": str(row.get("title") or symbol or "Attention item").strip(),
         "subtitle": str(row.get("subtitle") or "").strip(),
         "story_text": _attention_story_text(row),
-        "why_now_text": _clean_attention_copy(row.get("why_now_text")),
+        "why_now_text": _clean_attention_text(row.get("why_now_text")),
         "peer_group_name": peer_group_name,
         "regime_label": str(row.get("regime_label") or "").strip(),
         "linked_news_count": linked_news_count,

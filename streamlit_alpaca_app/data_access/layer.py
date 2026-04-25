@@ -54,7 +54,7 @@ from services.llm import load_embedding_client, load_llm_client
 from services.aql.evidence_index import parse_json_list
 from services.market import load_price_history, scan_commodity_regimes, scan_correlation_phase_shifts, scan_daily_movers, scan_event_significance, scan_momentum_profiles
 from services.options import analyze_option_candidates, load_option_chain, load_option_surface, select_option_surface_window
-from services.pipeline_store import latest_job_status_table, load_latest_dataset_frame, pipeline_store_configured, start_source_refresh_job
+from services.pipeline_store import latest_job_status_table, load_dataset_frame_asof, load_latest_dataset_frame, pipeline_store_configured, start_source_refresh_job
 from services.saa import load_retained_document, load_retained_document_metadata, search_retained_documents, search_retained_evidence_chunks
 from services.treasury_yields import TreasuryYieldError, load_treasury_yield_curve
 from services.universe import build_liquidity_ranked_equity_universe
@@ -482,7 +482,7 @@ ATTENTION_TRACE_DATASETS = (
 LEGACY_ATTENTION_TEXT_SNIPPETS = (
     "market-wide relief read",
     "renewed market stress",
-    "rates-relief move broadens across the tape",
+    "rates-relief move broadens across market activity",
     "rates scare spreads across risk assets",
     "defensive bid strengthens",
     "defensive bid fades",
@@ -741,7 +741,7 @@ class DataAccessLayer:
             return True
         return False
 
-    def _payload_uses_stat_dump_copy(self, payload: dict[str, Any]) -> bool:
+    def _payload_uses_stat_dump_text(self, payload: dict[str, Any]) -> bool:
         if not isinstance(payload, dict) or not payload:
             return False
         for section in ("top_events", "must_read_movers", "unresolved_large_moves"):
@@ -774,7 +774,7 @@ class DataAccessLayer:
             for key in ("event_title", "headline", "surface_summary_text", "why_happened_text", "why_now_text")
         )
 
-    def _bundle_uses_stat_dump_copy(self, payload: dict[str, Any]) -> bool:
+    def _bundle_uses_stat_dump_text(self, payload: dict[str, Any]) -> bool:
         if not isinstance(payload, dict) or not payload:
             return False
         return any(self._looks_like_attention_stat_dump(payload.get(key)) for key in _ATTENTION_STAT_FIELDS)
@@ -2481,7 +2481,7 @@ class DataAccessLayer:
             if (
                 payload
                 and not self._payload_uses_legacy_attention_titles(payload)
-                and not self._payload_uses_stat_dump_copy(payload)
+                and not self._payload_uses_stat_dump_text(payload)
             ):
                 return self._resolved(
                     payload,
@@ -2525,7 +2525,7 @@ class DataAccessLayer:
             if (
                 payload
                 and not self._bundle_uses_legacy_attention_titles(payload)
-                and not self._bundle_uses_stat_dump_copy(payload)
+                and not self._bundle_uses_stat_dump_text(payload)
             ):
                 materialized_payload = payload
                 materialized_dataset_name = dataset_name
@@ -3303,3 +3303,63 @@ class DataAccessLayer:
     def trigger_source_refresh(self, source: str) -> ResolvedPayload:
         ok, message = start_source_refresh_job(source)
         return self._resolved({"ok": ok, "message": message}, mode="command", datasets=("job_runs",), details={"source": source})
+
+
+# ---------------------------------------------------------------------------
+# Historical homepage replay
+# ---------------------------------------------------------------------------
+
+_HOMEPAGE_REPLAY_DATASETS = (
+    "attention_home_1d",
+    "attention_ticker_snapshots_1d",
+    "attention_research_bundles",
+    "attention_ticker_background_snapshots",
+)
+
+
+def resolve_homepage_asof(target_date: str) -> dict[str, Any]:
+    """Load a complete homepage payload for a past date.
+
+    Returns a dict with:
+    - ``home_payload``: deserialized attention home payload (summary, graph,
+      events, movers — everything the homepage renders)
+    - ``ticker_snapshots``: per-symbol sparkline/profile map keyed by symbol
+    - ``research_bundles``: raw research bundle frame for on-demand drilldowns
+    - ``ticker_backgrounds``: deeper ticker profile frame
+    - ``metadata``: dict of dataset name -> PipelineDataset for provenance
+    - ``target_date``: the requested date
+
+    All data comes from stored pipeline outputs — no LLM calls, no live API
+    calls.  If a dataset has no version on or before *target_date*, its entry
+    is empty.
+    """
+    metadata: dict[str, Any] = {}
+    result: dict[str, Any] = {"target_date": target_date, "metadata": metadata}
+
+    # 1. Main homepage payload (summary, graph, events, movers)
+    home_frame, home_meta = load_dataset_frame_asof("attention_home_1d", target_date)
+    metadata["attention_home_1d"] = home_meta
+    result["home_payload"] = deserialize_attention_home_payload(home_frame) if not home_frame.empty else {}
+
+    # 2. Ticker snapshots (sparkline charts, company names, market caps)
+    snap_frame, snap_meta = load_dataset_frame_asof("attention_ticker_snapshots_1d", target_date)
+    metadata["attention_ticker_snapshots_1d"] = snap_meta
+    ticker_map: dict[str, dict[str, Any]] = {}
+    if not snap_frame.empty and "symbol" in snap_frame.columns:
+        for symbol in snap_frame["symbol"].dropna().unique():
+            symbol_str = str(symbol).upper().strip()
+            if symbol_str:
+                ticker_map[symbol_str] = deserialize_attention_ticker_snapshot_frame(snap_frame, symbol_str)
+    result["ticker_snapshots"] = ticker_map
+
+    # 3. Research bundles (detailed per-event research, loaded on click)
+    bundle_frame, bundle_meta = load_dataset_frame_asof("attention_research_bundles", target_date)
+    metadata["attention_research_bundles"] = bundle_meta
+    result["research_bundles"] = bundle_frame
+
+    # 4. Ticker background snapshots (deeper profiles with news context)
+    bg_frame, bg_meta = load_dataset_frame_asof("attention_ticker_background_snapshots", target_date)
+    metadata["attention_ticker_background_snapshots"] = bg_meta
+    result["ticker_backgrounds"] = bg_frame
+
+    return result

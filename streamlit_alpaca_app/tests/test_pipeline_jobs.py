@@ -1198,10 +1198,10 @@ def test_build_materialized_homepage_summary_prefers_agentic_summary_when_llm_is
     monkeypatch.setattr(
         "pipeline.jobs.attention_home_build.build_attention_agentic_summary",
         lambda payload, *, llm_client, embedding_client=None: {
-            "headline": "Tape Summary",
-            "hypothesis": "Lower yields and easing supply-risk are tying the tape together.",
-            "summary_text": "**Market Hypothesis**\nLower yields and easing supply-risk are tying the tape together.",
-            "audio_text": "Market hypothesis: Lower yields and easing supply-risk are tying the tape together.",
+            "headline": "Market Summary",
+            "hypothesis": "Lower yields and easing supply-risk are connecting market activity.",
+            "summary_text": "**Market Hypothesis**\nLower yields and easing supply-risk are connecting market activity.",
+            "audio_text": "Market hypothesis: Lower yields and easing supply-risk are connecting market activity.",
             "event_count": 1,
             "must_read_count": 0,
             "unresolved_count": 0,
@@ -1219,7 +1219,7 @@ def test_build_materialized_homepage_summary_prefers_agentic_summary_when_llm_is
 
     summary = _build_materialized_homepage_summary(payload, llm_client=object())
 
-    assert summary["hypothesis"] == "Lower yields and easing supply-risk are tying the tape together."
+    assert summary["hypothesis"] == "Lower yields and easing supply-risk are connecting market activity."
     assert summary["audio_base64"] == "YXVkaW8="
 
 
@@ -1247,7 +1247,7 @@ def test_build_materialized_homepage_summary_falls_back_when_agentic_summary_fai
     summary = _build_materialized_homepage_summary(payload, llm_client=object())
 
     assert "hypothesis" not in summary
-    assert summary["headline"] == "Tape Summary"
+    assert summary["headline"] == "Market Summary"
     assert summary["summary_text"]
 
 
@@ -1258,10 +1258,10 @@ def test_build_materialized_homepage_summary_with_trace_returns_summary_trace_fr
         "pipeline.jobs.attention_home_build.build_attention_agentic_summary_with_trace",
         lambda payload, *, llm_client, embedding_client=None: (
             {
-                "headline": "Tape Summary",
-                "hypothesis": "Lower yields are tying the tape together.",
-                "summary_text": "**Market Hypothesis**\nLower yields are tying the tape together.",
-                "audio_text": "Market hypothesis: Lower yields are tying the tape together.",
+                "headline": "Market Summary",
+                "hypothesis": "Lower yields are connecting market activity.",
+                "summary_text": "**Market Hypothesis**\nLower yields are connecting market activity.",
+                "audio_text": "Market hypothesis: Lower yields are connecting market activity.",
             },
             {
                 "attention_search_requests": pd.DataFrame([{"query_id": "query::summary", "research_scope": "home_summary"}]),

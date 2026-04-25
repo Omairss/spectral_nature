@@ -18,11 +18,11 @@ from ..elevenlabs_tts import (
     load_elevenlabs_tts_config,
 )
 from ..page_browsing import browse_page
-from ..saa.storage import prepare_retained_evidence_chunks, search_prepared_evidence_chunks
+from ..saa import prepare_retained_evidence_chunks, search_prepared_evidence_chunks
 from .collector import _plan_summary_research, _search_query_results
 from .config import _load_search_clients
-from .constants import EmbeddingClient, LLMClient
-from ..llm import COPY_STYLE_RULE, LLMAPIError, get_config_param, get_prompt, load_llm_client, register_config_param, register_copy_prompt
+from .constants import EmbeddingClient, HYPOTHESIS_VERIFICATION_SCHEMA, LLMClient
+from ..llm import NARRATIVE_STYLE_RULE, LLMAPIError, get_config_param, get_prompt, load_llm_client, register_config_param, register_narrative_prompt
 from .extractor import (
     _chunk_source_documents,
     _documents_from_search_results,
@@ -320,7 +320,7 @@ def build_attention_home_summary(
 
     summary_text = "\n".join(line for line in summary_lines if line is not None).strip()
     return {
-        "headline": "Tape Summary",
+        "headline": "Market Summary",
         "summary_text": summary_text,
         "audio_text": audio_text or overview_text,
         "event_count": len(event_beats),
@@ -331,18 +331,19 @@ def build_attention_home_summary(
     }
 
 
-_HOME_SUMMARY_SYSTEM_PROMPT = register_copy_prompt(
+_HOME_SUMMARY_SYSTEM_PROMPT = register_narrative_prompt(
     name="Homepage Summary (overview / sections / audio_text)",
     file="services/aql/summarizer.py",
+    group="AQL / Research",
     prompt=(
         "You are writing the homepage summary for a professional financial markets dashboard. "
-        f"{COPY_STYLE_RULE}\n"
+        f"{NARRATIVE_STYLE_RULE}\n"
         "Given today's market events, movers, and structural signals, write:\n"
         "1. overview: One sentence (under 30 words) on the single most important thing happening. "
         "Name the actual asset classes, sectors, or moves. Never start with 'What matters now' or count items.\n"
         "2. sections: Group items into 2-3 natural sections with titles that say what happened "
         "(e.g. 'Healthcare splits by industry' not 'Top Events'). Each bullet is one specific sentence. "
-        "When market structure or macro signals reinforce or contradict the tape, weave that context in "
+        "When market structure or macro signals reinforce or contradict market activity, weave that context in "
         "(e.g. 'rising despite decelerating CPI', 'decoupling from SPY with r2=0.9'). "
         "Do not create a separate 'signals' section — integrate them into the narrative.\n"
         "3. audio_text: 2-3 sentences spoken aloud as a markets desk anchor would say them."
@@ -351,21 +352,36 @@ _HOME_SUMMARY_SYSTEM_PROMPT = register_copy_prompt(
 
 
 def _build_signal_context_text(home_payload: dict[str, object]) -> str:
-    """Build a compact text block from signal dicts in the home payload."""
+    """Build a compact text block from notable signal dicts in the home payload.
+
+    Only signals that are actually moving — extreme z-scores, significant RoC,
+    accelerating/decelerating regimes, or correlation breakdowns — are included.
+    """
     try:
-        from compute.signal_extraction import format_signals_for_prompt, format_cross_signals_for_prompt
+        from compute.signal_extraction import (
+            filter_notable_signals,
+            filter_notable_cross_signals,
+            format_signals_for_prompt,
+            format_cross_signals_for_prompt,
+        )
     except ImportError:
         return ""
     parts: list[str] = []
     market_signals = home_payload.get("market_signals")
     if isinstance(market_signals, list) and market_signals:
-        parts.append(format_signals_for_prompt(market_signals, label="Market structure signals"))
+        notable = filter_notable_signals(market_signals)
+        if notable:
+            parts.append(format_signals_for_prompt(notable, label="Market structure signals"))
     fred_signals = home_payload.get("fred_signals")
     if isinstance(fred_signals, list) and fred_signals:
-        parts.append(format_signals_for_prompt(fred_signals, label="Macro regime signals"))
+        notable = filter_notable_signals(fred_signals)
+        if notable:
+            parts.append(format_signals_for_prompt(notable, label="Macro regime signals"))
     cross_signals = home_payload.get("cross_series_signals")
     if isinstance(cross_signals, list) and cross_signals:
-        parts.append(format_cross_signals_for_prompt(cross_signals, label="Cross-series signals"))
+        notable = filter_notable_cross_signals(cross_signals)
+        if notable:
+            parts.append(format_cross_signals_for_prompt(notable, label="Cross-series signals"))
     return "\n\n".join(parts)
 
 _HOME_SUMMARY_SCHEMA: dict[str, Any] = {
@@ -412,7 +428,7 @@ def _llm_home_summary(
             line += f" — {summary}"
         beat_lines.append(line)
     context = "\n".join(beat_lines)
-    user_prompt = f"Today's tape:\n{context}"
+    user_prompt = f"Today's market activity:\n{context}"
     if signal_context:
         user_prompt += f"\n\n{signal_context}"
     try:
@@ -453,9 +469,9 @@ def _summary_candidate(home_payload: dict[str, object]) -> dict[str, Any]:
     return {
         "candidate_id": f"summary::{run_id}",
         "symbol": "",
-        "company_name": "Market Tape",
-        "display_name": "Market Tape",
-        "name": "Market Tape",
+        "company_name": "Market Activity",
+        "display_name": "Market Activity",
+        "name": "Market Activity",
     }
 
 
@@ -728,7 +744,7 @@ def _collect_summary_research_trace(
             query,
             candidate_id=str(candidate["candidate_id"]),
             symbol="",
-            company_name="Market Tape",
+            company_name="Market Activity",
             run_id=run_id,
             asof_time_utc=asof_time_utc,
             serp_client=serp_client,
@@ -776,7 +792,7 @@ def _collect_summary_research_trace(
         chunks,
         run_id=run_id,
         asof_time_utc=asof_time_utc,
-        hypotheses=[{"kind": "cross_market", "text": "A shared cross-market explanation may connect the tape."}],
+        hypotheses=[{"kind": "cross_market", "text": "A shared cross-market explanation may connect market activity."}],
         llm_client=llm_client,
     )
     if not claims:
@@ -785,7 +801,7 @@ def _collect_summary_research_trace(
             chunks,
             run_id=run_id,
             asof_time_utc=asof_time_utc,
-            hypotheses=[{"kind": "cross_market", "text": "A shared cross-market explanation may connect the tape."}],
+            hypotheses=[{"kind": "cross_market", "text": "A shared cross-market explanation may connect market activity."}],
         )
     claims = sorted(
         claims,
@@ -851,9 +867,9 @@ def _synthesize_attention_home_hypothesis(
             "You write a market hypothesis for a homepage summary. "
             "Use the supplied beats, evidence, and structural signals. "
             "Explain the likely macro, sector, or cross-asset narrative in one tight paragraph of 2 to 3 sentences using simple language. "
-            "Name the concrete themes behind the tape, not vague rotations. "
+            "Name the concrete themes behind market activity, not vague rotations. "
             "When market structure signals (trend acceleration, regime shifts, correlation breaks, z-score extremes) "
-            "reinforce or contradict the tape, reference them concretely. "
+            "reinforce or contradict market activity, reference them concretely. "
             "When useful, mention the strongest source families or catalysts behind the call. "
             "Do not repeat each beat. Do not speculate beyond the evidence. "
             "Avoid generic phrases like 'with no clear catalyst' or 'rotation toward risk' unless the evidence truly supports them."
@@ -866,6 +882,146 @@ def _synthesize_attention_home_hypothesis(
     if not hypothesis:
         raise RuntimeError("Homepage hypothesis synthesis returned empty text")
     return hypothesis
+
+
+_HYPOTHESIS_VERIFICATION_SYSTEM_PROMPT = register_narrative_prompt(
+    name="Hypothesis Verification (grade + gap queries)",
+    file="services/aql/summarizer.py",
+    group="AQL / Research",
+    prompt=(
+        "You are a senior market analyst verifying a hypothesis against evidence. "
+        "Be rigorous: a hypothesis is only 'supported' when multiple independent claims confirm it. "
+        "Mark it 'weak' when evidence is thin but directionally consistent. "
+        "Mark it 'conflicting' when claims contradict each other. "
+        "Mark it 'unsupported' when the evidence does not back the hypothesis at all. "
+        "List specific claims that support or contradict, not paraphrases. "
+        "gap_queries must be concrete web search queries that would fill the holes in the evidence. "
+        "Write them as you would type into a news search engine. "
+        "Only include gap_queries when the verdict is NOT 'supported'. "
+        "Keep reasoning to 2-3 sentences."
+    ),
+)
+
+def verify_hypothesis(
+    *,
+    hypothesis: str,
+    claims: list[dict[str, Any]],
+    beats: list[dict[str, object]],
+    llm_client: LLMClient,
+    signal_context: str = "",
+) -> dict[str, Any]:
+    """Grade a hypothesis against its supporting claims and beats.
+
+    Returns a verification dict with verdict, confidence, supporting/contradicting
+    claims, gap_queries, and reasoning. Falls back to a heuristic verdict when the
+    LLM is unavailable or fails.
+    """
+    claim_rows = [
+        {
+            "claim_text": _coerce_text(item.get("claim_text")),
+            "claim_type": _coerce_text(item.get("claim_type")),
+            "source": _coerce_text(item.get("source")),
+            "freshness_class": _coerce_text(item.get("freshness_class")),
+            "confidence_score": float(item.get("confidence_score") or 0.0),
+            "relevance_score": float(item.get("relevance_score") or 0.0),
+            "causal_score": float(item.get("causal_score") or 0.0),
+            "is_same_day": bool(item.get("is_same_day")),
+        }
+        for item in claims
+        if _coerce_text(item.get("claim_text"))
+    ]
+    if not claim_rows:
+        return _heuristic_verification(hypothesis, claims)
+
+    beat_rows = [
+        {
+            "kind": _coerce_text(beat.get("kind")),
+            "sentence": _coerce_text(beat.get("sentence")),
+            "symbols": [str(s).upper().strip() for s in list(beat.get("symbols") or []) if str(s).strip()],
+        }
+        for beat in (beats or [])[:6]
+    ]
+    user_data: dict[str, Any] = {
+        "hypothesis": hypothesis,
+        "claims": claim_rows[:12],
+        "beats": beat_rows,
+    }
+    if signal_context:
+        user_data["signal_context"] = _trim_text(signal_context, limit=800)
+
+    try:
+        data = llm_client.generate_json(
+            system_prompt=get_prompt(_HYPOTHESIS_VERIFICATION_SYSTEM_PROMPT),
+            user_prompt=json.dumps(user_data, ensure_ascii=False, default=str),
+            schema_name="hypothesis_verification",
+            schema=HYPOTHESIS_VERIFICATION_SCHEMA,
+        )
+    except (LLMAPIError, Exception):
+        return _heuristic_verification(hypothesis, claims)
+
+    verdict = _coerce_text(data.get("verdict")).lower()
+    if verdict not in {"supported", "weak", "conflicting", "unsupported"}:
+        verdict = "weak"
+    confidence = _coerce_text(data.get("confidence")).lower()
+    if confidence not in {"high", "medium", "low"}:
+        confidence = "low"
+
+    gap_queries: list[dict[str, str]] = []
+    for item in list(data.get("gap_queries") or []):
+        if isinstance(item, dict):
+            query = _coerce_text(item.get("query"))
+            rationale = _coerce_text(item.get("rationale"))
+            if query:
+                gap_queries.append({"query": query, "rationale": rationale})
+
+    return {
+        "verdict": verdict,
+        "confidence": confidence,
+        "supporting_claims": [_coerce_text(c) for c in list(data.get("supporting_claims") or []) if _coerce_text(c)],
+        "contradicting_claims": [_coerce_text(c) for c in list(data.get("contradicting_claims") or []) if _coerce_text(c)],
+        "gap_queries": gap_queries,
+        "reasoning": _coerce_text(data.get("reasoning")),
+    }
+
+
+def _heuristic_verification(hypothesis: str, claims: list[dict[str, Any]]) -> dict[str, Any]:
+    """Score-based fallback when LLM verification is unavailable."""
+    if not claims:
+        return {
+            "verdict": "unsupported",
+            "confidence": "low",
+            "supporting_claims": [],
+            "contradicting_claims": [],
+            "gap_queries": [],
+            "reasoning": "No evidence was collected to verify this hypothesis.",
+        }
+    confidence_scores = [float(item.get("confidence_score") or 0.0) for item in claims]
+    same_day_count = sum(1 for item in claims if bool(item.get("is_same_day")))
+    avg_confidence = sum(confidence_scores) / max(len(confidence_scores), 1)
+    high_confidence_count = sum(1 for score in confidence_scores if score >= 0.6)
+
+    if high_confidence_count >= 3 and avg_confidence >= 0.55:
+        verdict = "supported"
+        confidence = "medium"
+    elif high_confidence_count >= 1 or avg_confidence >= 0.4:
+        verdict = "weak"
+        confidence = "low"
+    else:
+        verdict = "unsupported"
+        confidence = "low"
+
+    return {
+        "verdict": verdict,
+        "confidence": confidence,
+        "supporting_claims": [
+            _coerce_text(item.get("claim_text"))
+            for item in sorted(claims, key=lambda c: -float(c.get("confidence_score") or 0.0))[:3]
+            if _coerce_text(item.get("claim_text"))
+        ],
+        "contradicting_claims": [],
+        "gap_queries": [],
+        "reasoning": f"Heuristic: {len(claims)} claims, avg confidence {avg_confidence:.2f}, {same_day_count} same-day.",
+    }
 
 
 def _prepend_hypothesis_section(summary_text: object, hypothesis: object) -> str:
@@ -908,6 +1064,11 @@ def build_attention_agentic_summary_with_trace(
     max_search_queries: int = 5,
     max_chars: int = 1400,
 ) -> tuple[dict[str, Any], dict[str, pd.DataFrame]]:
+    """Batch pipeline entry point: research → synthesize → verify once.
+
+    For agentic multi-pass verification with tool access, use the omnibar
+    agent with the hypothesis.verify tool instead.
+    """
     if llm_client is None:
         raise ValueError("llm_client is required for build_attention_agentic_summary_with_trace")
 
@@ -930,12 +1091,21 @@ def build_attention_agentic_summary_with_trace(
     if not claims:
         raise RuntimeError("Summary research produced no supporting claims")
 
+    signal_context = _build_signal_context_text(home_payload)
     hypothesis = _synthesize_attention_home_hypothesis(
         beats=list(base_summary.get("beats") or []),
         claims=claims,
         queries=queries,
         llm_client=llm_client,
-        signal_context=_build_signal_context_text(home_payload),
+        signal_context=signal_context,
+    )
+
+    verification = verify_hypothesis(
+        hypothesis=hypothesis,
+        claims=claims,
+        beats=list(base_summary.get("beats") or []),
+        llm_client=llm_client,
+        signal_context=signal_context,
     )
 
     summary_text = _prepend_hypothesis_section(base_summary.get("summary_text"), hypothesis)
@@ -947,6 +1117,7 @@ def build_attention_agentic_summary_with_trace(
     summary = {
         **base_summary,
         "hypothesis": hypothesis,
+        "verification": verification,
         "summary_text": summary_text,
         "audio_text": audio_text or _coerce_text(base_summary.get("audio_text")) or hypothesis,
         "research_queries": queries,
@@ -954,12 +1125,23 @@ def build_attention_agentic_summary_with_trace(
         "supporting_claims": list(trace.get("supporting_claims") or []),
     }
     asof_time_utc = _summary_asof_time(home_payload)
+    verification_row = {
+        **verification,
+        "hypothesis": hypothesis,
+        "run_id": _summary_run_id(home_payload),
+        "asof_time_utc": asof_time_utc,
+        "research_scope": "home_summary",
+        "supporting_claims_json": json.dumps(verification.get("supporting_claims") or []),
+        "contradicting_claims_json": json.dumps(verification.get("contradicting_claims") or []),
+        "gap_queries_json": json.dumps(verification.get("gap_queries") or []),
+    }
     trace_frames = {
         "attention_search_requests": pd.DataFrame(trace.get("request_rows") or []),
         "attention_search_results": pd.DataFrame(trace.get("result_rows") or []),
         "attention_source_documents": pd.DataFrame(trace.get("documents") or []),
         "attention_evidence_chunks": trace.get("chunks") if isinstance(trace.get("chunks"), pd.DataFrame) else pd.DataFrame(),
         "attention_claims": _serialize_claims_frame(claims, asof_time_utc=asof_time_utc),
+        "attention_hypothesis_verification": pd.DataFrame([verification_row]),
     }
     if not trace_frames["attention_claims"].empty:
         trace_frames["attention_claims"] = trace_frames["attention_claims"].copy()
@@ -983,7 +1165,7 @@ def build_attention_home_summary_payload(
         max_chars=max_chars,
     )
     return {
-        "headline": _coerce_text(summary.get("headline")) or "Tape Summary",
+        "headline": _coerce_text(summary.get("headline")) or "Market Summary",
         "summary_text": _coerce_text(summary.get("summary_text")),
         "audio_text": _coerce_text(summary.get("audio_text")) or _coerce_text(summary.get("summary_text")),
         "event_count": max(int(summary.get("event_count") or 0), 0),
@@ -1099,4 +1281,5 @@ __all__ = [
     "build_attention_home_narrative_beats",
     "build_attention_home_summary",
     "build_attention_home_summary_payload",
+    "verify_hypothesis",
 ]

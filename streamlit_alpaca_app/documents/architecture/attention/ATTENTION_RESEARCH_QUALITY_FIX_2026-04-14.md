@@ -8,10 +8,10 @@ The current "agentic" summary and narrative-card outputs are useful, but they st
 
 Observed symptoms:
 
-- The homepage `Market Hypothesis` often reads like a generic macro caption instead of a researched tape explanation.
+- The homepage `Market Hypothesis` often reads like a generic macro caption instead of a researched market-activity explanation.
 - The wording does not make it obvious that the system searched, opened pages, compared sources, or used Seeking Alpha when available.
 - `Top Events` and `Key Movers` are often clipped, repetitive, or too long for the amount of value they add.
-- Narrative attention cards still fall back to generic copy such as `with no clear catalyst` or `the most plausible chain is...` even when the system should do more research before settling there.
+- Narrative attention cards still fall back to generic text such as `with no clear catalyst` or `the most plausible chain is...` even when the system should do more research before settling there.
 
 Example symptom:
 
@@ -73,7 +73,7 @@ Current path:
 
 Current behavior:
 
-- the planner proposes broad tape-level queries
+- the planner proposes broad market-wide queries
 - the summary loop does not score whether each beat is actually explained
 - there is no `gap detection -> targeted follow-up query -> re-read -> rewrite` loop
 
@@ -175,7 +175,7 @@ Then pass the best chunks into claim extraction, not just the earliest chunks.
 
 This is a source fix and is cheaper than jumping straight to a vector DB.
 
-## 3. Summarize documents before summarizing the tape
+## 3. Summarize Documents Before Summarizing Market Activity
 
 For long pages, especially Seeking Alpha:
 
@@ -185,12 +185,12 @@ For long pages, especially Seeking Alpha:
   - catalysts
   - risks / counterpoints
   - dated facts
-- feed those document summaries into the tape writer
+- feed those document summaries into the market-activity writer
 
 This should be map-reduce style:
 
 - map: summarize each strong document once
-- reduce: write the tape-level hypothesis from those summaries
+- reduce: write the market-wide hypothesis from those summaries
 
 That preserves more color without blowing the context window.
 
@@ -209,11 +209,11 @@ Example direction:
 
 - `Market Hypothesis`: Rates relief and lower oil are helping higher-beta growth and travel outperform, while pipelines and utilities lag as defensive demand softens.
 - `What We Found`: Reuters and Treasury coverage both point to falling yield pressure. Seeking Alpha and company news around the lead movers reinforce an AI / storage demand and travel-risk-on read.
-- `Watchouts`: Parts of the resource lag still look underexplained, so this is not yet a clean one-driver tape.
+- `Watchouts`: Parts of the resource lag still look underexplained, so this is not yet a clean one-driver market.
 
 That is still short, but it has more color, more explicit evidence use, and more honest uncertainty.
 
-## 5. Split homepage summary copy from card copy
+## 5. Split Homepage Summary Text From Card Text
 
 Do not reuse the same surface summary text everywhere.
 
@@ -234,7 +234,7 @@ Narrative cards can be a little longer, but they should not use canned macro tem
 
 ## 6. Add generic-output quality gates
 
-Add deterministic checks for weak final copy.
+Add deterministic checks for weak final text.
 
 Trigger rewrite or extra research if the output contains too much of:
 

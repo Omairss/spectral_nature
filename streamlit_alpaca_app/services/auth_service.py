@@ -897,7 +897,7 @@ def _invite_email_html(
         f"<a href='{invite_href}' style='display:inline-block; background:{button_color}; color:{button_text_color}; text-decoration:none; font-weight:600; font-size:15px; line-height:20px; padding:14px 24px; border-radius:10px;'>{cta_label}</a>"
         "</td></tr>"
         f"<tr><td style='padding:0 40px 8px 40px; font-size:13px; line-height:20px; color:{muted_text_color};'>"
-        "If the button does not open, copy and paste this link into your browser:"
+        "If the button does not open, paste this link into your browser:"
         "</td></tr>"
         "<tr><td style='padding:0 40px 18px 40px;'>"
         f"<a href='{invite_href}' style='font-size:13px; color:{link_color}; word-break:break-all;'>{invite_text}</a>"

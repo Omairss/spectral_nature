@@ -72,8 +72,8 @@ Before this change:
 
 After this change:
 
-- the system keeps a reopenable raw-document copy in blob storage
-- AQL document rows now point to that durable copy
+- the system keeps a reopenable raw-document version in blob storage
+- AQL document rows now point to that durable version
 - Postgres can answer "where is this document?" without rerunning search
 
 ## Current Limits

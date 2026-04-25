@@ -602,7 +602,7 @@ What should still be ownership-aware:
 - current market value
 - per-position dollar exposure
 
-For changing ownership schedules, compute metrics from the ownership-adjusted timeseries instead of copying master metrics.
+For changing ownership schedules, compute metrics from the ownership-adjusted timeseries instead of reusing master metrics.
 
 ## Implementation Shape
 

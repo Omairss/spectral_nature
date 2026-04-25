@@ -6,60 +6,19 @@ from typing import Any
 
 import pandas as pd
 
-from .llm import LLMAPIError, load_llm_client
-
-CAUSAL_LANGUAGE_PATTERNS = (
-    r"\bbecause\b",
-    r"\bdue to\b",
-    r"\bafter\b",
-    r"\bamid\b",
-    r"\bdriven by\b",
-    r"\bsuggest(?:s|ing)\b",
-    r"\bimply(?:s|ing)\b",
-    r"\bwhich (?:lifted|helped|pressured|hurt|weighed|boosted)\b",
-    r"\bpressure on\b",
-    r"\bmargins?\b",
-    r"\bdemand\b",
-    r"\binflation\b",
-)
-_NUMERIC_TAPE_CAUSAL_MARKERS = (
-    "because",
-    "due to",
-    "driven by",
-    "after",
-    "amid",
-    "margins",
-    "demand",
-    "inflation",
-    "supply",
-    "pricing",
+from .aql._shared import (
+    _coerce_text,
+    _has_causal_language,
+    _looks_like_stat_dump,
+    _text_overlap,
 )
 
 
-def _coerce_text(value: object) -> str:
-    text = str(value or "").strip()
-    return "" if text.lower() == "nan" else text
+def _looks_like_numeric_market_activity_sentence(sentence: object) -> bool:
+    return _looks_like_stat_dump(sentence) and not _has_causal_language(sentence)
 
 
-def _looks_like_numeric_tape_sentence(sentence: object) -> bool:
-    clean = _coerce_text(sentence)
-    if not clean:
-        return False
-    lowered = clean.lower()
-    pct_count = len(re.findall(r"[+\-]?\d+(?:\.\d+)?%", clean))
-    bps_count = len(re.findall(r"[+\-]?\d+(?:\.\d+)?\s*bps\b", lowered))
-    ticker_pct_pairs = len(re.findall(r"\b[A-Z]{2,5}\s*[+\-]\d+(?:\.\d+)?%", clean))
-    if re.search(r"\bup:\b|\bdown:\b", lowered):
-        return True
-    has_causal_marker = any(marker in lowered for marker in _NUMERIC_TAPE_CAUSAL_MARKERS)
-    if ticker_pct_pairs >= 2 and not has_causal_marker:
-        return True
-    if pct_count + bps_count >= 4 and not has_causal_marker:
-        return True
-    return False
-
-
-def clean_attention_copy(text: object) -> str:
+def clean_attention_text(text: object) -> str:
     clean = " ".join(str(text or "").split())
     if not clean:
         return ""
@@ -75,58 +34,21 @@ def clean_attention_copy(text: object) -> str:
             r"\bleaving a residual\b",
             sentence.lower(),
         )
-        and not _looks_like_numeric_tape_sentence(sentence)
+        and not _looks_like_numeric_market_activity_sentence(sentence)
     ]
     trimmed = " ".join(kept[:2]).strip()
     return trimmed or clean
 
 
-def _token_set(text: object, *, min_len: int = 3) -> set[str]:
-    tokens: set[str] = set()
-    for token in re.split(r"[^a-z0-9]+", _coerce_text(text).lower()):
-        if len(token) >= min_len:
-            tokens.add(token)
-    return tokens
-
-
-def _text_overlap(left: object, right: object) -> float:
-    left_tokens = _token_set(left)
-    right_tokens = _token_set(right)
-    if not left_tokens or not right_tokens:
-        return 0.0
-    return len(left_tokens & right_tokens) / max(len(left_tokens | right_tokens), 1)
-
-
 def has_causal_language(text: object) -> bool:
-    clean = _coerce_text(text).lower()
-    if not clean:
-        return False
-    return any(re.search(pattern, clean) for pattern in CAUSAL_LANGUAGE_PATTERNS)
+    return _has_causal_language(text)
 
 
 def looks_like_stat_dump_text(text: object) -> bool:
-    clean = _coerce_text(text)
-    if not clean:
-        return False
-    lowered = clean.lower()
-    pct_count = len(re.findall(r"[+\-]?\d+(?:\.\d+)?%", clean))
-    bps_count = len(re.findall(r"[+\-]?\d+(?:\.\d+)?\s*bps\b", lowered))
-    ticker_count = len(re.findall(r"\b[A-Z]{2,5}\b", clean))
-    ticker_pct_pairs = len(re.findall(r"\b[A-Z]{2,5}\s*[+\-]\d+(?:\.\d+)?%", clean))
-    if re.search(r"\bup:\b|\bdown:\b", lowered):
-        return True
-    if ticker_pct_pairs >= 2:
-        return True
-    if pct_count + bps_count >= 4:
-        return True
-    if ticker_count >= 4 and pct_count + bps_count >= 3:
-        return True
-    if "treasury yields:" in lowered and pct_count + bps_count >= 4 and not has_causal_language(clean):
-        return True
-    return False
+    return _looks_like_stat_dump(text)
 
 
-def _is_repetitive_copy(text: object) -> bool:
+def _is_repetitive_text(text: object) -> bool:
     clean = _coerce_text(text)
     if not clean:
         return False
@@ -143,7 +65,7 @@ def looks_like_low_quality_surface_summary(text: object) -> bool:
     if "..." in raw_clean or "…" in raw_clean:
         return True
     patterns = [
-        r"\bthe tape reads this as\b",
+        r"\bmarket activity reads this as\b",
         r"\bmarket is treating this as\b",
         r"\b20-day baseline\b",
         r"\bz away from expectation\b",
@@ -151,7 +73,7 @@ def looks_like_low_quality_surface_summary(text: object) -> bool:
     ]
     if any(re.search(pattern, clean) for pattern in patterns):
         return True
-    if _is_repetitive_copy(clean):
+    if _is_repetitive_text(clean):
         return True
     if looks_like_stat_dump_text(clean) and not has_causal_language(clean):
         return True
@@ -159,7 +81,7 @@ def looks_like_low_quality_surface_summary(text: object) -> bool:
 
 
 def _surface_what_changed_text(text: object) -> str:
-    clean = clean_attention_copy(text)
+    clean = clean_attention_text(text)
     if not clean:
         return ""
     pattern = re.compile(
@@ -219,8 +141,8 @@ def attention_home_bundle_preview(
 
     if not research_bundle and (stored_summary or stored_what_changed or stored_why or stored_what_else):
         what_changed_text = _surface_what_changed_text(stored_what_changed or item.get("what_changed_text"))
-        why_text = clean_attention_copy(stored_why or item.get("why_now_text") or item.get("why_happened_text"))
-        what_else_moved_text = clean_attention_copy(stored_what_else or item.get("what_else_moved_text") or item.get("affected_assets_summary_text"))
+        why_text = clean_attention_text(stored_why or item.get("why_now_text") or item.get("why_happened_text"))
+        what_else_moved_text = clean_attention_text(stored_what_else or item.get("what_else_moved_text") or item.get("affected_assets_summary_text"))
         if _text_overlap(what_changed_text, what_else_moved_text) >= 0.62 and looks_like_stat_dump_text(what_else_moved_text):
             what_else_moved_text = ""
         return {
@@ -240,15 +162,15 @@ def attention_home_bundle_preview(
     cause_status = _coerce_text(research_bundle.get("cause_status") or item.get("cause_status")).lower() or "unresolved"
 
     if is_event:
-        what_changed_text = clean_attention_copy(research_bundle.get("what_happened_text") or item.get("what_happened_text"))
-        why_text = clean_attention_copy(research_bundle.get("why_happened_text") or item.get("why_happened_text"))
+        what_changed_text = clean_attention_text(research_bundle.get("what_happened_text") or item.get("what_happened_text"))
+        why_text = clean_attention_text(research_bundle.get("why_happened_text") or item.get("why_happened_text"))
         if not why_text:
             why_text = "Cause remains unresolved; the move is real but the retained evidence is still thin or conflicting."
-        what_else_moved_text = clean_attention_copy(research_bundle.get("affected_assets_summary_text") or item.get("affected_assets_summary_text"))
+        what_else_moved_text = clean_attention_text(research_bundle.get("affected_assets_summary_text") or item.get("affected_assets_summary_text"))
     else:
         what_changed_text = _surface_what_changed_text(research_bundle.get("what_changed_text") or item.get("what_changed_text"))
-        bundle_why_text = clean_attention_copy(research_bundle.get("why_now_text"))
-        item_why_text = clean_attention_copy(item.get("why_now_text"))
+        bundle_why_text = clean_attention_text(research_bundle.get("why_now_text"))
+        item_why_text = clean_attention_text(item.get("why_now_text"))
         why_text = ""
         for candidate in [bundle_why_text, item_why_text]:
             if candidate and not looks_like_model_math_explanation(candidate):
@@ -261,7 +183,7 @@ def attention_home_bundle_preview(
                 why_text = "Coverage remains conflicting, and no single cause is clearly dominant yet."
             else:
                 why_text = "Cause remains unresolved; the move is large enough to flag, but the retained evidence is not strong enough yet."
-        what_else_moved_text = clean_attention_copy(research_bundle.get("what_else_moved_text") or item.get("what_else_moved_text"))
+        what_else_moved_text = clean_attention_text(research_bundle.get("what_else_moved_text") or item.get("what_else_moved_text"))
     if _text_overlap(what_changed_text, what_else_moved_text) >= 0.62 and looks_like_stat_dump_text(what_else_moved_text):
         what_else_moved_text = ""
 
@@ -287,9 +209,9 @@ def attention_home_surface_summary(
         return _coerce_text(preview.get("surface_summary_text"))
 
     parts: list[str] = []
-    what_changed_text = clean_attention_copy(preview.get("what_changed_text"))
-    why_text = clean_attention_copy(preview.get("why_text"))
-    what_else_moved_text = clean_attention_copy(preview.get("what_else_moved_text"))
+    what_changed_text = clean_attention_text(preview.get("what_changed_text"))
+    why_text = clean_attention_text(preview.get("why_text"))
+    what_else_moved_text = clean_attention_text(preview.get("what_else_moved_text"))
     cause_status = _coerce_text(preview.get("cause_status")).lower()
 
     if looks_like_stat_dump_text(why_text) and not has_causal_language(why_text):
@@ -406,7 +328,7 @@ def rebalance_attention_home_payload(payload: dict[str, Any]) -> dict[str, Any]:
 __all__ = [
     "attention_home_bundle_preview",
     "attention_home_surface_summary",
-    "clean_attention_copy",
+    "clean_attention_text",
     "hydrate_attention_home_payload",
     "hydrate_home_item_with_bundle",
     "looks_like_model_math_explanation",

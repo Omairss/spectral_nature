@@ -6,8 +6,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from .llm import COPY_STYLE_RULE, LLMAPIError, get_prompt, load_llm_client, register_copy_prompt
-
 
 MARKET_EVENT_COLUMNS = [
     "market_event_id",
@@ -32,19 +30,6 @@ MARKET_EVENT_COLUMNS = [
     "breadth_count",
 ]
 
-_SYMBOL_BUCKET_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "bucket": {
-            "type": "string",
-            "enum": ["oil", "travel", "broad_equities", "rates", "defensives", "energy_equities", "other"],
-        }
-    },
-    "required": ["bucket"],
-}
-_symbol_bucket_cache: dict[str, str] = {}
-
 _THEME_PRIORITY = {"oil": 100, "rates": 80, "defensives": 70, "risk": 60, "generic": 10}
 _THEME_PRIMARY_BUCKETS = {
     "oil": {"oil", "energy_equities"},
@@ -53,66 +38,63 @@ _THEME_PRIMARY_BUCKETS = {
     "risk": {"broad_equities", "travel"},
 }
 
-_THEME_KEYWORDS_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "keywords": {"type": "array", "items": {"type": "string"}},
-    },
-    "required": ["keywords"],
+_SYMBOL_BUCKET_BY_SYMBOL = {
+    "USO": "oil",
+    "BNO": "oil",
+    "DBO": "oil",
+    "XLE": "energy_equities",
+    "XOP": "energy_equities",
+    "OIH": "energy_equities",
+    "XOM": "energy_equities",
+    "CVX": "energy_equities",
+    "OXY": "energy_equities",
+    "COP": "energy_equities",
+    "SLB": "energy_equities",
+    "HAL": "energy_equities",
+    "JETS": "travel",
+    "UAL": "travel",
+    "DAL": "travel",
+    "AAL": "travel",
+    "LUV": "travel",
+    "CCL": "travel",
+    "RCL": "travel",
+    "NCLH": "travel",
+    "SPY": "broad_equities",
+    "QQQ": "broad_equities",
+    "IWM": "broad_equities",
+    "DIA": "broad_equities",
+    "HYG": "broad_equities",
+    "LQD": "broad_equities",
+    "IEF": "rates",
+    "TLT": "rates",
+    "SHY": "rates",
+    "AGG": "rates",
+    "BND": "rates",
+    "GLD": "defensives",
+    "SLV": "defensives",
+    "PPLT": "defensives",
+    "PALL": "defensives",
+    "VIXY": "defensives",
+    "UVXY": "defensives",
 }
-_EXPECTED_REACTION_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "oil": {"type": "string", "enum": ["up", "down", "neutral"]},
-        "energy_equities": {"type": "string", "enum": ["up", "down", "neutral"]},
-        "travel": {"type": "string", "enum": ["up", "down", "neutral"]},
-        "broad_equities": {"type": "string", "enum": ["up", "down", "neutral"]},
-        "rates": {"type": "string", "enum": ["up", "down", "neutral"]},
-        "defensives": {"type": "string", "enum": ["up", "down", "neutral"]},
-        "other": {"type": "string", "enum": ["up", "down", "neutral"]},
-    },
-    "required": ["oil", "energy_equities", "travel", "broad_equities", "rates", "defensives", "other"],
-}
-_TAPE_WHY_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "narrative": {"type": "string"},
-    },
-    "required": ["narrative"],
-}
-_theme_keywords_cache: dict[str, list[str]] = {}
-_expected_reaction_cache: dict[tuple[str, str], dict[str, str]] = {}
-_tape_why_cache: dict[tuple[str, str], str] = {}
 
-_EVENT_COPY_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "title": {"type": "string"},
-        "what_happened": {"type": "string"},
-        "why_happened": {"type": "string"},
-    },
-    "required": ["title", "what_happened", "why_happened"],
+_THEME_KEYWORDS = {
+    "oil": ("oil", "crude", "brent", "wti", "opec", "energy", "gasoline", "supply risk", "barrel"),
+    "rates": ("treasury", "yield", "rates", "duration", "fed", "bond", "inflation", "real yield"),
+    "defensives": ("gold", "silver", "volatility", "vix", "safe haven", "defensive"),
+    "risk": ("risk-on", "risk off", "equities", "small caps", "credit", "growth", "broad market"),
 }
-_event_copy_cache: dict[str, dict[str, str]] = {}
-_EVENT_COPY_SYSTEM_PROMPT = register_copy_prompt(
-    name="Event Copy (title / what_happened / why_happened)",
-    file="services/attention_market_events.py",
-    prompt=(
-        "You are writing copy for a financial markets dashboard. "
-        f"{COPY_STYLE_RULE}\n"
-        "Given a cross-asset market event, write three things:\n"
-        "1. title: A short, specific event title (under 10 words). Name the actual assets or group. "
-        "Do not say 'move lower/higher together today' — say what specifically happened.\n"
-        "2. what_happened: One sentence (under 30 words) describing what moved and by how much. "
-        "Use the actual symbols and percentages.\n"
-        "3. why_happened: One sentence (under 35 words) on the most likely cause. "
-        "If unclear, say 'no clear catalyst confirmed' — do not invent a reason."
-    ),
-)
+
+_EXPECTED_REACTION_BY_THEME_DIRECTION = {
+    ("oil", "down"): {"oil": "down", "energy_equities": "down", "travel": "up", "broad_equities": "up", "rates": "up"},
+    ("oil", "up"): {"oil": "up", "energy_equities": "up", "travel": "down", "broad_equities": "down", "rates": "down"},
+    ("rates", "up"): {"rates": "up", "broad_equities": "up", "travel": "up", "defensives": "down"},
+    ("rates", "down"): {"rates": "down", "broad_equities": "down", "travel": "down", "defensives": "up"},
+    ("defensives", "up"): {"defensives": "up", "broad_equities": "down", "travel": "down"},
+    ("defensives", "down"): {"defensives": "down", "broad_equities": "up", "travel": "up"},
+    ("risk", "up"): {"broad_equities": "up", "travel": "up", "defensives": "down"},
+    ("risk", "down"): {"broad_equities": "down", "travel": "down", "defensives": "up"},
+}
 
 
 def _empty_frame() -> pd.DataFrame:
@@ -140,65 +122,15 @@ def _primary_buckets(theme: str) -> set[str]:
     return set(_THEME_PRIMARY_BUCKETS.get(str(theme or ""), set()))
 
 
-def _llm_theme_keywords(theme: str) -> list[str]:
-    if theme in _theme_keywords_cache:
-        return _theme_keywords_cache[theme]
-    llm_client = load_llm_client()
-    if llm_client is None:
-        _theme_keywords_cache[theme] = []
-        return []
-    try:
-        result = llm_client.generate_json(
-            system_prompt=(
-                "You generate keyword lists for financial market theme classification. "
-                "Return 8-12 short lowercase keywords or phrases that commonly appear in financial "
-                "news when this market theme is active."
-            ),
-            user_prompt=f"Generate keywords for the '{theme}' market theme.",
-            schema_name="theme_keywords",
-            schema=_THEME_KEYWORDS_SCHEMA,
-        )
-        keywords = [str(k).strip().lower() for k in result.get("keywords") or [] if str(k).strip()]
-    except (LLMAPIError, Exception):
-        keywords = []
-    _theme_keywords_cache[theme] = keywords
-    return keywords
-
-
-def _llm_expected_reaction_map(theme: str, anchor_direction: str) -> dict[str, str]:
-    cache_key = (theme, anchor_direction)
-    if cache_key in _expected_reaction_cache:
-        return _expected_reaction_cache[cache_key]
-    llm_client = load_llm_client()
-    if llm_client is None:
-        _expected_reaction_cache[cache_key] = {}
-        return {}
-    try:
-        result = llm_client.generate_json(
-            system_prompt=(
-                "You are a cross-asset market analyst. Given a market theme and the direction the "
-                "primary driver moved, predict the expected directional reaction for each asset bucket. "
-                "Use 'neutral' when the connection is weak or ambiguous."
-            ),
-            user_prompt=(
-                f"Theme: {theme}\n"
-                f"Anchor direction (the primary driver moved): {anchor_direction}\n"
-                "For each asset bucket, what is the expected reaction?"
-            ),
-            schema_name="expected_reaction",
-            schema=_EXPECTED_REACTION_SCHEMA,
-        )
-        mapping = {k: v for k, v in result.items() if v in {"up", "down"}}
-    except (LLMAPIError, Exception):
-        mapping = {}
-    _expected_reaction_cache[cache_key] = mapping
-    return mapping
-
-
 def _matches_theme_text(theme: str, text_blob: str) -> bool:
     blob = str(text_blob or "").lower()
     keywords = _llm_theme_keywords(str(theme or ""))
     return any(keyword in blob for keyword in keywords)
+
+
+def _llm_theme_keywords(theme: str) -> list[str]:
+    """Compatibility adapter; deterministic and does not call an LLM."""
+    return list(_THEME_KEYWORDS.get(str(theme or "").lower(), ()))
 
 
 def _has_causal_language(text: object) -> bool:
@@ -262,32 +194,18 @@ def _join_symbols(symbols: list[str], *, limit: int = 5) -> str:
     return ", ".join(scoped[:-1]) + f", and {scoped[-1]}"
 
 
-def _theme_tape_why(theme: str, direction: str) -> str:
+def _theme_market_activity_why(theme: str, direction: str) -> str:
     theme = _coerce_text(theme).lower()
     direction = _coerce_text(direction).lower() or "down"
-    cache_key = (theme, direction)
-    if cache_key in _tape_why_cache:
-        return _tape_why_cache[cache_key]
-    llm_client = load_llm_client()
-    if llm_client is not None:
-        try:
-            result = llm_client.generate_json(
-                system_prompt=(
-                    "Write one concise sentence (under 25 words) explaining what this market theme move "
-                    "signals for the broader tape. Be specific about the directional implication."
-                ),
-                user_prompt=f"Theme: {theme}\nDirection: {direction}\nWrite the tape narrative sentence.",
-                schema_name="tape_narrative",
-                schema=_TAPE_WHY_SCHEMA,
-            )
-            narrative = str(result.get("narrative") or "").strip()
-        except (LLMAPIError, Exception):
-            narrative = ""
-    else:
-        narrative = ""
-    text = narrative or "Cross-asset spillover is still developing and the causal picture is not yet clear."
-    _tape_why_cache[cache_key] = text
-    return text
+    if theme == "oil" and direction == "down":
+        return "Oil-linked assets are lower, pointing to less supply-risk pressure across market activity."
+    if theme == "oil" and direction == "up":
+        return "Oil-linked assets are higher, pointing to more supply-risk pressure across market activity."
+    if theme == "rates" and direction == "up":
+        return "Treasury proxies are higher, pointing to lower-yield relief in rate-sensitive assets."
+    if theme == "rates" and direction == "down":
+        return "Treasury proxies are lower, pointing to higher-yield pressure on risk assets."
+    return "Cross-asset spillover is still developing and the causal picture is not yet clear."
 
 
 def _observed_direction(row: pd.Series) -> str:
@@ -298,39 +216,15 @@ def _observed_direction(row: pd.Series) -> str:
     return token if token in {"up", "down"} else "down"
 
 
-def _llm_symbol_bucket(symbol: str) -> str:
-    if symbol in _symbol_bucket_cache:
-        return _symbol_bucket_cache[symbol]
-    llm_client = load_llm_client()
-    if llm_client is None:
-        _symbol_bucket_cache[symbol] = "other"
-        return "other"
-    try:
-        result = llm_client.generate_json(
-            system_prompt=(
-                "Classify a US-listed ETF or stock into one market theme bucket. "
-                "oil: oil/energy commodity ETFs and pure upstream producers. "
-                "energy_equities: diversified energy sector equities. "
-                "travel: airlines, hotels, ride-sharing, booking platforms. "
-                "broad_equities: broad market index ETFs (e.g. SPY, QQQ, IWM). "
-                "rates: bond and treasury ETFs. "
-                "defensives: gold, silver, volatility instruments. "
-                "other: everything else."
-            ),
-            user_prompt=f"Symbol: {symbol}",
-            schema_name="symbol_bucket",
-            schema=_SYMBOL_BUCKET_SCHEMA,
-        )
-        bucket = str(result.get("bucket") or "other").strip()
-    except (LLMAPIError, Exception):
-        bucket = "other"
-    _symbol_bucket_cache[symbol] = bucket
-    return bucket
-
-
 def _symbol_bucket(symbol: str) -> str:
     normalized = str(symbol or "").upper().strip()
     return _llm_symbol_bucket(normalized)
+
+
+def _llm_symbol_bucket(symbol: str) -> str:
+    """Compatibility adapter; deterministic and does not call an LLM."""
+    normalized = str(symbol or "").upper().strip()
+    return _SYMBOL_BUCKET_BY_SYMBOL.get(normalized, "other")
 
 
 def _headline_items(payload: dict[str, Any] | None, *, limit: int = 2) -> list[dict[str, str]]:
@@ -450,6 +344,11 @@ def _theme_anchor_score(row: pd.Series, theme: str) -> float:
 def _expected_reaction(theme: str, anchor_direction: str, bucket: str) -> str | None:
     mapping = _llm_expected_reaction_map(str(theme or ""), str(anchor_direction or ""))
     return mapping.get(str(bucket or "")) or None
+
+
+def _llm_expected_reaction_map(theme: str, anchor_direction: str) -> dict[str, str]:
+    """Compatibility adapter; deterministic and does not call an LLM."""
+    return dict(_EXPECTED_REACTION_BY_THEME_DIRECTION.get((str(theme or ""), str(anchor_direction or "")), {}))
 
 
 def _select_members(rows: pd.DataFrame, anchor: pd.Series, theme: str) -> pd.DataFrame:
@@ -602,7 +501,7 @@ def _why_happened_text(
             ), headline_text, source_line
         if theme == "rates":
             return _trim(
-                "Fresh coverage points to lower yields, and the cross-asset tape is confirming that read.",
+                "Fresh coverage points to lower yields, and cross-asset activity is confirming that read.",
                 280,
             ), headline_text, source_line
 
@@ -610,11 +509,11 @@ def _why_happened_text(
     if theme == "oil":
         if direction == "down":
             text = (
-                "Oil is lower, which points to less supply-risk and less inflation pressure across the tape."
+                "Oil is lower, which points to less supply-risk and less inflation pressure across market activity."
             )
         else:
             text = (
-                "Oil is higher, which points to more supply-risk and more inflation pressure across the tape."
+                "Oil is higher, which points to more supply-risk and more inflation pressure across market activity."
             )
         return _trim(text, 280), headline_text, source_line
     if theme == "rates":
@@ -678,56 +577,6 @@ def _affected_assets_summary(theme: str, anchor: pd.Series, members: pd.DataFram
     return "Cross-asset spillover is still developing.", [], symbols[:6]
 
 
-def _llm_event_copy(
-    *,
-    theme: str,
-    anchor_symbol: str,
-    anchor_direction: str,
-    anchor_move_pct: float,
-    peer_group: str,
-    member_snippets: list[str],
-    headline_text: str,
-    context_why: str,
-) -> dict[str, str] | None:
-    """Generate event title, what_happened, and why_happened in one LLM call.
-
-    Returns None when LLM is unavailable or errors.
-    """
-    move_str = f"{anchor_move_pct:+.1f}%" if np.isfinite(anchor_move_pct) else anchor_direction
-    members_str = ", ".join(member_snippets[:6]) if member_snippets else anchor_symbol
-    cache_key = f"{theme}::{anchor_symbol}::{anchor_direction}::{round(anchor_move_pct, 1) if np.isfinite(anchor_move_pct) else ''}::{members_str[:80]}"
-    if cache_key in _event_copy_cache:
-        return _event_copy_cache[cache_key]
-    llm_client = load_llm_client()
-    if llm_client is None:
-        return None
-    context_lines = [
-        f"Theme: {theme}",
-        f"Anchor: {anchor_symbol} {move_str} ({anchor_direction})",
-        f"Peer group: {peer_group}" if peer_group else "",
-        f"Other movers: {members_str}",
-        f"Top headline: {headline_text}" if headline_text else "",
-        f"Context: {context_why[:300]}" if context_why else "",
-    ]
-    context = "\n".join(line for line in context_lines if line)
-    try:
-        result = llm_client.generate_json(
-            system_prompt=get_prompt(_EVENT_COPY_SYSTEM_PROMPT),
-            user_prompt=context,
-            schema_name="event_copy",
-            schema=_EVENT_COPY_SCHEMA,
-        )
-        copy = {
-            "title": _trim(str(result.get("title") or "").strip(), 120),
-            "what_happened": _trim(str(result.get("what_happened") or "").strip(), 280),
-            "why_happened": _trim(str(result.get("why_happened") or "").strip(), 280),
-        }
-    except (LLMAPIError, Exception):
-        return None
-    _event_copy_cache[cache_key] = copy
-    return copy
-
-
 def _event_title(theme: str, anchor: pd.Series) -> str:
     direction = _observed_direction(anchor)
     subject = _trim(_coerce_text(anchor.get("peer_group_name")) or _coerce_text(anchor.get("source_label")), 80)
@@ -777,42 +626,17 @@ def _build_theme_event(
     affected_text, winners, losers = _affected_assets_summary(theme, anchor, members)
     anchor_symbol = _coerce_text(anchor.get("entity_id")).upper()
     anchor_direction = _observed_direction(anchor)
-    anchor_move_pct = _coerce_float(anchor.get("observed_value"))
-    member_snippets = [_move_snippet(row) for _, row in members.head(6).iterrows()]
     peer_group = _trim(_coerce_text(anchor.get("peer_group_name")) or _coerce_text(anchor.get("source_label")), 80)
 
-    llm_copy = _llm_event_copy(
-        theme=theme,
-        anchor_symbol=anchor_symbol,
-        anchor_direction=anchor_direction,
-        anchor_move_pct=anchor_move_pct,
-        peer_group=peer_group,
-        member_snippets=member_snippets,
-        headline_text=headline_text,
-        context_why=why_text,
+    what_happened_text = _narrative_or_fallback(
+        _what_happened_text(anchor, members, theme),
+        fallback=f"{peer_group or anchor_symbol} moved together today.",
     )
-
-    what_happened_text = (
-        llm_copy["what_happened"]
-        if llm_copy and llm_copy.get("what_happened")
-        else _narrative_or_fallback(
-            _what_happened_text(anchor, members, theme),
-            fallback=f"{peer_group or anchor_symbol} moved together today.",
-        )
+    why_happened_text = _narrative_or_fallback(
+        why_text,
+        fallback=_theme_market_activity_why(theme, anchor_direction),
     )
-    why_happened_text = (
-        llm_copy["why_happened"]
-        if llm_copy and llm_copy.get("why_happened")
-        else _narrative_or_fallback(
-            why_text,
-            fallback=_theme_tape_why(theme, anchor_direction),
-        )
-    )
-    event_title = (
-        llm_copy["title"]
-        if llm_copy and llm_copy.get("title")
-        else _event_title(theme, anchor)
-    )
+    event_title = _event_title(theme, anchor)
     affected_assets_summary_text = _narrative_or_fallback(
         affected_text,
         fallback="Cross-asset spillover is still developing.",

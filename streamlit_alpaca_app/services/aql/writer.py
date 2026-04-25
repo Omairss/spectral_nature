@@ -8,7 +8,7 @@ from typing import Any
 
 import pandas as pd
 
-from ..llm import COPY_STYLE_RULE, get_prompt, register_copy_prompt
+from ..llm import NARRATIVE_STYLE_RULE, get_prompt, register_narrative_prompt
 from .constants import (
     EVENT_WRITER_SCHEMA,
     EVENT_WRITER_SYSTEM_PROMPT,
@@ -24,7 +24,7 @@ from ._shared import (
     _has_causal_language,
     _is_yield_only_explanation,
     _json_dumps,
-    _looks_like_generic_tape_title,
+    _looks_like_generic_market_activity_title,
     _looks_like_stat_dump,
     _move_direction,
     _normalize_symbol,
@@ -40,17 +40,18 @@ from ._shared import (
 from .extractor import _claim_entities
 from .collector import _candidate_subject
 
-SYMBOL_BUNDLE_SYSTEM_PROMPT = register_copy_prompt(
+SYMBOL_BUNDLE_SYSTEM_PROMPT = register_narrative_prompt(
     name="Symbol Bundle (what_changed / why_happened / spillover)",
     file="services/aql/writer.py",
+    group="AQL / Research",
     prompt=(
-        f"{COPY_STYLE_RULE} "
+        f"{NARRATIVE_STYLE_RULE} "
         "You write plain-language market research summaries. "
         "Use only the supplied claims and facts. Keep the surface summary to at most two sentences. "
         "Do not invent causes. "
-        "Do not write generic tape titles like 'moves sharply today' or 'rises on today's tape'. "
+        "Do not write generic market-activity titles like 'moves sharply today' or 'rises today'. "
         "Use the most specific company or catalyst title supported by the supplied evidence. "
-        "Avoid ticker/percent tape recaps across all text fields. "
+        "Avoid ticker/percent market recaps across all text fields. "
         "Explain mechanism: state why the move happened and how that transmits to prices, margins, demand, or risk appetite. "
         "Do not use ticker/percent lists as the main why-today explanation. "
         "What-else-moved text should describe spillover and avoid repeating what-changed text verbatim. "
@@ -140,7 +141,7 @@ def _write_symbol_bundle(
             "fallback": fallback,
             "narrative_requirements": {
                 "why_today_text": "causal chain first, numbers second; avoid pure move recaps",
-                "what_else_moved_text": "spillover pattern, not a duplicated ticker tape",
+                "what_else_moved_text": "spillover pattern, not a duplicated ticker list",
             },
         },
         ensure_ascii=False,
@@ -154,7 +155,7 @@ def _write_symbol_bundle(
             schema=SYMBOL_WRITER_SCHEMA,
         )
         title = _coerce_text(data.get("title")) or fallback["title"]
-        if _looks_like_generic_tape_title(title):
+        if _looks_like_generic_market_activity_title(title):
             title = fallback["title"]
         what_changed = _coerce_text(data.get("what_changed_text")) or fallback["what_changed_text"]
         why_today = _coerce_text(data.get("why_today_text")) or fallback["why_today_text"]
@@ -395,8 +396,8 @@ def _build_event_writer_payload(
         "yield_facts": yield_facts or {},
         "fallback": fallback,
         "narrative_requirements": {
-            "title": "specific supported event theme, not generic tape or cluster copy",
-            "what_happened_text": "one or two sentences on the directional relationship across the cluster; summarize the split, do not enumerate the tape",
+            "title": "specific supported event theme, not a generic market-activity or cluster recap",
+            "what_happened_text": "one or two sentences on the directional relationship across the cluster; summarize the split, do not enumerate market activity",
             "why_happened_text": "lead with catalyst -> transmission channel -> market pricing reaction; if evidence is mixed, state the uncertainty explicitly",
             "affected_assets_summary_text": "one sentence on second-order spillover and breadth without repeating what_happened_text",
         },
@@ -481,7 +482,7 @@ def _fallback_event_writer(
             down.append(symbol)
     if up and down:
         affected = (
-            "Spillover was split across the tape: "
+            "Spillover was split across market activity: "
             f"gainers included {', '.join(up[:3])}, while laggards included {', '.join(down[:3])}."
         )
     elif up:
@@ -545,7 +546,7 @@ def _write_event_bundle(
             schema=EVENT_WRITER_SCHEMA,
         )
         title = _coerce_text(data.get("title")) or fallback["title"]
-        if _looks_like_generic_tape_title(title):
+        if _looks_like_generic_market_activity_title(title):
             title = fallback["title"]
         what_happened = _coerce_text(data.get("what_happened_text")) or fallback["what_happened_text"]
         why_happened = _coerce_text(data.get("why_happened_text")) or fallback["why_happened_text"]

@@ -11,6 +11,8 @@ from typing import Any, Callable
 
 import pandas as pd
 
+from compute.signal_extraction import _history_correlation_map
+from ..attention_signal_graph import _graph_edges
 from ..runtime_policy import attention_graph_policy
 from .constants import (
     AgenticAttentionArtifacts,
@@ -23,7 +25,6 @@ from ._shared import (
     _augment_candidate_frame,
     _coerce_float,
     _coerce_text,
-    _history_correlation_map,
     _json_dumps,
     _latest_yield_facts,
     _normalize_symbol,
@@ -46,7 +47,7 @@ from .extractor import (
 )
 from .evidence_index import annotate_source_documents
 from .assembler import _build_candidate_bundle, _build_event_bundle
-from .clusterer import _cluster_candidates, _graph_edges
+from .clusterer import _cluster_candidates
 from .macro import (
     _apply_macro_diagnostics_to_release_bundles,
     _build_attention_hypotheses_from_relationship_checks,

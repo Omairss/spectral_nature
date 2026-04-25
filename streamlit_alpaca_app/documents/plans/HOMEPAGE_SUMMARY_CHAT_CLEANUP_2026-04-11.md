@@ -8,9 +8,9 @@ Clean up `Chat + Search`, move the summary experiment onto the main homepage und
 
 ## Changes
 
-- Remove internal explainer copy from `Chat + Search` that describes resolver routing and mode behavior.
+- Remove internal explainer text from `Chat + Search` that describes resolver routing and mode behavior.
 - Render the shared summary card on `Home` directly below the homepage graph.
-- Rename the card heading from `Tape Summary Experiment` to `Market Summary`.
+- Rename the card heading from `Market Summary Experiment` to `Market Summary`.
 - Keep `Experiment` admin-only and reduce it to a placeholder message instead of duplicating the summary/audio card.
 
 ## Verification

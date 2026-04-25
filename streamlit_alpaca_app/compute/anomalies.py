@@ -792,9 +792,9 @@ def _build_attention_story(row: pd.Series) -> str:
     if peer_group_name and peer_group_name not in {"All Market", "Broad Commodity Market"}:
         expectation_anchor = f"its {peer_group_name} peers"
     elif peer_group_name == "Broad Commodity Market":
-        expectation_anchor = "the broader commodity tape"
+        expectation_anchor = "broader commodity activity"
     else:
-        expectation_anchor = "its recent path and the broader tape"
+        expectation_anchor = "its recent path and broader market activity"
 
     lead = (
         f"{entity_id} is trading stronger than {expectation_anchor} implied."

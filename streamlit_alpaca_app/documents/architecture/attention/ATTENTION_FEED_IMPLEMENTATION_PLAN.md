@@ -47,7 +47,7 @@ That coupling makes the feed harder to reason about, harder to test, and harder 
 1. Deterministic first, agentic second.
 2. High recall early, precision late.
 3. Fix things at source instead of patching homepage behavior.
-4. Avoid hardcoded theme buckets, symbol lists, or copy rules where structured data can replace them.
+4. Avoid hardcoded theme buckets, symbol lists, or text rules where structured data can replace them.
 5. Make graph, narratives, and drilldowns share the same relationship and evidence backbone.
 6. Keep UI rendering snapshot-first and read-only.
 
@@ -112,7 +112,7 @@ Purpose:
 Responsibilities:
 
 - compute stock ticker anomaly candidates
-- keep thresholds loose enough to avoid missing important tape
+- keep thresholds loose enough to avoid missing important market activity
 - score surprise versus baseline, peer basket, and benchmark
 - materialize both equities and commodity anomalies using the same contract
 

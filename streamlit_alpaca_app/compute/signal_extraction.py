@@ -81,6 +81,70 @@ def window_return_pct(series: pd.Series, window: int) -> float:
     return ((end / start) - 1.0) * 100.0
 
 
+def _normalize_signal_symbol(value: object) -> str:
+    text = str(value or "").strip()
+    return "" if text.lower() == "nan" else text.upper()
+
+
+def _return_series_from_bars(frame: pd.DataFrame | None) -> pd.Series:
+    """Return close-to-close returns from a price-bar frame."""
+    if not isinstance(frame, pd.DataFrame) or frame.empty or "timestamp" not in frame.columns or "close" not in frame.columns:
+        return pd.Series(dtype=float)
+    out = frame.copy()
+    out["timestamp"] = pd.to_datetime(out["timestamp"], utc=True, errors="coerce")
+    out["close"] = pd.to_numeric(out["close"], errors="coerce")
+    out = out[out["timestamp"].notna() & out["close"].notna()].sort_values("timestamp")
+    if out.empty:
+        return pd.Series(dtype=float)
+    returns = out["close"].pct_change()
+    series = pd.Series(returns.values, index=out["timestamp"])
+    return series.dropna()
+
+
+def _history_correlation_map(
+    bars_by_symbol: dict[str, pd.DataFrame] | None,
+    symbols: list[str],
+    *,
+    min_observations: int,
+) -> dict[tuple[str, str], dict[str, float | int]]:
+    """Compute pairwise return correlations for attention graph signals."""
+    if not isinstance(bars_by_symbol, dict) or not bars_by_symbol:
+        return {}
+    normalized_symbols = [
+        _normalize_signal_symbol(symbol)
+        for symbol in list(symbols or [])
+        if _normalize_signal_symbol(symbol)
+    ]
+    if len(normalized_symbols) < 2:
+        return {}
+    series_by_symbol: dict[str, pd.Series] = {}
+    min_obs = max(int(min_observations), 2)
+    for symbol in normalized_symbols:
+        series = _return_series_from_bars(bars_by_symbol.get(symbol))
+        if len(series) >= min_obs:
+            series_by_symbol[symbol] = series.rename(symbol)
+    if len(series_by_symbol) < 2:
+        return {}
+    returns_wide = pd.concat(series_by_symbol.values(), axis=1, join="outer").sort_index()
+    if returns_wide.empty:
+        return {}
+    observations = returns_wide.notna().astype(int).T.dot(returns_wide.notna().astype(int))
+    correlations = returns_wide.corr(min_periods=min_obs)
+    out: dict[tuple[str, str], dict[str, float | int]] = {}
+    ordered = [column for column in correlations.columns if column in series_by_symbol]
+    for index, left in enumerate(ordered):
+        for right in ordered[index + 1 :]:
+            corr_value = pd.to_numeric(correlations.at[left, right], errors="coerce")
+            obs_value = int(pd.to_numeric(observations.at[left, right], errors="coerce") or 0)
+            if pd.isna(corr_value) or obs_value < min_obs:
+                continue
+            out[tuple(sorted((left, right)))] = {
+                "correlation": float(corr_value),
+                "observations": obs_value,
+            }
+    return out
+
+
 def ratio_minus_one(numerator: float, denominator: float) -> float:
     if not np.isfinite(numerator) or not np.isfinite(denominator) or denominator == 0:
         return np.nan
@@ -508,6 +572,91 @@ def _fred_frequency_to_signal_frequency(freq_short: str) -> str:
     if freq_short in ("A", "ANNUAL", "ANNUALLY", "Y", "YEARLY"):
         return "quarterly"  # use quarterly windows for annual (sparse) data
     return "monthly"  # default for FRED
+
+
+# ---------------------------------------------------------------------------
+# Relevance filtering — only surface signals worth mentioning
+# ---------------------------------------------------------------------------
+
+def filter_notable_signals(
+    signals: list[dict[str, object]],
+    *,
+    zscore_threshold: float = 0.8,
+    roc_threshold_pct: float = 2.0,
+) -> list[dict[str, object]]:
+    """Keep signals that indicate anything potentially noteworthy.
+
+    Optimised for **recall** — we'd rather give the LLM a marginal signal
+    than miss one that matters.  A signal is dropped only when ALL of these
+    hold simultaneously:
+    - |z-score| < *zscore_threshold*
+    - |RoC short| and |RoC mid| both < *roc_threshold_pct*
+    - regime is "stable"
+    - trend_accel is "steady"
+    - trend_dir is "flat"
+    """
+    notable: list[dict[str, object]] = []
+    for sig in signals:
+        z = sig.get("zscore")
+        if isinstance(z, (int, float)) and abs(z) >= zscore_threshold:
+            notable.append(sig)
+            continue
+
+        roc_short = sig.get("roc_short_pct")
+        roc_mid = sig.get("roc_mid_pct")
+        if (isinstance(roc_short, (int, float)) and abs(roc_short) >= roc_threshold_pct) or \
+           (isinstance(roc_mid, (int, float)) and abs(roc_mid) >= roc_threshold_pct):
+            notable.append(sig)
+            continue
+
+        regime = str(sig.get("regime", ""))
+        if regime != "stable":
+            notable.append(sig)
+            continue
+
+        accel = str(sig.get("trend_accel", ""))
+        if accel and accel != "steady":
+            notable.append(sig)
+            continue
+
+        trend_dir = str(sig.get("trend_dir", ""))
+        if trend_dir and trend_dir != "flat":
+            notable.append(sig)
+            continue
+
+        # Truly inert — drop it
+
+    return notable
+
+
+def filter_notable_cross_signals(
+    signals: list[dict[str, object]],
+    *,
+    decoupling_threshold: float = 0.15,
+    corr_roc_threshold: float = 0.08,
+) -> list[dict[str, object]]:
+    """Keep cross-series signals showing any divergence or shift.
+
+    Optimised for recall — only drops pairs that are fully coupled and static.
+    """
+    notable: list[dict[str, object]] = []
+    for sig in signals:
+        decoupling = sig.get("decoupling_score")
+        if isinstance(decoupling, (int, float)) and abs(decoupling) >= decoupling_threshold:
+            notable.append(sig)
+            continue
+
+        corr_roc = sig.get("correlation_roc")
+        if isinstance(corr_roc, (int, float)) and abs(corr_roc) >= corr_roc_threshold:
+            notable.append(sig)
+            continue
+
+        regime = str(sig.get("phase_regime", ""))
+        if regime and "coupled" not in regime.lower():
+            notable.append(sig)
+            continue
+
+    return notable
 
 
 # ---------------------------------------------------------------------------

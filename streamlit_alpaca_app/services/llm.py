@@ -15,7 +15,7 @@ class LLMAPIError(RuntimeError):
     pass
 
 
-# Words/phrases the LLM must never use in user-facing copy.
+# Words/phrases the LLM must never use in user-facing narrative.
 # These are matched case-insensitively and replaced with plain alternatives or removed.
 _JARGON_REPLACEMENTS: list[tuple[str, str]] = [
     (r"\bidiosyncratic(?:ally)?\b", "stock-specific"),
@@ -38,9 +38,9 @@ _JARGON_REPLACEMENTS: list[tuple[str, str]] = [
     (r"\bunpack(?:ing|ed)?\b", "explain"),
 ]
 
-# Style rule for all system prompts that generate user-facing copy.
+# Style rule for all system prompts that generate user-facing narrative.
 # Import this and include it in any prompt that writes text shown to users.
-COPY_STYLE_RULE = (
+NARRATIVE_STYLE_RULE = (
     "Write like a trader speaking plainly — short sentences, real numbers, no jargon. "
     "Never use: idiosyncratic, nuanced, multifaceted, robust, granular, leverage (as a verb), "
     "synergy, paradigm, actionable, holistic, bespoke, cutting-edge, game-changer, deep-dive, "
@@ -50,7 +50,7 @@ COPY_STYLE_RULE = (
 
 
 def strip_jargon(text: str) -> str:
-    """Remove or replace known jargon words from any user-facing copy string."""
+    """Remove or replace known jargon words from any user-facing narrative string."""
     if not text:
         return text
     result = text
@@ -84,10 +84,10 @@ def _prompt_key(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
 
 
-def register_copy_prompt(name: str, file: str, prompt: str) -> str:
+def register_narrative_prompt(name: str, file: str, prompt: str, *, group: str = "") -> str:
     """Register a user-facing system prompt. Returns the key for use with get_prompt()."""
     key = _prompt_key(name)
-    _PROMPT_REGISTRY[key] = {"name": name, "file": file, "default": prompt}
+    _PROMPT_REGISTRY[key] = {"name": name, "file": file, "default": prompt, "group": group}
     return key
 
 
@@ -102,7 +102,7 @@ def get_prompt(key: str) -> str:
     return key
 
 
-def list_copy_prompts() -> list[dict[str, str]]:
+def list_narrative_prompts() -> list[dict[str, str]]:
     """Return all registered prompts with their active (override or default) values."""
     entries = []
     for key, info in _PROMPT_REGISTRY.items():
@@ -114,11 +114,12 @@ def list_copy_prompts() -> list[dict[str, str]]:
             "default": info["default"],
             "prompt": override if override is not None else info["default"],
             "is_override": override is not None,
+            "group": info.get("group", ""),
         })
     return entries
 
 
-def set_copy_prompt_override(key: str, value: str | None) -> None:
+def set_narrative_prompt_override(key: str, value: str | None) -> None:
     """Set or clear a prompt override in memory. Call save_prompt_overrides() to persist."""
     if value is None or value.strip() == _PROMPT_REGISTRY.get(key, {}).get("default", "").strip():
         _PROMPT_OVERRIDES.pop(key, None)
@@ -188,18 +189,18 @@ def set_config_param_override(key: str, value: int | float | None) -> None:
         _PROMPT_OVERRIDES[key] = str(value)
 
 
-def _copy_style_rule_key() -> str:
-    return "__copy_style_rule__"
+def _narrative_style_rule_key() -> str:
+    return "__narrative_style_rule__"
 
 
-def get_active_copy_style_rule() -> str:
-    """Return the active copy style rule (override or default)."""
-    return _PROMPT_OVERRIDES.get(_copy_style_rule_key(), COPY_STYLE_RULE)
+def get_active_narrative_style_rule() -> str:
+    """Return the active narrative style rule (override or default)."""
+    return _PROMPT_OVERRIDES.get(_narrative_style_rule_key(), NARRATIVE_STYLE_RULE)
 
 
-def set_copy_style_rule_override(value: str | None) -> None:
-    key = _copy_style_rule_key()
-    if value is None or value.strip() == COPY_STYLE_RULE.strip():
+def set_narrative_style_rule_override(value: str | None) -> None:
+    key = _narrative_style_rule_key()
+    if value is None or value.strip() == NARRATIVE_STYLE_RULE.strip():
         _PROMPT_OVERRIDES.pop(key, None)
     else:
         _PROMPT_OVERRIDES[key] = value.strip()
@@ -273,7 +274,7 @@ class LLMConfig:
     deployment: str = ""
     embedding_deployment: str = ""
     api_version: str = ""
-    timeout_seconds: int = 60
+    timeout_seconds: int = 480
     temperature: float = 0.2
     reasoning_effort: str = ""
     embedding_model: str = "text-embedding-3-small"
@@ -381,7 +382,7 @@ def load_llm_config() -> LLMConfig | None:
     else:
         base_url = _clean(os.getenv("LLM_BASE_URL")) or _clean(os.getenv("OPENAI_BASE_URL")) or "https://api.openai.com/v1"
         api_version = ""
-    timeout_seconds = max(int(_clean(os.getenv("LLM_TIMEOUT_SECONDS")) or "60"), 10)
+    timeout_seconds = max(int(_clean(os.getenv("LLM_TIMEOUT_SECONDS")) or "480"), 10)
     default_temperature = "1" if provider == "azure_openai" else "0.2"
     temperature = float(_clean(os.getenv("LLM_TEMPERATURE")) or default_temperature)
     reasoning_effort = _normalized_reasoning_effort(
@@ -446,12 +447,21 @@ class OpenAIChatJSONClient:
             "Authorization": f"Bearer {self.config.api_key}",
             "Content-Type": "application/json",
         }
-        response = self.session.post(
-            request_url,
-            headers=request_headers,
-            json=payload,
-            timeout=self.config.timeout_seconds,
-        )
+        import requests as _requests_mod
+        _max_timeout_retries = 2
+        for _attempt in range(_max_timeout_retries):
+            try:
+                response = self.session.post(
+                    request_url,
+                    headers=request_headers,
+                    json=payload,
+                    timeout=self.config.timeout_seconds,
+                )
+                break
+            except (_requests_mod.exceptions.ReadTimeout, _requests_mod.exceptions.ConnectionError):
+                if _attempt < _max_timeout_retries - 1:
+                    continue
+                raise
         if response.status_code != 200 and payload.get("reasoning_effort") and _supports_reasoning_effort_retry(response.status_code, response.text):
             payload = dict(payload)
             payload.pop("reasoning_effort", None)
@@ -535,13 +545,22 @@ class AzureOpenAIChatJSONClient:
             "Content-Type": "application/json",
         }
         request_params = {"api-version": self.config.api_version} if self.config.api_version else None
-        response = self.session.post(
-            request_url,
-            headers=request_headers,
-            params=request_params,
-            json=payload,
-            timeout=self.config.timeout_seconds,
-        )
+        import requests as _requests_mod
+        _max_timeout_retries = 2
+        for _attempt in range(_max_timeout_retries):
+            try:
+                response = self.session.post(
+                    request_url,
+                    headers=request_headers,
+                    params=request_params,
+                    json=payload,
+                    timeout=self.config.timeout_seconds,
+                )
+                break
+            except (_requests_mod.exceptions.ReadTimeout, _requests_mod.exceptions.ConnectionError):
+                if _attempt < _max_timeout_retries - 1:
+                    continue
+                raise
         if response.status_code != 200 and payload.get("reasoning_effort") and _supports_reasoning_effort_retry(response.status_code, response.text):
             payload = dict(payload)
             payload.pop("reasoning_effort", None)
@@ -685,6 +704,55 @@ def load_embedding_client() -> OpenAIEmbeddingClient | AzureOpenAIEmbeddingClien
     raise LLMAPIError(f"Unsupported LLM provider: {config.provider}")
 
 
+def check_llm_readiness() -> dict[str, str]:
+    """Check LLM and embedding runtime readiness. Returns a status dict.
+
+    Designed to run once at startup or in an admin health panel so operators
+    can see which capabilities are actually live (mistakes.md #15, #36).
+    """
+    status: dict[str, str] = {}
+    config = load_llm_config()
+    if config is None:
+        status["llm"] = "unavailable — no LLM config (missing provider, API key, or endpoint)"
+        status["embeddings"] = "unavailable — no LLM config"
+        return status
+
+    status["llm_provider"] = config.provider
+    status["llm_model"] = config.model
+    status["llm_deployment"] = config.deployment or "(none)"
+    status["llm_base_url"] = config.base_url or "(none)"
+
+    # Check LLM
+    try:
+        client = load_llm_client()
+        if client is None:
+            status["llm"] = "unavailable — load_llm_client returned None"
+        else:
+            status["llm"] = "configured"
+    except Exception as exc:
+        status["llm"] = f"error — {type(exc).__name__}: {exc}"
+
+    # Check embeddings
+    status["embedding_model"] = config.embedding_model or "(none)"
+    status["embedding_deployment"] = config.embedding_deployment or "(none)"
+    if not config.embedding_deployment:
+        status["embeddings"] = (
+            "disabled — EMBEDDING_DEPLOYMENT not set. "
+            "Semantic retrieval will not work. Set EMBEDDING_DEPLOYMENT to enable."
+        )
+    else:
+        try:
+            emb_client = load_embedding_client()
+            if emb_client is None:
+                status["embeddings"] = "unavailable — load_embedding_client returned None"
+            else:
+                status["embeddings"] = "configured"
+        except Exception as exc:
+            status["embeddings"] = f"error — {type(exc).__name__}: {exc}"
+
+    return status
+
+
 __all__ = [
     "AzureOpenAIEmbeddingClient",
     "AzureOpenAIChatJSONClient",
@@ -692,6 +760,7 @@ __all__ = [
     "LLMAPIError",
     "LLMConfig",
     "OpenAIChatJSONClient",
+    "check_llm_readiness",
     "load_embedding_client",
     "load_llm_client",
 ]

@@ -950,7 +950,7 @@ def test_build_attention_market_events_promotes_oil_shock_into_market_event(monk
                 "Airlines are firming as fuel pressure eases.",
                 "Small caps are rallying with the broader risk-on move.",
                 "Treasuries are firming as inflation pressure cools.",
-                "AAPL is lagging the broader tape.",
+                "AAPL is lagging broader market activity.",
             ],
             "why_now_text": [
                 "Oil is dropping sharply.",
@@ -998,7 +998,7 @@ def test_build_attention_market_events_promotes_oil_shock_into_market_event(monk
     assert set(top["supporting_event_ids"]) >= {"bno", "uso", "ual", "dal", "iwm", "tlt"}
 
 
-def test_build_attention_market_events_uses_observed_move_direction_for_event_copy(monkeypatch):
+def test_build_attention_market_events_uses_observed_move_direction_for_event_text(monkeypatch):
     import services.attention_market_events as _ame
     _SYMBOL_BUCKETS = {"BNO": "oil", "USO": "oil", "UAL": "travel", "TLT": "rates"}
     monkeypatch.setattr(_ame, "_llm_symbol_bucket", lambda symbol: _SYMBOL_BUCKETS.get(symbol, "other"))
@@ -1475,7 +1475,7 @@ def test_build_attention_home_1d_marks_large_low_evidence_moves_as_unresolved():
     assert not home["top_events"]
 
 
-def test_build_attention_home_1d_avoids_generic_tape_titles_and_canned_why_text():
+def test_build_attention_home_1d_avoids_generic_market_activity_titles_and_canned_why_text():
     daily_movers = pd.DataFrame(
         [
             {"symbol": "APGE", "change_pct": 14.2, "close": 52.5, "prev_close": 46.0, "volume": 1_400_000, "dollar_volume": 73_500_000},
@@ -1502,7 +1502,7 @@ def test_build_attention_home_1d_avoids_generic_tape_titles_and_canned_why_text(
 
     unresolved = home["unresolved_large_moves"][0]
     assert unresolved["headline"] == "APGE"
-    assert "today's tape" not in unresolved["headline"].lower()
+    assert "today's market activity" not in unresolved["headline"].lower()
     assert "moves sharply today" not in unresolved["headline"].lower()
     assert unresolved["why_now_text"] == ""
 
@@ -1781,7 +1781,7 @@ def test_build_live_attention_research_bundle_event_prefers_macro_evidence_over_
     assert bundle["freshness_quality"] == "High"
     assert "AP" in bundle["source_summary"]
     assert "fuel shortages" not in bundle["why_happened_text"].lower()
-    assert "the tape reads this as" not in bundle["why_happened_text"].lower()
+    assert "market activity reads this as" not in bundle["why_happened_text"].lower()
     assert any(token in bundle["why_happened_text"].lower() for token in ["de-escalation", "supply disruption", "supply-risk", "inflation pressure"])
 
 
@@ -1857,7 +1857,7 @@ def test_build_live_attention_research_bundle_rates_event_adds_numeric_context()
     assert "ief +0.8%" not in why_text
     assert "bps" not in why_text
     assert "yields" in why_text or "curve" in why_text
-    assert "the tape reads this as" not in why_text
+    assert "market activity reads this as" not in why_text
 
 
 def test_fallback_event_writer_non_rates_prefers_mechanism_claim_over_yield_stat_dump():
@@ -1978,7 +1978,7 @@ def test_fallback_event_writer_rates_event_can_include_yield_context():
     assert "yields" in why_text
 
 
-def test_write_event_bundle_replaces_tape_recap_what_happened_with_directional_summary():
+def test_write_event_bundle_replaces_market_activity_recap_what_happened_with_directional_summary():
     cluster_rows = pd.DataFrame(
         [
             {
@@ -2431,7 +2431,7 @@ def test_search_query_results_can_retain_provider_payload_and_provider_text():
         "copper AI supply chain demand",
         candidate_id="candidate::summary",
         symbol="",
-        company_name="Market Tape",
+        company_name="Market Activity",
         run_id="run-1",
         asof_time_utc=pd.Timestamp("2026-04-03T12:00:00Z"),
         serp_client=None,
@@ -2491,7 +2491,7 @@ def test_fallback_claims_from_chunks_skip_provider_error_chunks():
 
 def test_documents_from_search_results_prefer_provider_text_and_retain_payload():
     docs = attention_agentic_module._documents_from_search_results(
-        {"candidate_id": "candidate::summary", "symbol": "", "company_name": "Market Tape"},
+        {"candidate_id": "candidate::summary", "symbol": "", "company_name": "Market Activity"},
         [
             {
                 "result_id": "query::1::tavily::1",
@@ -2587,7 +2587,7 @@ def test_fallback_claims_from_chunks_rank_best_evidence_first():
     )
 
     claims = attention_agentic_module._fallback_claims_from_chunks(
-        {"symbol": "", "company_name": "Market Tape"},
+        {"symbol": "", "company_name": "Market Activity"},
         chunks,
         run_id="run-1",
         asof_time_utc=pd.Timestamp("2026-04-03T12:00:00Z"),
@@ -2693,7 +2693,7 @@ def test_build_live_attention_research_bundle_filters_irrelevant_roundups_and_ma
     assert "No clear new company-specific catalyst" in bundle["why_now_text"]
 
 
-def test_bottom_up_attention_artifacts_use_dynamic_event_titles_instead_of_generic_cluster_copy():
+def test_bottom_up_attention_artifacts_use_dynamic_event_titles_instead_of_generic_cluster_text():
     daily_movers = pd.DataFrame(
         [
             {"symbol": "BNO", "change_pct": -8.9, "close": 25.0, "prev_close": 27.44, "volume": 2_000_000, "dollar_volume": 50_000_000},
@@ -3058,7 +3058,7 @@ def test_bottom_up_attention_artifacts_verifies_macro_hypotheses_with_search(mon
     assert artifacts.frames["attention_search_requests"]["candidate_id"].astype(str).str.startswith("macro_release::").any()
 
 
-def test_build_live_attention_research_bundle_generic_filing_sections_do_not_drive_continuation_copy():
+def test_build_live_attention_research_bundle_generic_filing_sections_do_not_drive_continuation_text():
     daily_movers = pd.DataFrame(
         [
             {"symbol": "FSLY", "change_pct": 13.7, "close": 14.2, "prev_close": 12.5, "volume": 8_000_000, "dollar_volume": 113_600_000},
@@ -3170,7 +3170,7 @@ def test_build_attention_home_1d_demotes_stale_background_names_out_of_must_read
     assert "MU" in unresolved_symbols
 
 
-def test_attention_home_surface_summary_simplifies_move_vs_expectation_copy():
+def test_attention_home_surface_summary_simplifies_move_vs_expectation_text():
     preview = attention_home_bundle_preview(
         {
             "what_changed_text": "FSLY rose 13.7% today versus a +1.8% 20-day baseline (2.3z away from expectation).",
@@ -3257,7 +3257,7 @@ def test_attention_home_surface_summary_keeps_useful_numeric_event_context():
 
     assert "1.6%" in summary
     assert "10 bps" in summary
-    assert "tape reads this as" not in summary.lower()
+    assert "market activity reads this as" not in summary.lower()
 
 
 def test_scan_correlation_phase_shifts_finds_decoupling_leaders():
@@ -3856,7 +3856,7 @@ def test_build_homepage_v2_market_digest_uses_market_event_titles_and_underlying
             {
                 "event_title": "Energy & Oil move lower together today",
                 "what_happened_text": "Oil-linked instruments fell sharply, led by BNO and USO.",
-                "why_happened_text": "The tape reads this as easing supply-risk and lower inflation pressure.",
+                "why_happened_text": "Market activity reads this as easing supply-risk and lower inflation pressure.",
                 "affected_assets_summary_text": "Down: BNO, USO | Up: UAL, DAL, IWM, TLT",
                 "headline_text": "Oil prices eased as hopes rose for a de-escalation path.",
                 "anchor_symbol": "BNO",
@@ -3874,14 +3874,14 @@ def test_build_homepage_v2_market_digest_uses_market_event_titles_and_underlying
     assert "easing supply-risk" in digest["beats"][0]["summary"].lower()
 
 
-def test_build_attention_home_narrative_beats_and_summary_cover_all_daily_tape_sections():
+def test_build_attention_home_narrative_beats_and_summary_cover_all_daily_market_sections():
     payload = {
         "top_events": [
             {
                 "bundle_id": "event-1",
                 "event_title": "Energy and airlines are repricing together",
                 "what_happened_text": "Oil-linked instruments fell sharply while airlines and duration rallied.",
-                "why_happened_text": "The tape tied the move to easing supply-risk and lower fuel pressure.",
+                "why_happened_text": "Market activity tied the move to easing supply-risk and lower fuel pressure.",
                 "affected_assets_summary_text": "Airlines and bonds both caught a bid.",
                 "supporting_symbols": ["USO", "UAL", "TLT"],
             }
@@ -3938,7 +3938,7 @@ def test_load_elevenlabs_tts_config_uses_env_settings(monkeypatch):
     assert config.timeout_seconds == 45
 
 
-def test_build_attention_home_summary_drops_fragmentary_ellipsis_copy():
+def test_build_attention_home_summary_drops_fragmentary_ellipsis_text():
     payload = {
         "top_events": [],
         "must_read_movers": [
@@ -3984,8 +3984,8 @@ def test_plan_summary_research_uses_llm_queries():
             assert schema_name == "attention_research_plan"
             assert "home_payload" in user_prompt
             return {
-                "research_subjects": [{"subject": "market tape", "role": "primary"}],
-                "hypotheses": [{"kind": "cross_market", "text": "A shared rates and risk narrative may connect the tape."}],
+                "research_subjects": [{"subject": "market activity", "role": "primary"}],
+                "hypotheses": [{"kind": "cross_market", "text": "A shared rates and risk narrative may connect market activity."}],
                 "queries": [
                     {
                         "query": "stocks Treasury yields airlines oil moving today why",
@@ -4005,7 +4005,7 @@ def test_plan_summary_research_uses_llm_queries():
         "top_events": [
             {
                 "event_title": "Energy and airlines are repricing together",
-                "why_happened_text": "The tape tied the move to easing supply-risk and lower fuel pressure.",
+                "why_happened_text": "Market activity tied the move to easing supply-risk and lower fuel pressure.",
                 "supporting_symbols": ["USO", "UAL", "TLT"],
             }
         ],
@@ -4026,6 +4026,65 @@ def test_plan_summary_research_uses_llm_queries():
     ]
 
 
+def test_verify_hypothesis_llm_returns_structured_verdict():
+    from services.aql.summarizer import verify_hypothesis
+
+    class FakeLLMClient:
+        def generate_json(self, *, system_prompt, user_prompt, schema_name, schema):
+            assert schema_name == "hypothesis_verification"
+            return {
+                "verdict": "weak",
+                "confidence": "medium",
+                "supporting_claims": ["Oil fell 3% on easing supply risk."],
+                "contradicting_claims": ["Airline earnings missed estimates."],
+                "gap_queries": [
+                    {"query": "OPEC meeting minutes supply decision", "rationale": "Need to verify supply-side catalyst."},
+                ],
+                "reasoning": "Directionally consistent but thin evidence.",
+            }
+
+    result = verify_hypothesis(
+        hypothesis="Easing supply risk is the common thread.",
+        claims=[
+            {"claim_text": "Oil fell 3% on easing supply risk.", "confidence_score": 0.7, "is_same_day": True},
+            {"claim_text": "Airline earnings missed estimates.", "confidence_score": 0.5, "is_same_day": False},
+        ],
+        beats=[{"kind": "event", "sentence": "Oil and airlines repricing", "symbols": ["USO", "UAL"]}],
+        llm_client=FakeLLMClient(),
+    )
+
+    assert result["verdict"] == "weak"
+    assert result["confidence"] == "medium"
+    assert "Oil fell 3%" in result["supporting_claims"][0]
+    assert len(result["contradicting_claims"]) == 1
+    assert len(result["gap_queries"]) == 1
+    assert result["gap_queries"][0]["query"] == "OPEC meeting minutes supply decision"
+    assert result["reasoning"]
+
+
+def test_verify_hypothesis_heuristic_fallback_with_strong_claims():
+    from services.aql.summarizer import _heuristic_verification
+
+    claims = [
+        {"claim_text": "Claim A", "confidence_score": 0.75, "is_same_day": True},
+        {"claim_text": "Claim B", "confidence_score": 0.65, "is_same_day": True},
+        {"claim_text": "Claim C", "confidence_score": 0.60, "is_same_day": False},
+    ]
+    result = _heuristic_verification("Some hypothesis", claims)
+    assert result["verdict"] == "supported"
+    assert len(result["supporting_claims"]) <= 3
+    assert result["gap_queries"] == []
+
+
+def test_verify_hypothesis_heuristic_fallback_with_no_claims():
+    from services.aql.summarizer import _heuristic_verification
+
+    result = _heuristic_verification("Some hypothesis", [])
+    assert result["verdict"] == "unsupported"
+    assert result["confidence"] == "low"
+    assert result["gap_queries"] == []
+
+
 def test_build_attention_agentic_summary_adds_hypothesis_from_search_backed_claims(monkeypatch):
     from services.aql import summarizer as aql_summarizer
 
@@ -4037,7 +4096,7 @@ def test_build_attention_agentic_summary_adds_hypothesis_from_search_backed_clai
                 "bundle_id": "event-1",
                 "event_title": "Energy and airlines are repricing together",
                 "what_happened_text": "Oil-linked instruments fell sharply while airlines and duration rallied.",
-                "why_happened_text": "The tape tied the move to easing supply-risk and lower fuel pressure.",
+                "why_happened_text": "Market activity tied the move to easing supply-risk and lower fuel pressure.",
                 "affected_assets_summary_text": "Airlines and bonds both caught a bid.",
                 "supporting_symbols": ["USO", "UAL", "TLT"],
             }
@@ -4064,8 +4123,8 @@ def test_build_attention_agentic_summary_adds_hypothesis_from_search_backed_clai
             self.calls.append(schema_name)
             if schema_name == "attention_research_plan":
                 return {
-                    "research_subjects": [{"subject": "market tape", "role": "primary"}],
-                    "hypotheses": [{"kind": "cross_market", "text": "A shared rates and fuel narrative may connect the tape."}],
+                    "research_subjects": [{"subject": "market activity", "role": "primary"}],
+                    "hypotheses": [{"kind": "cross_market", "text": "A shared rates and fuel narrative may connect market activity."}],
                     "queries": [
                         {
                             "query": "stocks Treasury yields airlines oil moving today why",
@@ -4081,10 +4140,19 @@ def test_build_attention_agentic_summary_adds_hypothesis_from_search_backed_clai
                     "evidence_budget": 6,
                 }
             if schema_name == "attention_search_relevance":
-                return {"relevant_indices": [0], "reason": "The result is directly about the tape-level driver."}
+                return {"relevant_indices": [0], "reason": "The result is directly about the market-wide driver."}
             if schema_name == "attention_home_hypothesis":
                 return {
                     "hypothesis": "Lower yields and easing supply-risk appear to be the common thread, helping duration and fuel-sensitive names while pressuring oil-linked exposure.",
+                }
+            if schema_name == "hypothesis_verification":
+                return {
+                    "verdict": "supported",
+                    "confidence": "medium",
+                    "supporting_claims": ["Lower yields lifted airlines."],
+                    "contradicting_claims": [],
+                    "gap_queries": [],
+                    "reasoning": "Claims align with hypothesis.",
                 }
             raise AssertionError(f"unexpected schema {schema_name}")
 
@@ -4121,9 +4189,9 @@ def test_build_attention_agentic_summary_adds_hypothesis_from_search_backed_clai
             "url": url,
             "final_url": url,
             "title": "Reuters market wrap",
-            "excerpt": "Reuters said lower yields and easing supply-risk lifted airlines and other duration-sensitive parts of the tape.",
+            "excerpt": "Reuters said lower yields and easing supply-risk lifted airlines and other duration-sensitive parts of market activity.",
             "text": (
-                "Reuters said lower yields and easing supply-risk lifted airlines and other duration-sensitive parts of the tape. "
+                "Reuters said lower yields and easing supply-risk lifted airlines and other duration-sensitive parts of market activity. "
                 "Oil-linked assets weakened as supply-risk eased."
             ),
             "mode": "http",
@@ -4156,6 +4224,7 @@ def test_build_attention_agentic_summary_adds_hypothesis_from_search_backed_clai
         "attention_search_relevance",
         "attention_claims",
         "attention_home_hypothesis",
+        "hypothesis_verification",
     ]
 
 
@@ -4170,7 +4239,7 @@ def test_build_attention_agentic_summary_with_trace_returns_materializable_frame
                 "bundle_id": "event-1",
                 "event_title": "Energy and airlines are repricing together",
                 "what_happened_text": "Oil-linked instruments fell sharply while airlines and duration rallied.",
-                "why_happened_text": "The tape tied the move to easing supply-risk and lower fuel pressure.",
+                "why_happened_text": "Market activity tied the move to easing supply-risk and lower fuel pressure.",
                 "affected_assets_summary_text": "Airlines and bonds both caught a bid.",
                 "supporting_symbols": ["USO", "UAL", "TLT"],
             }
@@ -4184,9 +4253,9 @@ def test_build_attention_agentic_summary_with_trace_returns_materializable_frame
             del system_prompt, user_prompt, schema
             if schema_name == "attention_research_plan":
                 return {
-                    "research_subjects": [{"subject": "market tape", "role": "primary"}],
-                    "hypotheses": [{"kind": "cross_market", "text": "A shared rates and fuel narrative may connect the tape."}],
-                    "queries": [{"query": "stocks Treasury yields airlines oil moving today why", "rationale": "Connect the tape."}],
+                    "research_subjects": [{"subject": "market activity", "role": "primary"}],
+                    "hypotheses": [{"kind": "cross_market", "text": "A shared rates and fuel narrative may connect market activity."}],
+                    "queries": [{"query": "stocks Treasury yields airlines oil moving today why", "rationale": "Connect market activity."}],
                     "official_routes": ["news"],
                     "priority_entities": ["USO", "UAL", "TLT"],
                     "evidence_budget": 6,
@@ -4195,6 +4264,15 @@ def test_build_attention_agentic_summary_with_trace_returns_materializable_frame
                 return {"relevant_indices": [0], "reason": "Directly relevant."}
             if schema_name == "attention_home_hypothesis":
                 return {"hypothesis": "Lower yields and easing supply-risk appear to be the common thread."}
+            if schema_name == "hypothesis_verification":
+                return {
+                    "verdict": "supported",
+                    "confidence": "medium",
+                    "supporting_claims": ["Lower yields lifted airlines while oil fell."],
+                    "contradicting_claims": [],
+                    "gap_queries": [],
+                    "reasoning": "Multiple same-day claims link rates and fuel narrative.",
+                }
             raise AssertionError(f"unexpected schema {schema_name}")
 
     class FakeTavilyClient:
@@ -4243,8 +4321,14 @@ def test_build_attention_agentic_summary_with_trace_returns_materializable_frame
     )
 
     assert summary["hypothesis"].startswith("Lower yields and easing supply-risk")
+    assert summary["verification"]["verdict"] == "supported"
+    assert summary["verification"]["confidence"] == "medium"
+    assert len(summary["verification"]["supporting_claims"]) >= 1
+    assert summary["verification"]["reasoning"]
     assert summary["top_sources"]
     assert summary["supporting_claims"]
+    assert not trace["attention_hypothesis_verification"].empty
+    assert trace["attention_hypothesis_verification"]["verdict"].iloc[0] == "supported"
     assert not trace["attention_search_requests"].empty
     assert not trace["attention_search_results"].empty
     assert not trace["attention_source_documents"].empty
@@ -4257,6 +4341,53 @@ def test_build_attention_agentic_summary_with_trace_returns_materializable_frame
     assert "page_text" in trace["attention_search_results"].columns
     assert trace["attention_search_results"]["page_text"].fillna("").str.contains("same-day cross-market move").any()
     assert trace["attention_evidence_chunks"]["embedding_model"].fillna("").eq("test-embedding").any()
+
+
+def test_hypothesis_verify_agent_tool_invocation(monkeypatch):
+    """hypothesis.verify is callable as an agent tool and returns a structured verdict."""
+    from services.agent_tools import invoke_tool, build_tool_catalog, is_hypothesis_tool
+    from services.aql.summarizer import verify_hypothesis as _verify_fn
+
+    assert is_hypothesis_tool("hypothesis.verify")
+    assert not is_hypothesis_tool("research.retained_context")
+
+    class FakeLLMClient:
+        def generate_json(self, *, system_prompt, user_prompt, schema_name, schema):
+            assert schema_name == "hypothesis_verification"
+            return {
+                "verdict": "weak",
+                "confidence": "low",
+                "supporting_claims": ["BDC stocks fell."],
+                "contradicting_claims": [],
+                "gap_queries": [
+                    {"query": "ARCC OBDC non-accrual rate Q1 2026", "rationale": "Need default data."},
+                ],
+                "reasoning": "Thin evidence.",
+            }
+
+    monkeypatch.setattr("services.llm.load_llm_client", lambda: FakeLLMClient())
+
+    result = invoke_tool(
+        service=None,
+        tool_name="hypothesis.verify",
+        arguments={
+            "hypothesis": "BDC lenders are falling on private credit stress.",
+            "claims": [
+                {"claim_text": "BDC stocks fell sharply today.", "source": "Reuters", "is_same_day": True},
+            ],
+            "beats": [
+                {"sentence": "BDC lenders under pressure", "symbols": ["ARCC", "OBDC"]},
+            ],
+        },
+    )
+
+    assert result["result_type"] == "research"
+    payload = result["payload"]
+    assert payload["verdict"] == "weak"
+    assert payload["confidence"] == "low"
+    assert len(payload["gap_queries"]) == 1
+    assert payload["gap_queries"][0]["query"] == "ARCC OBDC non-accrual rate Q1 2026"
+    assert "hypothesis_verification" in result["provenance"]["datasets"]
 
 
 def test_supporting_claims_from_results_enrich_seeking_alpha_pages(monkeypatch):
@@ -4420,7 +4551,7 @@ def test_elevenlabs_tts_client_posts_expected_request():
         session=session,
     )
 
-    audio_bytes = client.synthesize("Tape summary text")
+    audio_bytes = client.synthesize("Market summary text")
 
     assert audio_bytes == b"audio-bytes"
     assert session.calls == [
@@ -4432,7 +4563,7 @@ def test_elevenlabs_tts_client_posts_expected_request():
                 "Content-Type": "application/json",
             },
             "json": {
-                "text": "Tape summary text",
+                "text": "Market summary text",
                 "model_id": "eleven_multilingual_v2",
             },
             "timeout": 30,

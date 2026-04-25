@@ -51,7 +51,7 @@ SOURCE_JOB_MAP: dict[str, str] = {
     "news": "news-ingest-and-features",
     "attention": "attention-home-build",
     "taxonomy": "entity-taxonomy-refresh",
-    "fundamentals": "equities-intraday-preload",
+    "fundamentals": "fundamentals-quarterly-refresh",
     "derivatives": "equities-intraday-preload",
 }
 
@@ -594,6 +594,72 @@ def latest_dataset_metadata(dataset_name: str) -> PipelineDataset | None:
             pass
 
 
+def dataset_metadata_asof(dataset_name: str, target_date: str) -> PipelineDataset | None:
+    """Load the most recent dataset version whose asof_time_utc falls on or before *target_date*.
+
+    *target_date* should be an ISO date string like ``"2026-04-20"``.  The query
+    finds the newest ``ready`` version where the asof timestamp is within the
+    target calendar day (UTC) or before it.
+    """
+    conn = _db_connect()
+    if conn is None:
+        return None
+    target_end = f"{target_date}T23:59:59.999999+00:00"
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT dataset_name, dataset_version_id, blob_path, asof_time_utc,
+                       ingested_at_utc, row_count
+                FROM dataset_versions
+                WHERE dataset_name = %s AND status = 'ready'
+                  AND asof_time_utc <= %s
+                ORDER BY asof_time_utc DESC
+                LIMIT 1
+                """,
+                (dataset_name, target_end),
+            )
+            row = cur.fetchone()
+            if not row:
+                return None
+            return PipelineDataset(
+                dataset_name=str(row[0]),
+                dataset_version_id=str(row[1]),
+                blob_path=str(row[2]),
+                asof_time_utc=str(row[3]),
+                ingested_at_utc=str(row[4]),
+                row_count=int(row[5] or 0),
+            )
+    except Exception:
+        return None
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
+def load_dataset_frame_asof(dataset_name: str, target_date: str) -> tuple[pd.DataFrame, PipelineDataset | None]:
+    """Load the dataset frame closest to (but not after) *target_date*.
+
+    Uses ``dataset_metadata_asof`` for discovery, then the same blob/cache
+    read path as ``load_latest_dataset_frame``.
+    """
+    metadata = dataset_metadata_asof(dataset_name, target_date)
+    if metadata is None:
+        return pd.DataFrame(), None
+    cached = _read_local_frame_cache(metadata)
+    if cached is not None:
+        return cached, metadata
+    frame = _read_blob_parquet(metadata.blob_path)
+    if isinstance(frame, pd.DataFrame):
+        try:
+            _write_local_frame_cache(metadata, frame)
+        except Exception:
+            pass
+    return frame, metadata
+
+
 def load_latest_dataset_frame(dataset_name: str) -> tuple[pd.DataFrame, PipelineDataset | None]:
     metadata = latest_dataset_metadata(dataset_name)
     if metadata is None:
@@ -796,3 +862,76 @@ def _normalize_job_status_label(status: object) -> str:
     if not text:
         return "Unknown"
     return str(status)
+
+
+def job_run_history(*, days: int = 7) -> pd.DataFrame:
+    """Return recent job_runs rows for timeline and failure visualizations."""
+    columns = [
+        "job_name", "run_id", "status", "start_time_utc", "end_time_utc",
+        "error_summary", "progress_stage",
+    ]
+    conn = _db_connect()
+    if conn is None:
+        return pd.DataFrame(columns=columns)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT job_name, run_id, status, start_time_utc, end_time_utc,
+                       error_summary, progress_stage
+                FROM job_runs
+                WHERE start_time_utc >= NOW() - INTERVAL '%s days'
+                ORDER BY start_time_utc DESC
+                """,
+                (days,),
+            )
+            rows = cur.fetchall()
+        if not rows:
+            return pd.DataFrame(columns=columns)
+        df = pd.DataFrame(rows, columns=columns)
+        df["status"] = df["status"].apply(_normalize_job_status_label)
+        for col in ["start_time_utc", "end_time_utc"]:
+            df[col] = pd.to_datetime(df[col], errors="coerce", utc=True)
+        return df
+    except Exception:
+        return pd.DataFrame(columns=columns)
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
+def dataset_version_history(*, days: int = 7) -> pd.DataFrame:
+    """Return recent dataset_versions rows for row-count visualization."""
+    columns = [
+        "dataset_name", "row_count", "ingested_at_utc", "run_id",
+    ]
+    conn = _db_connect()
+    if conn is None:
+        return pd.DataFrame(columns=columns)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT dataset_name, row_count, ingested_at_utc, run_id
+                FROM dataset_versions
+                WHERE ingested_at_utc >= NOW() - INTERVAL '%s days'
+                ORDER BY ingested_at_utc DESC
+                """,
+                (days,),
+            )
+            rows = cur.fetchall()
+        if not rows:
+            return pd.DataFrame(columns=columns)
+        df = pd.DataFrame(rows, columns=columns)
+        df["row_count"] = pd.to_numeric(df["row_count"], errors="coerce").fillna(0).astype(int)
+        df["ingested_at_utc"] = pd.to_datetime(df["ingested_at_utc"], errors="coerce", utc=True)
+        return df
+    except Exception:
+        return pd.DataFrame(columns=columns)
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass

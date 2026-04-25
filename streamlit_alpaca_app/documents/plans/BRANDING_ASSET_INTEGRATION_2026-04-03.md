@@ -11,8 +11,8 @@ Use the newly added repo branding assets in the Streamlit shell without scatteri
 - render the provided white logo lockup inside the existing sidebar brand card
 - keep the integration resilient with a text fallback if the asset files are missing
 - use the exported image asset rather than raw inline SVG markup so Streamlit does not surface the logo source as text
-- reduce the sidebar logo footprint and shift the copy hierarchy to `Spectral Nature` with `by Torres Capital` below it
-- treat `by Torres Capital` as a small right-aligned serif signoff rather than body copy
+- reduce the sidebar logo footprint and shift the text hierarchy to `Spectral Nature` with `by Torres Capital` below it
+- treat `by Torres Capital` as a small right-aligned serif signoff rather than body text
 - use a Bodoni-style signoff treatment and bump the logo closer to the full width of the brand card
 - keep the signoff on a local serif fallback stack instead of relying on a remote font import so the sidebar stays stable across pages and environments
 - frame the signoff inside its own subtle divider row so it stays aligned and intentional across every page shell

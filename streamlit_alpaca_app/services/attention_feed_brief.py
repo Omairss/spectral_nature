@@ -4,14 +4,15 @@ import json
 import re
 from typing import Any
 
-from .llm import COPY_STYLE_RULE, AzureOpenAIChatJSONClient, OpenAIChatJSONClient, get_prompt, register_copy_prompt
+from .llm import NARRATIVE_STYLE_RULE, AzureOpenAIChatJSONClient, OpenAIChatJSONClient, get_prompt, register_narrative_prompt
 
 
-FEED_BRIEF_SYSTEM_PROMPT = register_copy_prompt(
+FEED_BRIEF_SYSTEM_PROMPT = register_narrative_prompt(
     name="Feed Card Brief (lead / cluster / headline / company / watchpoint)",
     file="services/attention_feed_brief.py",
+    group="Attention Pipeline",
     prompt=(
-        f"{COPY_STYLE_RULE} "
+        f"{NARRATIVE_STYLE_RULE} "
         "You write market-attention feed cards for readers who may know nothing about the company. "
         "Boil down the essentials of the market dynamic in plain English. "
         "Never restate residuals, z-scores, observed-vs-expected percentages, or other model metrics in prose. "

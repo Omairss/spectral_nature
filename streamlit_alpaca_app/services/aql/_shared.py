@@ -12,6 +12,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from compute.signal_extraction import _history_correlation_map, _return_series_from_bars
 from ..runtime_policy import source_authority_policy
 from .constants import (
     CAUSAL_LANGUAGE_PATTERNS,
@@ -167,16 +168,16 @@ def _is_low_signal_claim_text(text: object) -> bool:
     return any(marker in clean for marker in LOW_SIGNAL_CLAIM_MARKERS)
 
 
-def _looks_like_generic_tape_title(text: object) -> bool:
+def _looks_like_generic_market_activity_title(text: object) -> bool:
     clean = _coerce_text(text).lower()
     if not clean:
         return False
     patterns = (
         r"\bmoves? sharply today\b",
         r"\bmoved sharply today\b",
-        r"\brises on today'?s tape\b",
-        r"\bfalls on today'?s tape\b",
-        r"\bon today'?s tape\b",
+        r"\brises on today'?s market activity\b",
+        r"\bfalls on today'?s market activity\b",
+        r"\bon today'?s market activity\b",
         r"\bmarket move today\b",
     )
     return any(re.search(pattern, clean) for pattern in patterns)
@@ -380,63 +381,6 @@ def _candidate_claim_entities(candidate: dict[str, Any]) -> list[str]:
     )
 
 
-def _return_series_from_bars(frame: pd.DataFrame | None) -> pd.Series:
-    if not isinstance(frame, pd.DataFrame) or frame.empty or "timestamp" not in frame.columns or "close" not in frame.columns:
-        return pd.Series(dtype=float)
-    out = frame.copy()
-    out["timestamp"] = pd.to_datetime(out["timestamp"], utc=True, errors="coerce")
-    out["close"] = pd.to_numeric(out["close"], errors="coerce")
-    out = out[out["timestamp"].notna() & out["close"].notna()].sort_values("timestamp")
-    if out.empty:
-        return pd.Series(dtype=float)
-    returns = out["close"].pct_change()
-    series = pd.Series(returns.values, index=out["timestamp"])
-    return series.dropna()
-
-
-def _history_correlation_map(
-    bars_by_symbol: dict[str, pd.DataFrame] | None,
-    symbols: list[str],
-    *,
-    min_observations: int,
-) -> dict[tuple[str, str], dict[str, float | int]]:
-    if not isinstance(bars_by_symbol, dict) or not bars_by_symbol:
-        return {}
-    normalized_symbols = [
-        _normalize_symbol(symbol)
-        for symbol in list(symbols or [])
-        if _normalize_symbol(symbol)
-    ]
-    if len(normalized_symbols) < 2:
-        return {}
-    series_by_symbol: dict[str, pd.Series] = {}
-    min_obs = max(int(min_observations), 2)
-    for symbol in normalized_symbols:
-        series = _return_series_from_bars(bars_by_symbol.get(symbol))
-        if len(series) >= min_obs:
-            series_by_symbol[symbol] = series.rename(symbol)
-    if len(series_by_symbol) < 2:
-        return {}
-    returns_wide = pd.concat(series_by_symbol.values(), axis=1, join="outer").sort_index()
-    if returns_wide.empty:
-        return {}
-    observations = returns_wide.notna().astype(int).T.dot(returns_wide.notna().astype(int))
-    correlations = returns_wide.corr(min_periods=min_obs)
-    out: dict[tuple[str, str], dict[str, float | int]] = {}
-    ordered = [column for column in correlations.columns if column in series_by_symbol]
-    for index, left in enumerate(ordered):
-        for right in ordered[index + 1 :]:
-            corr_value = pd.to_numeric(correlations.at[left, right], errors="coerce")
-            obs_value = int(pd.to_numeric(observations.at[left, right], errors="coerce") or 0)
-            if pd.isna(corr_value) or obs_value < min_obs:
-                continue
-            out[tuple(sorted((left, right)))] = {
-                "correlation": float(corr_value),
-                "observations": obs_value,
-            }
-    return out
-
-
 def _jaccard(left: set[str], right: set[str]) -> float:
     if not left or not right:
         return 0.0
@@ -490,6 +434,14 @@ def _what_changed_fallback(candidate: dict[str, Any]) -> str:
     return f"{symbol} was little changed today."
 
 
+def _claim_authority_rank(item: dict[str, Any]) -> int:
+    rank = _coerce_float(item.get("authority_rank"), math.nan)
+    if math.isfinite(rank):
+        return int(rank)
+    bucket = _coerce_text(item.get("source_authority_bucket") or item.get("authority_bucket")).lower()
+    return {"official": 0, "wire": 1, "press": 2, "web": 3}.get(bucket, 4)
+
+
 def _quality_label(claims: list[dict[str, Any]], cause_status: str) -> tuple[str, str]:
     same_day = [item for item in claims if bool(item.get("is_same_day"))]
     strong = [
@@ -497,9 +449,16 @@ def _quality_label(claims: list[dict[str, Any]], cause_status: str) -> tuple[str
         for item in same_day
         if float(item.get("causal_score") or 0.0) >= 0.62 and float(item.get("relevance_score") or 0.0) >= 0.6
     ]
+    authoritative_same_day = [
+        item
+        for item in same_day
+        if _claim_authority_rank(item) <= 2 and float(item.get("relevance_score") or 0.0) >= 0.55
+    ]
     if cause_status == "supported" and len(strong) >= 2:
         evidence_quality = "High"
-    elif cause_status == "supported" and strong:
+    elif cause_status == "supported" and (strong or authoritative_same_day):
+        evidence_quality = "Medium"
+    elif claims and min((_claim_authority_rank(item) for item in claims), default=4) <= 2:
         evidence_quality = "Medium"
     elif claims:
         evidence_quality = "Developing"

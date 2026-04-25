@@ -26,11 +26,19 @@ Evidence collection:
 Summarization:
   build_attention_agentic_summary      — search-backed market hypothesis for the homepage
   build_attention_agentic_summary_with_trace — same, plus materializable search/doc/chunk/claim trace
+  verify_hypothesis                    — grade a hypothesis against its claims (support/weak/conflicting/unsupported)
   build_attention_home_narrative_beats — deterministic beats from home_payload
   build_attention_home_summary         — structured summary dict
   build_attention_home_summary_payload — sanitized summary payload
   attach_attention_home_summary_audio  — attach ElevenLabs audio to a summary payload
   attention_mover_card_title           — display title for a mover card
+
+Chat log:
+  log_chat_session                     — persist an agent session to Postgres + blob
+  load_chat_session                    — retrieve a full session by run_id
+  list_chat_sessions                   — list recent sessions with filters
+  count_chat_sessions                  — count sessions matching filters
+  bootstrap_chat_log                   — create the aql_chat_sessions table
 
 Types:
   AgenticAttentionArtifacts            — dataclass returned by the pipeline
@@ -54,6 +62,14 @@ from .summarizer import (
     build_attention_home_narrative_beats,
     build_attention_home_summary,
     build_attention_home_summary_payload,
+    verify_hypothesis,
+)
+from .chat_log import (
+    bootstrap_chat_log,
+    count_chat_sessions,
+    list_chat_sessions,
+    load_chat_session,
+    log_chat_session,
 )
 
 __all__ = [
@@ -67,8 +83,14 @@ __all__ = [
     "build_attention_home_summary",
     "build_attention_home_summary_payload",
     "build_bottom_up_attention_artifacts",
+    "bootstrap_chat_log",
     "build_bottom_up_attention_bundle",
     "build_bottom_up_attention_home",
+    "count_chat_sessions",
+    "list_chat_sessions",
+    "load_chat_session",
+    "log_chat_session",
     "recompute_attention_candidate_graph",
     "search_symbol_news_payload",
+    "verify_hypothesis",
 ]

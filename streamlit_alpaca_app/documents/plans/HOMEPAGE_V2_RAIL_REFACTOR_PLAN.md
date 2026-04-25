@@ -10,14 +10,14 @@ The previous Home experience mixed three detail surfaces at once:
 - inline research expansion inside those cards
 - a separate full-width ticker background panel appended after the page
 
-That made inspect actions feel unreliable because a single click could rerun the page, duplicate narrative copy, and push the user into a long full-page detail block.
+That made inspect actions feel unreliable because a single click could rerun the page, duplicate narrative text, and push the user into a long full-page detail block.
 
 ### Decision
 
 Keep two distinct products:
 
 - `Home`: narrative-first homepage with a single drilldown rail
-- `Daily Tape`: raw materialized attention cards for deeper operational review
+- `Daily Market Overview`: raw materialized attention cards for deeper operational review
 
 ### Homepage state model
 

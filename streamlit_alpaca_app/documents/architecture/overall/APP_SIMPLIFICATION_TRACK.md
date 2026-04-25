@@ -19,7 +19,7 @@ Reduce `app.py` and other coordinator modules by moving pure shaping, loading, a
 ### Attention content shaping
 
 - `presentation/attention_content.py` owns:
-  - attention event keys and copy normalization
+  - attention event keys and text normalization
   - homepage/detail payload shaping
   - brief input assembly
   - attention news/context payload collection

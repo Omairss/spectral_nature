@@ -42,11 +42,11 @@ This document captures areas across the pipeline where hardcoded keyword lists, 
 ---
 
 ### 4. Narrative template text — `attention_market_events.py` ~L176–195 and `attention_live_research.py` ~L1131
-**What**: `_theme_tape_why` and `_event_tape_why_text` return hardcoded strings like "Oil is higher, which points to more supply-risk and more inflation pressure across the tape." Fixed copy per (theme, direction) pair.
+**What**: `_theme_market_activity_why` and `_event_market_activity_why_text` return hardcoded strings like "Oil is higher, which points to more supply-risk and more inflation pressure across market activity." Fixed narrative per (theme, direction) pair.
 
-**Replace with**: LLM-generated narrative using actual event context (what moved, by how much, what the trigger was). The copy becomes dynamic and grounded in real data rather than a canned sentence.
+**Replace with**: LLM-generated narrative using actual event context (what moved, by how much, what the trigger was). The text becomes dynamic and grounded in real data rather than a canned sentence.
 
-**Impact**: High — this is user-facing copy on attention cards.
+**Impact**: High — this is user-facing narrative on attention cards.
 
 ---
 

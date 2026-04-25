@@ -937,7 +937,7 @@ def _fallback_summary_research_plan(home_payload: dict[str, Any]) -> dict[str, A
         queries.append(
             {
                 "query": f"{symbol_blob} move today macro sector driver",
-                "rationale": "Find one cross-market explanation tying the main tape symbols together.",
+                "rationale": "Find one cross-market explanation tying the main market symbols together.",
             }
         )
     if sector_blob:
@@ -951,7 +951,7 @@ def _fallback_summary_research_plan(home_payload: dict[str, Any]) -> dict[str, A
         queries.append(
             {
                 "query": f"{title_blob} market narrative today",
-                "rationale": "Search the tape's main observed pattern directly.",
+                "rationale": "Search the main observed market pattern directly.",
             }
         )
     queries.append(
@@ -979,11 +979,11 @@ def _fallback_summary_research_plan(home_payload: dict[str, Any]) -> dict[str, A
             break
 
     return {
-        "research_subjects": [{"subject": "market tape", "role": "primary"}],
+        "research_subjects": [{"subject": "market activity", "role": "primary"}],
         "hypotheses": [
-            {"kind": "cross_market", "text": "A shared macro or sector narrative may be driving several tape items at once."},
+            {"kind": "cross_market", "text": "A shared macro or sector narrative may be driving several market items at once."},
             {"kind": "sector_rotation", "text": "Sector rotation or factor positioning may explain the mix of winners and losers."},
-            {"kind": "unresolved", "text": "Some moves may still be stock-specific or unresolved despite the broader tape pattern."},
+            {"kind": "unresolved", "text": "Some moves may still be stock-specific or unresolved despite the broader market pattern."},
         ],
         "queries": deduped_queries,
         "official_routes": ["news"],
@@ -1003,7 +1003,7 @@ def _plan_summary_research(home_payload: dict[str, Any], *, llm_client: LLMClien
         data = llm_client.generate_json(
             system_prompt=(
                 "You are planning research for a market homepage summary. "
-                "Look across the whole tape and propose 3 to 5 search queries that can explain the shared macro, sector, "
+                "Look across market-wide activity and propose 3 to 5 search queries that can explain the shared macro, sector, "
                 "or cross-asset narrative. Do not emit one query per symbol. Prefer broad but concrete queries that could "
                 "tie multiple movers or events together."
             ),

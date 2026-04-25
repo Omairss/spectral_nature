@@ -8,10 +8,10 @@ import pandas as pd
 from presentation import attention_content
 
 
-def test_attention_copy_helpers_normalize_blank_and_nan_values():
-    assert attention_content._clean_attention_copy("  Alpha   beta  ") == "Alpha beta"
-    assert attention_content._raw_attention_copy("  Alpha   beta  ") == "Alpha beta"
-    assert attention_content._raw_attention_copy(np.nan) == ""
+def test_attention_text_helpers_normalize_blank_and_nan_values():
+    assert attention_content._clean_attention_text("  Alpha   beta  ") == "Alpha beta"
+    assert attention_content._raw_attention_text("  Alpha   beta  ") == "Alpha beta"
+    assert attention_content._raw_attention_text(np.nan) == ""
 
 
 def test_headline_items_from_news_payload_filters_blank_headlines():

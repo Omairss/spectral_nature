@@ -473,7 +473,7 @@ def _compose_attention_news_story(
     if is_commodity_proxy and normalized_peer_group:
         lowered_group = normalized_peer_group.lower()
         if "supply tightness" in theme_set:
-            return f"{source_prefix} is framing this as a {lowered_group} supply story, with tighter availability pushing the tape away from expectation."
+            return f"{source_prefix} is framing this as a {lowered_group} supply story, with tighter availability pushing market activity away from expectation."
         if themes:
             theme_text = _join_phrases([theme.lower() for theme in themes[:2]])
             return f"{source_prefix} is clustering around {theme_text}, which fits the current {lowered_group} move."
@@ -578,7 +578,7 @@ def build_company_description(
 
     regime = str(signal_summary.get("regime") or "").strip()
     if regime:
-        details.append(REGIME_TEXT.get(regime, f"From a price-action standpoint, the tape still fits a {regime.lower()} story."))
+        details.append(REGIME_TEXT.get(regime, f"From a price-action standpoint, market activity still fits a {regime.lower()} story."))
 
     if len(details) == 1:
         details.append("The current narrative is still thin, so the best read comes from the linked price action and recent headlines.")

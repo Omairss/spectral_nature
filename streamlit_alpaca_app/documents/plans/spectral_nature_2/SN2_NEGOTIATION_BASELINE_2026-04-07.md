@@ -115,7 +115,7 @@ Clients should be native and thin. Core orchestration belongs in backend service
 3. `documents/plans/spectral_nature_2/HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md`
 4. `documents/plans/spectral_nature_2/IPHONE_APP_STRATEGY_2026-04-05.md`
 5. `documents/plans/spectral_nature_2/IPHONE_MVP_SCAFFOLD_2026-04-06.md`
-6. `documents/plans/ATTENTION_FRED_INTEGRATION_PLAN_2026-04-06.md`
+6. `documents/architecture/data_pipelines/ATTENTION_FRED_INTEGRATION_PLAN_2026-04-06.md`
 7. `documents/plans/spectral_nature_2/SN2_IPHONE_AGENT_REFERENCE_MAP_2026-04-07.md`
 
 ## Minimum Deliverables

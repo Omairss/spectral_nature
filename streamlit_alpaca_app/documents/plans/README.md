@@ -7,22 +7,21 @@ Paths in this index use `streamlit_alpaca_app/` as the implicit root, so `docume
 Use the docs as follows:
 
 - `../README.md`: doc hub and runtime overview
+- `../architecture/README.md`: durable architecture and system design map
 - `../operations/PROJECT_SETUP_AND_OPERATIONS.md`: setup, deployment, and operator context
 - `../reference/ATTENTION_FEED_GUIDELINES.md`: active product and evidence rules
-- files in `documents/plans/`: implementation plans, refactor plans, recovery notes, and short working specs
+- files in `documents/plans/`: implementation plans, recovery notes, and short working specs
 
 ## Product and UX
 
-- `APP_SIMPLIFICATION_TRACK.md`: active simplification and modularization status
 - `BRANDING_REFRESH_PLAN.md`: app-shell branding cleanup and presentation notes
 - `BRANDING_ASSET_INTEGRATION_2026-04-03.md`: branding asset rollout notes
 - `UI_SHELL_REFINEMENT_2026-04-02.md`: shell-level UI cleanup plan
 - `HOMEPAGE_V2_RAIL_REFACTOR_PLAN.md`: homepage rail refactor work
 - `HOMEPAGE_IMPLIED_OPEN_EXPERIMENT_2026-04-02.md`: homepage implied-open experiment notes
-- `OPEN_KNOWLEDGE_GRAPH_EXPERIMENT_2026-04-12.md`: admin-only Experiment-page PoC for open-ended graph generation, review, and commit
-- `EXPERIMENT_PAGE_RENAME_2026-04-11.md`: Daily Tape removal, admin-only Experiment page, and workspace renames
-- `EXPERIMENT_SUMMARY_CLARITY_ELEVENLABS_KEYVAULT_2026-04-11.md`: cleaner experiment summary copy plus Key Vault-backed ElevenLabs setup notes
-- `DAILY_TAPE_SUMMARY_AUDIO_2026-04-10.md`: shared daily tape summary plus on-demand ElevenLabs audio
+- `EXPERIMENT_PAGE_RENAME_2026-04-11.md`: Daily Market Overview removal, admin-only Experiment page, and workspace renames
+- `EXPERIMENT_SUMMARY_CLARITY_ELEVENLABS_KEYVAULT_2026-04-11.md`: cleaner experiment summary text plus Key Vault-backed ElevenLabs setup notes
+- `DAILY_MARKET_OVERVIEW_SUMMARY_AUDIO_2026-04-10.md`: shared daily market overview summary plus on-demand ElevenLabs audio
 - `STOCK_INVESTIGATOR_SPLIT_2026-04-06.md`: market-vs-stock workspace split and ticker handoff
 - `YIELD_VIEW_PLAN_2026-04-06.md`: market-explorer fixed-income and yield view plan
 - `TRUE_BOND_VIEW_PLAN_2026-04-06.md`: bond-level view plan across Treasuries, corporates, and munis
@@ -41,37 +40,22 @@ Use the docs as follows:
 
 ## Data, Analytics, and Research
 
-- `ATTENTION_FEED_IMPLEMENTATION_PLAN.md`: canonical implementation plan for the attention feed stack
-- `ATTENTION_FEED_EVENT_REDESIGN_PLAN.md`: product and background context for the event redesign
-- `ATTENTION_RESEARCH_QUALITY_FIX_2026-04-14.md`: root-cause notes and staged fix plan for flat homepage hypotheses, clipped homepage beats, and generic `Why It Happened` event-card copy
-- `ATTENTION_HOME_SUMMARY_SAA_WIRING_2026-04-15.md`: source fix for routing homepage summary evidence through shared SAA retrieval, retaining fuller page text, and showing a compact research trace in the UI
-- `ATTENTION_HOME_UI_RUNTIME_FIX_2026-04-15.md`: runtime fixes for the homepage UI trace, fail-fast Seeking Alpha access, and explicit Azure embedding deployment behavior
-- `ATTENTION_LAYER_PLAN.md`: historical layer-design context
-- `ATTENTION_FRED_INTEGRATION_PLAN_2026-04-06.md`: phased architecture plan to integrate FRED into attention scoring
-- `AGENTIC_TICKER_BACKGROUND_TAVILY_2026-04-03.md`: background enrichment plan and Tavily integration notes
-- `AGENTIC_SUMMARY_2026-04-13.md`: whole-tape homepage summary planning, search, and hypothesis synthesis
-- `AQL_EVIDENCE_INDEX_2026-04-14.md`: shared deterministic indexing and search contract for AQL evidence chunks, including homepage summary research
-- `AQL_NLP_IR_AGENT_ARCHITECTURE_2026-04-14.md`: north-star architecture for AQL plus `SAA`, the supporting search and retrieval system with durable full-text retention, hybrid retrieval, explicit agent loops, and evidence-pack writers
-- `AQL_SAA_PHASE0_RETENTION_RETRIEVAL_2026-04-14.md`: implemented Phase 0 fix for richer search-result retention, better homepage-summary document capture, and ranked chunk retrieval
-- `AQL_SAA_PHASE1_RETENTION_FOUNDATION_2026-04-14.md`: implemented Phase 1 retention foundation with canonical document ids, durable raw-document blobs, and Postgres metadata for retained source documents
-- `AQL_SAA_PHASE2_QUERY_SURFACE_2026-04-14.md`: implemented Phase 2 historical query surface for retained SAA documents, including shared search and direct document-open paths
-- `AQL_SAA_PHASE3_HISTORICAL_CHUNK_SEARCH_2026-04-14.md`: implemented Phase 3 chunk-history retention and historical chunk search over durable SAA evidence
-- `AQL_SAA_PHASE4_HYBRID_RETRIEVAL_2026-04-14.md`: implemented Phase 4 hybrid retrieval over retained chunks, combining structured filters, lexical scoring, and optional semantic reranking from stored embeddings
-- `AQL_SAA_V1_IMPLEMENTATION_ROADMAP_2026-04-14.md`: concrete build roadmap for AQL plus SAA v1, including workstreams, phases, acceptance criteria, module boundaries, and rollout order
+- Architecture-level docs moved to `../architecture/README.md`.
+- AQL docs live in `../architecture/AQL/`.
+- SAA docs live in `../architecture/SAA/`.
+- Attention docs live in `../architecture/attention/`.
+- Data pipeline docs live in `../architecture/data_pipelines/`.
+- Agent research docs live in `../architecture/agents/`.
+- Overall app architecture docs live in `../architecture/overall/`.
 - `BMY_BACKGROUND_FALLBACK_FIX_2026-04-03.md`: targeted ticker-background recovery notes
-- `COMMODITY_PRELOAD_ROOT_CAUSE_FIX_2026-04-09.md`: commodity preload recovery and alignment plan
-- `DEPENDENCY_GRAPH_INTEGRATION_2026-04-10.md`: JSON-backed dependency graph feature plan and commodity-dashboard seam
 - `CHAT_SEARCH_RESEARCH_ENABLEMENT_2026-04-12.md`: plan to make Chat + Search use retained narratives, live evidence, and config-driven impact expansion for analysis prompts
-- `BROAD_ECONOMY_FRED_SOURCE_UI_FIX_2026-04-19.md`: source and layout fix for stale Broad Economy dates, broken YoY, stationarized-default charts, and a reordered macro page
-- `RESEARCH_EXPORT_API_2026-04-18.md`: unified `/v1/research/export` endpoint joining documents, chunks, summaries, and raw text into a single organized dump for iOS, agents, and export
-- `FRED_MACRO_PM_COVERAGE_2026-04-15.md`: expansion of the curated FRED dashboard with macro PM series for rates, curve, breakevens, dollar, bank credit, consumption, savings, and home prices
-- `FRED_V1_FALLBACK_2026-04-14.md`: source fix for preferring FRED v2 bulk but falling back to curated v1 series loads when bulk auth is unavailable
 - `MARKET_OPPORTUNITY_PRECOMPUTE_RECOVERY_PLAN.md`: market precompute recovery work
-- `PIPELINE_IDENTITY_AND_FRED_RETRY_FIX_2026-04-13.md`: root cause and source fixes for the attention job identity drift plus FRED retry hardening
-- `PIPELINE_CACHE_GUARDRAILS_2026-04-14.md`: local pipeline-store cache bounds plus git-ignore cleanup for runtime cache artifacts
 - `PORTFOLIO_LIVE_MODE_FIX_PLAN.md`: live portfolio-mode reliability work
-- `UNIVERSE_EXPANSION_PLAN_V2.md`: universe expansion design
 - `SEEKING_ALPHA_NOTEBOOK_2026-04-08.md`: notebook and helper design for headed Playwright extraction from Seeking Alpha
+
+## Reliability and Mistake Prevention
+
+- `MISTAKE_PREVENTION_HARDENING_2026-04-21.md`: deploy guards, secret scanning, mandatory dataset validation, LLM readiness checks, and attention service package reorganization
 
 ## Infra and Operations
 
@@ -95,7 +79,7 @@ Use the docs as follows:
 - `spectral_nature_2/`: grouped plan set for Spectral Nature 2, omnibar, shared agent/API contracts, and iPhone work
 - `spectral_nature_2/SN2_NEGOTIATION_RESOLUTION_2026-04-07.md`: resolved contract for iPhone and omnibar requirements, clarifications, and sequencing
 - `spectral_nature_2/SN2_NEGOTIATION_BASELINE_2026-04-07.md`: historical merged negotiation baseline for iPhone and omnibar requirements and constraints
-- `spectral_nature_2/SN2_NEGOTIATION_RESPONSE_2026-04-07.md`: copy-ready response based on the merged negotiation baseline
+- `spectral_nature_2/SN2_NEGOTIATION_RESPONSE_2026-04-07.md`: ready-to-send response based on the merged negotiation baseline
 - `spectral_nature_2/SN2_IPHONE_AGENT_REFERENCE_MAP_2026-04-07.md`: doc map for Spectral Nature 2, omnibar, agent workspace, shared API, and iPhone work
 - `spectral_nature_2/AGENTIC_API_AUTH_MCP_2026-04-07.md`: production-grade auth model, scoped agent keys, and MCP-compatible gateway
 - `spectral_nature_2/AGENT_API_RESOURCE_CONTRACT_2026-04-07.md`: concrete `/v1/agent/*` REST resource schemas and payload examples for homepage and iPhone reuse
@@ -103,4 +87,4 @@ Use the docs as follows:
 - `spectral_nature_2/IPHONE_APP_STRATEGY_2026-04-05.md`: source-first migration plan from Streamlit UI to native iPhone app
 - `spectral_nature_2/IPHONE_MVP_SCAFFOLD_2026-04-06.md`: delivered backend/API plus SwiftUI scaffold for the iPhone MVP
 - `spectral_nature_2/agent_omnibar/`: dedicated doc hub for the separate agent omnibar task
-- `spectral_nature_2/agent_omnibar/OTHER_TASK_RESPONSE_2026-04-08.md`: copy-ready resolved response for the separate omnibar task
+- `spectral_nature_2/agent_omnibar/OTHER_TASK_RESPONSE_2026-04-08.md`: ready-to-send resolved response for the separate omnibar task

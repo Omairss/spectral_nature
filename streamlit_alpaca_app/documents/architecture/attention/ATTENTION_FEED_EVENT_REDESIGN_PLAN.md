@@ -12,7 +12,7 @@ The homepage and drilldowns must answer only three questions:
 2. Why did it change today?
 3. What else moved because of it?
 
-This system is not a generic anomaly browser. It is the market tape for today with evidence-backed drilldowns.
+This system is not a generic anomaly browser. It is today's market activity with evidence-backed drilldowns.
 
 ## What Good Looks Like
 
@@ -63,7 +63,7 @@ Sectors, industries, and macro roles must come from a structured entity master a
 
 Keywords may enrich explanation, but they may not assign sector or macro role.
 
-### 5. Homepage copy stays terse; research can be deep
+### 5. Homepage Text Stays Terse; Research Can Be Deep
 
 The homepage must be concise and high-signal.
 
@@ -73,7 +73,7 @@ The click-to-expand research bundle can carry the citations, evidence excerpts, 
 
 The redesigned attention system has three layers.
 
-### Layer 1: Deterministic tape engine
+### Layer 1: Deterministic Market-Activity Engine
 
 This layer decides what changed and what deserves research.
 
@@ -328,7 +328,7 @@ The research layer should be pluggable, but the recommended default stack is:
 
 ### Why this stack
 
-- deterministic tape selection keeps coverage broad and reliable
+- deterministic market-activity selection keeps coverage broad and reliable
 - agentic search improves same-day explanation quality
 - direct official-source ingestion avoids search-engine dependence for filings and macro data
 - cached extracted evidence keeps latency acceptable for hourly publishing
@@ -557,7 +557,7 @@ Each drilldown must render these sections in this order:
 
 If the research layer fails partially:
 
-- the deterministic tape still publishes
+- the deterministic market-activity view still publishes
 - the move still appears if it is important
 - confidence and cause status degrade
 - no speculative explanation is emitted

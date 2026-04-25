@@ -7,7 +7,7 @@ Use this directory as the entrypoint for the separate agent omnibar task.
 1. `../SN2_NEGOTIATION_RESOLUTION_2026-04-07.md`
 - Active resolved contract for iPhone + omnibar + shared workspace/API work.
 2. `OTHER_TASK_RESPONSE_2026-04-08.md`
-- Copy-ready resolved response for the separate omnibar task.
+- Ready-to-send resolved response for the separate omnibar task.
 
 ## Shared Source Docs
 
@@ -25,4 +25,4 @@ These remain in `documents/plans/spectral_nature_2/` and are referenced by the r
 
 Cross-track macro reference:
 
-- `documents/plans/ATTENTION_FRED_INTEGRATION_PLAN_2026-04-06.md`
+- `documents/architecture/data_pipelines/ATTENTION_FRED_INTEGRATION_PLAN_2026-04-06.md`

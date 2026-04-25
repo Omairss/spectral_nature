@@ -4,7 +4,7 @@ Date: 2026-04-10
 
 ## Goal
 
-Move the shared Alpaca credentials into one Key Vault and remove the duplicate copy from the old pipeline-specific vault.
+Move the shared Alpaca credentials into one Key Vault and remove the duplicate version from the old pipeline-specific vault.
 
 ## Live state before change
 
@@ -17,7 +17,7 @@ Move the shared Alpaca credentials into one Key Vault and remove the duplicate c
 
 ## Migration plan
 
-1. Copy the current Alpaca secrets from `snpipelinekv03130136` into `spectral-nature-kvault`.
+1. Move the current Alpaca secrets from `snpipelinekv03130136` into `spectral-nature-kvault`.
 2. Update the pipeline jobs to use `spectral-nature-kvault`.
 3. Set the UI apps to use the live trading base URL.
 4. Verify real Alpaca account and market-data calls through the new vault path.

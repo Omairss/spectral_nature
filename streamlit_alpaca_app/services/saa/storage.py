@@ -473,6 +473,25 @@ def bootstrap_saa_storage(conn: Any) -> None:
         )
         cur.execute("ALTER TABLE saa_evidence_chunks ADD COLUMN IF NOT EXISTS embedding_model TEXT")
         cur.execute("ALTER TABLE saa_evidence_chunks ADD COLUMN IF NOT EXISTS embedding_vector_json TEXT")
+        # tsvector full-text search column — generated from search_text, title, chunk_text
+        cur.execute(
+            """
+            ALTER TABLE saa_evidence_chunks
+            ADD COLUMN IF NOT EXISTS search_tsvector tsvector
+            GENERATED ALWAYS AS (
+                setweight(to_tsvector('english', COALESCE(title, '')), 'A') ||
+                setweight(to_tsvector('english', COALESCE(display_excerpt, '')), 'B') ||
+                setweight(to_tsvector('english', COALESCE(chunk_text, '')), 'B') ||
+                setweight(to_tsvector('english', COALESCE(search_text, '')), 'C')
+            ) STORED
+            """
+        )
+        cur.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_saa_chunks_search_tsvector
+            ON saa_evidence_chunks USING GIN (search_tsvector)
+            """
+        )
     conn.commit()
 
 
@@ -1014,6 +1033,7 @@ def _frame_from_retained_chunk_rows(rows: list[tuple[Any, ...]]) -> pd.DataFrame
         "mentioned_dates_json",
         "mentioned_dates_key",
         "metadata_json",
+        "ts_rank_score",
     ]
     frame = pd.DataFrame(rows, columns=columns)
     if frame.empty:
@@ -1189,6 +1209,11 @@ def _filter_and_score_retained_chunk_frame(
         ),
         axis=1,
     )
+    # Incorporate ts_rank from tsvector full-text search (0-1 range, weight A/B/C)
+    if "ts_rank_score" in out.columns:
+        out["score_ts_rank"] = pd.to_numeric(out["ts_rank_score"], errors="coerce").fillna(0.0)
+    else:
+        out["score_ts_rank"] = 0.0
     if normalized_scopes:
         out["score_lexical"] = out["score_lexical"] + out["research_scope"].astype(str).str.lower().isin(set(normalized_scopes)).astype(float) * 1.5
     if normalized_commodities:
@@ -1207,16 +1232,19 @@ def _filter_and_score_retained_chunk_frame(
             out["query_embedding_model"] = query_embedding_model
     out["score_embedding"] = out["chunk_record_id"].astype(str).map(lambda value: float(score_embedding_map.get(value, 0.0)))
     out["score_rerank"] = out.apply(_ranking_bonus, axis=1)
-    out["search_score"] = out["score_lexical"] + out["score_embedding"] * 8.0 + out["score_rerank"]
+    out["search_score"] = out["score_lexical"] + out["score_ts_rank"] * 12.0 + out["score_embedding"] * 8.0 + out["score_rerank"]
 
     if query_text:
-        out = out[(out["score_lexical"] > 0) | (out["score_embedding"] >= _DEFAULT_SEMANTIC_THRESHOLD)].copy()
+        out = out[(out["score_lexical"] > 0) | (out["score_ts_rank"] > 0) | (out["score_embedding"] >= _DEFAULT_SEMANTIC_THRESHOLD)].copy()
     if out.empty:
         return out
+    has_lexical = out["score_lexical"] > 0
+    has_ts_rank = out["score_ts_rank"] > 0
+    has_semantic = out["score_embedding"] >= _DEFAULT_SEMANTIC_THRESHOLD
     out["match_source"] = "structured"
-    out.loc[out["score_lexical"] > 0, "match_source"] = "lexical"
-    out.loc[out["score_embedding"] >= _DEFAULT_SEMANTIC_THRESHOLD, "match_source"] = "semantic"
-    out.loc[(out["score_lexical"] > 0) & (out["score_embedding"] >= _DEFAULT_SEMANTIC_THRESHOLD), "match_source"] = "hybrid"
+    out.loc[has_lexical | has_ts_rank, "match_source"] = "lexical"
+    out.loc[has_semantic, "match_source"] = "semantic"
+    out.loc[(has_lexical | has_ts_rank) & has_semantic, "match_source"] = "hybrid"
 
     out = out.sort_values(
         ["search_score", "published_at", "authority_rank", "chunk_index"],
@@ -1427,7 +1455,16 @@ def _fetch_retained_chunk_rows(
     clauses: list[str],
     params: list[Any],
     limit: int,
+    ts_query_text: str = "",
 ) -> list[tuple[Any, ...]]:
+    # When a tsvector query is provided, include ts_rank for SQL-side relevance scoring
+    ts_rank_col = "0.0 AS ts_rank_score"
+    ts_order = ""
+    extra_params: list[Any] = []
+    if ts_query_text:
+        ts_rank_col = "ts_rank(search_tsvector, plainto_tsquery('english', %s), 32) AS ts_rank_score"
+        ts_order = "ts_rank_score DESC, "
+        extra_params.append(ts_query_text)
     with conn.cursor() as cur:
         cur.execute(
             f"""
@@ -1436,17 +1473,18 @@ def _fetch_retained_chunk_rows(
                 chunk_id, chunk_index, document_chunk_count, title, display_excerpt,
                 chunk_text, search_text, bundle_subject, source_kind, source_provider,
                 search_provider, research_scope, source_authority_bucket, authority_rank,
-                published_at, published_date, primary_date, raw_text_origin, raw_text_chars,
-                dataset_name, dataset_version_id, run_id, asof_time_utc, embedding_model, embedding_vector_json,
+                published_at::text AS published_at, published_date, primary_date, raw_text_origin, raw_text_chars,
+                dataset_name, dataset_version_id, run_id, asof_time_utc::text AS asof_time_utc, embedding_model, embedding_vector_json,
                 mentioned_tickers_json::text, mentioned_tickers_key, mentioned_commodities_json::text,
                 mentioned_commodities_key, event_tags_json::text, event_tags_key,
-                mentioned_dates_json::text, mentioned_dates_key, metadata_json::text
+                mentioned_dates_json::text, mentioned_dates_key, metadata_json::text,
+                {ts_rank_col}
             FROM saa_evidence_chunks
             WHERE {" AND ".join(clauses)}
-            ORDER BY COALESCE(published_at, asof_time_utc) DESC, authority_rank ASC NULLS LAST, chunk_index ASC NULLS LAST
+            ORDER BY {ts_order}COALESCE(published_date, published_at::text, asof_time_utc::text) DESC NULLS LAST, authority_rank ASC NULLS LAST, chunk_index ASC NULLS LAST
             LIMIT %s
             """,
-            (*params, limit),
+            (*extra_params, *params, limit),
         )
         return cur.fetchall()
 
@@ -1756,26 +1794,49 @@ def search_retained_evidence_chunks(
         values=[f"%|{item}|%" for item in exact_dates],
     )
 
-    lexical_clauses = list(base_clauses)
-    lexical_params = list(base_params)
+    # Full-text search: tsvector @@ with ILIKE fallback for exact substring matches
+    tsvector_clauses = list(base_clauses)
+    tsvector_params = list(base_params)
+    ilike_clauses = list(base_clauses)
+    ilike_params = list(base_params)
     if query_text:
-        search_parts = ["lower(search_text) LIKE %s", "lower(title) LIKE %s", "lower(display_excerpt) LIKE %s", "lower(chunk_text) LIKE %s"]
-        search_params: list[Any] = [f"%{query_text.lower()}%"] * 4
-        for token in query_tokens:
-            token_value = f"%{token}%"
-            search_parts.extend(["lower(search_text) LIKE %s", "lower(title) LIKE %s", "lower(chunk_text) LIKE %s"])
-            search_params.extend([token_value, token_value, token_value])
-        lexical_clauses.append("(" + " OR ".join(search_parts) + ")")
-        lexical_params.extend(search_params)
+        # Primary: tsvector full-text search (uses GIN index, stemming, ranking)
+        tsvector_clauses.append("search_tsvector @@ plainto_tsquery('english', %s)")
+        tsvector_params.append(query_text)
+        # Fallback: ILIKE for exact substrings tsvector might miss (ticker symbols, acronyms)
+        ilike_parts = ["lower(search_text) LIKE %s", "lower(title) LIKE %s", "lower(chunk_text) LIKE %s"]
+        ilike_search_params: list[Any] = [f"%{query_text.lower()}%"] * 3
+        ilike_clauses.append("(" + " OR ".join(ilike_parts) + ")")
+        ilike_params.extend(ilike_search_params)
 
     try:
         if query_text:
-            lexical_rows = _fetch_retained_chunk_rows(
+            # tsvector path — fast, indexed, with ts_rank scoring
+            tsvector_rows = _fetch_retained_chunk_rows(
                 active_conn,
-                clauses=lexical_clauses,
-                params=lexical_params,
+                clauses=tsvector_clauses,
+                params=tsvector_params,
+                limit=scan_limit,
+                ts_query_text=query_text,
+            )
+            # ILIKE fallback — catches exact substrings that stemming misses
+            ilike_rows = _fetch_retained_chunk_rows(
+                active_conn,
+                clauses=ilike_clauses,
+                params=ilike_params,
                 limit=scan_limit,
             )
+            # Merge: tsvector results first, then any ILIKE-only matches
+            row_map: dict[str, tuple[Any, ...]] = {}
+            for row in tsvector_rows:
+                key = _coerce_text(row[0]) if row else ""
+                if key and key not in row_map:
+                    row_map[key] = row
+            for row in ilike_rows:
+                key = _coerce_text(row[0]) if row else ""
+                if key and key not in row_map:
+                    row_map[key] = row
+            lexical_rows = list(row_map.values())
             if use_semantic:
                 semantic_rows = _fetch_retained_chunk_rows(
                     active_conn,

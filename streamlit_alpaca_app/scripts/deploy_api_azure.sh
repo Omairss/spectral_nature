@@ -3,6 +3,12 @@ set -euo pipefail
 #
 # Deploy the FastAPI container app (sn-api-dev / sn-api).
 #
+# Source directories this container serves: api/, services/* (API-facing),
+#   data_access/, requirements.txt
+#
+# If your change is in pipeline/, compute/, or services/aql/, you likely
+# need deploy_pipeline_azure.sh. Run scripts/which_deploy.sh to check.
+#
 # Usage:
 #   ./scripts/deploy_api_azure.sh                          # build & deploy to dev
 #   ./scripts/deploy_api_azure.sh --target prod --promote-from dev
@@ -33,7 +39,7 @@ REGISTRY_SERVER="${REGISTRY_SERVER:-}"
 AZURE_STORAGE_CONTAINER="${AZURE_STORAGE_CONTAINER:-datasets}"
 CONTAINERAPP_API_VERSION="${CONTAINERAPP_API_VERSION:-2025-07-01}"
 
-# --- UI app name to copy env vars from (first deploy) ---
+# --- UI app name to mirror env vars from (first deploy) ---
 UI_DEV_CONTAINER_APP="${DEV_CONTAINER_APP:-sn-streamlit-ui-dev}"
 UI_PROD_CONTAINER_APP="${PROD_CONTAINER_APP:-sn-streamlit-ui}"
 

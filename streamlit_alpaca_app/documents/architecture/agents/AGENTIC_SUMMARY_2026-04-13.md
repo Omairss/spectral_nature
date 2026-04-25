@@ -26,10 +26,10 @@ Falls back to the existing deterministic formatter if LLM is unavailable or the 
 
 ## Implementation Notes
 
-- `services/aql/collector.py` now includes `_plan_summary_research(...)`, which plans 3-5 whole-tape search queries with an LLM-first path and a bounded heuristic fallback.
+- `services/aql/collector.py` now includes `_plan_summary_research(...)`, which plans 3-5 market-wide search queries with an LLM-first path and a bounded heuristic fallback.
 - `services/aql/summarizer.py` now includes `build_attention_agentic_summary(...)`, which:
   - builds deterministic beats first
-  - plans whole-tape queries
+  - plans market-wide queries
   - runs shared search collection
   - deepens selected Seeking Alpha hits with authenticated page text when that source shows up in search results
   - extracts fallback claims from returned evidence
@@ -55,9 +55,9 @@ Falls back to the existing deterministic formatter if LLM is unavailable or the 
 Add `_plan_summary_research` to `services/aql/collector.py`.
 
 - Input: `home_payload` (top events, must-read movers, unresolved moves)
-- LLM prompt: given these tape items, generate 3–5 cross-market search queries to identify the macro/sector narrative driving them
+- LLM prompt: given these market items, generate 3-5 cross-market search queries to identify the macro/sector narrative driving them
 - Output: `list[str]` of search queries
-- Pattern: same structure as `_plan_candidate_research`, but reasoning over the whole tape not a single symbol
+- Pattern: same structure as `_plan_candidate_research`, but reasoning over market-wide activity not a single symbol
 
 ### Step 2 — Agentic summary function (new)
 Add `build_attention_agentic_summary` to `services/aql/summarizer.py`.
@@ -135,8 +135,8 @@ No new external service is needed, but authenticated page access does require br
 
 ```json
 {
-  "headline": "Tape Summary",
-  "hypothesis": "Rate transmission fears are driving today's tape...",
+  "headline": "Market Summary",
+  "hypothesis": "Rate transmission fears are driving today's market activity...",
   "summary_text": "...",
   "audio_text": "...",
   "event_count": 3,

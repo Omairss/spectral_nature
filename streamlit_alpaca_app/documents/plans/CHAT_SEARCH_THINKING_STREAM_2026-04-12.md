@@ -16,7 +16,7 @@ Give Chat + Search a visible live wait state so the user sees real progress whil
 ## Verification
 
 - Run `python3 -m py_compile streamlit_alpaca_app/app.py`.
-- Verify the new progress copy mapping with a small `uv run` assertion script against `_agentic_omnibar_progress_message(...)`.
+- Verify the new progress text mapping with a small `uv run` assertion script against `_agentic_omnibar_progress_message(...)`.
 - Use `streamlit.testing.v1.AppTest` to confirm:
   - non-admin users still only see the answer surface
   - admin users still get the `Admin Debug` expander

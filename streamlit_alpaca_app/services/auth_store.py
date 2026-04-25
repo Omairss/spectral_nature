@@ -1523,6 +1523,8 @@ def get_access_admin_dashboard(
             "selected_user_targets": [],
             "selected_user_activity": [],
             "usage_sankey": [],
+            "admin_usage": [],
+            "access_ips": [],
         }
 
     schema = _schema_name()
@@ -2028,6 +2030,45 @@ def get_access_admin_dashboard(
         recent_security_rows = _hydrate_access_event_rows(recent_security_rows)
         selected_user_activity = _hydrate_access_event_rows(selected_user_activity)
 
+        with conn.cursor() as cursor:
+            admin_usage_sql = f"""
+                SELECT
+                    u.email,
+                    COALESCE(NULLIF(u.display_name, ''), u.email) AS label,
+                    COUNT(*) FILTER (WHERE e.event_type = 'section_view') AS section_view_count,
+                    COUNT(*) FILTER (WHERE e.event_type != 'section_view') AS other_event_count,
+                    COUNT(*) AS total_event_count,
+                    MAX(e.created_at) AS last_activity_at
+                FROM {schema}.access_events e
+                JOIN {schema}.users u ON u.id = e.user_id
+                WHERE u.role = 'admin'
+                  AND e.event_category = 'usage'
+                  AND e.created_at >= %s
+                GROUP BY u.id, u.email, u.display_name
+                ORDER BY total_event_count DESC, u.email ASC
+            """
+            cursor.execute(admin_usage_sql, (usage_since,))
+            admin_usage_rows = _fetchall_dicts(cursor)
+
+            access_ips_sql = f"""
+                SELECT
+                    e.ip_address,
+                    COUNT(*) AS event_count,
+                    COUNT(DISTINCT e.user_id) AS unique_user_count,
+                    COUNT(*) FILTER (WHERE e.event_category = 'security') AS security_event_count,
+                    MAX(e.created_at) AS last_seen_at,
+                    STRING_AGG(DISTINCT COALESCE(NULLIF(u.display_name, ''), u.email, NULLIF(e.email, '')), ', ') AS users
+                FROM {schema}.access_events e
+                LEFT JOIN {schema}.users u ON u.id = e.user_id
+                WHERE e.created_at >= %s
+                  AND COALESCE(e.ip_address, '') <> ''
+                GROUP BY e.ip_address
+                ORDER BY event_count DESC, last_seen_at DESC
+                LIMIT 50
+            """
+            cursor.execute(access_ips_sql, (security_since,))
+            access_ip_rows = _fetchall_dicts(cursor)
+
         return {
             "generated_at": now,
             "usage_window_days": usage_days,
@@ -2059,6 +2100,8 @@ def get_access_admin_dashboard(
             "selected_user_targets": selected_user_targets,
             "selected_user_activity": selected_user_activity,
             "usage_sankey": usage_sankey_rows,
+            "admin_usage": admin_usage_rows,
+            "access_ips": access_ip_rows,
         }
     finally:
         conn.close()

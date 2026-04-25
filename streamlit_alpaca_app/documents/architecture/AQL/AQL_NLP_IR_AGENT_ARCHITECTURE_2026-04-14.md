@@ -559,7 +559,7 @@ Recommendation:
 
 The tool contract idea is very useful if AQL exposes retrieval and research operations as agent tools.
 
-Important fields to copy conceptually:
+Important fields to carry forward conceptually:
 
 - read-only vs write
 - concurrency-safe
@@ -611,7 +611,7 @@ Some ideas are good, but should not be first priority.
 
 ### A. Speculative execution
 
-Copy-on-write speculative execution is powerful, but not the first bottleneck here.
+Speculative execution with isolated writes is powerful, but not the first bottleneck here.
 
 Why not first:
 

@@ -4,9 +4,9 @@ Date: 2026-04-14
 
 Related:
 
-- [AQL + SAA NLP / IR / Agent Architecture](/Users/omairs/Documents/code/spectral_nature/streamlit_alpaca_app/documents/plans/AQL_NLP_IR_AGENT_ARCHITECTURE_2026-04-14.md)
-- [Attention Research Quality Fix](/Users/omairs/Documents/code/spectral_nature/streamlit_alpaca_app/documents/plans/ATTENTION_RESEARCH_QUALITY_FIX_2026-04-14.md)
-- [AQL Evidence Index](/Users/omairs/Documents/code/spectral_nature/streamlit_alpaca_app/documents/plans/AQL_EVIDENCE_INDEX_2026-04-14.md)
+- [AQL + SAA NLP / IR / Agent Architecture](/Users/omairs/Documents/code/spectral_nature/streamlit_alpaca_app/documents/architecture/AQL/AQL_NLP_IR_AGENT_ARCHITECTURE_2026-04-14.md)
+- [Attention Research Quality Fix](/Users/omairs/Documents/code/spectral_nature/streamlit_alpaca_app/documents/architecture/attention/ATTENTION_RESEARCH_QUALITY_FIX_2026-04-14.md)
+- [AQL Evidence Index](/Users/omairs/Documents/code/spectral_nature/streamlit_alpaca_app/documents/architecture/AQL/AQL_EVIDENCE_INDEX_2026-04-14.md)
 
 ## Goal
 
@@ -47,7 +47,7 @@ V1 is successful if all of these are true:
 
 Do not do these first:
 
-- speculative execution / copy-on-write prediction
+- speculative execution with isolated writes
 - remote deep-planning sessions
 - a separate graph database
 - full agent swarm orchestration everywhere
@@ -286,7 +286,7 @@ Done means:
 
 Problem:
 
-- homepage, event cards, and audio currently reuse too much compact or generic copy
+- homepage, event cards, and audio currently reuse too much compact or generic text
 
 Deliverables:
 

@@ -65,6 +65,47 @@ def _has_symbol_inputs(frame: pd.DataFrame) -> bool:
     return isinstance(frame, pd.DataFrame) and not frame.empty and "symbol" in frame.columns
 
 
+# Datasets that must be present and non-empty for a meaningful build.
+# If any of these are missing, the job should fail rather than produce
+# stale or incomplete output (see mistakes.md #3, #19).
+_MANDATORY_DATASETS = ("price_history",)
+
+# Datasets that are useful but the build can degrade gracefully without.
+_OPTIONAL_DATASETS = (
+    "positions_snapshot",
+    "attention_feed",
+    "commodity_attention_feed",
+    "news_articles",
+    "attention_context_bundle",
+    "edgar_filings",
+    "fred_summary",
+    "yield_curve_facts_1d",
+    "universe_snapshot",
+    "entity_taxonomy_labels",
+)
+
+
+def _validate_mandatory_datasets(
+    load_fn: LoadFrameFn,
+    dataset_names: tuple[str, ...],
+) -> dict[str, pd.DataFrame]:
+    """Load mandatory datasets and raise if any are missing or empty."""
+    frames: dict[str, pd.DataFrame] = {}
+    missing: list[str] = []
+    for name in dataset_names:
+        frame = load_fn(name)
+        if not isinstance(frame, pd.DataFrame) or frame.empty:
+            missing.append(name)
+        else:
+            frames[name] = frame
+    if missing:
+        raise AttentionHomeBuildError(
+            f"Attention home build cannot proceed: mandatory datasets missing or empty: {missing}. "
+            "The upstream pipeline job may not have run. Failing instead of producing stale output."
+        )
+    return frames
+
+
 def _build_materialized_homepage_summary(
     payload: dict[str, Any],
     *,
@@ -751,12 +792,28 @@ def run_attention_home_build(
         )
         raise AttentionHomeBuildError(message)
 
+    # Validate mandatory datasets up front. Fail the job instead of silently
+    # producing stale output when a required upstream dataset is missing
+    # (mistakes.md #3, #19).
+    try:
+        mandatory = _validate_mandatory_datasets(load_materialized_frame_fn, _MANDATORY_DATASETS)
+    except AttentionHomeBuildError as exc:
+        job_progress_fn(
+            ctx,
+            conn,
+            stage="failed",
+            message=str(exc),
+            progress_pct=100.0,
+            status="Failed",
+        )
+        raise
+
     persist_frames = build_attention_home_output_frames(
         ctx=ctx,
         daily_movers=daily_movers,
         macro_movers=macro_movers,
         positions_frame=load_materialized_frame_fn("positions_snapshot"),
-        price_history_frame=load_materialized_frame_fn("price_history"),
+        price_history_frame=mandatory["price_history"],
         attention_feed_frame=load_materialized_frame_fn("attention_feed"),
         commodity_attention_feed_frame=load_materialized_frame_fn("commodity_attention_feed"),
         news_frame=load_materialized_frame_fn("news_articles"),
