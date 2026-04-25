@@ -6,7 +6,7 @@ from typing import Any
 
 import pandas as pd
 
-from .aql._shared import (
+from .common.market_activity import (
     _coerce_text,
     _has_causal_language,
     _looks_like_stat_dump,

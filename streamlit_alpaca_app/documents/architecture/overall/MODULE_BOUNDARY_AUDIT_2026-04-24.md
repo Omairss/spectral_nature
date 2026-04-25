@@ -22,12 +22,13 @@ Executed in this pass:
 - Exported SAA prepare functions from `services.saa`.
 - Retargeted AQL imports to `services.saa`.
 - Retargeted public SAA imports in pipeline and agent search paths.
+- Added `persist_agent_research_evidence` so agent write-back no longer imports SAA storage internals.
 
 Next steps:
 
-1. Replace the remaining private SAA DB connection import with a public write-back gateway.
-2. Move shared helper functions used by AQL and Attention into neutral public modules.
-3. Move data-access JSON parsing away from AQL evidence internals.
+1. Move data-access JSON parsing away from AQL evidence internals.
+2. Retire the `attention_agentic.py` compatibility shim after tests and callers use AQL directly.
+3. Add import-boundary tests once the remaining compatibility shim is gone.
 
 ## Attention And Market Data
 
@@ -47,11 +48,12 @@ Executed in this pass:
 
 - Added `services.market_data` as a stable namespace while legacy files remain in place.
 - Added `documents/architecture/market_data/README.md`.
+- Added `services.market_activity_shared` and retargeted Attention graph, macro, surface, and live-research helpers away from AQL private imports.
 
 Next steps:
 
 1. Split compute functions away from service/client fetches.
-2. Move Attention/AQL shared helpers into neutral public modules.
+2. Retarget AQL internals to the neutral shared helper module to eliminate duplicated helper definitions.
 3. Retarget callers to `services.market_data` before moving files.
 
 ## Agents, UI, And Data Pipelines
@@ -80,3 +82,23 @@ Next steps:
 1. Retarget UI to `services.omnibar.resolve_omnibar` and remove duplicate resolver logic.
 2. Split agent tools into registry/dispatch plus module-owned tool implementations.
 3. Keep `query_registry.py` declarative and move special cases into data access methods.
+
+## Boundary Refactor Update
+
+Executed after the first audit:
+
+- Added `services.common` for shared contracts, shared market-activity helpers, and hypothesis verification.
+- Moved agent chat-log persistence from `services.aql.chat_log` to `services.agents.chat_log`.
+- Moved agent scratchpad state from `services.aql.scratchpad` to `services.agents.scratchpad`.
+- Retargeted agent tools and omnibar persistence to `services.agents`.
+- Exposed anomaly detection, attention-candidate construction, correlation phase shifts, momentum profiles, and commodity regimes through `services.market_data`.
+- Retargeted pipeline and agent anomaly code to `services.market_data`.
+- Retargeted Attention shared-helper imports to `services.common.market_activity`.
+- Retargeted Attention macro schema imports to `services.common.contracts`.
+- Added `tests/test_module_boundaries.py` to block the worst legacy import paths.
+
+Remaining intentional coupling:
+
+- Attention still calls AQL through `services.aql` for research/search/synthesis workflows.
+- AQL still exposes compatibility names for old callers and tests.
+- Legacy shim modules remain to avoid breaking old import paths, but new imports should target module interfaces.

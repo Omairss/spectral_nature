@@ -993,6 +993,84 @@ def persist_retained_evidence_chunks(
     return prepared_frame
 
 
+def persist_agent_research_evidence(
+    *,
+    run_id: str,
+    query: str,
+    answer: str,
+    claims: list[str],
+    symbols: list[str],
+) -> pd.DataFrame:
+    """Persist agent findings as retained evidence for future searches."""
+    conn = _db_connection()
+    if conn is None:
+        return pd.DataFrame()
+
+    now = datetime.now(timezone.utc)
+    normalized_symbols = [str(symbol).upper().strip() for symbol in symbols if str(symbol).strip()]
+    tickers_json = json.dumps(normalized_symbols, ensure_ascii=False) if normalized_symbols else None
+    tickers_key = "|".join(normalized_symbols) if normalized_symbols else None
+    rows: list[dict[str, Any]] = []
+
+    if _coerce_text(answer):
+        rows.append(
+            {
+                "chunk_text": f"Agent research on: {query}\n\n{answer}",
+                "title": f"Agent: {query[:120]}",
+                "display_excerpt": answer[:280],
+                "source_kind": "agent_research",
+                "source_provider": "omnibar_agent",
+                "research_scope": "agent_answer",
+                "bundle_subject": query[:200],
+                "published_at": now,
+                "published_date": now.strftime("%Y-%m-%d"),
+                "primary_date": now.strftime("%Y-%m-%d"),
+                "mentioned_tickers_json": tickers_json,
+                "mentioned_tickers_key": tickers_key,
+            }
+        )
+
+    for index, claim in enumerate(claims):
+        clean_claim = _coerce_text(claim)
+        if not clean_claim:
+            continue
+        rows.append(
+            {
+                "chunk_text": clean_claim,
+                "title": f"Agent evidence ({index + 1}/{len(claims)}): {query[:80]}",
+                "display_excerpt": clean_claim[:280],
+                "source_kind": "agent_research",
+                "source_provider": "omnibar_agent",
+                "research_scope": "agent_evidence",
+                "bundle_subject": query[:200],
+                "published_at": now,
+                "published_date": now.strftime("%Y-%m-%d"),
+                "primary_date": now.strftime("%Y-%m-%d"),
+                "mentioned_tickers_json": tickers_json,
+                "mentioned_tickers_key": tickers_key,
+            }
+        )
+
+    if not rows:
+        conn.close()
+        return pd.DataFrame()
+
+    try:
+        return persist_retained_evidence_chunks(
+            "agent_research",
+            pd.DataFrame(rows),
+            dataset_version_id=run_id,
+            run_id=run_id,
+            asof_time_utc=now,
+            conn=conn,
+        )
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
 def _frame_from_retained_chunk_rows(rows: list[tuple[Any, ...]]) -> pd.DataFrame:
     columns = [
         "chunk_record_id",
@@ -1035,7 +1113,11 @@ def _frame_from_retained_chunk_rows(rows: list[tuple[Any, ...]]) -> pd.DataFrame
         "metadata_json",
         "ts_rank_score",
     ]
-    frame = pd.DataFrame(rows, columns=columns)
+    normalized_rows = [
+        tuple(list(row) + [None] * max(len(columns) - len(row), 0))[: len(columns)]
+        for row in rows
+    ]
+    frame = pd.DataFrame(normalized_rows, columns=columns)
     if frame.empty:
         return frame
     for column in ("published_at", "asof_time_utc"):
@@ -1925,6 +2007,7 @@ __all__ = [
     "load_retained_document",
     "load_retained_document_metadata",
     "persist_retained_evidence_chunks",
+    "persist_agent_research_evidence",
     "persist_retained_source_documents",
     "prepare_retained_evidence_chunks",
     "prepare_retained_source_documents",

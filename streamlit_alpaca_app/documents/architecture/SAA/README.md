@@ -2,7 +2,7 @@
 
 SAA is the Supporting Analysis Archive. It retains source documents and evidence chunks so AQL, Attention, agents, and search flows can reuse historical research reliably.
 
-Boundary rule: consumers import SAA through `services.saa`. Direct imports from `services.saa.storage` are implementation details unless a migration shim has not been replaced yet.
+Boundary rule: consumers import SAA through `services.saa`. Direct imports from `services.saa.storage` are implementation details. Agent retained-evidence write-back goes through `persist_agent_research_evidence`.
 
 ## Docs
 

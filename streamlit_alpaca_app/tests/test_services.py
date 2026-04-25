@@ -4198,6 +4198,13 @@ def test_build_attention_agentic_summary_adds_hypothesis_from_search_backed_clai
             "warning": "",
         },
     )
+    # This test asserts the exact LLM-call sequence for the research/synth/verify
+    # path. The critique+judge layer adds extra calls — covered by its own tests.
+    monkeypatch.setattr(
+        aql_summarizer,
+        "critique_home_summary",
+        lambda **kw: {"issues": [], "tool_calls": [], "skipped": True},
+    )
 
     summary = build_attention_agentic_summary(
         payload,
@@ -4311,6 +4318,11 @@ def test_build_attention_agentic_summary_with_trace_returns_materializable_frame
             "mode": "http",
             "warning": "",
         },
+    )
+    monkeypatch.setattr(
+        aql_summarizer,
+        "critique_home_summary",
+        lambda **kw: {"issues": [], "tool_calls": [], "skipped": True},
     )
 
     summary, trace = build_attention_agentic_summary_with_trace(

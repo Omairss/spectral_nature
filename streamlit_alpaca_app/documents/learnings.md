@@ -50,6 +50,7 @@ Distilled from 40 past learnings (archived in `past_learnings.md`). These are pr
 25. **Different surfaces need different writers.** Homepage summaries, narrative cards, and audio need different density and evidence presentation. Do not reuse one compact format for all.
 26. **Generic phrasing triggers another research pass**, or at minimum a clearer "unresolved" explanation. Accept `"no clear catalyst"` only when the system has actually searched and found nothing.
 27. **Consolidation should preserve shims while moving ownership.** When retiring legacy Attention reasoning paths, first move the source function into AQL/compute/Attention-owned signal modules, then keep thin compatibility imports until pipeline jobs, presentation loaders, and tests are retargeted.
+28. **Single-shot LLM summaries hallucinate specifics; ground them with a critique+judge layer.** When the synthesizer LLM only sees text beats (no numerics, no source claims), it will invent percent moves and contradict its own catalyst names. The fix is two extra personas after synthesis: a critique agent with a focused tool subset (price lookup, evidence search, recent news) that flags numeric/contradiction/unsupported issues, and a judge LLM that rewrites only the flagged passages. Both must be best-effort with fall-through to the original summary so the pipeline stays robust. Pattern lives in `services/aql/critique.py`, wired into `build_attention_agentic_summary_with_trace`.
 
 ## LLM Integration
 
@@ -79,3 +80,4 @@ Distilled from 40 past learnings (archived in `past_learnings.md`). These are pr
 
 39. **Move stable architecture out of task plans.** Durable design docs belong under `documents/architecture/` with a local README. Leave short-lived fixes and recovery notes in `documents/plans/`.
 40. **Use plain domain terms.** Prefer "text", "narrative", "market activity", and "market overview". Avoid legacy market-media jargon in product/domain code and docs; technical dataframe duplication APIs are still fine.
+41. **Knowledge graph is a prior, not evidence.** AQL can use the reviewed graph to find entities, paths, hypotheses, and graph change proposals, but final causal narrative still needs current evidence and claim support. Keep graph persistence owned by `services.knowledge_graph`; let AQL write through reviewable proposals and graph-service commit APIs, not ad hoc SQL or silent narrative-time mutation.

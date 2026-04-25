@@ -1,15 +1,7 @@
-# Thin shim — all code lives in services/aql/
+# Attention agentic interface.
 from .runtime_policy import attention_graph_policy
 from .aql import (
     AgenticAttentionArtifacts,
-    build_bottom_up_attention_artifacts,
-    build_bottom_up_attention_bundle,
-    build_bottom_up_attention_home,
-    recompute_attention_candidate_graph,
-    search_symbol_news_payload,
-)
-# Private functions accessed directly by tests
-from .aql._agentic import (
     _augment_candidate_frame,
     _candidate_context_documents,
     _chunk_source_documents,
@@ -21,6 +13,11 @@ from .aql._agentic import (
     _load_search_clients,
     _search_query_results,
     _write_event_bundle,
+    build_bottom_up_attention_artifacts,
+    build_bottom_up_attention_bundle,
+    build_bottom_up_attention_home,
+    recompute_attention_candidate_graph,
+    search_symbol_news_payload,
 )
 
 __all__ = [

@@ -19,9 +19,14 @@ from ..elevenlabs_tts import (
 )
 from ..page_browsing import browse_page
 from ..saa import prepare_retained_evidence_chunks, search_prepared_evidence_chunks
+from ..common.hypothesis import (
+    _heuristic_verification as _common_heuristic_verification,
+    verify_hypothesis as _common_verify_hypothesis,
+)
 from .collector import _plan_summary_research, _search_query_results
 from .config import _load_search_clients
 from .constants import EmbeddingClient, HYPOTHESIS_VERIFICATION_SCHEMA, LLMClient
+from .critique import critique_home_summary, judge_revise_summary
 from ..llm import NARRATIVE_STYLE_RULE, LLMAPIError, get_config_param, get_prompt, load_llm_client, register_config_param, register_narrative_prompt
 from .extractor import (
     _chunk_source_documents,
@@ -1043,6 +1048,7 @@ def build_attention_agentic_summary(
     search_clients: list[Any] | None = None,
     max_search_queries: int = 5,
     max_chars: int = 1400,
+    query_service: Any | None = None,
 ) -> dict[str, Any]:
     summary, _ = build_attention_agentic_summary_with_trace(
         home_payload,
@@ -1051,6 +1057,7 @@ def build_attention_agentic_summary(
         search_clients=search_clients,
         max_search_queries=max_search_queries,
         max_chars=max_chars,
+        query_service=query_service,
     )
     return summary
 
@@ -1063,11 +1070,18 @@ def build_attention_agentic_summary_with_trace(
     search_clients: list[Any] | None = None,
     max_search_queries: int = 5,
     max_chars: int = 1400,
+    query_service: Any | None = None,
 ) -> tuple[dict[str, Any], dict[str, pd.DataFrame]]:
     """Batch pipeline entry point: research → synthesize → verify once.
 
     For agentic multi-pass verification with tool access, use the omnibar
     agent with the hypothesis.verify tool instead.
+
+    A critique+judge layer runs after the initial homepage summary is built:
+    the critique agent fact-checks the summary against tool-grounded evidence,
+    and the judge revises the summary based on flagged issues. Both are
+    best-effort — if either step fails, the original summary is used. See
+    documents/architecture/agents/CRITIQUE_JUDGE_HOMEPAGE_SUMMARY_2026-04-24.md.
     """
     if llm_client is None:
         raise ValueError("llm_client is required for build_attention_agentic_summary_with_trace")
@@ -1076,6 +1090,36 @@ def build_attention_agentic_summary_with_trace(
         home_payload,
         max_chars=max_chars,
     )
+
+    critique_result: dict[str, Any] = {"issues": [], "tool_calls": [], "skipped": True}
+    try:
+        critique_result = critique_home_summary(
+            summary=base_summary,
+            home_payload=home_payload,
+            llm_client=llm_client,
+            query_service=query_service,
+        )
+    except Exception:
+        critique_result = {"issues": [], "tool_calls": [], "skipped": True, "error": True}
+
+    judge_revisions: list[dict[str, Any]] = []
+    if critique_result.get("issues"):
+        try:
+            revised = judge_revise_summary(
+                original=base_summary,
+                critique=critique_result,
+                llm_client=llm_client,
+            )
+        except Exception:
+            revised = None
+        if isinstance(revised, dict):
+            judge_revisions = list(revised.get("judge_revisions") or [])
+            base_summary = revised
+
+    base_summary["critique_issues"] = list(critique_result.get("issues") or [])
+    base_summary["critique_tool_calls"] = list(critique_result.get("tool_calls") or [])
+    base_summary["judge_revisions"] = judge_revisions
+
     queries = _plan_summary_research(home_payload, llm_client=llm_client)[: max(int(max_search_queries), 1)]
     if not queries:
         raise RuntimeError("Summary research planner returned no queries")
@@ -1272,6 +1316,11 @@ def attach_attention_home_summary_audio(
         }
     )
     return payload
+
+
+# Backward-compatible export: hypothesis verification is owned by services.common.
+verify_hypothesis = _common_verify_hypothesis
+_heuristic_verification = _common_heuristic_verification
 
 
 __all__ = [

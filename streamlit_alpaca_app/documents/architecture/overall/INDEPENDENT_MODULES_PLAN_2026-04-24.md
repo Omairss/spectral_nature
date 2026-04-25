@@ -94,11 +94,26 @@ Disallowed direction:
 - chart rendering
 - admin controls
 
+## Current Implementation Status
+
+Status after the boundary refactor:
+
+- `services.common` owns shared contracts, shared market-activity helpers, and shared hypothesis verification.
+- `services.agents` owns agent chat-log persistence and scratchpad state.
+- `services.market_data` owns the import interface for anomaly detection, attention candidates, correlation phase shifts, momentum profiles, and commodity regimes.
+- `services.saa` remains the interface for retained evidence persistence and retrieval.
+- Attention can still call AQL, but active imports now go through the AQL package interface rather than AQL private modules.
+- Compatibility shims remain for old paths such as `services.aql.chat_log`, `services.aql.scratchpad`, and `services.market_activity_shared`; new code must not import them.
+
+Boundary enforcement:
+
+- `tests/test_module_boundaries.py` blocks new imports from AQL chat/scratchpad internals, old market-activity shims, direct `compute.anomalies` imports outside `services.market_data`, and direct AQL hypothesis-verification imports.
+
 ## Execution Phases
 
 ### Phase 0: Contracts And Namespaces
 
-Status: started.
+Status: complete.
 
 - Add durable architecture docs for module ownership.
 - Add namespace packages for modules that still live in legacy files.
@@ -106,6 +121,8 @@ Status: started.
 - Add tests that compile new namespace packages.
 
 ### Phase 1: Stop Private Cross-Imports
+
+Status: mostly complete for the high-risk paths.
 
 - Move shared helpers used by AQL and Attention into neutral modules.
 - Replace imports from `services.aql._shared` in Attention with public helper modules.
@@ -126,6 +143,8 @@ Status: started.
 - Keep thin compatibility modules for old import paths.
 
 ### Phase 4: Enforce Boundaries
+
+Status: started.
 
 - Add import-boundary tests.
 - Add docs checks for public APIs.

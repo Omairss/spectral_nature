@@ -1262,7 +1262,7 @@ def _persist_agent_findings(
     """Persist agent session to the durable AQL chat log and the ephemeral scratchpad."""
     # --- Durable chat log (Postgres + blob) ---
     try:
-        from .aql.chat_log import log_chat_session
+        from .agents import log_chat_session
 
         log_chat_session(
             run_id=run_id,
@@ -1283,7 +1283,7 @@ def _persist_agent_findings(
     claims: list[str] = []
     symbols: set[str] = set()
     try:
-        from .aql.scratchpad import write_entry
+        from .agents import write_entry
 
         for call in tool_calls:
             if str(call.get("status") or "") != "completed":
@@ -1338,77 +1338,9 @@ def _write_back_agent_evidence(
     symbols: list[str],
 ) -> None:
     """Write agent findings as evidence chunks to the SAA store for future retained_context lookups."""
-    import pandas as pd
-    from datetime import datetime, timezone
-    from services.saa import persist_retained_evidence_chunks
-    from services.saa.storage import _db_connection as saa_db_connection
+    from services.saa import persist_agent_research_evidence
 
-    conn = saa_db_connection()
-    if conn is None:
-        return
-
-    now = datetime.now(timezone.utc)
-    tickers_json = json.dumps(symbols, ensure_ascii=False) if symbols else None
-    tickers_key = "|".join(symbols) if symbols else None
-    rows: list[dict[str, Any]] = []
-
-    # Write the final answer as a chunk
-    if answer.strip():
-        rows.append({
-            "chunk_text": f"Agent research on: {query}\n\n{answer}",
-            "title": f"Agent: {query[:120]}",
-            "display_excerpt": answer[:280],
-            "source_kind": "agent_research",
-            "source_provider": "omnibar_agent",
-            "research_scope": "agent_answer",
-            "bundle_subject": query[:200],
-            "published_at": now,
-            "published_date": now.strftime("%Y-%m-%d"),
-            "primary_date": now.strftime("%Y-%m-%d"),
-            "mentioned_tickers_json": tickers_json,
-            "mentioned_tickers_key": tickers_key,
-        })
-
-    # Write each claim as a separate chunk
-    for i, claim in enumerate(claims):
-        if not claim.strip():
-            continue
-        rows.append({
-            "chunk_text": claim,
-            "title": f"Agent evidence ({i + 1}/{len(claims)}): {query[:80]}",
-            "display_excerpt": claim[:280],
-            "source_kind": "agent_research",
-            "source_provider": "omnibar_agent",
-            "research_scope": "agent_evidence",
-            "bundle_subject": query[:200],
-            "published_at": now,
-            "published_date": now.strftime("%Y-%m-%d"),
-            "primary_date": now.strftime("%Y-%m-%d"),
-            "mentioned_tickers_json": tickers_json,
-            "mentioned_tickers_key": tickers_key,
-        })
-
-    if not rows:
-        return
-
-    frame = pd.DataFrame(rows)
-    try:
-        persist_retained_evidence_chunks(
-            "agent_research",
-            frame,
-            dataset_name="agent_research",
-            dataset_version_id=run_id,
-            run_id=run_id,
-            asof_time_utc=now,
-            conn=conn,
-        )
-    except Exception:
-        pass
-    finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+    persist_agent_research_evidence(run_id=run_id, query=query, answer=answer, claims=claims, symbols=symbols)
 
 
 __all__ = [

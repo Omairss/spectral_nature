@@ -490,7 +490,7 @@ def _invoke_hypothesis_tool(
 ) -> dict[str, Any]:
     args = coerce_object(arguments, field_name="arguments")
     if tool_name == "hypothesis.verify":
-        from .aql.summarizer import verify_hypothesis
+        from .agents import verify_hypothesis
         from .llm import load_llm_client
 
         llm_client = load_llm_client()
@@ -547,7 +547,7 @@ def _invoke_anomaly_tool(
     arguments: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     import pandas as pd
-    from compute.anomalies import (
+    from .market_data import (
         AttentionConfig,
         ExpectationConfig,
         build_attention_candidates,
@@ -704,7 +704,7 @@ def _event_from_row(row: Any) -> dict[str, Any]:
 def _nearest_horizon(raw: str) -> str:
     """Map non-standard horizon strings like '30d' to the nearest canonical horizon."""
     import re
-    from compute.anomalies import HORIZON_PERIODS
+    from .market_data import HORIZON_PERIODS
     text = str(raw or "").strip().lower()
     match = re.match(r"^(\d+)\s*(d|w|m|y)", text)
     if not match:
@@ -900,7 +900,7 @@ def _invoke_scratchpad_tool(
     run_id: str,
     arguments: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    from .aql.scratchpad import write_entry, read_entries, read_summary
+    from .agents import read_entries, read_summary, write_entry
 
     args = coerce_object(arguments, field_name="arguments")
     if tool_name == "scratchpad.write":

@@ -7,9 +7,9 @@ from typing import Any
 
 import pandas as pd
 
-from .aql._shared import _judge_cause_status as _aql_judge_cause_status
-from .aql._shared import _quality_label as _aql_quality_label
-from .aql.collector import search_symbol_news_payload
+from .common.market_activity import _judge_cause_status as _shared_judge_cause_status
+from .common.market_activity import _quality_label as _shared_quality_label
+from .aql import search_symbol_news_payload
 from .attention_agentic import build_bottom_up_attention_bundle
 from .attention_home_1d import build_attention_research_bundle
 from .llm import NARRATIVE_STYLE_RULE, AzureOpenAIChatJSONClient, LLMAPIError, OpenAIChatJSONClient, get_prompt, load_llm_client, register_narrative_prompt
@@ -1090,11 +1090,11 @@ def _evidence_rows_as_aql_claims(rows: list[dict[str, Any]]) -> list[dict[str, A
 
 
 def _judge_cause_status(evidence_rows: list[dict[str, Any]]) -> tuple[str, str]:
-    return _aql_judge_cause_status(_evidence_rows_as_aql_claims(evidence_rows))
+    return _shared_judge_cause_status(_evidence_rows_as_aql_claims(evidence_rows))
 
 
 def _quality_label(retained: list[dict[str, Any]], background: list[dict[str, Any]], cause_status: str) -> tuple[str, str]:
-    return _aql_quality_label(_evidence_rows_as_aql_claims(list(retained or []) + list(background or [])), cause_status)
+    return _shared_quality_label(_evidence_rows_as_aql_claims(list(retained or []) + list(background or [])), cause_status)
 
 
 def _event_market_activity_why_text(theme: str, direction: str) -> str:

@@ -11,7 +11,7 @@ from typing import Any
 
 import pandas as pd
 
-from .aql._shared import (
+from .common.market_activity import (
     _candidate_graph_tags,
     _candidate_taxonomy_context,
     _coerce_float,

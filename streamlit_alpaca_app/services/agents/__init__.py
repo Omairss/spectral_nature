@@ -6,12 +6,41 @@ their legacy locations.
 """
 from __future__ import annotations
 
-from services import agent_tools as agent_tools  # noqa: F401
-from services import omnibar as omnibar  # noqa: F401
-from services import omnibar_agent as omnibar_agent  # noqa: F401
-from services import omnibar_research as omnibar_research  # noqa: F401
-from services import page_browsing as page_browsing  # noqa: F401
-from services import web_research as web_research  # noqa: F401
+from importlib import import_module
+from typing import Any
+
+from services.agents.chat_log import (
+    bootstrap_chat_log,
+    count_chat_sessions,
+    list_chat_sessions,
+    load_chat_session,
+    log_chat_session,
+)
+from services.agents.scratchpad import (
+    clear as clear_scratchpad,
+    read_entries,
+    read_summary,
+    write_entry,
+)
+from services.common.hypothesis import verify_hypothesis
+
+_LEGACY_SUBMODULES = {
+    "agent_tools",
+    "omnibar",
+    "omnibar_agent",
+    "omnibar_research",
+    "page_browsing",
+    "web_research",
+}
+
+
+def __getattr__(name: str) -> Any:
+    if name in _LEGACY_SUBMODULES:
+        module = import_module(f"services.{name}")
+        globals()[name] = module
+        return module
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = [
     "agent_tools",
@@ -19,5 +48,15 @@ __all__ = [
     "omnibar_agent",
     "omnibar_research",
     "page_browsing",
+    "bootstrap_chat_log",
+    "clear_scratchpad",
+    "count_chat_sessions",
+    "list_chat_sessions",
+    "load_chat_session",
+    "log_chat_session",
+    "read_entries",
+    "read_summary",
+    "verify_hypothesis",
     "web_research",
+    "write_entry",
 ]

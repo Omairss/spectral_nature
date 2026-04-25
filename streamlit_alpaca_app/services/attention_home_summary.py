@@ -1,4 +1,4 @@
-# Thin shim — all code lives in services/aql/
+# Attention home summary interface.
 from .aql import (
     apply_display_limits,
     attach_attention_home_summary_audio,
@@ -8,6 +8,8 @@ from .aql import (
     build_attention_home_narrative_beats,
     build_attention_home_summary,
     build_attention_home_summary_payload,
+    critique_home_summary,
+    judge_revise_summary,
     verify_hypothesis,
 )
 
@@ -20,5 +22,7 @@ __all__ = [
     "build_attention_home_narrative_beats",
     "build_attention_home_summary",
     "build_attention_home_summary_payload",
+    "critique_home_summary",
+    "judge_revise_summary",
     "verify_hypothesis",
 ]

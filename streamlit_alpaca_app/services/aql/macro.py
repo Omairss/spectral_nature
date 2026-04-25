@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 
 from ..attention_macro_signals import _build_macro_relationship_checks
+from ..common.contracts import _MACRO_RELATIONSHIP_CHECK_COLUMNS
 from .constants import (
     LLMClient,
     MACRO_HYPOTHESIS_EVIDENCE_SCHEMA,
@@ -22,7 +23,6 @@ from .constants import (
     _MACRO_HYPOTHESES_SCHEMA_VERSION,
     _MACRO_RELEASE_EVENT_COLUMNS,
     _MACRO_RELEASE_SCHEMA_VERSION,
-    _MACRO_RELATIONSHIP_CHECK_COLUMNS,
 )
 from ..llm import LLMAPIError, load_llm_client
 from ._shared import (

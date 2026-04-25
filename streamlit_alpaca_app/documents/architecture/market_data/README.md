@@ -33,6 +33,14 @@ This module owns:
 
 Consumers should call market data through stable loaders and compute APIs. Attention, AQL, agents, and UI should not duplicate raw market transforms.
 
+Current stable imports live in `services.market_data` and include:
+
+- anomaly detection: `detect_anomaly_events`
+- attention candidates: `build_price_expectations`, `build_attention_candidates`, `build_attention_feed`, `build_attention_rollups`
+- peer groups: `build_peer_group_membership`, `build_commodity_peer_group_membership`
+- correlation formation and breaks: `build_correlation_phase_shifts_from_bars`, `scan_correlation_phase_shifts`
+- regimes and momentum: `scan_commodity_regimes`, `scan_momentum_profiles`, `build_momentum_profiles_from_bars`
+
 ## Boundary Rules
 
 - Market Data may call vendor clients, data access, compute transforms, and runtime config.
@@ -45,5 +53,5 @@ Consumers should call market data through stable loaders and compute APIs. Atten
 1. Use `services.market_data` as the stable namespace while legacy files remain in place.
 2. Move Plotly rendering out of market/fundamental services when a neutral chart model exists.
 3. Move reusable anomaly and signal extraction functions behind explicit public exports.
-4. Retarget Attention and agents to public market data APIs.
+4. Retarget Attention and agents to public market data APIs. Status: started for pipeline and agent anomaly checks.
 5. Move files under `services/market_data/` after callers use the namespace.

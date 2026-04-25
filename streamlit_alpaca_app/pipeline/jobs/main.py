@@ -11,7 +11,7 @@ from typing import Any
 
 import pandas as pd
 
-from compute.anomalies import (
+from services.market_data import (
     AttentionConfig,
     ExpectationConfig,
     build_attention_candidates,
@@ -44,7 +44,7 @@ from services.entity_taxonomy import (
 )
 from services.fred import FredAPIError, load_fred_api_key, load_fred_dashboard
 from services.llm import LLMAPIError, load_llm_client
-from services.market import (
+from services.market_data import (
     build_correlation_phase_shifts_from_bars,
     build_momentum_profiles_from_bars,
     commodity_reference_universe,
