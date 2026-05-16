@@ -1038,6 +1038,145 @@ def default_seed_node_ids_from_matches(matches: list[dict[str, Any]]) -> list[st
     return _seed_selection_default(matches)
 
 
+def build_knowledge_graph_overview(
+    *,
+    snapshot: dict[str, Any] | None = None,
+    max_nodes: int = 32,
+    max_edges: int = 72,
+) -> dict[str, Any]:
+    """Build a capped draft-shaped overview of the most connected graph nodes."""
+    snapshot = snapshot or load_knowledge_graph_snapshot()
+    nodes_by_id = dict(snapshot.get("nodes_by_id") or {})
+    edges = [dict(row) for row in list(snapshot.get("edges") or [])]
+    node_limit = max(int(max_nodes), 1)
+    edge_limit = max(int(max_edges), 0)
+
+    graph = nx.Graph()
+    for node_id in nodes_by_id:
+        graph.add_node(node_id)
+    for edge in edges:
+        source = _clean(edge.get("source_node_id"))
+        target = _clean(edge.get("target_node_id"))
+        if source in nodes_by_id and target in nodes_by_id:
+            graph.add_edge(source, target)
+
+    if not nodes_by_id:
+        return {
+            "query": "",
+            "title": "Knowledge Graph Overview",
+            "seed_matches": [],
+            "selected_node_ids": [],
+            "nodes": [],
+            "edges": [],
+            "agentic_summary": "",
+            "limitations": ["The current knowledge graph is empty."],
+            "runtime_status": knowledge_graph_runtime_status(),
+        }
+
+    degree_lookup = dict(graph.degree())
+    try:
+        centrality_lookup = nx.pagerank(graph) if graph.number_of_edges() else {}
+    except Exception:
+        centrality_lookup = {}
+
+    def _node_importance(node_id: str) -> float:
+        node = dict(nodes_by_id.get(node_id) or {})
+        degree = float(degree_lookup.get(node_id, 0))
+        centrality = float(centrality_lookup.get(node_id, 0.0)) * max(len(nodes_by_id), 1)
+        description_bonus = 0.1 if _clean(node.get("description")) else 0.0
+        status_bonus = 0.15 if _clean(node.get("source_status")) == "committed" else 0.0
+        return degree + centrality + description_bonus + status_bonus
+
+    ranked_node_ids = sorted(
+        nodes_by_id,
+        key=lambda node_id: (
+            _node_importance(node_id),
+            _clean(nodes_by_id[node_id].get("canonical_label") or node_id).lower(),
+        ),
+        reverse=True,
+    )
+    selected_node_ids = ranked_node_ids[:node_limit]
+    selected_set = set(selected_node_ids)
+    importance_lookup = {node_id: _node_importance(node_id) for node_id in selected_node_ids}
+
+    def _edge_importance(edge: dict[str, Any]) -> float:
+        source = _clean(edge.get("source_node_id"))
+        target = _clean(edge.get("target_node_id"))
+        confidence = _coerce_float(edge.get("confidence"), default=0.0)
+        severity = _coerce_float(edge.get("severity"), default=0.0)
+        return importance_lookup.get(source, 0.0) + importance_lookup.get(target, 0.0) + confidence + severity
+
+    selected_edges = [
+        edge
+        for edge in edges
+        if _clean(edge.get("source_node_id")) in selected_set and _clean(edge.get("target_node_id")) in selected_set
+    ]
+    selected_edges = sorted(selected_edges, key=_edge_importance, reverse=True)[:edge_limit]
+
+    node_rows: list[dict[str, Any]] = []
+    for node_id in selected_node_ids:
+        node = dict(nodes_by_id.get(node_id) or {})
+        node_rows.append(
+            {
+                "keep": True,
+                "node_id": node_id,
+                "label": _clean(node.get("canonical_label") or node_id),
+                "node_type": _clean(node.get("node_type")),
+                "description": _clean(node.get("description")),
+                "status": _clean(node.get("status")),
+                "aliases": ", ".join(_split_text_list(node.get("aliases"))),
+                "source_status": _clean(node.get("source_status") or "seeded"),
+                "confidence": "",
+                "reason": f"Connected to {degree_lookup.get(node_id, 0)} graph edge(s).",
+            }
+        )
+
+    edge_rows: list[dict[str, Any]] = []
+    for edge in selected_edges:
+        edge_rows.append(
+            {
+                "keep": True,
+                "edge_id": _clean(edge.get("edge_id")),
+                "source": _clean(edge.get("source_node_id")),
+                "target": _clean(edge.get("target_node_id")),
+                "relationship": _clean(edge.get("relationship")),
+                "mechanism": _clean(edge.get("mechanism")),
+                "polarity": _clean(edge.get("polarity")),
+                "directness": _clean(edge.get("directness")),
+                "severity": edge.get("severity"),
+                "confidence": edge.get("confidence"),
+                "conditions": ", ".join(_split_text_list(edge.get("conditions_json"))),
+                "source_status": _clean(edge.get("source_status") or "seeded"),
+                "reason": "",
+            }
+        )
+
+    limitations: list[str] = []
+    if len(nodes_by_id) > len(node_rows):
+        limitations.append(f"Showing {len(node_rows)} of {len(nodes_by_id)} nodes by graph importance.")
+    if len(edges) > len(edge_rows):
+        limitations.append(f"Showing {len(edge_rows)} of {len(edges)} edges connected to those nodes.")
+
+    return {
+        "query": "",
+        "title": "Knowledge Graph Overview",
+        "seed_matches": [],
+        "selected_node_ids": selected_node_ids[:6],
+        "nodes": node_rows,
+        "edges": edge_rows,
+        "agentic_summary": "",
+        "limitations": limitations,
+        "runtime_status": knowledge_graph_runtime_status(),
+        "overview": {
+            "total_nodes": len(nodes_by_id),
+            "total_edges": len(edges),
+            "shown_nodes": len(node_rows),
+            "shown_edges": len(edge_rows),
+            "ranking": "degree + PageRank + committed/description bonuses",
+        },
+    }
+
+
 def _collect_seed_neighborhood(
     seed_node_ids: list[str],
     snapshot: dict[str, Any],
@@ -1857,15 +1996,135 @@ def list_recent_knowledge_graph_commits(*, limit: int = 8) -> pd.DataFrame:
             pass
 
 
+def _component_packed_layout(graph: nx.Graph) -> dict[str, tuple[float, float]]:
+    if graph.number_of_nodes() == 0:
+        return {}
+    if graph.number_of_nodes() == 1:
+        node_id = next(iter(graph.nodes))
+        return {node_id: (0.0, 0.0)}
+
+    layout_graph = graph.to_undirected()
+    components = sorted(
+        [sorted(component) for component in nx.connected_components(layout_graph)],
+        key=lambda component: (-len(component), component[0] if component else ""),
+    )
+    if len(components) == 1:
+        raw = nx.spring_layout(
+            layout_graph,
+            seed=11,
+            k=max(0.8, 1.8 / max(math.sqrt(max(layout_graph.number_of_nodes(), 1)), 1.0)),
+        )
+        return {str(node_id): (float(pos[0]), float(pos[1])) for node_id, pos in raw.items()}
+
+    total_nodes = max(layout_graph.number_of_nodes(), 1)
+    target_row_width = max(8.0, math.sqrt(total_nodes) * 4.4)
+    padding = 1.8
+    cursor_x = 0.0
+    cursor_y = 0.0
+    row_height = 0.0
+    packed: dict[str, tuple[float, float]] = {}
+
+    for component_index, component in enumerate(components):
+        component_size = len(component)
+        radius = max(0.95, math.sqrt(component_size) * 0.82)
+        box_size = (radius * 2.0) + padding
+        if cursor_x > 0.0 and cursor_x + box_size > target_row_width:
+            cursor_x = 0.0
+            cursor_y += row_height + padding
+            row_height = 0.0
+
+        subgraph = layout_graph.subgraph(component)
+        if component_size == 1:
+            local_positions = {component[0]: (0.0, 0.0)}
+        else:
+            raw_positions = nx.spring_layout(
+                subgraph,
+                seed=11 + component_index,
+                k=max(0.7, 1.6 / max(math.sqrt(component_size), 1.0)),
+            )
+            xs = [float(pos[0]) for pos in raw_positions.values()]
+            ys = [float(pos[1]) for pos in raw_positions.values()]
+            center_x = (min(xs) + max(xs)) / 2.0
+            center_y = (min(ys) + max(ys)) / 2.0
+            span = max(max(xs) - min(xs), max(ys) - min(ys), 1e-9)
+            local_positions = {
+                str(node_id): (
+                    ((float(pos[0]) - center_x) / span) * radius,
+                    ((float(pos[1]) - center_y) / span) * radius,
+                )
+                for node_id, pos in raw_positions.items()
+            }
+
+        offset_x = cursor_x + (box_size / 2.0)
+        offset_y = -(cursor_y + (box_size / 2.0))
+        for node_id, (local_x, local_y) in local_positions.items():
+            packed[str(node_id)] = (float(local_x + offset_x), float(local_y + offset_y))
+
+        cursor_x += box_size + padding
+        row_height = max(row_height, box_size)
+
+    if not packed:
+        return {}
+    mean_x = sum(pos[0] for pos in packed.values()) / len(packed)
+    mean_y = sum(pos[1] for pos in packed.values()) / len(packed)
+    return {node_id: (x - mean_x, y - mean_y) for node_id, (x, y) in packed.items()}
+
+
+def _edge_visual_style(edge: dict[str, Any]) -> dict[str, Any]:
+    status = _clean(edge.get("source_status") or "seeded")
+    confidence = _coerce_float(edge.get("confidence"), default=0.55)
+    severity = _coerce_float(edge.get("severity"), default=0.45)
+    confidence = min(max(confidence, 0.15), 1.0)
+    severity = min(max(severity, 0.0), 1.0)
+    palette = {
+        "seeded": (125, 211, 252),
+        "committed": (56, 189, 248),
+        "agent_suggested": (251, 191, 36),
+        "user_added": (248, 113, 113),
+    }
+    red, green, blue = palette.get(status, (148, 163, 184))
+    opacity = 0.22 + (confidence * 0.68)
+    return {
+        "status": status,
+        "color": f"rgba({red}, {green}, {blue}, {opacity:.3f})",
+        "label_color": f"rgba({red}, {green}, {blue}, {min(opacity + 0.08, 0.96):.3f})",
+        "width": 1.1 + (severity * 3.8),
+        "confidence": confidence,
+        "severity": severity,
+    }
+
+
+def _shorten_edge_segment(
+    source_pos: tuple[float, float],
+    target_pos: tuple[float, float],
+    *,
+    start_fraction: float = 0.06,
+    end_fraction: float = 0.12,
+) -> tuple[float, float, float, float]:
+    x0, y0 = source_pos
+    x1, y1 = target_pos
+    dx = x1 - x0
+    dy = y1 - y0
+    if abs(dx) + abs(dy) < 1e-9:
+        return x0, y0, x1, y1
+    return (
+        x0 + (dx * start_fraction),
+        y0 + (dy * start_fraction),
+        x1 - (dx * end_fraction),
+        y1 - (dy * end_fraction),
+    )
+
+
 def plot_knowledge_graph_draft(draft: dict[str, Any]) -> go.Figure:
     nodes = draft_nodes_frame(draft)
     edges = draft_edges_frame(draft)
+    title = _clean(draft.get("title") or "Knowledge Graph Draft")
     fig = go.Figure()
     if nodes.empty:
-        fig.update_layout(template="plotly_dark", title="Knowledge Graph Draft", height=520)
+        fig.update_layout(template="plotly_dark", title=title, height=520)
         return fig
 
-    graph = nx.Graph()
+    graph = nx.DiGraph()
     selected_ids = {str(value).strip() for value in list(draft.get("selected_node_ids") or []) if str(value).strip()}
     node_lookup: dict[str, dict[str, Any]] = {}
     for row in nodes.to_dict(orient="records"):
@@ -1877,6 +2136,7 @@ def plot_knowledge_graph_draft(draft: dict[str, Any]) -> go.Figure:
         node_lookup[node_id] = dict(row)
         graph.add_node(node_id)
 
+    kept_edges: list[dict[str, Any]] = []
     for row in edges.to_dict(orient="records"):
         if not _coerce_bool(row.get("keep"), default=True):
             continue
@@ -1884,38 +2144,102 @@ def plot_knowledge_graph_draft(draft: dict[str, Any]) -> go.Figure:
         target = _clean(row.get("target"))
         if source not in node_lookup or target not in node_lookup:
             continue
-        graph.add_edge(source, target, source_status=_clean(row.get("source_status") or "seeded"))
+        edge = dict(row)
+        edge["source"] = source
+        edge["target"] = target
+        kept_edges.append(edge)
+        graph.add_edge(source, target)
 
-    positions = nx.spring_layout(graph, seed=11, k=max(0.8, 1.8 / max(math.sqrt(max(graph.number_of_nodes(), 1)), 1.0))) if graph.number_of_nodes() > 1 else {next(iter(graph.nodes)): (0.0, 0.0)} if graph.number_of_nodes() == 1 else {}
+    positions = _component_packed_layout(graph)
 
-    edge_groups = {
-        "seeded": {"color": "rgba(125, 211, 252, 0.45)", "width": 1.6},
-        "committed": {"color": "rgba(56, 189, 248, 0.75)", "width": 2.4},
-        "agent_suggested": {"color": "rgba(251, 191, 36, 0.8)", "width": 2.2},
-        "user_added": {"color": "rgba(248, 113, 113, 0.82)", "width": 2.2},
-    }
-    for group, style in edge_groups.items():
-        x: list[float | None] = []
-        y: list[float | None] = []
-        for left, right, attrs in graph.edges(data=True):
-            if _clean(attrs.get("source_status") or "seeded") != group:
-                continue
-            x0, y0 = positions[left]
-            x1, y1 = positions[right]
-            x.extend([x0, x1, None])
-            y.extend([y0, y1, None])
-        if x:
-            fig.add_trace(
-                go.Scatter(
-                    x=x,
-                    y=y,
-                    mode="lines",
-                    hoverinfo="none",
-                    line=dict(color=style["color"], width=style["width"]),
-                    name=group.replace("_", " ").title(),
-                    showlegend=True,
-                )
+    legend_seen: set[str] = set()
+    edge_mid_x: list[float] = []
+    edge_mid_y: list[float] = []
+    edge_mid_text: list[str] = []
+    edge_mid_hover: list[str] = []
+    edge_mid_color: list[str] = []
+    show_edge_labels = len(kept_edges) <= 80
+    for edge in kept_edges:
+        source = _clean(edge.get("source"))
+        target = _clean(edge.get("target"))
+        if source not in positions or target not in positions:
+            continue
+        x0, y0, x1, y1 = _shorten_edge_segment(positions[source], positions[target])
+        style = _edge_visual_style(edge)
+        relationship = _clean(edge.get("relationship"))
+        mechanism = _clean(edge.get("mechanism"))
+        polarity = _clean(edge.get("polarity"))
+        directness = _clean(edge.get("directness"))
+        severity = edge.get("severity")
+        confidence = edge.get("confidence")
+        conditions = _clean(edge.get("conditions"))
+        hover = "<br>".join(
+            part
+            for part in [
+                f"<b>{source} -> {target}</b>",
+                f"relationship={relationship}" if relationship else "",
+                f"polarity={polarity}" if polarity else "",
+                f"directness={directness}" if directness else "",
+                f"severity={severity}" if severity not in (None, "") else "severity=not set",
+                f"confidence={confidence}" if confidence not in (None, "") else "confidence=not set",
+                f"source={style['status']}",
+                mechanism,
+                f"conditions={conditions}" if conditions else "",
+            ]
+            if part
+        )
+        show_legend = style["status"] not in legend_seen
+        legend_seen.add(style["status"])
+        fig.add_trace(
+            go.Scatter(
+                x=[x0, x1],
+                y=[y0, y1],
+                mode="lines",
+                hoverinfo="skip",
+                line=dict(color=style["color"], width=style["width"]),
+                name=style["status"].replace("_", " ").title(),
+                legendgroup=style["status"],
+                showlegend=show_legend,
             )
+        )
+        fig.add_annotation(
+            x=x1,
+            y=y1,
+            ax=x0,
+            ay=y0,
+            xref="x",
+            yref="y",
+            axref="x",
+            ayref="y",
+            showarrow=True,
+            arrowhead=3,
+            arrowsize=1.1,
+            arrowwidth=max(style["width"] * 0.75, 1.0),
+            arrowcolor=style["color"],
+            opacity=style["confidence"],
+        )
+        edge_mid_x.append((x0 + x1) / 2.0)
+        edge_mid_y.append((y0 + y1) / 2.0)
+        edge_mid_text.append(relationship if show_edge_labels else "")
+        edge_mid_hover.append(hover)
+        edge_mid_color.append(style["label_color"])
+
+    if edge_mid_x:
+        fig.add_trace(
+            go.Scatter(
+                x=edge_mid_x,
+                y=edge_mid_y,
+                mode="markers+text" if show_edge_labels else "markers",
+                text=edge_mid_text,
+                textposition="middle center",
+                hovertext=edge_mid_hover,
+                hoverinfo="text",
+                marker=dict(size=8, color=edge_mid_color, opacity=0.82, line=dict(width=0)),
+                textfont=dict(size=10, color="#cbd5e1"),
+                name="Edge Metadata",
+                showlegend=False,
+            )
+        )
 
     color_map = {
         "seeded": "#38bdf8",
@@ -1971,7 +2295,7 @@ def plot_knowledge_graph_draft(draft: dict[str, Any]) -> go.Figure:
     )
     fig.update_layout(
         template="plotly_dark",
-        title="Knowledge Graph Draft",
+        title=title,
         xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
         yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
         height=520,
@@ -1983,6 +2307,7 @@ def plot_knowledge_graph_draft(draft: dict[str, Any]) -> go.Figure:
 
 __all__ = [
     "build_knowledge_graph_draft",
+    "build_knowledge_graph_overview",
     "clear_knowledge_graph_cache",
     "commit_knowledge_graph_review",
     "default_seed_node_ids_from_matches",

@@ -56,11 +56,140 @@ class _FakeBlobServiceClient:
         return _FakeBlobClient(self._payloads[blob])
 
 
+class _FakeCredential:
+    def get_token(self, scope: str):
+        assert scope == pipeline_store.ARM_SCOPE
+        return SimpleNamespace(token="token")
+
+
+class _FakeResponse:
+    def __init__(self, status_code: int, payload: dict[str, object] | None = None, text: str = "") -> None:
+        self.status_code = status_code
+        self._payload = payload or {}
+        self.text = text
+        self.reason = "reason"
+
+    def json(self) -> dict[str, object]:
+        return self._payload
+
+
 def test_pipeline_store_configured_with_storage_only(monkeypatch):
     monkeypatch.setattr(pipeline_store, "_storage_account_url", lambda: "https://example.blob.core.windows.net")
     monkeypatch.setattr(pipeline_store, "_postgres_connection_string", lambda: "")
 
     assert pipeline_store.pipeline_store_configured() is True
+
+
+def test_start_source_refresh_job_uses_arm_without_azure_cli(monkeypatch):
+    calls: list[tuple[str, str]] = []
+
+    def _fake_get(url, **kwargs):
+        calls.append(("GET", url))
+        return _FakeResponse(
+            200,
+            {
+                "value": [
+                    {
+                        "subscriptionId": "sub-1",
+                        "state": "Enabled",
+                    }
+                ]
+            },
+        )
+
+    def _fake_post(url, **kwargs):
+        calls.append(("POST", url))
+        return _FakeResponse(
+            202,
+            {"name": "attention-home-build-abc"},
+        )
+
+    monkeypatch.setenv("PIPELINE_RESOURCE_GROUP", "rg-test")
+    monkeypatch.delenv("AZURE_SUBSCRIPTION_ID", raising=False)
+    monkeypatch.setattr(pipeline_store, "build_azure_credential", lambda: _FakeCredential())
+    monkeypatch.setattr(pipeline_store.requests, "get", _fake_get)
+    monkeypatch.setattr(pipeline_store.requests, "post", _fake_post)
+    monkeypatch.setattr(pipeline_store.shutil, "which", lambda name: None)
+
+    ok, message = pipeline_store.start_source_refresh_job("attention")
+
+    assert ok is True
+    assert "attention-home-build-abc" in message
+    assert any(call[0] == "POST" and "/providers/Microsoft.App/jobs/attention-home-build/start" in call[1] for call in calls)
+
+
+def test_start_source_refresh_job_reports_arm_error_without_azure_cli(monkeypatch):
+    monkeypatch.setenv("PIPELINE_RESOURCE_GROUP", "rg-test")
+    monkeypatch.setattr(pipeline_store, "build_azure_credential", lambda: _FakeCredential())
+    monkeypatch.setattr(
+        pipeline_store,
+        "_list_azure_subscription_ids",
+        lambda headers: ["sub-1"],
+    )
+    monkeypatch.setattr(
+        pipeline_store.requests,
+        "post",
+        lambda *args, **kwargs: _FakeResponse(403, text="forbidden"),
+    )
+    monkeypatch.setattr(pipeline_store.shutil, "which", lambda name: None)
+
+    ok, message = pipeline_store.start_source_refresh_job("attention")
+
+    assert ok is False
+    assert "HTTP 403" in message
+    assert "Azure CLI" not in message
+
+
+def test_record_trading_agent_place_action_is_log_only_for_alpaca(monkeypatch):
+    captured: dict[str, object] = {}
+
+    class _Cursor:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def execute(self, query, params=None):
+            if "INSERT INTO trading_agent_actions" in str(query):
+                captured["query"] = query
+                captured["params"] = params
+
+    class _Conn:
+        def cursor(self):
+            return _Cursor()
+
+        def commit(self):
+            captured["committed"] = True
+
+        def rollback(self):
+            captured["rolled_back"] = True
+
+        def close(self):
+            captured["closed"] = True
+
+    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: _Conn())
+
+    ok, message = pipeline_store.record_trading_agent_action(
+        candidate={
+            "candidate_id": "tag_123",
+            "trading_agent_run_id": "run:1w",
+            "run_id": "run",
+            "horizon_key": "1w",
+            "ticker": "AAPL",
+        },
+        action="place",
+        requested_by="admin-user",
+        requested_email="admin@example.com",
+    )
+
+    assert ok is True
+    assert "No broker order was submitted" in message
+    params = captured["params"]
+    assert params[6] == "place_requested"
+    assert params[7] == "log_only"
+    assert params[9] == "alpaca"
+    assert json.loads(params[11]) == {}
 
 
 def test_load_deployment_env_prefers_generated_local_file(monkeypatch, tmp_path):

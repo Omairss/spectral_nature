@@ -392,12 +392,13 @@ def _active_membership_for_user(cursor: Any, user_id: str | uuid.UUID) -> dict[s
         FROM {schema}.portfolio_memberships pm
         JOIN {schema}.portfolios p ON p.id = pm.portfolio_id
         WHERE pm.user_id = %s
+          AND p.status = %s
           AND pm.effective_from <= %s
           AND (pm.effective_to IS NULL OR pm.effective_to > %s)
         ORDER BY pm.effective_from DESC
         LIMIT 1
         """,
-        (user_id, _now_utc(), _now_utc()),
+        (user_id, "active", _now_utc(), _now_utc()),
     )
     return _fetchone_dict(cursor)
 
@@ -602,9 +603,10 @@ def get_user_context_for_session(session_token_hash: str) -> dict[str, Any] | No
                     WHERE s.session_token_hash = %s
                       AND s.revoked_at IS NULL
                       AND s.expires_at > %s
+                      AND u.status = %s
                     LIMIT 1
                     """,
-                    (session_token_hash, now),
+                    (session_token_hash, now, "active"),
                 )
                 row = _fetchone_dict(cursor)
                 if row is None:
@@ -2027,47 +2029,46 @@ def get_access_admin_dashboard(
                     cursor.execute(selected_user_activity_sql, tuple(selected_user_activity_params))
                     selected_user_activity = _fetchall_dicts(cursor)
 
+                admin_usage_sql = f"""
+                    SELECT
+                        u.email,
+                        COALESCE(NULLIF(u.display_name, ''), u.email) AS label,
+                        COUNT(*) FILTER (WHERE e.event_type = 'section_view') AS section_view_count,
+                        COUNT(*) FILTER (WHERE e.event_type != 'section_view') AS other_event_count,
+                        COUNT(*) AS total_event_count,
+                        MAX(e.created_at) AS last_activity_at
+                    FROM {schema}.access_events e
+                    JOIN {schema}.users u ON u.id = e.user_id
+                    WHERE u.role = 'admin'
+                      AND e.event_category = 'usage'
+                      AND e.created_at >= %s
+                    GROUP BY u.id, u.email, u.display_name
+                    ORDER BY total_event_count DESC, u.email ASC
+                """
+                cursor.execute(admin_usage_sql, (usage_since,))
+                admin_usage_rows = _fetchall_dicts(cursor)
+
+                access_ips_sql = f"""
+                    SELECT
+                        e.ip_address,
+                        COUNT(*) AS event_count,
+                        COUNT(DISTINCT e.user_id) AS unique_user_count,
+                        COUNT(*) FILTER (WHERE e.event_category = 'security') AS security_event_count,
+                        MAX(e.created_at) AS last_seen_at,
+                        STRING_AGG(DISTINCT COALESCE(NULLIF(u.display_name, ''), u.email, NULLIF(e.email, '')), ', ') AS users
+                    FROM {schema}.access_events e
+                    LEFT JOIN {schema}.users u ON u.id = e.user_id
+                    WHERE e.created_at >= %s
+                      AND COALESCE(e.ip_address, '') <> ''
+                    GROUP BY e.ip_address
+                    ORDER BY event_count DESC, last_seen_at DESC
+                    LIMIT 50
+                """
+                cursor.execute(access_ips_sql, (security_since,))
+                access_ip_rows = _fetchall_dicts(cursor)
+
         recent_security_rows = _hydrate_access_event_rows(recent_security_rows)
         selected_user_activity = _hydrate_access_event_rows(selected_user_activity)
-
-        with conn.cursor() as cursor:
-            admin_usage_sql = f"""
-                SELECT
-                    u.email,
-                    COALESCE(NULLIF(u.display_name, ''), u.email) AS label,
-                    COUNT(*) FILTER (WHERE e.event_type = 'section_view') AS section_view_count,
-                    COUNT(*) FILTER (WHERE e.event_type != 'section_view') AS other_event_count,
-                    COUNT(*) AS total_event_count,
-                    MAX(e.created_at) AS last_activity_at
-                FROM {schema}.access_events e
-                JOIN {schema}.users u ON u.id = e.user_id
-                WHERE u.role = 'admin'
-                  AND e.event_category = 'usage'
-                  AND e.created_at >= %s
-                GROUP BY u.id, u.email, u.display_name
-                ORDER BY total_event_count DESC, u.email ASC
-            """
-            cursor.execute(admin_usage_sql, (usage_since,))
-            admin_usage_rows = _fetchall_dicts(cursor)
-
-            access_ips_sql = f"""
-                SELECT
-                    e.ip_address,
-                    COUNT(*) AS event_count,
-                    COUNT(DISTINCT e.user_id) AS unique_user_count,
-                    COUNT(*) FILTER (WHERE e.event_category = 'security') AS security_event_count,
-                    MAX(e.created_at) AS last_seen_at,
-                    STRING_AGG(DISTINCT COALESCE(NULLIF(u.display_name, ''), u.email, NULLIF(e.email, '')), ', ') AS users
-                FROM {schema}.access_events e
-                LEFT JOIN {schema}.users u ON u.id = e.user_id
-                WHERE e.created_at >= %s
-                  AND COALESCE(e.ip_address, '') <> ''
-                GROUP BY e.ip_address
-                ORDER BY event_count DESC, last_seen_at DESC
-                LIMIT 50
-            """
-            cursor.execute(access_ips_sql, (security_since,))
-            access_ip_rows = _fetchall_dicts(cursor)
 
         return {
             "generated_at": now,

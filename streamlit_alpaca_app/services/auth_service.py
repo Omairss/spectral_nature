@@ -1079,7 +1079,14 @@ def initialize_auth_system() -> dict[str, Any]:
 def _context_from_row(row: dict[str, Any] | None) -> UserContext | None:
     if not isinstance(row, dict):
         return None
-    return UserContext.from_dict(row)
+    context = UserContext.from_dict(row)
+    if context is None:
+        return None
+    if not context.user_id or not context.email:
+        return None
+    if not context.portfolio_id:
+        return None
+    return context
 
 
 def record_access_event(
@@ -1547,6 +1554,9 @@ def admin_issue_password_reset(
 
 
 def complete_password_reset(*, reset_token: str, new_password: str) -> dict[str, Any]:
+    if not str(reset_token or "").strip():
+        return {"ok": False, "message": "Reset token is required."}
+
     password_error = validate_password_strength(new_password)
     if password_error:
         return {"ok": False, "message": password_error}

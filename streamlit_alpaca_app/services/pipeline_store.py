@@ -10,8 +10,10 @@ import shutil
 import subprocess
 import time
 from typing import Any
+import uuid
 
 import pandas as pd
+import requests
 
 from .secrets import build_azure_credential, resolve_secret_value
 
@@ -31,6 +33,10 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 PIPELINE_CACHE_ROOT = APP_ROOT / "cache" / "pipeline_store"
 PIPELINE_METADATA_CACHE_SECONDS = max(int((os.getenv("PIPELINE_METADATA_CACHE_SECONDS") or "30").strip() or "30"), 0)
 PIPELINE_CACHE_MAX_BYTES_DEFAULT = 256 * 1024 * 1024
+ARM_BASE_URL = "https://management.azure.com"
+ARM_SCOPE = "https://management.azure.com/.default"
+SUBSCRIPTIONS_API_VERSION = "2020-01-01"
+CONTAINERAPP_JOBS_API_VERSION = "2025-07-01"
 
 
 @dataclass(frozen=True)
@@ -51,8 +57,10 @@ SOURCE_JOB_MAP: dict[str, str] = {
     "news": "news-ingest-and-features",
     "attention": "attention-home-build",
     "taxonomy": "entity-taxonomy-refresh",
+    "company_baseline": "company-baseline-prefetch",
     "fundamentals": "fundamentals-quarterly-refresh",
     "derivatives": "equities-intraday-preload",
+    "trading_agent": "trading-agent-build",
 }
 
 SOURCE_DATASETS: dict[str, list[str]] = {
@@ -109,14 +117,18 @@ SOURCE_DATASETS: dict[str, list[str]] = {
         "macro_causal_graph_edges_v1",
         "macro_relationship_checks_1d",
         "attention_hypotheses_1d",
+        "knowledge_graph_update_proposals",
         "attention_ticker_snapshots_1d",
         "attention_ticker_background_snapshots",
+        "market_opportunity_feed",
+        "page_agentic_summaries",
         "attention_home_snapshots_1d",
         "attention_bundle_snapshots",
         "attention_home_1d",
         "attention_research_bundles",
     ],
-    "taxonomy": ["us_equity_listings", "entity_taxonomy_labels"],
+    "taxonomy": ["us_equity_listings", "entity_taxonomy_labels", "company_baselines"],
+    "company_baseline": ["company_baselines"],
     "fundamentals": ["quarterly_fundamentals"],
     "derivatives": [
         "taxonomy_peer_group_membership",
@@ -131,6 +143,10 @@ SOURCE_DATASETS: dict[str, list[str]] = {
         "anomaly_events",
         "attention_rollups",
         "attention_feed",
+    ],
+    "trading_agent": [
+        "trading_agent_runs",
+        "trading_agent_candidates",
     ],
 }
 
@@ -384,6 +400,107 @@ def _resource_group() -> str:
         return direct
     deployment = _load_deployment_env()
     return (deployment.get("PIPELINE_RESOURCE_GROUP") or deployment.get("RESOURCE_GROUP") or "").strip()
+
+
+def _azure_subscription_ids() -> list[str]:
+    deployment = _load_deployment_env()
+    out: list[str] = []
+    for name in (
+        "PIPELINE_SUBSCRIPTION_ID",
+        "AZURE_SUBSCRIPTION_ID",
+        "ADMIN_SECURITY_SUBSCRIPTION_ID",
+    ):
+        value = (_get_env(name) or str(deployment.get(name) or "")).strip()
+        if value and value not in out:
+            out.append(value)
+    return out
+
+
+def _azure_management_headers() -> tuple[dict[str, str] | None, str]:
+    credential = build_azure_credential()
+    if credential is None:
+        return None, "Azure credentials are unavailable."
+    try:
+        token = credential.get_token(ARM_SCOPE).token
+    except Exception as exc:
+        return None, f"Azure management token unavailable: {type(exc).__name__}: {exc}"
+    return {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }, ""
+
+
+def _list_azure_subscription_ids(headers: dict[str, str]) -> list[str]:
+    out = _azure_subscription_ids()
+    try:
+        response = requests.get(
+            f"{ARM_BASE_URL}/subscriptions?api-version={SUBSCRIPTIONS_API_VERSION}",
+            headers=headers,
+            timeout=10,
+        )
+    except Exception:
+        return out
+    if response.status_code >= 400:
+        return out
+    try:
+        payload = response.json()
+    except Exception:
+        return out
+    if not isinstance(payload, dict):
+        return out
+    for item in list(payload.get("value") or []):
+        if not isinstance(item, dict):
+            continue
+        subscription_id = str(item.get("subscriptionId") or "").strip()
+        state = str(item.get("state") or "").strip().lower()
+        if subscription_id and state == "enabled" and subscription_id not in out:
+            out.append(subscription_id)
+    return out
+
+
+def _short_http_error(response: requests.Response) -> str:
+    message = str(response.text or "").strip().replace("\n", " ")
+    if len(message) > 300:
+        message = f"{message[:297]}..."
+    return f"HTTP {response.status_code}: {message or response.reason or 'request failed'}"
+
+
+def _start_source_refresh_job_via_arm(job_name: str, resource_group: str) -> tuple[bool, str]:
+    headers, header_error = _azure_management_headers()
+    if headers is None:
+        return False, header_error
+    subscription_ids = _list_azure_subscription_ids(headers)
+    if not subscription_ids:
+        return False, "Azure subscription id is unavailable."
+
+    errors: list[str] = []
+    for subscription_id in subscription_ids:
+        url = (
+            f"{ARM_BASE_URL}/subscriptions/{subscription_id}/resourceGroups/{resource_group}"
+            f"/providers/Microsoft.App/jobs/{job_name}/start"
+            f"?api-version={CONTAINERAPP_JOBS_API_VERSION}"
+        )
+        try:
+            response = requests.post(url, headers=headers, json={}, timeout=30)
+        except Exception as exc:
+            errors.append(f"{subscription_id}: {type(exc).__name__}: {exc}")
+            continue
+        if response.status_code in {200, 201, 202}:
+            execution = ""
+            try:
+                payload = response.json()
+            except Exception:
+                payload = {}
+            if isinstance(payload, dict):
+                execution = str(payload.get("name") or "").strip()
+                if not execution:
+                    execution = str(payload.get("id") or "").strip().rsplit("/", 1)[-1]
+            return True, f"Triggered `{job_name}` execution `{execution or 'started'}`"
+        errors.append(f"{subscription_id}: {_short_http_error(response)}")
+        if response.status_code != 404:
+            break
+    return False, "; ".join(errors) or "Azure management API did not start the job."
 
 
 def pipeline_store_configured() -> bool:
@@ -676,6 +793,211 @@ def load_latest_dataset_frame(dataset_name: str) -> tuple[pd.DataFrame, Pipeline
     return frame, metadata
 
 
+TRADING_AGENT_ACTION_COLUMNS = [
+    "action_id",
+    "candidate_id",
+    "trading_agent_run_id",
+    "run_id",
+    "horizon_key",
+    "ticker",
+    "action",
+    "execution_mode",
+    "status",
+    "broker",
+    "broker_order_id",
+    "created_at_utc",
+    "requested_by",
+    "requested_email",
+    "notes",
+]
+
+
+def _bootstrap_trading_agent_actions(conn: Any) -> None:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS trading_agent_actions (
+                action_id TEXT PRIMARY KEY,
+                candidate_id TEXT NOT NULL,
+                trading_agent_run_id TEXT,
+                run_id TEXT,
+                horizon_key TEXT,
+                ticker TEXT,
+                action TEXT NOT NULL,
+                execution_mode TEXT NOT NULL DEFAULT 'log_only',
+                status TEXT NOT NULL,
+                broker TEXT,
+                broker_order_id TEXT,
+                order_payload JSONB,
+                created_at_utc TIMESTAMPTZ NOT NULL,
+                requested_by TEXT,
+                requested_email TEXT,
+                notes TEXT,
+                candidate_payload JSONB
+            )
+            """
+        )
+        cur.execute(
+            """
+            ALTER TABLE trading_agent_actions
+            ADD COLUMN IF NOT EXISTS execution_mode TEXT NOT NULL DEFAULT 'log_only'
+            """
+        )
+        cur.execute(
+            """
+            ALTER TABLE trading_agent_actions
+            ADD COLUMN IF NOT EXISTS broker TEXT
+            """
+        )
+        cur.execute(
+            """
+            ALTER TABLE trading_agent_actions
+            ADD COLUMN IF NOT EXISTS broker_order_id TEXT
+            """
+        )
+        cur.execute(
+            """
+            ALTER TABLE trading_agent_actions
+            ADD COLUMN IF NOT EXISTS order_payload JSONB
+            """
+        )
+        cur.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_trading_agent_actions_candidate_created
+            ON trading_agent_actions (candidate_id, created_at_utc DESC)
+            """
+        )
+        cur.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_trading_agent_actions_run_created
+            ON trading_agent_actions (run_id, created_at_utc DESC)
+            """
+        )
+    conn.commit()
+
+
+def _normalize_trading_agent_action(action: object) -> tuple[str, str]:
+    text = str(action or "").strip().lower()
+    if text in {"place", "placed", "place_requested", "request_place"}:
+        return "place_requested", "logged"
+    if text in {"reject", "rejected"}:
+        return "rejected", "logged"
+    return text or "unknown", "logged"
+
+
+def record_trading_agent_action(
+    *,
+    candidate: dict[str, Any],
+    action: str,
+    requested_by: str = "",
+    requested_email: str = "",
+    notes: str = "",
+) -> tuple[bool, str]:
+    """Persist an admin Trading Agent decision.
+
+    `place` is intentionally logged as a review action. This function does not
+    submit broker orders.
+    """
+    if not isinstance(candidate, dict) or not str(candidate.get("candidate_id") or "").strip():
+        return False, "Missing Trading Agent candidate id."
+    action_value, status_value = _normalize_trading_agent_action(action)
+    if action_value not in {"place_requested", "rejected"}:
+        return False, f"Unsupported Trading Agent action: {action}"
+    conn = _db_connect()
+    if conn is None:
+        return False, "Postgres is unavailable, so the Trading Agent action was not logged."
+    created_at = datetime.now(timezone.utc)
+    action_id = str(uuid.uuid4())
+    try:
+        _bootstrap_trading_agent_actions(conn)
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO trading_agent_actions (
+                    action_id, candidate_id, trading_agent_run_id, run_id,
+                    horizon_key, ticker, action, execution_mode, status,
+                    broker, broker_order_id, order_payload, created_at_utc,
+                    requested_by, requested_email, notes, candidate_payload
+                ) VALUES (
+                    %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s,
+                    %s, %s, %s::jsonb, %s,
+                    %s, %s, %s, %s::jsonb
+                )
+                """,
+                (
+                    action_id,
+                    str(candidate.get("candidate_id") or "").strip(),
+                    str(candidate.get("trading_agent_run_id") or "").strip() or None,
+                    str(candidate.get("run_id") or "").strip() or None,
+                    str(candidate.get("horizon_key") or "").strip() or None,
+                    str(candidate.get("ticker") or "").upper().strip() or None,
+                    action_value,
+                    "log_only",
+                    status_value,
+                    "alpaca",
+                    None,
+                    json.dumps({}, ensure_ascii=True, sort_keys=True),
+                    created_at,
+                    str(requested_by or "").strip() or None,
+                    str(requested_email or "").strip() or None,
+                    str(notes or "").strip() or None,
+                    json.dumps(candidate, ensure_ascii=True, sort_keys=True, default=str),
+                ),
+            )
+        conn.commit()
+    except Exception as exc:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        return False, f"Trading Agent action log failed: {type(exc).__name__}: {exc}"
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+    if action_value == "place_requested":
+        return True, "Place decision logged for review. No broker order was submitted."
+    return True, "Reject decision logged."
+
+
+def trading_agent_actions_table(*, limit: int = 500) -> pd.DataFrame:
+    columns = list(TRADING_AGENT_ACTION_COLUMNS)
+    conn = _db_connect()
+    if conn is None:
+        return pd.DataFrame(columns=columns)
+    try:
+        _bootstrap_trading_agent_actions(conn)
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT action_id, candidate_id, trading_agent_run_id, run_id,
+                       horizon_key, ticker, action, execution_mode, status,
+                       broker, broker_order_id, created_at_utc,
+                       requested_by, requested_email, notes
+                FROM trading_agent_actions
+                ORDER BY created_at_utc DESC
+                LIMIT %s
+                """,
+                (max(int(limit), 1),),
+            )
+            rows = cur.fetchall()
+        if not rows:
+            return pd.DataFrame(columns=columns)
+        out = pd.DataFrame(rows, columns=columns)
+        out["created_at_utc"] = pd.to_datetime(out["created_at_utc"], errors="coerce", utc=True)
+        return out
+    except Exception:
+        return pd.DataFrame(columns=columns)
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
 def start_source_refresh_job(source: str) -> tuple[bool, str]:
     source_key = str(source or "").strip().lower()
     job_name = SOURCE_JOB_MAP.get(source_key)
@@ -685,6 +1007,13 @@ def start_source_refresh_job(source: str) -> tuple[bool, str]:
     resource_group = _resource_group()
     if not resource_group:
         return False, "Missing resource group. Set PIPELINE_RESOURCE_GROUP or infra/.generated/deployment.local.env."
+
+    arm_ok, arm_message = _start_source_refresh_job_via_arm(job_name, resource_group)
+    if arm_ok:
+        return arm_ok, arm_message
+
+    if not shutil.which("az"):
+        return False, arm_message
 
     cmd = [
         "az",
@@ -703,11 +1032,11 @@ def start_source_refresh_job(source: str) -> tuple[bool, str]:
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, check=False, timeout=30)
     except Exception as exc:
-        return False, f"Failed to run Azure CLI: {exc}"
+        return False, f"{arm_message}; Azure CLI fallback failed: {exc}"
 
     if proc.returncode != 0:
         message = (proc.stderr or proc.stdout or "job start failed").strip()
-        return False, message
+        return False, f"{arm_message}; Azure CLI fallback failed: {message}"
 
     execution = (proc.stdout or "").strip()
     if not execution:

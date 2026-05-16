@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import os
 import re
@@ -351,7 +352,8 @@ _HOME_SUMMARY_SYSTEM_PROMPT = register_narrative_prompt(
         "When market structure or macro signals reinforce or contradict market activity, weave that context in "
         "(e.g. 'rising despite decelerating CPI', 'decoupling from SPY with r2=0.9'). "
         "Do not create a separate 'signals' section — integrate them into the narrative.\n"
-        "3. audio_text: 2-3 sentences spoken aloud as a markets desk anchor would say them."
+        "3. audio_text: 8-12 concise sentences, roughly 150-230 words, spoken aloud as a markets desk anchor would say them. "
+        "It should cover the main hypothesis, the largest clusters, and what to watch next without reading every bullet."
     ),
 )
 
@@ -1305,9 +1307,11 @@ def attach_attention_home_summary_audio(
 
     client = tts_client or ElevenLabsTTSClient(resolved_config)
     audio_bytes = client.synthesize(audio_text)
+    audio_text_hash = hashlib.sha256(audio_text.encode("utf-8")).hexdigest()
     payload.update(
         {
             "audio_base64": base64.b64encode(audio_bytes).decode("ascii"),
+            "audio_text_hash": audio_text_hash,
             "audio_mime_type": audio_mime_type(resolved_config.output_format),
             "audio_file_extension": audio_file_extension(resolved_config.output_format),
             "voice_id": resolved_config.voice_id,

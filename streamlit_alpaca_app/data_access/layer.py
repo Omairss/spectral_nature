@@ -31,6 +31,7 @@ from services.attention_materialized import (
     deserialize_attention_ticker_background_frame,
     deserialize_attention_ticker_snapshot_frame,
 )
+from services.company_baseline import deserialize_company_baseline_frame
 from services.attention_home_1d import (
     build_attention_entity_master,
     resolve_macro_anchor_symbols,
@@ -284,6 +285,20 @@ def _is_template_company_background(text: str) -> bool:
     return TEMPLATE_COMPANY_BACKGROUND_PHRASE in _coerce_text(text).lower()
 
 
+def _is_low_signal_company_context(text: object) -> bool:
+    cleaned = " ".join(str(text or "").split()).strip().lower()
+    if not cleaned:
+        return True
+    if re.fullmatch(r"\d+\s+recent article\(s\) over roughly the last \d+\s+day\(s\); tone is [^.]+\.", cleaned):
+        return True
+    return (
+        cleaned.startswith("no relevant catalyst found")
+        or cleaned.startswith("company background is unavailable")
+        or cleaned
+        == "the current narrative is still thin, so the best read comes from the linked price action and recent headlines."
+    )
+
+
 def _ensure_company_background_text(
     symbol: str,
     *,
@@ -457,6 +472,9 @@ ATTENTION_HOME_SNAPSHOT_DATASETS = ("attention_home_snapshots_1d", "attention_ho
 ATTENTION_BUNDLE_SNAPSHOT_DATASETS = ("attention_bundle_snapshots", "attention_research_bundles")
 ATTENTION_TICKER_SNAPSHOT_DATASETS = ("attention_ticker_snapshots_1d",)
 ATTENTION_TICKER_BACKGROUND_DATASETS = ("attention_ticker_background_snapshots",)
+COMPANY_BASELINE_DATASETS = ("company_baselines",)
+MARKET_OPPORTUNITY_FEED_DATASETS = ("market_opportunity_feed",)
+PAGE_AGENTIC_SUMMARY_DATASETS = ("page_agentic_summaries",)
 TEMPLATE_COMPANY_BACKGROUND_PHRASE = "is being tracked here as an individual company narrative inside the market dashboard"
 ATTENTION_TRACE_DATASETS = (
     "attention_candidates_1d",
@@ -2383,6 +2401,19 @@ class DataAccessLayer:
         materialized_mode = "on_demand"
         materialized_datasets: tuple[str, ...] = ATTENTION_TICKER_BACKGROUND_DATASETS
         materialized_details: dict[str, Any] = {"ticker": target}
+        baseline_payload: dict[str, Any] = {}
+        baseline_datasets: tuple[str, ...] = ()
+        baseline_details: dict[str, Any] = {}
+        baseline = self._first_materialized_frame(
+            COMPANY_BASELINE_DATASETS,
+            force_refresh=force_refresh,
+        )
+        if baseline is not None:
+            baseline_dataset_name, baseline_frame, baseline_meta = baseline
+            baseline_payload = deserialize_company_baseline_frame(baseline_frame, target)
+            if baseline_payload:
+                baseline_datasets = (baseline_dataset_name,)
+                baseline_details = {**baseline_meta, "ticker": target}
         materialized = self._first_materialized_frame(
             ATTENTION_TICKER_BACKGROUND_DATASETS,
             force_refresh=force_refresh,
@@ -2402,6 +2433,37 @@ class DataAccessLayer:
                 current_text=_coerce_text(materialized_payload.get("company_background_text"))
                 or _coerce_text(materialized_payload.get("description_text")),
             )
+            baseline_background = _coerce_text(baseline_payload.get("company_background_text"))
+            if baseline_background and _is_low_signal_company_context(materialized_payload.get("company_background_text")):
+                materialized_payload["company_background_text"] = baseline_background
+            if baseline_background and _is_low_signal_company_context(materialized_payload.get("description_text")):
+                materialized_payload["description_text"] = baseline_background
+            for key in ("company_name", "business_lens", "company_background_text"):
+                if not _coerce_text(materialized_payload.get(key)) and _coerce_text(baseline_payload.get(key)):
+                    materialized_payload[key] = baseline_payload.get(key)
+            if baseline_payload:
+                trace = materialized_payload.get("source_trace") if isinstance(materialized_payload.get("source_trace"), dict) else {}
+                materialized_payload["source_trace"] = {**trace, "company_baseline_source": _coerce_text(baseline_payload.get("baseline_source"))}
+                materialized_datasets = tuple(dict.fromkeys([*materialized_datasets, *baseline_datasets]))
+        elif baseline_payload:
+            materialized_payload = {
+                "symbol": target,
+                "company_name": _coerce_text(baseline_payload.get("company_name")),
+                "business_lens": _coerce_text(baseline_payload.get("business_lens")),
+                "company_background_text": _coerce_text(baseline_payload.get("company_background_text")),
+                "description_text": _coerce_text(baseline_payload.get("description_text")),
+                "news_summary_lines": [],
+                "recent_headlines": [],
+                "source_trace": {
+                    "source": _coerce_text(baseline_payload.get("baseline_source")) or "company_baselines",
+                    "company_baseline_source": _coerce_text(baseline_payload.get("baseline_source")) or "company_baselines",
+                },
+                "run_id": _coerce_text(baseline_payload.get("run_id")),
+                "asof_time_utc": _coerce_text(baseline_payload.get("asof_time_utc")),
+            }
+            materialized_mode = "materialized"
+            materialized_datasets = baseline_datasets or COMPANY_BASELINE_DATASETS
+            materialized_details = baseline_details or {"ticker": target}
 
         if self.materialized_only:
             if materialized_payload:
@@ -2414,7 +2476,7 @@ class DataAccessLayer:
             return self._resolved(
                 {},
                 mode="materialized",
-                datasets=ATTENTION_TICKER_BACKGROUND_DATASETS,
+                datasets=ATTENTION_TICKER_BACKGROUND_DATASETS + COMPANY_BASELINE_DATASETS,
                 details={"ticker": target, "materialized_only": True},
             )
 
@@ -2439,6 +2501,7 @@ class DataAccessLayer:
                 dict.fromkeys(
                     list(materialized_datasets if materialized_payload else [])
                     + list(bundle_resolved.provenance.datasets)
+                    + list(baseline_datasets)
                 )
             )
             merged_details = dict(materialized_details if materialized_payload else {"ticker": target})
@@ -2466,7 +2529,7 @@ class DataAccessLayer:
         return self._resolved(
             {},
             mode="on_demand",
-            datasets=ATTENTION_TICKER_BACKGROUND_DATASETS,
+            datasets=ATTENTION_TICKER_BACKGROUND_DATASETS + COMPANY_BASELINE_DATASETS,
             details={"ticker": target},
         )
 
@@ -2508,6 +2571,116 @@ class DataAccessLayer:
                 "attention_event_clusters_1d",
             ),
             details={"today_only": True, "run_id": _coerce_text((payload or {}).get("run_id"))},
+        )
+
+    def resolve_market_opportunity_feed(
+        self,
+        *,
+        business_filter: str = "All Market",
+        selected_horizon_col: str = "return_1m_pct",
+        selected_horizon_label: str = "1 Month",
+        symbols: list[str] | None = None,
+        limit: int = 80,
+        force_refresh: bool = False,
+    ) -> ResolvedPayload:
+        normalized_symbols = [
+            _coerce_text(symbol).upper()
+            for symbol in list(symbols or [])
+            if _coerce_text(symbol)
+        ]
+        details: dict[str, Any] = {
+            "business_filter": _coerce_text(business_filter) or "All Market",
+            "selected_horizon_col": _coerce_text(selected_horizon_col) or "return_1m_pct",
+            "selected_horizon_label": _coerce_text(selected_horizon_label) or "1 Month",
+            "symbol_count": int(len(normalized_symbols)),
+            "limit": int(limit),
+        }
+        materialized = self._first_materialized_frame(
+            MARKET_OPPORTUNITY_FEED_DATASETS,
+            force_refresh=False,
+        )
+        if materialized is not None:
+            dataset_name, frame, materialized_details = materialized
+            from services.market_opportunity import select_market_opportunity_feed
+
+            payload = select_market_opportunity_feed(
+                frame,
+                business_filter=business_filter,
+                selected_horizon_col=selected_horizon_col,
+                symbols=normalized_symbols,
+                limit=limit,
+            )
+            resolved_details = {**materialized_details, **details}
+            if isinstance(payload, pd.DataFrame) and payload.empty:
+                resolved_details["warning"] = "No materialized market opportunity rows matched this view."
+            return self._resolved(
+                payload,
+                mode="materialized",
+                datasets=(dataset_name,),
+                details=resolved_details,
+            )
+
+        materialized_only = self._materialized_only_result(
+            pd.DataFrame(),
+            datasets=MARKET_OPPORTUNITY_FEED_DATASETS,
+            details=details,
+        )
+        if materialized_only is not None:
+            return materialized_only
+        return self._resolved(
+            pd.DataFrame(),
+            mode="unavailable",
+            datasets=MARKET_OPPORTUNITY_FEED_DATASETS,
+            details={**details, "warning": "No materialized market opportunity feed is available."},
+        )
+
+    def resolve_page_agentic_summary(
+        self,
+        *,
+        surface: str,
+        context_signature: str,
+        ticker: str = "",
+        force_refresh: bool = False,
+    ) -> ResolvedPayload:
+        details: dict[str, Any] = {
+            "surface": _coerce_text(surface),
+            "context_signature": _coerce_text(context_signature),
+            "ticker": _coerce_text(ticker).upper(),
+        }
+        materialized = self._first_materialized_frame(
+            PAGE_AGENTIC_SUMMARY_DATASETS,
+            force_refresh=False,
+        )
+        if materialized is not None:
+            dataset_name, frame, materialized_details = materialized
+            from services.page_agentic_summary import materialized_page_agentic_summary
+
+            payload = materialized_page_agentic_summary(
+                frame,
+                surface=surface,
+                context_signature=context_signature,
+                ticker=ticker,
+            )
+            if payload:
+                return self._resolved(
+                    payload,
+                    mode="materialized",
+                    datasets=(dataset_name,),
+                    details={**materialized_details, **details},
+                )
+
+        materialized_only = self._materialized_only_result(
+            {},
+            datasets=PAGE_AGENTIC_SUMMARY_DATASETS,
+            details=details,
+        )
+        if materialized_only is not None:
+            return materialized_only
+        return self._resolved(
+            {},
+            mode="unavailable",
+            datasets=PAGE_AGENTIC_SUMMARY_DATASETS,
+            details={**details, "warning": "No materialized page summary matched this view."},
         )
 
     def resolve_attention_research_bundle(self, bundle_id: str, *, force_refresh: bool = False) -> ResolvedPayload:

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import json
+import os
+import re
 import threading
 import time
 import uuid
@@ -11,6 +14,8 @@ from .agent_tools import build_tool_catalog, invoke_tool
 from .llm import (
     NARRATIVE_STYLE_RULE,
     AzureOpenAIChatJSONClient,
+    DeepSeekChatJSONClient,
+    LLMConfig,
     LLMAPIError,
     OpenAIChatJSONClient,
     get_config_param,
@@ -21,7 +26,7 @@ from .llm import (
 )
 
 
-LLMClient = OpenAIChatJSONClient | AzureOpenAIChatJSONClient
+LLMClient = OpenAIChatJSONClient | AzureOpenAIChatJSONClient | DeepSeekChatJSONClient
 ProgressCallback = Callable[[dict[str, Any]], None]
 DEFAULT_MAX_TOOL_CALLS = 8
 
@@ -68,6 +73,27 @@ _P_MAX_TOOL_CALLS = register_config_param(
     default=8,
     description="Maximum number of tool calls the agent can make per query",
 )
+_P_BOOTSTRAP_TOOL_CALLS = register_config_param(
+    "Agent bootstrap tool calls",
+    group="Chat + Search",
+    default=4,
+    description=(
+        "Maximum deterministic evidence calls to make before the planner. "
+        "These calls seed obvious context; the planner can still add more evidence."
+    ),
+)
+_P_LLM_STEP_TIMEOUT_SECONDS = register_config_param(
+    "Agent LLM step timeout seconds",
+    group="Chat + Search",
+    default=75,
+    description="Maximum seconds to wait for one planner or synthesis LLM call before degrading gracefully",
+)
+_P_TOOL_CALL_TIMEOUT_SECONDS = register_config_param(
+    "Agent tool call timeout seconds",
+    group="Chat + Search",
+    default=45,
+    description="Maximum seconds to wait for one agent tool call before degrading to the next step",
+)
 _P_CONVERSATION_HISTORY_LIMIT = register_config_param(
     "Agent conversation history limit",
     group="Chat + Search",
@@ -80,6 +106,46 @@ _P_USER_PREVIEW_LIMIT = register_config_param(
     default=200,
     description="Max chars for the user-facing preview of a tool result",
 )
+
+_AFFIRMATIVE_FOLLOWUP_REPLIES = {
+    "yes",
+    "y",
+    "yeah",
+    "yep",
+    "sure",
+    "ok",
+    "okay",
+    "please",
+    "do it",
+    "go ahead",
+    "continue",
+}
+_NON_TICKER_UPPERCASE_WORDS = {
+    "A",
+    "AI",
+    "API",
+    "CEO",
+    "CFO",
+    "CPI",
+    "ETF",
+    "ETFS",
+    "EPS",
+    "EU",
+    "FED",
+    "FOMC",
+    "GDP",
+    "IPO",
+    "LLM",
+    "NAV",
+    "OPEC",
+    "PMI",
+    "QOQ",
+    "SEC",
+    "US",
+    "USA",
+    "USD",
+    "YOY",
+}
 _ARGUMENT_ENTRY_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
@@ -352,6 +418,11 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
         explicit_context = _clean(payload.get("llm_context_text"))
         if explicit_context:
             llm_context_text = _truncate(explicit_context, limit=int(get_config_param(_P_TOOL_RESULT_CONTEXT_LIMIT)))
+        elif isinstance(payload.get("homepage_summary"), dict):
+            llm_context_text = _truncate(
+                _attention_home_llm_context(payload),
+                limit=int(get_config_param(_P_TOOL_RESULT_CONTEXT_LIMIT)),
+            )
         elif isinstance(payload.get("summary"), list):
             lines: list[str] = []
             for item in list(payload.get("summary") or [])[:int(get_config_param(_P_TOOL_RESULT_SUMMARY_ITEMS))]:
@@ -436,6 +507,62 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
         "llm_context_text": llm_context_text,
         "source_links": source_links if source_links else None,
     }
+
+
+def _attention_home_llm_context(payload: dict[str, Any]) -> str:
+    lines: list[str] = []
+    generated = _clean(payload.get("generated_at_utc"))
+    coverage = payload.get("coverage_summary") if isinstance(payload.get("coverage_summary"), dict) else {}
+    if generated:
+        lines.append(f"Attention home generated at {generated}.")
+    if coverage:
+        counts = []
+        for key, label in (
+            ("candidate_count", "candidates"),
+            ("event_count", "events"),
+            ("unresolved_count", "unresolved moves"),
+            ("macro_anchor_count", "macro anchors"),
+            ("research_symbol_count", "research symbols"),
+        ):
+            value = coverage.get(key)
+            if value is not None:
+                counts.append(f"{value} {label}")
+        if counts:
+            lines.append("Coverage: " + ", ".join(counts) + ".")
+    homepage_summary = payload.get("homepage_summary")
+    if isinstance(homepage_summary, dict):
+        headline = _clean(homepage_summary.get("headline"))
+        summary_text = _clean(homepage_summary.get("summary_text"))
+        if headline:
+            lines.append(f"Homepage headline: {headline}.")
+        if summary_text:
+            lines.append(summary_text)
+    top_events = payload.get("top_events")
+    if isinstance(top_events, list) and top_events:
+        lines.append("Top events:")
+        for event in top_events[:4]:
+            if not isinstance(event, dict):
+                continue
+            title = _clean(event.get("event_title") or event.get("surface_summary_text"))
+            summary = _clean(event.get("surface_summary_text") or event.get("what_happened_text"))
+            symbols = ", ".join(str(sym) for sym in list(event.get("supporting_symbols") or [])[:8])
+            parts = [title, summary, f"symbols: {symbols}" if symbols else ""]
+            text = " | ".join(part for part in parts if part)
+            if text:
+                lines.append(f"- {text}")
+    unresolved = payload.get("unresolved_large_moves")
+    if isinstance(unresolved, list) and unresolved:
+        lines.append("Unresolved large moves:")
+        for item in unresolved[:4]:
+            if not isinstance(item, dict):
+                continue
+            symbol = _clean(item.get("symbol"))
+            change = item.get("change_pct")
+            headline = _clean(item.get("headline") or item.get("surface_summary_text"))
+            if symbol or headline:
+                move_text = f"{float(change):+.2f}%" if isinstance(change, (int, float)) else ""
+                lines.append(" - ".join(part for part in [symbol, move_text, headline] if part))
+    return "\n".join(line for line in lines if line)
 
 
 def _tool_catalog_prompt(catalog: list[dict[str, Any]]) -> str:
@@ -560,6 +687,35 @@ def _emit_progress(
         return
 
 
+def _looks_like_transient_transport_error(text: object) -> bool:
+    cleaned = str(text or "").strip().lower()
+    if not cleaned:
+        return False
+    markers = (
+        "remotedisconnected",
+        "remote end closed connection without response",
+        "connection aborted",
+        "connection reset",
+        "connectionerror",
+        "readtimeout",
+        "read timed out",
+        "timed out",
+        "timeout",
+        "temporarily unavailable",
+    )
+    return any(marker in cleaned for marker in markers)
+
+
+def _safe_agent_error_text(error: object) -> str:
+    raw = f"{type(error).__name__}: {error}" if isinstance(error, BaseException) else str(error or "")
+    if _looks_like_transient_transport_error(raw):
+        return (
+            "A research or model connection dropped before it returned a response. "
+            "This is usually transient; rerun the request to retry the source fetch."
+        )
+    return _clean(raw) or "The research agent failed before it could produce an answer."
+
+
 def _fallback_answer(query: str, tool_calls: list[dict[str, Any]]) -> str:
     successful = [call for call in tool_calls if str(call.get("status") or "") == "completed"]
     if not successful:
@@ -657,6 +813,42 @@ def _search_conversation_history(
     }
 
 
+def _completed_tool_names(tool_calls: list[dict[str, Any]]) -> set[str]:
+    return {
+        _clean(call.get("tool_name"))
+        for call in tool_calls
+        if str(call.get("status") or "") == "completed" and _clean(call.get("tool_name"))
+    }
+
+
+def _needs_live_evidence_recovery(tool_calls: list[dict[str, Any]]) -> bool:
+    completed = _completed_tool_names(tool_calls)
+    if "research.live_event_evidence" in completed:
+        return False
+    if "research.search_evidence" in completed:
+        low_signal_markers = (
+            "0 results",
+            "no results",
+            "no matching",
+            "no retained",
+            "no company context",
+            "returned empty",
+        )
+        completed_calls = [
+            call for call in tool_calls if str(call.get("status") or "") == "completed"
+        ]
+        if completed_calls and all(
+            any(
+                marker in _json_dumps(dict(call.get("result_summary") or {}), limit=1200).lower()
+                for marker in low_signal_markers
+            )
+            for call in completed_calls
+        ):
+            return True
+        return False
+    return bool(completed)
+
+
 def _compact_conversation_history(
     conversation_history: list[dict[str, Any]] | None,
     max_chars: int = 3000,
@@ -701,6 +893,501 @@ def _compact_conversation_history(
         return ""
     turns.reverse()
     return "Prior conversation:\n" + "\n".join(turns) + "\n\n"
+
+
+def _message_text(msg: dict[str, Any]) -> str:
+    return str(msg.get("answer") or msg.get("content") or msg.get("answer_markdown") or "").strip()
+
+
+def _latest_user_and_assistant_turn(
+    conversation_history: list[dict[str, Any]] | None,
+) -> tuple[str, str]:
+    if not conversation_history:
+        return "", ""
+    latest_user = ""
+    latest_assistant = ""
+    for msg in reversed(conversation_history):
+        role = str(msg.get("role") or "").strip().lower()
+        content = _message_text(msg)
+        if not content:
+            continue
+        if role == "assistant" and not latest_assistant:
+            latest_assistant = content
+        elif role == "user" and not latest_user:
+            latest_user = content
+        if latest_user and latest_assistant:
+            break
+    return latest_user, latest_assistant
+
+
+def _is_affirmative_followup(query: str) -> bool:
+    normalized = _clean(query).lower().strip(" \t\r\n.!?")
+    return normalized in _AFFIRMATIVE_FOLLOWUP_REPLIES
+
+
+def resolve_conversation_followup_query(
+    query: str,
+    conversation_history: list[dict[str, Any]] | None,
+    *,
+    max_answer_chars: int = 1800,
+) -> tuple[str, bool]:
+    """Resolve bare replies like "yes" against the prior chat turn.
+
+    The chat UI stores the literal user text, but the agent needs an actionable
+    query.  Without this handoff, the router can treat "yes" as a standalone
+    search and skip the agent path that has conversation context.
+    """
+    normalized_query = _clean(query)
+    if not _is_affirmative_followup(normalized_query):
+        return normalized_query, False
+
+    previous_user, previous_assistant = _latest_user_and_assistant_turn(conversation_history)
+    if not previous_assistant:
+        return normalized_query, False
+
+    answer_excerpt = previous_assistant
+    if len(answer_excerpt) > max_answer_chars:
+        answer_excerpt = answer_excerpt[:max_answer_chars].rsplit(" ", 1)[0].strip()
+        answer_excerpt = f"{answer_excerpt}..."
+    if not previous_user:
+        previous_user = "the previous market question"
+
+    resolved_query = (
+        "Continue the previous Chat + Search thread. The user replied "
+        f"'{normalized_query}', so carry out the natural next step implied by the prior assistant answer. "
+        "Use the prior answer and prior question as context; verify or expand with evidence instead of "
+        "treating the reply as a standalone query.\n\n"
+        f"Previous user question:\n{previous_user}\n\n"
+        f"Previous assistant answer:\n{answer_excerpt}\n\n"
+        f"Current user reply:\n{normalized_query}"
+    )
+    return resolved_query, True
+
+
+def _extract_query_tickers(query: str, *, limit: int = 5) -> list[str]:
+    """Extract likely ticker symbols without treating common acronyms as tickers."""
+    out: list[str] = []
+    for match in re.finditer(r"\b[A-Z][A-Z0-9.\-]{0,5}\b", str(query or "")):
+        ticker = match.group(0).strip(".-").upper()
+        if not ticker or ticker in _NON_TICKER_UPPERCASE_WORDS:
+            continue
+        if len(ticker) == 1 and not re.search(rf"\b{re.escape(ticker)}\s*[:$]", str(query or "")):
+            continue
+        if ticker not in out:
+            out.append(ticker)
+        if len(out) >= limit:
+            break
+    return out
+
+
+def _query_looks_current_or_event_driven(query: str) -> bool:
+    text = _clean(query).lower()
+    markers = (
+        "current",
+        "latest",
+        "today",
+        "now",
+        "recent",
+        "news",
+        "catalyst",
+        "catalysts",
+        "narrative",
+        "what happened",
+        "what is going on",
+        "going on",
+        "crisis",
+        "war",
+        "tariff",
+        "strike",
+        "hormuz",
+        "iran",
+        "oil",
+        "fed",
+        "earnings",
+    )
+    return any(marker in text for marker in markers)
+
+
+def _query_looks_live_event_driven(query: str) -> bool:
+    text = _clean(query).lower()
+    live_markers = (
+        "what happened",
+        "what is going on",
+        "going on",
+        "crisis",
+        "war",
+        "tariff",
+        "strike",
+        "hormuz",
+        "iran",
+        "oil shock",
+        "talks",
+        "ceasefire",
+        "election",
+        "sanction",
+        "sanctions",
+    )
+    return any(marker in text for marker in live_markers)
+
+
+def _query_looks_broad_market(query: str, tickers: list[str]) -> bool:
+    if tickers:
+        return False
+    text = _clean(query).lower().strip(" ?!.")
+    broad_exact = {
+        "what matters today",
+        "what matters now",
+        "what should i know today",
+        "what is important today",
+        "what's important today",
+        "what happened today",
+    }
+    if text in broad_exact:
+        return True
+    return any(
+        marker in text
+        for marker in (
+            "market today",
+            "markets today",
+            "what matters",
+            "top market",
+            "market narrative",
+            "risk cycle",
+        )
+    )
+
+
+def _tool_available(tool_catalog: list[dict[str, Any]], tool_name: str) -> bool:
+    return any(_clean(tool.get("name")) == tool_name for tool in tool_catalog)
+
+
+def _bootstrap_tool_plan(
+    *,
+    query: str,
+    tool_catalog: list[dict[str, Any]],
+    force_refresh: bool,
+    max_calls: int,
+) -> list[tuple[str, dict[str, Any]]]:
+    """Choose obvious first evidence calls before spending an LLM planner step."""
+    if max_calls <= 0:
+        return []
+    tickers = _extract_query_tickers(query)
+    current_or_event = _query_looks_current_or_event_driven(query)
+    broad_market = _query_looks_broad_market(query, tickers)
+    plan: list[tuple[str, dict[str, Any]]] = []
+
+    def add(tool_name: str, arguments: dict[str, Any]) -> None:
+        if len(plan) >= max_calls:
+            return
+        if not _tool_available(tool_catalog, tool_name):
+            return
+        signature = f"{tool_name}::{_json_dumps(arguments, limit=1000)}"
+        if any(f"{name}::{_json_dumps(args, limit=1000)}" == signature for name, args in plan):
+            return
+        plan.append((tool_name, arguments))
+
+    if broad_market:
+        add("dataset.attention_home_1d", {})
+        if not plan:
+            add("research.retained_context", {"query": query, "max_items": 6, "force_refresh": force_refresh})
+        return plan
+
+    if tickers:
+        if len(tickers) > 1:
+            for ticker in tickers[:3]:
+                add("investigator.company_context", {"ticker": ticker})
+            if current_or_event:
+                add(
+                    "research.live_event_evidence",
+                    {
+                        "query": query,
+                        "focus_symbols": tickers[:5],
+                        "max_results": 8,
+                        "force_refresh": force_refresh,
+                    },
+                )
+            add("research.search_evidence", {"query": query, "tickers": tickers[:5], "max_results": 10})
+        else:
+            ticker = tickers[0]
+            add("investigator.company_context", {"ticker": ticker})
+            if current_or_event:
+                add("investigator.recent_news", {"ticker": ticker, "days": 14, "limit": 8})
+                add(
+                    "research.live_event_evidence",
+                    {
+                        "query": query,
+                        "focus_symbols": [ticker],
+                        "max_results": 6,
+                        "force_refresh": force_refresh,
+                    },
+                )
+                add(
+                    "research.search_evidence",
+                    {"query": query, "tickers": [ticker], "max_results": 8},
+                )
+        return plan
+
+    if _query_looks_live_event_driven(query):
+        add("research.market_impact_map", {"query": query, "max_symbols": 8})
+        add(
+            "research.live_event_evidence",
+            {"query": query, "max_results": 6, "force_refresh": force_refresh},
+        )
+        if not plan:
+            add("research.retained_context", {"query": query, "max_items": 6, "force_refresh": force_refresh})
+    return plan
+
+
+def _execute_seeded_tool_call(
+    *,
+    service: QueryService,
+    run_id: str,
+    tool_calls: list[dict[str, Any]],
+    progress_callback: ProgressCallback | None,
+    tool_name: str,
+    arguments: dict[str, Any],
+    progress: float,
+) -> bool:
+    call_id = f"agtc_{len(tool_calls) + 1}"
+    _emit_progress(
+        progress_callback,
+        stage="tool_start",
+        message=f"Collecting initial evidence from {tool_name}.",
+        progress=progress,
+        tool_name=tool_name,
+        tool_call_id=call_id,
+        tool_call_count=len(tool_calls),
+        tool_arguments=arguments,
+    )
+    try:
+        result = _invoke_tool_with_heartbeat(
+            service=service,
+            tool_name=tool_name,
+            arguments=arguments,
+            run_id=run_id,
+            progress_callback=progress_callback,
+            progress=progress,
+            tool_call_id=call_id,
+            tool_call_count=len(tool_calls),
+        )
+        result_summary = _summarize_tool_result(result)
+        tool_calls.append(
+            {
+                "tool_call_id": call_id,
+                "tool_name": tool_name,
+                "arguments": arguments,
+                "status": "completed",
+                "error": None,
+                "result_summary": result_summary,
+            }
+        )
+        _emit_progress(
+            progress_callback,
+            stage="tool_complete",
+            message=f"Collected initial evidence from {tool_name}.",
+            progress=min(progress + 0.03, 0.9),
+            tool_name=tool_name,
+            tool_call_id=call_id,
+            tool_call_count=len(tool_calls),
+            tool_arguments=arguments,
+            result_preview=_truncate(result_summary.get("user_preview") or result_summary.get("preview_text") or "", limit=300),
+            render_payload=result_summary.get("render_payload"),
+            source_links=result_summary.get("source_links"),
+        )
+        return True
+    except Exception as exc:
+        tool_calls.append(
+            {
+                "tool_call_id": call_id,
+                "tool_name": tool_name,
+                "arguments": arguments,
+                "status": "failed",
+                "error": f"{type(exc).__name__}: {exc}",
+                "result_summary": {
+                    "preview_text": f"{type(exc).__name__}: {exc}",
+                    "result_type": "error",
+                    "provenance": None,
+                    "preview": {"kind": "error"},
+                },
+            }
+        )
+        _emit_progress(
+            progress_callback,
+            stage="tool_failed",
+            message=f"{tool_name} failed during initial evidence collection.",
+            progress=min(progress + 0.03, 0.9),
+            tool_name=tool_name,
+            tool_call_id=call_id,
+            tool_call_count=len(tool_calls),
+        )
+        return False
+
+
+def _invoke_tool_with_heartbeat(
+    *,
+    service: QueryService,
+    tool_name: str,
+    arguments: dict[str, Any],
+    run_id: str,
+    progress_callback: ProgressCallback | None,
+    progress: float,
+    tool_call_id: str,
+    tool_call_count: int,
+) -> dict[str, Any]:
+    timeout_seconds = max(int(get_config_param(_P_TOOL_CALL_TIMEOUT_SECONDS)), 1)
+    result_box: list[dict[str, Any] | None] = [None]
+    error_box: list[BaseException | None] = [None]
+
+    def _run_tool() -> None:
+        try:
+            result_box[0] = invoke_tool(
+                service=service,
+                tool_name=tool_name,
+                arguments=arguments,
+                run_id=run_id,
+            )
+        except BaseException as exc:
+            error_box[0] = exc
+
+    tool_thread = threading.Thread(target=_run_tool, name=f"omnibar-tool-{tool_name[:32]}", daemon=True)
+    tool_thread.start()
+    heartbeat_interval = 5.0
+    elapsed = 0.0
+    while tool_thread.is_alive():
+        wait_seconds = min(heartbeat_interval, max(float(timeout_seconds) - elapsed, 0.1))
+        tool_thread.join(timeout=wait_seconds)
+        if not tool_thread.is_alive():
+            break
+        elapsed += wait_seconds
+        if elapsed >= timeout_seconds:
+            _emit_progress(
+                progress_callback,
+                stage="tool_timeout",
+                message=f"{tool_name} timed out after {timeout_seconds}s.",
+                progress=min(progress + 0.08, 0.91),
+                tool_name=tool_name,
+                tool_call_id=tool_call_id,
+                tool_call_count=tool_call_count,
+                tool_arguments=arguments,
+                elapsed_seconds=int(elapsed),
+            )
+            raise TimeoutError(f"{tool_name} timed out after {timeout_seconds}s.")
+        _emit_progress(
+            progress_callback,
+            stage="tool_heartbeat",
+            message=f"Still checking {tool_name}... ({int(elapsed)}s)",
+            progress=min(progress + 0.02, 0.9),
+            tool_name=tool_name,
+            tool_call_id=tool_call_id,
+            tool_call_count=tool_call_count,
+            tool_arguments=arguments,
+            elapsed_seconds=int(elapsed),
+        )
+    if error_box[0] is not None:
+        raise error_box[0]
+    result = result_box[0]
+    if result is None:
+        raise RuntimeError(f"{tool_name} returned no result.")
+    return result
+
+
+def _run_hidden_step_with_timeout(
+    *,
+    label: str,
+    timeout_seconds: int,
+    progress_callback: ProgressCallback | None,
+    progress: float,
+    func: Callable[[], Any],
+) -> Any:
+    result_box: list[Any] = [None]
+    error_box: list[BaseException | None] = [None]
+
+    def _runner() -> None:
+        try:
+            result_box[0] = func()
+        except BaseException as exc:
+            error_box[0] = exc
+
+    step_thread = threading.Thread(target=_runner, name=f"omnibar-hidden-{label[:32]}", daemon=True)
+    step_thread.start()
+    heartbeat_interval = 5.0
+    elapsed = 0.0
+    while step_thread.is_alive():
+        wait_seconds = min(heartbeat_interval, max(float(timeout_seconds) - elapsed, 0.1))
+        step_thread.join(timeout=wait_seconds)
+        if not step_thread.is_alive():
+            break
+        elapsed += wait_seconds
+        if elapsed >= timeout_seconds:
+            _emit_progress(
+                progress_callback,
+                stage="hidden_step_timeout",
+                message=f"{label} timed out after {timeout_seconds}s.",
+                progress=min(progress + 0.02, 0.9),
+                elapsed_seconds=int(elapsed),
+            )
+            raise TimeoutError(f"{label} timed out after {timeout_seconds}s.")
+        _emit_progress(
+            progress_callback,
+            stage="hidden_step_heartbeat",
+            message=f"Still preparing {label}... ({int(elapsed)}s)",
+            progress=min(progress + 0.01, 0.9),
+            elapsed_seconds=int(elapsed),
+        )
+    if error_box[0] is not None:
+        raise error_box[0]
+    return result_box[0]
+
+
+def _completed_seeded_evidence_count(tool_calls: list[dict[str, Any]], seeded_names: set[str]) -> int:
+    return sum(
+        1
+        for call in tool_calls
+        if str(call.get("status") or "") == "completed"
+        and _clean(call.get("tool_name")) in seeded_names
+        and not _tool_call_is_low_signal(call)
+    )
+
+
+def _tool_call_is_low_signal(tool_call: dict[str, Any]) -> bool:
+    text = _json_dumps(tool_call.get("result_summary") or {}, limit=1800).lower()
+    low_signal_markers = (
+        "0 results",
+        "no results",
+        "no matching",
+        "no retained",
+        "no company context",
+        "no recent news",
+        "returned empty",
+        "no results returned",
+    )
+    return any(marker in text for marker in low_signal_markers)
+
+
+def _should_skip_planner_after_bootstrap(query: str, tool_calls: list[dict[str, Any]], seeded_names: set[str]) -> bool:
+    tickers = _extract_query_tickers(query)
+    if _completed_seeded_evidence_count(tool_calls, seeded_names) <= 0:
+        return False
+    completed = _completed_tool_names(tool_calls)
+    meaningful_completed = {
+        _clean(call.get("tool_name"))
+        for call in tool_calls
+        if str(call.get("status") or "") == "completed"
+        and not _tool_call_is_low_signal(call)
+    }
+    if _query_looks_broad_market(query, tickers) and (
+        "dataset.attention_home_1d" in meaningful_completed or "research.retained_context" in meaningful_completed
+    ):
+        return True
+    if tickers and not _query_looks_current_or_event_driven(query) and "investigator.company_context" in meaningful_completed:
+        return True
+    if tickers and _query_looks_current_or_event_driven(query) and "research.live_event_evidence" in meaningful_completed:
+        return True
+    if not tickers and _query_looks_live_event_driven(query) and (
+        "research.live_event_evidence" in meaningful_completed or "research.market_impact_map" in meaningful_completed
+    ):
+        return True
+    return False
 
 
 def _planner_user_prompt(
@@ -766,6 +1453,39 @@ def _final_user_prompt(
     )
 
 
+def _synthesis_llm_client(primary_llm: LLMClient) -> LLMClient:
+    """Optionally use a faster model for final answer formatting.
+
+    Planning may benefit from a reasoning model, but when deterministic
+    bootstrap has already collected the evidence, the final step is mostly
+    compression and writing.  Keep this opt-in through env so provider swaps
+    stay scoped to the omnibar agent.
+    """
+    model_override = _clean(
+        os.getenv("OMNIBAR_AGENT_SYNTHESIS_LLM_MODEL")
+        or os.getenv("OMNIBAR_AGENT_SYNTHESIS_MODEL")
+    )
+    if not model_override:
+        return primary_llm
+    config = getattr(primary_llm, "config", None)
+    if not isinstance(config, LLMConfig):
+        return primary_llm
+    if model_override == config.model:
+        return primary_llm
+    try:
+        next_config = replace(
+            config,
+            model=model_override,
+            deployment=(
+                _clean(os.getenv("OMNIBAR_AGENT_SYNTHESIS_LLM_DEPLOYMENT"))
+                or model_override
+            ),
+        )
+        return type(primary_llm)(next_config)
+    except Exception:
+        return primary_llm
+
+
 def run_omnibar_agent(
     *,
     query: str,
@@ -775,13 +1495,19 @@ def run_omnibar_agent(
     llm_client: LLMClient | None = None,
     progress_callback: ProgressCallback | None = None,
     conversation_history: list[dict[str, Any]] | None = None,
+    persist_findings: bool = True,
 ) -> dict[str, Any]:
     normalized_query = _clean(query)
+    agent_query, followup_resolved = resolve_conversation_followup_query(
+        normalized_query,
+        conversation_history,
+    )
     # Use config-param override when caller passed the module-level default
     if max_tool_calls == DEFAULT_MAX_TOOL_CALLS:
         max_tool_calls = int(get_config_param(_P_MAX_TOOL_CALLS))
+    llm_step_timeout_seconds = max(int(get_config_param(_P_LLM_STEP_TIMEOUT_SECONDS)), 1)
     run_id = f"agrun_{uuid.uuid4().hex[:10]}"
-    if not normalized_query:
+    if not agent_query:
         return {
             "run_id": run_id,
             "status": "failed",
@@ -795,7 +1521,7 @@ def run_omnibar_agent(
         }
 
     resolved_service = service or QueryService.from_environment()
-    resolved_llm = llm_client or load_llm_client()
+    resolved_llm = llm_client or load_llm_client(env_prefix="OMNIBAR_AGENT_") or load_llm_client()
     if resolved_llm is None:
         return {
             "run_id": run_id,
@@ -815,6 +1541,15 @@ def run_omnibar_agent(
         progress=0.04,
         run_id=run_id,
     )
+    if followup_resolved:
+        _emit_progress(
+            progress_callback,
+            stage="conversation_followup_resolved",
+            message="Resolved the reply against the prior chat turn.",
+            progress=0.06,
+            original_query=normalized_query,
+            resolved_query=agent_query,
+        )
     tool_catalog = build_tool_catalog(resolved_service)
     # Inject conversation.prior_answers tool when chat history is available
     if conversation_history:
@@ -852,8 +1587,15 @@ def run_omnibar_agent(
     _prefetch_chunk_limit = int(get_config_param(_P_PREFETCH_CHUNK_TEXT_LIMIT))
     try:
         from .saa import search_retained_evidence_chunks
-        saa_frame = search_retained_evidence_chunks(
-            query=normalized_query, limit=_prefetch_limit, use_semantic=False,
+        prefetch_timeout_seconds = min(max(int(get_config_param(_P_TOOL_CALL_TIMEOUT_SECONDS)), 1), 15)
+        saa_frame = _run_hidden_step_with_timeout(
+            label="retained-evidence prefetch",
+            timeout_seconds=prefetch_timeout_seconds,
+            progress_callback=progress_callback,
+            progress=0.085,
+            func=lambda: search_retained_evidence_chunks(
+                query=agent_query, limit=_prefetch_limit, use_semantic=False,
+            ),
         )
         # If the full natural-language query returns nothing, use the LLM intent
         # classifier to extract domain-specific search keywords (e.g. "short squeeze")
@@ -861,14 +1603,26 @@ def run_omnibar_agent(
         if saa_frame.empty:
             try:
                 from .omnibar_research import market_impact_map
-                impact = market_impact_map(query=normalized_query)
+                impact = _run_hidden_step_with_timeout(
+                    label="prefetch keyword extraction",
+                    timeout_seconds=min(max(int(get_config_param(_P_TOOL_CALL_TIMEOUT_SECONDS)), 1), 15),
+                    progress_callback=progress_callback,
+                    progress=0.09,
+                    func=lambda: market_impact_map(query=agent_query),
+                )
                 search_kws = impact.get("search_keywords") or []
                 reduced = " ".join(str(k).strip() for k in search_kws if str(k).strip())
             except Exception:
                 reduced = ""
             if reduced:
-                saa_frame = search_retained_evidence_chunks(
-                    query=reduced, limit=_prefetch_limit, use_semantic=False,
+                saa_frame = _run_hidden_step_with_timeout(
+                    label="retained-evidence keyword prefetch",
+                    timeout_seconds=prefetch_timeout_seconds,
+                    progress_callback=progress_callback,
+                    progress=0.1,
+                    func=lambda: search_retained_evidence_chunks(
+                        query=reduced, limit=_prefetch_limit, use_semantic=False,
+                    ),
                 )
         if not saa_frame.empty:
             lines = [f"### Internal evidence ({len(saa_frame)} matches):"]
@@ -889,15 +1643,102 @@ def run_omnibar_agent(
 
     tool_calls: list[dict[str, Any]] = []
     seen_calls: set[str] = set()
+    _run_start_time = time.monotonic()
+    if prefetched_context:
+        prefetch_call_id = "agtc_prefetch_1"
+        _emit_progress(
+            progress_callback,
+            stage="tool_start",
+            message="Checking retained internal evidence.",
+            progress=0.09,
+            tool_name="research.prefetched_context",
+            tool_call_id=prefetch_call_id,
+            tool_call_count=0,
+            tool_arguments={"query": agent_query, "limit": _prefetch_limit},
+        )
+        tool_calls.append(
+            {
+                "tool_call_id": prefetch_call_id,
+                "tool_name": "research.prefetched_context",
+                "arguments": {"query": agent_query, "limit": _prefetch_limit},
+                "status": "completed",
+                "error": None,
+                "result_summary": {
+                    "preview_text": _truncate(prefetched_context, limit=800),
+                    "user_preview": _truncate(prefetched_context, limit=int(get_config_param(_P_USER_PREVIEW_LIMIT))),
+                    "llm_context_text": prefetched_context,
+                    "result_type": "prefetched_context",
+                    "provenance": {"source": "saa_prefetch"},
+                    "preview": {"kind": "text", "chars": len(prefetched_context)},
+                },
+            }
+        )
+        _emit_progress(
+            progress_callback,
+            stage="tool_complete",
+            message="Loaded retained internal evidence.",
+            progress=0.1,
+            tool_name="research.prefetched_context",
+            tool_call_id=prefetch_call_id,
+            tool_call_count=len(tool_calls),
+            tool_arguments={"query": agent_query, "limit": _prefetch_limit},
+            result_preview=_truncate(prefetched_context, limit=300),
+        )
+    seeded_tool_names: set[str] = set()
+    bootstrap_budget = min(
+        max(int(get_config_param(_P_BOOTSTRAP_TOOL_CALLS)), 0),
+        max(int(max_tool_calls) - len(tool_calls), 0),
+    )
+    if bootstrap_budget > 0:
+        bootstrap_plan = _bootstrap_tool_plan(
+            query=agent_query,
+            tool_catalog=tool_catalog,
+            force_refresh=force_refresh,
+            max_calls=bootstrap_budget,
+        )
+        if bootstrap_plan:
+            _emit_progress(
+                progress_callback,
+                stage="bootstrap_start",
+                message="Collecting obvious first evidence before planning.",
+                progress=0.12,
+                tool_call_count=len(tool_calls),
+            )
+        for idx, (seed_tool_name, seed_arguments) in enumerate(bootstrap_plan):
+            seeded_tool_names.add(seed_tool_name)
+            _execute_seeded_tool_call(
+                service=resolved_service,
+                run_id=run_id,
+                tool_calls=tool_calls,
+                progress_callback=progress_callback,
+                tool_name=seed_tool_name,
+                arguments=seed_arguments,
+                progress=min(0.13 + (idx * 0.04), 0.28),
+            )
+    for call in tool_calls:
+        seen_calls.add(f"{_clean(call.get('tool_name'))}::{_json_dumps(call.get('arguments') or {}, limit=1200)}")
+    skip_planner_after_bootstrap = _should_skip_planner_after_bootstrap(
+        agent_query,
+        tool_calls,
+        seeded_tool_names,
+    )
     final_answer = ""
     final_confidence = "low"
     limitations: list[str] = []
     consecutive_failed_tools = 0
-    _run_start_time = time.monotonic()
 
     try:
         total_steps = max(int(max_tool_calls), 1)
-        for step_index in range(total_steps):
+        planner_steps = 0 if skip_planner_after_bootstrap else total_steps
+        if skip_planner_after_bootstrap:
+            _emit_progress(
+                progress_callback,
+                stage="planner_skipped",
+                message="Initial evidence is sufficient; moving straight to synthesis.",
+                progress=0.9,
+                tool_call_count=len(tool_calls),
+            )
+        for step_index in range(planner_steps):
             step_progress = 0.1 + ((step_index / total_steps) * 0.62)
             _emit_progress(
                 progress_callback,
@@ -917,7 +1758,7 @@ def run_omnibar_agent(
                     _llm_result[0] = resolved_llm.generate_json(
                         system_prompt=_planner_system_prompt(),
                         user_prompt=_planner_user_prompt(
-                            query=normalized_query,
+                            query=agent_query,
                             tool_catalog=tool_catalog,
                             tool_calls=tool_calls,
                             max_tool_calls=max_tool_calls,
@@ -938,6 +1779,23 @@ def run_omnibar_agent(
                 _planner_thread.join(timeout=_heartbeat_interval)
                 if _planner_thread.is_alive():
                     _heartbeat_elapsed += _heartbeat_interval
+                    if _heartbeat_elapsed >= llm_step_timeout_seconds:
+                        timeout_error = TimeoutError(
+                            f"Planner LLM step timed out after {llm_step_timeout_seconds}s."
+                        )
+                        _llm_error[0] = timeout_error
+                        _emit_progress(
+                            progress_callback,
+                            stage="planner_timeout",
+                            message=(
+                                "The planning model step timed out; using the evidence already collected."
+                            ),
+                            progress=step_progress + 0.02,
+                            iteration=step_index + 1,
+                            elapsed_seconds=int(_heartbeat_elapsed),
+                            tool_call_count=len(tool_calls),
+                        )
+                        break
                     _emit_progress(
                         progress_callback,
                         stage="planner_heartbeat",
@@ -948,9 +1806,94 @@ def run_omnibar_agent(
                         tool_call_count=len(tool_calls),
                     )
             if _llm_error[0] is not None:
+                if isinstance(_llm_error[0], TimeoutError) and any(
+                    str(call.get("status") or "") == "completed" for call in tool_calls
+                ):
+                    limitations.append("Stopped planning after a timed-out model step; synthesizing from collected evidence.")
+                    if _needs_live_evidence_recovery(tool_calls):
+                        recovery_tool_name = "research.live_event_evidence"
+                        recovery_call_id = f"agtc_{len(tool_calls) + 1}"
+                        recovery_arguments = {
+                            "query": agent_query,
+                            "max_results": 6,
+                            "force_refresh": bool(force_refresh),
+                        }
+                        _emit_progress(
+                            progress_callback,
+                            stage="tool_start",
+                            message="Recovering with live evidence after the planner timed out.",
+                            progress=min(step_progress + 0.05, 0.88),
+                            tool_name=recovery_tool_name,
+                            tool_call_id=recovery_call_id,
+                            tool_call_count=len(tool_calls),
+                            tool_arguments=recovery_arguments,
+                        )
+                        try:
+                            recovery_result = _invoke_tool_with_heartbeat(
+                                service=resolved_service,
+                                tool_name=recovery_tool_name,
+                                arguments=recovery_arguments,
+                                run_id=run_id,
+                                progress_callback=progress_callback,
+                                progress=min(step_progress + 0.05, 0.88),
+                                tool_call_id=recovery_call_id,
+                                tool_call_count=len(tool_calls),
+                            )
+                            recovery_summary = _summarize_tool_result(recovery_result)
+                            tool_calls.append(
+                                {
+                                    "tool_call_id": recovery_call_id,
+                                    "tool_name": recovery_tool_name,
+                                    "arguments": recovery_arguments,
+                                    "status": "completed",
+                                    "error": None,
+                                    "result_summary": recovery_summary,
+                                }
+                            )
+                            _emit_progress(
+                                progress_callback,
+                                stage="tool_complete",
+                                message="Collected recovery evidence from live search.",
+                                progress=min(step_progress + 0.14, 0.92),
+                                tool_name=recovery_tool_name,
+                                tool_call_id=recovery_call_id,
+                                tool_call_count=len(tool_calls),
+                                tool_arguments=recovery_arguments,
+                                result_preview=_truncate(recovery_summary.get("user_preview") or recovery_summary.get("preview_text") or "", limit=300),
+                                render_payload=recovery_summary.get("render_payload"),
+                                source_links=recovery_summary.get("source_links"),
+                            )
+                        except Exception as exc:
+                            tool_calls.append(
+                                {
+                                    "tool_call_id": recovery_call_id,
+                                    "tool_name": recovery_tool_name,
+                                    "arguments": recovery_arguments,
+                                    "status": "failed",
+                                    "error": f"{type(exc).__name__}: {exc}",
+                                    "result_summary": {
+                                        "preview_text": f"{recovery_tool_name} failed: {exc}",
+                                        "result_type": "error",
+                                        "provenance": None,
+                                        "preview": {"kind": "error"},
+                                    },
+                                }
+                            )
+                            limitations.append(f"{recovery_tool_name} recovery failed: {type(exc).__name__}.")
+                    break
                 raise _llm_error[0]
             decision = _llm_result[0]
             assert decision is not None
+            planner_reasoning_trace = _clean(decision.get("__reasoning_content"))
+            if planner_reasoning_trace:
+                _emit_progress(
+                    progress_callback,
+                    stage="model_reasoning_trace",
+                    message="Model reasoning trace captured.",
+                    progress=step_progress + 0.015,
+                    iteration=step_index + 1,
+                    reasoning_trace=planner_reasoning_trace,
+                )
 
             action = _clean(decision.get("action")).lower()
             reasoning = _clean(decision.get("reasoning"))
@@ -1074,6 +2017,7 @@ def run_omnibar_agent(
                 progress=min(step_progress + 0.06, 0.9),
                 tool_name=tool_name,
                 tool_call_id=call_id,
+                tool_call_count=len(tool_calls),
                 tool_arguments=arguments,
             )
             try:
@@ -1083,11 +2027,15 @@ def run_omnibar_agent(
                         str((arguments or {}).get("search_text") or ""),
                     )
                 else:
-                    result = invoke_tool(
+                    result = _invoke_tool_with_heartbeat(
                         service=resolved_service,
                         tool_name=tool_name,
                         arguments=arguments,
                         run_id=run_id,
+                        progress_callback=progress_callback,
+                        progress=min(step_progress + 0.06, 0.9),
+                        tool_call_id=call_id,
+                        tool_call_count=len(tool_calls),
                     )
                 result_summary = _summarize_tool_result(result)
                 tool_calls.append(
@@ -1154,12 +2102,63 @@ def run_omnibar_agent(
                 progress=0.94,
                 tool_call_count=len(tool_calls),
             )
-            final_payload = resolved_llm.generate_json(
-                system_prompt=get_prompt(_AGENT_FINAL_SYSTEM_PROMPT),
-                user_prompt=_final_user_prompt(query=normalized_query, tool_calls=tool_calls, conversation_history=conversation_history, prefetched_context=prefetched_context),
-                schema_name="omnibar_agent_final",
-                schema=_FINAL_SCHEMA,
-            )
+            _final_result: list[dict[str, Any] | None] = [None]
+            _final_error: list[BaseException | None] = [None]
+            synthesis_llm = _synthesis_llm_client(resolved_llm)
+
+            def _run_final_synthesis() -> None:
+                try:
+                    _final_result[0] = synthesis_llm.generate_json(
+                        system_prompt=get_prompt(_AGENT_FINAL_SYSTEM_PROMPT),
+                        user_prompt=_final_user_prompt(query=agent_query, tool_calls=tool_calls, conversation_history=conversation_history, prefetched_context=prefetched_context),
+                        schema_name="omnibar_agent_final",
+                        schema=_FINAL_SCHEMA,
+                    )
+                except BaseException as exc:
+                    _final_error[0] = exc
+
+            _final_thread = threading.Thread(target=_run_final_synthesis, daemon=True)
+            _final_thread.start()
+            _heartbeat_interval = 5.0
+            _heartbeat_elapsed = 0.0
+            while _final_thread.is_alive():
+                _final_thread.join(timeout=_heartbeat_interval)
+                if _final_thread.is_alive():
+                    _heartbeat_elapsed += _heartbeat_interval
+                    if _heartbeat_elapsed >= llm_step_timeout_seconds:
+                        _final_error[0] = TimeoutError(
+                            f"Final synthesis LLM step timed out after {llm_step_timeout_seconds}s."
+                        )
+                        _emit_progress(
+                            progress_callback,
+                            stage="final_synthesis_timeout",
+                            message="The final synthesis model step timed out; returning the collected evidence state.",
+                            progress=0.97,
+                            elapsed_seconds=int(_heartbeat_elapsed),
+                            tool_call_count=len(tool_calls),
+                        )
+                        break
+                    _emit_progress(
+                        progress_callback,
+                        stage="final_synthesis_heartbeat",
+                        message=f"Still synthesizing... ({int(_heartbeat_elapsed)}s)",
+                        progress=0.95,
+                        elapsed_seconds=int(_heartbeat_elapsed),
+                        tool_call_count=len(tool_calls),
+                    )
+            if _final_error[0] is not None:
+                raise _final_error[0]
+            final_payload = _final_result[0]
+            assert final_payload is not None
+            final_reasoning_trace = _clean(final_payload.get("__reasoning_content"))
+            if final_reasoning_trace:
+                _emit_progress(
+                    progress_callback,
+                    stage="model_reasoning_trace",
+                    message="Final model reasoning trace captured.",
+                    progress=0.965,
+                    reasoning_trace=final_reasoning_trace,
+                )
             final_answer = _clean(final_payload.get("answer_markdown"))
             final_confidence = _clean(final_payload.get("confidence")).lower() or "low"
             final_limitations = [
@@ -1170,43 +2169,51 @@ def run_omnibar_agent(
             for item in final_limitations:
                 if item not in limitations:
                     limitations.append(item)
-    except LLMAPIError as exc:
+    except Exception as exc:
+        if not isinstance(exc, LLMAPIError) and not _looks_like_transient_transport_error(exc):
+            raise
         duration = time.monotonic() - _run_start_time
+        safe_error = _safe_agent_error_text(exc)
         _emit_progress(
             progress_callback,
             stage="failed",
-            message="The omnibar agent hit an LLM error.",
+            message=safe_error,
             progress=1.0,
-            error=str(exc),
+            error=safe_error,
         )
-        error_text = f"{type(exc).__name__}: {exc}"
+        error_text = safe_error
+        limitation = f"LLM error: {safe_error}" if isinstance(exc, LLMAPIError) else safe_error
         error_result = {
             "run_id": run_id,
             "status": "failed",
             "mode": "sync",
             "model": str(resolved_llm.config.model),
             "tool_calls": tool_calls,
-            "answer_markdown": _fallback_answer(normalized_query, tool_calls),
+            "answer_markdown": _fallback_answer(agent_query, tool_calls),
             "confidence": "low",
-            "limitations": limitations + [f"LLM error: {exc}"],
+            "limitations": limitations + [limitation],
             "error": error_text,
+            "query": agent_query,
+            "original_query": normalized_query,
+            "followup_resolved": followup_resolved,
         }
-        _persist_agent_findings(
-            run_id=run_id,
-            query=normalized_query,
-            status="failed",
-            model=str(resolved_llm.config.model),
-            answer=error_result["answer_markdown"],
-            confidence="low",
-            tool_calls=tool_calls,
-            limitations=error_result["limitations"],
-            error=error_text,
-            duration_seconds=duration,
-            service=resolved_service,
-        )
+        if persist_findings:
+            _persist_agent_findings(
+                run_id=run_id,
+                query=agent_query,
+                status="failed",
+                model=str(resolved_llm.config.model),
+                answer=error_result["answer_markdown"],
+                confidence="low",
+                tool_calls=tool_calls,
+                limitations=error_result["limitations"],
+                error=error_text,
+                duration_seconds=duration,
+                service=resolved_service,
+            )
         return error_result
 
-    answer_markdown = final_answer or _fallback_answer(normalized_query, tool_calls)
+    answer_markdown = final_answer or _fallback_answer(agent_query, tool_calls)
     status = "completed" if answer_markdown else "failed"
     _emit_progress(
         progress_callback,
@@ -1223,25 +2230,30 @@ def run_omnibar_agent(
         "status": status,
         "mode": "sync",
         "model": str(resolved_llm.config.model),
+        "synthesis_model": str(getattr(getattr(_synthesis_llm_client(resolved_llm), "config", object()), "model", resolved_llm.config.model)),
         "tool_calls": tool_calls,
         "answer_markdown": answer_markdown,
         "confidence": final_confidence,
         "limitations": limitations,
         "error": error_text,
+        "query": agent_query,
+        "original_query": normalized_query,
+        "followup_resolved": followup_resolved,
     }
-    _persist_agent_findings(
-        run_id=run_id,
-        query=normalized_query,
-        status=status,
-        model=str(resolved_llm.config.model),
-        answer=answer_markdown,
-        confidence=final_confidence,
-        tool_calls=tool_calls,
-        limitations=limitations,
-        error=error_text,
-        duration_seconds=duration,
-        service=resolved_service,
-    )
+    if persist_findings:
+        _persist_agent_findings(
+            run_id=run_id,
+            query=agent_query,
+            status=status,
+            model=str(resolved_llm.config.model),
+            answer=answer_markdown,
+            confidence=final_confidence,
+            tool_calls=tool_calls,
+            limitations=limitations,
+            error=error_text,
+            duration_seconds=duration,
+            service=resolved_service,
+        )
     return result
 
 
@@ -1345,5 +2357,6 @@ def _write_back_agent_evidence(
 
 __all__ = [
     "DEFAULT_MAX_TOOL_CALLS",
+    "resolve_conversation_followup_query",
     "run_omnibar_agent",
 ]

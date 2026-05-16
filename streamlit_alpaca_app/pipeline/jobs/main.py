@@ -6,6 +6,8 @@ from io import BytesIO
 import hashlib
 import json
 import os
+import queue
+import threading
 import uuid
 from typing import Any
 
@@ -34,6 +36,7 @@ from services.attention_context_llm import (
     merge_attention_context_with_llm,
 )
 from services.config import AppConfig, alpaca_secret_name_settings
+from services.company_baseline import build_company_baseline_frame
 from services.edgar import DEFAULT_EDGAR_FORMS, EdgarAPIError, EdgarClient, build_attention_context_bundle
 from services.entity_taxonomy import (
     bootstrap_entity_taxonomy_tables,
@@ -59,6 +62,7 @@ from services.saa import bootstrap_saa_storage, persist_retained_evidence_chunks
 from services.secrets import resolve_secret_value
 from services.simfin_refresh import build_quarterly_fundamentals_frame, simfin_refresh_configured
 from services.treasury_yields import TreasuryYieldError, load_treasury_yield_datasets
+from services.trading_agent import build_trading_agent_materialized_frames, build_trading_agent_suggestions
 from services.universe import build_liquidity_ranked_equity_universe, load_us_equity_listings
 
 try:
@@ -87,6 +91,10 @@ class JobContext:
     run_id: str
     asof: datetime
     universe_version: str
+
+
+class _PipelineStepTimeout(TimeoutError):
+    pass
 
 
 def _utc_now() -> datetime:
@@ -576,6 +584,30 @@ def _parse_float_env(name: str, default: float, *, minimum: float = 0.0) -> floa
     except Exception:
         value = float(default)
     return max(value, minimum)
+
+
+def _call_with_timeout(label: str, timeout_seconds: int, fn: Any) -> Any:
+    timeout = max(int(timeout_seconds), 0)
+    if timeout <= 0:
+        return fn()
+
+    result_queue: queue.Queue[tuple[str, Any]] = queue.Queue(maxsize=1)
+
+    def _runner() -> None:
+        try:
+            result_queue.put(("ok", fn()))
+        except BaseException as exc:
+            result_queue.put(("error", exc))
+
+    thread = threading.Thread(target=_runner, name=f"pipeline-timeout-{label[:32]}", daemon=True)
+    thread.start()
+    thread.join(float(timeout))
+    if thread.is_alive():
+        raise _PipelineStepTimeout(f"{label} exceeded {timeout}s")
+    status, payload = result_queue.get_nowait()
+    if status == "error":
+        raise payload
+    return payload
 
 
 def _equity_universe_target_size(default: int = 1000) -> int:
@@ -1695,6 +1727,77 @@ def run_attention_home(ctx: JobContext, conn: Any | None = None) -> None:
     )
 
 
+def _trading_agent_horizon_timeout_seconds() -> int:
+    return _parse_int_env("TRADING_AGENT_HORIZON_TIMEOUT_SECONDS", 300, minimum=30)
+
+
+def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
+    _job_progress(ctx, conn, stage="starting", message="Starting Trading Agent materialization.", progress_pct=1.0)
+    opportunity_feed = _load_latest_materialized_frame("market_opportunity_feed")
+    if opportunity_feed.empty:
+        message = "Trading Agent materialization requires market_opportunity_feed from attention-home-build."
+        _job_progress(ctx, conn, stage="failed", message=message, progress_pct=100.0, status="Failed")
+        raise RuntimeError(message)
+
+    page_summaries = _load_latest_materialized_frame("page_agentic_summaries")
+    llm_client = None
+    try:
+        llm_client = load_llm_client()
+    except LLMAPIError as exc:
+        print(f"[warn] trading-agent LLM runtime unavailable: {exc}")
+
+    candidate_limit = _parse_int_env("TRADING_AGENT_CANDIDATE_LIMIT", 4, minimum=1)
+    timeout_seconds = _trading_agent_horizon_timeout_seconds()
+
+    def _bounded_suggestion_builder(**kwargs: Any) -> dict[str, Any]:
+        context = kwargs.get("context") if isinstance(kwargs.get("context"), dict) else {}
+        controls = context.get("controls") if isinstance(context.get("controls"), dict) else {}
+        horizon_label = str(controls.get("selected_horizon_label") or controls.get("momentum_horizon") or "horizon")
+        return _call_with_timeout(
+            f"trading agent {horizon_label}",
+            timeout_seconds,
+            lambda: build_trading_agent_suggestions(**kwargs),
+        )
+
+    _job_progress(
+        ctx,
+        conn,
+        stage="build_horizons",
+        message=(
+            "Building Trading Agent research candidates across 1 week, 1 month, 3 month, "
+            "1 year, and 5 year horizons."
+        ),
+        progress_pct=15.0,
+    )
+    runs, candidates = build_trading_agent_materialized_frames(
+        opportunity_feed=opportunity_feed,
+        page_summaries=page_summaries,
+        llm_client=llm_client,
+        run_id=ctx.run_id,
+        asof_time_utc=ctx.asof,
+        business_filter="All Market",
+        max_candidates=candidate_limit,
+        suggestion_builder=_bounded_suggestion_builder,
+    )
+
+    _job_progress(
+        ctx,
+        conn,
+        stage="persist_trading_agent",
+        message=f"Persisting Trading Agent runs={len(runs)} candidates={len(candidates)}.",
+        progress_pct=85.0,
+    )
+    _persist_dataset("trading_agent_runs", runs, ctx, conn)
+    _persist_dataset("trading_agent_candidates", candidates, ctx, conn)
+    _job_progress(
+        ctx,
+        conn,
+        stage="done",
+        message=f"Trading Agent materialization complete: runs={len(runs)} candidates={len(candidates)}.",
+        progress_pct=100.0,
+    )
+
+
 def _build_us_equity_listings_snapshot() -> pd.DataFrame:
     listings = load_us_equity_listings(
         include_etfs=_parse_bool_env("TAXONOMY_INCLUDE_ETFS", True),
@@ -1928,6 +2031,50 @@ def run_entity_taxonomy(ctx: JobContext, conn: Any | None = None) -> None:
         deactivate_missing_taxonomy_symbols(conn, snapshot["symbol"].tolist())
 
 
+def run_company_baselines(ctx: JobContext, conn: Any | None = None) -> None:
+    _job_progress(ctx, conn, stage="starting", message="Starting company baseline prefetch.", progress_pct=1.0)
+    limit = _parse_int_env("COMPANY_BASELINE_LIMIT", 50, minimum=1)
+    target_size = max(_equity_universe_target_size(limit), limit)
+    symbols = _symbols_from_env()
+    universe = _load_latest_equity_universe_snapshot(target_size)
+
+    if universe.empty:
+        cfg = _alpaca_config()
+        if cfg is not None:
+            try:
+                universe = _build_equity_universe_snapshot(AlpacaAPI(cfg), target_size=target_size)
+            except Exception as exc:
+                print(f"[warn] company baseline universe rebuild failed: {type(exc).__name__}: {exc}")
+                universe = pd.DataFrame()
+
+    if universe.empty and symbols:
+        universe = pd.DataFrame({"symbol": symbols, "name": symbols})
+
+    if universe.empty:
+        print("[warn] company baseline prefetch skipped: no universe snapshot available")
+        _persist_dataset("company_baselines", pd.DataFrame(), ctx, conn)
+        return
+
+    if symbols:
+        print(f"[info] company baseline using explicit UNIVERSE_SYMBOLS override count={len(symbols)}")
+
+    frame = build_company_baseline_frame(
+        universe,
+        symbols=symbols,
+        limit=limit,
+        asof_time_utc=ctx.asof,
+        run_id=ctx.run_id,
+    )
+    _job_progress(
+        ctx,
+        conn,
+        stage="persist_company_baselines",
+        message=f"Persisting company baseline rows={len(frame)}.",
+        progress_pct=90.0,
+    )
+    _persist_dataset("company_baselines", frame, ctx, conn)
+
+
 def run_universe_builder(ctx: JobContext, conn: Any | None = None) -> None:
     _job_progress(ctx, conn, stage="starting", message="Starting universe builder.", progress_pct=1.0)
     cfg = _alpaca_config()
@@ -1974,7 +2121,9 @@ def main() -> None:
         "options-liquid-universe": run_options,
         "news-ingest-and-features": run_news,
         "attention-home-build": run_attention_home,
+        "trading-agent-build": run_trading_agent,
         "entity-taxonomy-refresh": run_entity_taxonomy,
+        "company-baseline-prefetch": run_company_baselines,
         "fundamentals-quarterly-refresh": run_fundamentals,
     }
 

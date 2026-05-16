@@ -1,6 +1,12 @@
 from __future__ import annotations
 
+from io import BytesIO
+
+import networkx as nx
+import pandas as pd
+
 from services import knowledge_graph as kg
+from services import knowledge_graph_proposals as kgp
 
 
 def _isolated_snapshot(monkeypatch) -> dict[str, object]:
@@ -148,6 +154,44 @@ def test_plot_knowledge_graph_draft_returns_nonempty_figure(monkeypatch):
 
     assert fig.data
     assert fig.layout.title.text == "Knowledge Graph Draft"
+    assert fig.layout.annotations
+    assert any("->" in str(trace.hovertext) for trace in fig.data if getattr(trace, "hovertext", None) is not None)
+
+
+def test_build_knowledge_graph_overview_caps_and_plots(monkeypatch):
+    snapshot = _isolated_snapshot(monkeypatch)
+
+    overview = kg.build_knowledge_graph_overview(snapshot=snapshot, max_nodes=8, max_edges=10)
+    fig = kg.plot_knowledge_graph_draft(overview)
+
+    assert overview["title"] == "Knowledge Graph Overview"
+    assert len(overview["nodes"]) <= 8
+    assert len(overview["edges"]) <= 10
+    assert overview["nodes"]
+    assert fig.data
+    assert fig.layout.title.text == "Knowledge Graph Overview"
+
+
+def test_component_packed_layout_separates_disconnected_components():
+    graph = nx.Graph()
+    graph.add_edge("a", "b")
+    graph.add_edge("c", "d")
+    graph.add_edge("e", "f")
+
+    positions = kg._component_packed_layout(graph)
+    centroids = []
+    for component in nx.connected_components(graph):
+        xs = [positions[node_id][0] for node_id in component]
+        ys = [positions[node_id][1] for node_id in component]
+        centroids.append((sum(xs) / len(xs), sum(ys) / len(ys)))
+
+    distances = [
+        ((left[0] - right[0]) ** 2 + (left[1] - right[1]) ** 2) ** 0.5
+        for index, left in enumerate(centroids)
+        for right in centroids[index + 1 :]
+    ]
+    assert positions
+    assert min(distances) > 2.0
 
 
 def test_graph_expansion_schema_requires_all_defined_item_properties():
@@ -156,3 +200,83 @@ def test_graph_expansion_schema_requires_all_defined_item_properties():
 
     assert set(node_item["required"]) == set(node_item["properties"])
     assert set(edge_item["required"]) == set(edge_item["properties"])
+
+
+def test_attention_knowledge_graph_proposals_include_reviewable_macro_edges(monkeypatch):
+    snapshot = _isolated_snapshot(monkeypatch)
+
+    proposals = kgp.build_attention_knowledge_graph_proposals(
+        run_id="run-kg",
+        asof_time_utc=pd.Timestamp("2026-04-27T12:00:00Z"),
+        claims_frame=pd.DataFrame(),
+        macro_edges_frame=pd.DataFrame(
+            [
+                {
+                    "run_id": "run-kg",
+                    "edge_id": "inflation_to_rates",
+                    "from_node": "inflation",
+                    "to_node": "rates",
+                    "expected_sign": 1,
+                    "lag_window": "same_day",
+                    "regime_filter": "all",
+                    "strength_weight": 1.4,
+                    "confidence_prior": 0.72,
+                }
+            ]
+        ),
+        relationship_checks_frame=pd.DataFrame(
+            [{"edge_id": "inflation_to_rates", "consistency_status": "holding"}]
+        ),
+        snapshot=snapshot,
+    )
+
+    edge_rows = proposals[proposals["proposal_type"] == "edge"]
+
+    assert not proposals.empty
+    assert {"inflation", "rates"} <= set(proposals["node_id"].astype(str)) | set(edge_rows["source_node_id"].astype(str)) | set(edge_rows["target_node_id"].astype(str))
+    assert edge_rows.iloc[0]["operation"] == "add_edge"
+    assert edge_rows.iloc[0]["relationship"] == "influences"
+    assert edge_rows.iloc[0]["confidence"] == 0.72
+
+    buffer = BytesIO()
+    proposals.to_parquet(buffer, index=False)
+    assert buffer.getbuffer().nbytes > 0
+
+
+def test_knowledge_graph_draft_from_attention_proposals_is_editable(monkeypatch):
+    snapshot = _isolated_snapshot(monkeypatch)
+    proposals = pd.DataFrame(
+        [
+            {
+                "proposal_id": "kgp::node",
+                "proposal_type": "node",
+                "operation": "add_node",
+                "review_status": "proposed",
+                "node_id": "optical_networking",
+                "label": "Optical Networking",
+                "node_type": "technology",
+                "confidence": 0.8,
+                "rationale": "Extracted from evidence.",
+            },
+            {
+                "proposal_id": "kgp::edge",
+                "proposal_type": "edge",
+                "operation": "add_edge",
+                "review_status": "proposed",
+                "source_record_id": "ai_compute_influences_optical_networking",
+                "source_node_id": "ai_compute",
+                "target_node_id": "optical_networking",
+                "relationship": "raises_demand",
+                "severity": 0.7,
+                "confidence": 0.75,
+                "rationale": "Evidence links AI compute demand to optical networking.",
+            },
+        ]
+    )
+
+    draft = kgp.build_knowledge_graph_draft_from_proposals(proposals, snapshot=snapshot)
+
+    assert draft["title"] == "Attention Knowledge Graph Proposals"
+    assert "optical_networking" in {row["node_id"] for row in draft["nodes"]}
+    assert "ai_compute_influences_optical_networking" in {row["edge_id"] for row in draft["edges"]}
+    assert draft["edges"][0]["source_status"] == "agent_suggested"

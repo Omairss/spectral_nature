@@ -21,6 +21,10 @@ FORBIDDEN_PATTERNS = {
         "from .aql.summarizer import verify_hypothesis",
         "from services.aql.summarizer import verify_hypothesis",
     ),
+    "Entity extraction imports must go through services.entity_extraction": (
+        "from .aql.entities",
+        "from services.aql.entities",
+    ),
     "Shared market activity helpers must go through services.common": (
         "from .market_activity_shared",
         "from services.market_activity_shared",
@@ -33,6 +37,7 @@ FORBIDDEN_PATTERNS = {
 ALLOWED_FILES = {
     SERVICE_ROOT / "aql" / "chat_log.py",
     SERVICE_ROOT / "aql" / "scratchpad.py",
+    SERVICE_ROOT / "aql" / "entities.py",
     SERVICE_ROOT / "market_activity_shared.py",
     SERVICE_ROOT / "market_data" / "__init__.py",
 }

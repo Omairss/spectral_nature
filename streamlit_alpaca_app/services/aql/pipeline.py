@@ -6,6 +6,9 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import os
+import queue
+import threading
 from datetime import datetime, timezone
 from typing import Any, Callable
 
@@ -62,6 +65,55 @@ from .macro import (
     _materialize_macro_causal_graph_edges,
     _verify_macro_hypotheses_with_web_evidence,
 )
+
+
+class AQLStepTimeout(TimeoutError):
+    pass
+
+
+def _env_positive_int(name: str, default: int) -> int:
+    raw = (os.getenv(name) or str(default)).strip()
+    try:
+        parsed = int(raw)
+    except Exception:
+        parsed = default
+    return max(parsed, 1)
+
+
+def _candidate_research_timeout_seconds() -> int:
+    return _env_positive_int("AQL_CANDIDATE_RESEARCH_TIMEOUT_SECONDS", 90)
+
+
+def _event_bundle_timeout_seconds() -> int:
+    return _env_positive_int("AQL_EVENT_BUNDLE_TIMEOUT_SECONDS", 60)
+
+
+def _macro_verification_timeout_seconds() -> int:
+    return _env_positive_int("AQL_MACRO_VERIFICATION_TIMEOUT_SECONDS", 120)
+
+
+def _call_with_timeout(label: str, timeout_seconds: int, fn: Callable[[], Any]) -> Any:
+    if timeout_seconds <= 0:
+        return fn()
+
+    result_queue: queue.Queue[tuple[str, Any]] = queue.Queue(maxsize=1)
+
+    def _runner() -> None:
+        try:
+            result_queue.put(("ok", fn()))
+        except BaseException as exc:
+            result_queue.put(("error", exc))
+
+    thread = threading.Thread(target=_runner, name=f"aql-timeout-{label[:32]}", daemon=True)
+    thread.start()
+    thread.join(float(timeout_seconds))
+    if thread.is_alive():
+        raise AQLStepTimeout(f"{label} exceeded {timeout_seconds}s")
+
+    status, payload = result_queue.get_nowait()
+    if status == "error":
+        raise payload
+    return payload
 
 
 def build_bottom_up_attention_artifacts(
@@ -161,33 +213,67 @@ def build_bottom_up_attention_artifacts(
     bundle_map: dict[str, dict[str, Any]] = {}
     claim_map: dict[str, list[dict[str, Any]]] = {}
 
-    research_total = len(research_candidates)
-    for index, candidate in enumerate(research_candidates, start=1):
-        if progress_callback is not None:
-            try:
-                progress_callback(index, research_total, candidate)
-            except Exception:
-                pass
+    def _fallback_candidate_payload(candidate: dict[str, Any], reason: str) -> dict[str, Any]:
+        symbol = _normalize_symbol(candidate.get("symbol"))
+        plan_row = {
+            "run_id": run_id,
+            "asof_time_utc": asof_time_utc,
+            "candidate_id": _coerce_text(candidate.get("candidate_id")),
+            "symbol": symbol,
+            "prompt_version": prompt_version,
+            "model_name": "heuristic",
+            "research_subjects_json": _json_dumps([]),
+            "hypotheses_json": _json_dumps([]),
+            "queries_json": _json_dumps([]),
+            "official_routes_json": _json_dumps([]),
+            "priority_entities_json": _json_dumps([]),
+            "evidence_budget": 0,
+            "fallback_reason": reason,
+        }
+        bundle = _build_candidate_bundle(
+            candidate,
+            [],
+            [],
+            [],
+            llm_client=None,
+            prompt_version=prompt_version,
+            model_name="heuristic",
+            run_id=run_id,
+            yield_facts=_latest_yield_facts(yield_curve_facts_frame) if _yield_context_relevant(candidate) else {},
+        )
+        return {
+            "symbol": symbol,
+            "plan_row": plan_row,
+            "request_rows": [],
+            "result_rows": [],
+            "document_rows": [],
+            "chunks": pd.DataFrame(),
+            "claims": [],
+            "claims_frame": pd.DataFrame(),
+            "bundle": bundle,
+        }
+
+    def _research_one_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
         peer_symbols = _peer_candidates(candidate, candidates, limit=5)
         plan = _plan_candidate_research(candidate, peer_symbols, llm_client)
-        plan_rows.append(
-            {
-                "run_id": run_id,
-                "asof_time_utc": asof_time_utc,
-                "candidate_id": _coerce_text(candidate.get("candidate_id")),
-                "symbol": _normalize_symbol(candidate.get("symbol")),
-                "prompt_version": prompt_version,
-                "model_name": model_name,
-                "research_subjects_json": _json_dumps(plan.get("research_subjects") or []),
-                "hypotheses_json": _json_dumps(plan.get("hypotheses") or []),
-                "queries_json": _json_dumps(plan.get("queries") or []),
-                "official_routes_json": _json_dumps(plan.get("official_routes") or []),
-                "priority_entities_json": _json_dumps(plan.get("priority_entities") or []),
-                "evidence_budget": int(plan.get("evidence_budget") or 8),
-            }
-        )
+        plan_row = {
+            "run_id": run_id,
+            "asof_time_utc": asof_time_utc,
+            "candidate_id": _coerce_text(candidate.get("candidate_id")),
+            "symbol": _normalize_symbol(candidate.get("symbol")),
+            "prompt_version": prompt_version,
+            "model_name": model_name,
+            "research_subjects_json": _json_dumps(plan.get("research_subjects") or []),
+            "hypotheses_json": _json_dumps(plan.get("hypotheses") or []),
+            "queries_json": _json_dumps(plan.get("queries") or []),
+            "official_routes_json": _json_dumps(plan.get("official_routes") or []),
+            "priority_entities_json": _json_dumps(plan.get("priority_entities") or []),
+            "evidence_budget": int(plan.get("evidence_budget") or 8),
+        }
         per_query_budget = max(int(plan.get("evidence_budget") or 8) // max(len(plan.get("queries") or []), 1), 2)
         candidate_results: list[dict[str, Any]] = []
+        local_request_rows: list[dict[str, Any]] = []
+        local_result_rows: list[dict[str, Any]] = []
         for query in list(plan.get("queries") or [])[:4]:
             req_rows, res_rows = _search_query_results(
                 _coerce_text((query or {}).get("query")),
@@ -201,8 +287,8 @@ def build_bottom_up_attention_artifacts(
                 llm_client=llm_client,
                 budget=per_query_budget,
             )
-            request_rows.extend(req_rows)
-            result_rows.extend(res_rows)
+            local_request_rows.extend(req_rows)
+            local_result_rows.extend(res_rows)
             candidate_results.extend(res_rows)
         documents = _candidate_context_documents(
             candidate,
@@ -233,15 +319,12 @@ def build_bottom_up_attention_artifacts(
             seen_doc_ids.add(doc_id)
             deduped_documents.append(item)
         deduped_documents = annotate_source_documents(deduped_documents, asof_time_utc=asof_time_utc)
-        document_rows.extend(deduped_documents)
         chunks = _chunk_source_documents(
             deduped_documents,
             run_id=run_id,
             asof_time_utc=asof_time_utc,
             embedding_client=embedding_client,
         )
-        if not chunks.empty:
-            chunk_frames.append(chunks)
         claims = _extract_claims(
             candidate,
             chunks,
@@ -250,10 +333,7 @@ def build_bottom_up_attention_artifacts(
             hypotheses=list(plan.get("hypotheses") or []),
             llm_client=llm_client,
         )
-        claim_map[_normalize_symbol(candidate.get("symbol"))] = claims
         claims_frame = _serialize_claims_frame(claims, asof_time_utc=asof_time_utc)
-        if not claims_frame.empty:
-            claim_frames.append(claims_frame)
         peer_moves = [
             {
                 "symbol": peer,
@@ -274,8 +354,54 @@ def build_bottom_up_attention_artifacts(
             run_id=run_id,
             yield_facts=_latest_yield_facts(yield_curve_facts_frame) if _yield_context_relevant(candidate) else {},
         )
+        return {
+            "symbol": _normalize_symbol(candidate.get("symbol")),
+            "plan_row": plan_row,
+            "request_rows": local_request_rows,
+            "result_rows": local_result_rows,
+            "document_rows": deduped_documents,
+            "chunks": chunks,
+            "claims": claims,
+            "claims_frame": claims_frame,
+            "bundle": bundle,
+        }
+
+    research_total = len(research_candidates)
+    candidate_timeout_seconds = _candidate_research_timeout_seconds()
+    for index, candidate in enumerate(research_candidates, start=1):
+        if progress_callback is not None:
+            try:
+                progress_callback(index, research_total, candidate)
+            except Exception:
+                pass
+        symbol = _normalize_symbol(candidate.get("symbol"))
+        try:
+            candidate_payload = _call_with_timeout(
+                f"AQL candidate research {symbol or index}",
+                candidate_timeout_seconds,
+                lambda candidate=candidate: _research_one_candidate(candidate),
+            )
+        except Exception as exc:
+            reason = f"{type(exc).__name__}: {exc}"
+            print(f"[warn] AQL candidate research fallback symbol={symbol or '?'} reason={reason}")
+            candidate_payload = _fallback_candidate_payload(candidate, reason)
+
+        plan_rows.append(candidate_payload["plan_row"])
+        request_rows.extend(candidate_payload["request_rows"])
+        result_rows.extend(candidate_payload["result_rows"])
+        document_rows.extend(candidate_payload["document_rows"])
+        chunks = candidate_payload["chunks"]
+        if isinstance(chunks, pd.DataFrame) and not chunks.empty:
+            chunk_frames.append(chunks)
+        claims_frame = candidate_payload["claims_frame"]
+        if isinstance(claims_frame, pd.DataFrame) and not claims_frame.empty:
+            claim_frames.append(claims_frame)
+        claim_map[_normalize_symbol(candidate_payload["symbol"])] = list(candidate_payload["claims"] or [])
+        bundle = candidate_payload["bundle"]
         bundle_map[bundle["bundle_id"]] = bundle
 
+    print("[info] AQL candidate research complete; building event bundles")
+    event_bundle_timeout_seconds = _event_bundle_timeout_seconds()
     for _, candidate_row in candidates.iterrows():
         symbol = _normalize_symbol(candidate_row.get("symbol"))
         bundle_id = f"symbol::{symbol}"
@@ -324,16 +450,33 @@ def build_bottom_up_attention_artifacts(
             ),
         )
         cluster_id = f"cluster-{index:02d}-{hashlib.sha1('|'.join(symbols).encode('utf-8')).hexdigest()[:10]}"
-        bundle = _build_event_bundle(
-            cluster_id,
-            cluster_rows,
-            cluster_claims,
-            llm_client=llm_client,
-            prompt_version=prompt_version,
-            model_name=model_name,
-            run_id=run_id,
-            yield_facts=_latest_yield_facts(yield_curve_facts_frame),
-        )
+        try:
+            bundle = _call_with_timeout(
+                f"AQL event bundle {cluster_id}",
+                event_bundle_timeout_seconds,
+                lambda cluster_id=cluster_id, cluster_rows=cluster_rows, cluster_claims=cluster_claims: _build_event_bundle(
+                    cluster_id,
+                    cluster_rows,
+                    cluster_claims,
+                    llm_client=llm_client,
+                    prompt_version=prompt_version,
+                    model_name=model_name,
+                    run_id=run_id,
+                    yield_facts=_latest_yield_facts(yield_curve_facts_frame),
+                ),
+            )
+        except Exception as exc:
+            print(f"[warn] AQL event bundle fallback cluster={cluster_id} reason={type(exc).__name__}: {exc}")
+            bundle = _build_event_bundle(
+                cluster_id,
+                cluster_rows,
+                cluster_claims,
+                llm_client=None,
+                prompt_version=prompt_version,
+                model_name="heuristic",
+                run_id=run_id,
+                yield_facts=_latest_yield_facts(yield_curve_facts_frame),
+            )
         bundle_map[bundle["bundle_id"]] = bundle
         event_bundles.append(bundle)
         event_cluster_rows.append(
@@ -393,16 +536,35 @@ def build_bottom_up_attention_artifacts(
         run_id=run_id,
         profile=macro_profile,
     )
-    attention_hypotheses_frame, verification_summary_by_release, macro_verification_request_rows, macro_verification_result_rows, macro_claim_rows = _verify_macro_hypotheses_with_web_evidence(
-        hypotheses_frame=attention_hypotheses_frame,
-        macro_release_bundles=macro_release_bundles,
-        asof_time_utc=asof_time_utc,
-        run_id=run_id,
-        profile=macro_profile,
-        llm_client=llm_client,
-        serp_client=serp_client,
-        tavily_client=tavily_client,
-    )
+    print("[info] AQL macro verification starting")
+    try:
+        (
+            attention_hypotheses_frame,
+            verification_summary_by_release,
+            macro_verification_request_rows,
+            macro_verification_result_rows,
+            macro_claim_rows,
+        ) = _call_with_timeout(
+            "AQL macro verification",
+            _macro_verification_timeout_seconds(),
+            lambda: _verify_macro_hypotheses_with_web_evidence(
+                hypotheses_frame=attention_hypotheses_frame,
+                macro_release_bundles=macro_release_bundles,
+                asof_time_utc=asof_time_utc,
+                run_id=run_id,
+                profile=macro_profile,
+                llm_client=llm_client,
+                serp_client=serp_client,
+                tavily_client=tavily_client,
+            ),
+        )
+        print("[info] AQL macro verification completed")
+    except Exception as exc:
+        print(f"[warn] AQL macro verification fallback reason={type(exc).__name__}: {exc}")
+        verification_summary_by_release = {}
+        macro_verification_request_rows = []
+        macro_verification_result_rows = []
+        macro_claim_rows = []
     hypothesis_summary_by_release = {
         **hypothesis_summary_by_release,
         **{

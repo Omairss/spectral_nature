@@ -160,6 +160,113 @@ def test_data_access_layer_holding_roc_uses_materialized_momentum_profiles(monke
     assert resolved.payload["symbol"].tolist() == ["MSFT"]
 
 
+def test_data_access_layer_resolves_materialized_market_opportunity_feed(monkeypatch):
+    materialized = pd.DataFrame(
+        [
+            {
+                "business_filter": "All Market",
+                "selected_horizon_col": "return_1m_pct",
+                "selected_horizon_label": "1 Month",
+                "rank": 1,
+                "symbol": "AAPL",
+                "opportunity_score": 90.0,
+                "return_1m_pct": 8.2,
+            },
+            {
+                "business_filter": "All Market",
+                "selected_horizon_col": "return_3m_pct",
+                "selected_horizon_label": "3 Month",
+                "rank": 1,
+                "symbol": "MSFT",
+                "opportunity_score": 75.0,
+                "return_3m_pct": 4.0,
+            },
+        ]
+    )
+
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_try_pipeline_frame",
+        lambda self, dataset_name, force_refresh: (materialized.copy(), {"dataset_name": dataset_name}),
+    )
+
+    resolved = DataAccessLayer().resolve_market_opportunity_feed(
+        business_filter="All Market",
+        selected_horizon_col="return_1m_pct",
+        selected_horizon_label="1 Month",
+        symbols=["AAPL", "MSFT"],
+    )
+
+    assert resolved.provenance.mode == "materialized"
+    assert resolved.provenance.datasets == ("market_opportunity_feed",)
+    assert resolved.payload["symbol"].tolist() == ["AAPL"]
+
+
+def test_data_access_layer_resolves_latest_materialized_page_summary(monkeypatch):
+    materialized = pd.DataFrame(
+        [
+            {
+                "surface": "Broad Economy",
+                "ticker": "",
+                "context_signature": "old",
+                "status": "ok",
+                "headline": "Old macro read",
+                "confidence": "low",
+                "summary_json": json.dumps(
+                    {
+                        "status": "ok",
+                        "surface": "Broad Economy",
+                        "headline": "Old macro read",
+                        "summary_markdown": "Old macro read",
+                        "watch_items": [],
+                        "data_gaps": [],
+                        "confidence": "low",
+                    }
+                ),
+                "generated_at_utc": "2026-04-26T17:00:00Z",
+                "run_id": "old",
+            },
+            {
+                "surface": "Broad Economy",
+                "ticker": "",
+                "context_signature": "new",
+                "status": "ok",
+                "headline": "Latest macro read",
+                "confidence": "medium",
+                "summary_json": json.dumps(
+                    {
+                        "status": "ok",
+                        "surface": "Broad Economy",
+                        "headline": "Latest macro read",
+                        "summary_markdown": "Latest macro read",
+                        "watch_items": [],
+                        "data_gaps": [],
+                        "confidence": "medium",
+                    }
+                ),
+                "generated_at_utc": "2026-04-27T17:00:00Z",
+                "run_id": "new",
+            },
+        ]
+    )
+
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_try_pipeline_frame",
+        lambda self, dataset_name, force_refresh: (materialized.copy(), {"dataset_name": dataset_name}),
+    )
+
+    resolved = DataAccessLayer().resolve_page_agentic_summary(
+        surface="Broad Economy",
+        context_signature="",
+    )
+
+    assert resolved.provenance.mode == "materialized"
+    assert resolved.provenance.datasets == ("page_agentic_summaries",)
+    assert resolved.payload["headline"] == "Latest macro read"
+    assert resolved.payload["materialized"]["context_match"] == "surface"
+
+
 def test_data_access_layer_materialized_only_does_not_fallback_for_attention_home(monkeypatch):
     import data_access.layer as layer_module
 
@@ -1044,6 +1151,99 @@ def test_resolve_attention_ticker_background_reports_no_relevant_agentic_news(mo
     assert resolved.payload["news_summary_lines"][0].startswith("No relevant catalyst found")
     assert resolved.payload["recent_headlines"] == []
     assert resolved.payload["source_trace"]["relevant_news_count"] == 0
+
+
+def test_resolve_attention_ticker_background_uses_company_baseline_when_materialized_missing(monkeypatch):
+    baseline = pd.DataFrame(
+        [
+            {
+                "symbol": "VRT",
+                "company_name": "Vertiv Holdings Co",
+                "business_lens": "Power and thermal infrastructure",
+                "company_background_text": "Vertiv makes critical digital infrastructure power and thermal products.",
+                "description_text": "Vertiv makes critical digital infrastructure power and thermal products.",
+                "baseline_source": "company_baseline_prefetch",
+                "run_id": "baseline-run",
+                "asof_time_utc": "2026-04-29T12:00:00Z",
+            }
+        ]
+    )
+
+    def _frame(self, dataset_name):
+        if dataset_name == "company_baselines":
+            return baseline.copy(), {"dataset_name": dataset_name}
+        return pd.DataFrame(), {"dataset_name": dataset_name}
+
+    monkeypatch.setattr(DataAccessLayer, "_should_try_pipeline", lambda self, force_refresh: True)
+    monkeypatch.setattr(DataAccessLayer, "_pipeline_frame", _frame)
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "resolve_attention_research_bundle",
+        lambda self, bundle_id, force_refresh=False: ResolvedPayload(
+            payload={},
+            provenance=DataProvenance(mode="materialized", datasets=(), details={}),
+        ),
+    )
+
+    resolved = DataAccessLayer().resolve_attention_ticker_background("VRT")
+
+    assert resolved.provenance.mode == "materialized"
+    assert "company_baselines" in resolved.provenance.datasets
+    assert resolved.payload["company_name"] == "Vertiv Holdings Co"
+    assert resolved.payload["company_background_text"].startswith("Vertiv makes critical")
+    assert resolved.payload["news_summary_lines"] == []
+    assert resolved.payload["source_trace"]["company_baseline_source"] == "company_baseline_prefetch"
+
+
+def test_resolve_attention_ticker_background_replaces_low_signal_materialized_context_with_baseline(monkeypatch):
+    materialized_background = pd.DataFrame(
+        [
+            {
+                "symbol": "VRT",
+                "company_name": "Vertiv Holdings Co",
+                "description_text": "6 recent article(s) over roughly the last 4 day(s); tone is mixed.",
+                "company_background_text": "6 recent article(s) over roughly the last 4 day(s); tone is mixed.",
+                "news_summary_lines_json": json.dumps(["6 recent article(s) over roughly the last 4 day(s); tone is mixed."]),
+                "recent_headlines_json": json.dumps([]),
+                "source_trace_json": json.dumps({"source": "attention_ticker_background_snapshots"}),
+            }
+        ]
+    )
+    baseline = pd.DataFrame(
+        [
+            {
+                "symbol": "VRT",
+                "company_name": "Vertiv Holdings Co",
+                "company_background_text": "Vertiv makes power, cooling, racks, and services for data centers.",
+                "description_text": "Vertiv makes power, cooling, racks, and services for data centers.",
+                "baseline_source": "company_baseline_prefetch",
+            }
+        ]
+    )
+
+    def _frame(self, dataset_name):
+        if dataset_name == "company_baselines":
+            return baseline.copy(), {"dataset_name": dataset_name}
+        if dataset_name == "attention_ticker_background_snapshots":
+            return materialized_background.copy(), {"dataset_name": dataset_name}
+        return pd.DataFrame(), {"dataset_name": dataset_name}
+
+    monkeypatch.setattr(DataAccessLayer, "_should_try_pipeline", lambda self, force_refresh: True)
+    monkeypatch.setattr(DataAccessLayer, "_pipeline_frame", _frame)
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "resolve_attention_research_bundle",
+        lambda self, bundle_id, force_refresh=False: ResolvedPayload(
+            payload={},
+            provenance=DataProvenance(mode="materialized", datasets=(), details={}),
+        ),
+    )
+
+    resolved = DataAccessLayer().resolve_attention_ticker_background("VRT")
+
+    assert resolved.payload["description_text"].startswith("Vertiv makes power")
+    assert resolved.payload["company_background_text"].startswith("Vertiv makes power")
+    assert set(resolved.provenance.datasets) == {"attention_ticker_background_snapshots", "company_baselines"}
 
 
 def test_resolve_attention_ticker_background_keeps_materialized_context_when_bundle_has_no_web_headlines(monkeypatch):

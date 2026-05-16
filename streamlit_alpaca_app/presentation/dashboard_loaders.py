@@ -13,6 +13,7 @@ from services.attention_feed_brief import build_attention_feed_brief
 from services.config import AppConfig
 from services.llm import LLMAPIError, load_llm_client
 from services.pipeline_store import load_latest_dataset_frame
+from services.trading_agent import build_trading_agent_suggestions
 
 _CurrentUserContextProvider = Callable[[], Any]
 _DataAccessLayerFactory = Callable[..., Any]
@@ -179,6 +180,29 @@ def _scan_momentum_profiles_cached(
         source="equities",
         days=days,
         symbols=symbols,
+        force_refresh=force_refresh,
+    )
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def _load_market_opportunity_feed_cached(
+    cfg: AppConfig,
+    business_filter: str = "All Market",
+    selected_horizon_col: str = "return_1m_pct",
+    selected_horizon_label: str = "1 Month",
+    symbols: list[str] | None = None,
+    limit: int = 80,
+    force_refresh: bool = False,
+) -> pd.DataFrame:
+    normalized_symbols = sorted({str(symbol).upper().strip() for symbol in list(symbols or []) if str(symbol).strip()})
+    return _resolve_data_access_payload(
+        "resolve_market_opportunity_feed",
+        cfg=cfg,
+        business_filter=str(business_filter or "All Market"),
+        selected_horizon_col=str(selected_horizon_col or "return_1m_pct"),
+        selected_horizon_label=str(selected_horizon_label or "1 Month"),
+        symbols=normalized_symbols,
+        limit=int(limit),
         force_refresh=force_refresh,
     )
 
@@ -388,6 +412,35 @@ def _load_universe_security_name_map(force_refresh: bool = False) -> dict[str, s
     if force_refresh:
         return _load_universe_security_name_map_uncached()
     return _load_universe_security_name_map_memoized()
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def _load_page_agentic_summary_cached(
+    surface: str,
+    context_signature: str,
+    ticker: str = "",
+    force_refresh: bool = False,
+) -> dict[str, object]:
+    return _resolve_data_access_payload(
+        "resolve_page_agentic_summary",
+        source="attention",
+        surface=str(surface or ""),
+        context_signature=str(context_signature or ""),
+        ticker=str(ticker or ""),
+        force_refresh=force_refresh,
+    )
+
+
+@st.cache_data(ttl=900, show_spinner=False)
+def _build_trading_agent_suggestions_cached(context_json: str) -> dict[str, object]:
+    try:
+        context = json.loads(context_json)
+    except Exception:
+        context = {}
+    return build_trading_agent_suggestions(
+        context=context if isinstance(context, dict) else {},
+        llm_client=load_llm_client(),
+    )
 
 
 def _latest_close_from_price_history(frame: pd.DataFrame) -> float | None:

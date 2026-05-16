@@ -818,8 +818,37 @@ def _invoke_investigator_tool(
                 story = str(context.get("context_story_text") or "").strip()
                 if story:
                     parts.append(story)
+            if not parts:
+                try:
+                    background_resolved = data_access.resolve_attention_ticker_background(ticker)
+                    background_payload = (
+                        background_resolved.payload if hasattr(background_resolved, "payload") else background_resolved
+                    )
+                    background = dict(background_payload) if isinstance(background_payload, dict) else {}
+                    company_name = str(background.get("company_name") or "").strip()
+                    business_lens = str(background.get("business_lens") or "").strip()
+                    background_text = (
+                        str(background.get("company_background_text") or "").strip()
+                        or str(background.get("description_text") or "").strip()
+                    )
+                    if company_name and not str(context.get("company_name") or "").strip():
+                        context["company_name"] = company_name
+                    if business_lens:
+                        context["business_lens"] = business_lens
+                    if background_text:
+                        parts.append(background_text)
+                    for line in list(background.get("news_summary_lines") or [])[:3]:
+                        text = str(line or "").strip()
+                        if text:
+                            parts.append(text)
+                    trace = context.get("source_trace") if isinstance(context.get("source_trace"), dict) else {}
+                    background_trace = background.get("source_trace") if isinstance(background.get("source_trace"), dict) else {}
+                    if background_trace:
+                        context["source_trace"] = {**trace, **background_trace}
+                except Exception:
+                    pass
             context["llm_context_text"] = "\n\n".join(parts) if parts else f"No company context for {ticker}."
-            return _investigator_result(tool_name, args, context, ("attention_context_bundle",))
+            return _investigator_result(tool_name, args, context, ("attention_context_bundle", "attention_ticker_background", "company_baselines"))
 
         if tool_name == "investigator.fundamentals":
             resolved = data_access.resolve_quarterly_fundamentals(ticker)

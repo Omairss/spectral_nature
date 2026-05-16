@@ -7,6 +7,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN python -m playwright install --with-deps chromium
 
 COPY compute ./compute
+COPY data_access ./data_access
 COPY services ./services
 COPY pipeline ./pipeline
 COPY data ./data

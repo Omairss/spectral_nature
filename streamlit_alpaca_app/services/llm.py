@@ -284,7 +284,37 @@ def _clean(value: object) -> str:
     return str(value or "").strip()
 
 
-def _resolve_api_key() -> str:
+def _prefixed_env(prefix: str, name: str) -> str:
+    return f"{prefix}{name}" if prefix else name
+
+
+def _env_value(prefix: str, name: str, *fallback_names: str) -> str:
+    candidates = [_prefixed_env(prefix, name)]
+    candidates.extend(_prefixed_env(prefix, item) for item in fallback_names)
+    if prefix:
+        candidates.append(name)
+        candidates.extend(fallback_names)
+    for candidate in candidates:
+        value = _clean(os.getenv(candidate))
+        if value:
+            return value
+    return ""
+
+
+def _resolve_api_key(env_prefix: str = "") -> str:
+    if env_prefix:
+        direct = resolve_secret_value(
+            [_prefixed_env(env_prefix, "LLM_API_KEY"), _prefixed_env(env_prefix, "OPENAI_API_KEY")],
+            secret_name_env=_prefixed_env(env_prefix, "LLM_API_KEY_SECRET_NAME"),
+        )
+        if direct:
+            return direct
+        direct = resolve_secret_value(
+            [_prefixed_env(env_prefix, "OPENAI_API_KEY")],
+            secret_name_env=_prefixed_env(env_prefix, "OPENAI_API_KEY_SECRET_NAME"),
+        )
+        if direct:
+            return direct
     direct = resolve_secret_value(
         ["LLM_API_KEY", "OPENAI_API_KEY"],
         secret_name_env="LLM_API_KEY_SECRET_NAME",
@@ -361,37 +391,38 @@ def _extract_first_json_object(raw: str) -> dict[str, Any]:
     return parsed
 
 
-def load_llm_config() -> LLMConfig | None:
-    provider = (_clean(os.getenv("LLM_PROVIDER")) or "openai").lower()
+def load_llm_config(env_prefix: str = "") -> LLMConfig | None:
+    provider = (_env_value(env_prefix, "LLM_PROVIDER") or "openai").lower()
     if provider in {"", "none", "disabled", "off"}:
         return None
 
-    api_key = _resolve_api_key()
+    api_key = _resolve_api_key(env_prefix)
     if not api_key:
         return None
 
-    model = _clean(os.getenv("LLM_MODEL")) or _clean(os.getenv("OPENAI_MODEL")) or "gpt-4.1-mini"
-    deployment = _clean(os.getenv("LLM_DEPLOYMENT")) or _clean(os.getenv("AZURE_OPENAI_DEPLOYMENT")) or model
+    model = _env_value(env_prefix, "LLM_MODEL", "OPENAI_MODEL") or "gpt-4.1-mini"
+    deployment = _env_value(env_prefix, "LLM_DEPLOYMENT", "AZURE_OPENAI_DEPLOYMENT") or model
     if provider == "azure_openai":
         base_url = _normalize_azure_base_url(
-            _clean(os.getenv("LLM_BASE_URL")) or _clean(os.getenv("AZURE_OPENAI_ENDPOINT"))
+            _env_value(env_prefix, "LLM_BASE_URL", "AZURE_OPENAI_ENDPOINT")
         )
         if not base_url:
             return None
-        api_version = _clean(os.getenv("AZURE_OPENAI_API_VERSION"))
-    else:
-        base_url = _clean(os.getenv("LLM_BASE_URL")) or _clean(os.getenv("OPENAI_BASE_URL")) or "https://api.openai.com/v1"
+        api_version = _env_value(env_prefix, "AZURE_OPENAI_API_VERSION")
+    elif provider == "deepseek":
+        base_url = _env_value(env_prefix, "LLM_BASE_URL", "OPENAI_BASE_URL") or "https://api.deepseek.com"
         api_version = ""
-    timeout_seconds = max(int(_clean(os.getenv("LLM_TIMEOUT_SECONDS")) or "480"), 10)
+    else:
+        base_url = _env_value(env_prefix, "LLM_BASE_URL", "OPENAI_BASE_URL") or "https://api.openai.com/v1"
+        api_version = ""
+    timeout_seconds = max(int(_env_value(env_prefix, "LLM_TIMEOUT_SECONDS") or "480"), 10)
     default_temperature = "1" if provider == "azure_openai" else "0.2"
-    temperature = float(_clean(os.getenv("LLM_TEMPERATURE")) or default_temperature)
+    temperature = float(_env_value(env_prefix, "LLM_TEMPERATURE") or default_temperature)
     reasoning_effort = _normalized_reasoning_effort(
-        _clean(os.getenv("LLM_REASONING_EFFORT")) or _clean(os.getenv("OPENAI_REASONING_EFFORT"))
+        _env_value(env_prefix, "LLM_REASONING_EFFORT", "OPENAI_REASONING_EFFORT")
     )
-    embedding_model = _clean(os.getenv("EMBEDDING_MODEL")) or "text-embedding-3-small"
-    embedding_deployment = _clean(os.getenv("EMBEDDING_DEPLOYMENT")) or _clean(
-        os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
-    )
+    embedding_model = _env_value(env_prefix, "EMBEDDING_MODEL") or "text-embedding-3-small"
+    embedding_deployment = _env_value(env_prefix, "EMBEDDING_DEPLOYMENT", "AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
 
     return LLMConfig(
         provider=provider,
@@ -591,6 +622,81 @@ class AzureOpenAIChatJSONClient:
         return _strip_jargon_from_dict(_extract_first_json_object(raw))
 
 
+class DeepSeekChatJSONClient:
+    def __init__(self, config: LLMConfig, *, session: requests.Session | None = None) -> None:
+        if not config.api_key:
+            raise LLMAPIError("Missing DeepSeek API key.")
+        if not config.base_url:
+            raise LLMAPIError("Missing DeepSeek base URL.")
+        self.config = config
+        self.session = session or requests.Session()
+
+    def generate_json(
+        self,
+        *,
+        system_prompt: str,
+        user_prompt: str,
+        schema_name: str,
+        schema: dict[str, Any],
+    ) -> dict[str, Any]:
+        json_instruction = (
+            f"Return only one valid JSON object for schema `{schema_name}`. "
+            "Do not wrap it in markdown. The JSON object must match this JSON Schema:\n"
+            f"{json.dumps(schema, sort_keys=True)}"
+        )
+        payload: dict[str, Any] = {
+            "model": self.config.model,
+            "messages": [
+                {"role": "system", "content": f"{system_prompt}\n\n{json_instruction}"},
+                {"role": "user", "content": user_prompt},
+            ],
+            "response_format": {"type": "json_object"},
+        }
+        if not self.config.model.startswith("deepseek-reasoner"):
+            payload["temperature"] = self.config.temperature
+        if self.config.reasoning_effort:
+            payload["reasoning_effort"] = self.config.reasoning_effort
+
+        request_url = f"{self.config.base_url}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self.config.api_key}",
+            "Content-Type": "application/json",
+        }
+        import requests as _requests_mod
+        for attempt in range(2):
+            try:
+                response = self.session.post(
+                    request_url,
+                    headers=headers,
+                    json=payload,
+                    timeout=self.config.timeout_seconds,
+                )
+                break
+            except (_requests_mod.exceptions.ReadTimeout, _requests_mod.exceptions.ConnectionError):
+                if attempt == 0:
+                    continue
+                raise
+        if response.status_code != 200:
+            raise LLMAPIError(f"DeepSeek request failed status={response.status_code}: {response.text[:400]}")
+        try:
+            parsed = response.json()
+        except Exception as exc:
+            raise LLMAPIError(f"DeepSeek returned invalid JSON: {exc}") from exc
+
+        choices = parsed.get("choices") or []
+        if not choices:
+            raise LLMAPIError("DeepSeek returned no choices.")
+        message = choices[0].get("message") or {}
+        raw = _clean(message.get("content"))
+        if not raw:
+            raise LLMAPIError("DeepSeek returned empty content.")
+        result = _strip_jargon_from_dict(_extract_first_json_object(raw))
+        reasoning_content = _clean(message.get("reasoning_content"))
+        if reasoning_content:
+            result["__reasoning_content"] = reasoning_content
+        return result
+
+
 class OpenAIEmbeddingClient:
     def __init__(self, config: LLMConfig, *, session: requests.Session | None = None) -> None:
         if not config.api_key:
@@ -680,14 +786,16 @@ class AzureOpenAIEmbeddingClient:
         return vectors
 
 
-def load_llm_client() -> OpenAIChatJSONClient | AzureOpenAIChatJSONClient | None:
-    config = load_llm_config()
+def load_llm_client(env_prefix: str = "") -> OpenAIChatJSONClient | AzureOpenAIChatJSONClient | DeepSeekChatJSONClient | None:
+    config = load_llm_config(env_prefix=env_prefix)
     if config is None:
         return None
     if config.provider == "openai":
         return OpenAIChatJSONClient(config)
     if config.provider == "azure_openai":
         return AzureOpenAIChatJSONClient(config)
+    if config.provider == "deepseek":
+        return DeepSeekChatJSONClient(config)
     raise LLMAPIError(f"Unsupported LLM provider: {config.provider}")
 
 
@@ -756,6 +864,7 @@ def check_llm_readiness() -> dict[str, str]:
 __all__ = [
     "AzureOpenAIEmbeddingClient",
     "AzureOpenAIChatJSONClient",
+    "DeepSeekChatJSONClient",
     "OpenAIEmbeddingClient",
     "LLMAPIError",
     "LLMConfig",

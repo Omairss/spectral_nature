@@ -11,6 +11,7 @@ Turn the current service layout into clean independent modules with explicit con
 | SAA | retained documents, chunks, provenance, storage and retrieval | secrets, embedding client, data store | query planning, narrative generation, UI rendering |
 | AQL | query planning, evidence collection, claim extraction, hypothesis checks, synthesis | SAA, web/page research, market data APIs, LLM APIs | UI rendering, scheduled-job orchestration, raw market transforms |
 | Attention | market activity detection, event grouping, signal graph, homepage-ready attention payloads | market data, AQL public APIs, data access | web research internals, retained-evidence storage, UI widgets |
+| Entity Extraction | typed entity mentions, alias/ticker linking, KG node linking, add-node candidates | KG read APIs, entity taxonomy, market metadata, optional LLM APIs | AQL planning, KG persistence, graph traversal, UI rendering |
 | Market Data | prices, volume, fundamentals, options, macro, ownership, anomalies, signal extraction | vendor clients, compute transforms, data access | attention-specific event writing, agent planning, UI rendering |
 | Agents / Chat + Search | planning, tool routing, conversations, omnibar workflows | AQL, SAA retrieval, data access, market data, page research | module-specific business logic duplicated from tools |
 | Data Pipelines | ingestion, scheduled jobs, materialization, manifests, cache/blob writes | all producer modules through public APIs | UI rendering, ad hoc query planning |
@@ -99,6 +100,7 @@ Disallowed direction:
 Status after the boundary refactor:
 
 - `services.common` owns shared contracts, shared market-activity helpers, and shared hypothesis verification.
+- `services.entity_extraction` owns shared entity extraction and linking before KG traversal.
 - `services.agents` owns agent chat-log persistence and scratchpad state.
 - `services.market_data` owns the import interface for anomaly detection, attention candidates, correlation phase shifts, momentum profiles, and commodity regimes.
 - `services.saa` remains the interface for retained evidence persistence and retrieval.

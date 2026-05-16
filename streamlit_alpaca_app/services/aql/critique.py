@@ -118,7 +118,7 @@ _ISSUE_SCHEMA: dict[str, Any] = {
     "properties": {
         "type": {
             "type": "string",
-            "enum": ["numeric", "contradiction", "unsupported", "stale", "other"],
+            "enum": ["numeric", "contradiction", "unsupported", "stale", "gap", "orphan_symbol", "other"],
         },
         "location": {"type": "string"},
         "claim": {"type": "string"},
@@ -170,9 +170,10 @@ _JUDGE_SCHEMA: dict[str, Any] = {
             },
         },
         "audio_text": {"type": "string"},
+        "featured_symbols": {"type": "array", "items": {"type": "string"}},
         "revisions": {"type": "array", "items": _JUDGE_REVISION_SCHEMA},
     },
-    "required": ["overview", "sections", "audio_text", "revisions"],
+    "required": ["overview", "sections", "audio_text", "featured_symbols", "revisions"],
 }
 
 
@@ -182,26 +183,47 @@ _CRITIQUE_SYSTEM_PROMPT = register_narrative_prompt(
     file="services/aql/critique.py",
     group="AQL / Research",
     prompt=(
-        "You are a fact-check editor reviewing a freshly written homepage market summary. "
+        "You are an agentic fact-check editor reviewing a freshly written homepage market summary. "
+        "You have web-search tools (Tavily / SerpAPI via research.live_event_evidence and search_evidence) "
+        "and per-ticker tools (technical_signals, recent_news). Use them aggressively. "
         "Your only job is to flag flaws — never rephrase, never write replacement text. "
+        "\n\nThe user prompt includes a GROUND TRUTH block with the actual numeric moves "
+        "(`change_pct`, `surprise_z`), the cause_status, the top retained source, and the retained "
+        "narrative (`why`) for every symbol. Treat ground truth as authoritative for *numbers* and "
+        "*direction* (e.g. UP vs DOWN). Treat the `cause_status` as a starting point only — "
+        "`unresolved` / `continuation` / `developing` mean retention has not pinned the catalyst, "
+        "NOT that no catalyst exists. Your job is to FIND IT via tools when the summary says so. "
         "\n\nFlag these issue types: "
-        "1. numeric — a percent move, price, or count that is invented, off, or unverified. "
-        "2. contradiction — the summary says one thing in the overview and the opposite in a section, "
-        "or names a catalyst then says no catalyst was confirmed. "
-        "3. unsupported — a named catalyst, narrative, or causal claim with no grounding evidence in inputs. "
-        "4. stale — a claim that contradicts current data (e.g. wrong direction, outdated price). "
-        "5. other — any other clear factual or logical flaw. "
-        "\n\nUse the tools to verify specific claims: "
-        "- investigator.technical_signals → check actual price / move / regime for a ticker mentioned in the summary. "
-        "- investigator.recent_news → check whether a named catalyst actually appears in recent news. "
-        "- research.search_evidence / research.retained_context → check whether a narrative is in retained evidence. "
-        "- research.live_event_evidence → fresh web check when retained evidence is thin. "
-        "\n\nDo NOT call a tool with the same arguments twice. "
-        "When you have enough evidence — or when the summary looks clean — return action='final' "
-        "with the full issues list (empty list is fine if nothing is wrong). "
-        "Keep evidence strings concrete: actual numbers, headlines, source names. "
-        "Severity: high = numeric or contradiction visible to a reader; medium = unsupported claim; "
-        "low = phrasing nit."
+        "1. numeric — a percent move, price, or count that disagrees with ground truth or is invented. "
+        "2. contradiction — the overview and a section disagree, or one sentence names a catalyst "
+        "and the next sentence says no catalyst was confirmed. "
+        "3. unsupported — a named catalyst, narrative, or causal claim that contradicts both the "
+        "retained `why` AND your tool searches. Do NOT flag a sentence as unsupported just because "
+        "cause_status is unresolved/continuation — first check the retained `why` and search the web. "
+        "4. stale — wrong direction, wrong sign, or a price that no longer matches current data. "
+        "5. gap — the summary uses vague filler like 'no clear catalyst confirmed', 'no single driver "
+        "confirmed', 'broad sector de-risking', 'thematic risk bid', 'rallied without confirmed news', "
+        "etc. For EVERY such phrase you MUST attempt at least one targeted web search "
+        "(research.live_event_evidence) before finalizing. Examples of good gap searches: "
+        "'BNO Brent crude rally Strait of Hormuz news today', 'utilities EIX PCG SRE selloff catalyst "
+        "today', 'space infrastructure stocks RDW YSS rally short squeeze'. If a credible catalyst "
+        "surfaces in the search results, flag as 'gap' and put a one-line summary of what you found "
+        "(headline + source) in the `evidence` field — the judge will use that to rewrite. If you "
+        "searched and the news genuinely turned up nothing, do not flag — the filler is honest. "
+        "6. orphan_symbol — a ticker is in featured_symbols but never appears in the body text, or "
+        "vice versa. Severity low. "
+        "7. other — any other clear factual or logical flaw. "
+        "\n\nUse the tools: "
+        "- research.live_event_evidence → fresh web search; THIS is your main weapon for gap detection. "
+        "- research.search_evidence / research.retained_context → check the SAA evidence store. "
+        "- investigator.recent_news → recent headlines for a single ticker. "
+        "- investigator.technical_signals → confirm actual price / direction for a ticker. "
+        "\n\nDo NOT call a tool with identical arguments twice. Group queries — one search per cluster "
+        "of vague phrases (e.g. one search covering 'utilities EIX PCG SRE selloff catalyst', not one "
+        "per ticker). When you have enough evidence — or the summary is clean — return action='final' "
+        "with the full issues list. Keep evidence strings concrete: actual headlines, source names, "
+        "publish dates. Severity: high = numeric or contradiction; medium = unsupported or a gap "
+        "filled with credible new evidence; low = orphan_symbol or phrasing nit."
     ),
 )
 
@@ -211,8 +233,8 @@ _JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
     group="AQL / Research",
     prompt=(
         "You are the editor-in-chief deciding which critique flags to act on. "
-        "You receive: (1) the original summary as overview/sections/audio_text, "
-        "(2) a numbered list of critique issues with evidence. "
+        "You receive: (1) the original summary as overview/sections/audio_text and the original "
+        "featured_symbols list, (2) a numbered list of critique issues with evidence. "
         "\n\nFor each issue, decide: drop (cut the offending text), rephrase (rewrite to match evidence), "
         "or keep (critique was wrong or trivial). Record the decision in `revisions` with the issue_index. "
         "\n\nThen emit the revised summary. Rules: "
@@ -222,8 +244,17 @@ _JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
         "4. If you drop a sentence, do not pad with filler — shorter is fine. "
         "5. If a numeric claim was flagged but you have no replacement number from the evidence, "
         "remove the number rather than guess. "
-        "6. The `audio_text` must reflect the revised content (2–3 sentences, anchor-style). "
-        "Return overview/sections/audio_text in the same shape as the original."
+        "6. For type='gap' issues, the critique already supplied a credible catalyst in the evidence "
+        "field. Replace the vague 'no clear catalyst' phrasing with that catalyst, kept tight. "
+        "7. For type='orphan_symbol' issues, edit the featured_symbols list — drop tickers that don't "
+        "appear in the body, or add tickers that the body discusses but the list omits. "
+        "8. The `audio_text` must reflect the revised content and remain a real spoken briefing "
+        "(8-12 concise sentences, roughly 150-230 words, anchor-style). "
+        "9. Always emit a featured_symbols list in the response, even if you didn't change it — repeat "
+        "the original list in that case. "
+        "10. Return EXACTLY ONE revised summary. Do not include the original alongside the revised. "
+        "Each section title must appear only once in the `sections` array. "
+        "Return overview/sections/audio_text/featured_symbols in the same shape as the original."
     ),
 )
 
@@ -250,10 +281,100 @@ def _featured_symbols(summary: dict[str, Any]) -> list[str]:
     return out
 
 
+def _ground_truth_text(home_payload: dict[str, Any]) -> str:
+    """Build a compact, structured GROUND TRUTH block from the home_payload.
+
+    Lists per-symbol numeric moves and cause_status from movers/unresolved, and
+    the cause_status of top events. The critique uses this to spot numeric and
+    catalyst inconsistencies without needing to look at upstream payloads.
+    """
+
+    def _fmt_pct(value: object) -> str:
+        try:
+            num = float(value)
+        except (TypeError, ValueError):
+            return "n/a"
+        return f"{num:+.2f}%"
+
+    def _fmt_z(value: object) -> str:
+        try:
+            num = float(value)
+        except (TypeError, ValueError):
+            return "n/a"
+        return f"z={num:+.2f}"
+
+    def _trim(text: object, limit: int = 240) -> str:
+        clean = " ".join(str(text or "").split()).strip()
+        return clean[: max(limit, 40)] + ("…" if len(clean) > limit else "")
+
+    lines: list[str] = []
+
+    movers = list(home_payload.get("must_read_movers") or [])
+    if movers:
+        lines.append("Must-read movers (retained narrative is supported):")
+        for item in movers[:6]:
+            symbol = str(item.get("symbol") or "?").upper()
+            change = _fmt_pct(item.get("change_pct"))
+            surprise = _fmt_z(item.get("surprise_z"))
+            cause = str(item.get("cause_status") or "?")
+            top_source = str(item.get("top_source") or "")
+            confidence = str(item.get("confidence_label") or "")
+            why = _trim(item.get("why_now_text") or item.get("why_happened_text"), limit=260)
+            tail = f"src={top_source}" if top_source else ""
+            tail = (tail + f" conf={confidence}").strip()
+            lines.append(f"- {symbol}: {change} ({surprise}, cause={cause}) {tail}".rstrip())
+            if why:
+                lines.append(f"    why_retained: {why}")
+
+    unresolved = list(home_payload.get("unresolved_large_moves") or [])
+    if unresolved:
+        lines.append("")
+        lines.append(
+            "Unresolved large moves (cause is OPEN in retained evidence — search the web "
+            "to look for a catalyst before accepting filler phrasing):"
+        )
+        for item in unresolved[:8]:
+            symbol = str(item.get("symbol") or "?").upper()
+            change = _fmt_pct(item.get("change_pct"))
+            surprise = _fmt_z(item.get("surprise_z"))
+            cause = str(item.get("cause_status") or "?")
+            top_source = str(item.get("top_source") or "")
+            why = _trim(item.get("why_now_text") or item.get("why_happened_text"), limit=260)
+            tail = f"src={top_source}" if top_source else ""
+            lines.append(f"- {symbol}: {change} ({surprise}, cause={cause}) {tail}".rstrip())
+            if why:
+                lines.append(f"    why_retained: {why}")
+
+    top_events = list(home_payload.get("top_events") or [])
+    if top_events:
+        lines.append("")
+        lines.append("Top events (clusters):")
+        for event in top_events[:5]:
+            title = str(event.get("event_title") or "?")
+            cause = str(event.get("cause_status") or "?")
+            event_type = str(event.get("event_type") or "")
+            symbols = ", ".join(
+                str(s).upper() for s in list(event.get("supporting_symbols") or [])[:6]
+            )
+            why = _trim(event.get("why_happened_text"), limit=260)
+            lines.append(f"- [{event_type}] {title} (cause={cause}; symbols: {symbols})")
+            if why:
+                lines.append(f"    why_retained: {why}")
+
+    if not lines:
+        return ""
+    return (
+        "GROUND TRUTH (from home_payload — numbers and direction are authoritative; "
+        "retained `why` is a starting point but may be incomplete — search the web when needed):\n"
+        + "\n".join(lines)
+    )
+
+
 def _critique_user_prompt(
     *,
     summary_text: str,
     featured_symbols: list[str],
+    ground_truth_text: str,
     tool_calls: list[dict[str, Any]],
     tool_catalog: list[dict[str, Any]],
     max_tool_calls: int,
@@ -265,9 +386,11 @@ def _critique_user_prompt(
             list((dict(tool.get("inputSchema") or {}).get("properties") or {}).keys())
         ) or "none"
         catalog_lines.append(f"- {tool.get('name')}: {tool.get('description')}; params: {params}")
+    ground_truth_block = f"{ground_truth_text}\n\n" if ground_truth_text else ""
     return (
+        f"{ground_truth_block}"
         f"Homepage summary under review:\n{summary_text}\n\n"
-        f"Tickers mentioned in the summary: {', '.join(featured_symbols) or '(none captured)'}\n\n"
+        f"Tickers mentioned in the summary (featured_symbols list): {', '.join(featured_symbols) or '(none captured)'}\n\n"
         f"Tool budget: {max_tool_calls - len(tool_calls)} remaining out of {max_tool_calls}.\n\n"
         "Available tools:\n"
         f"{chr(10).join(catalog_lines)}\n\n"
@@ -321,6 +444,7 @@ def critique_home_summary(
     tool_catalog = _filtered_tool_catalog(resolved_service, build_tool_catalog)
     summary_text = _summary_render_text(summary)
     featured_symbols = _featured_symbols(summary)
+    ground_truth_text = _ground_truth_text(home_payload or {})
 
     if not summary_text.strip():
         return {"issues": [], "tool_calls": [], "run_id": run_id, "skipped": True}
@@ -336,6 +460,7 @@ def critique_home_summary(
                 user_prompt=_critique_user_prompt(
                     summary_text=summary_text,
                     featured_symbols=featured_symbols,
+                    ground_truth_text=ground_truth_text,
                     tool_calls=tool_calls,
                     tool_catalog=tool_catalog,
                     max_tool_calls=resolved_max,
@@ -460,6 +585,8 @@ def _judge_user_prompt(
         "audio_text": str(original.get("audio_text") or ""),
         "featured_symbols": _featured_symbols(original),
     }
+    # Note for the judge: the schema requires featured_symbols, so it must
+    # always be returned (echoed verbatim if no orphan_symbol issues exist).
     numbered_issues = [
         {
             "issue_index": index,
@@ -511,10 +638,25 @@ def judge_revise_summary(
     overview_text = str(data.get("overview") or "").strip()
     sections = list(data.get("sections") or [])
 
+    # Defensive: the judge has occasionally returned each section twice (once
+    # representing the original, once revised) despite prompt rules. Dedupe by
+    # title so the rendered summary never repeats.
+    seen_titles: set[str] = set()
+    unique_sections: list[dict[str, Any]] = []
+    for section in sections:
+        title = str(section.get("title") or "").strip()
+        if not title:
+            continue
+        key = title.lower()
+        if key in seen_titles:
+            continue
+        seen_titles.add(key)
+        unique_sections.append(section)
+
     summary_lines: list[str] = []
     if overview_text:
         summary_lines.append(overview_text)
-    for section in sections:
+    for section in unique_sections:
         title = str(section.get("title") or "").strip()
         bullets = [str(b or "").strip() for b in list(section.get("bullets") or []) if str(b or "").strip()]
         if not title or not bullets:
@@ -540,9 +682,20 @@ def judge_revise_summary(
             "rewritten_text": str(entry.get("rewritten_text") or ""),
         })
 
+    revised_featured_symbols: list[str] = []
+    raw_symbols = data.get("featured_symbols")
+    if isinstance(raw_symbols, list):
+        for symbol in raw_symbols:
+            text = str(symbol or "").upper().strip()
+            if text and text not in revised_featured_symbols:
+                revised_featured_symbols.append(text)
+    if not revised_featured_symbols:
+        revised_featured_symbols = _featured_symbols(original)
+
     revised = dict(original)
     revised["summary_text"] = revised_summary_text
     revised["audio_text"] = revised_audio_text
+    revised["featured_symbols"] = revised_featured_symbols
     revised["judge_revisions"] = revisions
     return revised
 

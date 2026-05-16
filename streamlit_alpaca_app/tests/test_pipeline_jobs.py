@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import json
+import time
 from types import SimpleNamespace
 
 import numpy as np
@@ -11,6 +12,7 @@ from pipeline.jobs.attention_home_build import (
     AttentionHomeBuildError,
     _build_materialized_homepage_summary,
     _build_materialized_homepage_summary_with_trace,
+    _build_page_agentic_summary_frame,
     _news_payloads_from_articles_frame,
     build_attention_home_output_frames,
 )
@@ -26,9 +28,11 @@ from pipeline.jobs.main import (
     _upload_frame,
     run_attention_home,
     run_commodities,
+    run_company_baselines,
     run_entity_taxonomy,
     run_fred,
     run_news,
+    run_trading_agent,
 )
 from services.pipeline_store import SOURCE_DATASETS, SOURCE_JOB_MAP
 
@@ -55,6 +59,20 @@ def test_upload_frame_persists_empty_frames(monkeypatch):
     assert uploaded[0][0] == path
     assert uploaded[0][1] > 0
     assert uploaded[0][2] == "application/octet-stream"
+
+
+def test_attention_step_timeout_returns_before_slow_step_finishes():
+    import pipeline.jobs.attention_home_build as attention_home_build_module
+
+    started = time.monotonic()
+    try:
+        attention_home_build_module._call_with_timeout("slow AQL step", 1, lambda: time.sleep(3))
+    except attention_home_build_module._AttentionStepTimeout as exc:
+        assert "slow AQL step" in str(exc)
+    else:
+        raise AssertionError("Expected slow step to time out")
+
+    assert time.monotonic() - started < 2
 
 
 def test_persist_dataset_retains_attention_source_documents_before_upload(monkeypatch):
@@ -378,6 +396,96 @@ def test_pipeline_store_lists_attention_job_and_datasets():
     }.issubset(attention_datasets)
 
 
+def test_pipeline_store_lists_trading_agent_job_and_datasets():
+    assert SOURCE_JOB_MAP["trading_agent"] == "trading-agent-build"
+    assert set(SOURCE_DATASETS["trading_agent"]) == {"trading_agent_runs", "trading_agent_candidates"}
+
+
+def test_run_trading_agent_persists_runs_and_candidates(monkeypatch):
+    ctx = JobContext(
+        name="trading-agent-build",
+        run_id="trading-agent-run",
+        asof=datetime(2026, 5, 5, 13, 0, tzinfo=timezone.utc),
+        universe_version="20260505",
+    )
+    opportunity_rows = []
+    horizon_specs = [
+        ("1w", "return_7d_pct", "1 Week"),
+        ("1m", "return_1m_pct", "1 Month"),
+        ("3m", "return_3m_pct", "3 Month"),
+        ("1y", "return_1y_pct", "1 Year"),
+        ("5y", "return_5y_pct", "5 Year"),
+    ]
+    for horizon_key, horizon_col, horizon_label in horizon_specs:
+        opportunity_rows.append(
+            {
+                "business_filter": "All Market",
+                "horizon_key": horizon_key,
+                "selected_horizon_col": horizon_col,
+                "selected_horizon_label": horizon_label,
+                "rank": 1,
+                "symbol": "AAPL",
+                "company_name": "Apple Inc.",
+                "opportunity": "Upside momentum",
+                "direction": "Up / accelerating",
+                "opportunity_score": 91.0,
+                "daily_change_pct": 1.1,
+                horizon_col: 7.5,
+                "momentum_roc_score": 0.7,
+                "trend_fit_gap": 0.12,
+                "details": "Momentum setup.",
+            }
+        )
+
+    def _fake_load(dataset_name):
+        if dataset_name == "market_opportunity_feed":
+            return pd.DataFrame(opportunity_rows)
+        if dataset_name == "page_agentic_summaries":
+            return pd.DataFrame()
+        return pd.DataFrame()
+
+    persisted: dict[str, pd.DataFrame] = {}
+
+    def _fake_persist(dataset_name, frame, local_ctx, conn):
+        persisted[dataset_name] = frame.copy()
+
+    def _fake_suggestions(*, context, llm_client, aql_agent_runner=None):
+        controls = context["controls"]
+        return {
+            "status": "ok",
+            "regime_read": f"Regime {controls['horizon_key']}",
+            "portfolio_posture": "Selective.",
+            "candidates": [
+                {
+                    "ticker": "AAPL",
+                    "direction": "long",
+                    "setup": "Momentum continuation",
+                    "hypothesis": "Momentum can persist.",
+                    "evidence": ["Ranked feed row."],
+                    "invalidation": "Break below support.",
+                    "tail_risks": ["Macro shock"],
+                    "suggested_horizon": controls["selected_horizon_label"],
+                    "confidence": "medium",
+                }
+            ],
+            "data_gaps": [],
+            "error": "",
+            "aql_agent": {"status": "completed", "answer_markdown": "Grounded."},
+        }
+
+    monkeypatch.setattr("pipeline.jobs.main._load_latest_materialized_frame", _fake_load)
+    monkeypatch.setattr("pipeline.jobs.main._persist_dataset", _fake_persist)
+    monkeypatch.setattr("pipeline.jobs.main.load_llm_client", lambda: object())
+    monkeypatch.setattr("pipeline.jobs.main.build_trading_agent_suggestions", _fake_suggestions)
+    monkeypatch.setenv("TRADING_AGENT_HORIZON_TIMEOUT_SECONDS", "30")
+
+    run_trading_agent(ctx, conn=None)
+
+    assert set(persisted) == {"trading_agent_runs", "trading_agent_candidates"}
+    assert persisted["trading_agent_runs"]["horizon_key"].tolist() == ["1w", "1m", "3m", "1y", "5y"]
+    assert persisted["trading_agent_candidates"]["horizon_key"].tolist() == ["1w", "1m", "3m", "1y", "5y"]
+
+
 def test_attention_home_news_payloads_accept_array_symbols():
     news_frame = pd.DataFrame(
         {
@@ -489,6 +597,114 @@ def test_build_attention_home_output_frames_backfills_missing_news_with_search(m
     assert captured["news_frame"]["headline"].tolist() == ["Viridian posts trial update"]
 
 
+def test_build_page_agentic_summary_frame_materializes_page_summaries(monkeypatch):
+    import pipeline.jobs.attention_home_build as attention_home_build_module
+
+    monkeypatch.setenv("PAGE_AGENTIC_STOCK_SUMMARY_LIMIT", "1")
+    monkeypatch.setattr(
+        attention_home_build_module,
+        "build_page_agentic_summary",
+        lambda *, surface, context, llm_client: {
+            "status": "ok",
+            "surface": surface,
+            "headline": f"{surface} materialized",
+            "summary_markdown": "Materialized by the attention job.",
+            "watch_items": [],
+            "data_gaps": [],
+            "confidence": "medium",
+        },
+    )
+    frame = _build_page_agentic_summary_frame(
+        ctx=SimpleNamespace(asof=pd.Timestamp("2026-04-27T17:00:00Z"), run_id="run-page"),
+        llm_client=object(),
+        daily_movers=pd.DataFrame([{"symbol": "AAPL", "change_pct": 3.1, "close": 205.0}]),
+        momentum_profiles=pd.DataFrame(
+            [
+                {
+                    "symbol": "AAPL",
+                    "return_1m_pct": 8.2,
+                    "return_1w_pct": 2.1,
+                    "return_3m_pct": 11.0,
+                    "momentum_roc_score": 0.8,
+                    "trend_fit_gap": 0.1,
+                }
+            ]
+        ),
+        fred_summary_frame=pd.DataFrame(
+            [
+                {
+                    "category": "Labor",
+                    "indicator": "Payrolls",
+                    "series_id": "PAYEMS",
+                    "latest_value": 100.0,
+                    "prev_delta": 1.0,
+                    "yoy_delta": 2.0,
+                    "latest_date": "2026-04-01",
+                    "units_short": "index",
+                }
+            ]
+        ),
+        fred_release_index_frame=pd.DataFrame([{"release_id": "10", "release_name": "Employment", "release_date": "2026-04-03"}]),
+        ticker_background_frame=pd.DataFrame(
+            [
+                {
+                    "symbol": "AAPL",
+                    "company_name": "Apple Inc.",
+                    "description_text": "Apple builds consumer devices.",
+                    "news_summary_lines_json": json.dumps(["Apple context line."]),
+                    "recent_headlines_json": json.dumps([]),
+                    "source_trace_json": json.dumps({}),
+                }
+            ]
+        ),
+        technical_signals_latest_frame=pd.DataFrame([{"symbol": "AAPL", "signal": "up"}]),
+        universe_snapshot_frame=pd.DataFrame([{"symbol": "AAPL", "security_name": "Apple Inc."}]),
+    )
+
+    assert set(frame["surface"]) == {"Market Explorer", "Broad Economy", "Stock Investigator"}
+    assert frame["summary_json"].astype(str).str.contains("materialized").all()
+    assert frame["context_signature"].astype(str).str.len().min() == 64
+
+
+def test_build_page_agentic_summary_frame_uses_fallback_on_timeout(monkeypatch):
+    import pipeline.jobs.attention_home_build as attention_home_build_module
+
+    def _timeout(label, timeout_seconds, func):
+        raise attention_home_build_module._AttentionStepTimeout(f"{label} exceeded {timeout_seconds}s")
+
+    monkeypatch.setenv("PAGE_AGENTIC_STOCK_SUMMARY_LIMIT", "0")
+    monkeypatch.setattr(attention_home_build_module, "_call_with_timeout", _timeout)
+
+    frame = _build_page_agentic_summary_frame(
+        ctx=SimpleNamespace(asof=pd.Timestamp("2026-04-27T17:00:00Z"), run_id="run-page"),
+        llm_client=object(),
+        daily_movers=pd.DataFrame([{"symbol": "AAPL", "change_pct": 3.1, "close": 205.0}]),
+        momentum_profiles=pd.DataFrame(
+            [
+                {
+                    "symbol": "AAPL",
+                    "return_1m_pct": 8.2,
+                    "return_1w_pct": 2.1,
+                    "return_3m_pct": 11.0,
+                    "momentum_roc_score": 0.8,
+                    "trend_fit_gap": 0.1,
+                }
+            ]
+        ),
+        fred_summary_frame=pd.DataFrame(),
+        fred_release_index_frame=pd.DataFrame(),
+        ticker_background_frame=pd.DataFrame(),
+        technical_signals_latest_frame=pd.DataFrame(),
+        universe_snapshot_frame=pd.DataFrame(),
+    )
+
+    assert not frame.empty
+    assert set(frame["status"]) == {"fallback"}
+    summaries = [json.loads(value) for value in frame["summary_json"].astype(str)]
+    assert all(summary["summary_markdown"] for summary in summaries)
+    assert all("Page summary materialization failed" in summary["data_gaps"][0] for summary in summaries)
+
+
 def test_db_mark_job_start_uses_matching_parameter_count():
     class _Cursor:
         def __init__(self, calls: list[tuple[str, tuple[object, ...]]]):
@@ -533,7 +749,48 @@ def test_db_mark_job_start_uses_matching_parameter_count():
 
 def test_pipeline_store_lists_taxonomy_job_and_datasets():
     assert SOURCE_JOB_MAP["taxonomy"] == "entity-taxonomy-refresh"
-    assert {"us_equity_listings", "entity_taxonomy_labels"}.issubset(set(SOURCE_DATASETS["taxonomy"]))
+    assert SOURCE_JOB_MAP["company_baseline"] == "company-baseline-prefetch"
+    assert {"us_equity_listings", "entity_taxonomy_labels", "company_baselines"}.issubset(set(SOURCE_DATASETS["taxonomy"]))
+    assert SOURCE_DATASETS["company_baseline"] == ["company_baselines"]
+
+
+def test_run_company_baselines_persists_capped_rows(monkeypatch):
+    ctx = JobContext(
+        name="company-baseline-prefetch",
+        run_id="12345678-test-run",
+        asof=datetime(2026, 4, 29, 12, 0, tzinfo=timezone.utc),
+        universe_version="20260429",
+    )
+    universe = pd.DataFrame(
+        {
+            "symbol": ["VRT", "NVDA", "AAPL"],
+            "name": ["Vertiv Holdings Co", "NVIDIA Corporation", "Apple Inc."],
+            "rank": [1, 2, 3],
+        }
+    )
+    persisted: dict[str, pd.DataFrame] = {}
+
+    monkeypatch.setenv("COMPANY_BASELINE_LIMIT", "2")
+    monkeypatch.setenv("COMPANY_BASELINE_REQUEST_DELAY_SECONDS", "0")
+    monkeypatch.delenv("UNIVERSE_SYMBOLS", raising=False)
+    monkeypatch.setattr("pipeline.jobs.main._load_latest_equity_universe_snapshot", lambda target_size: universe.copy())
+    monkeypatch.setattr("pipeline.jobs.main._persist_dataset", lambda dataset_name, frame, ctx, conn: persisted.setdefault(dataset_name, frame.copy()))
+    monkeypatch.setattr(
+        "pipeline.jobs.main.build_company_baseline_frame",
+        lambda universe_frame, symbols, limit, asof_time_utc, run_id: pd.DataFrame(
+            {
+                "symbol": universe_frame["symbol"].head(limit).tolist(),
+                "company_background_text": ["Vertiv makes power and thermal infrastructure.", "NVIDIA makes accelerated computing chips."],
+                "run_id": [run_id] * min(limit, len(universe_frame)),
+            }
+        ),
+    )
+
+    run_company_baselines(ctx, None)
+
+    frame = persisted["company_baselines"]
+    assert frame["symbol"].tolist() == ["VRT", "NVDA"]
+    assert frame["run_id"].eq("12345678-test-run").all()
 
 
 def test_resolve_equity_symbols_prefers_large_snapshot(monkeypatch):

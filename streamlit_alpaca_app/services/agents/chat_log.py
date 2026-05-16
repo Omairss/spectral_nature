@@ -97,6 +97,22 @@ def _read_blob_json(blob_path: str) -> dict[str, Any] | None:
         return None
 
 
+def _json_list(value: Any) -> list[Any]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    if isinstance(value, tuple):
+        return list(value)
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+        except Exception:
+            return []
+        return parsed if isinstance(parsed, list) else []
+    return []
+
+
 # ---------------------------------------------------------------------------
 # Schema bootstrap
 # ---------------------------------------------------------------------------
@@ -377,10 +393,10 @@ def load_chat_session(run_id: str) -> dict[str, Any] | None:
                 "confidence": row[4],
                 "answer_markdown": row[5],
                 "tool_call_count": row[6],
-                "tool_names": json.loads(row[7]) if row[7] else [],
-                "symbols": json.loads(row[8]) if row[8] else [],
+                "tool_names": _json_list(row[7]),
+                "symbols": _json_list(row[8]),
                 "error": row[9],
-                "limitations": json.loads(row[10]) if row[10] else [],
+                "limitations": _json_list(row[10]),
                 "created_at": row[11].isoformat() if row[11] else None,
                 "duration_seconds": row[12],
                 "source": "postgres_fallback",
@@ -453,8 +469,8 @@ def list_chat_sessions(
                 "model": row[3],
                 "confidence": row[4],
                 "tool_call_count": row[5],
-                "tool_names": json.loads(row[6]) if row[6] else [],
-                "symbols": json.loads(row[7]) if row[7] else [],
+                "tool_names": _json_list(row[6]),
+                "symbols": _json_list(row[7]),
                 "created_at": row[8].isoformat() if row[8] else None,
                 "duration_seconds": row[9],
                 "blob_chars": row[10],

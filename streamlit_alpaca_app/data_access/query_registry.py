@@ -191,6 +191,17 @@ def _resolve_momentum_profiles(data_access: Any, params: dict[str, Any]) -> Reso
     )
 
 
+def _resolve_market_opportunity_feed(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
+    return data_access.resolve_market_opportunity_feed(
+        business_filter=_text(params, "business_filter", "All Market"),
+        selected_horizon_col=_text(params, "selected_horizon_col", "return_1m_pct"),
+        selected_horizon_label=_text(params, "selected_horizon_label", "1 Month"),
+        symbols=_optional_list(params, "symbols"),
+        limit=_int_value(params, "limit", 80),
+        force_refresh=_force_refresh(params),
+    )
+
+
 def _resolve_price_history(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
     return data_access.resolve_price_history(
         _text(params, "ticker"),
@@ -278,6 +289,15 @@ def _resolve_attention_ticker_background(data_access: Any, params: dict[str, Any
 
 def _resolve_attention_home_1d(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
     return data_access.resolve_attention_home_1d(force_refresh=_force_refresh(params))
+
+
+def _resolve_page_agentic_summary(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
+    return data_access.resolve_page_agentic_summary(
+        surface=_text(params, "surface"),
+        context_signature=_text(params, "context_signature"),
+        ticker=_text(params, "ticker"),
+        force_refresh=_force_refresh(params),
+    )
 
 
 def _resolve_homepage_replay(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
@@ -722,6 +742,19 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         resolution="materialized_first",
         handler=_resolve_momentum_profiles,
     ),
+    "market_opportunity_feed": DatasetSpec(
+        params=(
+            param("business_filter", "string"),
+            param("selected_horizon_col", "string"),
+            param("selected_horizon_label", "string"),
+            param("symbols", "array", items_type="string"),
+            param("limit", "integer"),
+            param("force_refresh", "boolean"),
+        ),
+        resolution="materialized",
+        handler=_resolve_market_opportunity_feed,
+        description="Ranked Market Opportunity feed precomputed by the attention job.",
+    ),
     "price_history": DatasetSpec(
         params=(
             param("ticker", "string", required=True),
@@ -808,6 +841,17 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         params=(param("force_refresh", "boolean"),),
         resolution="materialized_first_then_on_demand",
         handler=_resolve_attention_home_1d,
+    ),
+    "page_agentic_summary": DatasetSpec(
+        params=(
+            param("surface", "string", required=True),
+            param("context_signature", "string"),
+            param("ticker", "string"),
+            param("force_refresh", "boolean"),
+        ),
+        resolution="materialized",
+        handler=_resolve_page_agentic_summary,
+        description="Materialized AQL-backed page summary. Exact context signatures are preferred; blank signature resolves the latest summary for the surface or ticker.",
     ),
     "homepage_replay": DatasetSpec(
         params=(param("target_date", "string", required=True),),

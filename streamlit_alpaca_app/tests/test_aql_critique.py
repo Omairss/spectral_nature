@@ -311,6 +311,37 @@ def test_judge_returns_revised_summary():
     assert revised["headline"] == "Market Summary"
 
 
+def test_judge_dedupes_repeated_sections():
+    """Defensive: when the judge LLM returns the same section title twice
+    (we saw this in real runs), the rendered summary must contain it once."""
+    from services.aql.critique import judge_revise_summary
+
+    repeated_section = {
+        "title": "Tech rebound",
+        "bullets": ["AI infrastructure rallied on CoreWeave/Anthropic deal."],
+    }
+    llm = _FakeLLM([
+        {
+            "overview": "Tech rebounded; utilities slid.",
+            "sections": [repeated_section, repeated_section],
+            "audio_text": "Tech rebounded today.",
+            "featured_symbols": ["NVDA", "ORCL"],
+            "revisions": [{"issue_index": 0, "decision": "rephrase", "rewritten_text": "x"}],
+        }
+    ])
+
+    revised = judge_revise_summary(
+        original=_summary_fixture(),
+        critique={"issues": [{"type": "numeric", "location": "overview",
+                              "claim": "X", "severity": "high", "evidence": "Y"}]},
+        llm_client=llm,
+    )
+
+    assert revised is not None
+    assert revised["summary_text"].count("**Tech rebound**") == 1
+    assert revised["featured_symbols"] == ["NVDA", "ORCL"]
+
+
 def test_agentic_summary_applies_critique_to_summary_text(monkeypatch):
     """End-to-end: critique flags an issue, judge rewrites, and the final
     summary_text uses the revised content prepended with the hypothesis."""

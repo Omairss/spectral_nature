@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
@@ -4499,6 +4500,7 @@ def test_attach_attention_home_summary_audio_embeds_base64_metadata():
 
     assert client.calls == [summary_payload["audio_text"]]
     assert payload["audio_base64"] == base64.b64encode(b"audio-bytes").decode("ascii")
+    assert payload["audio_text_hash"] == hashlib.sha256(summary_payload["audio_text"].encode("utf-8")).hexdigest()
     assert payload["audio_mime_type"] == "audio/mpeg"
     assert payload["audio_file_extension"] == "mp3"
     assert payload["voice_id"] == "voice-123"

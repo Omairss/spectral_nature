@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import os
+import queue
+import threading
 from typing import Any, Callable
 
 import pandas as pd
@@ -19,9 +21,23 @@ from services.attention_ticker_snapshots import (
     build_attention_ticker_background_snapshot_frame,
     build_attention_ticker_snapshot_frame,
     collect_attention_ticker_symbols,
+    deserialize_attention_ticker_background_frame,
 )
 from services.elevenlabs_tts import ElevenLabsTTSAPIError
+from services.fred import format_fred_delta, format_fred_value
+from services.knowledge_graph_proposals import build_attention_knowledge_graph_proposals
+from services.json_utils import to_list
 from services.llm import LLMAPIError, load_embedding_client, load_llm_client
+from services.market import business_focus_options, business_focus_universe
+from services.market_opportunity import build_market_opportunity_feed, build_materialized_market_opportunity_feeds
+from services.page_agentic_summary import (
+    broad_economy_summary_context,
+    build_fallback_page_agentic_summary,
+    build_materialized_page_agentic_summary_row,
+    build_page_agentic_summary,
+    market_summary_context,
+    stock_summary_context,
+)
 from services.pipeline_store import load_latest_dataset_frame
 
 
@@ -32,6 +48,10 @@ ResearchProgressFn = Callable[[int, int, dict[str, Any]], None]
 
 
 class AttentionHomeBuildError(RuntimeError):
+    pass
+
+
+class _AttentionStepTimeout(TimeoutError):
     pass
 
 
@@ -59,6 +79,47 @@ def _attention_home_search_backfill_limit() -> int:
     except Exception:
         parsed = 100
     return max(parsed, 1)
+
+
+def _env_positive_int(name: str, default: int) -> int:
+    raw = (os.getenv(name) or str(default)).strip()
+    try:
+        parsed = int(raw)
+    except Exception:
+        parsed = default
+    return max(parsed, 1)
+
+
+def _attention_home_summary_timeout_seconds() -> int:
+    return _env_positive_int("ATTENTION_HOME_SUMMARY_TIMEOUT_SECONDS", 300)
+
+
+def _page_agentic_summary_timeout_seconds() -> int:
+    return _env_positive_int("PAGE_AGENTIC_SUMMARY_TIMEOUT_SECONDS", 120)
+
+
+def _call_with_timeout(label: str, timeout_seconds: int, fn: Callable[[], Any]) -> Any:
+    if timeout_seconds <= 0:
+        return fn()
+
+    result_queue: queue.Queue[tuple[str, Any]] = queue.Queue(maxsize=1)
+
+    def _runner() -> None:
+        try:
+            result_queue.put(("ok", fn()))
+        except BaseException as exc:
+            result_queue.put(("error", exc))
+
+    thread = threading.Thread(target=_runner, name=f"attention-timeout-{label[:32]}", daemon=True)
+    thread.start()
+    thread.join(float(timeout_seconds))
+    if thread.is_alive():
+        raise _AttentionStepTimeout(f"{label} exceeded {timeout_seconds}s")
+
+    status, payload = result_queue.get_nowait()
+    if status == "error":
+        raise payload
+    return payload
 
 
 def _has_symbol_inputs(frame: pd.DataFrame) -> bool:
@@ -115,7 +176,13 @@ def _build_materialized_homepage_summary(
     summary_payload: dict[str, Any]
     if llm_client is not None:
         try:
-            summary_payload = build_attention_agentic_summary(payload, llm_client=llm_client, embedding_client=embedding_client)
+            print("[info] attention-home-build homepage AQL summary starting")
+            summary_payload = _call_with_timeout(
+                "attention homepage AQL summary",
+                _attention_home_summary_timeout_seconds(),
+                lambda: build_attention_agentic_summary(payload, llm_client=llm_client, embedding_client=embedding_client),
+            )
+            print("[info] attention-home-build homepage AQL summary completed")
         except Exception as exc:
             print(f"[warn] attention-home-build agentic summary failed, falling back: {type(exc).__name__}: {exc}")
             summary_payload = build_attention_home_summary_payload(payload)
@@ -141,11 +208,17 @@ def _build_materialized_homepage_summary_with_trace(
     summary_payload: dict[str, Any]
     if llm_client is not None:
         try:
-            summary_payload, summary_trace_frames = build_attention_agentic_summary_with_trace(
-                payload,
-                llm_client=llm_client,
-                embedding_client=embedding_client,
+            print("[info] attention-home-build homepage AQL summary starting")
+            summary_payload, summary_trace_frames = _call_with_timeout(
+                "attention homepage AQL summary",
+                _attention_home_summary_timeout_seconds(),
+                lambda: build_attention_agentic_summary_with_trace(
+                    payload,
+                    llm_client=llm_client,
+                    embedding_client=embedding_client,
+                ),
             )
+            print("[info] attention-home-build homepage AQL summary completed")
         except Exception as exc:
             print(f"[warn] attention-home-build agentic summary failed, falling back: {type(exc).__name__}: {exc}")
             summary_payload = build_attention_home_summary_payload(payload)
@@ -159,6 +232,227 @@ def _build_materialized_homepage_summary_with_trace(
     except Exception as exc:
         print(f"[warn] attention-home-build unexpected ElevenLabs narration error: {type(exc).__name__}: {exc}")
     return summary_payload, summary_trace_frames
+
+
+def _page_agentic_stock_summary_limit() -> int:
+    raw = (os.getenv("PAGE_AGENTIC_STOCK_SUMMARY_LIMIT") or "4").strip()
+    try:
+        return max(int(raw), 0)
+    except Exception:
+        return 4
+
+
+def _fred_page_summary_lookback_years() -> int:
+    raw = (os.getenv("FRED_LOOKBACK_YEARS") or "10").strip()
+    try:
+        return max(int(raw), 1)
+    except Exception:
+        return 10
+
+
+def _market_opportunity_focus_symbol_map() -> dict[str, list[str]]:
+    focus_map: dict[str, list[str]] = {}
+    for focus in business_focus_options():
+        focus_label = str(focus or "").strip()
+        if not focus_label:
+            continue
+        try:
+            focus_map[focus_label] = [
+                _normalize_symbol(symbol)
+                for symbol in business_focus_universe(focus_label)
+                if _normalize_symbol(symbol)
+            ]
+        except Exception:
+            focus_map[focus_label] = []
+    focus_map.setdefault("All Market", [])
+    return focus_map
+
+
+def _fred_overview_for_page_summary(fred_summary_frame: pd.DataFrame) -> pd.DataFrame:
+    if not isinstance(fred_summary_frame, pd.DataFrame) or fred_summary_frame.empty:
+        return pd.DataFrame()
+    overview = fred_summary_frame.copy()
+    if "latest" not in overview.columns and {"latest_value", "units_short"}.issubset(overview.columns):
+        overview["latest"] = [
+            format_fred_value(value, units)
+            for value, units in zip(overview["latest_value"], overview["units_short"])
+        ]
+    if "prev" not in overview.columns and {"prev_delta", "units_short"}.issubset(overview.columns):
+        overview["prev"] = [
+            format_fred_delta(value, units)
+            for value, units in zip(overview["prev_delta"], overview["units_short"])
+        ]
+    if "yoy" not in overview.columns and {"yoy_delta", "units_short"}.issubset(overview.columns):
+        overview["yoy"] = [
+            format_fred_delta(value, units)
+            for value, units in zip(overview["yoy_delta"], overview["units_short"])
+        ]
+    if "latest_date" in overview.columns:
+        overview["latest_date"] = pd.to_datetime(overview["latest_date"], errors="coerce").dt.strftime("%Y-%m-%d")
+    return overview
+
+
+def _technical_signal_payload(frame: pd.DataFrame, symbol: str) -> dict[str, Any]:
+    if not isinstance(frame, pd.DataFrame) or frame.empty or "symbol" not in frame.columns:
+        return {}
+    target = _normalize_symbol(symbol)
+    rows = frame.copy()
+    rows["symbol"] = rows["symbol"].astype(str).str.upper().str.strip()
+    match = rows[rows["symbol"] == target].head(1)
+    return match.iloc[0].to_dict() if not match.empty else {}
+
+
+def _stock_news_summary_from_background(symbol: str, background_payload: dict[str, Any]) -> dict[str, Any]:
+    headlines = to_list((background_payload or {}).get("recent_headlines"))
+    articles = pd.DataFrame(headlines) if headlines else pd.DataFrame()
+    return {
+        "summary_lines": [
+            str(item).strip()
+            for item in to_list((background_payload or {}).get("news_summary_lines"))
+            if str(item).strip()
+        ],
+        "articles": articles,
+        "fallback_summary": None,
+        "source": "attention_ticker_background_snapshots" if background_payload else None,
+    }
+
+
+def _materialized_page_summary_row(
+    *,
+    surface: str,
+    context: dict[str, Any],
+    llm_client: Any | None,
+    generated_at_utc: object,
+    run_id: str,
+    ticker: str = "",
+    context_label: str = "",
+) -> dict[str, Any]:
+    try:
+        summary = _call_with_timeout(
+            f"page AQL summary {surface}",
+            _page_agentic_summary_timeout_seconds(),
+            lambda: build_page_agentic_summary(
+                surface=surface,
+                context=context,
+                llm_client=llm_client,
+            ),
+        )
+    except Exception as exc:
+        summary = build_fallback_page_agentic_summary(
+            surface=surface,
+            context=context,
+            reason=f"Page summary materialization failed: {type(exc).__name__}: {exc}",
+        )
+    return build_materialized_page_agentic_summary_row(
+        surface=surface,
+        context=context,
+        summary=summary,
+        generated_at_utc=generated_at_utc,
+        run_id=run_id,
+        ticker=ticker,
+        context_label=context_label,
+    )
+
+
+def _build_page_agentic_summary_frame(
+    *,
+    ctx: Any,
+    llm_client: Any | None,
+    daily_movers: pd.DataFrame,
+    momentum_profiles: pd.DataFrame,
+    fred_summary_frame: pd.DataFrame,
+    fred_release_index_frame: pd.DataFrame,
+    ticker_background_frame: pd.DataFrame,
+    technical_signals_latest_frame: pd.DataFrame,
+    universe_snapshot_frame: pd.DataFrame,
+) -> pd.DataFrame:
+    rows: list[dict[str, Any]] = []
+    name_map = _company_name_map(universe_snapshot_frame)
+    opportunity_feed = build_market_opportunity_feed(
+        movers=daily_movers if isinstance(daily_movers, pd.DataFrame) else pd.DataFrame(),
+        momentum=momentum_profiles if isinstance(momentum_profiles, pd.DataFrame) else pd.DataFrame(),
+        selected_horizon_col="return_1m_pct",
+        selected_horizon_label="1 Month",
+        name_map=name_map,
+        limit=80,
+    )
+    if not opportunity_feed.empty:
+        market_context = market_summary_context(
+            business_filter="All Market",
+            selected_horizon_label="1 Month",
+            opportunity_feed=opportunity_feed,
+            movers=pd.DataFrame(),
+            momentum=pd.DataFrame(),
+        )
+        rows.append(
+            _materialized_page_summary_row(
+                surface="Market Explorer",
+                context=market_context,
+                llm_client=llm_client,
+                generated_at_utc=ctx.asof,
+                run_id=ctx.run_id,
+                context_label="All Market / 1 Month",
+            )
+        )
+
+    fred_overview = _fred_overview_for_page_summary(fred_summary_frame)
+    if not fred_overview.empty:
+        broad_context = broad_economy_summary_context(
+            overview=fred_overview,
+            release_index=fred_release_index_frame,
+            lookback_years=_fred_page_summary_lookback_years(),
+        )
+        rows.append(
+            _materialized_page_summary_row(
+                surface="Broad Economy",
+                context=broad_context,
+                llm_client=llm_client,
+                generated_at_utc=ctx.asof,
+                run_id=ctx.run_id,
+                context_label="Latest FRED snapshot",
+            )
+        )
+
+    stock_limit = _page_agentic_stock_summary_limit()
+    if stock_limit > 0 and not opportunity_feed.empty and "symbol" in opportunity_feed.columns:
+        stock_symbols = [
+            _normalize_symbol(symbol)
+            for symbol in opportunity_feed["symbol"].astype(str).tolist()
+            if _normalize_symbol(symbol)
+        ][:stock_limit]
+        for symbol in stock_symbols:
+            background_payload = deserialize_attention_ticker_background_frame(ticker_background_frame, symbol)
+            attention_context = {
+                key: background_payload.get(key)
+                for key in [
+                    "llm_headline",
+                    "llm_summary_text",
+                    "context_story_text",
+                ]
+                if str(background_payload.get(key) or "").strip()
+            }
+            stock_context = stock_summary_context(
+                ticker=symbol,
+                taxonomy_summary="",
+                signal_summary=_technical_signal_payload(technical_signals_latest_frame, symbol),
+                forecast={},
+                news_summary=_stock_news_summary_from_background(symbol, background_payload),
+                attention_context=attention_context,
+                background_payload=background_payload,
+            )
+            rows.append(
+                _materialized_page_summary_row(
+                    surface="Stock Investigator",
+                    context=stock_context,
+                    llm_client=llm_client,
+                    generated_at_utc=ctx.asof,
+                    run_id=ctx.run_id,
+                    ticker=symbol,
+                    context_label=symbol,
+                )
+            )
+
+    return pd.DataFrame(rows)
 
 
 _TRACE_DEDUPE_KEY_BY_DATASET: dict[str, str] = {
@@ -657,6 +951,13 @@ def build_attention_home_output_frames(
     )
     payload["homepage_summary"] = homepage_summary
     artifacts.frames = _merge_summary_trace_frames(artifacts.frames, summary_trace_frames)
+    artifacts.frames["knowledge_graph_update_proposals"] = build_attention_knowledge_graph_proposals(
+        run_id=ctx.run_id,
+        asof_time_utc=ctx.asof,
+        claims_frame=artifacts.frames.get("attention_claims", pd.DataFrame()),
+        macro_edges_frame=artifacts.frames.get("macro_causal_graph_edges_v1", pd.DataFrame()),
+        relationship_checks_frame=artifacts.frames.get("macro_relationship_checks_1d", pd.DataFrame()),
+    )
     artifacts.frames["attention_home_snapshots_1d"] = serialize_attention_home_payload(payload)
     if "attention_bundle_snapshots" not in artifacts.frames:
         artifacts.frames["attention_bundle_snapshots"] = serialize_attention_research_bundles(
@@ -685,6 +986,42 @@ def build_attention_home_output_frames(
         asof_time_utc=ctx.asof,
         run_id=ctx.run_id,
     )
+    momentum_profiles_frame = load_materialized_frame_fn("momentum_profiles")
+    print("[info] attention-home-build materializing market_opportunity_feed")
+    artifacts.frames["market_opportunity_feed"] = build_materialized_market_opportunity_feeds(
+        movers=daily_movers,
+        momentum=momentum_profiles_frame,
+        name_map=_company_name_map(universe_snapshot_frame),
+        focus_symbol_map=_market_opportunity_focus_symbol_map(),
+        asof_time_utc=ctx.asof,
+        run_id=ctx.run_id,
+        limit=80,
+    )
+    print(
+        "[info] attention-home-build materialized market_opportunity_feed "
+        f"rows={len(artifacts.frames['market_opportunity_feed'])}"
+    )
+
+    try:
+        print("[info] attention-home-build materializing page_agentic_summaries")
+        artifacts.frames["page_agentic_summaries"] = _build_page_agentic_summary_frame(
+            ctx=ctx,
+            llm_client=llm_client,
+            daily_movers=daily_movers,
+            momentum_profiles=momentum_profiles_frame,
+            fred_summary_frame=fred_summary_frame,
+            fred_release_index_frame=load_materialized_frame_fn("fred_release_index"),
+            ticker_background_frame=artifacts.frames["attention_ticker_background_snapshots"],
+            technical_signals_latest_frame=load_materialized_frame_fn("technical_signals_latest"),
+            universe_snapshot_frame=universe_snapshot_frame,
+        )
+        print(
+            "[info] attention-home-build materialized page_agentic_summaries "
+            f"rows={len(artifacts.frames['page_agentic_summaries'])}"
+        )
+    except Exception as exc:
+        print(f"[warn] attention-home-build page agentic summaries failed (non-fatal): {type(exc).__name__}: {exc}")
+        artifacts.frames["page_agentic_summaries"] = pd.DataFrame()
 
     search_results = artifacts.frames.get("attention_search_results", pd.DataFrame()).copy()
     if not search_results.empty:

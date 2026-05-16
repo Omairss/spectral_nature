@@ -245,6 +245,87 @@ def test_browser_session_cookie_legacy_explicit_zero_disables(monkeypatch):
     assert auth_service.allow_insecure_browser_session_cookie() is False
 
 
+def test_complete_password_reset_requires_token_before_store_call(monkeypatch):
+    called = False
+
+    def fake_reset_password(**_kwargs):
+        nonlocal called
+        called = True
+        raise AssertionError("reset_password should not be called without a token")
+
+    monkeypatch.setattr(auth_service.auth_store, "reset_password", fake_reset_password)
+
+    result = auth_service.complete_password_reset(reset_token="", new_password="StrongEnough123")
+
+    assert result == {"ok": False, "message": "Reset token is required."}
+    assert called is False
+
+
+def test_complete_password_reset_does_not_create_login_session(monkeypatch):
+    user_row = {
+        "user_id": "user-1",
+        "email": "investor@example.com",
+        "first_name": "Ivy",
+        "last_name": "Investor",
+        "display_name": "Ivy Investor",
+        "role": "investor",
+        "portfolio_id": "portfolio-1",
+        "portfolio_slug": "master-portfolio",
+        "portfolio_name": "Master Portfolio",
+        "membership_role": "viewer",
+        "share_fraction": 0.25,
+        "can_view_full_portfolio": False,
+    }
+
+    monkeypatch.setattr(auth_service.auth_store, "reset_password", lambda **_kwargs: user_row)
+    monkeypatch.setattr(auth_service.auth_store, "record_access_event", lambda **_kwargs: {"ok": True})
+    monkeypatch.setattr(
+        auth_service.auth_store,
+        "create_session",
+        lambda **_kwargs: (_ for _ in ()).throw(AssertionError("password reset must not create a session")),
+    )
+
+    result = auth_service.complete_password_reset(reset_token="valid-token", new_password="StrongEnough123")
+
+    assert result["ok"] is True
+    assert result["message"] == "Password reset complete. Please log in with your new password."
+    assert "session_token" not in result
+
+
+def test_authenticate_user_rejects_active_user_without_membership(monkeypatch):
+    user_row = {
+        "user_id": "user-1",
+        "email": "investor@example.com",
+        "first_name": "Ivy",
+        "last_name": "Investor",
+        "display_name": "Ivy Investor",
+        "role": "investor",
+        "status": "active",
+        "portfolio_id": "",
+        "portfolio_slug": "",
+        "portfolio_name": "",
+        "membership_role": "",
+        "share_fraction": 0.0,
+        "can_view_full_portfolio": False,
+        "password_hash": auth_service.hash_password("StrongEnough123"),
+        "locked_until": None,
+    }
+    events: list[dict[str, object]] = []
+
+    monkeypatch.setattr(auth_service.auth_store, "get_user_for_login", lambda email: user_row)
+    monkeypatch.setattr(auth_service.auth_store, "record_access_event", lambda **kwargs: events.append(dict(kwargs)) or {"ok": True})
+    monkeypatch.setattr(
+        auth_service.auth_store,
+        "create_session",
+        lambda **_kwargs: (_ for _ in ()).throw(AssertionError("missing membership must not create a session")),
+    )
+
+    result = auth_service.authenticate_user(email="investor@example.com", password="StrongEnough123")
+
+    assert result == {"ok": False, "message": "Account is missing an active portfolio membership."}
+    assert events[-1]["detail"] == {"reason": "missing_active_membership"}
+
+
 def test_issue_invite_returns_specific_delivery_message_when_sender_secret_missing(monkeypatch):
     admin = auth_service.UserContext(
         user_id="u-admin",

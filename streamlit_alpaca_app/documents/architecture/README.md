@@ -11,6 +11,7 @@ Use `documents/plans/` for active implementation notes, recovery plans, and shor
 - `SAA/`: Supporting Analysis Archive retrieval, retention, hybrid search, and SAA rollout phases
 - `attention/`: Attention feed, homepage research quality, and Attention UI/data wiring design
 - `market_data/`: market data, fundamentals, options, macro, anomaly, and signal extraction boundaries
+- `entity_extraction/`: shared entity extraction, canonical linking, and KG node linking boundaries
 - `data_pipelines/`: materialized pipeline architecture, FRED, taxonomy, cache, and identity/retry design
 - `agents/`: agentic research, dependency graph, open graph experiments, and research export design
 - `UI/`: Streamlit and presentation-layer boundaries

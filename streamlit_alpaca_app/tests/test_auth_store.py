@@ -147,6 +147,37 @@ def test_list_users_aliases_users_table_and_merges_session_stats(monkeypatch):
     assert users[0]["last_seen_at"] == datetime(2026, 4, 11, 18, 20, tzinfo=timezone.utc)
 
 
+def test_session_restore_filters_inactive_users(monkeypatch):
+    now = datetime(2026, 4, 11, 18, 30, tzinfo=timezone.utc)
+    cursor = _SequencedCursor([{"columns": ["session_id"], "rows": []}])
+    fake_conn = _FakeConnection(cursor)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(auth_store, "_db_connect", lambda: fake_conn)
+    monkeypatch.setattr(auth_store, "_schema_name", lambda: "app_access")
+    monkeypatch.setattr(auth_store, "_now_utc", lambda: now)
+
+    restored = auth_store.get_user_context_for_session("session-hash")
+
+    assert restored is None
+    sql, params = cursor.executed[0]
+    assert "AND u.status = %s" in sql
+    assert params == ("session-hash", now, "active")
+    assert fake_conn.closed is True
+
+
+def test_active_membership_requires_active_portfolio(monkeypatch):
+    cursor = _SequencedCursor([{"columns": [], "rows": []}])
+    monkeypatch.setattr(auth_store, "_schema_name", lambda: "app_access")
+    monkeypatch.setattr(auth_store, "_now_utc", lambda: datetime(2026, 4, 11, 18, 30, tzinfo=timezone.utc))
+
+    auth_store._active_membership_for_user(cursor, "user-1")
+
+    sql, params = cursor.executed[0]
+    assert "AND p.status = %s" in sql
+    assert params[0] == "user-1"
+    assert params[1] == "active"
+
+
 def test_get_access_admin_dashboard_filters_selected_user_and_hydrates_activity(monkeypatch):
     user_id = "11111111-1111-1111-1111-111111111111"
     now = datetime(2026, 4, 11, 19, 0, tzinfo=timezone.utc)

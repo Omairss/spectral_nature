@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from pathlib import Path
 import re
+import time
 from typing import Any
 from urllib.parse import quote
 
@@ -99,6 +100,10 @@ COMPANY_INSTRUMENT_SUFFIXES = (
     "ads",
     "adr",
 )
+COMPANY_LEGAL_SUFFIX_PATTERN = re.compile(
+    r"\s*[,|-]?\s+(?:incorporated|inc\.?|corporation|corp\.?|company|co\.?|holdings?\s+llc|llc|ltd\.?|limited|plc|s\.a\.|n\.v\.)$",
+    re.IGNORECASE,
+)
 
 
 def _normalized(value: str) -> str:
@@ -136,33 +141,47 @@ def _wikipedia_company_background(company_name: str) -> str:
     display_name = _clean_company_display_name(company_name)
     if not display_name:
         return ""
-    title = quote(display_name.replace(" ", "_"), safe="")
-    url = WIKIPEDIA_SUMMARY_ENDPOINT.format(title)
-    try:
-        response = requests.get(
-            url,
-            headers={"User-Agent": WIKIPEDIA_USER_AGENT},
-            timeout=4,
-        )
-    except Exception:
-        return ""
-    if response.status_code != 200:
-        return ""
-    try:
-        payload = response.json()
-    except Exception:
-        return ""
-    if not isinstance(payload, dict):
-        return ""
-    if str(payload.get("type") or "").strip().lower() == "disambiguation":
-        return ""
-    extract = " ".join(str(payload.get("extract") or "").split()).strip()
-    if not extract:
-        return ""
-    lowered_extract = extract.lower()
-    if " may refer to" in lowered_extract:
-        return ""
-    return _trim_wikipedia_extract(extract)
+    candidates = [display_name]
+    legal_suffix_removed = COMPANY_LEGAL_SUFFIX_PATTERN.sub("", display_name).strip(" -|:,")
+    if legal_suffix_removed and _normalized(legal_suffix_removed) != _normalized(display_name):
+        candidates.append(legal_suffix_removed)
+    for candidate in dict.fromkeys(candidates):
+        title = quote(candidate.replace(" ", "_"), safe="")
+        url = WIKIPEDIA_SUMMARY_ENDPOINT.format(title)
+        try:
+            response = requests.get(
+                url,
+                headers={"User-Agent": WIKIPEDIA_USER_AGENT},
+                timeout=4,
+            )
+        except Exception:
+            continue
+        if response.status_code == 429:
+            retry_after = response.headers.get("Retry-After") if hasattr(response, "headers") else None
+            try:
+                delay_seconds = min(max(float(retry_after or 1), 1.0), 30.0)
+            except Exception:
+                delay_seconds = 1.0
+            time.sleep(delay_seconds)
+            continue
+        if response.status_code != 200:
+            continue
+        try:
+            payload = response.json()
+        except Exception:
+            continue
+        if not isinstance(payload, dict):
+            continue
+        if str(payload.get("type") or "").strip().lower() == "disambiguation":
+            continue
+        extract = " ".join(str(payload.get("extract") or "").split()).strip()
+        if not extract:
+            continue
+        lowered_extract = extract.lower()
+        if " may refer to" in lowered_extract:
+            continue
+        return _trim_wikipedia_extract(extract)
+    return ""
 
 
 def _coerce_items(value: object) -> list[object]:

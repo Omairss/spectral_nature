@@ -30,7 +30,7 @@ from data_access.layer import DataAccessLayer
 from presentation import attention_content, dashboard_loaders
 from services import api_auth, auth_service, omnibar_agent as omnibar_agent_service
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
-from services.analytics import build_metric_bar, build_portfolio_vs_benchmarks_fig, select_signed_ranked
+from services.analytics import build_metric_bar, build_portfolio_vs_benchmarks_fig
 from services.attention_home_summary import (
     apply_display_limits,
     attention_mover_card_title as attention_mover_card_title_service,
@@ -64,7 +64,9 @@ from services.pipeline_store import (
     latest_job_status_table,
     load_latest_dataset_frame,
     pipeline_store_configured,
+    record_trading_agent_action,
     start_source_refresh_job,
+    trading_agent_actions_table,
 )
 from services.homepage_v2 import (
     HOMEPAGE_V2_COMPANY_PANEL,
@@ -74,8 +76,14 @@ from services.homepage_v2 import (
     homepage_v2_bundle_symbol_lookup,
     normalize_homepage_v2_detail_state,
 )
+from services.entity_extraction import (
+    extract_entities,
+    graph_add_node_candidates,
+    linked_kg_node_ids,
+)
 from services.knowledge_graph import (
     build_knowledge_graph_draft,
+    build_knowledge_graph_overview,
     commit_knowledge_graph_review,
     default_seed_node_ids_from_matches,
     draft_edges_frame,
@@ -86,6 +94,8 @@ from services.knowledge_graph import (
     plot_knowledge_graph_draft,
     search_knowledge_graph_nodes,
 )
+from services.knowledge_graph_proposals import build_knowledge_graph_draft_from_proposals
+from services.json_utils import to_list
 from services.llm import (
     get_active_narrative_style_rule,
     list_config_params,
@@ -113,6 +123,12 @@ from services.market import (
     extend_symbol_universe,
 )
 from services.options import rank_options
+from services.page_agentic_summary import (
+    broad_economy_summary_context,
+    market_summary_context,
+    page_summary_context_signature,
+    stock_summary_context,
+)
 from services.technicals import build_technical_figure
 
 _SIGNALS_IMPORT_ERROR: str | None = None
@@ -224,6 +240,7 @@ PORTFOLIO_SECTION = "Portfolio"
 PORTFOLIO_PERFORMANCE_SECTION = "Portfolio Performance"
 MARKET_EXPLORER_SECTION = "Market Explorer"
 BROAD_ECONOMY_SECTION = "Broad Economy"
+TRADING_AGENT_SECTION = "Trading Agent"
 ADMIN_SECTION = "Admin"
 
 BASE_SECTION_OPTIONS = [
@@ -285,6 +302,7 @@ SOURCE_LABELS = {
     "taxonomy": "Taxonomy",
     "fundamentals": "Fundamentals",
     "derivatives": "Derivatives",
+    "trading_agent": "Trading Agent",
 }
 
 JOB_LABELS = {
@@ -294,6 +312,7 @@ JOB_LABELS = {
     "options-liquid-universe": "Options Snapshot Refresh",
     "news-ingest-and-features": "News Snapshot Refresh",
     "attention-home-build": "Attention Home Build",
+    "trading-agent-build": "Trading Agent Build",
     "entity-taxonomy-refresh": "Entity Taxonomy Refresh",
     "fundamentals-quarterly-refresh": "Fundamentals Quarterly Refresh",
 }
@@ -1358,6 +1377,53 @@ def _ensure_app_shell_styles() -> None:
         .stApp a:hover {
             text-decoration: underline;
         }
+        .sn-trading-signal-row {
+            display: grid;
+            grid-template-columns: minmax(7.2rem, 1fr) minmax(7rem, 2fr) minmax(4.4rem, auto);
+            gap: 0.65rem;
+            align-items: center;
+            margin: 0.42rem 0;
+        }
+        .sn-trading-signal-label {
+            color: var(--sn-muted-strong);
+            font-size: 0.78rem;
+            line-height: 1.2;
+        }
+        .sn-trading-signal-track {
+            height: 0.42rem;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(148, 163, 184, 0.15);
+        }
+        .sn-trading-signal-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: #8fb7e8;
+        }
+        .sn-trading-signal-value {
+            color: var(--sn-ink);
+            font-size: 0.78rem;
+            text-align: right;
+            white-space: nowrap;
+        }
+        .sn-trading-checklist {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.42rem;
+            margin: 0.25rem 0 0.55rem 0;
+        }
+        .sn-trading-check {
+            display: inline-flex;
+            align-items: center;
+            min-height: 1.55rem;
+            padding: 0.22rem 0.52rem;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            color: var(--sn-muted-strong);
+            background: rgba(148, 163, 184, 0.08);
+            font-size: 0.76rem;
+            line-height: 1.15;
+        }
         [data-testid="stSidebar"] {
             background: #0f1319;
             border-right: 1px solid var(--sn-line);
@@ -2003,6 +2069,7 @@ _load_portfolio_performance_cached = dashboard_loaders._load_portfolio_performan
 _load_holding_roc_cached = dashboard_loaders._load_holding_roc_cached
 _scan_daily_movers_cached = dashboard_loaders._scan_daily_movers_cached
 _scan_momentum_profiles_cached = dashboard_loaders._scan_momentum_profiles_cached
+_load_market_opportunity_feed_cached = dashboard_loaders._load_market_opportunity_feed_cached
 _load_correlation_phase_shift_cached = dashboard_loaders._load_correlation_phase_shift_cached
 _load_commodity_regime_cached = dashboard_loaders._load_commodity_regime_cached
 _load_price_history_cached = dashboard_loaders._load_price_history_cached
@@ -2028,6 +2095,8 @@ _load_fred_dashboard_cached = dashboard_loaders._load_fred_dashboard_cached
 _load_attention_feed_cached = dashboard_loaders._load_attention_feed_cached
 _load_attention_rollups_cached = dashboard_loaders._load_attention_rollups_cached
 _load_attention_feed_brief_cached = dashboard_loaders._load_attention_feed_brief_cached
+_load_page_agentic_summary_cached = dashboard_loaders._load_page_agentic_summary_cached
+_build_trading_agent_suggestions_cached = dashboard_loaders._build_trading_agent_suggestions_cached
 
 _attention_event_key = attention_content._attention_event_key
 _clean_attention_text = attention_content._clean_attention_text
@@ -2244,6 +2313,7 @@ def _section_options() -> list[str]:
     options = list(BASE_SECTION_OPTIONS)
     if _current_user_is_admin():
         options.insert(2, HOME_EXP_SECTION)
+        options.append(TRADING_AGENT_SECTION)
         options.append(ADMIN_SECTION)
     return options
 
@@ -2261,6 +2331,7 @@ def _normalize_workspace_section(section_name: object) -> str:
         "Performance": PORTFOLIO_PERFORMANCE_SECTION,
         "Market Opportunity": MARKET_EXPLORER_SECTION,
         "FRED Macro": BROAD_ECONOMY_SECTION,
+        "Trading Experiment": TRADING_AGENT_SECTION,
         "Access Admin": ADMIN_SECTION,
         "Pipeline Jobs": ADMIN_SECTION,
     }
@@ -2287,6 +2358,18 @@ def _clear_auth_query_params() -> None:
                 del params[key]
     except Exception:
         return
+
+
+def _auth_action_query_param_signature() -> str:
+    invite_token = _query_param_value("invite_token")
+    reset_token = _query_param_value("reset_token")
+    if not invite_token and not reset_token:
+        return ""
+    return f"invite:{invite_token}|reset:{reset_token}"
+
+
+def _auth_action_query_param_present() -> bool:
+    return bool(_auth_action_query_param_signature())
 
 
 def _clear_query_params(*keys: str) -> None:
@@ -2437,7 +2520,42 @@ def _invalidate_auth_session(session_id: str | None) -> None:
     _auth_session_registry().pop(session_id, None)
 
 
+def _clear_local_auth_state() -> None:
+    st.session_state["_ui_authenticated"] = False
+    st.session_state["_ui_auth_session_id"] = None
+    st.session_state["_ui_auth_mode"] = None
+    st.session_state.pop("_ui_last_recorded_section_view", None)
+    _store_user_context(None)
+
+
+def _force_logged_out_for_auth_action() -> None:
+    """Auth action links must never inherit an existing browser session."""
+    if not _auth_enabled():
+        return
+    signature = _auth_action_query_param_signature()
+    if not signature:
+        return
+    if str(st.session_state.get("_ui_auth_action_forced_logout") or "") == signature:
+        return
+
+    session_token = _auth_cookie_value()
+    if session_token:
+        if auth_service.database_auth_enabled():
+            try:
+                auth_service.logout_session(session_token)
+            except Exception as exc:
+                LOGGER.warning("Failed to revoke session before auth action: %s", exc)
+        else:
+            _invalidate_auth_session(session_token)
+    _clear_local_auth_state()
+    st.session_state["_show_login_form"] = True
+    st.session_state["_ui_auth_action_forced_logout"] = signature
+    _render_auth_cookie_sync("clear")
+
+
 def _restore_legacy_login_from_cookie() -> bool:
+    if _auth_action_query_param_present():
+        return False
     if not _browser_session_cookie_enabled():
         return False
     session_id = _auth_cookie_value()
@@ -2461,6 +2579,8 @@ def _restore_legacy_login_from_cookie() -> bool:
 
 
 def _restore_database_login_from_cookie() -> bool:
+    if _auth_action_query_param_present():
+        return False
     if not _browser_session_cookie_enabled():
         return False
     session_token = _auth_cookie_value()
@@ -3391,17 +3511,11 @@ curl -o export.zip "DOWNLOAD_URL"
 
 
 def _render_access_admin_section() -> None:
-    header_cols = st.columns([4.6, 1.4, 1.4])
+    header_cols = st.columns([4.6, 1.4])
     with header_cols[0]:
         st.title(ADMIN_SECTION)
     with header_cols[1]:
         _render_section_back_button("admin_back")
-    with header_cols[2]:
-        _section_refresh_button(
-            "admin_attention_refresh",
-            source="attention",
-            label="Run attention refresh job",
-        )
 
     if st.session_state.get("_ui_auth_mode") != "database":
         st.info("Database-backed auth is required for user invites and password reset management.")
@@ -3687,36 +3801,6 @@ def _has_live_api(api: AlpacaAPI | None, message: str, *, allow_pipeline: bool =
         return True
     st.warning(message)
     return False
-
-
-def _section_refresh_button(key: str, *, source: str | None = None, label: str = "Refresh cached data") -> bool:
-    if _presentation_layer_only():
-        source_key = str(source or "").strip().lower()
-        if not source_key:
-            return False
-        clicked = st.button(
-            label,
-            key=key,
-            use_container_width=True,
-            help="Triggers the upstream refresh job. This UI keeps reading the latest materialized snapshot.",
-        )
-        if clicked:
-            ok, msg = start_source_refresh_job(source_key)
-            if ok:
-                st.success(msg)
-            else:
-                st.warning(msg)
-        return False
-
-    clicked = st.button(
-        label,
-        key=key,
-        use_container_width=True,
-        help="Bypasses the local CSV cache for this view and loads fresh data where available.",
-    )
-    if clicked:
-        st.caption("Refreshing cached data for this view.")
-    return bool(clicked)
 
 
 def _render_pipeline_admin(*, source_refresh_flags: dict[str, bool]) -> None:
@@ -4576,6 +4660,28 @@ def _compact_background_fallback_text(ticker: str) -> str:
     return f"No relevant catalyst found in web coverage for {target} in the latest agentic run."
 
 
+def _is_low_signal_company_context_text(text: object) -> bool:
+    cleaned = " ".join(str(text or "").split()).strip().lower()
+    if not cleaned:
+        return True
+    if re.fullmatch(r"\d+\s+recent article\(s\) over roughly the last \d+\s+day\(s\); tone is [^.]+\.", cleaned):
+        return True
+    low_signal_fragments = [
+        "no relevant catalyst found",
+        "company background is unavailable",
+        "the current narrative is still thin",
+    ]
+    return any(fragment in cleaned for fragment in low_signal_fragments)
+
+
+def _first_substantive_company_context_line(lines: list[object], *, fallback: str = "") -> str:
+    for item in lines:
+        text = " ".join(str(item or "").split()).strip()
+        if text and not _is_low_signal_company_context_text(text):
+            return text
+    return " ".join(str(fallback or "").split()).strip()
+
+
 def _collect_evidence_links(*, recent_headlines: list[dict[str, object]] | None = None, articles: pd.DataFrame | None = None, limit: int = 8) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     seen: set[tuple[str, str]] = set()
@@ -4635,12 +4741,12 @@ def _render_compact_background_sections(
     fallback = _compact_background_fallback_text(ticker)
     background_text = " ".join(str(background_summary or "").split()).strip()
     happened_text = " ".join(str(what_happened_summary or "").split()).strip()
-    if not background_text and happened_text:
-        background_text = happened_text
-    if not happened_text and background_text:
-        happened_text = background_text
+    if _is_low_signal_company_context_text(background_text):
+        background_text = ""
+    if _is_low_signal_company_context_text(happened_text):
+        happened_text = ""
     if not background_text:
-        background_text = fallback
+        background_text = f"Company background is not available in the latest materialized context for {str(ticker or '').upper().strip()}."
     if not happened_text:
         happened_text = fallback
 
@@ -5507,6 +5613,12 @@ def _agentic_omnibar_progress_message(event: dict[str, object]) -> str:
         return "Setting up the analysis agent."
     if stage == "tool_catalog_ready":
         return "Loading the available data sources."
+    if stage == "hidden_step_heartbeat":
+        elapsed = int(event.get("elapsed_seconds") or 0)
+        return f"Still preparing evidence... ({elapsed}s)"
+    if stage == "hidden_step_timeout":
+        elapsed = int(event.get("elapsed_seconds") or 0)
+        return f"One preparation step timed out after {elapsed}s. Continuing."
     if stage == "planner_start":
         return "Deciding the next step."
     if stage == "planner_heartbeat":
@@ -5517,6 +5629,12 @@ def _agentic_omnibar_progress_message(event: dict[str, object]) -> str:
         return reasoning if reasoning else "Thinking about the next step."
     if stage == "tool_start":
         return f"Checking {tool_label}."
+    if stage == "tool_heartbeat":
+        elapsed = int(event.get("elapsed_seconds") or 0)
+        return f"Still checking {tool_label}... ({elapsed}s)"
+    if stage == "tool_timeout":
+        elapsed = int(event.get("elapsed_seconds") or 0)
+        return f"{tool_label.capitalize()} timed out after {elapsed}s. Moving on."
     if stage == "tool_complete":
         return f"Added evidence from {tool_label}."
     if stage == "tool_failed":
@@ -5530,6 +5648,33 @@ def _agentic_omnibar_progress_message(event: dict[str, object]) -> str:
 
     fallback = str(event.get("message") or "").strip()
     return fallback if fallback else "Working through the request."
+
+
+def _looks_like_transient_agent_transport_error(text: object) -> bool:
+    cleaned = str(text or "").strip().lower()
+    if not cleaned:
+        return False
+    markers = (
+        "remotedisconnected",
+        "remote end closed connection without response",
+        "connection aborted",
+        "connection reset",
+        "connectionerror",
+        "readtimeout",
+        "read timed out",
+        "temporarily unavailable",
+    )
+    return any(marker in cleaned for marker in markers)
+
+
+def _safe_research_agent_error_text(error: object) -> str:
+    raw = f"{type(error).__name__}: {error}" if isinstance(error, BaseException) else str(error or "")
+    if _looks_like_transient_agent_transport_error(raw):
+        return (
+            "A research source connection dropped before it returned a response. "
+            "This is usually transient; rerun the request to retry the evidence fetch."
+        )
+    return " ".join(raw.split()).strip() or "The research agent failed before it could produce an answer."
 
 
 _METRIC_STOP_WORDS = frozenset({
@@ -5622,6 +5767,10 @@ def _render_thinking_trace_content(
         step_type = str(step.get("type") or "")
         if step_type == "reasoning":
             st.markdown(f"*{step.get('text', '')}*")
+        elif step_type == "model_reasoning_trace":
+            trace_text = str(step.get("text") or "").strip()
+            if trace_text:
+                st.code(trace_text, language="text")
         elif step_type == "tool_start":
             st.code(f"{step.get('tool_name', '')}({step.get('args_text', '')})", language="python")
         elif step_type == "tool_complete":
@@ -5799,6 +5948,12 @@ def _run_agentic_omnibar_resolution(
     conversation_history: list[dict[str, object]] | None = None,
     ) -> dict[str, object]:
     normalized_query = _omnibar_normalize_text(query)
+    agent_query, followup_resolved = omnibar_agent_service.resolve_conversation_followup_query(
+        normalized_query,
+        conversation_history,
+    )
+    resolution_query = agent_query if followup_resolved else normalized_query
+    resolution_mode = "agent" if followup_resolved else preferred_mode
     _dispatch_agentic_omnibar_progress(
         progress_callback,
         stage="resolve_start",
@@ -5806,20 +5961,39 @@ def _run_agentic_omnibar_resolution(
         progress=0.08,
         query=normalized_query,
     )
+    if followup_resolved:
+        _dispatch_agentic_omnibar_progress(
+            progress_callback,
+            stage="conversation_followup_resolved",
+            message="Resolved the reply against the prior chat turn.",
+            progress=0.14,
+            original_query=normalized_query,
+            resolved_query=agent_query,
+        )
     resolution = _build_agentic_omnibar_resolution(
         cfg,
-        query,
-        preferred_mode,
+        resolution_query,
+        resolution_mode,
         beats,
         symbol_catalog,
         force_data_refresh=force_data_refresh,
     )
+    if followup_resolved:
+        resolution["followup_resolved"] = True
+        resolution["original_query"] = normalized_query
+        resolution["resolved_query"] = agent_query
+    router_intent = str(resolution.get("intent") or "search").strip().lower()
+    if router_intent != "agent":
+        resolution["router_intent"] = router_intent
+        resolution["intent"] = "agent"
+        resolution["routing_note"] = "Deterministic routing supplied context; the agent remains responsible for the response."
     _dispatch_agentic_omnibar_progress(
         progress_callback,
         stage="intent_ready",
         message=f"Resolved intent: {str(resolution.get('intent') or 'search').capitalize()}.",
         progress=0.26,
         intent=str(resolution.get("intent") or "search"),
+        router_intent=router_intent,
         matches=len(list(resolution.get("search_results") or [])),
     )
     if str(resolution.get("intent") or "") == "agent":
@@ -5837,7 +6011,7 @@ def _run_agentic_omnibar_resolution(
             _dispatch_agentic_omnibar_progress(progress_callback, **bridged_event)
 
         resolution["agent_result"] = omnibar_agent_service.run_omnibar_agent(
-            query=normalized_query,
+            query=agent_query,
             force_refresh=force_data_refresh,
             progress_callback=_agent_progress_bridge,
             conversation_history=conversation_history,
@@ -5972,6 +6146,9 @@ def _render_agentic_omnibar_debug_panel(resolution: dict[str, object]) -> None:
         route_cols[1].metric("Confidence", str(resolution.get("confidence_band") or "n/a").capitalize())
         route_cols[2].metric("Mode", str(resolution.get("preferred_mode") or "auto").capitalize())
         route_cols[3].metric("Matches", str(len(list(resolution.get("search_results") or []))))
+        router_intent = str(resolution.get("router_intent") or "").strip()
+        if router_intent:
+            st.caption(f"Router intent: {router_intent}. The router enriched context but did not block the agent run.")
         st.caption(
             f"request_id={resolution.get('request_id')} | policy_version={resolution.get('policy_version')}"
         )
@@ -6168,6 +6345,10 @@ def _run_and_render_agent_live(
                 thinking_trace.append({"type": "reasoning", "text": reasoning})
                 with status_widget:
                     st.caption(reasoning)
+        elif stage == "model_reasoning_trace":
+            reasoning_trace = str(event.get("reasoning_trace") or "").strip()
+            if reasoning_trace:
+                thinking_trace.append({"type": "model_reasoning_trace", "text": reasoning_trace})
         elif stage == "tool_start":
             tool_count += 1
             tool_name = str(event.get("tool_name") or "")
@@ -6183,6 +6364,19 @@ def _run_and_render_agent_live(
             with status_widget:
                 st.markdown(f"→ **{human_tool}**")
             status_widget.update(label=f"Checking {human_tool}... (step {tool_count})")
+        elif stage == "tool_heartbeat":
+            tool_name = str(event.get("tool_name") or "")
+            human_tool = _humanize_agentic_omnibar_tool_name(tool_name)
+            elapsed = int(event.get("elapsed_seconds") or 0)
+            status_widget.update(label=f"Checking {human_tool}... (step {tool_count}, {elapsed}s)")
+        elif stage == "tool_timeout":
+            tool_name = str(event.get("tool_name") or "")
+            human_tool = _humanize_agentic_omnibar_tool_name(tool_name)
+            elapsed = int(event.get("elapsed_seconds") or 0)
+            thinking_trace.append({"type": "message", "text": f"{human_tool} timed out after {elapsed}s; moving on."})
+            with status_widget:
+                st.caption(f"{human_tool} timed out after {elapsed}s; moving on.")
+            status_widget.update(label=f"{human_tool} timed out; continuing...")
         elif stage == "tool_complete":
             preview = str(event.get("result_preview") or "").strip()
             trace_entry: dict[str, object] = {"type": "tool_complete", "preview": preview}
@@ -6203,6 +6397,13 @@ def _run_and_render_agent_live(
             tool_total = int(event.get("tool_count") or 0)
             if tool_total > 0:
                 status_widget.update(label=f"Loaded {tool_total} tools, thinking...")
+        elif stage == "hidden_step_heartbeat":
+            elapsed = int(event.get("elapsed_seconds") or 0)
+            status_widget.update(label=f"Preparing evidence... ({elapsed}s)")
+        elif stage == "hidden_step_timeout":
+            elapsed = int(event.get("elapsed_seconds") or 0)
+            thinking_trace.append({"type": "message", "text": f"Evidence preparation timed out after {elapsed}s; continuing."})
+            status_widget.update(label="Evidence preparation timed out; continuing...")
         elif stage not in {"completed", "status", "resolve_start", "intent_ready", "agent_dispatch", "start"}:
             thinking_trace.append({"type": "message", "text": message})
 
@@ -6223,7 +6424,7 @@ def _run_and_render_agent_live(
             conversation_history=conversation_history,
         )
     except Exception as exc:
-        run_error = str(exc)
+        run_error = _safe_research_agent_error_text(exc)
 
     duration = round(_time_mod.monotonic() - run_start, 1)
 
@@ -6298,6 +6499,8 @@ def _run_and_render_agent_live(
         "content": answer or run_error or "No answer available.",
         "answer": answer,
         "query": query,
+        "resolved_query": str(resolution.get("resolved_query") or agent_result.get("query") or "").strip(),
+        "followup_resolved": bool(resolution.get("followup_resolved") or agent_result.get("followup_resolved")),
         "source_links": source_links_all,
         "thinking_trace": thinking_trace,
         "confidence": confidence,
@@ -7162,10 +7365,15 @@ def _attention_summary_audio_error_session_key(task_key: str) -> str:
     return f"attention_summary_audio_error::{task_key}"
 
 
-def _try_decode_attention_summary_audio(summary_payload: dict[str, object]) -> bytes:
+def _try_decode_attention_summary_audio(summary_payload: dict[str, object], *, audio_text: str = "") -> bytes:
     encoded = str(summary_payload.get("audio_base64") or "").strip()
     if not encoded:
         return b""
+    stored_hash = str(summary_payload.get("audio_text_hash") or "").strip()
+    if stored_hash and audio_text:
+        current_hash = hashlib.sha256(audio_text.strip().encode("utf-8")).hexdigest()
+        if stored_hash != current_hash:
+            return b""
     try:
         return base64.b64decode(encoded.encode("ascii"), validate=True)
     except Exception:
@@ -7276,7 +7484,7 @@ def _render_attention_home_summary_card(
     summary_text = str(summary_payload.get("summary_text") or "").strip()
     audio_text = str(summary_payload.get("audio_text") or summary_text).strip()
     elevenlabs_cfg = load_elevenlabs_tts_config()
-    preloaded_audio_bytes = _try_decode_attention_summary_audio(summary_payload)
+    preloaded_audio_bytes = _try_decode_attention_summary_audio(summary_payload, audio_text=audio_text)
     async_task_key = ""
     async_audio_bytes = b""
     async_audio_error = ""
@@ -8042,6 +8250,9 @@ def _render_experiment_placeholder_page(
             "_knowledge_graph_draft",
             "_knowledge_graph_draft_query",
             "_knowledge_graph_draft_key",
+            "_knowledge_graph_entity_mentions",
+            "_knowledge_graph_entity_query",
+            "_knowledge_graph_add_candidates",
             "knowledge_graph_selected_node_ids",
         ]
         if not keep_query:
@@ -8060,6 +8271,139 @@ def _render_experiment_placeholder_page(
         if current_user is None:
             return "admin"
         return str(current_user.email or current_user.user_id or current_user.label or "admin").strip() or "admin"
+
+    def _knowledge_graph_entity_rows(mentions: list[object]) -> list[dict[str, object]]:
+        rows: list[dict[str, object]] = []
+        for mention in mentions:
+            to_dict = getattr(mention, "to_dict", None)
+            row = to_dict() if callable(to_dict) else dict(mention or {})
+            rows.append(
+                {
+                    "text": str(row.get("text") or ""),
+                    "type": str(row.get("entity_type") or ""),
+                    "source": str(row.get("source") or ""),
+                    "link_status": str(row.get("link_status") or ""),
+                    "kg_node_id": str(row.get("kg_node_id") or ""),
+                    "kg_label": str(row.get("kg_label") or ""),
+                    "canonical_id": str(row.get("canonical_id") or ""),
+                    "confidence": float(row.get("confidence") or 0.0),
+                    "reason": str(row.get("link_reason") or ""),
+                }
+            )
+        return rows
+
+    def _knowledge_graph_matches_from_entities(
+        mentions: list[object],
+        graph_snapshot: dict[str, object],
+    ) -> list[dict[str, object]]:
+        nodes_by_id = dict(graph_snapshot.get("nodes_by_id") or {})
+        rows: list[dict[str, object]] = []
+        seen: set[str] = set()
+        for row in _knowledge_graph_entity_rows(mentions):
+            node_id = str(row.get("kg_node_id") or "").strip()
+            if not node_id or node_id in seen or node_id not in nodes_by_id:
+                continue
+            node = dict(nodes_by_id.get(node_id) or {})
+            seen.add(node_id)
+            rows.append(
+                {
+                    "node_id": node_id,
+                    "canonical_label": str(node.get("canonical_label") or row.get("kg_label") or node_id),
+                    "node_type": str(node.get("node_type") or row.get("type") or ""),
+                    "description": str(node.get("description") or ""),
+                    "matched_alias": str(row.get("text") or ""),
+                    "match_source": f"entity:{row.get('source') or 'extraction'}",
+                    "score": float(row.get("confidence") or 0.0),
+                }
+            )
+        return rows
+
+    def _merge_knowledge_graph_matches(*match_groups: list[dict[str, object]]) -> list[dict[str, object]]:
+        merged: dict[str, dict[str, object]] = {}
+        for group in match_groups:
+            for match in group:
+                node_id = str(match.get("node_id") or "").strip()
+                if not node_id:
+                    continue
+                existing = merged.get(node_id)
+                if existing is None or float(match.get("score") or 0.0) > float(existing.get("score") or 0.0):
+                    merged[node_id] = dict(match)
+        return sorted(merged.values(), key=lambda item: float(item.get("score") or 0.0), reverse=True)
+
+    def _run_knowledge_graph_entity_extraction(
+        query_text: str,
+        graph_snapshot: dict[str, object],
+    ) -> list[object]:
+        status_box = st.status("Extracting entities", expanded=True)
+        try:
+            mentions = extract_entities(
+                query_text,
+                snapshot=graph_snapshot,
+                include_taxonomy=False,
+            )
+        except Exception as exc:
+            status_box.update(label="Entity extraction failed", state="error", expanded=True)
+            status_box.write(f"{type(exc).__name__}: {exc}")
+            return []
+
+        linked_count = len(linked_kg_node_ids(mentions))
+        add_count = len(graph_add_node_candidates(mentions))
+        status_box.write(f"Linked {linked_count} existing graph node(s).")
+        if add_count:
+            status_box.write(f"Found {add_count} possible new node(s) to review.")
+        status_box.update(
+            label=f"Entity extraction complete: {len(mentions)} mention(s)",
+            state="complete",
+            expanded=False,
+        )
+        return list(mentions)
+
+    def _default_selected_knowledge_graph_nodes(
+        matches: list[dict[str, object]],
+        mentions: list[object],
+    ) -> list[str]:
+        selected: list[str] = []
+        mention_rows = _knowledge_graph_entity_rows(mentions)
+        for node_id in [str(row.get("kg_node_id") or "").strip() for row in mention_rows]:
+            if node_id not in selected:
+                selected.append(node_id)
+        for node_id in default_seed_node_ids_from_matches(matches):
+            if node_id not in selected:
+                selected.append(node_id)
+        return selected[:6]
+
+    def _inject_entity_add_candidates(
+        draft: dict[str, object],
+        candidates: list[dict[str, object]],
+        graph_snapshot: dict[str, object],
+    ) -> dict[str, object]:
+        if not candidates:
+            return draft
+        nodes_by_id = dict(graph_snapshot.get("nodes_by_id") or {})
+        out = dict(draft)
+        node_rows = [dict(row) for row in list(out.get("nodes") or [])]
+        existing_ids = {str(row.get("node_id") or "").strip() for row in node_rows}
+        for candidate in candidates:
+            node_id = str(candidate.get("node_id") or "").strip()
+            if not node_id or node_id in existing_ids or node_id in nodes_by_id:
+                continue
+            existing_ids.add(node_id)
+            node_rows.append(
+                {
+                    "keep": True,
+                    "node_id": node_id,
+                    "label": str(candidate.get("label") or node_id),
+                    "node_type": str(candidate.get("node_type") or "concept"),
+                    "description": "",
+                    "status": "candidate",
+                    "aliases": str(candidate.get("label") or node_id),
+                    "source_status": "entity_candidate",
+                    "confidence": candidate.get("confidence"),
+                    "reason": str(candidate.get("reason") or f"Extracted from {candidate.get('source') or 'query'}"),
+                }
+            )
+        out["nodes"] = node_rows
+        return out
 
     def _run_knowledge_graph_search(query_text: str, graph_snapshot: dict[str, object]) -> list[dict[str, object]]:
         stage_labels = {
@@ -8184,7 +8528,7 @@ def _render_experiment_placeholder_page(
     )
 
     st.caption(
-        "Flow: resolve query -> review the draft graph -> edit nodes and edges -> commit the approved delta into the core knowledge graph."
+        "Flow: extract entities -> choose anchors -> visualize the draft -> add, update, or remove nodes and edges -> commit the reviewed delta."
     )
 
     query = st.text_input(
@@ -8212,27 +8556,150 @@ def _render_experiment_placeholder_page(
         disabled=not normalized_query,
     )
     generate_clicked = control_cols[2].button(
-        "Run Graph Builder",
+        "Build Editable Graph",
         key="knowledge_graph_generate_draft",
         use_container_width=True,
         type="primary",
         disabled=not normalized_query,
     )
     st.caption(
-        "Find Existing Anchors only scans the current knowledge graph. Run Graph Builder also expands a reviewable draft from those anchors and the raw query."
+        "Find Existing Anchors extracts entities, links them to the current graph, and falls back to graph search. Build Editable Graph creates a reviewable add/remove draft from those anchors."
     )
 
+    if not normalized_query:
+        total_nodes = len(list(snapshot.get("nodes") or []))
+        total_edges = len(list(snapshot.get("edges") or []))
+        overview = build_knowledge_graph_overview(
+            snapshot=snapshot,
+            max_nodes=max(total_nodes, 1),
+            max_edges=max(total_edges, 0),
+        )
+        overview_meta = dict(overview.get("overview") or {})
+        st.subheader("Graph Overview")
+        st.caption(
+            f"Showing {overview_meta.get('shown_nodes', len(list(overview.get('nodes') or [])))} of "
+            f"{overview_meta.get('total_nodes', total_nodes)} nodes and "
+            f"{overview_meta.get('shown_edges', len(list(overview.get('edges') or [])))} of "
+            f"{overview_meta.get('total_edges', total_edges)} edges. Arrows show stored source -> target direction; thicker edges have higher severity and more opaque edges have higher confidence."
+        )
+        st.plotly_chart(plot_knowledge_graph_draft(overview), use_container_width=True)
+        overview_nodes = draft_nodes_frame(overview)
+        if not overview_nodes.empty:
+            st.dataframe(
+                overview_nodes[["node_id", "label", "node_type", "source_status", "reason"]],
+                use_container_width=True,
+                hide_index=True,
+            )
+        overview_edges = draft_edges_frame(overview)
+        if not overview_edges.empty:
+            st.dataframe(
+                overview_edges[
+                    [
+                        "edge_id",
+                        "source",
+                        "target",
+                        "relationship",
+                        "polarity",
+                        "directness",
+                        "severity",
+                        "confidence",
+                        "source_status",
+                    ]
+                ],
+                use_container_width=True,
+                hide_index=True,
+            )
+        try:
+            proposal_frame, proposal_metadata = load_latest_dataset_frame("knowledge_graph_update_proposals")
+        except Exception:
+            proposal_frame, proposal_metadata = pd.DataFrame(), None
+        if isinstance(proposal_frame, pd.DataFrame) and not proposal_frame.empty:
+            st.subheader("Latest Attention KG Proposals")
+            st.caption(
+                f"{len(proposal_frame)} proposal row(s) from "
+                f"{getattr(proposal_metadata, 'dataset_version_id', '') or 'the latest Attention run'}. "
+                "Reviewing them here does not update the core graph until you commit."
+            )
+            st.dataframe(
+                proposal_frame[
+                    [
+                        column
+                        for column in [
+                            "proposal_type",
+                            "operation",
+                            "node_id",
+                            "source_node_id",
+                            "target_node_id",
+                            "relationship",
+                            "severity",
+                            "confidence",
+                            "rationale",
+                        ]
+                        if column in proposal_frame.columns
+                    ]
+                ],
+                use_container_width=True,
+                hide_index=True,
+            )
+            if st.button("Load Latest Attention Proposals", key="knowledge_graph_load_attention_proposals"):
+                proposal_draft = build_knowledge_graph_draft_from_proposals(proposal_frame, snapshot=snapshot)
+                st.session_state["_knowledge_graph_draft"] = proposal_draft
+                st.session_state["_knowledge_graph_draft_query"] = normalized_query
+                st.session_state["knowledge_graph_selected_node_ids"] = list(proposal_draft.get("selected_node_ids") or [])
+                st.session_state["_knowledge_graph_draft_key"] = hashlib.sha1(
+                    json.dumps(proposal_draft, sort_keys=True, default=str).encode("utf-8")
+                ).hexdigest()[:12]
+                st.rerun()
+
     if resolve_clicked and normalized_query:
-        matches = _run_knowledge_graph_search(normalized_query, snapshot)
+        mentions = _run_knowledge_graph_entity_extraction(normalized_query, snapshot)
+        entity_matches = _knowledge_graph_matches_from_entities(mentions, snapshot)
+        search_matches = _run_knowledge_graph_search(normalized_query, snapshot)
+        matches = _merge_knowledge_graph_matches(entity_matches, search_matches)
         st.session_state["_knowledge_graph_matches"] = matches
         st.session_state["_knowledge_graph_resolved_query"] = normalized_query
-        st.session_state["knowledge_graph_selected_node_ids"] = default_seed_node_ids_from_matches(matches)
+        st.session_state["_knowledge_graph_entity_mentions"] = _knowledge_graph_entity_rows(mentions)
+        st.session_state["_knowledge_graph_entity_query"] = normalized_query
+        st.session_state["_knowledge_graph_add_candidates"] = graph_add_node_candidates(mentions)
+        st.session_state["knowledge_graph_selected_node_ids"] = _default_selected_knowledge_graph_nodes(matches, mentions)
         st.session_state.pop("_knowledge_graph_draft", None)
         st.session_state.pop("_knowledge_graph_draft_query", None)
         st.session_state.pop("_knowledge_graph_draft_key", None)
 
     resolved_query = str(st.session_state.get("_knowledge_graph_resolved_query") or "").strip()
     matches = list(st.session_state.get("_knowledge_graph_matches") or []) if resolved_query == normalized_query else []
+    entity_query = str(st.session_state.get("_knowledge_graph_entity_query") or "").strip()
+    entity_rows = (
+        list(st.session_state.get("_knowledge_graph_entity_mentions") or [])
+        if entity_query == normalized_query
+        else []
+    )
+    add_candidates = (
+        list(st.session_state.get("_knowledge_graph_add_candidates") or [])
+        if entity_query == normalized_query
+        else []
+    )
+
+    if entity_rows:
+        st.subheader("Extracted Entities")
+        st.dataframe(
+            pd.DataFrame(entity_rows),
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "confidence": st.column_config.NumberColumn("confidence", format="%.2f"),
+            },
+        )
+        if add_candidates:
+            st.caption("Unlinked high-confidence entities will be added to the draft as proposed new node rows.")
+            st.dataframe(
+                pd.DataFrame(add_candidates),
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "confidence": st.column_config.NumberColumn("confidence", format="%.2f"),
+                },
+            )
 
     if matches:
         st.subheader("Existing Anchors")
@@ -8279,6 +8746,26 @@ def _render_experiment_placeholder_page(
         st.info("No confident existing anchors were found. You can still run the graph builder directly from the raw query.")
 
     if generate_clicked and normalized_query:
+        mentions: list[object] = []
+        if entity_query == normalized_query and entity_rows:
+            mentions = list(entity_rows)
+        else:
+            mentions = _run_knowledge_graph_entity_extraction(normalized_query, snapshot)
+            entity_matches = _knowledge_graph_matches_from_entities(mentions, snapshot)
+            search_matches = _run_knowledge_graph_search(normalized_query, snapshot)
+            matches = _merge_knowledge_graph_matches(entity_matches, search_matches)
+            st.session_state["_knowledge_graph_matches"] = matches
+            st.session_state["_knowledge_graph_resolved_query"] = normalized_query
+            st.session_state["_knowledge_graph_entity_mentions"] = _knowledge_graph_entity_rows(mentions)
+            st.session_state["_knowledge_graph_entity_query"] = normalized_query
+            st.session_state["_knowledge_graph_add_candidates"] = graph_add_node_candidates(mentions)
+            if not list(st.session_state.get("knowledge_graph_selected_node_ids") or []):
+                st.session_state["knowledge_graph_selected_node_ids"] = _default_selected_knowledge_graph_nodes(matches, mentions)
+        add_candidates = (
+            list(st.session_state.get("_knowledge_graph_add_candidates") or [])
+            if str(st.session_state.get("_knowledge_graph_entity_query") or "").strip() == normalized_query
+            else []
+        )
         draft = _run_knowledge_graph_builder(
             normalized_query,
             graph_snapshot=snapshot,
@@ -8286,11 +8773,16 @@ def _render_experiment_placeholder_page(
             include_agentic=bool(include_agentic_expansion),
         )
         if isinstance(draft, dict):
-            st.session_state["_knowledge_graph_matches"] = list(draft.get("seed_matches") or [])
+            draft = _inject_entity_add_candidates(draft, add_candidates, snapshot)
+            st.session_state["_knowledge_graph_matches"] = _merge_knowledge_graph_matches(
+                _knowledge_graph_matches_from_entities(mentions, snapshot),
+                list(draft.get("seed_matches") or []),
+            )
             st.session_state["_knowledge_graph_resolved_query"] = normalized_query
             if not list(st.session_state.get("knowledge_graph_selected_node_ids") or []):
-                st.session_state["knowledge_graph_selected_node_ids"] = default_seed_node_ids_from_matches(
-                    list(draft.get("seed_matches") or [])
+                st.session_state["knowledge_graph_selected_node_ids"] = _default_selected_knowledge_graph_nodes(
+                    list(draft.get("seed_matches") or []),
+                    mentions,
                 )
             st.session_state["_knowledge_graph_draft"] = draft
             st.session_state["_knowledge_graph_draft_query"] = normalized_query
@@ -8301,7 +8793,7 @@ def _render_experiment_placeholder_page(
     draft = st.session_state.get("_knowledge_graph_draft")
     draft_query = str(st.session_state.get("_knowledge_graph_draft_query") or "").strip()
     if isinstance(draft, dict) and draft_query == normalized_query:
-        st.subheader("Draft Graph")
+        st.subheader("Editable Graph Draft")
         if str(draft.get("agentic_summary") or "").strip():
             st.caption(str(draft.get("agentic_summary") or ""))
         for limitation in list(draft.get("limitations") or []):
@@ -8444,14 +8936,98 @@ def _render_help_popover(title: str, body: str, label: str = "How to read") -> N
         st.markdown(body)
 
 
+def _render_page_agentic_summary_panel(
+    surface: str,
+    context: dict[str, object],
+    *,
+    key_prefix: str,
+) -> dict[str, object]:
+    safe_context = _json_ready(context if isinstance(context, dict) else {})
+    context_signature = page_summary_context_signature(safe_context)
+    ticker = str(safe_context.get("ticker") or "").upper().strip()
+    summary_key = f"{key_prefix}_agentic_summary"
+    signature_key = f"{key_prefix}_agentic_summary_signature"
+    summary = _load_page_agentic_summary_cached(str(surface or ""), context_signature, ticker)
+    st.session_state[summary_key] = summary
+    st.session_state[signature_key] = context_signature
+    with st.container(border=True):
+        st.subheader("Agentic Summary")
+        status = str(summary.get("status") or "").strip()
+        headline = str(summary.get("headline") or "").strip()
+        if headline:
+            st.markdown(f"**{headline}**")
+        if status in {"ok", "fallback"} and str(summary.get("summary_markdown") or "").strip():
+            st.markdown(str(summary.get("summary_markdown") or "").strip())
+            watch_items = [
+                str(item).strip()
+                for item in to_list(summary.get("watch_items"))
+                if str(item).strip()
+            ]
+            if watch_items:
+                st.markdown("**Worth Looking Into**")
+                st.markdown("\n".join(f"- {item}" for item in watch_items[:5]))
+            data_gaps = [
+                str(item).strip()
+                for item in to_list(summary.get("data_gaps"))
+                if str(item).strip()
+            ]
+            if data_gaps:
+                with st.expander("Data gaps", expanded=False):
+                    st.markdown("\n".join(f"- {item}" for item in data_gaps[:5]))
+            confidence = str(summary.get("confidence") or "").strip()
+            if confidence:
+                st.caption(f"Confidence: {confidence}")
+            if status == "fallback":
+                st.caption("Using materialized page facts because the scheduled AQL summary was unavailable.")
+        else:
+            error = str(summary.get("error") or "").strip()
+            if error:
+                st.info(error)
+            elif ticker and str(surface or "").strip() == STOCK_INVESTIGATOR_SECTION:
+                st.info(
+                    f"No precomputed Agentic Summary matched {ticker}. "
+                    "The attention job precomputes Stock Investigator summaries for a configured candidate set, "
+                    "not every possible ticker."
+                )
+            else:
+                st.info("No materialized summary is available for this view yet.")
+    return summary
+
+
 def _load_symbol_name_map(
     cfg: AppConfig,
     symbols: list[str],
     *,
     force_refresh: bool = False,
 ) -> dict[str, str]:
+    normalized_symbols = sorted({str(value).upper().strip() for value in symbols if str(value).strip()})
     out: dict[str, str] = {}
-    for symbol in sorted({str(value).upper().strip() for value in symbols if str(value).strip()}):
+    if not normalized_symbols:
+        return out
+    try:
+        universe_frame, _ = load_latest_dataset_frame("universe_snapshot")
+    except Exception:
+        universe_frame = pd.DataFrame()
+    if isinstance(universe_frame, pd.DataFrame) and not universe_frame.empty and "symbol" in universe_frame.columns:
+        name_column = next(
+            (
+                column
+                for column in ["security_name", "company_name", "name"]
+                if column in universe_frame.columns
+            ),
+            "",
+        )
+        if name_column:
+            names = universe_frame[["symbol", name_column]].copy()
+            names["symbol"] = names["symbol"].astype(str).str.upper().str.strip()
+            names[name_column] = names[name_column].astype(str).str.strip()
+            names = names[names["symbol"].isin(normalized_symbols) & names[name_column].ne("")]
+            out.update(dict(names.drop_duplicates(subset=["symbol"], keep="first").itertuples(index=False, name=None)))
+
+    missing_symbols = [symbol for symbol in normalized_symbols if symbol not in out]
+    if len(missing_symbols) > 12 and not force_refresh:
+        return out
+    for symbol in missing_symbols:
         try:
             asset = _load_asset_metadata_cached(cfg, symbol, force_refresh=force_refresh)
         except Exception:
@@ -8611,6 +9187,7 @@ def _render_stock_investigator_workspace(
     taxonomy_summary = _taxonomy_summary_text(ticker)
     if taxonomy_summary:
         st.caption(taxonomy_summary)
+    stock_agentic_summary_slot = st.empty()
 
     analysis_days = max(days, 3650)
     try:
@@ -8629,6 +9206,7 @@ def _render_stock_investigator_workspace(
 
     st.subheader(f"{ticker} Technicals")
     signal_summary: dict[str, object] = {}
+    forecast: dict[str, object] = {}
     if not price.empty:
         try:
             recent_cutoff = price["timestamp"].max() - pd.Timedelta(days=days)
@@ -8775,19 +9353,42 @@ def _render_stock_investigator_workspace(
     primary_context_text = str(attention_context.get("context_story_text") or "").strip()
     description_text = str(background_payload.get("description_text") or "").strip()
     company_background_text = str(background_payload.get("company_background_text") or "").strip()
-    background_summary = (
-        llm_summary_text
-        or primary_context_text
-        or company_background_text
-        or str(background_payload.get("llm_summary_text") or "").strip()
-        or description_text
+    background_summary = _first_substantive_company_context_line(
+        [
+            llm_summary_text,
+            primary_context_text,
+            company_background_text,
+            str(background_payload.get("llm_summary_text") or "").strip(),
+            description_text,
+        ]
     )
-    what_happened_summary = llm_headline or (summary_lines[0] if summary_lines else "") or description_text
+    what_happened_summary = _first_substantive_company_context_line(
+        [
+            llm_headline,
+            *summary_lines,
+            description_text,
+        ]
+    )
     evidence_links = _collect_evidence_links(
         recent_headlines=list(background_payload.get("recent_headlines") or []),
         articles=news_summary.get("articles", pd.DataFrame()),
         limit=8,
     )
+    with stock_agentic_summary_slot.container():
+        _render_page_agentic_summary_panel(
+            STOCK_INVESTIGATOR_SECTION,
+            stock_summary_context(
+                ticker=ticker,
+                taxonomy_summary=taxonomy_summary,
+                signal_summary=signal_summary,
+                forecast=forecast,
+                news_summary=news_summary,
+                attention_context=attention_context,
+                background_payload=background_payload,
+            ),
+            key_prefix="stock_investigator",
+        )
+
     _render_compact_background_sections(
         ticker,
         background_summary=background_summary,
@@ -9894,6 +10495,1012 @@ Strong momentum with a shallow pullback usually signals leadership. Weak momentu
         )
 
 
+def _summary_payload_for_agent(summary: dict[str, object]) -> dict[str, object]:
+    def text(value: object) -> str:
+        if value is None:
+            return ""
+        out = str(value).strip()
+        return "" if out.lower() == "nan" else out
+
+    return {
+        "status": text((summary or {}).get("status")),
+        "headline": text((summary or {}).get("headline")),
+        "summary_markdown": text((summary or {}).get("summary_markdown")),
+        "watch_items": to_list((summary or {}).get("watch_items")),
+        "data_gaps": to_list((summary or {}).get("data_gaps")),
+        "confidence": text((summary or {}).get("confidence")),
+        "aql_agent": (summary or {}).get("aql_agent") if isinstance((summary or {}).get("aql_agent"), dict) else {},
+    }
+
+
+def _latest_materialized_agentic_summary(surface: str, ticker: str = "") -> dict[str, object]:
+    return _load_page_agentic_summary_cached(
+        surface,
+        "",
+        str(ticker or "").upper().strip(),
+    )
+
+
+def _trading_agent_ticker_evidence(
+    cfg: AppConfig,
+    opportunity_feed: pd.DataFrame,
+    *,
+    max_candidates: int,
+    force_data_refresh: bool,
+) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+    if not isinstance(opportunity_feed, pd.DataFrame) or opportunity_feed.empty or "symbol" not in opportunity_feed.columns:
+        return [], []
+
+    def text(value: object) -> str:
+        if value is None:
+            return ""
+        out = str(value).strip()
+        return "" if out.lower() == "nan" else out
+
+    symbols = [
+        str(symbol).upper().strip()
+        for symbol in opportunity_feed["symbol"].astype(str).tolist()
+        if str(symbol).strip()
+    ][: max(int(max_candidates), 1)]
+    ticker_evidence: list[dict[str, object]] = []
+    stock_summaries: list[dict[str, object]] = []
+    feed_lookup = {
+        str(row.get("symbol") or "").upper().strip(): row
+        for _, row in opportunity_feed.iterrows()
+        if str(row.get("symbol") or "").strip()
+    }
+    for symbol in symbols:
+        row = feed_lookup.get(symbol)
+        opportunity_row = {}
+        if row is not None:
+            opportunity_row = {
+                key: row.get(key)
+                for key in [
+                    "symbol",
+                    "company_name",
+                    "opportunity",
+                    "direction",
+                    "opportunity_score",
+                    "close",
+                    "daily_change_pct",
+                    "return_1w_pct",
+                    "return_1m_pct",
+                    "return_3m_pct",
+                    "momentum_score",
+                    "momentum_roc_score",
+                    "trend_fit_gap",
+                    "details",
+                ]
+                if key in row.index
+            }
+        try:
+            signal_summary = _load_technical_signal_summary_cached(
+                cfg,
+                symbol,
+                None,
+                force_refresh=force_data_refresh,
+            )
+        except Exception as exc:
+            signal_summary = {"error": str(exc)}
+        try:
+            forecast = _load_forecast_next_week_cached(
+                cfg,
+                symbol,
+                days=365,
+                signal_frame=None,
+                force_refresh=force_data_refresh,
+            )
+        except Exception as exc:
+            forecast = {"error": str(exc)}
+        try:
+            news_payload = _load_recent_news_cached(
+                cfg,
+                symbol,
+                days=14,
+                limit=5,
+                force_refresh=force_data_refresh,
+            )
+            news_summary = summarize_recent_news(symbol, news_payload)
+        except Exception as exc:
+            news_payload = {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
+            news_summary = {"summary_lines": [f"Recent news unavailable: {exc}"], "articles": pd.DataFrame()}
+        try:
+            attention_context = _load_attention_context_cached(
+                cfg,
+                symbol,
+                force_refresh=force_data_refresh,
+            )
+        except Exception as exc:
+            attention_context = {"error": str(exc)}
+        try:
+            background_payload = _load_attention_ticker_background_cached(
+                cfg,
+                symbol,
+                force_refresh=force_data_refresh,
+            )
+        except Exception:
+            background_payload = {}
+
+        stock_summary = _latest_materialized_agentic_summary(STOCK_INVESTIGATOR_SECTION, symbol)
+        stock_summaries.append({"ticker": symbol, **_summary_payload_for_agent(stock_summary)})
+
+        articles = news_summary.get("articles")
+        recent_articles = []
+        if isinstance(articles, pd.DataFrame) and not articles.empty:
+            recent_articles = _json_ready(
+                articles[
+                    [
+                        column
+                        for column in ["headline", "title", "source", "published_at", "summary", "url"]
+                        if column in articles.columns
+                    ]
+                ].head(5)
+            )
+        ticker_evidence.append(
+            {
+                "symbol": symbol,
+                "opportunity": _json_ready(opportunity_row),
+                "technical_signals": _json_ready(signal_summary),
+                "forecast": _json_ready(forecast),
+                "stock_summary": _summary_payload_for_agent(stock_summary),
+                "attention_context": {
+                    key: text((attention_context or {}).get(key))
+                    for key in [
+                        "llm_headline",
+                        "llm_summary_text",
+                        "llm_why_now",
+                        "llm_management_signal",
+                        "context_story_text",
+                    ]
+                    if text((attention_context or {}).get(key))
+                },
+                "news_summary_lines": [
+                    str(item).strip()
+                    for item in to_list((news_summary or {}).get("summary_lines"))
+                    if str(item).strip()
+                ][:5],
+                "recent_articles": recent_articles,
+            }
+        )
+    return ticker_evidence, stock_summaries
+
+
+def _trading_agent_text(value: object) -> str:
+    if value is None:
+        return ""
+    out = str(value).strip()
+    return "" if out.lower() == "nan" else out
+
+
+def _trading_agent_number(value: object, *, suffix: str = "", decimals: int = 1) -> str:
+    if isinstance(value, (list, tuple, set, pd.Series, pd.Index, np.ndarray)):
+        values = list(value)
+        value = values[0] if values else None
+    numeric = pd.to_numeric(value, errors="coerce")
+    if pd.isna(numeric):
+        return "n/a"
+    return f"{float(numeric):.{max(int(decimals), 0)}f}{suffix}"
+
+
+def _trading_agent_float(value: object) -> float | None:
+    if isinstance(value, (list, tuple, set, pd.Series, pd.Index, np.ndarray)):
+        values = list(value)
+        value = values[0] if values else None
+    numeric = pd.to_numeric(value, errors="coerce")
+    if pd.isna(numeric):
+        return None
+    return float(numeric)
+
+
+def _trading_agent_pct(value: object) -> str:
+    numeric = _trading_agent_float(value)
+    if numeric is None:
+        return "n/a"
+    return f"{numeric:+.1f}%"
+
+
+def _trading_agent_strength(value: float | None, *, scale: float, inverse: bool = False) -> int:
+    if value is None:
+        return 0
+    if inverse:
+        score = (1.0 - min(abs(value), scale) / scale) * 100.0
+    else:
+        score = min(abs(value), scale) / scale * 100.0
+    return int(max(0.0, min(100.0, score)))
+
+
+def _trading_agent_trend_quality(trend_gap: float | None) -> tuple[str, int]:
+    if trend_gap is None:
+        return "Unavailable", 0
+    if trend_gap <= 0.12:
+        return "Clean trend", 88
+    if trend_gap <= 0.28:
+        return "Usable trend", 64
+    if trend_gap <= 0.50:
+        return "Choppy trend", 38
+    return "Noisy trend", 18
+
+
+def _trading_agent_momentum_label(momentum_roc: float | None) -> str:
+    if momentum_roc is None:
+        return "Pace unavailable"
+    if momentum_roc >= 0.25:
+        return "Accelerating"
+    if momentum_roc <= -0.25:
+        return "Fading"
+    return "Stable pace"
+
+
+def _trading_agent_source_freshness(opportunity: dict[str, object]) -> str:
+    asof = _trading_agent_text(opportunity.get("asof_time_utc"))
+    if asof:
+        return f"As of {asof}"
+    run_id = _trading_agent_text(opportunity.get("run_id"))
+    if run_id:
+        return f"Run {run_id[:8]}"
+    return ""
+
+
+def _trading_agent_sparkline_values(value: object) -> list[float]:
+    values: list[float] = []
+    raw_values = to_list(value)
+    if len(raw_values) == 1 and isinstance(raw_values[0], str):
+        try:
+            parsed = json.loads(raw_values[0])
+            raw_values = to_list(parsed)
+        except Exception:
+            raw_values = []
+    for item in raw_values:
+        numeric = _trading_agent_float(item)
+        if numeric is not None:
+            values.append(numeric)
+    return values[-90:]
+
+
+def _trading_agent_signal_model(
+    opportunity: dict[str, object],
+    controls: dict[str, object],
+) -> dict[str, object]:
+    selected_horizon_col = _trading_agent_text(
+        controls.get("selected_horizon_col") or opportunity.get("selected_horizon_col") or "return_1m_pct"
+    )
+    selected_horizon_label = _trading_agent_text(
+        controls.get("momentum_horizon") or opportunity.get("selected_horizon_label") or "1 Month"
+    )
+    horizon_return = _trading_agent_float(opportunity.get(selected_horizon_col))
+    daily_move = _trading_agent_float(opportunity.get("daily_change_pct"))
+    momentum_roc = _trading_agent_float(opportunity.get("momentum_roc_score"))
+    trend_gap = _trading_agent_float(opportunity.get("trend_fit_gap"))
+    trend_label, trend_strength = _trading_agent_trend_quality(trend_gap)
+    rank = _trading_agent_float(opportunity.get("opportunity_score"))
+
+    missing = []
+    for label, value in [
+        ("market signal rank", rank),
+        ("1D move", daily_move),
+        (f"{selected_horizon_label} return", horizon_return),
+        ("momentum pace", momentum_roc),
+        ("trend quality", trend_gap),
+    ]:
+        if value is None:
+            missing.append(label)
+
+    return {
+        "rank": rank,
+        "rank_label": "n/a" if rank is None else f"{rank:.0f}/100",
+        "market_pattern": _trading_agent_text(opportunity.get("direction") or opportunity.get("opportunity")) or "Pattern unavailable",
+        "opportunity_label": _trading_agent_text(opportunity.get("opportunity")),
+        "selected_horizon_col": selected_horizon_col,
+        "selected_horizon_label": selected_horizon_label,
+        "horizon_return": horizon_return,
+        "daily_move": daily_move,
+        "momentum_roc": momentum_roc,
+        "momentum_label": _trading_agent_momentum_label(momentum_roc),
+        "trend_gap": trend_gap,
+        "trend_label": trend_label,
+        "score_components": [
+            {
+                "label": f"{selected_horizon_label} move",
+                "value": _trading_agent_strength(horizon_return, scale=20.0),
+                "display": _trading_agent_pct(horizon_return),
+            },
+            {
+                "label": "Momentum pace",
+                "value": _trading_agent_strength(momentum_roc, scale=1.0),
+                "display": "n/a" if momentum_roc is None else f"{momentum_roc:+.2f}",
+            },
+            {
+                "label": "1D move",
+                "value": _trading_agent_strength(daily_move, scale=5.0),
+                "display": _trading_agent_pct(daily_move),
+            },
+            {
+                "label": "Trend quality",
+                "value": trend_strength,
+                "display": trend_label,
+            },
+        ],
+        "sparkline": _trading_agent_sparkline_values(opportunity.get("sparkline_3m")),
+        "freshness": _trading_agent_source_freshness(opportunity),
+        "missing": missing,
+    }
+
+
+def _render_trading_agent_signal_bar(label: str, value: int, display: str) -> None:
+    safe_label = html.escape(str(label))
+    safe_display = html.escape(str(display))
+    bounded = int(max(0, min(100, value)))
+    st.markdown(
+        "<div class='sn-trading-signal-row'>"
+        f"<div class='sn-trading-signal-label'>{safe_label}</div>"
+        "<div class='sn-trading-signal-track'>"
+        f"<div class='sn-trading-signal-fill' style='width:{bounded}%'></div>"
+        "</div>"
+        f"<div class='sn-trading-signal-value'>{safe_display}</div>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+
+def _render_trading_agent_sparkline(values: list[float], *, key: str) -> None:
+    if len(values) < 2:
+        st.caption("No 3M sparkline available from the materialized feed.")
+        return
+    frame = pd.DataFrame({"point": range(len(values)), "value": values})
+    fig = go.Figure(
+        go.Scatter(
+            x=frame["point"],
+            y=frame["value"],
+            mode="lines",
+            line={"color": "#2563eb", "width": 2},
+            hoverinfo="skip",
+        )
+    )
+    fig.update_layout(
+        height=92,
+        margin={"l": 4, "r": 4, "t": 4, "b": 4},
+        xaxis={"visible": False},
+        yaxis={"visible": False},
+        showlegend=False,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+    )
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False}, key=key)
+
+
+def _render_trading_agent_evidence_checklist(
+    *,
+    evidence: list[str],
+    invalidation: str,
+    risks: list[str],
+    ticker_evidence: dict[str, object],
+    aql_agent: dict[str, object],
+) -> None:
+    stock_summary = ticker_evidence.get("stock_summary") if isinstance(ticker_evidence, dict) else {}
+    attention_context = ticker_evidence.get("attention_context") if isinstance(ticker_evidence, dict) else {}
+    news_lines = to_list(ticker_evidence.get("news_summary_lines")) if isinstance(ticker_evidence, dict) else []
+    checks = [
+        ("Market evidence", bool(evidence)),
+        ("AQL synthesis", _trading_agent_text((aql_agent or {}).get("answer_markdown")) != ""),
+        ("Stock summary", isinstance(stock_summary, dict) and bool(_trading_agent_text(stock_summary.get("headline")))),
+        (
+            "Recent context",
+            bool(news_lines)
+            or (
+                isinstance(attention_context, dict)
+                and any(_trading_agent_text(attention_context.get(key)) for key in ["llm_headline", "llm_why_now"])
+            ),
+        ),
+        ("Invalidation", bool(invalidation)),
+        ("Tail risk", bool(risks)),
+    ]
+    st.markdown(
+        "<div class='sn-trading-checklist'>"
+        + "".join(
+            "<span class='sn-trading-check'>"
+            f"{'&#10003;' if ok else '&ndash;'} {html.escape(label)}"
+            "</span>"
+            for label, ok in checks
+        )
+        + "</div>",
+        unsafe_allow_html=True,
+    )
+
+
+def _trading_agent_context_lookup(context: dict[str, object]) -> dict[str, dict[str, object]]:
+    lookup: dict[str, dict[str, object]] = {}
+    for row in to_list((context or {}).get("market_opportunity_feed")):
+        if not isinstance(row, dict):
+            continue
+        symbol = _trading_agent_text(row.get("symbol") or row.get("ticker")).upper()
+        if not symbol:
+            continue
+        lookup.setdefault(symbol, {})["opportunity"] = row
+    for item in to_list((context or {}).get("ticker_evidence")):
+        if not isinstance(item, dict):
+            continue
+        symbol = _trading_agent_text(item.get("symbol") or item.get("ticker")).upper()
+        if not symbol:
+            continue
+        lookup.setdefault(symbol, {})["ticker_evidence"] = item
+        opportunity = item.get("opportunity")
+        if isinstance(opportunity, dict) and opportunity:
+            lookup.setdefault(symbol, {}).setdefault("opportunity", opportunity)
+    source_summaries = dict((context or {}).get("source_summaries") or {})
+    for item in to_list(source_summaries.get("stock_investigator")):
+        if not isinstance(item, dict):
+            continue
+        symbol = _trading_agent_text(item.get("ticker") or item.get("symbol")).upper()
+        if symbol:
+            lookup.setdefault(symbol, {})["stock_summary"] = item
+    return lookup
+
+
+def _trading_agent_company_name(symbol: str, context_item: dict[str, object]) -> str:
+    opportunity = context_item.get("opportunity") if isinstance(context_item, dict) else {}
+    if isinstance(opportunity, dict):
+        company = _trading_agent_text(opportunity.get("company_name") or opportunity.get("security_name") or opportunity.get("name"))
+        if company and company.upper() != symbol.upper():
+            return company
+    return ""
+
+
+def _render_trading_agent_source_summaries(context: dict[str, object], result: dict[str, object]) -> None:
+    source_summaries = dict((context or {}).get("source_summaries") or {})
+    if source_summaries:
+        with st.expander("Source summaries", expanded=False):
+            for label, key in [
+                ("Market Explorer", "market_explorer"),
+                ("Broad Economy", "broad_economy"),
+            ]:
+                summary = source_summaries.get(key)
+                if not isinstance(summary, dict):
+                    continue
+                headline = _trading_agent_text(summary.get("headline"))
+                body = _trading_agent_text(summary.get("summary_markdown"))
+                confidence = _trading_agent_text(summary.get("confidence"))
+                st.markdown(f"**{label}**")
+                if headline:
+                    st.caption(headline)
+                if body:
+                    st.markdown(body)
+                if confidence:
+                    st.caption(f"Confidence: {confidence}")
+            stock_summaries = [
+                item
+                for item in to_list(source_summaries.get("stock_investigator"))
+                if isinstance(item, dict)
+            ]
+            if stock_summaries:
+                rows = []
+                for item in stock_summaries:
+                    rows.append(
+                        {
+                            "Ticker": _trading_agent_text(item.get("ticker") or item.get("symbol")).upper(),
+                            "Headline": _trading_agent_text(item.get("headline")),
+                            "Confidence": _trading_agent_text(item.get("confidence")),
+                        }
+                    )
+                st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+
+    aql_agent = result.get("aql_agent") if isinstance(result.get("aql_agent"), dict) else {}
+    tool_calls = [
+        item
+        for item in to_list((aql_agent or {}).get("tool_calls"))
+        if isinstance(item, dict)
+    ]
+    if tool_calls:
+        with st.expander("AQL trace", expanded=False):
+            rows = []
+            for call in tool_calls:
+                rows.append(
+                    {
+                        "Tool": _trading_agent_text(call.get("tool_name")),
+                        "Status": _trading_agent_text(call.get("status")),
+                        "Preview": _trading_agent_text(call.get("preview")),
+                    }
+                )
+            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+
+
+def _render_trading_agent_candidate_card(
+    candidate: dict[str, object],
+    *,
+    context_item: dict[str, object],
+    controls: dict[str, object],
+    aql_agent: dict[str, object],
+    idx: int,
+    action_state: dict[str, object] | None = None,
+) -> None:
+    ticker = _trading_agent_text(candidate.get("ticker")).upper()
+    direction = _trading_agent_text(candidate.get("direction") or "watch").upper()
+    confidence = _trading_agent_text(candidate.get("confidence") or "low").title()
+    horizon = _trading_agent_text(candidate.get("suggested_horizon"))
+    company_name = _trading_agent_company_name(ticker, context_item)
+    opportunity = context_item.get("opportunity") if isinstance(context_item, dict) else {}
+    ticker_evidence = context_item.get("ticker_evidence") if isinstance(context_item, dict) else {}
+    if not isinstance(opportunity, dict):
+        opportunity = {}
+    if not isinstance(ticker_evidence, dict):
+        ticker_evidence = {}
+    else:
+        ticker_evidence = dict(ticker_evidence)
+    stock_summary = context_item.get("stock_summary") if isinstance(context_item, dict) else {}
+    if isinstance(stock_summary, dict) and stock_summary:
+        ticker_evidence.setdefault("stock_summary", stock_summary)
+    signal_model = _trading_agent_signal_model(opportunity, controls)
+
+    with st.container(border=True):
+        header_cols = st.columns([3.7, 1.0, 1.0, 1.1])
+        identity = ticker or "n/a"
+        if company_name:
+            identity = f"{identity} · {company_name}"
+        header_cols[0].markdown(f"### {identity}")
+        header_cols[1].markdown(f"**{direction}**")
+        header_cols[2].markdown(f"**{confidence}**")
+        header_cols[3].caption(horizon or "Horizon n/a")
+
+        setup = _trading_agent_text(candidate.get("setup"))
+        if setup:
+            st.markdown(f"**Setup:** {setup}")
+
+        signal_cols = st.columns([1.05, 1.35, 1.2])
+        with signal_cols[0]:
+            st.markdown("**Market signal rank**")
+            st.metric(
+                "Relative scanner rank",
+                str(signal_model.get("rank_label") or "n/a"),
+                label_visibility="collapsed",
+            )
+            st.caption("0-100 relative rank, not expected return or conviction.")
+        with signal_cols[1]:
+            st.markdown("**Signal breakdown**")
+            for component in to_list(signal_model.get("score_components")):
+                if not isinstance(component, dict):
+                    continue
+                _render_trading_agent_signal_bar(
+                    _trading_agent_text(component.get("label")),
+                    int(component.get("value") or 0),
+                    _trading_agent_text(component.get("display")) or "n/a",
+                )
+        with signal_cols[2]:
+            st.markdown("**Price action**")
+            _render_trading_agent_sparkline(
+                to_list(signal_model.get("sparkline")),
+                key=f"trading_agent_sparkline_{idx}_{ticker or 'na'}",
+            )
+
+        price_cols = st.columns(4)
+        price_cols[0].metric("1D move", _trading_agent_pct(signal_model.get("daily_move")))
+        price_cols[1].metric(
+            f"{_trading_agent_text(signal_model.get('selected_horizon_label'))} return",
+            _trading_agent_pct(signal_model.get("horizon_return")),
+        )
+        price_cols[2].metric("Momentum pace", _trading_agent_text(signal_model.get("momentum_label")) or "n/a")
+        price_cols[3].metric("Trend quality", _trading_agent_text(signal_model.get("trend_label")) or "n/a")
+        pattern = _trading_agent_text(signal_model.get("market_pattern"))
+        opportunity_label = _trading_agent_text(signal_model.get("opportunity_label"))
+        freshness = _trading_agent_text(signal_model.get("freshness"))
+        captions = [item for item in [f"Market pattern: {pattern}" if pattern else "", opportunity_label, freshness] if item]
+        if captions:
+            st.caption(" | ".join(captions))
+
+        hypothesis = _trading_agent_text(candidate.get("hypothesis"))
+        if hypothesis:
+            st.write(hypothesis)
+
+        evidence = [_trading_agent_text(item) for item in to_list(candidate.get("evidence")) if _trading_agent_text(item)]
+        invalidation = _trading_agent_text(candidate.get("invalidation"))
+        risks = [_trading_agent_text(item) for item in to_list(candidate.get("tail_risks")) if _trading_agent_text(item)]
+        _render_trading_agent_evidence_checklist(
+            evidence=evidence,
+            invalidation=invalidation,
+            risks=risks,
+            ticker_evidence=ticker_evidence,
+            aql_agent=aql_agent,
+        )
+        news_lines = [
+            _trading_agent_text(item)
+            for item in to_list(ticker_evidence.get("news_summary_lines"))
+            if _trading_agent_text(item)
+        ]
+        attention_context = ticker_evidence.get("attention_context") if isinstance(ticker_evidence, dict) else {}
+        attention_lines = []
+        if isinstance(attention_context, dict):
+            attention_lines = [
+                _trading_agent_text(attention_context.get(key))
+                for key in ["llm_headline", "llm_why_now", "llm_management_signal"]
+                if _trading_agent_text(attention_context.get(key))
+            ]
+
+        body_cols = st.columns([1.15, 1.0])
+        with body_cols[0]:
+            if evidence:
+                st.markdown("**Evidence**")
+                st.markdown("\n".join(f"- {item}" for item in evidence[:5]))
+            if invalidation:
+                st.markdown(f"**Invalidation**  \n{invalidation}")
+        with body_cols[1]:
+            if risks:
+                st.markdown("**Tail Risks**")
+                st.markdown("\n".join(f"- {item}" for item in risks[:5]))
+            if attention_lines or news_lines:
+                with st.expander("Ticker context", expanded=False):
+                    for item in attention_lines[:3]:
+                        st.markdown(f"- {item}")
+                    for item in news_lines[:3]:
+                        st.markdown(f"- {item}")
+            missing = [_trading_agent_text(item) for item in to_list(signal_model.get("missing")) if _trading_agent_text(item)]
+            if missing:
+                with st.expander("Missing signal fields", expanded=False):
+                    st.markdown("\n".join(f"- {item}" for item in missing[:6]))
+            with st.expander("Raw signal values", expanded=False):
+                st.dataframe(
+                    pd.DataFrame(
+                        [
+                            {
+                                "Field": "Market signal rank",
+                                "Value": signal_model.get("rank_label"),
+                            },
+                            {
+                                "Field": f"{signal_model.get('selected_horizon_label')} return",
+                                "Value": _trading_agent_pct(signal_model.get("horizon_return")),
+                            },
+                            {"Field": "1D move", "Value": _trading_agent_pct(signal_model.get("daily_move"))},
+                            {
+                                "Field": "Momentum pace",
+                                "Value": "n/a"
+                                if signal_model.get("momentum_roc") is None
+                                else f"{float(signal_model.get('momentum_roc')):+.2f}",
+                            },
+                            {
+                                "Field": "Trend gap",
+                                "Value": "n/a"
+                                if signal_model.get("trend_gap") is None
+                                else f"{float(signal_model.get('trend_gap')):.2f}",
+                            },
+                        ]
+                    ),
+                    hide_index=True,
+                    use_container_width=True,
+                )
+
+        candidate_id = _trading_agent_text(candidate.get("candidate_id"))
+        latest_action = _trading_agent_text((action_state or {}).get("action"))
+        latest_status = _trading_agent_text((action_state or {}).get("status"))
+        action_label = ""
+        if latest_action == "place_requested":
+            action_label = "Place requested"
+        elif latest_action == "rejected":
+            action_label = "Rejected"
+        if action_label:
+            st.caption(f"Decision: {action_label}" + (f" ({latest_status})" if latest_status else ""))
+
+        action_cols = st.columns([1.0, 1.0, 2.4])
+        action_disabled = bool(latest_action in {"place_requested", "rejected"}) or not candidate_id
+        with action_cols[0]:
+            if st.button(
+                "Place",
+                key=f"trading_agent_place_{idx}_{candidate_id or ticker}",
+                use_container_width=True,
+                disabled=action_disabled,
+                help="Logs a place decision for admin review. No broker order is submitted.",
+            ):
+                user = _current_user_context()
+                ok, msg = record_trading_agent_action(
+                    candidate=dict(candidate),
+                    action="place",
+                    requested_by=str(getattr(user, "user_id", "") or ""),
+                    requested_email=str(getattr(user, "email", "") or ""),
+                )
+                if ok:
+                    st.success(msg)
+                    st.rerun()
+                else:
+                    st.warning(msg)
+        with action_cols[1]:
+            if st.button(
+                "Reject",
+                key=f"trading_agent_reject_{idx}_{candidate_id or ticker}",
+                use_container_width=True,
+                disabled=action_disabled,
+            ):
+                user = _current_user_context()
+                ok, msg = record_trading_agent_action(
+                    candidate=dict(candidate),
+                    action="reject",
+                    requested_by=str(getattr(user, "user_id", "") or ""),
+                    requested_email=str(getattr(user, "email", "") or ""),
+                )
+                if ok:
+                    st.success(msg)
+                    st.rerun()
+                else:
+                    st.warning(msg)
+        with action_cols[2]:
+            if ticker and st.button(
+                "Open Stock Investigator",
+                key=f"trading_agent_open_{idx}_{ticker}_{candidate_id or 'na'}",
+                use_container_width=True,
+            ):
+                _open_attention_target(STOCK_INVESTIGATOR_SECTION, {"ticker": ticker})
+
+
+def _trading_agent_json_value(value: object, fallback: object) -> object:
+    if isinstance(value, (dict, list)):
+        return value
+    text = _trading_agent_text(value)
+    if not text:
+        return fallback
+    try:
+        parsed = json.loads(text)
+    except Exception:
+        return fallback
+    return parsed if parsed is not None else fallback
+
+
+def _load_latest_trading_agent_output() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, object | None]:
+    try:
+        runs, metadata = load_latest_dataset_frame("trading_agent_runs")
+    except Exception:
+        runs, metadata = pd.DataFrame(), None
+    try:
+        candidates, _ = load_latest_dataset_frame("trading_agent_candidates")
+    except Exception:
+        candidates = pd.DataFrame()
+    actions = trading_agent_actions_table(limit=500)
+    return (
+        runs.copy() if isinstance(runs, pd.DataFrame) else pd.DataFrame(),
+        candidates.copy() if isinstance(candidates, pd.DataFrame) else pd.DataFrame(),
+        actions.copy() if isinstance(actions, pd.DataFrame) else pd.DataFrame(),
+        metadata,
+    )
+
+
+def _latest_trading_agent_action_map(actions: pd.DataFrame) -> dict[str, dict[str, object]]:
+    if not isinstance(actions, pd.DataFrame) or actions.empty or "candidate_id" not in actions.columns:
+        return {}
+    out = actions.copy()
+    if "created_at_utc" in out.columns:
+        out["_created_at_utc"] = pd.to_datetime(out["created_at_utc"], utc=True, errors="coerce")
+        out = out.sort_values("_created_at_utc", ascending=False, na_position="last")
+    latest: dict[str, dict[str, object]] = {}
+    for _, row in out.iterrows():
+        candidate_id = _trading_agent_text(row.get("candidate_id"))
+        if candidate_id and candidate_id not in latest:
+            latest[candidate_id] = row.to_dict()
+    return latest
+
+
+def _trading_agent_candidate_from_row(row: pd.Series) -> dict[str, object]:
+    candidate = _trading_agent_json_value(row.get("candidate_json"), {})
+    if not isinstance(candidate, dict):
+        candidate = {}
+    candidate = dict(candidate)
+    candidate.update(
+        {
+            "candidate_id": _trading_agent_text(row.get("candidate_id")),
+            "trading_agent_run_id": _trading_agent_text(row.get("trading_agent_run_id")),
+            "run_id": _trading_agent_text(row.get("run_id")),
+            "horizon_key": _trading_agent_text(row.get("horizon_key")),
+            "horizon_label": _trading_agent_text(row.get("horizon_label")),
+            "selected_horizon_col": _trading_agent_text(row.get("selected_horizon_col")),
+            "ticker": _trading_agent_text(candidate.get("ticker") or row.get("ticker")).upper(),
+            "direction": _trading_agent_text(candidate.get("direction") or row.get("direction")),
+            "setup": _trading_agent_text(candidate.get("setup") or row.get("setup")),
+            "hypothesis": _trading_agent_text(candidate.get("hypothesis") or row.get("hypothesis")),
+            "invalidation": _trading_agent_text(candidate.get("invalidation") or row.get("invalidation")),
+            "suggested_horizon": _trading_agent_text(candidate.get("suggested_horizon") or row.get("suggested_horizon")),
+            "confidence": _trading_agent_text(candidate.get("confidence") or row.get("confidence") or "low"),
+        }
+    )
+    evidence = candidate.get("evidence")
+    if not to_list(evidence):
+        evidence = _trading_agent_json_value(row.get("evidence_json"), [])
+    candidate["evidence"] = [_trading_agent_text(item) for item in to_list(evidence) if _trading_agent_text(item)]
+    risks = candidate.get("tail_risks")
+    if not to_list(risks):
+        risks = _trading_agent_json_value(row.get("tail_risks_json"), [])
+    candidate["tail_risks"] = [_trading_agent_text(item) for item in to_list(risks) if _trading_agent_text(item)]
+    return candidate
+
+
+def _trading_agent_context_from_run(row: pd.Series) -> dict[str, object]:
+    context = _trading_agent_json_value(row.get("context_json"), {})
+    return context if isinstance(context, dict) else {}
+
+
+def _trading_agent_result_from_run(row: pd.Series) -> dict[str, object]:
+    result = _trading_agent_json_value(row.get("result_json"), {})
+    if not isinstance(result, dict):
+        result = {}
+    result.setdefault("status", _trading_agent_text(row.get("status")))
+    result.setdefault("regime_read", _trading_agent_text(row.get("regime_read")))
+    result.setdefault("portfolio_posture", _trading_agent_text(row.get("portfolio_posture")))
+    result.setdefault("data_gaps", _trading_agent_json_value(row.get("data_gaps_json"), []))
+    aql_agent = _trading_agent_json_value(row.get("aql_agent_json"), {})
+    if isinstance(aql_agent, dict):
+        result.setdefault("aql_agent", aql_agent)
+    return result
+
+
+def _trading_agent_horizon_sort_key(value: object) -> int:
+    order = {"1w": 0, "1m": 1, "3m": 2, "1y": 3, "5y": 4}
+    return order.get(_trading_agent_text(value), 99)
+
+
+def _render_trading_agent_section(
+    cfg: AppConfig,
+    *,
+    force_data_refresh: bool,
+) -> None:
+    if not _current_user_is_admin():
+        st.error("Only admin users can access this section.")
+        return
+
+    st.title(TRADING_AGENT_SECTION)
+    st.caption(
+        "Admin-only research log. Place and Reject are audit decisions; Place is stored for future Alpaca handoff and does not submit an order."
+    )
+
+    runs, candidates_frame, actions, metadata = _load_latest_trading_agent_output()
+    if metadata is not None:
+        st.caption(
+            f"Latest Trading Agent snapshot: {_trading_agent_text(getattr(metadata, 'asof_time_utc', ''))} "
+            f"run `{_trading_agent_text(getattr(metadata, 'dataset_version_id', ''))}`"
+        )
+
+    if runs.empty or candidates_frame.empty:
+        st.info("No materialized Trading Agent candidates are available. Trading Agent Build is managed from Admin > Pipeline Jobs.")
+        return
+
+    if "generated_at_utc" in runs.columns:
+        runs = runs.assign(_generated_at=pd.to_datetime(runs["generated_at_utc"], utc=True, errors="coerce"))
+        latest_generated = runs["_generated_at"].max()
+        if pd.notna(latest_generated):
+            runs = runs[runs["_generated_at"].eq(latest_generated)].copy()
+    if "run_id" in runs.columns and not runs.empty:
+        latest_run_id = _trading_agent_text(runs.iloc[0].get("run_id"))
+        if latest_run_id and "run_id" in candidates_frame.columns:
+            candidates_frame = candidates_frame[candidates_frame["run_id"].astype(str).eq(latest_run_id)].copy()
+
+    horizon_values = sorted(
+        {
+            _trading_agent_text(value)
+            for value in runs.get("horizon_key", pd.Series(dtype=str)).tolist()
+            if _trading_agent_text(value)
+        },
+        key=_trading_agent_horizon_sort_key,
+    )
+    if not horizon_values:
+        st.info("Trading Agent run metadata did not include horizon keys.")
+        return
+    horizon_labels = {
+        _trading_agent_text(row.get("horizon_key")): _trading_agent_text(row.get("horizon_label")) or _trading_agent_text(row.get("horizon_key"))
+        for _, row in runs.iterrows()
+    }
+    selected_horizon = st.segmented_control(
+        "Horizon",
+        horizon_values,
+        default=horizon_values[0],
+        format_func=lambda key: horizon_labels.get(str(key), str(key)),
+        key="trading_agent_materialized_horizon",
+        width="stretch",
+    )
+    selected_horizon = _trading_agent_text(selected_horizon) or horizon_values[0]
+
+    run_rows = runs[runs["horizon_key"].astype(str).eq(selected_horizon)].copy() if "horizon_key" in runs.columns else runs.head(1)
+    if run_rows.empty:
+        st.info("No Trading Agent run was found for this horizon.")
+        return
+    run_row = run_rows.iloc[0]
+    result = _trading_agent_result_from_run(run_row)
+    context = _trading_agent_context_from_run(run_row)
+    context_lookup = _trading_agent_context_lookup(context)
+    controls_context = dict(context.get("controls") or {})
+    controls_context.setdefault("selected_horizon_label", _trading_agent_text(run_row.get("horizon_label")))
+    controls_context.setdefault("selected_horizon_col", _trading_agent_text(run_row.get("selected_horizon_col")))
+    aql_agent = result.get("aql_agent") if isinstance(result.get("aql_agent"), dict) else {}
+
+    status = _trading_agent_text(result.get("status"))
+    if status != "ok":
+        st.info(_trading_agent_text(result.get("error")) or "Trading Agent output is unavailable for this horizon.")
+        gaps = [_trading_agent_text(item) for item in to_list(result.get("data_gaps")) if _trading_agent_text(item)]
+        if gaps:
+            st.markdown("\n".join(f"- {gap}" for gap in gaps[:6]))
+        return
+
+    st.subheader("Regime Read")
+    st.write(_trading_agent_text(result.get("regime_read")))
+    posture = _trading_agent_text(result.get("portfolio_posture"))
+    if posture:
+        st.caption(posture)
+
+    horizon_candidates = candidates_frame.copy()
+    if "horizon_key" in horizon_candidates.columns:
+        horizon_candidates = horizon_candidates[horizon_candidates["horizon_key"].astype(str).eq(selected_horizon)].copy()
+    if "rank" in horizon_candidates.columns:
+        horizon_candidates["_rank"] = pd.to_numeric(horizon_candidates["rank"], errors="coerce")
+        horizon_candidates = horizon_candidates.sort_values("_rank", ascending=True, na_position="last")
+
+    if horizon_candidates.empty:
+        st.info("No watchlist candidates cleared the evidence bar for this horizon.")
+        return
+
+    action_map = _latest_trading_agent_action_map(actions)
+    candidates = [_trading_agent_candidate_from_row(row) for _, row in horizon_candidates.iterrows()]
+    long_watch_candidates = [
+        item
+        for item in candidates
+        if _trading_agent_text(item.get("direction")).lower() not in {"short", "avoid"}
+    ]
+    short_candidates = [
+        item
+        for item in candidates
+        if _trading_agent_text(item.get("direction")).lower() in {"short", "avoid"}
+    ]
+
+    if long_watch_candidates:
+        st.subheader("Long / Watch Setups")
+        for idx, candidate in enumerate(long_watch_candidates):
+            ticker = _trading_agent_text(candidate.get("ticker")).upper()
+            candidate_id = _trading_agent_text(candidate.get("candidate_id"))
+            _render_trading_agent_candidate_card(
+                candidate,
+                context_item=context_lookup.get(ticker, {}),
+                controls=controls_context,
+                aql_agent=aql_agent,
+                idx=idx,
+                action_state=action_map.get(candidate_id, {}),
+            )
+
+    if short_candidates:
+        st.subheader("Short / Avoid Setups")
+        offset = len(long_watch_candidates)
+        for idx, candidate in enumerate(short_candidates, start=offset):
+            ticker = _trading_agent_text(candidate.get("ticker")).upper()
+            candidate_id = _trading_agent_text(candidate.get("candidate_id"))
+            _render_trading_agent_candidate_card(
+                candidate,
+                context_item=context_lookup.get(ticker, {}),
+                controls=controls_context,
+                aql_agent=aql_agent,
+                idx=idx,
+                action_state=action_map.get(candidate_id, {}),
+            )
+
+    if context:
+        _render_trading_agent_source_summaries(context, result)
+
+    gaps = [_trading_agent_text(item) for item in to_list(result.get("data_gaps")) if _trading_agent_text(item)]
+    if gaps:
+        with st.expander("Data gaps", expanded=False):
+            st.markdown("\n".join(f"- {gap}" for gap in gaps[:6]))
+
+    with st.expander("Decision Log", expanded=False):
+        if actions.empty:
+            st.info("No Trading Agent decisions have been logged yet.")
+        else:
+            display_actions = actions.copy()
+            show_cols = [
+                column
+                for column in [
+                    "created_at_utc",
+                    "ticker",
+                    "horizon_key",
+                    "action",
+                    "execution_mode",
+                    "status",
+                    "broker",
+                    "broker_order_id",
+                    "requested_email",
+                    "candidate_id",
+                ]
+                if column in display_actions.columns
+            ]
+            st.dataframe(display_actions[show_cols], use_container_width=True, hide_index=True)
+
+
 _ensure_app_shell_styles()
 
 # Detect logo click (?nav=home) and queue navigation to Home.
@@ -9903,6 +11510,10 @@ if _query_param_value("nav") == "home":
     except Exception:
         pass
     st.session_state["_pending_workspace_section"] = "Home"
+
+# Auth action links are public forms, not workspace entry points. Clear existing
+# sessions before cookie restore so reset/invite URLs cannot inherit a login.
+_force_logged_out_for_auth_action()
 
 # Run cookie maintenance and attempt session restore before routing decisions.
 _handle_auth_cookie_maintenance()
@@ -9965,7 +11576,13 @@ _show_login_forced = bool(st.session_state.get("_show_login_form", False))
 _is_authenticated = bool(st.session_state.get("_ui_authenticated"))
 
 # Public home path: unauthenticated visitor heading to Home (or no destination).
-if not _is_authenticated and _auth_enabled() and not _show_login_forced and _routing_target == "Home":
+if (
+    not _is_authenticated
+    and _auth_enabled()
+    and not _show_login_forced
+    and not _auth_action_query_param_present()
+    and _routing_target == "Home"
+):
     with st.sidebar:
         _render_sidebar_brand_panel()
         _render_sidebar_editorial_links(placement="sidebar_brand")
@@ -10072,11 +11689,7 @@ with st.sidebar:
                 auth_service.logout_session(str(st.session_state.get("_ui_auth_session_id") or ""))
             else:
                 _invalidate_auth_session(st.session_state.get("_ui_auth_session_id"))
-            st.session_state["_ui_authenticated"] = False
-            st.session_state["_ui_auth_session_id"] = None
-            st.session_state["_ui_auth_mode"] = None
-            st.session_state.pop("_ui_last_recorded_section_view", None)
-            _store_user_context(None)
+            _clear_local_auth_state()
             st.session_state["_ui_clear_auth_cookie"] = True
             st.rerun()
         sidebar_connection = st.empty()
@@ -10149,19 +11762,13 @@ elif section == AGENTIC_OMNIBAR_SECTION:
     )
 
 elif section == PORTFOLIO_SECTION:
-    header_cols = st.columns([3.2, 1.6, 1.4])
+    header_cols = st.columns([3.2, 1.6])
     with header_cols[0]:
         st.title(PORTFOLIO_SECTION)
         if current_user is not None and not current_user.can_view_full_portfolio:
             st.caption(f"Viewing your {_current_user_share_fraction() * 100:.2f}% economic share of the master portfolio.")
     with header_cols[1]:
         period = st.selectbox("History Period", ["1M", "3M", "6M", "1Y", "2Y", "5Y"], index=3, key="portfolio_overview_period")
-    with header_cols[2]:
-        force_data_refresh = force_data_refresh or _section_refresh_button(
-            "portfolio_overview_refresh",
-            source="equities",
-            label="Run equities refresh job",
-        )
     if not _has_live_api(api, f"{PORTFOLIO_SECTION} requires a working live account connection."):
         st.info("Restore the live account connection to load positions, portfolio history, and benchmark comparisons.")
     else:
@@ -10291,19 +11898,13 @@ elif section == PORTFOLIO_SECTION:
                 st.warning(f"Could not compute momentum: {exc}")
 
 elif section == PORTFOLIO_PERFORMANCE_SECTION:
-    header_cols = st.columns([3.2, 1.6, 1.4])
+    header_cols = st.columns([3.2, 1.6])
     with header_cols[0]:
         st.title(PORTFOLIO_PERFORMANCE_SECTION)
         if current_user is not None and not current_user.can_view_full_portfolio:
             st.caption("Return-based metrics match the master portfolio while your ownership share remains fixed.")
     with header_cols[1]:
         period = st.selectbox("History Period", ["1M", "3M", "6M", "1Y", "2Y", "5Y"], index=3, key="performance_period")
-    with header_cols[2]:
-        force_data_refresh = force_data_refresh or _section_refresh_button(
-            "performance_refresh",
-            source="equities",
-            label="Run equities refresh job",
-        )
     if not _has_live_api(
         api,
         f"{PORTFOLIO_PERFORMANCE_SECTION} requires a working portfolio history snapshot or live account connection.",
@@ -10345,20 +11946,18 @@ elif section == PORTFOLIO_PERFORMANCE_SECTION:
 elif section == ADMIN_SECTION:
     _render_access_admin_section()
 
+elif section == TRADING_AGENT_SECTION:
+    _render_trading_agent_section(
+        cfg,
+        force_data_refresh=force_data_refresh,
+    )
+
 elif section == BROAD_ECONOMY_SECTION:
-    header_cols = st.columns([5.2, 1.4])
-    with header_cols[0]:
-        st.title(BROAD_ECONOMY_SECTION)
-        st.caption(
-            "Economic indicators sourced from FRED. The dashboard now defaults to the fresher per-series path, "
-            "with derived YoY and stationarized views rebuilt from the underlying observations."
-        )
-    with header_cols[1]:
-        force_data_refresh = force_data_refresh or _section_refresh_button(
-            "fred_macro_refresh",
-            source="fred",
-            label="Run FRED refresh job",
-        )
+    st.title(BROAD_ECONOMY_SECTION)
+    st.caption(
+        "Economic indicators sourced from FRED. The dashboard now defaults to the fresher per-series path, "
+        "with derived YoY and stationarized views rebuilt from the underlying observations."
+    )
 
     fred_api_key = load_fred_api_key()
     if not fred_api_key:
@@ -10437,6 +12036,15 @@ elif section == BROAD_ECONOMY_SECTION:
         st.caption(
             "Stationarized change is on by default across Broad Economy. Level series use obs-to-obs percent change; "
             "rate-like series use first differences."
+        )
+        _render_page_agentic_summary_panel(
+            BROAD_ECONOMY_SECTION,
+            broad_economy_summary_context(
+                overview=overview,
+                release_index=release_index,
+                lookback_years=lookback_years,
+            ),
+            key_prefix="broad_economy",
         )
 
         money_supply_specs = {spec.series_id: spec for spec in specs_by_category.get("Money Supply", [])}
@@ -10684,15 +12292,7 @@ elif section == BROAD_ECONOMY_SECTION:
             )
 
 elif section == MARKET_EXPLORER_SECTION:
-    header_cols = st.columns([4.8, 1.4])
-    with header_cols[0]:
-        st.title(MARKET_EXPLORER_SECTION)
-    with header_cols[1]:
-        force_data_refresh = force_data_refresh or _section_refresh_button(
-            "market_opportunity_refresh",
-            source="equities",
-            label="Run equities refresh job",
-        )
+    st.title(MARKET_EXPLORER_SECTION)
     if not _has_live_api(
         api,
         f"{MARKET_EXPLORER_SECTION} requires a working live market connection or pipeline snapshots.",
@@ -10802,279 +12402,92 @@ elif section == MARKET_EXPLORER_SECTION:
                 format_func=lambda key: MARKET_MOMENTUM_HORIZON_LABELS.get(key, str(key)),
                 key="market_momentum_horizon",
             )
-            momentum_days = MARKET_MOMENTUM_SCAN_DAYS
             selected_horizon_col = MARKET_MOMENTUM_HORIZON_COLUMNS.get(momentum_horizon, "return_1m_pct")
             selected_horizon_label = MARKET_MOMENTUM_HORIZON_LABELS.get(momentum_horizon, momentum_horizon)
-
-            try:
-                with st.spinner("Scanning market movers..."):
-                    with _timed("scan_daily_movers"):
-                        movers = _scan_daily_movers_cached(
-                            cfg,
-                            symbols=business_symbols,
-                            force_refresh=force_data_refresh,
-                        )
-            except AlpacaAPIError as exc:
-                _log_event("scan_daily_movers_failed", error=str(exc)[:200])
-                st.warning(f"Could not scan movers: {exc}")
-                movers = pd.DataFrame()
-
-            try:
-                with st.spinner("Scanning momentum profiles..."):
-                    with _timed("scan_momentum_profiles", days=momentum_days, horizon=momentum_horizon):
-                        momentum = _scan_momentum_profiles_cached(
-                            cfg,
-                            momentum_days,
-                            symbols=business_symbols,
-                            force_refresh=force_data_refresh,
-                        )
-            except AlpacaAPIError as exc:
-                _log_event(
-                    "scan_momentum_profiles_failed",
-                    error=str(exc)[:200],
-                    days=momentum_days,
-                    horizon=momentum_horizon,
-                )
-                st.warning(f"Could not scan momentum profiles: {exc}")
-                momentum = pd.DataFrame()
+            opportunity_feed = _load_market_opportunity_feed_cached(
+                cfg,
+                business_filter=business_filter,
+                selected_horizon_col=selected_horizon_col,
+                selected_horizon_label=selected_horizon_label,
+                symbols=business_symbols,
+                limit=80,
+                force_refresh=force_data_refresh,
+            )
 
         if market_view != "Markets":
             st.stop()
 
-        if not momentum.empty:
-            selected_horizon_col = locals().get("selected_horizon_col", "return_1m_pct")
-            selected_horizon_label = locals().get("selected_horizon_label", "1 Month")
-            for horizon_col in set(MARKET_MOMENTUM_HORIZON_COLUMNS.values()):
-                if horizon_col not in momentum.columns:
-                    momentum[horizon_col] = np.nan
+        selected_horizon_col = locals().get("selected_horizon_col", "return_1m_pct")
+        selected_horizon_label = locals().get("selected_horizon_label", "1 Month")
+        opportunity_feed = locals().get("opportunity_feed", pd.DataFrame())
 
-            ranking_col = selected_horizon_col
-            if ranking_col not in momentum.columns or not pd.to_numeric(momentum[ranking_col], errors="coerce").notna().any():
-                ranking_col = "momentum_score"
-                st.caption(f"{selected_horizon_label} return unavailable for current snapshot. Falling back to momentum score.")
-            else:
-                st.caption(f"Ranking by {selected_horizon_label} return.")
-
-            raw_columns = list(
-                dict.fromkeys(
-                    ["symbol", "sparkline_3m", "close", "daily_change_pct", selected_horizon_col, "momentum_score"]
-                )
-            )
-            roc_columns = list(
-                dict.fromkeys(
-                    ["symbol", "sparkline_3m", "close", "return_1w_pct", selected_horizon_col, "roc_1m_to_3m", "momentum_roc_score"]
-                )
-            )
-            raw_up = select_signed_ranked(momentum, ranking_col, direction="up", limit=20)[raw_columns]
-            raw_down = select_signed_ranked(momentum, ranking_col, direction="down", limit=20)[raw_columns]
-            roc_up = select_signed_ranked(momentum, "momentum_roc_score", direction="up", limit=20)[roc_columns]
-            roc_down = select_signed_ranked(momentum, "momentum_roc_score", direction="down", limit=20)[roc_columns]
-
-            st.markdown("##### Momentum Raw")
-            visible_market_symbols = sorted(
-                {
-                    str(symbol).upper().strip()
-                    for table in (raw_up, raw_down, roc_up, roc_down)
-                    for symbol in table.get("symbol", pd.Series(dtype=str)).tolist()
-                    if str(symbol).strip()
-                }
-            )
-            row1_left, row1_right = st.columns(2)
-            name_map = _load_symbol_name_map(
-                cfg,
-                visible_market_symbols,
-                force_refresh=force_data_refresh,
-            )
-            raw_up_table, raw_up_column_config = _prepare_momentum_table(raw_up, name_map=name_map)
-            raw_down_table, raw_down_column_config = _prepare_momentum_table(raw_down, name_map=name_map)
-            with row1_left:
-                selected_market_ticker = _render_selectable_ticker_table(
-                    "Top 20 Up",
-                    raw_up_table,
-                    list(
-                        dict.fromkeys(
-                            [
-                                "symbol",
-                                "company_name",
-                                "sparkline_3m",
-                                "close",
-                                "daily_change_pct",
-                                selected_horizon_col,
-                                "momentum_score",
-                            ]
-                        )
-                    ),
-                    key="market_momentum_raw_up",
-                    column_config=raw_up_column_config,
-                ) or selected_market_ticker
-            with row1_right:
-                selected_market_ticker = _render_selectable_ticker_table(
-                    "Top 20 Down",
-                    raw_down_table,
-                    list(
-                        dict.fromkeys(
-                            [
-                                "symbol",
-                                "company_name",
-                                "sparkline_3m",
-                                "close",
-                                "daily_change_pct",
-                                selected_horizon_col,
-                                "momentum_score",
-                            ]
-                        )
-                    ),
-                    key="market_momentum_raw_down",
-                    column_config=raw_down_column_config,
-                ) or selected_market_ticker
-
-            st.markdown("##### Momentum RoC")
-            row2_left, row2_right = st.columns(2)
-            roc_up_table, roc_up_column_config = _prepare_momentum_table(roc_up, name_map=name_map)
-            roc_down_table, roc_down_column_config = _prepare_momentum_table(roc_down, name_map=name_map)
-            with row2_left:
-                selected_market_ticker = _render_selectable_ticker_table(
-                    "Up",
-                    roc_up_table,
-                    list(
-                        dict.fromkeys(
-                            [
-                                "symbol",
-                                "company_name",
-                                "sparkline_3m",
-                                "close",
-                                "return_1w_pct",
-                                selected_horizon_col,
-                                "momentum_roc_score",
-                            ]
-                        )
-                    ),
-                    key="market_momentum_roc_up",
-                    column_config=roc_up_column_config,
-                ) or selected_market_ticker
-            with row2_right:
-                selected_market_ticker = _render_selectable_ticker_table(
-                    "Down",
-                    roc_down_table,
-                    list(
-                        dict.fromkeys(
-                            [
-                                "symbol",
-                                "company_name",
-                                "sparkline_3m",
-                                "close",
-                                "return_1w_pct",
-                                selected_horizon_col,
-                                "momentum_roc_score",
-                            ]
-                        )
-                    ),
-                    key="market_momentum_roc_down",
-                    column_config=roc_down_column_config,
-                ) or selected_market_ticker
-
-            st.markdown("##### Momentum Consistency")
-            st.caption("Sorted by the lowest 3-month trendline-fit gap; lower means price has stayed closer to trend.")
-            momentum = momentum.copy()
-            momentum["trend_consistency_pct"] = (1.0 - pd.to_numeric(momentum["trend_fit_gap"], errors="coerce")) * 100.0
-            consistency_up = momentum[pd.to_numeric(momentum["momentum_score"], errors="coerce") > 0].nsmallest(20, "trend_fit_gap")[
-                list(
-                    dict.fromkeys(
-                        [
-                            "symbol",
-                            "sparkline_3m",
-                            "close",
-                            selected_horizon_col,
-                            "return_3m_pct",
-                            "trend_consistency_pct",
-                            "trend_fit_gap",
-                        ]
-                    )
-                )
-            ]
-            consistency_down = momentum[pd.to_numeric(momentum["momentum_score"], errors="coerce") < 0].nsmallest(20, "trend_fit_gap")[
-                list(
-                    dict.fromkeys(
-                        [
-                            "symbol",
-                            "sparkline_3m",
-                            "close",
-                            selected_horizon_col,
-                            "return_3m_pct",
-                            "trend_consistency_pct",
-                            "trend_fit_gap",
-                        ]
-                    )
-                )
-            ]
-            consistency_symbols = sorted(
-                {
-                    *visible_market_symbols,
-                    *[
-                        str(symbol).upper().strip()
-                        for table in (consistency_up, consistency_down)
-                        for symbol in table.get("symbol", pd.Series(dtype=str)).tolist()
-                        if str(symbol).strip()
-                    ],
-                }
-            )
-            if len(consistency_symbols) != len(visible_market_symbols):
-                name_map.update(
-                    _load_symbol_name_map(
-                        cfg,
-                        consistency_symbols,
-                        force_refresh=force_data_refresh,
-                    )
-                )
-            consistency_up_table, consistency_up_column_config = _prepare_momentum_table(consistency_up, name_map=name_map)
-            consistency_down_table, consistency_down_column_config = _prepare_momentum_table(consistency_down, name_map=name_map)
-            row3_left, row3_right = st.columns(2)
-            with row3_left:
-                selected_market_ticker = _render_selectable_ticker_table(
-                    "Up",
-                    consistency_up_table,
-                    list(
-                        dict.fromkeys(
-                            [
-                                "symbol",
-                                "company_name",
-                                "sparkline_3m",
-                                "close",
-                                selected_horizon_col,
-                                "trend_consistency_pct",
-                                "trend_fit_gap",
-                            ]
-                        )
-                    ),
-                    key="market_momentum_consistency_up",
-                    column_config=consistency_up_column_config,
-                ) or selected_market_ticker
-            with row3_right:
-                selected_market_ticker = _render_selectable_ticker_table(
-                    "Down",
-                    consistency_down_table,
-                    list(
-                        dict.fromkeys(
-                            [
-                                "symbol",
-                                "company_name",
-                                "sparkline_3m",
-                                "close",
-                                selected_horizon_col,
-                                "trend_consistency_pct",
-                                "trend_fit_gap",
-                            ]
-                        )
-                    ),
-                    key="market_momentum_consistency_down",
-                    column_config=consistency_down_column_config,
-                ) or selected_market_ticker
+        if opportunity_feed.empty:
+            st.info("No materialized market opportunity rows were available for this market lens. The feed is rebuilt by the scheduled attention job.")
         else:
-            st.info("No momentum profiles were returned for this market lens.")
+            _render_page_agentic_summary_panel(
+                MARKET_EXPLORER_SECTION,
+                market_summary_context(
+                    business_filter=business_filter,
+                    selected_horizon_label=selected_horizon_label,
+                    opportunity_feed=opportunity_feed,
+                    movers=movers,
+                    momentum=momentum,
+                ),
+                key_prefix="market_explorer",
+            )
+            opportunity_column_config = {
+                "symbol": st.column_config.TextColumn("Ticker", width="small"),
+                "company_name": st.column_config.TextColumn("Company", width="medium"),
+                "opportunity": st.column_config.TextColumn("Opportunity", width="medium"),
+                "direction": st.column_config.TextColumn("Direction", width="medium"),
+                "opportunity_score": st.column_config.NumberColumn("Score", format="%.1f", width="small"),
+                "sparkline_3m": st.column_config.LineChartColumn(
+                    "Mini Chart",
+                    y_min=80,
+                    y_max=140,
+                    width="medium",
+                ),
+                "close": st.column_config.NumberColumn("Close", format="$%.2f", width="small"),
+                "daily_change_pct": st.column_config.NumberColumn("1D", format="%+.1f%%", width="small"),
+                selected_horizon_col: st.column_config.NumberColumn(selected_horizon_label, format="%+.1f%%", width="small"),
+                "return_1w_pct": st.column_config.NumberColumn("1W", format="%+.1f%%", width="small"),
+                "return_3m_pct": st.column_config.NumberColumn("3M", format="%+.1f%%", width="small"),
+                "momentum_score": st.column_config.NumberColumn("Momentum", format="%.2f", width="small"),
+                "momentum_roc_score": st.column_config.NumberColumn("RoC", format="%+.2f", width="small"),
+                "trend_fit_gap": st.column_config.NumberColumn("Trend Gap", format="%.2f", width="small"),
+                "details": st.column_config.TextColumn("Details", width="large"),
+            }
+            selected_market_ticker = _render_selectable_ticker_table(
+                "Market Opportunity Feed",
+                opportunity_feed,
+                [
+                    "symbol",
+                    "company_name",
+                    "opportunity",
+                    "direction",
+                    "opportunity_score",
+                    "sparkline_3m",
+                    "close",
+                    "daily_change_pct",
+                    selected_horizon_col,
+                    "momentum_roc_score",
+                    "trend_fit_gap",
+                    "details",
+                ],
+                key="market_opportunity_feed",
+                column_config=opportunity_column_config,
+            ) or selected_market_ticker
 
-        if not movers.empty:
+        tree_frame = pd.DataFrame()
+        if not opportunity_feed.empty and {"symbol", "volume", "daily_change_pct"}.issubset(opportunity_feed.columns):
+            tree_frame = opportunity_feed.copy()
+            tree_frame["volume"] = pd.to_numeric(tree_frame["volume"], errors="coerce")
+            tree_frame["change_pct"] = pd.to_numeric(tree_frame["daily_change_pct"], errors="coerce")
+            tree_frame = tree_frame[tree_frame["symbol"].astype(str).str.strip().ne("")]
+            tree_frame = tree_frame[tree_frame["volume"].fillna(0) > 0]
+        if not tree_frame.empty:
             tree = px.treemap(
-                movers,
+                tree_frame,
                 path=["symbol"],
                 values="volume",
                 color="change_pct",
@@ -11084,19 +12497,13 @@ elif section == MARKET_EXPLORER_SECTION:
             )
             st.plotly_chart(tree, use_container_width=True)
         else:
-            st.info("Daily mover snapshots were unavailable for this market lens, so only the momentum-based views are shown.")
+            st.info("Daily mover volume was not available in the materialized feed, so the treemap is hidden.")
 
         scanned_detail_symbols: set[str] = set()
-        if not movers.empty:
+        if not opportunity_feed.empty and "symbol" in opportunity_feed.columns:
             scanned_detail_symbols.update(
                 str(symbol).upper().strip()
-                for symbol in movers["symbol"].astype(str).tolist()
-                if str(symbol).strip()
-            )
-        if not momentum.empty:
-            scanned_detail_symbols.update(
-                str(symbol).upper().strip()
-                for symbol in momentum["symbol"].astype(str).tolist()
+                for symbol in opportunity_feed["symbol"].astype(str).tolist()
                 if str(symbol).strip()
             )
 
@@ -11128,15 +12535,7 @@ elif section == MARKET_EXPLORER_SECTION:
             st.info("Select a ticker from a market table to continue in Stock Investigator.")
 
 elif section == STOCK_INVESTIGATOR_SECTION:
-    header_cols = st.columns([4.8, 1.4])
-    with header_cols[0]:
-        st.title("Stock Investigator")
-    with header_cols[1]:
-        force_data_refresh = force_data_refresh or _section_refresh_button(
-            "stock_investigator_refresh",
-            source="equities",
-            label="Run equities refresh job",
-        )
+    st.title("Stock Investigator")
 
     if not _has_live_api(
         api,
@@ -11151,15 +12550,7 @@ elif section == STOCK_INVESTIGATOR_SECTION:
         )
 
 elif section == "Option Strategizer":
-    header_cols = st.columns([4.8, 1.4])
-    with header_cols[0]:
-        st.title("Option Strategizer")
-    with header_cols[1]:
-        force_data_refresh = force_data_refresh or _section_refresh_button(
-            "option_refresh",
-            source="options",
-            label="Run options refresh job",
-        )
+    st.title("Option Strategizer")
     ticker = st.text_input("Ticker", value="AAPL", key="opt_ticker").upper().strip()
 
     if ticker and _has_live_api(
