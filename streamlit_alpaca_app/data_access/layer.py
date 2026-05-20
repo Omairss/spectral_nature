@@ -1534,23 +1534,81 @@ class DataAccessLayer:
         return self._resolved(frame, mode="on_demand", datasets=("holding_roc",), details={"days": days, "symbols": normalized_symbols})
 
     def resolve_daily_movers(self, *, symbols: list[str] | None = None, force_refresh: bool = False) -> ResolvedPayload:
+        requested_symbols = sorted({str(symbol).upper().strip() for symbol in list(symbols or []) if str(symbol).strip()})
+        materialized_filter_details: dict[str, Any] = {}
         materialized = self._try_pipeline_frame("daily_movers", force_refresh=force_refresh)
         if materialized is not None:
             pipeline, details = materialized
             if not pipeline.empty:
-                if symbols and "symbol" in pipeline.columns:
-                    allowed = {str(item).upper().strip() for item in symbols if str(item).strip()}
-                    pipeline = pipeline[pipeline["symbol"].astype(str).str.upper().isin(allowed)].copy()
-                return self._resolved(pipeline.reset_index(drop=True), mode="materialized", datasets=("daily_movers",), details=details)
+                source_row_count = int(len(pipeline))
+                if requested_symbols and "symbol" in pipeline.columns:
+                    allowed = set(requested_symbols)
+                    filtered = pipeline[pipeline["symbol"].astype(str).str.upper().isin(allowed)].copy()
+                    filtered_symbols = sorted(
+                        {
+                            str(item).upper().strip()
+                            for item in filtered["symbol"].dropna().tolist()
+                            if str(item).strip()
+                        }
+                    )
+                    missing_symbols = sorted(symbol for symbol in requested_symbols if symbol not in set(filtered_symbols))
+                    if (not missing_symbols and not filtered.empty) or self.materialized_only:
+                        resolved_details = dict(details)
+                        resolved_details.update(
+                            {
+                                "symbols": requested_symbols,
+                                "materialized_rows_seen": source_row_count,
+                                "filtered_rows": int(len(filtered)),
+                                "filtered_symbols_present": filtered_symbols,
+                            }
+                        )
+                        if filtered.empty:
+                            resolved_details.update(
+                                {
+                                    "empty_reason": "materialized_symbol_filter_no_matches",
+                                    "filtered_symbols_missing": missing_symbols or requested_symbols,
+                                    "fallback_attempted": False,
+                                    "next_tool_hint": "Retry with force_refresh=true or use dataset.price_history for explicit symbols.",
+                                    "user_safe_explanation": "The materialized movers snapshot did not include the requested symbols.",
+                                }
+                            )
+                        return self._resolved(filtered.reset_index(drop=True), mode="materialized", datasets=("daily_movers",), details=resolved_details)
+                    materialized_symbols = sorted(
+                        {
+                            str(item).upper().strip()
+                            for item in pipeline["symbol"].dropna().tolist()
+                            if str(item).strip()
+                        }
+                    )
+                    materialized_filter_details = {
+                        "materialized_rows_seen": source_row_count,
+                        "filtered_rows": int(len(filtered)),
+                        "filtered_symbols_present": filtered_symbols,
+                        "filtered_symbols_missing": missing_symbols or requested_symbols,
+                        "materialized_symbols_sample": materialized_symbols[:25],
+                        "materialized_filter_empty_reason": (
+                            "materialized_symbol_filter_partial_matches"
+                            if filtered_symbols
+                            else "materialized_symbol_filter_no_matches"
+                        ),
+                    }
+                elif not requested_symbols:
+                    return self._resolved(pipeline.reset_index(drop=True), mode="materialized", datasets=("daily_movers",), details=details)
 
-        universe = symbols if symbols is not None else self._attention_home_equity_universe(force_refresh=force_refresh)
+        universe = requested_symbols if requested_symbols else self._attention_home_equity_universe(force_refresh=force_refresh)
         universe = sorted({str(symbol).upper().strip() for symbol in universe if str(symbol).strip()})
         if not universe:
             return self._resolved(
                 pd.DataFrame(),
                 mode="on_demand",
                 datasets=("daily_movers",),
-                details={"symbols": [], "warning": "empty_universe"},
+                details={
+                    "symbols": [],
+                    "empty_reason": "empty_universe",
+                    "warning": "empty_universe",
+                    "fallback_attempted": bool(materialized_filter_details),
+                    "user_safe_explanation": "No symbols were available for the movers lookup.",
+                },
             )
         materialized_only = self._materialized_only_result(
             pd.DataFrame(),
@@ -1566,7 +1624,20 @@ class DataAccessLayer:
             lambda: scan_daily_movers(_make_api(self.cfg), symbols=universe),
             force_refresh=force_refresh,
         )
-        return self._resolved(frame, mode="on_demand", datasets=("daily_movers",), details={"symbols": sorted(universe)})
+        resolved_details = {
+            "symbols": sorted(universe),
+            "fallback_attempted": bool(materialized_filter_details),
+            **materialized_filter_details,
+        }
+        if isinstance(frame, pd.DataFrame) and frame.empty:
+            resolved_details.update(
+                {
+                    "empty_reason": "on_demand_no_mover_rows",
+                    "next_tool_hint": "Use dataset.price_history for explicit symbols and compute the event-window move from raw prices.",
+                    "user_safe_explanation": "No daily mover rows were returned for the requested symbols; raw price history may still be available.",
+                }
+            )
+        return self._resolved(frame, mode="on_demand", datasets=("daily_movers",), details=resolved_details)
 
     def resolve_event_significance(
         self,
@@ -1592,11 +1663,34 @@ class DataAccessLayer:
             ),
             force_refresh=force_refresh,
         )
+        diagnostics = dict(getattr(frame, "attrs", {}).get("diagnostics") or {}) if isinstance(frame, pd.DataFrame) else {}
+        details: dict[str, Any] = {
+            "event_date": event_date,
+            "symbols": clean_symbols,
+            "pre_window_days": pre_window_days,
+            "post_window_days": post_window_days,
+            **diagnostics,
+        }
+        if isinstance(frame, pd.DataFrame) and frame.empty:
+            details.setdefault("empty_reason", "no_event_significance_rows")
+            details.setdefault("required_event_observations", 3)
+            details.setdefault("next_tool_hint", "Use dataset.price_history or event-window returns when significance windows are too short.")
+            reason = str(details.get("empty_reason") or "")
+            if reason == "insufficient_observations":
+                details.setdefault(
+                    "user_safe_explanation",
+                    "The event study did not have enough observations after the event date for a significance test.",
+                )
+            else:
+                details.setdefault(
+                    "user_safe_explanation",
+                    "The event study produced no qualifying rows; raw price history may still answer event-window movement.",
+                )
         return self._resolved(
             frame,
             mode="on_demand",
             datasets=("event_significance",),
-            details={"event_date": event_date, "symbols": clean_symbols, "pre_window_days": pre_window_days, "post_window_days": post_window_days},
+            details=details,
         )
 
     def resolve_momentum_profiles(self, *, days: int = 180, symbols: list[str] | None = None, force_refresh: bool = False) -> ResolvedPayload:
@@ -3464,10 +3558,33 @@ class DataAccessLayer:
         materialized = self._try_pipeline_frame(normalized_name, force_refresh=force_refresh)
         if materialized is not None:
             frame, details = materialized
-            return self._resolved(frame.reset_index(drop=True), mode="materialized", datasets=(normalized_name,), details=details)
+            resolved_details = dict(details)
+            if normalized_name == "macro_relationship_checks_1d" and isinstance(frame, pd.DataFrame) and frame.empty:
+                resolved_details.update(
+                    {
+                        "empty_reason": "no_precomputed_relationship_rows",
+                        "artifact_role": "precomputed_relationship_artifact",
+                        "fallback_attempted": False,
+                        "next_tool_hint": "Use primitive yield observations and price_history, then analysis.run_python for relationship checks.",
+                        "user_safe_explanation": "No precomputed macro relationship rows matched this snapshot; this does not mean underlying market or yield data is unavailable.",
+                    }
+                )
+            return self._resolved(frame.reset_index(drop=True), mode="materialized", datasets=(normalized_name,), details=resolved_details)
         materialized_only = self._materialized_only_result(pd.DataFrame(), datasets=(normalized_name,))
         if materialized_only is not None:
             return materialized_only
+        if normalized_name == "macro_relationship_checks_1d":
+            return self._resolved(
+                pd.DataFrame(),
+                mode="on_demand",
+                datasets=(normalized_name,),
+                details={
+                    "empty_reason": "precomputed_relationship_dataset_unavailable",
+                    "artifact_role": "precomputed_relationship_artifact",
+                    "next_tool_hint": "Use primitive yield observations and price_history, then analysis.run_python for relationship checks.",
+                    "user_safe_explanation": "The precomputed macro relationship artifact is unavailable; use raw yield and price datasets for fresh analysis.",
+                },
+            )
         return self._resolved(pd.DataFrame(), mode="on_demand", datasets=(normalized_name,), details={"warning": "materialized dataset not available"})
 
     def latest_job_status(self) -> ResolvedPayload:

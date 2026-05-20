@@ -46,7 +46,7 @@ from services.entity_taxonomy import (
     upsert_entity_taxonomy_frame,
 )
 from services.fred import FredAPIError, load_fred_api_key, load_fred_dashboard
-from services.llm import LLMAPIError, load_llm_client
+from services.llm import LLMAPIError
 from services.market_data import (
     build_correlation_phase_shifts_from_bars,
     build_momentum_profiles_from_bars,
@@ -56,14 +56,21 @@ from services.market_data import (
     scan_daily_movers,
     scan_momentum_profiles,
 )
+from services.aql_zopedia_engine import load_aql_zopedia_llm_client
 from services.options import build_option_snapshot_surface, load_option_chain
 from services.pipeline_store import load_latest_dataset_frame
-from services.saa import bootstrap_saa_storage, persist_retained_evidence_chunks, persist_retained_source_documents
+from services.saa import (
+    bootstrap_saa_storage,
+    persist_retained_evidence_chunks,
+    persist_retained_source_documents,
+    run_zopedia_maintenance as run_zopedia_maintenance_service,
+)
 from services.secrets import resolve_secret_value
 from services.simfin_refresh import build_quarterly_fundamentals_frame, simfin_refresh_configured
 from services.treasury_yields import TreasuryYieldError, load_treasury_yield_datasets
 from services.trading_agent import build_trading_agent_materialized_frames, build_trading_agent_suggestions
 from services.universe import build_liquidity_ranked_equity_universe, load_us_equity_listings
+from services.zopedia_learning import run_zopedia_learning_job as run_zopedia_learning_service
 
 try:
     from services.signals import build_signal_frame, summarize_signal_frame
@@ -1684,7 +1691,7 @@ def run_news(ctx: JobContext, conn: Any | None = None) -> None:
                 message=f"Building attention context for symbols={len(context_symbols)}.",
                 progress_pct=48.0,
             )
-            llm_client = load_llm_client()
+            llm_client = load_aql_zopedia_llm_client(surface="attention.news_context")
             if llm_client is None:
                 print("[warn] attention LLM enrichment skipped: missing LLM configuration")
             else:
@@ -1742,7 +1749,7 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
     page_summaries = _load_latest_materialized_frame("page_agentic_summaries")
     llm_client = None
     try:
-        llm_client = load_llm_client()
+        llm_client = load_aql_zopedia_llm_client(surface="trading_agent")
     except LLMAPIError as exc:
         print(f"[warn] trading-agent LLM runtime unavailable: {exc}")
 
@@ -1974,7 +1981,7 @@ def run_entity_taxonomy(ctx: JobContext, conn: Any | None = None) -> None:
     print(f"[info] taxonomy refresh existing_rows={len(existing)}")
     llm_client = None
     try:
-        llm_client = load_llm_client()
+        llm_client = load_aql_zopedia_llm_client(surface="entity_taxonomy")
     except LLMAPIError as exc:
         print(f"[warn] taxonomy LLM classification unavailable: {exc}")
 
@@ -2103,6 +2110,59 @@ def run_universe_builder(ctx: JobContext, conn: Any | None = None) -> None:
     _persist_dataset("universe_snapshot", universe, ctx, conn)
 
 
+def run_zopedia_maintenance_job(ctx: JobContext, conn: Any | None = None) -> None:
+    _job_progress(ctx, conn, stage="starting", message="Starting Zopedia maintenance.", progress_pct=1.0)
+    if conn is None:
+        raise RuntimeError("Zopedia maintenance requires a database connection.")
+    page_limit = _parse_int_env("ZOPEDIA_MAINTENANCE_PAGE_LIMIT", 5000, minimum=1)
+    stale_after_days = _parse_int_env("ZOPEDIA_MAINTENANCE_STALE_AFTER_DAYS", 120, minimum=1)
+    bloat_char_limit = _parse_int_env("ZOPEDIA_MAINTENANCE_BLOAT_CHAR_LIMIT", 32000, minimum=2000)
+    result = run_zopedia_maintenance_service(
+        run_id=ctx.run_id,
+        page_limit=page_limit,
+        stale_after_days=stale_after_days,
+        bloat_char_limit=bloat_char_limit,
+        conn=conn,
+    )
+    summary = dict(result.get("summary") or {}) if isinstance(result, dict) else {}
+    _job_progress(
+        ctx,
+        conn,
+        stage="done",
+        message=(
+            "Zopedia maintenance complete: "
+            f"pages={summary.get('page_count', 0)}, "
+            f"edges={summary.get('edge_count', 0)}, "
+            f"communities={summary.get('community_count', 0)}, "
+            f"issues={summary.get('issue_count', 0)}."
+        ),
+        progress_pct=100.0,
+    )
+
+
+def run_zopedia_learning_job(ctx: JobContext, conn: Any | None = None) -> None:
+    _job_progress(ctx, conn, stage="starting", message="Starting Zopedia learning.", progress_pct=1.0)
+    if conn is None:
+        raise RuntimeError("Zopedia learning requires a database connection.")
+    limit = _parse_int_env("ZOPEDIA_LEARNING_THREAD_LIMIT", 25, minimum=1)
+    result = run_zopedia_learning_service(limit=limit, conn=conn)
+    _job_progress(
+        ctx,
+        conn,
+        stage="done",
+        message=(
+            "Zopedia learning complete: "
+            f"threads={result.get('threads_scanned', 0)}, "
+            f"events={result.get('events_detected', 0)}, "
+            f"evals={result.get('evals_generated', 0)}, "
+            f"updates={result.get('safe_updates_applied', 0)}, "
+            f"verified={result.get('verified', 0)}, "
+            f"regressed={result.get('regressed', 0)}."
+        ),
+        progress_pct=100.0,
+    )
+
+
 def main() -> None:
     job_name = (os.getenv("PIPELINE_JOB_NAME") or "equities-intraday-preload").strip()
     ctx = JobContext(
@@ -2125,6 +2185,8 @@ def main() -> None:
         "entity-taxonomy-refresh": run_entity_taxonomy,
         "company-baseline-prefetch": run_company_baselines,
         "fundamentals-quarterly-refresh": run_fundamentals,
+        "zopedia-maintenance": run_zopedia_maintenance_job,
+        "zopedia-learning": run_zopedia_learning_job,
     }
 
     handler = dispatch.get(ctx.name)

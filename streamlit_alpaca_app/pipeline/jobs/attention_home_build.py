@@ -9,11 +9,11 @@ from typing import Any, Callable
 import pandas as pd
 
 from services.attention_agentic import build_bottom_up_attention_artifacts, search_symbol_news_payload
-from services.attention_home_summary import (
-    attach_attention_home_summary_audio,
-    build_attention_agentic_summary,
-    build_attention_agentic_summary_with_trace,
-    build_attention_home_summary_payload,
+from services.attention_home_summary import build_attention_home_summary_payload
+from services.aql_zopedia_engine import (
+    attach_aql_zopedia_summary_audio as attach_attention_home_summary_audio,
+    build_aql_zopedia_attention_home_summary_with_trace as build_attention_agentic_summary_with_trace,
+    load_aql_zopedia_llm_client,
 )
 from services.attention_home_1d import build_attention_entity_master, resolve_macro_anchor_symbols, shortlist_attention_symbols_1d
 from services.attention_materialized import bars_by_symbol_from_price_history, serialize_attention_home_payload, serialize_attention_research_bundles
@@ -27,14 +27,14 @@ from services.elevenlabs_tts import ElevenLabsTTSAPIError
 from services.fred import format_fred_delta, format_fred_value
 from services.knowledge_graph_proposals import build_attention_knowledge_graph_proposals
 from services.json_utils import to_list
-from services.llm import LLMAPIError, load_embedding_client, load_llm_client
+from services.llm import LLMAPIError, load_embedding_client
 from services.market import business_focus_options, business_focus_universe
 from services.market_opportunity import build_market_opportunity_feed, build_materialized_market_opportunity_feeds
 from services.page_agentic_summary import (
     broad_economy_summary_context,
-    build_fallback_page_agentic_summary,
     build_materialized_page_agentic_summary_row,
     build_page_agentic_summary,
+    build_unavailable_page_agentic_summary,
     market_summary_context,
     stock_summary_context,
 )
@@ -180,7 +180,11 @@ def _build_materialized_homepage_summary(
             summary_payload = _call_with_timeout(
                 "attention homepage AQL summary",
                 _attention_home_summary_timeout_seconds(),
-                lambda: build_attention_agentic_summary(payload, llm_client=llm_client, embedding_client=embedding_client),
+                lambda: build_attention_agentic_summary_with_trace(
+                    payload,
+                    llm_client=llm_client,
+                    embedding_client=embedding_client,
+                )[0],
             )
             print("[info] attention-home-build homepage AQL summary completed")
         except Exception as exc:
@@ -338,10 +342,9 @@ def _materialized_page_summary_row(
             ),
         )
     except Exception as exc:
-        summary = build_fallback_page_agentic_summary(
+        summary = build_unavailable_page_agentic_summary(
             surface=surface,
-            context=context,
-            reason=f"Page summary materialization failed: {type(exc).__name__}: {exc}",
+            reason=f"Page summary failed: {type(exc).__name__}: {exc}",
         )
     return build_materialized_page_agentic_summary_row(
         surface=surface,
@@ -461,6 +464,7 @@ _TRACE_DEDUPE_KEY_BY_DATASET: dict[str, str] = {
     "attention_source_documents": "document_id",
     "attention_evidence_chunks": "chunk_id",
     "attention_claims": "claim_id",
+    "aql_zopedia_engine_runs": "run_id",
 }
 
 
@@ -489,6 +493,7 @@ def _merge_summary_trace_frames(
         "attention_source_documents",
         "attention_evidence_chunks",
         "attention_claims",
+        "aql_zopedia_engine_runs",
     ):
         merged[dataset_name] = _merge_trace_frame(
             merged.get(dataset_name, pd.DataFrame()),
@@ -1076,7 +1081,7 @@ def run_attention_home_build(
     )
 
     try:
-        llm_client = load_llm_client()
+        llm_client = load_aql_zopedia_llm_client(surface="attention.home_build")
     except LLMAPIError as exc:
         print(f"[warn] attention home build LLM unavailable: {exc}")
         llm_client = None

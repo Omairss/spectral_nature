@@ -421,6 +421,11 @@ def load_llm_config(env_prefix: str = "") -> LLMConfig | None:
     reasoning_effort = _normalized_reasoning_effort(
         _env_value(env_prefix, "LLM_REASONING_EFFORT", "OPENAI_REASONING_EFFORT")
     )
+    if provider == "deepseek":
+        # DeepSeek reasoning traces come from the reasoning model response
+        # itself. Do not forward OpenAI-style reasoning_effort settings; a
+        # global provider swap should not inherit Azure/OpenAI-only knobs.
+        reasoning_effort = ""
     embedding_model = _env_value(env_prefix, "EMBEDDING_MODEL") or "text-embedding-3-small"
     embedding_deployment = _env_value(env_prefix, "EMBEDDING_DEPLOYMENT", "AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
 
@@ -470,9 +475,6 @@ class OpenAIChatJSONClient:
                 },
             },
         }
-        if self.config.reasoning_effort:
-            payload["reasoning_effort"] = self.config.reasoning_effort
-
         request_url = f"{self.config.base_url}/chat/completions"
         request_headers = {
             "Authorization": f"Bearer {self.config.api_key}",
@@ -654,8 +656,6 @@ class DeepSeekChatJSONClient:
         }
         if not self.config.model.startswith("deepseek-reasoner"):
             payload["temperature"] = self.config.temperature
-        if self.config.reasoning_effort:
-            payload["reasoning_effort"] = self.config.reasoning_effort
 
         request_url = f"{self.config.base_url}/chat/completions"
         headers = {

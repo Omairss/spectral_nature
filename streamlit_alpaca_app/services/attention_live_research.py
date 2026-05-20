@@ -12,7 +12,7 @@ from .common.market_activity import _quality_label as _shared_quality_label
 from .aql import search_symbol_news_payload
 from .attention_agentic import build_bottom_up_attention_bundle
 from .attention_home_1d import build_attention_research_bundle
-from .llm import NARRATIVE_STYLE_RULE, AzureOpenAIChatJSONClient, LLMAPIError, OpenAIChatJSONClient, get_prompt, load_llm_client, register_narrative_prompt
+from .llm import NARRATIVE_STYLE_RULE, AzureOpenAIChatJSONClient, LLMAPIError, OpenAIChatJSONClient, get_prompt, register_narrative_prompt
 from .runtime_policy import source_authority_policy
 from .web_research import (
     SerpAPISearchClient,
@@ -21,6 +21,7 @@ from .web_research import (
     load_serpapi_config,
     load_tavily_config,
 )
+from .aql_zopedia_engine import load_aql_zopedia_llm_client
 
 
 LLMClient = OpenAIChatJSONClient | AzureOpenAIChatJSONClient
@@ -226,7 +227,7 @@ def _source_authority_bucket(source: object) -> tuple[str, int]:
     cache_key = text[:80]
     if cache_key in _source_bucket_cache:
         return _source_bucket_cache[cache_key]
-    llm_client = load_llm_client()
+    llm_client = load_aql_zopedia_llm_client(surface="attention.live_research.source_bucket")
     if llm_client is None:
         return "web", 3
     try:
@@ -276,7 +277,7 @@ def _mention_score(text: str, symbol: str, company_name: str) -> float:
 def _llm_event_theme_keywords(theme: str) -> list[str]:
     if theme in _event_theme_keywords_cache:
         return _event_theme_keywords_cache[theme]
-    llm_client = load_llm_client()
+    llm_client = load_aql_zopedia_llm_client(surface="attention.live_research.theme_keywords")
     if llm_client is None:
         _event_theme_keywords_cache[theme] = []
         return []
@@ -725,7 +726,7 @@ def _event_search_query(event: dict[str, Any]) -> str:
         for symbol in list(event.get("supporting_symbols") or [])
         if _normalize_symbol(symbol)
     ]
-    llm_client = load_llm_client()
+    llm_client = load_aql_zopedia_llm_client(surface="attention.live_research.event_search_query")
     if llm_client is not None:
         try:
             symbol_context = ", ".join(([anchor_symbol] if anchor_symbol else []) + supporting_symbols[:4])
@@ -1103,7 +1104,7 @@ def _event_market_activity_why_text(theme: str, direction: str) -> str:
     cache_key = (theme, direction)
     if cache_key in _event_market_activity_why_cache:
         return _event_market_activity_why_cache[cache_key]
-    llm_client = load_llm_client()
+    llm_client = load_aql_zopedia_llm_client(surface="attention.live_research.market_activity")
     if llm_client is not None:
         try:
             result = llm_client.generate_json(

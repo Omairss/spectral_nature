@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from data_access.contracts import QueryRequest, coerce_object
 from data_access.query_service import QueryService
 from . import omnibar_research
+from . import zopedia_analysis
+from .aql_zopedia_engine import load_aql_zopedia_llm_client, repair_aql_zopedia_analysis_arguments
 
 
 def tool_schema(
@@ -174,6 +177,235 @@ def _research_tools() -> list[dict[str, Any]]:
     ]
 
 
+def _zopedia_tools() -> list[dict[str, Any]]:
+    return [
+        {
+            "name": "zopedia.search_pages",
+            "description": (
+                "Search Zopedia wiki memory for durable pages about concepts, entities, themes, "
+                "events, sources, tickers, and macro topics. Use this early so answers can build "
+                "on retained knowledge before fetching new evidence."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"},
+                    "max_results": {"type": "integer"},
+                    "page_types": {"type": "array", "items": {"type": "string"}},
+                },
+                "required": ["query"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "zopedia.read_page",
+            "description": "Read one Zopedia page by page_id after search_pages finds it.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {"page_id": {"type": "string"}},
+                "required": ["page_id"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "zopedia.read_source",
+            "description": (
+                "Open the concrete source behind a Zopedia source reference: a Zopedia source page, "
+                "retained evidence chunk, retained source document, or source URL. Use this after "
+                "sources_for_page or trace_to_evidence when final claims need original evidence."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "page_id": {"type": "string"},
+                    "ref": {"type": "string"},
+                    "kind": {"type": "string"},
+                    "chunk_record_id": {"type": "string"},
+                    "canonical_document_id": {"type": "string"},
+                    "url": {"type": "string"},
+                },
+                "required": [],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "zopedia.sources_for_page",
+            "description": (
+                "Find original source and evidence references for one Zopedia page. "
+                "Use this after read_page before treating wiki memory as support for final claims."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {"page_id": {"type": "string"}},
+                "required": ["page_id"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "zopedia.trace_to_evidence",
+            "description": (
+                "Build a bounded page-link and source-evidence trace around a Zopedia page. "
+                "Use this when an answer depends on a page plus its neighboring wiki context."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "page_id": {"type": "string"},
+                    "depth": {"type": "integer"},
+                },
+                "required": ["page_id"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "zopedia.neighborhood",
+            "description": "Load linked Zopedia pages around a page_id to inspect local graph context.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "page_id": {"type": "string"},
+                    "depth": {"type": "integer"},
+                },
+                "required": ["page_id"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "zopedia.ingest_source",
+            "description": (
+                "Store user-supplied source text as Zopedia wiki memory and ask the LLM to extract "
+                "linked pages from it. Use when the user supplies a document, transcript, or source text."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string"},
+                    "source_text": {"type": "string"},
+                    "url": {"type": "string"},
+                    "source_type": {"type": "string"},
+                },
+                "required": ["title", "source_text"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "zopedia.ingest_youtube",
+            "description": "Fetch a YouTube transcript and store it in Zopedia memory when captions are available.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string"},
+                    "title": {"type": "string"},
+                },
+                "required": ["url"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "zopedia.propose_change",
+            "description": (
+                "Create a reviewable Zopedia change proposal when a page is wrong, stale, missing, "
+                "or should be split/merged/deleted."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "proposal_type": {"type": "string"},
+                    "page_id": {"type": "string"},
+                    "title": {"type": "string"},
+                    "rationale": {"type": "string"},
+                    "payload": {"type": "object"},
+                },
+                "required": ["proposal_type", "title", "rationale"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "zopedia.list_proposals",
+            "description": "List open or historical Zopedia change proposals.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "status": {"type": "string"},
+                    "max_results": {"type": "integer"},
+                },
+                "required": [],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "zopedia.list_mutations",
+            "description": (
+                "List automatic Zopedia memory mutations with risk, status, affected pages, "
+                "source path, and rollback metadata."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "status": {"type": "string"},
+                    "mutation_type": {"type": "string"},
+                    "max_results": {"type": "integer"},
+                },
+                "required": [],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "zopedia.list_maintenance_reports",
+            "description": (
+                "List recent Zopedia maintenance reports: backlink/community index health, issue counts, "
+                "top communities, and automatic maintenance mutation ids. Use when checking memory quality."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "status": {"type": "string"},
+                    "max_results": {"type": "integer"},
+                },
+                "required": [],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "zopedia.apply_mutation",
+            "description": (
+                "Apply a safe, audited Zopedia memory mutation. Safe writes commit with rollback metadata; "
+                "destructive or unsupported changes are converted into review proposals."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "mutation_type": {"type": "string"},
+                    "page_id": {"type": "string"},
+                    "target_page_id": {"type": "string"},
+                    "pages": {"type": "array", "items": {"type": "object"}},
+                    "metadata_patch": {"type": "object"},
+                    "evidence_refs": {"type": "array", "items": {"type": "object"}},
+                    "rationale": {"type": "string"},
+                    "payload": {"type": "object"},
+                    "allow_risky": {"type": "boolean"},
+                },
+                "required": ["mutation_type"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "zopedia.rollback_mutation",
+            "description": (
+                "Rollback one audited automatic Zopedia mutation by restoring before-state pages "
+                "and archiving pages created by that mutation. Use only when the user asks to undo "
+                "or when a judged maintenance action identifies a bad committed mutation."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {"mutation_id": {"type": "string"}},
+                "required": ["mutation_id"],
+                "additionalProperties": False,
+            },
+        },
+    ]
+
+
 def _investigator_tools() -> list[dict[str, Any]]:
     """Stock Investigator tools — technicals, forecast, company context, fundamentals, news."""
     return [
@@ -330,13 +562,71 @@ def _scratchpad_tools() -> list[dict[str, Any]]:
     ]
 
 
+def _analysis_tools() -> list[dict[str, Any]]:
+    return [
+        {
+            "name": "analysis.run_python",
+            "description": (
+                "Run bounded pandas/numpy/scipy/scikit-learn analysis over approved Spectral Nature "
+                "datasets or small inline tables. Use this for EDA, statistical checks, regressions, "
+                "clustering, classification, feature importance, or other quantitative analysis that "
+                "needs computation beyond direct dataset lookup. Provide dataset_refs that name QueryService "
+                "datasets plus typed params, or inline_datasets for user-uploaded tabular data. "
+                "Code must be valid multiline Python. Inputs are preloaded as pandas DataFrames in "
+                "`datasets` and as variables named by each dataset alias. Do not call load_dataset, "
+                "get_dataset, context, globals, open, or filesystem/network APIs from the code."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "objective": {"type": "string"},
+                    "code": {"type": "string"},
+                    "dataset_refs": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {"type": "string"},
+                                "alias": {"type": "string"},
+                                "params": {"type": "object"},
+                            },
+                            "required": ["name"],
+                            "additionalProperties": False,
+                        },
+                    },
+                    "inline_datasets": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {"type": "string"},
+                                "rows": {"type": "array", "items": {"type": "object"}},
+                            },
+                            "required": ["name", "rows"],
+                            "additionalProperties": False,
+                        },
+                    },
+                    "timeout_seconds": {"type": "integer"},
+                    "max_rows": {"type": "integer"},
+                },
+                "required": ["objective", "code"],
+                "additionalProperties": False,
+            },
+        },
+    ]
+
+
 def is_query_service_tool(tool_name: str) -> bool:
     name = str(tool_name or "").strip()
-    return name == "system.capabilities" or name.startswith("dataset.") or name.startswith("chart.")
+    return name in {"system.capabilities", "query.execute"} or name.startswith("dataset.") or name.startswith("chart.")
 
 
 def is_research_tool(tool_name: str) -> bool:
     return str(tool_name or "").strip().startswith("research.")
+
+
+def is_zopedia_tool(tool_name: str) -> bool:
+    return str(tool_name or "").strip().startswith("zopedia.")
 
 
 def is_hypothesis_tool(tool_name: str) -> bool:
@@ -355,6 +645,10 @@ def is_investigator_tool(tool_name: str) -> bool:
     return str(tool_name or "").strip().startswith("investigator.")
 
 
+def is_analysis_tool(tool_name: str) -> bool:
+    return str(tool_name or "").strip() == "analysis.run_python"
+
+
 def build_tool_catalog(service: QueryService) -> list[dict[str, Any]]:
     capabilities = service.list_capabilities()
     tools: list[dict[str, Any]] = [
@@ -365,6 +659,8 @@ def build_tool_catalog(service: QueryService) -> list[dict[str, Any]]:
         },
     ]
     tools.extend(_research_tools())
+    tools.extend(_zopedia_tools())
+    tools.extend(_analysis_tools())
     tools.extend(_hypothesis_tools())
     tools.extend(_scratchpad_tools())
     tools.extend(_anomaly_tools())
@@ -483,6 +779,341 @@ def _invoke_research_tool(
     }
 
 
+def _invoke_zopedia_tool(
+    *,
+    tool_name: str,
+    arguments: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    args = coerce_object(arguments, field_name="arguments")
+    if tool_name == "zopedia.search_pages":
+        payload = omnibar_research.zopedia_search_pages(
+            query=str(args.get("query") or ""),
+            max_results=int(args.get("max_results") or 8),
+            page_types=args.get("page_types"),
+        )
+    elif tool_name == "zopedia.read_page":
+        payload = omnibar_research.zopedia_read_page(page_id=str(args.get("page_id") or ""))
+    elif tool_name == "zopedia.read_source":
+        payload = omnibar_research.zopedia_read_source(
+            page_id=str(args.get("page_id") or ""),
+            ref=str(args.get("ref") or ""),
+            kind=str(args.get("kind") or ""),
+            chunk_record_id=str(args.get("chunk_record_id") or ""),
+            canonical_document_id=str(args.get("canonical_document_id") or ""),
+            url=str(args.get("url") or ""),
+        )
+    elif tool_name == "zopedia.sources_for_page":
+        payload = omnibar_research.zopedia_sources_for_page(page_id=str(args.get("page_id") or ""))
+    elif tool_name == "zopedia.trace_to_evidence":
+        payload = omnibar_research.zopedia_trace_to_evidence(
+            page_id=str(args.get("page_id") or ""),
+            depth=int(args.get("depth") or 1),
+        )
+    elif tool_name == "zopedia.neighborhood":
+        payload = omnibar_research.zopedia_neighborhood(
+            page_id=str(args.get("page_id") or ""),
+            depth=int(args.get("depth") or 1),
+        )
+    elif tool_name == "zopedia.ingest_source":
+        payload = omnibar_research.zopedia_ingest_source(
+            title=str(args.get("title") or ""),
+            source_text=str(args.get("source_text") or ""),
+            url=str(args.get("url") or ""),
+            source_type=str(args.get("source_type") or "source"),
+        )
+    elif tool_name == "zopedia.ingest_youtube":
+        payload = omnibar_research.zopedia_ingest_youtube(
+            url=str(args.get("url") or ""),
+            title=str(args.get("title") or ""),
+        )
+    elif tool_name == "zopedia.propose_change":
+        payload = omnibar_research.zopedia_propose_change(
+            proposal_type=str(args.get("proposal_type") or ""),
+            page_id=str(args.get("page_id") or ""),
+            title=str(args.get("title") or ""),
+            rationale=str(args.get("rationale") or ""),
+            payload=coerce_object(args.get("payload"), field_name="payload"),
+        )
+    elif tool_name == "zopedia.list_proposals":
+        payload = omnibar_research.zopedia_list_proposals(
+            status=str(args.get("status") or "open"),
+            max_results=int(args.get("max_results") or 12),
+        )
+    elif tool_name == "zopedia.list_mutations":
+        payload = omnibar_research.zopedia_list_mutations(
+            status=str(args.get("status") or ""),
+            mutation_type=str(args.get("mutation_type") or ""),
+            max_results=int(args.get("max_results") or 12),
+        )
+    elif tool_name == "zopedia.list_maintenance_reports":
+        payload = omnibar_research.zopedia_list_maintenance_reports(
+            status=str(args.get("status") or ""),
+            max_results=int(args.get("max_results") or 6),
+        )
+    elif tool_name == "zopedia.apply_mutation":
+        raw_pages = args.get("pages")
+        raw_evidence_refs = args.get("evidence_refs")
+        payload = omnibar_research.zopedia_apply_mutation(
+            mutation_type=str(args.get("mutation_type") or ""),
+            page_id=str(args.get("page_id") or ""),
+            target_page_id=str(args.get("target_page_id") or ""),
+            pages=list(raw_pages or []) if isinstance(raw_pages, list) else [],
+            metadata_patch=coerce_object(args.get("metadata_patch"), field_name="metadata_patch"),
+            evidence_refs=list(raw_evidence_refs or []) if isinstance(raw_evidence_refs, list) else [],
+            rationale=str(args.get("rationale") or ""),
+            payload=coerce_object(args.get("payload"), field_name="payload"),
+            allow_risky=bool(args.get("allow_risky")),
+        )
+    elif tool_name == "zopedia.rollback_mutation":
+        payload = omnibar_research.zopedia_rollback_mutation(
+            mutation_id=str(args.get("mutation_id") or ""),
+        )
+    else:
+        raise ValueError(f"Unsupported tool '{tool_name}'.")
+
+    return {
+        "request": {"operation": "zopedia", "name": tool_name, "params": args},
+        "result_type": "research",
+        "payload": payload,
+        "provenance": {
+            "mode": "computed",
+            "datasets": [
+                "saa_zopedia_pages",
+                "saa_zopedia_change_proposals",
+                "saa_zopedia_mutation_audit",
+                "saa_zopedia_backlinks",
+                "saa_zopedia_community_index",
+                "saa_zopedia_maintenance_reports",
+            ],
+            "details": {"tool_name": tool_name},
+        },
+        "messages": [],
+    }
+
+
+def _invoke_analysis_tool(
+    *,
+    service: QueryService,
+    tool_name: str,
+    arguments: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    args = coerce_object(arguments, field_name="arguments")
+    if tool_name != "analysis.run_python":
+        raise ValueError(f"Unsupported tool '{tool_name}'.")
+    normalized_args = _normalize_analysis_arguments(args)
+    payload = _run_analysis_payload(service=service, args=normalized_args)
+    repair_attempt = 0
+    max_repair_attempts = 3
+    while _analysis_payload_needs_repair(payload) and repair_attempt < max_repair_attempts:
+        repair_attempt += 1
+        repaired_args = _repair_analysis_arguments(
+            service=service,
+            original_args=normalized_args,
+            failure_payload=payload,
+            repair_attempt=repair_attempt,
+        )
+        if repaired_args is not None:
+            repaired_payload = _run_analysis_payload(service=service, args=repaired_args)
+            repaired_payload.setdefault("messages", [])
+            repaired_payload["messages"] = list(repaired_payload.get("messages") or []) + [
+                f"Analysis input/code repair attempt {repair_attempt} ran after a tool-contract failure."
+            ]
+            repaired_payload.setdefault("metadata", {})
+            repaired_payload["metadata"] = {
+                **dict(repaired_payload.get("metadata") or {}),
+                "analysis_repaired": True,
+                "repaired_from_run_id": payload.get("analysis_run_id"),
+                "repair_notes": repaired_args.get("_repair_notes") or "",
+                "analysis_repair_attempt": repair_attempt,
+            }
+            repaired_payload["llm_context_text"] = (
+                str(repaired_payload.get("llm_context_text") or "")
+                + f"\nRepair: analysis input/code repair attempt {repair_attempt} ran after the prior failure."
+            ).strip()
+            payload = repaired_payload
+            normalized_args = repaired_args
+        else:
+            break
+    return {
+        "request": {"operation": "analysis", "name": tool_name, "params": normalized_args},
+        "result_type": "analysis_result",
+        "payload": payload,
+        "provenance": {
+            "mode": "computed",
+            "datasets": [
+                "query_service_datasets",
+                zopedia_analysis.ANALYSIS_RUN_TABLE,
+                zopedia_analysis.ANALYSIS_ARTIFACT_TABLE,
+            ],
+            "details": {"tool_name": tool_name, "analysis_run_id": payload.get("analysis_run_id")},
+        },
+        "messages": list(payload.get("messages") or []),
+    }
+
+
+def _run_analysis_payload(*, service: QueryService, args: dict[str, Any]) -> dict[str, Any]:
+    payload = zopedia_analysis.run_analysis_python(
+        service=service,
+        objective=str(args.get("objective") or ""),
+        code=str(args.get("code") or ""),
+        dataset_refs=list(args.get("dataset_refs") or []),
+        inline_datasets=list(args.get("inline_datasets") or []),
+        timeout_seconds=_int_arg(args.get("timeout_seconds"), default=zopedia_analysis.DEFAULT_TIMEOUT_SECONDS),
+        max_rows=_int_arg(args.get("max_rows"), default=zopedia_analysis.MAX_DATASET_ROWS),
+    )
+    return payload
+
+
+def _int_arg(value: object, *, default: int) -> int:
+    try:
+        return int(value)
+    except Exception:
+        try:
+            return int(float(str(value)))
+        except Exception:
+            return int(default)
+
+
+def _normalize_analysis_arguments(args: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(args or {})
+    normalized["dataset_refs"] = _coerce_analysis_dataset_refs(normalized.get("dataset_refs"))
+    normalized["inline_datasets"] = _coerce_analysis_inline_datasets(normalized.get("inline_datasets"))
+    return normalized
+
+
+def _coerce_analysis_dataset_refs(value: object) -> list[dict[str, Any]]:
+    refs: list[dict[str, Any]] = []
+    for item in list(value or []) if isinstance(value, list) else []:
+        parsed = item
+        if isinstance(item, str):
+            text = item.strip()
+            if not text:
+                continue
+            try:
+                parsed = json.loads(text)
+            except Exception:
+                parsed = {"name": text}
+        if not isinstance(parsed, dict):
+            continue
+        name = str(parsed.get("name") or parsed.get("dataset") or parsed.get("dataset_name") or "").strip()
+        if not name:
+            continue
+        ref: dict[str, Any] = {"name": name}
+        alias = str(parsed.get("alias") or "").strip()
+        if alias:
+            ref["alias"] = alias
+        params = parsed.get("params") if isinstance(parsed.get("params"), dict) else {}
+        ref["params"] = dict(params or {})
+        refs.append(ref)
+    return refs
+
+
+def _coerce_analysis_inline_datasets(value: object) -> list[dict[str, Any]]:
+    datasets: list[dict[str, Any]] = []
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except Exception:
+            return []
+    items: list[object]
+    if isinstance(value, list):
+        items = list(value)
+    elif isinstance(value, dict):
+        if "rows" in value or "records" in value:
+            items = [value]
+        else:
+            items = [
+                {"name": key, "rows": rows}
+                for key, rows in value.items()
+                if isinstance(rows, (list, dict))
+            ]
+    else:
+        items = []
+    for item in items:
+        parsed = item
+        if isinstance(item, str):
+            try:
+                parsed = json.loads(item)
+            except Exception:
+                continue
+        if isinstance(parsed, dict):
+            rows = parsed.get("rows")
+            if rows is None:
+                rows = parsed.get("records")
+            if isinstance(rows, list):
+                datasets.append({"name": str(parsed.get("name") or parsed.get("alias") or "inline"), "rows": rows})
+    return datasets
+
+
+def _analysis_payload_needs_repair(payload: dict[str, Any]) -> bool:
+    status = str(payload.get("status") or "").strip().lower()
+    if status in {"succeeded", "success"}:
+        return False
+    metadata = dict(payload.get("metadata") or {})
+    category = str(metadata.get("failure_category") or "").strip()
+    if category in {"analysis_code_error", "analysis_input_missing", "analysis_runtime_error"}:
+        return True
+    error = str(payload.get("error") or "").lower()
+    return any(marker in error for marker in ("syntax error", "no analysis input", "nameerror", "keyerror"))
+
+
+def _repair_analysis_arguments(
+    *,
+    service: QueryService,
+    original_args: dict[str, Any],
+    failure_payload: dict[str, Any],
+    repair_attempt: int = 1,
+) -> dict[str, Any] | None:
+    capabilities: dict[str, Any] = {}
+    try:
+        raw_capabilities = service.list_capabilities()
+        capabilities = {
+            "datasets": {
+                name: {
+                    "description": spec.get("description"),
+                    "params": spec.get("params"),
+                    "required_params": spec.get("required_params"),
+                    "param_schema": spec.get("param_schema"),
+                }
+                for name, spec in dict((raw_capabilities or {}).get("datasets") or {}).items()
+                if isinstance(spec, dict)
+            }
+        }
+    except Exception:
+        capabilities = {}
+    try:
+        input_profile = zopedia_analysis.build_analysis_input_profile(
+            service=service,
+            dataset_refs=list(original_args.get("dataset_refs") or []),
+            inline_datasets=list(original_args.get("inline_datasets") or []),
+            max_rows=_int_arg(original_args.get("max_rows"), default=zopedia_analysis.MAX_DATASET_ROWS),
+            sample_rows=3,
+        )
+    except Exception as exc:
+        input_profile = {"status": "failed", "error": f"{type(exc).__name__}: {exc}"}
+    repaired = repair_aql_zopedia_analysis_arguments(
+        original_args=original_args,
+        failure_payload=failure_payload,
+        dataset_capabilities=capabilities,
+        analysis_input_profile=input_profile,
+        repair_attempt=repair_attempt,
+    )
+    if not isinstance(repaired, dict):
+        return None
+    normalized = _normalize_analysis_arguments(
+        {
+            "objective": repaired.get("objective") or original_args.get("objective") or "",
+            "code": repaired.get("code") or "",
+            "dataset_refs": repaired.get("dataset_refs") or [],
+            "inline_datasets": repaired.get("inline_datasets") or [],
+            "timeout_seconds": original_args.get("timeout_seconds") or zopedia_analysis.DEFAULT_TIMEOUT_SECONDS,
+            "max_rows": original_args.get("max_rows") or zopedia_analysis.MAX_DATASET_ROWS,
+        }
+    )
+    normalized["_repair_notes"] = str(repaired.get("notes") or "").strip()
+    return normalized if str(normalized.get("code") or "").strip() else None
+
+
 def _invoke_hypothesis_tool(
     *,
     tool_name: str,
@@ -491,9 +1122,8 @@ def _invoke_hypothesis_tool(
     args = coerce_object(arguments, field_name="arguments")
     if tool_name == "hypothesis.verify":
         from .agents import verify_hypothesis
-        from .llm import load_llm_client
 
-        llm_client = load_llm_client()
+        llm_client = load_aql_zopedia_llm_client(surface="hypothesis.verify")
         if llm_client is None:
             return {
                 "request": {"operation": "hypothesis", "name": tool_name, "params": args},
@@ -971,6 +1601,10 @@ def invoke_tool(
 ) -> dict[str, Any]:
     if is_research_tool(tool_name):
         return _invoke_research_tool(service=service, tool_name=tool_name, arguments=arguments)
+    if is_zopedia_tool(tool_name):
+        return _invoke_zopedia_tool(tool_name=tool_name, arguments=arguments)
+    if is_analysis_tool(tool_name):
+        return _invoke_analysis_tool(service=service, tool_name=tool_name, arguments=arguments)
     if is_hypothesis_tool(tool_name):
         return _invoke_hypothesis_tool(tool_name=tool_name, arguments=arguments)
     if is_scratchpad_tool(tool_name):
@@ -986,10 +1620,12 @@ def invoke_tool(
 __all__ = [
     "build_tool_catalog",
     "build_query_request_for_tool",
+    "is_analysis_tool",
     "is_investigator_tool",
     "is_query_service_tool",
     "is_research_tool",
     "is_scratchpad_tool",
+    "is_zopedia_tool",
     "invoke_tool",
     "tool_schema",
 ]

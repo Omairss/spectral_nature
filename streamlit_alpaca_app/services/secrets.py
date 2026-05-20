@@ -252,7 +252,16 @@ def describe_secret_resolution(
         secret_name_source = "default"
 
     resolved_vault_url = _vault_url()
-    result = _read_secret(secret_name, resolved_vault_url)
+    try:
+        secret_value = _get_secret(secret_name)
+        result = {"value": secret_value, "reason": "", "error_type": "", "error_message": ""}
+    except Exception as exc:
+        result = {
+            "value": "",
+            "reason": "key_vault_lookup_failed",
+            "error_type": type(exc).__name__,
+            "error_message": str(exc),
+        }
     value = _clean(str(result.get("value") or ""), placeholders=placeholders)
     if value:
         return {

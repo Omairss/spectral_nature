@@ -7,6 +7,7 @@ import pandas as pd
 from services.aql.evidence_index import annotate_source_documents
 from services.saa.storage import (
     load_retained_document_metadata,
+    load_retained_evidence_chunk,
     prepare_retained_evidence_chunks,
     prepare_retained_source_documents,
     search_prepared_evidence_chunks,
@@ -315,6 +316,38 @@ def test_load_retained_document_metadata_returns_single_row():
     assert metadata["canonical_document_id"] == "saa_doc::uso"
     assert metadata["display_excerpt"] == "USO and airlines moved as supply-risk eased."
     assert metadata["mentioned_commodities"] == ["oil"]
+
+
+def test_load_retained_evidence_chunk_returns_single_row():
+    rows = [
+        _chunk_row(
+            chunk_record_id="saa_chunk::uso",
+            canonical_document_id="saa_doc::uso",
+            title="USO falls as oil pulls back on ceasefire hopes",
+            display_excerpt="USO and airlines moved as supply-risk eased.",
+            chunk_text="USO and BNO fell on March 24, 2026 as oil eased after ceasefire headlines.",
+            search_text="USO and BNO fell on March 24, 2026 as oil eased after ceasefire headlines.",
+            bundle_subject="USO",
+            source_provider="Reuters",
+            search_provider="tavily",
+            research_scope="attention",
+            published_at="2026-03-24T17:30:00Z",
+            published_date="2026-03-24",
+            primary_date="2026-03-24",
+            mentioned_tickers=["USO", "BNO"],
+            mentioned_commodities=["oil"],
+            event_tags=["geopolitics"],
+            mentioned_dates=["2026-03-24"],
+        )
+    ]
+
+    chunk = load_retained_evidence_chunk("saa_chunk::uso", conn=_Conn(rows))
+
+    assert chunk is not None
+    assert chunk["chunk_record_id"] == "saa_chunk::uso"
+    assert chunk["canonical_document_id"] == "saa_doc::uso"
+    assert "ceasefire headlines" in chunk["chunk_text"]
+    assert chunk["mentioned_tickers"] == ["USO", "BNO"]
 
 
 def test_prepare_retained_evidence_chunks_builds_searchable_chunk_rows():

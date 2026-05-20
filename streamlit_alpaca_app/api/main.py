@@ -170,6 +170,8 @@ def _invoke_tool(
             _ensure_scopes(principal, _required_scopes_for_query(query.to_dict()))
     elif agent_tools.is_research_tool(tool_name):
         _ensure_scopes(principal, [api_auth.SCOPE_QUERY_EXECUTE, api_auth.SCOPE_DATASET_READ])
+    elif agent_tools.is_zopedia_tool(tool_name):
+        _ensure_scopes(principal, [api_auth.SCOPE_QUERY_EXECUTE, api_auth.SCOPE_DATASET_READ])
     else:
         raise _error(f"Unsupported tool '{tool_name}'.", status.HTTP_400_BAD_REQUEST)
     try:

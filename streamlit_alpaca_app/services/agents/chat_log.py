@@ -7,14 +7,16 @@ the blob holds the complete session JSON including all tool call arguments,
 results, and the full answer markdown.
 
 Storage layout:
-  Postgres table: aql_chat_sessions (legacy table name, searchable index)
-  Blob path:      agents/chat_logs/{date}/{run_id}.json (full payload)
+  Postgres table: aql_chat_sessions (legacy run-log table)
+  Postgres tables: saa_zopedia_chat_threads, saa_zopedia_chat_messages
+  Blob path:      agents/chat_logs/{date}/{run_id}.json (full run payload)
 """
 from __future__ import annotations
 
 import hashlib
 import json
 import os
+import uuid
 from datetime import datetime, timezone
 from typing import Any
 
@@ -113,12 +115,35 @@ def _json_list(value: Any) -> list[Any]:
     return []
 
 
+def _json_dict(value: Any) -> dict[str, Any]:
+    if value is None:
+        return {}
+    if isinstance(value, dict):
+        return dict(value)
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+        except Exception:
+            return {}
+        return dict(parsed) if isinstance(parsed, dict) else {}
+    return {}
+
+
+def _thread_title(text: str, *, limit: int = 80) -> str:
+    cleaned = " ".join(str(text or "").strip().split())
+    if not cleaned:
+        return "New Zopedia chat"
+    if len(cleaned) <= limit:
+        return cleaned
+    return cleaned[: max(limit - 3, 1)].rstrip() + "..."
+
+
 # ---------------------------------------------------------------------------
 # Schema bootstrap
 # ---------------------------------------------------------------------------
 
 def bootstrap_chat_log(conn: Any | None = None) -> bool:
-    """Create the aql_chat_sessions table if it doesn't exist. Returns True on success."""
+    """Create agent run-log and Zopedia chat tables if they do not exist."""
     own_conn = conn is None
     if conn is None:
         conn = _db_connection()
@@ -165,6 +190,45 @@ def bootstrap_chat_log(conn: Any | None = None) -> bool:
                 """
                 CREATE INDEX IF NOT EXISTS idx_aql_chat_sessions_status
                 ON aql_chat_sessions (status, created_at DESC)
+                """
+            )
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS saa_zopedia_chat_threads (
+                    thread_id TEXT PRIMARY KEY,
+                    user_key TEXT NOT NULL DEFAULT 'default',
+                    title TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'active',
+                    metadata_json JSONB,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+                """
+            )
+            cur.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_saa_zopedia_chat_threads_user_updated
+                ON saa_zopedia_chat_threads (user_key, updated_at DESC)
+                """
+            )
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS saa_zopedia_chat_messages (
+                    message_id TEXT PRIMARY KEY,
+                    thread_id TEXT NOT NULL REFERENCES saa_zopedia_chat_threads(thread_id) ON DELETE CASCADE,
+                    role TEXT NOT NULL,
+                    content TEXT,
+                    payload_json JSONB,
+                    run_id TEXT,
+                    sequence_index INTEGER NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+                """
+            )
+            cur.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_saa_zopedia_chat_messages_thread_sequence
+                ON saa_zopedia_chat_messages (thread_id, sequence_index)
                 """
             )
         conn.commit()
@@ -328,6 +392,333 @@ def log_chat_session(
             conn.close()
         except Exception:
             pass
+
+
+# ---------------------------------------------------------------------------
+# Durable Zopedia chat threads
+# ---------------------------------------------------------------------------
+
+def create_chat_thread(
+    *,
+    user_key: str = "default",
+    title: str = "",
+    metadata: dict[str, Any] | None = None,
+    conn: Any | None = None,
+) -> dict[str, Any] | None:
+    """Create a durable Zopedia chat thread."""
+    own_conn = conn is None
+    if conn is None:
+        conn = _db_connection()
+    if conn is None:
+        return None
+    thread_id = f"zthread_{uuid.uuid4().hex[:16]}"
+    now = datetime.now(timezone.utc)
+    safe_user_key = str(user_key or "default").strip() or "default"
+    safe_title = _thread_title(title)
+    try:
+        bootstrap_chat_log(conn)
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO saa_zopedia_chat_threads (
+                    thread_id, user_key, title, status, metadata_json, created_at, updated_at
+                )
+                VALUES (
+                    %(thread_id)s, %(user_key)s, %(title)s, 'active',
+                    %(metadata_json)s, %(created_at)s, %(updated_at)s
+                )
+                """,
+                {
+                    "thread_id": thread_id,
+                    "user_key": safe_user_key,
+                    "title": safe_title,
+                    "metadata_json": json.dumps(metadata or {}, ensure_ascii=False, default=str),
+                    "created_at": now,
+                    "updated_at": now,
+                },
+            )
+        if own_conn:
+            conn.commit()
+        return {
+            "thread_id": thread_id,
+            "user_key": safe_user_key,
+            "title": safe_title,
+            "status": "active",
+            "metadata": metadata or {},
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat(),
+        }
+    except Exception:
+        if own_conn:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        return None
+    finally:
+        if own_conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+
+def append_chat_message(
+    *,
+    thread_id: str | None,
+    role: str,
+    content: str = "",
+    payload: dict[str, Any] | None = None,
+    run_id: str = "",
+    user_key: str = "default",
+    title: str = "",
+    conn: Any | None = None,
+) -> dict[str, Any] | None:
+    """Append a message to a durable Zopedia thread, creating the thread if needed."""
+    own_conn = conn is None
+    if conn is None:
+        conn = _db_connection()
+    if conn is None:
+        return None
+    safe_user_key = str(user_key or "default").strip() or "default"
+    safe_thread_id = str(thread_id or "").strip()
+    safe_role = str(role or "").strip().lower()
+    if safe_role not in {"user", "assistant", "system"}:
+        safe_role = "assistant"
+    now = datetime.now(timezone.utc)
+    try:
+        bootstrap_chat_log(conn)
+        if not safe_thread_id:
+            created = create_chat_thread(
+                user_key=safe_user_key,
+                title=title or content,
+                metadata={"source": "zopedia_chat"},
+                conn=conn,
+            )
+            safe_thread_id = str((created or {}).get("thread_id") or "").strip()
+        if not safe_thread_id:
+            if own_conn:
+                conn.rollback()
+            return None
+        safe_title = _thread_title(title or content)
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO saa_zopedia_chat_threads (
+                    thread_id, user_key, title, status, metadata_json, created_at, updated_at
+                )
+                VALUES (
+                    %(thread_id)s, %(user_key)s, %(title)s, 'active',
+                    %(metadata_json)s, %(created_at)s, %(updated_at)s
+                )
+                ON CONFLICT (thread_id) DO UPDATE SET
+                    updated_at = EXCLUDED.updated_at,
+                    title = CASE
+                        WHEN saa_zopedia_chat_threads.title = 'New Zopedia chat' THEN EXCLUDED.title
+                        ELSE saa_zopedia_chat_threads.title
+                    END
+                """,
+                {
+                    "thread_id": safe_thread_id,
+                    "user_key": safe_user_key,
+                    "title": safe_title,
+                    "metadata_json": json.dumps({"source": "zopedia_chat"}, ensure_ascii=False),
+                    "created_at": now,
+                    "updated_at": now,
+                },
+            )
+            cur.execute(
+                "SELECT user_key FROM saa_zopedia_chat_threads WHERE thread_id = %s",
+                (safe_thread_id,),
+            )
+            owner_row = cur.fetchone()
+            if not owner_row or str(owner_row[0] or "") != safe_user_key:
+                raise PermissionError("Thread does not belong to this user.")
+            cur.execute(
+                """
+                SELECT COALESCE(MAX(sequence_index), -1) + 1
+                FROM saa_zopedia_chat_messages
+                WHERE thread_id = %s
+                """,
+                (safe_thread_id,),
+            )
+            row = cur.fetchone()
+            sequence_index = int(row[0]) if row else 0
+            message_id = f"zmsg_{uuid.uuid4().hex[:16]}"
+            cur.execute(
+                """
+                INSERT INTO saa_zopedia_chat_messages (
+                    message_id, thread_id, role, content, payload_json, run_id, sequence_index, created_at
+                )
+                VALUES (
+                    %(message_id)s, %(thread_id)s, %(role)s, %(content)s,
+                    %(payload_json)s, %(run_id)s, %(sequence_index)s, %(created_at)s
+                )
+                """,
+                {
+                    "message_id": message_id,
+                    "thread_id": safe_thread_id,
+                    "role": safe_role,
+                    "content": str(content or ""),
+                    "payload_json": json.dumps(payload or {}, ensure_ascii=False, default=str),
+                    "run_id": str(run_id or ""),
+                    "sequence_index": sequence_index,
+                    "created_at": now,
+                },
+            )
+            cur.execute(
+                """
+                UPDATE saa_zopedia_chat_threads
+                SET updated_at = %(updated_at)s
+                WHERE thread_id = %(thread_id)s
+                """,
+                {"updated_at": now, "thread_id": safe_thread_id},
+            )
+        if own_conn:
+            conn.commit()
+        return {
+            "message_id": message_id,
+            "thread_id": safe_thread_id,
+            "role": safe_role,
+            "content": str(content or ""),
+            "payload": payload or {},
+            "run_id": str(run_id or ""),
+            "sequence_index": sequence_index,
+            "created_at": now.isoformat(),
+        }
+    except Exception:
+        if own_conn:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        return None
+    finally:
+        if own_conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+
+def list_chat_threads(
+    *,
+    user_key: str = "default",
+    limit: int = 20,
+    conn: Any | None = None,
+) -> list[dict[str, Any]]:
+    """List recent durable Zopedia chat threads for one user key."""
+    own_conn = conn is None
+    if conn is None:
+        conn = _db_connection()
+    if conn is None:
+        return []
+    safe_user_key = str(user_key or "default").strip() or "default"
+    try:
+        bootstrap_chat_log(conn)
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT thread_id, user_key, title, status, metadata_json, created_at, updated_at
+                FROM saa_zopedia_chat_threads
+                WHERE user_key = %s AND status <> 'deleted'
+                ORDER BY updated_at DESC
+                LIMIT %s
+                """,
+                (safe_user_key, max(int(limit), 1)),
+            )
+            rows = cur.fetchall()
+        return [
+            {
+                "thread_id": row[0],
+                "user_key": row[1],
+                "title": row[2],
+                "status": row[3],
+                "metadata": _json_dict(row[4]),
+                "created_at": row[5].isoformat() if row[5] else None,
+                "updated_at": row[6].isoformat() if row[6] else None,
+            }
+            for row in rows
+        ]
+    except Exception:
+        return []
+    finally:
+        if own_conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+
+def load_chat_thread(
+    *,
+    thread_id: str,
+    user_key: str = "default",
+    conn: Any | None = None,
+) -> dict[str, Any] | None:
+    """Load one durable Zopedia chat thread and its messages."""
+    safe_thread_id = str(thread_id or "").strip()
+    if not safe_thread_id:
+        return None
+    own_conn = conn is None
+    if conn is None:
+        conn = _db_connection()
+    if conn is None:
+        return None
+    safe_user_key = str(user_key or "default").strip() or "default"
+    try:
+        bootstrap_chat_log(conn)
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT thread_id, user_key, title, status, metadata_json, created_at, updated_at
+                FROM saa_zopedia_chat_threads
+                WHERE thread_id = %s AND user_key = %s AND status <> 'deleted'
+                """,
+                (safe_thread_id, safe_user_key),
+            )
+            thread_row = cur.fetchone()
+            if thread_row is None:
+                return None
+            cur.execute(
+                """
+                SELECT message_id, role, content, payload_json, run_id, sequence_index, created_at
+                FROM saa_zopedia_chat_messages
+                WHERE thread_id = %s
+                ORDER BY sequence_index ASC, created_at ASC
+                """,
+                (safe_thread_id,),
+            )
+            message_rows = cur.fetchall()
+        return {
+            "thread_id": thread_row[0],
+            "user_key": thread_row[1],
+            "title": thread_row[2],
+            "status": thread_row[3],
+            "metadata": _json_dict(thread_row[4]),
+            "created_at": thread_row[5].isoformat() if thread_row[5] else None,
+            "updated_at": thread_row[6].isoformat() if thread_row[6] else None,
+            "messages": [
+                {
+                    "message_id": row[0],
+                    "role": row[1],
+                    "content": row[2],
+                    "payload": _json_dict(row[3]),
+                    "run_id": row[4],
+                    "sequence_index": row[5],
+                    "created_at": row[6].isoformat() if row[6] else None,
+                }
+                for row in message_rows
+            ],
+        }
+    except Exception:
+        return None
+    finally:
+        if own_conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 # ---------------------------------------------------------------------------
@@ -521,9 +912,13 @@ def count_chat_sessions(
 
 
 __all__ = [
+    "append_chat_message",
     "bootstrap_chat_log",
     "count_chat_sessions",
+    "create_chat_thread",
     "list_chat_sessions",
+    "list_chat_threads",
     "load_chat_session",
+    "load_chat_thread",
     "log_chat_session",
 ]

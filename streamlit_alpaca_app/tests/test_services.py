@@ -19,7 +19,6 @@ from services.alpaca_api import AlpacaAPI
 from services import company as company_module
 from services import attention_agentic as attention_agentic_module
 from services.attention_agentic import build_bottom_up_attention_artifacts
-from services.attention_feed_brief import build_attention_feed_brief
 from services.attention_home_1d import (
     build_attention_entity_master,
     build_attention_event_candidates_1d,
@@ -1113,25 +1112,6 @@ def test_build_attention_market_events_does_not_pull_generic_energy_names_into_o
     assert top["anchor_symbol"] == "BNO"
     assert "APG" not in set(top["supporting_symbols"])
     assert "Gradizza Field" not in top["why_happened_text"]
-
-
-def test_build_attention_feed_brief_fallback_prefers_story_over_generic_cluster_text():
-    brief = build_attention_feed_brief(
-        {
-            "symbol": "BNO",
-            "title": "BNO is underperforming expectation",
-            "story_text": "Oil-linked instruments are breaking lower as the market prices less supply risk.",
-            "news_narrative": "Coverage from benzinga is clustering around commodity prices, which helps explain why the move looks idiosyncratic.",
-            "headline_items": [],
-            "company_description": "BNO tracks Brent crude oil.",
-            "context_summary": "",
-            "watchpoint_text": "Watch whether airlines and broad equities keep confirming the move.",
-        },
-        None,
-    )
-
-    assert brief["lead_text"].startswith("Oil-linked instruments are breaking lower")
-    assert "coverage from benzinga" in brief["cluster_text"].lower()
 
 
 def test_build_attention_entity_master_leaves_unknown_equities_unclassified_for_macro_roles(monkeypatch):
@@ -3480,38 +3460,6 @@ def test_build_attention_news_narrative_surfaces_copper_ai_supply_story(monkeypa
     assert "tighter supply" in narrative["narrative_text"].lower()
     assert narrative["source_labels"] == ["Financial Times", "WSJ", "Seeking Alpha"]
     assert len(narrative["headline_links"]) == 2
-
-
-def test_build_attention_feed_brief_explains_company_and_terms_without_numeric_prose():
-    brief = build_attention_feed_brief(
-        {
-            "symbol": "APGE",
-            "company_name": "Apogee Therapeutics",
-            "title": "APGE is outperforming expectation",
-            "story_text": "APGE is trading stronger than its peers implied. Price action still looks like a trend breakout setup.",
-            "news_narrative": "Coverage from Benzinga is clustering around positive Phase 2 maintenance data in atopic dermatitis.",
-            "headline_items": [
-                {
-                    "headline": "Apogee Therapeutics shares rise after positive Phase 2 maintenance data for IL-13 antibody candidate in atopic dermatitis",
-                    "summary": "The update strengthened confidence that the eczema program can hold up over time.",
-                    "source": "Benzinga",
-                }
-            ],
-            "company_description": "Apogee Therapeutics (APGE) develops antibody-based medicines for inflammatory and immunology diseases.",
-            "context_summary": "",
-            "context_narrative": "",
-            "watchpoint_text": "Watch whether the market keeps treating the update as a company-specific catalyst.",
-        },
-        None,
-    )
-
-    assert "Benzinga" in brief["headline_text"]
-    assert "Apogee Therapeutics" in brief["company_text"]
-    assert "mid-stage clinical trial" in brief["explainer_text"]
-    assert "IL-13" in brief["explainer_text"]
-    assert "atopic dermatitis" in brief["explainer_text"].lower()
-    assert "residual" not in brief["lead_text"].lower()
-    assert "observed" not in brief["lead_text"].lower()
 
 
 def test_cached_news_context_handles_array_like_symbol_payloads(monkeypatch):

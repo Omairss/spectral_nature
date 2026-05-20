@@ -14,9 +14,10 @@ from typing import Any
 
 import pandas as pd
 
-from ..llm import LLMAPIError, load_llm_client
+from ..llm import LLMAPIError
 from ..market import COMMODITY_PROXY_METADATA, default_universe_symbols
 from ..saa import build_canonical_document_fields
+from ..aql_zopedia_engine import load_aql_zopedia_llm_client
 from ._shared import _coerce_text, _json_dumps, _normalize_symbol
 
 
@@ -283,7 +284,7 @@ def build_evidence_metadata(
         search_text,
         tickers=mentioned_tickers,
         source_kind=_coerce_text(source_kind).lower(),
-        llm_client=load_llm_client(),
+        llm_client=load_aql_zopedia_llm_client(surface="aql.evidence_index.tag_extraction"),
     )
     published_date = _published_date_text(published_at)
     primary_date = published_date or (mentioned_dates[0] if mentioned_dates else "")

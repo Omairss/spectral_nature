@@ -12,6 +12,8 @@ A password-reset path could inherit an existing browser session before the app r
 - Keep password reset completion sessionless. Users must log in with the new password after reset.
 - Re-check active user status, active portfolio status, and active membership when restoring sessions.
 - Reject password login when a user has no active portfolio membership.
+- Consume auth-action query params after any successful login so a stale reset/invite URL cannot force logout again on reload.
+- Do not immediately rerun after database login/account creation; render the cookie-sync component and continue into the authenticated app so browser persistence can complete.
 
 ## Verification
 

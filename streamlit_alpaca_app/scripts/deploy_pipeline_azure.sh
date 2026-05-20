@@ -22,6 +22,33 @@ LEGACY_DEPLOY_OUTPUTS_FILE="${ROOT_DIR}/infra/deployment.outputs.env"
 DEPLOY_OUTPUTS_FILE="${DEPLOY_OUTPUTS_FILE:-$DEFAULT_DEPLOY_OUTPUTS_FILE}"
 JOB_SCHEDULES_FILE="${ROOT_DIR}/infra/job_schedules.env"
 REQUESTED_KEYVAULT_NAME="${KEYVAULT_NAME:-${AZURE_KEY_VAULT_NAME:-${KEY_VAULT_NAME:-}}}"
+REQUESTED_ENV_OVERRIDE_KEYS=()
+REQUESTED_ENV_OVERRIDE_VALUES=()
+
+capture_requested_env_override() {
+  local key="$1"
+  if [[ "${!key+x}" == "x" ]]; then
+    REQUESTED_ENV_OVERRIDE_KEYS+=("$key")
+    REQUESTED_ENV_OVERRIDE_VALUES+=("${!key}")
+  fi
+}
+
+restore_requested_env_overrides() {
+  local idx key
+  for ((idx=0; idx<${#REQUESTED_ENV_OVERRIDE_KEYS[@]}; idx++)); do
+    key="${REQUESTED_ENV_OVERRIDE_KEYS[$idx]}"
+    printf -v "$key" '%s' "${REQUESTED_ENV_OVERRIDE_VALUES[$idx]}"
+  done
+}
+
+for key in \
+  LLM_API_KEY_SECRET_NAME LLM_PROVIDER LLM_MODEL LLM_DEPLOYMENT \
+  LLM_BASE_URL LLM_TIMEOUT_SECONDS LLM_TEMPERATURE LLM_REASONING_EFFORT \
+  OPENAI_API_KEY_SECRET_NAME OPENAI_MODEL OPENAI_BASE_URL OPENAI_REASONING_EFFORT \
+  AZURE_OPENAI_ENDPOINT AZURE_OPENAI_API_VERSION AZURE_OPENAI_DEPLOYMENT \
+; do
+  capture_requested_env_override "$key"
+done
 
 if [[ -f "$DEPLOY_OUTPUTS_FILE" ]]; then
   # shellcheck disable=SC1090
@@ -30,6 +57,7 @@ elif [[ "$DEPLOY_OUTPUTS_FILE" == "$DEFAULT_DEPLOY_OUTPUTS_FILE" && -f "$LEGACY_
   # shellcheck disable=SC1090
   source "$LEGACY_DEPLOY_OUTPUTS_FILE"
 fi
+restore_requested_env_overrides
 
 if [[ -f "$JOB_SCHEDULES_FILE" ]]; then
   # shellcheck disable=SC1090
@@ -80,12 +108,20 @@ LLM_API_KEY_SECRET_NAME="${LLM_API_KEY_SECRET_NAME:-${AZURE_OPENAI_API_KEY_SECRE
 LLM_PROVIDER="${LLM_PROVIDER:-}"
 LLM_MODEL="${LLM_MODEL:-}"
 LLM_DEPLOYMENT="${LLM_DEPLOYMENT:-}"
+LLM_BASE_URL="${LLM_BASE_URL:-}"
 AZURE_OPENAI_ENDPOINT="${AZURE_OPENAI_ENDPOINT:-}"
+AZURE_OPENAI_API_VERSION="${AZURE_OPENAI_API_VERSION:-}"
+AZURE_OPENAI_DEPLOYMENT="${AZURE_OPENAI_DEPLOYMENT:-}"
+OPENAI_API_KEY_SECRET_NAME="${OPENAI_API_KEY_SECRET_NAME:-}"
+OPENAI_MODEL="${OPENAI_MODEL:-}"
+OPENAI_BASE_URL="${OPENAI_BASE_URL:-}"
+OPENAI_REASONING_EFFORT="${OPENAI_REASONING_EFFORT:-}"
+LLM_TIMEOUT_SECONDS="${LLM_TIMEOUT_SECONDS:-}"
 LLM_TEMPERATURE="${LLM_TEMPERATURE:-}"
 LLM_REASONING_EFFORT="${LLM_REASONING_EFFORT:-}"
 EMBEDDING_MODEL="${EMBEDDING_MODEL:-}"
 EMBEDDING_DEPLOYMENT="${EMBEDDING_DEPLOYMENT:-}"
-LLM_ENV_SOURCE_JOBS="${LLM_ENV_SOURCE_JOBS:-attention-home-build news-ingest-and-features}"
+LLM_ENV_SOURCE_JOBS="${LLM_ENV_SOURCE_JOBS:-attention-home-build news-ingest-and-features zopedia-maintenance zopedia-learning}"
 PIPELINE_CACHE_MAX_BYTES="${PIPELINE_CACHE_MAX_BYTES:-}"
 TAVILY_INCLUDE_RAW_CONTENT="${TAVILY_INCLUDE_RAW_CONTENT:-true}"
 
@@ -110,6 +146,14 @@ SEEKING_ALPHA_BROWSER_HEADLESS="${SEEKING_ALPHA_BROWSER_HEADLESS:-true}"
 
 SIMFIN_API_KEY_SECRET_NAME="${SIMFIN_API_KEY_SECRET_NAME:-SimFinAPI}"
 FUNDAMENTALS_QUARTERLY_REFRESH_CRON="${FUNDAMENTALS_QUARTERLY_REFRESH_CRON:-0 12 * * 1-5}"
+ZOPEDIA_MAINTENANCE_CRON="${ZOPEDIA_MAINTENANCE_CRON:-50 14,16,18,20 * * 1-5}"
+ZOPEDIA_MAINTENANCE_PAGE_LIMIT="${ZOPEDIA_MAINTENANCE_PAGE_LIMIT:-5000}"
+ZOPEDIA_MAINTENANCE_STALE_AFTER_DAYS="${ZOPEDIA_MAINTENANCE_STALE_AFTER_DAYS:-120}"
+ZOPEDIA_MAINTENANCE_BLOAT_CHAR_LIMIT="${ZOPEDIA_MAINTENANCE_BLOAT_CHAR_LIMIT:-32000}"
+ZOPEDIA_LEARNING_CRON="${ZOPEDIA_LEARNING_CRON:-20 15,19 * * 1-5}"
+ZOPEDIA_LEARNING_THREAD_LIMIT="${ZOPEDIA_LEARNING_THREAD_LIMIT:-25}"
+ZOPEDIA_LEARNING_VERIFY_EVALS="${ZOPEDIA_LEARNING_VERIFY_EVALS:-true}"
+ZOPEDIA_LEARNING_VERIFY_LIMIT="${ZOPEDIA_LEARNING_VERIFY_LIMIT:-3}"
 
 job_exists() {
   local job_name="$1"
@@ -122,6 +166,26 @@ maybe_append_env() {
   if [[ -n "$value" ]]; then
     JOB_ENV_VARS+=("${key}=${value}")
   fi
+}
+
+dedupe_job_env_vars() {
+  local pair key idx replaced
+  local deduped=()
+  for pair in "${JOB_ENV_VARS[@]}"; do
+    key="${pair%%=*}"
+    replaced=false
+    for ((idx=0; idx<${#deduped[@]}; idx++)); do
+      if [[ "${deduped[$idx]%%=*}" == "$key" ]]; then
+        deduped[$idx]="$pair"
+        replaced=true
+        break
+      fi
+    done
+    if [[ "$replaced" == false ]]; then
+      deduped+=("$pair")
+    fi
+  done
+  JOB_ENV_VARS=("${deduped[@]}")
 }
 
 require_keyvault_secret() {
@@ -200,6 +264,13 @@ hydrate_llm_env_defaults() {
       hydrated_keys+=("LLM_DEPLOYMENT")
     fi
   fi
+  if [[ -z "$LLM_BASE_URL" ]]; then
+    value="$(first_nonempty_job_env_value "LLM_BASE_URL" "${donor_jobs[@]}")"
+    if [[ -n "$value" ]]; then
+      LLM_BASE_URL="$value"
+      hydrated_keys+=("LLM_BASE_URL")
+    fi
+  fi
   if [[ -z "$LLM_API_KEY_SECRET_NAME" ]]; then
     value="$(first_nonempty_job_env_value "LLM_API_KEY_SECRET_NAME" "${donor_jobs[@]}")"
     if [[ -n "$value" ]]; then
@@ -212,6 +283,13 @@ hydrate_llm_env_defaults() {
     if [[ -n "$value" ]]; then
       AZURE_OPENAI_ENDPOINT="$value"
       hydrated_keys+=("AZURE_OPENAI_ENDPOINT")
+    fi
+  fi
+  if [[ -z "$LLM_TIMEOUT_SECONDS" ]]; then
+    value="$(first_nonempty_job_env_value "LLM_TIMEOUT_SECONDS" "${donor_jobs[@]}")"
+    if [[ -n "$value" ]]; then
+      LLM_TIMEOUT_SECONDS="$value"
+      hydrated_keys+=("LLM_TIMEOUT_SECONDS")
     fi
   fi
   if [[ -z "$LLM_TEMPERATURE" ]]; then
@@ -253,6 +331,17 @@ ACR_NAME="$(echo "$ACR_NAME" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9' | cu
 KEYVAULT_NAME="$(echo "$KEYVAULT_NAME" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9-' | cut -c1-24)"
 
 hydrate_llm_env_defaults
+
+if [[ "$LLM_PROVIDER" == "deepseek" ]]; then
+  AZURE_OPENAI_ENDPOINT=""
+  AZURE_OPENAI_API_VERSION=""
+  AZURE_OPENAI_DEPLOYMENT=""
+  OPENAI_API_KEY_SECRET_NAME=""
+  OPENAI_MODEL=""
+  OPENAI_BASE_URL=""
+  OPENAI_REASONING_EFFORT=""
+  LLM_REASONING_EFFORT=""
+fi
 
 echo "[1/11] Creating resource group"
 az group create --name "$RESOURCE_GROUP" --location "$LOCATION" --output none
@@ -439,8 +528,16 @@ create_or_update_job () {
   maybe_append_env "LLM_PROVIDER" "$LLM_PROVIDER"
   maybe_append_env "LLM_MODEL" "$LLM_MODEL"
   maybe_append_env "LLM_DEPLOYMENT" "$LLM_DEPLOYMENT"
+  maybe_append_env "LLM_BASE_URL" "$LLM_BASE_URL"
   maybe_append_env "LLM_API_KEY_SECRET_NAME" "$LLM_API_KEY_SECRET_NAME"
   maybe_append_env "AZURE_OPENAI_ENDPOINT" "$AZURE_OPENAI_ENDPOINT"
+  maybe_append_env "AZURE_OPENAI_API_VERSION" "$AZURE_OPENAI_API_VERSION"
+  maybe_append_env "AZURE_OPENAI_DEPLOYMENT" "$AZURE_OPENAI_DEPLOYMENT"
+  maybe_append_env "OPENAI_API_KEY_SECRET_NAME" "$OPENAI_API_KEY_SECRET_NAME"
+  maybe_append_env "OPENAI_MODEL" "$OPENAI_MODEL"
+  maybe_append_env "OPENAI_BASE_URL" "$OPENAI_BASE_URL"
+  maybe_append_env "OPENAI_REASONING_EFFORT" "$OPENAI_REASONING_EFFORT"
+  maybe_append_env "LLM_TIMEOUT_SECONDS" "$LLM_TIMEOUT_SECONDS"
   maybe_append_env "LLM_TEMPERATURE" "$LLM_TEMPERATURE"
   maybe_append_env "LLM_REASONING_EFFORT" "$LLM_REASONING_EFFORT"
   maybe_append_env "EMBEDDING_MODEL" "$EMBEDDING_MODEL"
@@ -461,9 +558,19 @@ create_or_update_job () {
     JOB_ENV_VARS+=("$1")
     shift
   done
+  dedupe_job_env_vars
 
   if job_exists "$job_name"; then
     echo "  - updating ${job_name} (${cron})"
+    REMOVE_ENV_ARGS=()
+    if [[ "$LLM_PROVIDER" == "deepseek" ]]; then
+      REMOVE_ENV_ARGS=(
+        --remove-env-vars
+        AZURE_OPENAI_ENDPOINT AZURE_OPENAI_API_VERSION AZURE_OPENAI_DEPLOYMENT
+        OPENAI_API_KEY_SECRET_NAME OPENAI_MODEL OPENAI_BASE_URL OPENAI_REASONING_EFFORT
+        LLM_REASONING_EFFORT
+      )
+    fi
     az containerapp job update \
       --name "$job_name" \
       --resource-group "$RESOURCE_GROUP" \
@@ -477,6 +584,7 @@ create_or_update_job () {
       --cpu "$cpu" \
       --memory "$memory" \
       --set-env-vars "${JOB_ENV_VARS[@]}" \
+      "${REMOVE_ENV_ARGS[@]}" \
       --output none
     sync_job_identity "$job_name"
   else
@@ -547,6 +655,24 @@ create_or_update_job \
   0.5 \
   1Gi \
   "SIMFIN_REFRESH_ENABLED=true"
+create_or_update_job \
+  "zopedia-maintenance" \
+  "${ZOPEDIA_MAINTENANCE_CRON}" \
+  3600 \
+  0.5 \
+  1Gi \
+  "ZOPEDIA_MAINTENANCE_PAGE_LIMIT=${ZOPEDIA_MAINTENANCE_PAGE_LIMIT}" \
+  "ZOPEDIA_MAINTENANCE_STALE_AFTER_DAYS=${ZOPEDIA_MAINTENANCE_STALE_AFTER_DAYS}" \
+  "ZOPEDIA_MAINTENANCE_BLOAT_CHAR_LIMIT=${ZOPEDIA_MAINTENANCE_BLOAT_CHAR_LIMIT}"
+create_or_update_job \
+  "zopedia-learning" \
+  "${ZOPEDIA_LEARNING_CRON}" \
+  3600 \
+  0.5 \
+  1Gi \
+  "ZOPEDIA_LEARNING_THREAD_LIMIT=${ZOPEDIA_LEARNING_THREAD_LIMIT}" \
+  "ZOPEDIA_LEARNING_VERIFY_EVALS=${ZOPEDIA_LEARNING_VERIFY_EVALS}" \
+  "ZOPEDIA_LEARNING_VERIFY_LIMIT=${ZOPEDIA_LEARNING_VERIFY_LIMIT}"
 
 echo "[11/11] Capturing deployment outputs"
 mkdir -p "$(dirname "$DEPLOY_OUTPUTS_FILE")"
@@ -572,9 +698,16 @@ LLM_API_KEY_SECRET_NAME=${LLM_API_KEY_SECRET_NAME}
 LLM_PROVIDER=${LLM_PROVIDER}
 LLM_MODEL=${LLM_MODEL}
 LLM_DEPLOYMENT=${LLM_DEPLOYMENT}
+LLM_BASE_URL=${LLM_BASE_URL}
 AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+AZURE_OPENAI_API_VERSION=${AZURE_OPENAI_API_VERSION}
+AZURE_OPENAI_DEPLOYMENT=${AZURE_OPENAI_DEPLOYMENT}
+OPENAI_API_KEY_SECRET_NAME=${OPENAI_API_KEY_SECRET_NAME}
+OPENAI_MODEL=${OPENAI_MODEL}
+OPENAI_BASE_URL=${OPENAI_BASE_URL}
 LLM_TEMPERATURE=${LLM_TEMPERATURE}
 LLM_REASONING_EFFORT=${LLM_REASONING_EFFORT}
+LLM_TIMEOUT_SECONDS=${LLM_TIMEOUT_SECONDS}
 EOF
 
 echo "Deployment complete"

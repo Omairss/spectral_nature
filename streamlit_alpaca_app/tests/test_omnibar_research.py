@@ -104,7 +104,7 @@ def test_live_event_evidence_uses_impact_symbols_when_no_focus_symbols(monkeypat
 
     monkeypatch.setattr(omnibar_research, "search_market_event_news_payload", _fake_search_market_event_news_payload)
     monkeypatch.setattr(omnibar_research, "search_symbol_news_payload", _fake_search_symbol_news_payload)
-    monkeypatch.setattr(omnibar_research, "load_llm_client", lambda: None)
+    monkeypatch.setattr(omnibar_research, "load_aql_zopedia_llm_client", lambda **kwargs: None)
     monkeypatch.setattr(
         omnibar_research,
         "_llm_query_intent",

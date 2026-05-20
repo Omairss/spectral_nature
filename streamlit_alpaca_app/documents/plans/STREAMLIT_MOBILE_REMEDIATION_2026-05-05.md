@@ -28,6 +28,111 @@ Main findings:
 - Data-dense pages need a summary-first mobile layout, not side-by-side chart/table regions or multi-column metric bands.
 - Portfolio could not be fully data-validated locally because Alpaca returned `401`, but the layout showed the same desktop-card pattern.
 
+## Implementation Status — 2026-05-18
+
+First high-standard slice is implemented locally:
+
+- Feature flag: `STREAMLIT_MOBILE_UI_ENABLED=true`.
+- Layout resolver: `desktop`, `mobile`, `auto`, plus explicit `?layout=mobile` / `?layout=desktop`.
+- Mobile shell: top-of-page brand, navigation selectbox, snapshot date on Home, workspace status, logout.
+- Desktop shell remains the default and still uses the sidebar.
+- Mobile CSS is only injected for mobile mode and fixes page padding, heading density, controls, dataframes, tabs, and mobile code-block wrapping.
+- Render harness added at `scripts/mobile_render_check.mjs`.
+
+Verified locally with:
+
+```bash
+STREAMLIT_MOBILE_UI_ENABLED=true STREAMLIT_LAYOUT_MODE_DEFAULT=desktop DASHBOARD_AUTH_ENABLED=false APP_TRACK=local \
+  .venv/bin/streamlit run app.py --server.port 8509 --server.address 127.0.0.1 --server.headless true
+
+NODE_PATH=/tmp/spectral-pw/node_modules \
+  node scripts/mobile_render_check.mjs --url http://127.0.0.1:8509 --out /tmp/spectral-mobile-check-final2 --mode both --sections Home,Zopedia
+```
+
+Latest local artifacts:
+
+- `/tmp/spectral-mobile-check-final2/mobile-home.png`
+- `/tmp/spectral-mobile-check-final2/mobile-zopedia.png`
+- `/tmp/spectral-mobile-check-final2/desktop-home.png`
+- `/tmp/spectral-mobile-check-final2/report.json`
+
+Result: no document horizontal overflow at `390x844`; mobile navigation selects Home and Zopedia without sidebar buttons; desktop Home still renders sidebar navigation at `1440x1000`.
+
+Dev deploy remains pending because the current worktree contains broad unrelated changes. Deploying UI now would ship more than this mobile slice unless the diff is isolated or explicitly accepted.
+
+## Implementation Status — 2026-05-19
+
+Second remediation slice is implemented locally:
+
+- All direct `st.columns(...)` calls in `app.py` now route through `_responsive_columns(...)`, so mobile mode gets stacked containers while desktop keeps the original column specs.
+- Mobile CSS now wraps labels, button text, metric labels, tables/dataframes, Plotly surfaces, images, iframes, code blocks, and chat surfaces.
+- Zopedia mobile no longer renders the redundant Back/Clear control row before the page title. The mobile shell owns navigation and the Zopedia toolbar owns "New".
+- Home mobile now shows the narrative summary first and moves the graph into a collapsed "Market graph" expander so the first viewport is not dominated by a dense network plot.
+- The render harness was rerun across the original remediation matrix: Home, Zopedia, Market Explorer, Stock Investigator, Broad Economy, Portfolio, plus desktop Home.
+
+Verified locally with:
+
+```bash
+streamlit_alpaca_app/.venv/bin/python -m py_compile streamlit_alpaca_app/app.py
+
+PYTHONPATH=streamlit_alpaca_app streamlit_alpaca_app/.venv/bin/pytest -q \
+  streamlit_alpaca_app/tests/test_auth_routing_guards.py \
+  streamlit_alpaca_app/tests/test_chat_log.py \
+  streamlit_alpaca_app/tests/test_omnibar_agent.py \
+  streamlit_alpaca_app/tests/test_zopedia_memory.py \
+  streamlit_alpaca_app/tests/test_presentation_attention_content.py
+
+NODE_PATH=/tmp/spectral-pw/node_modules \
+  node scripts/mobile_render_check.mjs \
+  --url http://127.0.0.1:8509 \
+  --out /tmp/spectral-mobile-check-20260519c \
+  --mode both \
+  --sections "Home,Zopedia,Market Explorer,Stock Investigator,Broad Economy,Portfolio"
+```
+
+Results:
+
+- `51 passed in 4.85s` for the final targeted test run.
+- Render check passed with no horizontal overflow at `390x844` for every mobile section and no horizontal overflow at `1440x1000` for desktop Home.
+- Latest local artifacts:
+  - `/tmp/spectral-mobile-check-20260519c/mobile-home.png`
+  - `/tmp/spectral-mobile-check-20260519c/mobile-zopedia.png`
+  - `/tmp/spectral-mobile-check-20260519c/mobile-market-explorer.png`
+  - `/tmp/spectral-mobile-check-20260519c/mobile-stock-investigator.png`
+  - `/tmp/spectral-mobile-check-20260519c/mobile-broad-economy.png`
+  - `/tmp/spectral-mobile-check-20260519c/mobile-portfolio.png`
+  - `/tmp/spectral-mobile-check-20260519c/desktop-home.png`
+  - `/tmp/spectral-mobile-check-20260519c/report.json`
+
+Observed limitation:
+
+- Local Portfolio still shows an Alpaca authorization warning in the screenshot because the local dev credentials are not authorized. The mobile layout path itself rendered without overflow and stacked account cards correctly.
+
+Dev deployment:
+
+- Dev UI deploy completed on 2026-05-19.
+- Ready revision: `sn-streamlit-ui-dev--0000332`.
+- Image: `snpipelineacr03130136.azurecr.io/streamlit-ui@sha256:d9e141be22606daa82eadfc174f36623409ebdb9ca7032a1255fa0ea710aef36`.
+- Root smoke check returned HTTP 200.
+- Runtime env verified: `STREAMLIT_MOBILE_UI_ENABLED=true`, `STREAMLIT_LAYOUT_MODE_DEFAULT=desktop`, `APP_TRACK=development`.
+- No production deployment was performed.
+
+Post-trace-fix regression check:
+
+- Local mobile render harness passed after the Zopedia thinking-trace persistence fix.
+- Command:
+
+```bash
+NODE_PATH=/tmp/spectral-pw/node_modules \
+  node scripts/mobile_render_check.mjs \
+  --url http://127.0.0.1:8511 \
+  --out /tmp/spectral-mobile-check-local-20260519-trace \
+  --mode both \
+  --sections "Home,Zopedia,Market Explorer,Stock Investigator,Broad Economy,Portfolio"
+```
+
+- Report: `/tmp/spectral-mobile-check-local-20260519-trace/report.json`.
+
 ## Principles
 
 1. Fix the shell first. If users cannot navigate, page-level tweaks do not matter.

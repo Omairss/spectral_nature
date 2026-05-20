@@ -27,6 +27,31 @@ def _serialize_payload(payload: Any) -> Any:
     return payload
 
 
+def _payload_is_empty(payload: Any) -> bool:
+    if isinstance(payload, pd.DataFrame):
+        return payload.empty
+    if isinstance(payload, dict):
+        return not payload
+    if isinstance(payload, (list, tuple, set)):
+        return len(payload) == 0
+    return payload is None
+
+
+def _messages_from_provenance(resolved: ResolvedPayload) -> list[str]:
+    details = dict(getattr(resolved.provenance, "details", {}) or {})
+    messages: list[str] = []
+    explanation = str(details.get("user_safe_explanation") or "").strip()
+    empty_reason = str(details.get("empty_reason") or "").strip()
+    next_tool_hint = str(details.get("next_tool_hint") or "").strip()
+    if explanation:
+        messages.append(explanation)
+    elif empty_reason and _payload_is_empty(resolved.payload):
+        messages.append(f"Empty result: {empty_reason}.")
+    if next_tool_hint:
+        messages.append(f"Next tool hint: {next_tool_hint}")
+    return messages
+
+
 def _coerce_param_value(param: ParamSpec, value: Any, *, target_label: str) -> Any:
     if value is None:
         if param.nullable:
@@ -136,6 +161,7 @@ class QueryService:
                 result_type="dataset",
                 payload=_serialize_payload(resolved.payload),
                 provenance=resolved.provenance,
+                messages=_messages_from_provenance(resolved),
             )
         if query.operation == "chart":
             resolved = self.build_chart(query.name, query.params)

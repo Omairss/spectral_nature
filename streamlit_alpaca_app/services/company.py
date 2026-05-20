@@ -12,8 +12,9 @@ import pandas as pd
 import requests
 
 from .alpaca_api import AlpacaAPI, AlpacaAPIError
-from .llm import LLMAPIError, load_llm_client
+from .llm import LLMAPIError
 from .market import commodity_proxy_profile, narrative_business_lens_for_symbol
+from .aql_zopedia_engine import load_aql_zopedia_llm_client
 
 
 COMPANY_ROLE_HINTS: dict[str, str] = {
@@ -402,7 +403,7 @@ def _extract_news_themes(payload: dict[str, object] | None) -> list[str]:
     if not blob.strip():
         return []
 
-    llm_client = load_llm_client()
+    llm_client = load_aql_zopedia_llm_client(surface="company.news_themes")
     if llm_client is None:
         return []
     try:

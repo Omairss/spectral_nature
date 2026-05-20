@@ -17,7 +17,7 @@ import pandas as pd
 import plotly.graph_objects as go
 
 from .dependency_graphs import load_dependency_graph_payloads
-from .llm import LLMAPIError, load_embedding_client, load_llm_client
+from .llm import LLMAPIError, load_embedding_client
 from .secrets import resolve_secret_value
 from .web_research import (
     SerpAPISearchClient,
@@ -26,6 +26,7 @@ from .web_research import (
     load_serpapi_config,
     load_tavily_config,
 )
+from .aql_zopedia_engine import load_aql_zopedia_llm_client
 
 
 try:
@@ -768,7 +769,7 @@ def knowledge_graph_runtime_status() -> dict[str, Any]:
                 conn.close()
             except Exception:
                 pass
-    llm_client = load_llm_client()
+    llm_client = load_aql_zopedia_llm_client(surface="knowledge_graph.status")
     embedding_client = load_embedding_client()
     tavily_ready = load_tavily_config() is not None
     serp_ready = load_serpapi_config() is not None
@@ -1321,7 +1322,7 @@ def _agentic_graph_expansion(
     context_edges: list[dict[str, Any]],
     status_callback: StatusCallback | None = None,
 ) -> dict[str, Any]:
-    llm_client = load_llm_client()
+    llm_client = load_aql_zopedia_llm_client(surface="knowledge_graph.expansion")
     if llm_client is None:
         _emit_status(status_callback, "agent_unavailable", "LLM runtime is unavailable. Building a local-only draft.")
         return {

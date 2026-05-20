@@ -492,6 +492,12 @@ def bootstrap_saa_storage(conn: Any) -> None:
             ON saa_evidence_chunks USING GIN (search_tsvector)
             """
         )
+        try:
+            from .zopedia import bootstrap_zopedia_storage
+
+            bootstrap_zopedia_storage(conn, commit=False)
+        except Exception:
+            pass
     conn.commit()
 
 
@@ -1966,6 +1972,37 @@ def search_retained_evidence_chunks(
     )
 
 
+def load_retained_evidence_chunk(
+    chunk_record_id: str,
+    *,
+    conn: Any | None = None,
+) -> dict[str, Any] | None:
+    normalized_id = _coerce_text(chunk_record_id)
+    if not normalized_id:
+        return None
+    active_conn = conn
+    should_close = False
+    if active_conn is None:
+        active_conn = _db_connection()
+        should_close = active_conn is not None
+    if active_conn is None:
+        return None
+    try:
+        rows = _fetch_retained_chunk_rows(
+            active_conn,
+            clauses=["chunk_record_id = %s"],
+            params=[normalized_id],
+            limit=1,
+        )
+    finally:
+        if should_close:
+            active_conn.close()
+    frame = _frame_from_retained_chunk_rows(rows)
+    if frame.empty:
+        return None
+    return frame.iloc[0].to_dict()
+
+
 def load_retained_document(
     canonical_document_id: str,
     *,
@@ -2005,6 +2042,7 @@ __all__ = [
     "bootstrap_saa_storage",
     "build_canonical_document_fields",
     "load_retained_document",
+    "load_retained_evidence_chunk",
     "load_retained_document_metadata",
     "persist_retained_evidence_chunks",
     "persist_agent_research_evidence",

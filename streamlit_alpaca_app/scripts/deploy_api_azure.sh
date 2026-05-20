@@ -21,6 +21,45 @@ cd "$ROOT_DIR"
 DEFAULT_DEPLOYMENT_ENV_FILE="infra/.generated/deployment.local.env"
 LEGACY_DEPLOYMENT_ENV_FILE="infra/deployment.outputs.env"
 DEPLOYMENT_ENV_FILE="${DEPLOYMENT_ENV_FILE:-$DEFAULT_DEPLOYMENT_ENV_FILE}"
+REQUESTED_ENV_OVERRIDE_KEYS=()
+REQUESTED_ENV_OVERRIDE_VALUES=()
+
+capture_requested_env_override() {
+  local key="$1"
+  if [[ "${!key+x}" == "x" ]]; then
+    REQUESTED_ENV_OVERRIDE_KEYS+=("$key")
+    REQUESTED_ENV_OVERRIDE_VALUES+=("${!key}")
+  fi
+}
+
+restore_requested_env_overrides() {
+  local idx key
+  for ((idx=0; idx<${#REQUESTED_ENV_OVERRIDE_KEYS[@]}; idx++)); do
+    key="${REQUESTED_ENV_OVERRIDE_KEYS[$idx]}"
+    printf -v "$key" '%s' "${REQUESTED_ENV_OVERRIDE_VALUES[$idx]}"
+  done
+}
+
+requested_env_override_value() {
+  local key="$1"
+  local idx
+  for ((idx=0; idx<${#REQUESTED_ENV_OVERRIDE_KEYS[@]}; idx++)); do
+    if [[ "${REQUESTED_ENV_OVERRIDE_KEYS[$idx]}" == "$key" ]]; then
+      printf '%s\n' "${REQUESTED_ENV_OVERRIDE_VALUES[$idx]}"
+      return 0
+    fi
+  done
+  return 0
+}
+
+for key in \
+  LLM_API_KEY_SECRET_NAME LLM_PROVIDER LLM_MODEL LLM_DEPLOYMENT \
+  LLM_BASE_URL LLM_TIMEOUT_SECONDS LLM_TEMPERATURE LLM_REASONING_EFFORT \
+  OPENAI_API_KEY_SECRET_NAME OPENAI_MODEL OPENAI_BASE_URL OPENAI_REASONING_EFFORT \
+  AZURE_OPENAI_ENDPOINT AZURE_OPENAI_API_VERSION AZURE_OPENAI_DEPLOYMENT \
+; do
+  capture_requested_env_override "$key"
+done
 TARGET="dev"
 PROMOTE_FROM=""
 IMAGE_REF=""
@@ -92,6 +131,7 @@ load_deployment_context() {
     # shellcheck disable=SC1090
     source "$LEGACY_DEPLOYMENT_ENV_FILE"
   fi
+  restore_requested_env_overrides
   RESOURCE_GROUP="${RESOURCE_GROUP:-${PIPELINE_RESOURCE_GROUP:-}}"
   ACR_NAME="${ACR_NAME:-}"
 }
@@ -229,6 +269,20 @@ for pair in env_updates:
     env_by_name[key] = item
     if key not in env_order:
         env_order.append(key)
+if env_by_name.get("LLM_PROVIDER", {}).get("value") == "deepseek":
+    obsolete_env = {
+        "AZURE_OPENAI_ENDPOINT",
+        "AZURE_OPENAI_API_VERSION",
+        "AZURE_OPENAI_DEPLOYMENT",
+        "OPENAI_API_KEY_SECRET_NAME",
+        "OPENAI_MODEL",
+        "OPENAI_BASE_URL",
+        "OPENAI_REASONING_EFFORT",
+        "LLM_REASONING_EFFORT",
+    }
+    for key in obsolete_env:
+        env_by_name.pop(key, None)
+    env_order = [name for name in env_order if name not in obsolete_env]
 container["env"] = [env_by_name[name] for name in env_order]
 with open(patch_path, "w", encoding="utf-8") as handle:
     json.dump({"properties": {"template": template}}, handle)
@@ -367,7 +421,7 @@ for key in \
   EMBEDDING_MODEL EMBEDDING_DEPLOYMENT \
   PIPELINE_CACHE_MAX_BYTES \
 ; do
-  maybe_append_env "$key" "$(resolve_env "$TARGET_APP" "$key" "")"
+  maybe_append_env "$key" "$(resolve_env "$TARGET_APP" "$key" "$(requested_env_override_value "$key")")"
 done
 
 log "[2/5] Updating ${TARGET_APP}"

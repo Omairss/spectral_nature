@@ -8,7 +8,6 @@ from typing import Any
 
 from data_access.layer import DataAccessLayer
 from services.attention_home_summary import build_attention_home_narrative_beats
-from services.llm import LLMAPIError, load_llm_client
 
 
 OMNIBAR_POLICY_VERSION = "streamlit-agentic-omnibar-v1"
@@ -79,39 +78,6 @@ def _exact_ticker_candidate(query: str) -> str:
     return ""
 
 
-def _looks_like_agent_prompt(query: str) -> bool:
-    normalized = _normalize_text(query).lower()
-    if not normalized:
-        return False
-    tokens = re.findall(r"[a-z0-9]+", normalized)
-    if not tokens:
-        return False
-    if "?" in normalized:
-        return True
-    prompt_markers = {
-        "after",
-        "analyze",
-        "analysis",
-        "before",
-        "compare",
-        "explain",
-        "how",
-        "impact",
-        "implications",
-        "outlook",
-        "reaction",
-        "setup",
-        "should",
-        "thesis",
-        "view",
-        "vs",
-        "versus",
-        "what",
-        "why",
-    }
-    return len(tokens) >= 4 or any(token in prompt_markers for token in tokens)
-
-
 def _match_score(query: str, candidates: list[str]) -> float:
     normalized_query = _normalize_text(query).lower()
     if not normalized_query:
@@ -134,14 +100,6 @@ def _match_score(query: str, candidates: list[str]) -> float:
     return min(0.88, 0.34 + coverage * 0.42 + min(0.12, hits * 0.05))
 
 
-_CONFIDENCE_BAND_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "band": {"type": "string", "enum": ["high", "medium", "low"]},
-    },
-    "required": ["band"],
-}
 _confidence_band_cache: dict[str, str] = {}
 
 
@@ -153,27 +111,15 @@ def _confidence_band(intent: str, top_score: float, *, query: str = "", top_labe
     cache_key = f"{intent}::{round(top_score, 2)}::{top_label[:40]}"
     if cache_key in _confidence_band_cache:
         return _confidence_band_cache[cache_key]
-    llm_client = load_llm_client()
-    if llm_client is None:
-        band = "medium" if top_score >= 0.7 else "low"
-        _confidence_band_cache[cache_key] = band
-        return band
-    try:
-        result = llm_client.generate_json(
-            system_prompt=(
-                "Assess search result confidence for a financial dashboard omnibar. "
-                "Given the intent type, match score, and top result label, "
-                "return 'high' (clear match), 'medium' (plausible but uncertain), or 'low' (weak match)."
-            ),
-            user_prompt=f"intent={intent}, score={top_score:.2f}, top_result={top_label!r}, query={query!r}",
-            schema_name="confidence_band",
-            schema=_CONFIDENCE_BAND_SCHEMA,
-        )
-        band = str(result.get("band") or "").strip().lower()
-        if band not in {"high", "medium", "low"}:
-            band = "medium" if top_score >= 0.7 else "low"
-    except (LLMAPIError, Exception):
-        band = "medium" if top_score >= 0.7 else "low"
+    query_terms = set(re.findall(r"[a-z0-9]+", _normalize_text(query).lower()))
+    label_terms = set(re.findall(r"[a-z0-9]+", _normalize_text(top_label).lower()))
+    overlap = len(query_terms & label_terms) / max(len(query_terms), 1) if query_terms else 0.0
+    if top_score >= 0.82 or overlap >= 0.75:
+        band = "high"
+    elif top_score >= 0.68 or overlap >= 0.45:
+        band = "medium"
+    else:
+        band = "low"
     _confidence_band_cache[cache_key] = band
     return band
 
@@ -474,8 +420,6 @@ def resolve_omnibar(
 
     top_score = float(search_results[0].get("score") or 0.0) if search_results else 0.0
     top_kind = _normalize_text(search_results[0].get("kind")) if search_results else ""
-    looks_like_agent_prompt = _looks_like_agent_prompt(normalized_query)
-
     if normalized_mode == "agent":
         intent = "agent"
     elif normalized_mode == "search":
@@ -483,10 +427,8 @@ def resolve_omnibar(
     else:
         if top_kind in {"symbol", "macro_release"} and top_score >= 0.96:
             intent = "navigate"
-        elif looks_like_agent_prompt:
+        elif normalized_query:
             intent = "agent"
-        elif search_results:
-            intent = "search"
         else:
             intent = "ambiguous"
 
@@ -580,7 +522,7 @@ def list_omnibar_suggestions(
                     "kind": "agent_prompt",
                     "query": query,
                     "label": query,
-                    "subtitle": "Analysis-style prompt for the shared omnibar agent path.",
+                    "subtitle": "Analysis-style prompt for the Zopedia agent path.",
                 }
             )
             if len(suggestions) >= safe_limit:

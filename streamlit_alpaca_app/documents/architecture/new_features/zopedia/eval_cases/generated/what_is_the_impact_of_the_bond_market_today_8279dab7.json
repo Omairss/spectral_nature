@@ -1,0 +1,26 @@
+{
+  "benchmark_answer_summary": "A later tool path returned usable evidence, so future answers should not stop at the earlier failed path.",
+  "confidence_rule": "confidence must be capped if required evidence slots remain unfilled",
+  "forbidden_answer_patterns": [
+    "Do not claim data is unavailable until primitive evidence paths have been tried.",
+    "Do not expose implementation IDs or debug refs in product answers.",
+    "stock data is unavailable",
+    "cannot query actual stocks",
+    "daily movers returned empty, so no market data",
+    "no price data available today"
+  ],
+  "learning_event_id": "zlearn_0357320a269c05068279dab7",
+  "name": "what_is_the_impact_of_the_bond_market_today_8279dab7",
+  "question": "What is the impact of the bond market today?",
+  "required_answer_claims": [
+    "Verify that sector price_history and yield_curve_observations can be merged manually.",
+    "Compute correlations between daily yield changes and daily sector returns using fetched data."
+  ],
+  "required_tool_patterns": [
+    "dataset.yield_curve_facts_1d",
+    "dataset.yield_curve_observations",
+    "dataset.price_history"
+  ],
+  "root_cause": "missing_fallback",
+  "thread_source": "zthread_61ef63346b654add"
+}

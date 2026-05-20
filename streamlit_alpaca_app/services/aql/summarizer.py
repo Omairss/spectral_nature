@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import base64
-import hashlib
 import json
 import os
 import re
@@ -14,9 +12,6 @@ from ..attention_surface import attention_home_bundle_preview, attention_home_su
 from ..elevenlabs_tts import (
     ElevenLabsTTSClient,
     ElevenLabsTTSConfig,
-    audio_file_extension,
-    audio_mime_type,
-    load_elevenlabs_tts_config,
 )
 from ..page_browsing import browse_page
 from ..saa import prepare_retained_evidence_chunks, search_prepared_evidence_chunks
@@ -28,7 +23,11 @@ from .collector import _plan_summary_research, _search_query_results
 from .config import _load_search_clients
 from .constants import EmbeddingClient, HYPOTHESIS_VERIFICATION_SCHEMA, LLMClient
 from .critique import critique_home_summary, judge_revise_summary
-from ..llm import NARRATIVE_STYLE_RULE, LLMAPIError, get_config_param, get_prompt, load_llm_client, register_config_param, register_narrative_prompt
+from ..llm import NARRATIVE_STYLE_RULE, LLMAPIError, get_config_param, get_prompt, register_config_param, register_narrative_prompt
+from ..aql_zopedia_engine import (
+    attach_aql_zopedia_summary_audio,
+    load_aql_zopedia_llm_client,
+)
 from .extractor import (
     _chunk_source_documents,
     _documents_from_search_results,
@@ -419,7 +418,7 @@ def _llm_home_summary(
     *,
     signal_context: str = "",
 ) -> dict[str, Any] | None:
-    llm_client = load_llm_client()
+    llm_client = load_aql_zopedia_llm_client(surface="aql.home_summary")
     if llm_client is None:
         return None
     beat_lines = []
@@ -1301,25 +1300,11 @@ def attach_attention_home_summary_audio(
     if not audio_text:
         return payload
 
-    resolved_config = tts_config or load_elevenlabs_tts_config()
-    if resolved_config is None:
-        return payload
-
-    client = tts_client or ElevenLabsTTSClient(resolved_config)
-    audio_bytes = client.synthesize(audio_text)
-    audio_text_hash = hashlib.sha256(audio_text.encode("utf-8")).hexdigest()
-    payload.update(
-        {
-            "audio_base64": base64.b64encode(audio_bytes).decode("ascii"),
-            "audio_text_hash": audio_text_hash,
-            "audio_mime_type": audio_mime_type(resolved_config.output_format),
-            "audio_file_extension": audio_file_extension(resolved_config.output_format),
-            "voice_id": resolved_config.voice_id,
-            "model_id": resolved_config.model_id,
-            "output_format": resolved_config.output_format,
-        }
+    return attach_aql_zopedia_summary_audio(
+        payload,
+        tts_config=tts_config,
+        tts_client=tts_client,
     )
-    return payload
 
 
 # Backward-compatible export: hypothesis verification is owned by services.common.

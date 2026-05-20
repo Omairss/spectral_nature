@@ -75,7 +75,7 @@ def test_trading_agent_suggestions_normalize_llm_output():
     assert result["data_gaps"] == ["No options positioning evidence."]
     assert "market_opportunity_feed" in fake.user_prompt
     assert "AQL agent result JSON" in fake.user_prompt
-    assert "AQL / Chat + Search" in agent.kwargs["query"]
+    assert "AQL / Zopedia" in agent.kwargs["query"]
     assert "trade candidates" not in agent.kwargs["query"].lower()
     assert "automated execution" not in agent.kwargs["query"].lower()
     assert agent.kwargs["persist_findings"] is False

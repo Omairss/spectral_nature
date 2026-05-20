@@ -643,16 +643,18 @@ def _symbols_from_context(context: dict[str, Any]) -> list[str]:
 
 
 def _default_aql_agent_runner(**kwargs: Any) -> dict[str, Any]:
-    from .omnibar_agent import run_omnibar_agent
+    from .aql_zopedia_engine import run_aql_zopedia_agent
 
-    return run_omnibar_agent(**kwargs)
+    kwargs.setdefault("task", "trading_agent")
+    kwargs.setdefault("surface", "trading_agent")
+    return run_aql_zopedia_agent(**kwargs)
 
 
 def _aql_trading_query(context: dict[str, Any]) -> str:
     symbols = _symbols_from_context(context)
     symbol_line = f" Focus symbols: {', '.join(symbols)}." if symbols else ""
     return (
-        "Use the shared AQL / Chat + Search evidence path to evaluate this market research watchlist context."
+        "Use the shared AQL / Zopedia evidence path to evaluate this market research watchlist context."
         f"{symbol_line} Follow this process: broad economic wind, momentum, hypothesis, validation, tail risk, "
         "then only research-watchlist candidates. Consider upside/watch and downside/risk-control setups. Prefer no candidate over weak evidence. "
         "Use retained evidence, live evidence, ticker tools, and hypothesis verification when needed. "
@@ -679,6 +681,8 @@ def _aql_agent_context(result: dict[str, Any]) -> dict[str, Any]:
         )
     return {
         "run_id": _clean((result or {}).get("run_id")),
+        "evidence_pack_id": _clean((result or {}).get("aql_evidence_pack_id")),
+        "evidence_pack": result.get("aql_evidence_pack") if isinstance(result.get("aql_evidence_pack"), dict) else {},
         "status": _clean((result or {}).get("status")),
         "answer_markdown": _clean((result or {}).get("answer_markdown")),
         "confidence": _clean((result or {}).get("confidence")),

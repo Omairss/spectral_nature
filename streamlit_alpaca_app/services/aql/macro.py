@@ -24,7 +24,8 @@ from .constants import (
     _MACRO_RELEASE_EVENT_COLUMNS,
     _MACRO_RELEASE_SCHEMA_VERSION,
 )
-from ..llm import LLMAPIError, load_llm_client
+from ..llm import LLMAPIError
+from ..aql_zopedia_engine import load_aql_zopedia_llm_client
 from ._shared import (
     _coerce_float,
     _coerce_text,
@@ -329,7 +330,7 @@ def _llm_macro_release_is_market_moving(
     cache_key = f"{release_name}::{importance_tier}::{round(surprise_score, 1)}"
     if cache_key in _macro_market_moving_cache:
         return _macro_market_moving_cache[cache_key]
-    llm_client = load_llm_client()
+    llm_client = load_aql_zopedia_llm_client(surface="aql.macro_release_assessment")
     if llm_client is None:
         return None
     try:

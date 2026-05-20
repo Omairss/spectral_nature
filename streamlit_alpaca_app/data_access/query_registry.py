@@ -719,7 +719,10 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         params=(param("symbols", "array", items_type="string"), param("force_refresh", "boolean")),
         resolution="materialized_first",
         handler=_resolve_daily_movers,
-        description="Today's biggest movers with price changes and volume. Use for questions about what moved today or recent daily performance.",
+        description=(
+            "Today's biggest movers with price changes and volume. Use for questions about what moved today or recent daily performance. "
+            "When explicit symbols are requested, an empty materialized filter can fall back to on-demand lookup; if still empty, use price_history for raw prices."
+        ),
     ),
     "event_significance": DatasetSpec(
         params=(
@@ -731,7 +734,10 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         ),
         resolution="live_computed",
         handler=_resolve_event_significance,
-        description="Statistical significance test for how symbols moved after a specific event date vs their pre-event baseline.",
+        description=(
+            "Statistical significance test for how symbols moved after a specific event date vs their pre-event baseline. "
+            "An empty result may mean the event window has too few observations; use price_history for event-window returns before claiming data is unavailable."
+        ),
     ),
     "momentum_profiles": DatasetSpec(
         params=(
@@ -980,7 +986,10 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         params=(param("force_refresh", "boolean"),),
         resolution="materialized",
         handler=_resolve_macro_relationship_checks_1d,
-        description="Cross-asset macro relationship analysis: correlations and divergences between macro indicators and market movements.",
+        description=(
+            "Precomputed cross-asset macro relationship artifact: correlations and divergences between macro indicators and market movements. "
+            "An empty result is not a general data outage; fall back to primitive yield observations, price_history, and analysis.run_python."
+        ),
     ),
     "macro_causal_graph_edges_v1": DatasetSpec(
         params=(param("force_refresh", "boolean"),),

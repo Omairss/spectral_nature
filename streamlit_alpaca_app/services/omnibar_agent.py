@@ -1,110 +1,131 @@
 from __future__ import annotations
 
-from dataclasses import replace
 import json
-import os
-import re
 import threading
 import time
 import uuid
 from typing import Any, Callable
+from urllib.parse import urlparse
 
 from data_access.query_service import QueryService
+from .aql.evidence_pack import build_aql_evidence_pack
 from .agent_tools import build_tool_catalog, invoke_tool
 from .llm import (
     NARRATIVE_STYLE_RULE,
     AzureOpenAIChatJSONClient,
     DeepSeekChatJSONClient,
-    LLMConfig,
     LLMAPIError,
     OpenAIChatJSONClient,
     get_config_param,
     get_prompt,
-    load_llm_client,
     register_config_param,
     register_narrative_prompt,
 )
+from .aql_zopedia_engine import load_aql_zopedia_llm_client
 
 
 LLMClient = OpenAIChatJSONClient | AzureOpenAIChatJSONClient | DeepSeekChatJSONClient
 ProgressCallback = Callable[[dict[str, Any]], None]
 DEFAULT_MAX_TOOL_CALLS = 8
 
+
+def _is_public_web_source_url(url: str) -> bool:
+    parsed = urlparse(str(url or "").strip())
+    if parsed.scheme.lower() not in {"http", "https"}:
+        return False
+    host = (parsed.hostname or "").strip().lower()
+    if not host:
+        return False
+    if host in {"localhost", "127.0.0.1", "0.0.0.0"}:
+        return False
+    return not host.endswith((".local", ".localhost", ".test", ".invalid"))
+
 # --- Configurable limits (exposed in Admin > LLM Config > Tuning Parameters) ---
 _P_TOOL_RESULT_CONTEXT_LIMIT = register_config_param(
     "Agent tool result context limit",
-    group="Chat + Search",
+    group="Zopedia",
     default=4000,
     description="Max chars for the LLM context text extracted from a single tool result",
 )
 _P_TOOL_RESULT_SUMMARY_LIMIT = register_config_param(
     "Agent tool result summary limit",
-    group="Chat + Search",
+    group="Zopedia",
     default=3500,
     description="Max chars for the summary-based LLM context when no explicit context text is available",
 )
 _P_TOOL_RESULT_SUMMARY_ITEMS = register_config_param(
     "Agent tool result summary items",
-    group="Chat + Search",
+    group="Zopedia",
     default=8,
     description="Max summary items to include per tool result",
 )
 _P_TOOL_HISTORY_PER_TOOL_LIMIT = register_config_param(
     "Agent tool history per-tool limit",
-    group="Chat + Search",
+    group="Zopedia",
     default=3000,
     description="Max chars per tool result in the tool call history shown to the planner",
 )
 _P_PREFETCH_EVIDENCE_LIMIT = register_config_param(
     "Agent prefetch evidence limit",
-    group="Chat + Search",
+    group="Zopedia",
     default=8,
     description="Max retained evidence chunks to pre-fetch and inject into the planner prompt",
 )
 _P_PREFETCH_CHUNK_TEXT_LIMIT = register_config_param(
     "Agent prefetch chunk text limit",
-    group="Chat + Search",
+    group="Zopedia",
     default=300,
     description="Max chars per chunk text in the pre-fetched evidence block",
 )
 _P_MAX_TOOL_CALLS = register_config_param(
     "Agent max tool calls",
-    group="Chat + Search",
-    default=8,
+    group="Zopedia",
+    default=6,
     description="Maximum number of tool calls the agent can make per query",
 )
 _P_BOOTSTRAP_TOOL_CALLS = register_config_param(
     "Agent bootstrap tool calls",
-    group="Chat + Search",
-    default=4,
+    group="Zopedia",
+    default=0,
     description=(
-        "Maximum deterministic evidence calls to make before the planner. "
-        "These calls seed obvious context; the planner can still add more evidence."
+        "Legacy deterministic evidence-call budget. Defaults to 0 so the LLM planner owns tool choice."
     ),
 )
 _P_LLM_STEP_TIMEOUT_SECONDS = register_config_param(
     "Agent LLM step timeout seconds",
-    group="Chat + Search",
-    default=75,
+    group="Zopedia",
+    default=45,
     description="Maximum seconds to wait for one planner or synthesis LLM call before degrading gracefully",
 )
 _P_TOOL_CALL_TIMEOUT_SECONDS = register_config_param(
     "Agent tool call timeout seconds",
-    group="Chat + Search",
-    default=45,
+    group="Zopedia",
+    default=25,
     description="Maximum seconds to wait for one agent tool call before degrading to the next step",
 )
 _P_CONVERSATION_HISTORY_LIMIT = register_config_param(
     "Agent conversation history limit",
-    group="Chat + Search",
+    group="Zopedia",
     default=3000,
     description="Max chars for the compacted conversation history shown to the planner",
 )
 _P_USER_PREVIEW_LIMIT = register_config_param(
     "Agent user preview limit",
-    group="Chat + Search",
+    group="Zopedia",
     default=200,
     description="Max chars for the user-facing preview of a tool result",
+)
+_P_ANSWER_JUDGE_ENABLED = register_config_param(
+    "Agent answer judge enabled",
+    group="Zopedia",
+    default=1,
+    description="Run a bounded evidence-sufficiency review before returning final Zopedia answers",
+)
+_P_POST_ANSWER_MEMORY_ENABLED = register_config_param(
+    "Agent post-answer memory enabled",
+    group="Zopedia",
+    default=1,
+    description="After a grounded answer, let the agent apply safe Zopedia memory updates or create review proposals",
 )
 
 _AFFIRMATIVE_FOLLOWUP_REPLIES = {
@@ -120,42 +141,22 @@ _AFFIRMATIVE_FOLLOWUP_REPLIES = {
     "go ahead",
     "continue",
 }
-_NON_TICKER_UPPERCASE_WORDS = {
-    "A",
-    "AI",
-    "API",
-    "CEO",
-    "CFO",
-    "CPI",
-    "ETF",
-    "ETFS",
-    "EPS",
-    "EU",
-    "FED",
-    "FOMC",
-    "GDP",
-    "IPO",
-    "LLM",
-    "NAV",
-    "OPEC",
-    "PMI",
-    "QOQ",
-    "SEC",
-    "US",
-    "USA",
-    "USD",
-    "YOY",
-}
 _ARGUMENT_ENTRY_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
         "name": {"type": "string"},
-        "value_kind": {"type": "string", "enum": ["string", "number", "boolean", "string_list", "null"]},
+        "value_kind": {
+            "type": "string",
+            "enum": ["string", "number", "boolean", "string_list", "json", "object", "object_list", "null"],
+        },
         "string_value": {"type": ["string", "null"]},
         "number_value": {"type": ["number", "null"]},
         "boolean_value": {"type": ["boolean", "null"]},
         "string_list_value": {"type": ["array", "null"], "items": {"type": "string"}},
+        "json_value": {},
+        "object_value": {"type": ["object", "null"]},
+        "object_list_value": {"type": ["array", "null"], "items": {"type": "object"}},
     },
     "required": [
         "name",
@@ -164,6 +165,9 @@ _ARGUMENT_ENTRY_SCHEMA: dict[str, Any] = {
         "number_value",
         "boolean_value",
         "string_list_value",
+        "json_value",
+        "object_value",
+        "object_list_value",
     ],
 }
 
@@ -191,19 +195,23 @@ _STEP_SCHEMA: dict[str, Any] = {
 }
 
 _AGENT_FINAL_SYSTEM_PROMPT = register_narrative_prompt(
-    name="Omnibar Agent Final Answer (markdown response to user)",
+    name="Zopedia Agent Final Answer (markdown response to user)",
     file="services/omnibar_agent.py",
-    group="Chat + Search",
+    group="Zopedia",
     prompt=(
-        f"You are the Spectral Nature omnibar agent. {NARRATIVE_STYLE_RULE} "
+        f"You are the Spectral Nature Zopedia agent. {NARRATIVE_STYLE_RULE} "
         "Write a grounded markdown answer from the collected tool evidence only. "
         "Structure your answer: "
         "(1) Start with a **bold one-sentence verdict or key finding**. "
         "(2) Use ### headings to separate sections when the answer covers multiple themes or tickers. "
+        "Every ### heading must be on its own line, followed by a blank line; never put body text on the same line as a heading. "
         "(3) Use **bold** for tickers and key metrics (e.g. **NVDA** +3.2%). "
         "(4) Use bullet points for lists of data points. "
-        "(5) End with a brief takeaway or what to watch next. "
-        "When live external evidence was used, lightly reference one or two supporting sources or URLs."
+        "(5) Keep paragraphs short, with blank lines between paragraphs; never return one large unbroken paragraph. "
+        "(6) End with a brief takeaway or what to watch next. "
+        "When Zopedia memory is used, name the supporting Zopedia page title or page_id. "
+        "When live external evidence was used, lightly reference one or two supporting sources or URLs. "
+        "If the answer discusses market, equity, ETF, sector, or rate-move impact, it must be grounded in observed market data from tools such as daily movers, price history, or analysis artifacts; otherwise state the missing observed-data gap."
     ),
 )
 
@@ -221,6 +229,92 @@ _FINAL_SCHEMA: dict[str, Any] = {
         "confidence",
         "limitations",
         "used_tool_call_ids",
+    ],
+}
+
+_AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
+    name="Zopedia Agent Answer Judge (evidence sufficiency review)",
+    file="services/omnibar_agent.py",
+    group="Zopedia",
+    prompt=(
+        f"You are the Spectral Nature Zopedia answer judge. {NARRATIVE_STYLE_RULE} "
+        "Review the draft answer against the collected evidence only. "
+        "Look for unsupported claims, stale or missing evidence, false user premises, and overconfident wording. "
+        "If the draft is good, accept it. If it needs correction, return a revised markdown answer that fixes the issue. "
+        "If the evidence is too thin, return the best cautious answer and name the evidence gap. "
+        "If the draft discusses market, equity, ETF, sector, or rate-move impact without observed price/mover/analysis evidence, mark it insufficient or revise it to say that observed market-impact evidence is missing. "
+        "Do not introduce facts that are not present in the tool evidence or pre-fetched internal evidence."
+    ),
+)
+
+_JUDGE_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "verdict": {"type": "string", "enum": ["accept", "revise", "insufficient"]},
+        "critique_summary": {"type": "string"},
+        "answer_markdown": {"type": "string"},
+        "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
+        "limitations": {"type": "array", "items": {"type": "string"}},
+        "unsupported_claims": {"type": "array", "items": {"type": "string"}},
+        "evidence_gaps": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": [
+        "verdict",
+        "critique_summary",
+        "answer_markdown",
+        "confidence",
+        "limitations",
+        "unsupported_claims",
+        "evidence_gaps",
+    ],
+}
+
+_AGENT_MEMORY_SYSTEM_PROMPT = register_narrative_prompt(
+    name="Zopedia Agent Memory Reflection (automatic wiki maintenance)",
+    file="services/omnibar_agent.py",
+    group="Zopedia",
+    prompt=(
+        f"You are the Spectral Nature Zopedia memory maintainer. {NARRATIVE_STYLE_RULE} "
+        "Review the answered question, the final answer, the judge review, and collected evidence. "
+        "Decide whether the underlying Zopedia wiki should be updated. "
+        "Use no_action when the evidence is too thin, purely conversational, duplicative, or not durable. "
+        "Use apply_mutation only for safe, source-backed, reversible changes such as page upserts, metadata patches, or page links. "
+        "Use propose_change for destructive, ambiguous, low-confidence, merge, delete, rewrite, or stale-fact changes. "
+        "Do not invent facts. Do not write memory from the user's premise unless collected evidence supports it."
+    ),
+)
+
+_MEMORY_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "action": {"type": "string", "enum": ["no_action", "apply_mutation", "propose_change"]},
+        "rationale": {"type": "string"},
+        "mutation_type": {"type": "string"},
+        "proposal_type": {"type": "string"},
+        "page_id": {"type": "string"},
+        "target_page_id": {"type": "string"},
+        "title": {"type": "string"},
+        "pages": {"type": "array", "items": {"type": "object"}},
+        "metadata_patch": {"type": "object"},
+        "evidence_refs": {"type": "array", "items": {"type": "object"}},
+        "payload": {"type": "object"},
+        "allow_risky": {"type": "boolean"},
+    },
+    "required": [
+        "action",
+        "rationale",
+        "mutation_type",
+        "proposal_type",
+        "page_id",
+        "target_page_id",
+        "title",
+        "pages",
+        "metadata_patch",
+        "evidence_refs",
+        "payload",
+        "allow_risky",
     ],
 }
 
@@ -244,9 +338,31 @@ def _json_dumps(value: Any, *, limit: int = 3200) -> str:
     return _truncate(raw, limit=limit)
 
 
+def _with_aql_evidence_pack(
+    result: dict[str, Any],
+    *,
+    surface: str = "omnibar_agent",
+) -> dict[str, Any]:
+    """Attach the shared AQL evidence-pack contract to an agent result."""
+    tool_calls = result.get("tool_calls")
+    result["aql_evidence_pack"] = build_aql_evidence_pack(
+        run_id=_clean(result.get("run_id")),
+        query=_clean(result.get("query")),
+        original_query=_clean(result.get("original_query")),
+        surface=surface,
+        status=_clean(result.get("status")),
+        model=_clean(result.get("model")),
+        tool_calls=tool_calls if isinstance(tool_calls, list) else [],
+        limitations=[_clean(item) for item in list(result.get("limitations") or []) if _clean(item)],
+        error=_clean(result.get("error")),
+    )
+    result["aql_evidence_pack_id"] = _clean(result["aql_evidence_pack"].get("evidence_pack_id"))
+    return result
+
+
 def _preview_payload(payload: Any) -> dict[str, Any]:
     if isinstance(payload, list):
-        sample = payload[:3]
+        sample = payload[:8]
         columns: list[str] = []
         for row in sample:
             if isinstance(row, dict):
@@ -261,6 +377,27 @@ def _preview_payload(payload: Any) -> dict[str, Any]:
             "sample": sample,
         }
     if isinstance(payload, dict):
+        if payload.get("analysis_run_id"):
+            return {
+                "kind": "object",
+                "keys": [
+                    "analysis_run_id",
+                    "status",
+                    "objective",
+                    "metrics",
+                    "tables",
+                    "charts",
+                    "artifacts",
+                    "duration_ms",
+                ],
+                "scalars": {
+                    "analysis_run_id": payload.get("analysis_run_id"),
+                    "status": payload.get("status"),
+                    "objective": payload.get("objective"),
+                    "duration_ms": payload.get("duration_ms"),
+                },
+                "nested_keys": ["metrics", "tables", "charts", "artifacts"],
+            }
         summary_rows = payload.get("summary")
         if isinstance(summary_rows, list):
             sample = [row for row in summary_rows[:6] if isinstance(row, dict)]
@@ -309,6 +446,30 @@ def _preview_payload(payload: Any) -> dict[str, Any]:
 def _build_render_payload(result: dict[str, Any]) -> dict[str, Any] | None:
     payload = result.get("payload")
     result_type = _clean(result.get("result_type")).lower()
+    if result_type == "analysis_result" and isinstance(payload, dict):
+        return {
+            "kind": "analysis_result",
+            "analysis": {
+                "analysis_run_id": payload.get("analysis_run_id"),
+                "status": payload.get("status"),
+                "objective": payload.get("objective"),
+                "metrics": list(payload.get("metrics") or [])[:12],
+                "tables": list(payload.get("tables") or [])[:4],
+                "charts": list(payload.get("charts") or [])[:4],
+                "artifacts": [
+                    {
+                        "artifact_id": item.get("artifact_id"),
+                        "artifact_type": item.get("artifact_type"),
+                        "name": item.get("name"),
+                        "preview_text": item.get("preview_text"),
+                    }
+                    for item in list(payload.get("artifacts") or [])[:8]
+                    if isinstance(item, dict)
+                ],
+                "error": payload.get("error"),
+                "duration_ms": payload.get("duration_ms"),
+            },
+        }
     if result_type == "chart_model" and isinstance(payload, dict):
         datasets = payload.get("datasets")
         traces = payload.get("traces")
@@ -414,6 +575,7 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
         preview_text = f"{result_type}: {_json_dumps(preview.get('value'))}"
 
     llm_context_text = ""
+    result_messages = [_clean(item) for item in list(result.get("messages") or []) if _clean(item)]
     if isinstance(payload, dict):
         explicit_context = _clean(payload.get("llm_context_text"))
         if explicit_context:
@@ -439,6 +601,12 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
                     lines.append(text)
             if lines:
                 llm_context_text = _truncate("\n".join(lines), limit=int(get_config_param(_P_TOOL_RESULT_SUMMARY_LIMIT)))
+    if result_messages:
+        message_text = "Tool messages:\n" + "\n".join(f"- {item}" for item in result_messages[:4])
+        llm_context_text = _truncate(
+            "\n".join(part for part in [llm_context_text, message_text] if part),
+            limit=int(get_config_param(_P_TOOL_RESULT_CONTEXT_LIMIT)),
+        )
 
     # Build a user-facing preview (clean, concise) separate from the LLM preview
     user_preview = ""
@@ -464,13 +632,31 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
 
     # Extract source links from research results (URLs from news, search, page browsing)
     source_links: list[dict[str, str]] = []
+    evidence_refs: list[dict[str, str]] = []
     if isinstance(payload, dict):
         # From summary rows (live_event_evidence, retained_context)
         for item in list(payload.get("summary") or [])[:8]:
             if not isinstance(item, dict):
                 continue
+            evidence_ref = {
+                "kind": _clean(item.get("kind")),
+                "ref": _clean(item.get("ref")),
+                "page_id": _clean(item.get("page_id")),
+                "proposal_id": _clean(item.get("proposal_id")),
+                "mutation_id": _clean(item.get("mutation_id")),
+                "chunk_record_id": _clean(item.get("chunk_record_id")),
+                "canonical_document_id": _clean(item.get("canonical_document_id")),
+                "document_id": _clean(item.get("document_id")),
+                "chunk_id": _clean(item.get("chunk_id")),
+                "title": _clean(item.get("headline") or item.get("title") or item.get("label")),
+                "source": _clean(item.get("source")),
+                "published_date": _clean(item.get("published_date") or item.get("published_at")),
+                "url": _clean(item.get("url")),
+            }
+            if any(evidence_ref.values()):
+                evidence_refs.append(evidence_ref)
             url = _clean(item.get("url"))
-            if url and url.startswith("http"):
+            if _is_public_web_source_url(url):
                 title = _clean(item.get("headline") or item.get("title") or item.get("label") or url)
                 source = _clean(item.get("source") or "")
                 label = f"{title} ({source})" if source else title
@@ -480,12 +666,12 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
             if not isinstance(item, dict):
                 continue
             url = _clean(item.get("url"))
-            if url and url.startswith("http"):
+            if _is_public_web_source_url(url):
                 title = _clean(item.get("headline") or item.get("title") or url)
                 source_links.append({"url": url, "label": title})
         # From open_page result
         page_url = _clean(payload.get("url"))
-        if page_url and page_url.startswith("http"):
+        if _is_public_web_source_url(page_url):
             page_title = _clean(payload.get("title") or page_url)
             source_links.append({"url": page_url, "label": page_title})
         # From rows in the payload directly
@@ -493,7 +679,7 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
             if not isinstance(row, dict):
                 continue
             url = _clean(row.get("url"))
-            if url and url.startswith("http"):
+            if _is_public_web_source_url(url):
                 title = _clean(row.get("headline") or row.get("title") or url)
                 source_links.append({"url": url, "label": title})
 
@@ -506,6 +692,7 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
         "render_payload": render_payload,
         "llm_context_text": llm_context_text,
         "source_links": source_links if source_links else None,
+        "evidence_refs": evidence_refs if evidence_refs else None,
     }
 
 
@@ -639,9 +826,27 @@ def _coerce_tool_arguments(raw_arguments: Any) -> tuple[dict[str, Any], str]:
                 out[name] = boolean_value
             elif value_kind == "string_list":
                 values = item.get("string_list_value")
+                if values is None and isinstance(item.get("json_value"), list):
+                    values = item.get("json_value")
                 if not isinstance(values, list) or any(not isinstance(value, str) for value in values):
                     return {}, f"Tool argument `{name}` requires string_list_value."
                 out[name] = [str(value) for value in values]
+            elif value_kind == "json":
+                out[name] = item.get("json_value")
+            elif value_kind == "object":
+                value = item.get("object_value")
+                if value is None:
+                    value = item.get("json_value")
+                if not isinstance(value, dict):
+                    return {}, f"Tool argument `{name}` requires object_value."
+                out[name] = dict(value)
+            elif value_kind == "object_list":
+                values = item.get("object_list_value")
+                if values is None:
+                    values = item.get("json_value")
+                if not isinstance(values, list) or any(not isinstance(value, dict) for value in values):
+                    return {}, f"Tool argument `{name}` requires object_list_value."
+                out[name] = [dict(value) for value in values]
             elif value_kind in {"null", ""}:
                 out[name] = None
             else:
@@ -737,25 +942,46 @@ def _fallback_answer(query: str, tool_calls: list[dict[str, Any]]) -> str:
 
 
 _PLANNER_SYSTEM_PROMPT = register_narrative_prompt(
-    name="Omnibar Agent Planner (tool-calling reasoning)",
+    name="Zopedia Agent Planner (tool-calling reasoning)",
     file="services/omnibar_agent.py",
-    group="Chat + Search",
+    group="Zopedia",
     prompt=(
-        f"You are the Spectral Nature omnibar agent. {NARRATIVE_STYLE_RULE} "
+        f"You are the Spectral Nature Zopedia agent. {NARRATIVE_STYLE_RULE} "
         "Answer the user's question by calling the available tools when needed. Do not invent data. "
         "Do not repeat a tool with materially identical arguments. "
+        "\n\nEvidence contract: "
+        "Do not final-answer from language-model memory alone. "
+        "For public company or ticker questions, collect company context, fundamentals, recent/current evidence when relevant, "
+        "and retained internal history before synthesis. "
+        "For macroeconomic questions, use Spectral Nature's local macro datasets first; use live external evidence only for missing or current gaps. "
+        "For market-impact questions, especially when macro, bond, or rates moves are connected to equities, ETFs, sectors, or other assets, collect both driver evidence and observed market data. "
+        "Prefetched articles are background, not enough to claim current asset impact. Use dataset.daily_movers and/or dataset.price_history for representative instruments before saying equity or ETF data is unavailable. "
+        "If a summary or precomputed artifact is empty, use the primitive time-series tools before final-answering. "
+        "If analysis.run_python fails with a code, input, or runtime failure category and tool budget remains, repair the code/input once before final-answering. "
+        "For questions that ask Zopedia to adapt or correct memory, read the relevant Zopedia page/source first. "
+        "Use zopedia.apply_mutation for safe source-backed updates such as metadata patches, page upserts, or page links. "
+        "Use zopedia.propose_change for destructive, ambiguous, low-evidence, merge, delete, or rewrite changes. "
+        "Treat user-supplied claims as hypotheses until evidence supports them. "
+        "If the user's premise conflicts with tool evidence, state the conflict plainly and do not repeat the premise as fact. "
         "\n\nEvidence priority: "
         "1. Check the pre-fetched internal evidence already in this prompt first. "
-        "2. If more detail is needed, call research.search_evidence or research.retained_context. "
-        "3. For live web news, use research.live_event_evidence. "
-        "4. For specific tickers, use investigator.* tools (technical_signals, forecast, company_context, fundamentals, recent_news). "
-        "5. For broad spillover or second-order effects, use research.market_impact_map. "
-        "6. For deeper reads on a URL, use research.open_page. "
-        "7. For event significance analysis, use dataset.event_significance with an inferred event_date. "
-        "8. For thesis verification, use hypothesis.verify after gathering evidence. "
+        "2. Search Zopedia memory with zopedia.search_pages; read relevant pages with zopedia.read_page. "
+        "3. If more detail is needed, call research.search_evidence or research.retained_context. "
+        "4. For live web news, use research.live_event_evidence. "
+        "5. For specific tickers, use investigator.* tools (technical_signals, forecast, company_context, fundamentals, recent_news). "
+        "6. For broad spillover or second-order effects, use research.market_impact_map. "
+        "7. For deeper reads on a URL, use research.open_page. "
+        "8. For event significance analysis, use dataset.event_significance with an inferred event_date. "
+        "9. For EDA, regressions, clustering, classification, feature checks, or other quantitative questions, use analysis.run_python over approved local datasets or user-supplied inline tables. "
+        "10. For thesis verification, use hypothesis.verify after gathering evidence. "
+        "11. When checking wiki health, use zopedia.list_maintenance_reports. "
+        "12. When evidence shows Zopedia memory is wrong, stale, or missing a durable page, use zopedia.apply_mutation only for safe reversible changes; otherwise create a zopedia.propose_change entry. "
         "\n\nOnce you have enough evidence, return action='final' with a structured markdown answer. "
-        "Start with a bold verdict sentence, use ### headings for multi-part answers, **bold** tickers and metrics, and end with a takeaway. "
+        "Start with a bold verdict sentence, use ### headings for multi-part answers, keep each heading on its own line with a blank line after it, keep paragraphs short with blank lines, **bold** tickers and metrics, and end with a takeaway. "
         "When prior conversation is provided, resolve references like 'this', 'that', 'it' from prior turns."
+        "\n\nTool argument encoding: use object_list for arrays of objects such as analysis.run_python dataset_refs "
+        "or inline_datasets, object for single objects, json for arbitrary JSON values, string_list only for arrays "
+        "of plain strings."
     ),
 )
 
@@ -819,6 +1045,10 @@ def _completed_tool_names(tool_calls: list[dict[str, Any]]) -> set[str]:
         for call in tool_calls
         if str(call.get("status") or "") == "completed" and _clean(call.get("tool_name"))
     }
+
+
+def _attempted_tool_names(tool_calls: list[dict[str, Any]]) -> set[str]:
+    return {_clean(call.get("tool_name")) for call in tool_calls if isinstance(call, dict) and _clean(call.get("tool_name"))}
 
 
 def _needs_live_evidence_recovery(tool_calls: list[dict[str, Any]]) -> bool:
@@ -953,7 +1183,7 @@ def resolve_conversation_followup_query(
         previous_user = "the previous market question"
 
     resolved_query = (
-        "Continue the previous Chat + Search thread. The user replied "
+        "Continue the previous Zopedia thread. The user replied "
         f"'{normalized_query}', so carry out the natural next step implied by the prior assistant answer. "
         "Use the prior answer and prior question as context; verify or expand with evidence instead of "
         "treating the reply as a standalone query.\n\n"
@@ -964,101 +1194,168 @@ def resolve_conversation_followup_query(
     return resolved_query, True
 
 
-def _extract_query_tickers(query: str, *, limit: int = 5) -> list[str]:
-    """Extract likely ticker symbols without treating common acronyms as tickers."""
-    out: list[str] = []
-    for match in re.finditer(r"\b[A-Z][A-Z0-9.\-]{0,5}\b", str(query or "")):
-        ticker = match.group(0).strip(".-").upper()
-        if not ticker or ticker in _NON_TICKER_UPPERCASE_WORDS:
-            continue
-        if len(ticker) == 1 and not re.search(rf"\b{re.escape(ticker)}\s*[:$]", str(query or "")):
-            continue
-        if ticker not in out:
-            out.append(ticker)
-        if len(out) >= limit:
-            break
-    return out
-
-
-def _query_looks_current_or_event_driven(query: str) -> bool:
-    text = _clean(query).lower()
-    markers = (
-        "current",
-        "latest",
-        "today",
-        "now",
-        "recent",
-        "news",
-        "catalyst",
-        "catalysts",
-        "narrative",
-        "what happened",
-        "what is going on",
-        "going on",
-        "crisis",
-        "war",
-        "tariff",
-        "strike",
-        "hormuz",
-        "iran",
-        "oil",
-        "fed",
-        "earnings",
-    )
-    return any(marker in text for marker in markers)
-
-
-def _query_looks_live_event_driven(query: str) -> bool:
-    text = _clean(query).lower()
-    live_markers = (
-        "what happened",
-        "what is going on",
-        "going on",
-        "crisis",
-        "war",
-        "tariff",
-        "strike",
-        "hormuz",
-        "iran",
-        "oil shock",
-        "talks",
-        "ceasefire",
-        "election",
-        "sanction",
-        "sanctions",
-    )
-    return any(marker in text for marker in live_markers)
-
-
-def _query_looks_broad_market(query: str, tickers: list[str]) -> bool:
-    if tickers:
-        return False
-    text = _clean(query).lower().strip(" ?!.")
-    broad_exact = {
-        "what matters today",
-        "what matters now",
-        "what should i know today",
-        "what is important today",
-        "what's important today",
-        "what happened today",
-    }
-    if text in broad_exact:
-        return True
-    return any(
-        marker in text
-        for marker in (
-            "market today",
-            "markets today",
-            "what matters",
-            "top market",
-            "market narrative",
-            "risk cycle",
-        )
-    )
-
-
 def _tool_available(tool_catalog: list[dict[str, Any]], tool_name: str) -> bool:
     return any(_clean(tool.get("name")) == tool_name for tool in tool_catalog)
+
+
+def _cap_confidence(value: str, maximum: str) -> str:
+    order = {"low": 0, "medium": 1, "high": 2}
+    normalized_value = _clean(value).lower() or "low"
+    normalized_max = _clean(maximum).lower() or "low"
+    if normalized_value not in order:
+        normalized_value = "low"
+    if normalized_max not in order:
+        normalized_max = "low"
+    if order[normalized_value] <= order[normalized_max]:
+        return normalized_value
+    for label, rank in order.items():
+        if rank == order[normalized_max]:
+            return label
+    return normalized_max
+
+
+def _successful_evidence_tool_count(tool_calls: list[dict[str, Any]]) -> int:
+    excluded_exact = {
+        "scratchpad.write",
+        "scratchpad.read",
+        "system.capabilities",
+        "zopedia.apply_mutation",
+        "zopedia.propose_change",
+        "zopedia.list_proposals",
+        "zopedia.list_mutations",
+        "zopedia.list_maintenance_reports",
+        "zopedia.rollback_mutation",
+    }
+    count = 0
+    for call in tool_calls:
+        if not isinstance(call, dict):
+            continue
+        tool_name = _clean(call.get("tool_name"))
+        status = _clean(call.get("status")).lower()
+        if status not in {"completed", "success", "ok"}:
+            continue
+        if tool_name in excluded_exact:
+            continue
+        count += 1
+    return count
+
+
+_OBSERVED_MARKET_DATA_TOOLS = {
+    "dataset.daily_movers",
+    "dataset.price_history",
+    "dataset.technical_signal_history",
+    "analysis.run_python",
+}
+
+
+def _completed_tool_names(tool_calls: list[dict[str, Any]]) -> set[str]:
+    return {
+        _clean(call.get("tool_name"))
+        for call in tool_calls
+        if isinstance(call, dict) and _clean(call.get("status")).lower() in {"completed", "success", "ok"}
+    }
+
+
+def _has_observed_market_data(tool_calls: list[dict[str, Any]]) -> bool:
+    for call in tool_calls:
+        if not isinstance(call, dict):
+            continue
+        if _clean(call.get("status")).lower() not in {"completed", "success", "ok"}:
+            continue
+        if _clean(call.get("tool_name")) not in _OBSERVED_MARKET_DATA_TOOLS:
+            continue
+        if not _tool_call_is_low_signal(call):
+            return True
+    return False
+
+
+def _mentions_market_impact_claim(query: str, answer: str) -> bool:
+    text = f"{query}\n{answer}".lower()
+    market_terms = (
+        "market",
+        "equity",
+        "equities",
+        "stock",
+        "stocks",
+        "etf",
+        "sector",
+        "growth",
+        "duration",
+        "bond",
+        "yield",
+        "rate",
+        "rates",
+    )
+    impact_terms = (
+        "impact",
+        "affect",
+        "pressure",
+        "weigh",
+        "benefit",
+        "move",
+        "moved",
+        "fall",
+        "rise",
+        "drop",
+        "headwind",
+        "tailwind",
+    )
+    return any(term in text for term in market_terms) and any(term in text for term in impact_terms)
+
+
+def _market_impact_focus_symbols(tool_calls: list[dict[str, Any]]) -> list[str]:
+    symbols: list[str] = []
+    for call in reversed(tool_calls):
+        if _clean(call.get("tool_name")) != "research.market_impact_map":
+            continue
+        summary = dict(call.get("result_summary") or {})
+        preview = dict(summary.get("preview") or {})
+        for row in list(preview.get("sample") or []):
+            if not isinstance(row, dict):
+                continue
+            symbol = _clean(row.get("symbol")).upper()
+            if symbol and symbol not in symbols:
+                symbols.append(symbol)
+        if symbols:
+            continue
+        text = _clean(summary.get("llm_context_text") or summary.get("preview_text"))
+        for token in text.replace(",", " ").replace(".", " ").replace(":", " ").split():
+            symbol = "".join(ch for ch in token.strip().upper() if ch.isalnum())
+            if 1 <= len(symbol) <= 7 and symbol.isalnum() and symbol not in symbols:
+                if symbol not in {"THEME", "EXPECTED", "LIKELY", "IMPACTED", "SYMBOLS", "CHECK", "NEXT"}:
+                    symbols.append(symbol)
+    return symbols[:8]
+
+
+def _market_impact_recovery_tool(
+    *,
+    query: str,
+    answer: str,
+    tool_calls: list[dict[str, Any]],
+    tool_catalog: list[dict[str, Any]],
+) -> tuple[str, dict[str, Any], str] | None:
+    if _has_observed_market_data(tool_calls):
+        return None
+    if not _mentions_market_impact_claim(query, answer):
+        return None
+    attempted = _attempted_tool_names(tool_calls)
+    if "research.market_impact_map" not in attempted and _tool_available(tool_catalog, "research.market_impact_map"):
+        return (
+            "research.market_impact_map",
+            {"query": query, "max_symbols": 8},
+            "Market-impact answer needs a representative instrument basket before final synthesis.",
+        )
+    symbols = _market_impact_focus_symbols(tool_calls)
+    if "dataset.daily_movers" not in attempted and _tool_available(tool_catalog, "dataset.daily_movers"):
+        args: dict[str, Any] = {"force_refresh": False}
+        if symbols:
+            args["symbols"] = symbols
+        return (
+            "dataset.daily_movers",
+            args,
+            "Market-impact answer needs observed daily market moves before final synthesis.",
+        )
+    return None
 
 
 def _bootstrap_tool_plan(
@@ -1068,74 +1365,9 @@ def _bootstrap_tool_plan(
     force_refresh: bool,
     max_calls: int,
 ) -> list[tuple[str, dict[str, Any]]]:
-    """Choose obvious first evidence calls before spending an LLM planner step."""
-    if max_calls <= 0:
-        return []
-    tickers = _extract_query_tickers(query)
-    current_or_event = _query_looks_current_or_event_driven(query)
-    broad_market = _query_looks_broad_market(query, tickers)
-    plan: list[tuple[str, dict[str, Any]]] = []
-
-    def add(tool_name: str, arguments: dict[str, Any]) -> None:
-        if len(plan) >= max_calls:
-            return
-        if not _tool_available(tool_catalog, tool_name):
-            return
-        signature = f"{tool_name}::{_json_dumps(arguments, limit=1000)}"
-        if any(f"{name}::{_json_dumps(args, limit=1000)}" == signature for name, args in plan):
-            return
-        plan.append((tool_name, arguments))
-
-    if broad_market:
-        add("dataset.attention_home_1d", {})
-        if not plan:
-            add("research.retained_context", {"query": query, "max_items": 6, "force_refresh": force_refresh})
-        return plan
-
-    if tickers:
-        if len(tickers) > 1:
-            for ticker in tickers[:3]:
-                add("investigator.company_context", {"ticker": ticker})
-            if current_or_event:
-                add(
-                    "research.live_event_evidence",
-                    {
-                        "query": query,
-                        "focus_symbols": tickers[:5],
-                        "max_results": 8,
-                        "force_refresh": force_refresh,
-                    },
-                )
-            add("research.search_evidence", {"query": query, "tickers": tickers[:5], "max_results": 10})
-        else:
-            ticker = tickers[0]
-            add("investigator.company_context", {"ticker": ticker})
-            if current_or_event:
-                add("investigator.recent_news", {"ticker": ticker, "days": 14, "limit": 8})
-                add(
-                    "research.live_event_evidence",
-                    {
-                        "query": query,
-                        "focus_symbols": [ticker],
-                        "max_results": 6,
-                        "force_refresh": force_refresh,
-                    },
-                )
-                add(
-                    "research.search_evidence",
-                    {"query": query, "tickers": [ticker], "max_results": 8},
-                )
-        return plan
-
-    if _query_looks_live_event_driven(query):
-        add("research.market_impact_map", {"query": query, "max_symbols": 8})
-        add(
-            "research.live_event_evidence",
-            {"query": query, "max_results": 6, "force_refresh": force_refresh},
-        )
-        if not plan:
-            add("research.retained_context", {"query": query, "max_items": 6, "force_refresh": force_refresh})
-    return plan
+    """Legacy hook kept for config compatibility; LLM planner owns tool choice."""
+    del query, tool_catalog, force_refresh, max_calls
+    return []
 
 
 def _execute_seeded_tool_call(
@@ -1364,30 +1596,47 @@ def _tool_call_is_low_signal(tool_call: dict[str, Any]) -> bool:
     return any(marker in text for marker in low_signal_markers)
 
 
-def _should_skip_planner_after_bootstrap(query: str, tool_calls: list[dict[str, Any]], seeded_names: set[str]) -> bool:
-    tickers = _extract_query_tickers(query)
-    if _completed_seeded_evidence_count(tool_calls, seeded_names) <= 0:
-        return False
-    completed = _completed_tool_names(tool_calls)
-    meaningful_completed = {
-        _clean(call.get("tool_name"))
+def _analysis_failure_needs_repair(tool_calls: list[dict[str, Any]]) -> bool:
+    analysis_calls = [
+        call
         for call in tool_calls
-        if str(call.get("status") or "") == "completed"
-        and not _tool_call_is_low_signal(call)
-    }
-    if _query_looks_broad_market(query, tickers) and (
-        "dataset.attention_home_1d" in meaningful_completed or "research.retained_context" in meaningful_completed
-    ):
-        return True
-    if tickers and not _query_looks_current_or_event_driven(query) and "investigator.company_context" in meaningful_completed:
-        return True
-    if tickers and _query_looks_current_or_event_driven(query) and "research.live_event_evidence" in meaningful_completed:
-        return True
-    if not tickers and _query_looks_live_event_driven(query) and (
-        "research.live_event_evidence" in meaningful_completed or "research.market_impact_map" in meaningful_completed
-    ):
-        return True
+        if isinstance(call, dict) and _clean(call.get("tool_name")) == "analysis.run_python"
+    ]
+    if len(analysis_calls) != 1:
+        return False
+    summary = dict(analysis_calls[0].get("result_summary") or {})
+    text = _json_dumps(summary, limit=2400).lower()
+    failure_markers = (
+        "failure category: analysis_code_error",
+        "failure category: analysis_input_missing",
+        "failure category: analysis_runtime_error",
+        "failure_category",
+        "analysis_code_error",
+        "analysis_input_missing",
+        "analysis_runtime_error",
+    )
+    return any(marker in text for marker in failure_markers)
+
+
+def _should_skip_planner_after_bootstrap(query: str, tool_calls: list[dict[str, Any]], seeded_names: set[str]) -> bool:
+    del query, tool_calls, seeded_names
     return False
+
+
+def _first_zopedia_page_id_from_search(tool_calls: list[dict[str, Any]]) -> str:
+    for call in reversed(tool_calls):
+        if _clean(call.get("tool_name")) != "zopedia.search_pages":
+            continue
+        if _clean(call.get("status")) != "completed" or _tool_call_is_low_signal(call):
+            continue
+        summary = dict(call.get("result_summary") or {})
+        for ref in list(summary.get("evidence_refs") or []):
+            if not isinstance(ref, dict):
+                continue
+            page_id = _clean(ref.get("page_id") or ref.get("ref"))
+            if page_id:
+                return page_id
+    return ""
 
 
 def _planner_user_prompt(
@@ -1447,43 +1696,444 @@ def _final_user_prompt(
         "Tool evidence:\n"
         f"{_tool_history_prompt(tool_calls)}\n\n"
         "Write the best grounded markdown answer you can from this evidence only. "
+        "Make it readable: start with a bold verdict, use ### headings for distinct themes, keep each heading on its own line with a blank line after it, keep paragraphs short, and put blank lines between paragraphs. "
+        "Treat the user's premise as unverified unless the evidence supports it; if evidence contradicts the premise, say so plainly. "
+        "If you use Zopedia memory, cite the relevant Zopedia page title or page_id in the answer. "
         "If the evidence includes fresh web research, lightly mention one or two supporting sources or links. "
         "Do not turn the answer into a citation list. "
         "If the evidence is incomplete, say what is missing."
     )
 
 
-def _synthesis_llm_client(primary_llm: LLMClient) -> LLMClient:
-    """Optionally use a faster model for final answer formatting.
-
-    Planning may benefit from a reasoning model, but when deterministic
-    bootstrap has already collected the evidence, the final step is mostly
-    compression and writing.  Keep this opt-in through env so provider swaps
-    stay scoped to the omnibar agent.
-    """
-    model_override = _clean(
-        os.getenv("OMNIBAR_AGENT_SYNTHESIS_LLM_MODEL")
-        or os.getenv("OMNIBAR_AGENT_SYNTHESIS_MODEL")
+def _judge_user_prompt(
+    *,
+    query: str,
+    tool_calls: list[dict[str, Any]],
+    draft_answer: str,
+    draft_confidence: str,
+    limitations: list[str],
+    conversation_history: list[dict[str, Any]] | None = None,
+    prefetched_context: str = "",
+) -> str:
+    history_block = _compact_conversation_history(conversation_history, max_chars=int(get_config_param(_P_CONVERSATION_HISTORY_LIMIT)))
+    evidence_block = ""
+    if prefetched_context:
+        evidence_block = f"{prefetched_context}\n\n"
+    limitation_block = "\n".join(f"- {item}" for item in limitations if _clean(item)) or "- None"
+    return (
+        f"{history_block}"
+        f"{evidence_block}"
+        f"User question:\n{query}\n\n"
+        "Tool evidence:\n"
+        f"{_tool_history_prompt(tool_calls)}\n\n"
+        "Draft answer:\n"
+        f"{draft_answer}\n\n"
+        f"Draft confidence: {draft_confidence or 'low'}\n\n"
+        "Known limitations:\n"
+        f"{limitation_block}\n\n"
+        "Review the draft answer for evidence sufficiency. "
+        "Use verdict='accept' only when the draft is supported by the evidence and the confidence is appropriate. "
+        "Use verdict='revise' when the answer should be corrected or made more precise. "
+        "Use verdict='insufficient' when the evidence does not support a substantive answer. "
+        "Return the answer_markdown that should be shown to the user."
     )
-    if not model_override:
-        return primary_llm
-    config = getattr(primary_llm, "config", None)
-    if not isinstance(config, LLMConfig):
-        return primary_llm
-    if model_override == config.model:
-        return primary_llm
+
+
+def _synthesis_llm_client(primary_llm: LLMClient) -> LLMClient:
+    """Use the shared LLM provider for synthesis.
+
+    Provider/model selection belongs in the global LLM layer. Keeping a
+    Zopedia-only synthesis override made the runtime harder to reason about and
+    let one surface drift from AQL/API/job behavior.
+    """
+    return primary_llm
+
+
+def _run_answer_judge(
+    *,
+    llm: LLMClient,
+    query: str,
+    tool_calls: list[dict[str, Any]],
+    draft_answer: str,
+    draft_confidence: str,
+    limitations: list[str],
+    conversation_history: list[dict[str, Any]] | None,
+    prefetched_context: str,
+    timeout_seconds: int,
+    progress_callback: ProgressCallback | None,
+) -> dict[str, Any]:
+    """Review a draft answer against evidence without blocking the whole run."""
+    if int(get_config_param(_P_ANSWER_JUDGE_ENABLED)) == 0:
+        return {"status": "skipped", "reason": "disabled"}
+    if not _clean(draft_answer):
+        return {"status": "skipped", "reason": "empty_draft"}
+
+    _emit_progress(
+        progress_callback,
+        stage="answer_judge_start",
+        message="Reviewing the draft answer against collected evidence.",
+        progress=0.975,
+        tool_call_count=len(tool_calls),
+    )
+    result_box: list[dict[str, Any] | None] = [None]
+    error_box: list[BaseException | None] = [None]
+
+    def _runner() -> None:
+        try:
+            result_box[0] = llm.generate_json(
+                system_prompt=get_prompt(_AGENT_JUDGE_SYSTEM_PROMPT),
+                user_prompt=_judge_user_prompt(
+                    query=query,
+                    tool_calls=tool_calls,
+                    draft_answer=draft_answer,
+                    draft_confidence=draft_confidence,
+                    limitations=limitations,
+                    conversation_history=conversation_history,
+                    prefetched_context=prefetched_context,
+                ),
+                schema_name="omnibar_agent_judge",
+                schema=_JUDGE_SCHEMA,
+            )
+        except BaseException as exc:
+            error_box[0] = exc
+
+    judge_thread = threading.Thread(target=_runner, name="omnibar-answer-judge", daemon=True)
+    judge_thread.start()
+    heartbeat_interval = 5.0
+    elapsed = 0.0
+    while judge_thread.is_alive():
+        judge_thread.join(timeout=heartbeat_interval)
+        if not judge_thread.is_alive():
+            break
+        elapsed += heartbeat_interval
+        if elapsed >= timeout_seconds:
+            _emit_progress(
+                progress_callback,
+                stage="answer_judge_timeout",
+                message="The answer review step timed out; returning the draft answer.",
+                progress=0.985,
+                elapsed_seconds=int(elapsed),
+                tool_call_count=len(tool_calls),
+            )
+            return {"status": "timeout", "reason": f"timed out after {timeout_seconds}s"}
+        _emit_progress(
+            progress_callback,
+            stage="answer_judge_heartbeat",
+            message=f"Still reviewing evidence sufficiency... ({int(elapsed)}s)",
+            progress=0.98,
+            elapsed_seconds=int(elapsed),
+            tool_call_count=len(tool_calls),
+        )
+
+    if error_box[0] is not None:
+        _emit_progress(
+            progress_callback,
+            stage="answer_judge_failed",
+            message="The answer review step failed; returning the draft answer.",
+            progress=0.985,
+            error=_safe_agent_error_text(error_box[0]),
+            tool_call_count=len(tool_calls),
+        )
+        return {"status": "failed", "reason": _safe_agent_error_text(error_box[0])}
+
+    payload = result_box[0] or {}
+    reasoning_trace = _clean(payload.get("__reasoning_content"))
+    if reasoning_trace:
+        _emit_progress(
+            progress_callback,
+            stage="model_reasoning_trace",
+            message="Answer judge reasoning trace captured.",
+            progress=0.985,
+            reasoning_trace=reasoning_trace,
+            source="answer_judge",
+        )
+    review = {
+        "status": "completed",
+        "verdict": _clean(payload.get("verdict")).lower() or "accept",
+        "critique_summary": _clean(payload.get("critique_summary")),
+        "answer_markdown": _clean(payload.get("answer_markdown")),
+        "confidence": _clean(payload.get("confidence")).lower() or draft_confidence or "low",
+        "limitations": [_clean(item) for item in list(payload.get("limitations") or []) if _clean(item)],
+        "unsupported_claims": [_clean(item) for item in list(payload.get("unsupported_claims") or []) if _clean(item)],
+        "evidence_gaps": [_clean(item) for item in list(payload.get("evidence_gaps") or []) if _clean(item)],
+    }
+    _emit_progress(
+        progress_callback,
+        stage="answer_judge_complete",
+        message=review["critique_summary"] or "Answer review complete.",
+        progress=0.99,
+        verdict=review["verdict"],
+        confidence=review["confidence"],
+        unsupported_claim_count=len(review["unsupported_claims"]),
+        evidence_gap_count=len(review["evidence_gaps"]),
+    )
+    return review
+
+
+def _has_memory_candidate(
+    *,
+    tool_calls: list[dict[str, Any]],
+    prefetched_context: str,
+) -> bool:
+    if _clean(prefetched_context):
+        return True
+    for call in tool_calls:
+        if _clean(call.get("status")).lower() != "completed":
+            continue
+        summary = dict(call.get("result_summary") or {})
+        if (
+            _clean(summary.get("llm_context_text"))
+            or _clean(summary.get("preview_text"))
+            or list(summary.get("evidence_refs") or [])
+            or list(summary.get("source_links") or [])
+        ):
+            return True
+    return False
+
+
+def _memory_reflection_user_prompt(
+    *,
+    query: str,
+    answer_markdown: str,
+    confidence: str,
+    limitations: list[str],
+    quality_review: dict[str, Any],
+    tool_calls: list[dict[str, Any]],
+    conversation_history: list[dict[str, Any]] | None,
+    prefetched_context: str,
+) -> str:
+    history_block = _compact_conversation_history(
+        conversation_history,
+        max_chars=int(get_config_param(_P_CONVERSATION_HISTORY_LIMIT)),
+    )
+    evidence_refs: list[dict[str, Any]] = []
+    for call in tool_calls:
+        summary = dict(call.get("result_summary") or {})
+        for ref in list(summary.get("evidence_refs") or []):
+            if isinstance(ref, dict):
+                evidence_refs.append(ref)
+        for link in list(summary.get("source_links") or []):
+            if isinstance(link, dict):
+                evidence_refs.append({"kind": "source_link", **link})
+    limitation_block = "\n".join(f"- {item}" for item in limitations if _clean(item)) or "- None"
+    return (
+        f"{history_block}"
+        f"User question:\n{query}\n\n"
+        f"Final answer:\n{answer_markdown}\n\n"
+        f"Final confidence: {confidence or 'low'}\n\n"
+        "Answer judge review:\n"
+        f"{_json_dumps(quality_review, limit=2400)}\n\n"
+        "Known limitations:\n"
+        f"{limitation_block}\n\n"
+        "Prefetched internal evidence:\n"
+        f"{_truncate(prefetched_context, limit=2400) if prefetched_context else 'None'}\n\n"
+        "Tool evidence:\n"
+        f"{_tool_history_prompt(tool_calls)}\n\n"
+        "Evidence references available for memory writes:\n"
+        f"{_json_dumps(evidence_refs[:12], limit=3000)}\n\n"
+        "Return the single best memory action. "
+        "For apply_mutation, fill mutation_type and the mutation fields. "
+        "For propose_change, fill proposal_type, page_id if known, title, rationale, and payload. "
+        "For no_action, leave mutation/proposal fields empty and explain why."
+    )
+
+
+def _run_post_answer_memory_agent(
+    *,
+    llm: LLMClient,
+    service: QueryService,
+    run_id: str,
+    query: str,
+    answer_markdown: str,
+    confidence: str,
+    limitations: list[str],
+    quality_review: dict[str, Any],
+    tool_calls: list[dict[str, Any]],
+    conversation_history: list[dict[str, Any]] | None,
+    prefetched_context: str,
+    timeout_seconds: int,
+    progress_callback: ProgressCallback | None,
+) -> dict[str, Any]:
+    """Let Zopedia update or propose memory changes after a grounded answer."""
+    if int(get_config_param(_P_POST_ANSWER_MEMORY_ENABLED)) == 0:
+        return {"status": "skipped", "reason": "disabled"}
+    if not _clean(answer_markdown):
+        return {"status": "skipped", "reason": "empty_answer"}
+    if not _has_memory_candidate(tool_calls=tool_calls, prefetched_context=prefetched_context):
+        return {"status": "skipped", "reason": "no_collected_evidence"}
+
+    _emit_progress(
+        progress_callback,
+        stage="memory_reflection_start",
+        message="Checking whether Zopedia memory should change.",
+        progress=0.992,
+        tool_call_count=len(tool_calls),
+    )
     try:
-        next_config = replace(
-            config,
-            model=model_override,
-            deployment=(
-                _clean(os.getenv("OMNIBAR_AGENT_SYNTHESIS_LLM_DEPLOYMENT"))
-                or model_override
+        payload = _run_hidden_step_with_timeout(
+            label="post-answer memory reflection",
+            timeout_seconds=max(int(timeout_seconds), 1),
+            progress_callback=progress_callback,
+            progress=0.992,
+            func=lambda: llm.generate_json(
+                system_prompt=get_prompt(_AGENT_MEMORY_SYSTEM_PROMPT),
+                user_prompt=_memory_reflection_user_prompt(
+                    query=query,
+                    answer_markdown=answer_markdown,
+                    confidence=confidence,
+                    limitations=limitations,
+                    quality_review=quality_review,
+                    tool_calls=tool_calls,
+                    conversation_history=conversation_history,
+                    prefetched_context=prefetched_context,
+                ),
+                schema_name="zopedia_memory_reflection",
+                schema=_MEMORY_SCHEMA,
             ),
         )
-        return type(primary_llm)(next_config)
-    except Exception:
-        return primary_llm
+    except TimeoutError as exc:
+        _emit_progress(
+            progress_callback,
+            stage="memory_reflection_timeout",
+            message="Zopedia memory reflection timed out; answer is still returned.",
+            progress=0.996,
+            error=_safe_agent_error_text(exc),
+        )
+        return {"status": "timeout", "reason": _safe_agent_error_text(exc)}
+    except Exception as exc:
+        _emit_progress(
+            progress_callback,
+            stage="memory_reflection_failed",
+            message="Zopedia memory reflection failed; answer is still returned.",
+            progress=0.996,
+            error=_safe_agent_error_text(exc),
+        )
+        return {"status": "failed", "reason": _safe_agent_error_text(exc)}
+
+    decision = dict(payload or {})
+    reasoning_trace = _clean(decision.get("__reasoning_content"))
+    if reasoning_trace:
+        _emit_progress(
+            progress_callback,
+            stage="model_reasoning_trace",
+            message="Memory maintainer reasoning trace captured.",
+            progress=0.995,
+            reasoning_trace=reasoning_trace,
+            source="memory_reflection",
+        )
+    action = _clean(decision.get("action")).lower() or "no_action"
+    rationale = _clean(decision.get("rationale"))
+    if action == "no_action":
+        _emit_progress(
+            progress_callback,
+            stage="memory_reflection_complete",
+            message=rationale or "Zopedia memory does not need an update.",
+            progress=0.996,
+            memory_action="no_action",
+        )
+        return {
+            "status": "completed",
+            "action": "no_action",
+            "rationale": rationale,
+            "decision": decision,
+        }
+
+    if action == "apply_mutation" and not _clean(decision.get("mutation_type")):
+        action = "propose_change"
+        decision["proposal_type"] = _clean(decision.get("proposal_type")) or "update"
+        decision["title"] = _clean(decision.get("title")) or "Review Zopedia memory update"
+        decision["rationale"] = rationale or "The memory reflection requested a mutation without a mutation type."
+
+    if action == "apply_mutation":
+        tool_name = "zopedia.apply_mutation"
+        arguments = {
+            "mutation_type": _clean(decision.get("mutation_type")),
+            "page_id": _clean(decision.get("page_id")),
+            "target_page_id": _clean(decision.get("target_page_id")),
+            "pages": list(decision.get("pages") or []),
+            "metadata_patch": dict(decision.get("metadata_patch") or {}),
+            "evidence_refs": list(decision.get("evidence_refs") or []),
+            "rationale": rationale,
+            "payload": dict(decision.get("payload") or {}),
+            "allow_risky": bool(decision.get("allow_risky")),
+        }
+    else:
+        tool_name = "zopedia.propose_change"
+        arguments = {
+            "proposal_type": _clean(decision.get("proposal_type")) or "update",
+            "page_id": _clean(decision.get("page_id")),
+            "title": _clean(decision.get("title")) or "Review Zopedia memory update",
+            "rationale": rationale or "Zopedia memory maintainer requested review.",
+            "payload": {
+                **dict(decision.get("payload") or {}),
+                "memory_decision": decision,
+                "run_id": run_id,
+            },
+        }
+
+    _emit_progress(
+        progress_callback,
+        stage="memory_mutation_start",
+        message=f"Applying Zopedia memory action: {tool_name}.",
+        progress=0.996,
+        memory_action=action,
+    )
+    try:
+        tool_result = _run_hidden_step_with_timeout(
+            label=f"{tool_name} memory action",
+            timeout_seconds=max(min(int(timeout_seconds), int(get_config_param(_P_TOOL_CALL_TIMEOUT_SECONDS))), 1),
+            progress_callback=progress_callback,
+            progress=0.997,
+            func=lambda: invoke_tool(
+                service=service,
+                tool_name=tool_name,
+                arguments=arguments,
+                run_id=run_id,
+            ),
+        )
+        result_summary = _summarize_tool_result(tool_result)
+        tool_call = {
+            "tool_call_id": f"agtc_memory_{len(tool_calls) + 1}",
+            "tool_name": tool_name,
+            "arguments": arguments,
+            "status": "completed",
+            "error": None,
+            "result_summary": result_summary,
+        }
+        _emit_progress(
+            progress_callback,
+            stage="memory_mutation_complete",
+            message=_truncate(result_summary.get("user_preview") or result_summary.get("preview_text") or "Zopedia memory action completed.", limit=300),
+            progress=0.998,
+            memory_action=action,
+        )
+        return {
+            "status": "completed",
+            "action": action,
+            "rationale": rationale,
+            "decision": decision,
+            "tool_call": tool_call,
+            "tool_result": tool_result,
+        }
+    except Exception as exc:
+        safe_error = _safe_agent_error_text(exc)
+        _emit_progress(
+            progress_callback,
+            stage="memory_mutation_failed",
+            message="Zopedia memory action failed; answer is still returned.",
+            progress=0.998,
+            error=safe_error,
+            memory_action=action,
+        )
+        return {
+            "status": "failed",
+            "action": action,
+            "rationale": rationale,
+            "decision": decision,
+            "tool_name": tool_name,
+            "arguments": arguments,
+            "reason": safe_error,
+        }
 
 
 def run_omnibar_agent(
@@ -1508,7 +2158,7 @@ def run_omnibar_agent(
     llm_step_timeout_seconds = max(int(get_config_param(_P_LLM_STEP_TIMEOUT_SECONDS)), 1)
     run_id = f"agrun_{uuid.uuid4().hex[:10]}"
     if not agent_query:
-        return {
+        return _with_aql_evidence_pack({
             "run_id": run_id,
             "status": "failed",
             "mode": "sync",
@@ -1518,26 +2168,34 @@ def run_omnibar_agent(
             "confidence": "low",
             "limitations": ["Empty query."],
             "error": "Empty query.",
-        }
+            "query": agent_query,
+            "original_query": normalized_query,
+            "followup_resolved": followup_resolved,
+        })
 
     resolved_service = service or QueryService.from_environment()
-    resolved_llm = llm_client or load_llm_client(env_prefix="OMNIBAR_AGENT_") or load_llm_client()
+    resolved_llm = llm_client or load_aql_zopedia_llm_client(
+        surface="zopedia.agent",
+    )
     if resolved_llm is None:
-        return {
+        return _with_aql_evidence_pack({
             "run_id": run_id,
             "status": "unavailable",
             "mode": "sync",
             "model": "",
             "tool_calls": [],
-            "answer_markdown": "The LLM runtime is not configured, so the omnibar agent cannot run tool-based analysis right now.",
+            "answer_markdown": "The LLM runtime is not configured, so the Zopedia agent cannot run tool-based analysis right now.",
             "confidence": "low",
             "limitations": ["LLM runtime is unavailable."],
             "error": "LLM runtime is unavailable.",
-        }
+            "query": agent_query,
+            "original_query": normalized_query,
+            "followup_resolved": followup_resolved,
+        })
     _emit_progress(
         progress_callback,
         stage="start",
-        message="Preparing shared omnibar agent.",
+        message="Preparing Zopedia agent.",
         progress=0.04,
         run_id=run_id,
     )
@@ -1715,6 +2373,22 @@ def run_omnibar_agent(
                 arguments=seed_arguments,
                 progress=min(0.13 + (idx * 0.04), 0.28),
             )
+        zopedia_page_id = _first_zopedia_page_id_from_search(tool_calls)
+        if (
+            zopedia_page_id
+            and len(tool_calls) < int(max_tool_calls)
+            and _tool_available(tool_catalog, "zopedia.read_page")
+        ):
+            seeded_tool_names.add("zopedia.read_page")
+            _execute_seeded_tool_call(
+                service=resolved_service,
+                run_id=run_id,
+                tool_calls=tool_calls,
+                progress_callback=progress_callback,
+                tool_name="zopedia.read_page",
+                arguments={"page_id": zopedia_page_id},
+                progress=min(0.13 + (len(tool_calls) * 0.04), 0.34),
+            )
     for call in tool_calls:
         seen_calls.add(f"{_clean(call.get('tool_name'))}::{_json_dumps(call.get('arguments') or {}, limit=1200)}")
     skip_planner_after_bootstrap = _should_skip_planner_after_bootstrap(
@@ -1725,6 +2399,8 @@ def run_omnibar_agent(
     final_answer = ""
     final_confidence = "low"
     limitations: list[str] = []
+    quality_review: dict[str, Any] = {"status": "not_run"}
+    memory_update: dict[str, Any] = {"status": "not_run"}
     consecutive_failed_tools = 0
 
     try:
@@ -1907,6 +2583,44 @@ def run_omnibar_agent(
                     reasoning=reasoning,
                 )
             if action == "final":
+                candidate_answer = _clean(decision.get("answer_markdown"))
+                if _analysis_failure_needs_repair(tool_calls) and len(tool_calls) < int(max_tool_calls):
+                    _emit_progress(
+                        progress_callback,
+                        stage="analysis_repair_required",
+                        message="Analysis failed with a repairable code/input/runtime category; giving the planner one repair pass.",
+                        progress=min(step_progress + 0.03, 0.9),
+                        tool_call_count=len(tool_calls),
+                    )
+                    continue
+                recovery = _market_impact_recovery_tool(
+                    query=agent_query,
+                    answer=candidate_answer,
+                    tool_calls=tool_calls,
+                    tool_catalog=tool_catalog,
+                )
+                if recovery and len(tool_calls) < int(max_tool_calls):
+                    recovery_tool_name, recovery_arguments, recovery_reason = recovery
+                    _emit_progress(
+                        progress_callback,
+                        stage="evidence_gap_recovery",
+                        message=recovery_reason,
+                        progress=min(step_progress + 0.04, 0.9),
+                        tool_name=recovery_tool_name,
+                        tool_arguments=recovery_arguments,
+                    )
+                    _execute_seeded_tool_call(
+                        service=resolved_service,
+                        run_id=run_id,
+                        tool_calls=tool_calls,
+                        progress_callback=progress_callback,
+                        tool_name=recovery_tool_name,
+                        arguments=recovery_arguments,
+                        progress=min(step_progress + 0.06, 0.9),
+                    )
+                    for call in tool_calls:
+                        seen_calls.add(f"{_clean(call.get('tool_name'))}::{_json_dumps(call.get('arguments') or {}, limit=1200)}")
+                    continue
                 _emit_progress(
                     progress_callback,
                     stage="planner_final",
@@ -1915,7 +2629,7 @@ def run_omnibar_agent(
                     iteration=step_index + 1,
                     reasoning=reasoning,
                 )
-                final_answer = _clean(decision.get("answer_markdown"))
+                final_answer = candidate_answer
                 final_confidence = _clean(decision.get("confidence")).lower() or "low"
                 if final_answer:
                     break
@@ -2211,9 +2925,81 @@ def run_omnibar_agent(
                 duration_seconds=duration,
                 service=resolved_service,
             )
-        return error_result
+        return _with_aql_evidence_pack(error_result)
+
+    if final_answer:
+        quality_review = _run_answer_judge(
+            llm=_synthesis_llm_client(resolved_llm),
+            query=agent_query,
+            tool_calls=tool_calls,
+            draft_answer=final_answer,
+            draft_confidence=final_confidence,
+            limitations=limitations,
+            conversation_history=conversation_history,
+            prefetched_context=prefetched_context,
+            timeout_seconds=llm_step_timeout_seconds,
+            progress_callback=progress_callback,
+        )
+        if quality_review.get("status") == "completed":
+            verdict = _clean(quality_review.get("verdict")).lower()
+            judge_answer = _clean(quality_review.get("answer_markdown"))
+            revised_answer_applied = False
+            if verdict in {"revise", "insufficient"} and judge_answer:
+                final_answer = judge_answer
+                revised_answer_applied = True
+            final_confidence = _clean(quality_review.get("confidence")).lower() or final_confidence
+            for item in [
+                *list(quality_review.get("limitations") or []),
+                *list(quality_review.get("unsupported_claims") or []),
+                *list(quality_review.get("evidence_gaps") or []),
+            ]:
+                clean_item = _clean(item)
+                if clean_item and clean_item not in limitations:
+                    limitations.append(clean_item)
+            quality_review = {
+                "status": "completed",
+                "verdict": verdict,
+                "critique_summary": _clean(quality_review.get("critique_summary")),
+                "confidence": final_confidence,
+                "limitations": [_clean(item) for item in list(quality_review.get("limitations") or []) if _clean(item)],
+                "unsupported_claims": [_clean(item) for item in list(quality_review.get("unsupported_claims") or []) if _clean(item)],
+                "evidence_gaps": [_clean(item) for item in list(quality_review.get("evidence_gaps") or []) if _clean(item)],
+                "revised_answer_applied": revised_answer_applied,
+            }
 
     answer_markdown = final_answer or _fallback_answer(agent_query, tool_calls)
+    evidence_tool_count = _successful_evidence_tool_count(tool_calls)
+    if evidence_tool_count == 0:
+        final_confidence = "low"
+        gap = "Confidence capped because no evidence tool returned usable data."
+        if gap not in limitations:
+            limitations.append(gap)
+    elif evidence_tool_count == 1:
+        capped_confidence = _cap_confidence(final_confidence, "medium")
+        if capped_confidence != final_confidence:
+            final_confidence = capped_confidence
+            gap = "Confidence capped because only one evidence source returned usable data."
+            if gap not in limitations:
+                limitations.append(gap)
+    if persist_findings and answer_markdown:
+        memory_update = _run_post_answer_memory_agent(
+            llm=_synthesis_llm_client(resolved_llm),
+            service=resolved_service,
+            run_id=run_id,
+            query=agent_query,
+            answer_markdown=answer_markdown,
+            confidence=final_confidence,
+            limitations=limitations,
+            quality_review=quality_review,
+            tool_calls=tool_calls,
+            conversation_history=conversation_history,
+            prefetched_context=prefetched_context,
+            timeout_seconds=llm_step_timeout_seconds,
+            progress_callback=progress_callback,
+        )
+        memory_tool_call = memory_update.get("tool_call") if isinstance(memory_update, dict) else None
+        if isinstance(memory_tool_call, dict):
+            tool_calls.append(memory_tool_call)
     status = "completed" if answer_markdown else "failed"
     _emit_progress(
         progress_callback,
@@ -2235,6 +3021,8 @@ def run_omnibar_agent(
         "answer_markdown": answer_markdown,
         "confidence": final_confidence,
         "limitations": limitations,
+        "quality_review": quality_review,
+        "memory_update": memory_update,
         "error": error_text,
         "query": agent_query,
         "original_query": normalized_query,
@@ -2254,7 +3042,7 @@ def run_omnibar_agent(
             duration_seconds=duration,
             service=resolved_service,
         )
-    return result
+    return _with_aql_evidence_pack(result)
 
 
 def _persist_agent_findings(

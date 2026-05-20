@@ -1,0 +1,26 @@
+{
+  "benchmark_answer_summary": "A later tool path returned usable evidence, so future answers should not stop at the earlier failed path.",
+  "confidence_rule": "confidence must be capped if required evidence slots remain unfilled",
+  "forbidden_answer_patterns": [
+    "Do not claim data is unavailable until primitive evidence paths have been tried.",
+    "Do not expose implementation IDs or debug refs in product answers.",
+    "tool_call_id",
+    "run_id",
+    "provider",
+    "debug",
+    "eval.local"
+  ],
+  "learning_event_id": "zlearn_b7bbc36560c2a7a36ed51b30",
+  "name": "what_is_the_impact_of_the_bond_market_today_6ed51b30",
+  "question": "What is the impact of the bond market today?",
+  "required_answer_claims": [
+    "Confirm that answers never include tool_call_id or debug references."
+  ],
+  "required_tool_patterns": [
+    "dataset.yield_curve_facts_1d",
+    "dataset.daily_movers",
+    "dataset.price_history"
+  ],
+  "root_cause": "ui_or_answer_surface_leak",
+  "thread_source": "zthread_61ef63346b654add"
+}

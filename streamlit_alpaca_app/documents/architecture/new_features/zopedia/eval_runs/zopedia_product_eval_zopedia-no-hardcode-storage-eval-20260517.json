@@ -1,0 +1,182 @@
+{
+  "checks": [
+    {
+      "detail": "configured",
+      "elapsed_seconds": 3.307,
+      "metrics": {
+        "deployment": "gpt-5.3-chat",
+        "embeddings": "disabled \u2014 EMBEDDING_DEPLOYMENT not set. Semantic retrieval will not work. Set EMBEDDING_DEPLOYMENT to enable.",
+        "model": "gpt-5.3-chat",
+        "provider": "azure_openai"
+      },
+      "name": "llm_runtime",
+      "status": "pass"
+    },
+    {
+      "detail": "Dev database connection is usable.",
+      "elapsed_seconds": 1.296,
+      "metrics": {},
+      "name": "dev_database",
+      "status": "pass"
+    },
+    {
+      "detail": "Ingested 3 text fixtures into 19 Zopedia pages; 3 were LLM-enriched.",
+      "elapsed_seconds": 132.129,
+      "metrics": {
+        "page_count": 19,
+        "sources": [
+          {
+            "enrichment_status": "llm_enriched",
+            "page_count": 5,
+            "page_titles": [
+              "zopedia-no-hardcode-storage-eval-20260517 Diesel Pinch Point And Hormuz Risk",
+              "Diesel Pinch Point",
+              "Strait of Hormuz Supply Risk",
+              "Jeff Currie",
+              "Source: Diesel Pinch Point And Hormuz Risk (Product Eval)"
+            ],
+            "status": "stored",
+            "title": "zopedia-no-hardcode-storage-eval-20260517 Diesel Pinch Point And Hormuz Risk"
+          },
+          {
+            "enrichment_status": "llm_enriched",
+            "page_count": 8,
+            "page_titles": [
+              "zopedia-no-hardcode-storage-eval-20260517 Inflation Surge And Bond Market Stress",
+              "Inflation Surge And Bond Market Stress",
+              "Sticky Service Inflation",
+              "Bond Market Stress",
+              "Nominal Yields",
+              "Refinancing Costs",
+              "Recession Risk",
+              "Source: Inflation Surge And Bond Market Stress (Eval zopedia-no-hardcode-storage-eval-20260517)"
+            ],
+            "status": "stored",
+            "title": "zopedia-no-hardcode-storage-eval-20260517 Inflation Surge And Bond Market Stress"
+          },
+          {
+            "enrichment_status": "llm_enriched",
+            "page_count": 6,
+            "page_titles": [
+              "zopedia-no-hardcode-storage-eval-20260517 Nasdaq Euphoria Hitting Its Limit",
+              "Nasdaq Euphoria and Narrow Leadership Risk",
+              "Mega-Cap Concentration",
+              "Market Breadth",
+              "Nasdaq Composite",
+              "Source: Nasdaq Euphoria Hitting Its Limit (Product Eval)"
+            ],
+            "status": "stored",
+            "title": "zopedia-no-hardcode-storage-eval-20260517 Nasdaq Euphoria Hitting Its Limit"
+          }
+        ]
+      },
+      "name": "source_ingest_and_page_generation",
+      "status": "pass"
+    },
+    {
+      "detail": "3/3 fixture searches found tagged expected content in top 5.",
+      "elapsed_seconds": 2.07,
+      "metrics": {
+        "searches": [
+          {
+            "expected_hit": true,
+            "query": "zopedia-no-hardcode-storage-eval-20260517 diesel pinch point Hormuz equity la la land",
+            "result_count": 1,
+            "tag_hit": true,
+            "top_titles": [
+              "zopedia-no-hardcode-storage-eval-20260517 Diesel Pinch Point And Hormuz Risk"
+            ]
+          },
+          {
+            "expected_hit": true,
+            "query": "zopedia-no-hardcode-storage-eval-20260517 inflation surge bond market disaster recession headed higher",
+            "result_count": 5,
+            "tag_hit": true,
+            "top_titles": [
+              "zopedia-no-hardcode-storage-eval-20260517 Inflation Surge And Bond Market Stress",
+              "Source: Inflation Surge And Bond Market Stress (Eval zopedia-no-hardcode-storage-eval-20260517)",
+              "zopedia-no-hardcode-eval-20260517b Inflation Surge And Bond Market Stress",
+              "zopedia-no-hardcode-eval-20260517 Inflation Surge And Bond Market Stress",
+              "Source: Inflation Surge And Bond Market Stress (zopedia-no-hardcode-eval-20260517b)"
+            ]
+          },
+          {
+            "expected_hit": true,
+            "query": "zopedia-no-hardcode-storage-eval-20260517 Nasdaq euphoria hitting its limit mega cap concentration",
+            "result_count": 2,
+            "tag_hit": true,
+            "top_titles": [
+              "zopedia-no-hardcode-storage-eval-20260517 Nasdaq Euphoria Hitting Its Limit",
+              "Source: Nasdaq Euphoria Hitting Its Limit (Product Eval)"
+            ]
+          }
+        ]
+      },
+      "name": "wiki_search_recall",
+      "status": "pass"
+    },
+    {
+      "detail": "Exact page read returned the requested tagged source page.",
+      "elapsed_seconds": 0.5,
+      "metrics": {
+        "body_chars": 482,
+        "page_id": "zopedia::source::zopedia-no-hardcode-storage-eval-20260517-diesel-pinch-point-and::cb7ff2015f9a",
+        "title": "zopedia-no-hardcode-storage-eval-20260517 Diesel Pinch Point And Hormuz Risk"
+      },
+      "name": "exact_page_read",
+      "status": "pass"
+    },
+    {
+      "detail": "Manual graph fixture returned 3 nodes and 8 edges.",
+      "elapsed_seconds": 2.801,
+      "metrics": {
+        "deterministic_edges": true,
+        "edge_count": 8,
+        "node_count": 3,
+        "seed_page_id": "zopedia::theme::zopedia-no-hardcode-storage-eval-20260517-manual-diesel-pinch-po::6bd71f543f36"
+      },
+      "name": "graph_neighborhood_determinism",
+      "status": "pass"
+    },
+    {
+      "detail": "Created and listed 3 tagged reviewable proposals.",
+      "elapsed_seconds": 1.102,
+      "metrics": {
+        "proposal_hits": 3,
+        "titles": [
+          "zopedia-no-hardcode-storage-eval-20260517 Update page proposal",
+          "zopedia-no-hardcode-storage-eval-20260517 Delete stale link proposal",
+          "zopedia-no-hardcode-storage-eval-20260517 Add link proposal"
+        ]
+      },
+      "name": "reviewable_add_delete_update_proposals",
+      "status": "pass"
+    },
+    {
+      "detail": "Zopedia tools returned 3 search rows and neighborhood nodes=3.",
+      "elapsed_seconds": 4.289,
+      "metrics": {
+        "neighborhood_edges": 4,
+        "neighborhood_nodes": 3,
+        "page_id": "zopedia::theme::zopedia-no-hardcode-storage-eval-20260517-manual-diesel-pinch-po::6bd71f543f36",
+        "read_status": "found",
+        "search_rows": 3
+      },
+      "name": "agent_tool_zopedia_search_read_neighborhood",
+      "status": "pass"
+    }
+  ],
+  "cleanup": {
+    "deleted_pages": 22,
+    "deleted_proposals": 3,
+    "status": "completed"
+  },
+  "counts": {
+    "fail": 0,
+    "pass": 8,
+    "warn": 0
+  },
+  "decision": "go",
+  "run_id": "zopedia-no-hardcode-storage-eval-20260517",
+  "started_at_utc": "2026-05-17T07:23:30.737194+00:00"
+}

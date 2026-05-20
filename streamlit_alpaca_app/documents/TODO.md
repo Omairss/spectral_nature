@@ -16,3 +16,23 @@
 - [x] Run Trading Agent as a materialized pipeline job across 1 week, 1 month, 3 month, 1 year, and 5 year horizons.
 
 - [x] Log Trading Agent Place / Reject decisions. Place is log-only for now, but the audit row keeps Alpaca handoff fields for future order submission.
+
+## Zopedia Retrieval / Tool Discovery
+
+- [ ] Add bounded BM25 lexical retrieval as a first-class signal for Zopedia memory pages, retained evidence chunks, and agent tool metadata. Keep it hybrid with embeddings and reranking; BM25 should improve exact-term recall, not become a hardcoded routing layer.
+
+- [ ] Add cursor pagination to search-style tools where top-k truncation can hide evidence: `zopedia.search_pages`, `research.search_evidence`, retained source/chunk search, news/source search, and any future tool-search endpoint. Include `has_more`, `next_cursor`, `total_estimate` when available, and ranking/match diagnostics.
+
+- [ ] Add agent-facing tool search over the shared tool catalog. Index tool name, description, schema, examples, failure modes, empty-result causes, and fallback hints so the agent can find capabilities like event-window returns or primitive price data without relying on a giant prompt or hardcoded query classifiers.
+
+- [ ] Teach the planner to page or search tools only when an evidence-plan slot remains unfilled. The intended loop is: missing slot -> tool search or memory/source search -> call best tool -> paginate or fallback if coverage is partial -> inspect `empty_reason` before stating a limitation.
+
+- [ ] Add evals for retrieval/tool discovery: exact ticker/company/event terms, long natural-language wiki queries, tool lookup for event-window ETF returns, and evidence cases where the needed row appears after the first page.
+
+## Zopedia Deferred UI Shots
+
+- [ ] Take a focused shot at the full Zopedia graph explorer after the backend graph contract is stable. Do not lead with this. Wait until provenance, backlinks, and godnodes/community indexes exist so the graph shows real semantics instead of decorative nodes.
+
+- [ ] Evaluate whether advanced graph modes can be integrated cleanly: community view, page-neighborhood view, evidence-trace view, proposal overlay, bridge/surprising-connection view, and delete queue. If the implementation requires special-case graph state or duplicated KG logic, keep it out of the core Zopedia UI.
+
+- [ ] Revisit a Wiki Behaviour/config panel after core Zopedia works. Keep runtime/budget controls admin-only unless the setting directly helps a normal user complete an action.

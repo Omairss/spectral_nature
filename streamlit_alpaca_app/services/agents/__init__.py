@@ -10,10 +10,14 @@ from importlib import import_module
 from typing import Any
 
 from services.agents.chat_log import (
+    append_chat_message,
     bootstrap_chat_log,
     count_chat_sessions,
+    create_chat_thread,
     list_chat_sessions,
+    list_chat_threads,
     load_chat_session,
+    load_chat_thread,
     log_chat_session,
 )
 from services.agents.scratchpad import (
@@ -26,6 +30,7 @@ from services.common.hypothesis import verify_hypothesis
 
 _LEGACY_SUBMODULES = {
     "agent_tools",
+    "append_chat_message",
     "omnibar",
     "omnibar_agent",
     "omnibar_research",
@@ -51,8 +56,11 @@ __all__ = [
     "bootstrap_chat_log",
     "clear_scratchpad",
     "count_chat_sessions",
+    "create_chat_thread",
     "list_chat_sessions",
+    "list_chat_threads",
     "load_chat_session",
+    "load_chat_thread",
     "log_chat_session",
     "read_entries",
     "read_summary",

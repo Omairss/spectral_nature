@@ -71,6 +71,9 @@ def test_empty_when_not_enough_data():
     }
     result = compute_event_significance(bars, "2025-02-10", pre_window_days=20, post_window_days=10)
     assert result.empty
+    assert result.attrs["diagnostics"]["empty_reason"] == "insufficient_observations"
+    assert result.attrs["diagnostics"]["required_event_observations"] == 3
+    assert result.attrs["diagnostics"]["max_event_observations"] < 3
 
 
 def test_large_post_move_yields_high_significance():

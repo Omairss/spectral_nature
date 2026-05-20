@@ -87,7 +87,7 @@ def test_build_page_agentic_summary_returns_llm_payload():
     assert result["watch_items"] == ["Check whether the move holds into the close."]
     assert "AAPL" in fake.user_prompt
     assert "AQL agent result JSON" in fake.user_prompt
-    assert "AQL / Chat + Search" in agent.kwargs["query"]
+    assert "AQL / Zopedia" in agent.kwargs["query"]
     assert agent.kwargs["persist_findings"] is False
     assert result["aql_agent"]["tool_calls"][0]["tool_name"] == "research.search_evidence"
 
@@ -120,12 +120,12 @@ def test_build_page_agentic_summary_fails_closed_when_aql_fails():
         aql_agent_runner=_failed_agent,
     )
 
-    assert result["status"] == "fallback"
-    assert "AAPL" in result["summary_markdown"]
+    assert result["status"] == "unavailable"
+    assert result["summary_markdown"] == ""
     assert "AQL agent did not produce" in result["data_gaps"][0]
 
 
-def test_build_page_agentic_summary_uses_fallback_when_aql_raises():
+def test_build_page_agentic_summary_fails_closed_when_aql_raises():
     def _raising_agent(**kwargs):
         raise ConnectionError("remote disconnected")
 
@@ -145,9 +145,9 @@ def test_build_page_agentic_summary_uses_fallback_when_aql_raises():
         aql_agent_runner=_raising_agent,
     )
 
-    assert result["status"] == "fallback"
-    assert "AAPL" in result["summary_markdown"]
-    assert "AQL summary job failed" in result["data_gaps"][0]
+    assert result["status"] == "unavailable"
+    assert result["summary_markdown"] == ""
+    assert "AQL summary failed" in result["data_gaps"][0]
 
 
 def test_materialized_page_agentic_summary_round_trips_exact_context():

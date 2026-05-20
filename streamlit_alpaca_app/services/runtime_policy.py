@@ -224,7 +224,7 @@ def attention_graph_policy() -> AttentionGraphPolicy:
     return AttentionGraphPolicy(
         peer_group_weight=_env_float("ATTENTION_GRAPH_PEER_GROUP_WEIGHT", 0.40, minimum=0.0),
         sector_weight=_env_float("ATTENTION_GRAPH_SECTOR_WEIGHT", 0.18, minimum=0.0),
-        role_match_weight=_env_float("ATTENTION_GRAPH_ROLE_MATCH_WEIGHT", 0.10, minimum=0.0),
+        role_match_weight=_env_float("ATTENTION_GRAPH_ROLE_MATCH_WEIGHT", 0.12, minimum=0.0),
         tag_overlap_mult=_env_float("ATTENTION_GRAPH_TAG_OVERLAP_MULT", 0.45, minimum=0.0),
         tag_overlap_cap=_env_float("ATTENTION_GRAPH_TAG_OVERLAP_CAP", 0.30, minimum=0.0),
         claim_overlap_mult=_env_float("ATTENTION_GRAPH_CLAIM_OVERLAP_MULT", 0.55, minimum=0.0),

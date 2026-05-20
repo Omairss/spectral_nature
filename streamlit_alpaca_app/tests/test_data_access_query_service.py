@@ -891,7 +891,7 @@ def test_resolve_attention_research_bundle_symbol_precomputed_only_skips_on_dema
     materialized_bundle_payload = {
         "bundle_id": bundle_id,
         "bundle_type": "symbol",
-        "headline": "BMY precomputed snapshot",
+        "headline": "BMY retained snapshot",
         "what_changed_text": "BMY moved below trend.",
         "why_now_text": "No concrete catalyst in snapshot.",
         "source_summary": "SEC EDGAR",
@@ -933,7 +933,7 @@ def test_resolve_attention_research_bundle_symbol_precomputed_only_skips_on_dema
 
     assert resolved.provenance.mode == "materialized"
     assert resolved.provenance.details.get("precomputed_only") is True
-    assert resolved.payload["headline"] == "BMY precomputed snapshot"
+    assert resolved.payload["headline"] == "BMY retained snapshot"
 
 
 def test_resolve_attention_research_bundle_symbol_keeps_materialized_when_web_signal_exists(monkeypatch):
@@ -1747,6 +1747,143 @@ def test_query_service_capabilities_include_resolution_hints():
     assert capabilities["datasets"]["price_history"]["required_params"] == ["ticker"]
     assert capabilities["datasets"]["price_history"]["param_schema"]["additionalProperties"] is False
     assert capabilities["datasets"]["fred_dashboard"]["param_schema"]["properties"]["years"]["type"] == "integer"
+
+
+def test_daily_movers_falls_back_when_materialized_symbol_filter_is_empty(monkeypatch):
+    import data_access.layer as layer_module
+
+    materialized = pd.DataFrame(
+        {
+            "symbol": ["AAPL", "MSFT"],
+            "change_pct": [1.2, -0.7],
+        }
+    )
+    on_demand = pd.DataFrame(
+        {
+            "symbol": ["SPY", "QQQ"],
+            "change_pct": [-0.6, -0.5],
+        }
+    )
+    metadata = SimpleNamespace(
+        dataset_name="daily_movers",
+        dataset_version_id="daily_movers__20260519T000000Z__abcd1234",
+        blob_path="datasets/daily_movers/example.parquet",
+        asof_time_utc="2026-05-19T00:00:00Z",
+        ingested_at_utc="2026-05-19T00:05:00Z",
+        row_count=2,
+    )
+    calls: dict[str, int] = {"cached_frame": 0}
+
+    monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
+    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", lambda dataset_name: (materialized.copy(), metadata))
+
+    def _cached_frame(*args, **kwargs):
+        calls["cached_frame"] += 1
+        return on_demand.copy()
+
+    monkeypatch.setattr(layer_module, "cached_frame", _cached_frame)
+
+    resolved = DataAccessLayer().resolve_daily_movers(symbols=["SPY", "QQQ"], force_refresh=False)
+
+    assert calls["cached_frame"] == 1
+    assert resolved.provenance.mode == "on_demand"
+    assert resolved.payload["symbol"].tolist() == ["SPY", "QQQ"]
+    assert resolved.provenance.details["fallback_attempted"] is True
+    assert resolved.provenance.details["materialized_filter_empty_reason"] == "materialized_symbol_filter_no_matches"
+
+
+def test_daily_movers_falls_back_when_materialized_symbol_filter_is_partial(monkeypatch):
+    import data_access.layer as layer_module
+
+    materialized = pd.DataFrame(
+        {
+            "symbol": ["SPY", "QQQ"],
+            "change_pct": [-0.6, -0.5],
+        }
+    )
+    on_demand = pd.DataFrame(
+        {
+            "symbol": ["SPY", "QQQ", "XLF", "TLT"],
+            "change_pct": [-0.6, -0.5, -1.2, -0.63],
+        }
+    )
+    metadata = SimpleNamespace(
+        dataset_name="daily_movers",
+        dataset_version_id="daily_movers__20260519T000000Z__abcd1234",
+        blob_path="datasets/daily_movers/example.parquet",
+        asof_time_utc="2026-05-19T00:00:00Z",
+        ingested_at_utc="2026-05-19T00:05:00Z",
+        row_count=2,
+    )
+    calls: dict[str, int] = {"cached_frame": 0}
+
+    monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
+    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", lambda dataset_name: (materialized.copy(), metadata))
+
+    def _cached_frame(*args, **kwargs):
+        calls["cached_frame"] += 1
+        return on_demand.copy()
+
+    monkeypatch.setattr(layer_module, "cached_frame", _cached_frame)
+
+    resolved = DataAccessLayer().resolve_daily_movers(symbols=["SPY", "QQQ", "XLF", "TLT"], force_refresh=False)
+
+    assert calls["cached_frame"] == 1
+    assert resolved.provenance.mode == "on_demand"
+    assert resolved.payload["symbol"].tolist() == ["SPY", "QQQ", "XLF", "TLT"]
+    assert resolved.provenance.details["filtered_symbols_present"] == ["QQQ", "SPY"]
+    assert resolved.provenance.details["filtered_symbols_missing"] == ["TLT", "XLF"]
+    assert resolved.provenance.details["materialized_filter_empty_reason"] == "materialized_symbol_filter_partial_matches"
+
+
+def test_macro_relationship_empty_result_carries_precomputed_artifact_hint(monkeypatch):
+    import data_access.layer as layer_module
+
+    metadata = SimpleNamespace(
+        dataset_name="macro_relationship_checks_1d",
+        dataset_version_id="macro_relationship_checks_1d__20260519T000000Z__abcd1234",
+        blob_path="datasets/macro_relationship_checks_1d/example.parquet",
+        asof_time_utc="2026-05-19T00:00:00Z",
+        ingested_at_utc="2026-05-19T00:05:00Z",
+        row_count=0,
+    )
+
+    monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
+    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", lambda dataset_name: (pd.DataFrame(), metadata))
+
+    resolved = DataAccessLayer().resolve_materialized_dataset("macro_relationship_checks_1d")
+
+    assert resolved.payload.empty
+    assert resolved.provenance.details["empty_reason"] == "no_precomputed_relationship_rows"
+    assert resolved.provenance.details["artifact_role"] == "precomputed_relationship_artifact"
+    assert "price_history" in resolved.provenance.details["next_tool_hint"]
+
+
+def test_query_service_messages_include_empty_result_reason():
+    class FakeAccess:
+        def resolve_daily_movers(self, *, symbols: list[str] | None = None, force_refresh: bool = False) -> ResolvedPayload:
+            return ResolvedPayload(
+                payload=pd.DataFrame(),
+                provenance=DataProvenance(
+                    mode="on_demand",
+                    datasets=("daily_movers",),
+                    details={
+                        "empty_reason": "on_demand_no_mover_rows",
+                        "user_safe_explanation": "No daily mover rows were returned for the requested symbols.",
+                        "next_tool_hint": "Use dataset.price_history for explicit symbols.",
+                    },
+                ),
+            )
+
+    payload = QueryService(data_access=FakeAccess()).execute(
+        {"operation": "dataset", "name": "daily_movers", "params": {"symbols": ["SPY"]}}
+    ).to_dict()
+
+    assert payload["payload"] == []
+    assert payload["messages"] == [
+        "No daily mover rows were returned for the requested symbols.",
+        "Next tool hint: Use dataset.price_history for explicit symbols.",
+    ]
 
 
 def test_query_request_rejects_non_object_params():

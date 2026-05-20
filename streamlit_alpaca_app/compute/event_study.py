@@ -9,6 +9,17 @@ _MIN_ESTIMATION_DAYS = 15
 _MIN_EVENT_DAYS = 3
 
 
+def _empty_event_frame(**diagnostics: object) -> pd.DataFrame:
+    frame = pd.DataFrame()
+    frame.attrs["diagnostics"] = {
+        "empty_reason": str(diagnostics.get("empty_reason") or "no_event_significance_rows"),
+        "required_estimation_observations": _MIN_ESTIMATION_DAYS,
+        "required_event_observations": _MIN_EVENT_DAYS,
+        **{key: value for key, value in diagnostics.items() if value is not None},
+    }
+    return frame
+
+
 def _daily_returns(close: pd.Series) -> pd.Series:
     prices = pd.to_numeric(close, errors="coerce")
     returns = np.log(prices / prices.shift(1))
@@ -67,7 +78,7 @@ def compute_event_significance(
     """
     event_dt = pd.to_datetime(event_date, utc=True, errors="coerce")
     if pd.isna(event_dt):
-        return pd.DataFrame()
+        return _empty_event_frame(empty_reason="invalid_event_date")
 
     benchmark_sym = str(benchmark).upper().strip()
     bench_frame = bars_by_symbol.get(benchmark_sym)
@@ -80,10 +91,20 @@ def compute_event_significance(
         bench_returns = _daily_returns(bench_frame)
 
     rows: list[dict] = []
+    diagnostics: dict[str, object] = {
+        "symbols_seen": 0,
+        "symbols_missing_bars": 0,
+        "symbols_insufficient_observations": 0,
+        "symbols_zero_variance": 0,
+        "max_estimation_observations": 0,
+        "max_event_observations": 0,
+    }
     for symbol, frame in bars_by_symbol.items():
         if symbol == benchmark_sym:
             continue
+        diagnostics["symbols_seen"] = int(diagnostics["symbols_seen"]) + 1
         if frame is None or frame.empty:
+            diagnostics["symbols_missing_bars"] = int(diagnostics["symbols_missing_bars"]) + 1
             continue
 
         frame = frame.copy()
@@ -95,8 +116,11 @@ def compute_event_significance(
 
         pre = all_returns[all_returns.index < event_dt].tail(pre_window_days)
         post = all_returns[all_returns.index >= event_dt].head(post_window_days)
+        diagnostics["max_estimation_observations"] = max(int(diagnostics["max_estimation_observations"]), len(pre))
+        diagnostics["max_event_observations"] = max(int(diagnostics["max_event_observations"]), len(post))
 
         if len(pre) < _MIN_ESTIMATION_DAYS or len(post) < _MIN_EVENT_DAYS:
+            diagnostics["symbols_insufficient_observations"] = int(diagnostics["symbols_insufficient_observations"]) + 1
             continue
 
         # Market-adjusted abnormal returns in post window
@@ -118,6 +142,7 @@ def compute_event_significance(
         event_n = len(post)
 
         if sigma <= 0 or not np.isfinite(sigma):
+            diagnostics["symbols_zero_variance"] = int(diagnostics["symbols_zero_variance"]) + 1
             continue
 
         # t-stat: CAR / (sigma * sqrt(T))
@@ -157,10 +182,24 @@ def compute_event_significance(
         )
 
     if not rows:
-        return pd.DataFrame()
+        if int(diagnostics.get("symbols_seen") or 0) == 0:
+            reason = "no_symbols_with_price_history"
+        elif int(diagnostics.get("symbols_insufficient_observations") or 0) > 0:
+            reason = "insufficient_observations"
+        elif int(diagnostics.get("symbols_zero_variance") or 0) > 0:
+            reason = "insufficient_return_variance"
+        else:
+            reason = "no_event_significance_rows"
+        return _empty_event_frame(empty_reason=reason, **diagnostics)
 
     result = pd.DataFrame(rows)
     result = result.sort_values("t_stat", key=lambda s: s.abs(), ascending=False).reset_index(drop=True)
+    result.attrs["diagnostics"] = {
+        "empty_reason": "",
+        "required_estimation_observations": _MIN_ESTIMATION_DAYS,
+        "required_event_observations": _MIN_EVENT_DAYS,
+        **diagnostics,
+    }
     return result
 
 

@@ -1,16 +1,13 @@
 from __future__ import annotations
 
-import json
-
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 
 from presentation import dashboard_loaders
 from services import attention_surface as attention_surface_module
-from services.company import build_attention_news_narrative, build_company_description
+from services.company import build_attention_news_narrative
 from services.config import AppConfig
-from services.entity_taxonomy import dashboard_business_lens_from_taxonomy_row
 
 
 def _attention_event_key(row: pd.Series) -> str:
@@ -76,91 +73,6 @@ def _headline_items_from_news_payload(
             }
         )
     return rows
-
-
-def _build_attention_brief_input(
-    row: pd.Series,
-    *,
-    news_payload: dict[str, object] | None = None,
-    context_payload: dict[str, object] | None = None,
-    asset: dict[str, object] | None = None,
-) -> dict[str, object]:
-    symbol = str(row.get("entity_id") or "").upper().strip()
-    peer_group_name = str(row.get("peer_group_name") or "").strip()
-    active_lens = str(dashboard_business_lens_from_taxonomy_row(row.to_dict()) or "").strip()
-    news_context = build_attention_news_narrative(symbol, news_payload, peer_group_name=peer_group_name)
-    company_description = build_company_description(
-        symbol,
-        asset or {},
-        {},
-        {"regime": str(row.get("regime_label") or "").strip()},
-        news_payload=news_payload,
-        active_lens=active_lens,
-    )
-    linked_news_raw = pd.to_numeric(row.get("linked_news_count"), errors="coerce")
-    linked_news_count = int(linked_news_raw) if pd.notna(linked_news_raw) else 0
-    context = context_payload or {}
-    return {
-        "symbol": symbol,
-        "company_name": str((asset or {}).get("name") or "").strip(),
-        "title": str(row.get("title") or symbol or "Attention item").strip(),
-        "subtitle": str(row.get("subtitle") or "").strip(),
-        "story_text": _attention_story_text(row),
-        "why_now_text": _clean_attention_text(row.get("why_now_text")),
-        "peer_group_name": peer_group_name,
-        "regime_label": str(row.get("regime_label") or "").strip(),
-        "linked_news_count": linked_news_count,
-        "news_narrative": str(news_context.get("narrative_text") or "").strip(),
-        "headline_items": _headline_items_from_news_payload(news_payload, limit=3),
-        "company_description": company_description,
-        "context_headline": str(context.get("llm_headline") or "").strip(),
-        "context_summary": str(context.get("llm_summary_text") or context.get("context_story_text") or "").strip(),
-        "context_narrative": str(context.get("llm_narrative_text") or "").strip(),
-        "context_why_now": str(context.get("llm_why_now") or "").strip(),
-        "primary_source_excerpt": str(context.get("primary_source_excerpt") or "").strip(),
-        "watchpoint_text": str(row.get("next_best_action") or "").strip(),
-    }
-
-
-def _load_attention_brief_payloads(
-    cfg: AppConfig,
-    rows: pd.DataFrame,
-    *,
-    news_payloads: dict[str, dict[str, object]],
-    context_payloads: dict[str, dict[str, object]],
-    force_refresh: bool = False,
-    use_llm: bool = True,
-) -> dict[str, dict[str, object]]:
-    payloads: dict[str, dict[str, object]] = {}
-    if rows.empty:
-        return payloads
-    asset_cache: dict[str, dict[str, object]] = {}
-    for _, row in rows.iterrows():
-        row_series = row if isinstance(row, pd.Series) else pd.Series(row)
-        symbol = str(row_series.get("entity_id") or "").upper().strip()
-        if not symbol:
-            continue
-        if symbol not in asset_cache:
-            try:
-                asset_cache[symbol] = dashboard_loaders._load_asset_metadata_cached(
-                    cfg,
-                    symbol,
-                    force_refresh=force_refresh,
-                )
-            except Exception:
-                asset_cache[symbol] = {}
-        brief_input = _build_attention_brief_input(
-            row_series,
-            news_payload=news_payloads.get(symbol),
-            context_payload=context_payloads.get(symbol),
-            asset=asset_cache.get(symbol),
-        )
-        event_key = _attention_event_key(row_series)
-        payloads[event_key] = dashboard_loaders._load_attention_feed_brief_cached(
-            json.dumps(_json_ready(brief_input), ensure_ascii=False, sort_keys=True),
-            use_llm=use_llm,
-        )
-    return payloads
 
 
 def _build_attention_micro_chart(row: pd.Series) -> go.Figure | None:

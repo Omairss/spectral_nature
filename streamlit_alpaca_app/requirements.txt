@@ -1,5 +1,5 @@
 streamlit>=1.39
-pandas>=2.2
+pandas>=2.2,<3
 numpy>=1.26,<2
 plotly>=5.24
 networkx>=3.2
@@ -16,5 +16,8 @@ fastapi>=0.112
 uvicorn>=0.30
 PyYAML>=6.0
 scipy>=1.13
+scikit-learn>=1.5
 playwright>=1.52,<2
 scrapling[fetchers]>=0.4.6,<1
+youtube-transcript-api>=1.2,<2
+pypdf>=4.3,<6

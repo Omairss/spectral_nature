@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+from collections.abc import Sequence
 from concurrent.futures import Future, ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
@@ -15,7 +16,7 @@ import re
 import secrets as py_secrets
 import threading
 import time
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 import numpy as np
 import pandas as pd
@@ -28,7 +29,7 @@ from streamlit.components.v1 import html as components_html
 from compute.portfolio import normalize_timeseries_view
 from data_access.layer import DataAccessLayer
 from presentation import attention_content, dashboard_loaders
-from services import api_auth, auth_service, omnibar_agent as omnibar_agent_service
+from services import api_auth, auth_service
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
 from services.analytics import build_metric_bar, build_portfolio_vs_benchmarks_fig
 from services.attention_home_summary import (
@@ -107,7 +108,33 @@ from services.llm import (
     set_narrative_prompt_override,
     set_narrative_style_rule_override,
 )
+from services.aql_zopedia_engine import (
+    load_aql_zopedia_llm_client,
+    resolve_aql_zopedia_followup_query,
+    run_aql_zopedia_agent,
+)
+from services.agents import (
+    append_chat_message,
+    create_chat_thread,
+    list_chat_threads,
+    load_chat_thread,
+)
+from services.page_browsing import browse_page
 from services.runtime_policy import attention_ui_policy, presentation_layer_only_enabled, section_data_available
+from services.saa import (
+    build_zopedia_change_proposal,
+    fetch_youtube_transcript,
+    ingest_zopedia_source,
+    list_zopedia_change_proposals,
+    list_zopedia_maintenance_reports,
+    list_zopedia_mutation_audits,
+    persist_zopedia_change_proposals,
+    prepare_zopedia_uploaded_source,
+    rollback_zopedia_mutation,
+    search_zopedia_pages,
+    zopedia_read_source,
+    zopedia_sources_for_page,
+)
 from services.secrets import resolve_secret_value
 from services.fundamentals import plot_statement
 from services.market import (
@@ -234,7 +261,7 @@ if "_llm_readiness_logged" not in st.session_state:
         st.session_state["_llm_readiness_logged"] = True
 
 HOME_EXP_SECTION = "Experiment"
-AGENTIC_OMNIBAR_SECTION = "Chat + Search"
+AGENTIC_OMNIBAR_SECTION = "Zopedia"
 STOCK_INVESTIGATOR_SECTION = "Stock Investigator"
 PORTFOLIO_SECTION = "Portfolio"
 PORTFOLIO_PERFORMANCE_SECTION = "Portfolio Performance"
@@ -763,7 +790,7 @@ def _render_access_usage_admin_dashboard(
             f"Filtered to {selected_user_label}. The detailed activity trail below only shows recorded usage behavior for this user."
         )
 
-    usage_metrics = st.columns(6)
+    usage_metrics = _responsive_columns(6)
     if selected_user_id:
         usage_metrics[0].metric("User", selected_user_email or selected_user_label)
         usage_metrics[1].metric(f"Section Views ({usage_label})", int(summary.get("section_views_window") or 0))
@@ -969,7 +996,7 @@ def _render_access_security_admin_dashboard(
     if selected_user_id:
         st.caption(f"Filtered to {selected_user_label}.")
 
-    security_metrics = st.columns(6)
+    security_metrics = _responsive_columns(6)
     if selected_user_id:
         security_metrics[0].metric("User", selected_user_email or selected_user_label)
         security_metrics[1].metric(f"Failed Logins ({security_label})", int(summary.get("failed_logins_window") or 0))
@@ -997,7 +1024,7 @@ def _render_access_security_admin_dashboard(
         )
         security_metrics[5].metric(f"Unique IPs ({security_label})", int(summary.get("unique_ips_window") or 0))
 
-    session_metrics = st.columns(3)
+    session_metrics = _responsive_columns(3)
     session_metrics[0].metric(f"Active Sessions ({active_label})", int(summary.get("active_sessions") or 0))
     session_metrics[1].metric("Open Sessions", int(summary.get("open_sessions") or 0))
     session_metrics[2].metric("Active Users Now", int(summary.get("active_users_now") or 0))
@@ -1068,7 +1095,7 @@ def _render_access_security_admin_dashboard(
     if not bool(cloud_security_status.get("available")):
         st.warning(error_text or "Azure security observability status is unavailable.")
     else:
-        coverage_metrics = st.columns(4)
+        coverage_metrics = _responsive_columns(4)
         coverage_metrics[0].metric(
             "Healthy Resources",
             f"{int(cloud_summary.get('healthy_count') or 0)}/{int(cloud_summary.get('resource_count') or 0)}",
@@ -1225,7 +1252,7 @@ def _render_access_pending_invite_card(invite: dict[str, object], *, current_use
         st.markdown(f"**{invite_email}**")
         st.caption(" | ".join(detail_parts))
 
-        action_cols = st.columns([1.8, 1.0, 1.0, 1.0])
+        action_cols = _responsive_columns([1.8, 1.0, 1.0, 1.0])
         if invite_role == "investor":
             action_cols[0].number_input(
                 "Stake %",
@@ -1854,6 +1881,162 @@ def _ensure_app_shell_styles() -> None:
     )
 
 
+def _ensure_mobile_layout_styles() -> None:
+    st.session_state["_sn_mobile_layout_styles_version"] = "mobile-shell-v2"
+    st.markdown(
+        """
+        <style>
+        .block-container {
+            max-width: 100% !important;
+            padding: 0.75rem 0.85rem 5rem 0.85rem !important;
+        }
+        h1 {
+            font-size: 2.35rem !important;
+            line-height: 0.98 !important;
+            letter-spacing: 0 !important;
+            margin-bottom: 0.8rem !important;
+        }
+        h2 {
+            font-size: 1.55rem !important;
+            letter-spacing: 0 !important;
+        }
+        h3 {
+            font-size: 1.2rem !important;
+            letter-spacing: 0 !important;
+        }
+        p, li, label, input, textarea, [data-testid="stMarkdownContainer"] {
+            overflow-wrap: anywhere;
+            word-break: normal;
+        }
+        div[data-testid="stHorizontalBlock"] {
+            flex-direction: column !important;
+            gap: 0.68rem !important;
+        }
+        div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+            width: 100% !important;
+            flex: 1 1 100% !important;
+            min-width: 0 !important;
+        }
+        div[data-testid="stMetric"] {
+            padding: 0.72rem 0.82rem !important;
+            border-radius: 0.5rem !important;
+        }
+        div[data-testid="stMetric"] label,
+        div[data-testid="stMetric"] [data-testid="stMetricLabel"] {
+            white-space: normal !important;
+            overflow-wrap: anywhere !important;
+        }
+        div[data-testid="stMetricValue"] {
+            font-size: 1.34rem !important;
+            line-height: 1.08 !important;
+        }
+        .stButton > button,
+        .stFormSubmitButton > button {
+            min-height: 2.65rem;
+            padding: 0.48rem 0.78rem !important;
+            border-radius: 0.5rem !important;
+            white-space: normal;
+        }
+        .stButton > button p,
+        .stFormSubmitButton > button p {
+            white-space: normal !important;
+            overflow-wrap: anywhere !important;
+            line-height: 1.18 !important;
+        }
+        [class*="st-key-mobile_shell_"] {
+            margin: 0 0 1rem 0;
+            border-radius: 0.5rem;
+            background: var(--sn-card);
+            box-shadow: var(--sn-shadow-soft);
+        }
+        .sn-mobile-brand-row {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 0.72rem;
+        }
+        .sn-mobile-brand {
+            color: var(--sn-ink);
+            font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+            font-size: 1.24rem;
+            font-weight: 720;
+            line-height: 1.02;
+        }
+        .sn-mobile-kicker {
+            color: var(--sn-muted);
+            font-size: 0.68rem;
+            font-weight: 650;
+            line-height: 1.2;
+            text-align: right;
+        }
+        .sn-mobile-caption {
+            margin: 0.22rem 0 0.58rem 0;
+            color: var(--sn-muted-strong);
+            font-size: 0.8rem;
+            line-height: 1.35;
+        }
+        [class*="st-key-mobile_shell_"] [data-testid="stSelectbox"] label,
+        [class*="st-key-mobile_shell_"] [data-testid="stDateInput"] label {
+            color: var(--sn-muted-strong) !important;
+            font-size: 0.78rem !important;
+            font-weight: 700 !important;
+        }
+        div[data-baseweb="tab-list"] {
+            overflow-x: auto;
+            flex-wrap: nowrap;
+        }
+        div[data-baseweb="tab-list"] button {
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+        div[data-testid="stDataFrame"] {
+            overflow-x: auto;
+        }
+        div[data-testid="stTable"],
+        div[data-testid="stDataFrame"],
+        div[data-testid="stPlotlyChart"],
+        .js-plotly-plot,
+        .plot-container,
+        .svg-container {
+            max-width: 100% !important;
+            overflow-x: auto !important;
+        }
+        img, svg, canvas, iframe {
+            max-width: 100% !important;
+        }
+        [data-testid="stChatMessage"] {
+            padding-left: 0.2rem !important;
+            padding-right: 0.2rem !important;
+        }
+        [data-testid="stChatInput"] {
+            left: 0.5rem !important;
+            right: 0.5rem !important;
+            width: calc(100% - 1rem) !important;
+        }
+        div[data-testid="stCode"] pre,
+        div[data-testid="stCode"] code,
+        div[data-testid="stCode"] code * {
+            white-space: pre-wrap !important;
+            overflow-wrap: anywhere !important;
+            word-break: break-word !important;
+        }
+        [class*="st-key-mobile_workspace_section"] {
+            margin-bottom: 0.45rem;
+        }
+        [class*="st-key-mobile_workspace_section"] [data-baseweb="select"] {
+            min-height: 2.75rem;
+        }
+        [class*="st-key-mobile_public_signin"] button,
+        [class*="st-key-mobile_dashboard_logout"] button {
+            width: 100%;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def _sidebar_editorial_icon_svg(icon_name: str) -> str:
     if str(icon_name or "").strip().lower() != "substack":
         return ""
@@ -1929,6 +2112,128 @@ def _render_page_intro(kicker: str, title: str, body: str) -> None:
         ),
         unsafe_allow_html=True,
     )
+
+
+def _render_mobile_brand_header(caption: str = "") -> None:
+    caption_markup = (
+        f"<div class='sn-mobile-caption'>{html.escape(str(caption).strip())}</div>"
+        if str(caption or "").strip()
+        else ""
+    )
+    st.markdown(
+        (
+            "<div class='sn-mobile-brand-row'>"
+            f"<div class='sn-mobile-brand'>{html.escape(APP_BRAND_NAME)}</div>"
+            f"<div class='sn-mobile-kicker'>by {html.escape(APP_BRAND_KICKER)}</div>"
+            "</div>"
+            f"{caption_markup}"
+        ),
+        unsafe_allow_html=True,
+    )
+
+
+def _apply_homepage_replay_date(selected_date: object, today: object) -> None:
+    if selected_date is not None and selected_date < today:
+        st.session_state["_homepage_replay_date"] = str(selected_date)
+    else:
+        st.session_state.pop("_homepage_replay_date", None)
+
+
+def _render_mobile_home_replay_date(key: str = "homepage_replay_date") -> None:
+    today = pd.Timestamp.now(tz="UTC").normalize().date()
+    selected = st.date_input(
+        "Snapshot date",
+        value=today,
+        max_value=today,
+        key=key,
+    )
+    _apply_homepage_replay_date(selected, today)
+
+
+def _render_mobile_auth_shell() -> None:
+    with st.container(border=True, key="mobile_shell_auth"):
+        _render_mobile_brand_header("Secure access")
+
+
+def _render_mobile_public_home_shell() -> None:
+    with st.container(border=True, key="mobile_shell_public_home"):
+        _render_mobile_brand_header("Market narrative home")
+        _render_mobile_home_replay_date()
+        if st.button("Sign in", type="primary", width="stretch", key="mobile_public_signin"):
+            st.session_state["_show_login_form"] = True
+            st.rerun()
+
+
+def _render_mobile_workspace_shell(
+    *,
+    section_options: list[str],
+    current_section: str,
+    cache_disabled: bool,
+    force_refresh_default: bool,
+    current_user: auth_service.UserContext | None,
+) -> tuple[str, object, object, object]:
+    current = _normalize_workspace_section(current_section) or (section_options[0] if section_options else "Home")
+    if current not in section_options and section_options:
+        current = section_options[0]
+    mobile_nav_key = "mobile_workspace_section"
+    last_synced_current = _normalize_workspace_section(st.session_state.get("_mobile_workspace_synced_section"))
+    mobile_nav_value = _normalize_workspace_section(st.session_state.get(mobile_nav_key))
+    if mobile_nav_value not in section_options or last_synced_current != current:
+        st.session_state["mobile_workspace_section"] = current
+        st.session_state["_mobile_workspace_synced_section"] = current
+
+    with st.container(border=True, key="mobile_shell_workspace"):
+        _render_mobile_brand_header("Workspace")
+        selected = st.selectbox(
+            "Navigate",
+            section_options,
+            index=section_options.index(current) if current in section_options else 0,
+            key=mobile_nav_key,
+        )
+        selected = _normalize_workspace_section(selected) or current
+        if selected != current:
+            st.session_state["_mobile_workspace_synced_section"] = selected
+            st.session_state["_pending_workspace_section"] = selected
+            st.rerun()
+
+        if current == "Home":
+            _render_mobile_home_replay_date()
+
+        with st.expander("Workspace Status", expanded=False):
+            if pipeline_store_configured():
+                if _presentation_layer_only():
+                    st.caption("Data mode: Curated presentation snapshots")
+                else:
+                    st.caption("Data mode: Curated metadata + parquet snapshots")
+            else:
+                st.caption("Data mode: Snapshot store unavailable")
+            st.caption(f"Cache: {'disabled' if cache_disabled else 'enabled'}")
+            st.caption(
+                f"Inline force refresh: {'disabled' if _presentation_layer_only() else ('on' if force_refresh_default else 'off')}"
+            )
+            st.caption(f"CSV cache: {cache_data_root()}")
+            st.caption(f"Cache policy: {cache_policy_path()}")
+            if st.button("Logout", key="mobile_dashboard_logout", width="stretch"):
+                if st.session_state.get("_ui_auth_mode") == "database":
+                    auth_service.record_access_event(
+                        event_type="logout",
+                        event_category="usage",
+                        user=current_user,
+                        session_token=str(st.session_state.get("_ui_auth_session_id") or ""),
+                        ip_address=_request_ip_address(),
+                        user_agent=_request_user_agent(),
+                    )
+                    auth_service.logout_session(str(st.session_state.get("_ui_auth_session_id") or ""))
+                else:
+                    _invalidate_auth_session(st.session_state.get("_ui_auth_session_id"))
+                _clear_local_auth_state()
+                st.session_state["_ui_clear_auth_cookie"] = True
+                st.rerun()
+            sidebar_connection = st.empty()
+            sidebar_status = st.empty()
+            sidebar_buying_power = st.empty()
+
+    return current, sidebar_connection, sidebar_status, sidebar_buying_power
 
 
 def _log_event(message: str, **fields: object) -> None:
@@ -2094,9 +2399,7 @@ _safe_load_attention_research_bundle_cached = dashboard_loaders._safe_load_atten
 _load_fred_dashboard_cached = dashboard_loaders._load_fred_dashboard_cached
 _load_attention_feed_cached = dashboard_loaders._load_attention_feed_cached
 _load_attention_rollups_cached = dashboard_loaders._load_attention_rollups_cached
-_load_attention_feed_brief_cached = dashboard_loaders._load_attention_feed_brief_cached
 _load_page_agentic_summary_cached = dashboard_loaders._load_page_agentic_summary_cached
-_build_trading_agent_suggestions_cached = dashboard_loaders._build_trading_agent_suggestions_cached
 
 _attention_event_key = attention_content._attention_event_key
 _clean_attention_text = attention_content._clean_attention_text
@@ -2104,8 +2407,6 @@ _raw_attention_text = attention_content._raw_attention_text
 _attention_evidence_display_text = attention_content._attention_evidence_display_text
 _attention_story_text = attention_content._attention_story_text
 _headline_items_from_news_payload = attention_content._headline_items_from_news_payload
-_build_attention_brief_input = attention_content._build_attention_brief_input
-_load_attention_brief_payloads = attention_content._load_attention_brief_payloads
 _build_attention_micro_chart = attention_content._build_attention_micro_chart
 _load_attention_news_payloads = attention_content._load_attention_news_payloads
 _load_attention_context_payloads = attention_content._load_attention_context_payloads
@@ -2325,8 +2626,6 @@ def _normalize_workspace_section(section_name: object) -> str:
         "Homepage Exp": HOME_EXP_SECTION,
         "Home Experimental": HOME_EXP_SECTION,
         "Daily Market Overview": HOME_EXP_SECTION,
-        "Agentic Omnibar": AGENTIC_OMNIBAR_SECTION,
-        "Agentic Ombibar": AGENTIC_OMNIBAR_SECTION,
         "Portfolio Overview": PORTFOLIO_SECTION,
         "Performance": PORTFOLIO_PERFORMANCE_SECTION,
         "Market Opportunity": MARKET_EXPLORER_SECTION,
@@ -2416,6 +2715,74 @@ def _request_ip_address() -> str:
 def _request_user_agent() -> str:
     headers = _request_headers()
     return headers.get("User-Agent") or headers.get("user-agent") or ""
+
+
+def _env_flag(name: str, *, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None or not str(raw).strip():
+        return default
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _mobile_ui_enabled() -> bool:
+    return _env_flag("STREAMLIT_MOBILE_UI_ENABLED", default=False)
+
+
+def _normalized_layout_mode(value: object) -> str:
+    normalized = str(value or "").strip().lower()
+    return normalized if normalized in {"desktop", "mobile", "auto"} else ""
+
+
+def _mobile_user_agent(user_agent: object) -> bool:
+    text = str(user_agent or "").lower()
+    if not text:
+        return False
+    mobile_markers = ("iphone", "ipod", "android", "mobile", "windows phone")
+    tablet_markers = ("ipad", "tablet")
+    return any(marker in text for marker in mobile_markers) and not any(marker in text for marker in tablet_markers)
+
+
+def _resolve_layout_mode() -> str:
+    """Resolve desktop/mobile shell mode. Desktop is the rollback-safe default."""
+    if not _mobile_ui_enabled():
+        st.session_state["_ui_layout_mode"] = "desktop"
+        return "desktop"
+
+    query_mode = _normalized_layout_mode(_query_param_value("layout"))
+    if query_mode:
+        st.session_state["_ui_layout_mode_override"] = query_mode
+
+    selected_mode = (
+        _normalized_layout_mode(st.session_state.get("_ui_layout_mode_override"))
+        or _normalized_layout_mode(os.getenv("STREAMLIT_LAYOUT_MODE_DEFAULT"))
+        or "desktop"
+    )
+    if selected_mode == "auto":
+        resolved = "mobile" if _mobile_user_agent(_request_user_agent()) else "desktop"
+    else:
+        resolved = selected_mode
+    st.session_state["_ui_layout_mode"] = resolved
+    return resolved
+
+
+def _current_layout_mode() -> str:
+    return _normalized_layout_mode(st.session_state.get("_ui_layout_mode")) or "desktop"
+
+
+def _mobile_layout_active() -> bool:
+    return _current_layout_mode() == "mobile"
+
+
+def _responsive_columns(spec: int | Sequence[float], *, gap: str = "small") -> list[object]:
+    """Return Streamlit columns on desktop and stacked containers on mobile."""
+    if _mobile_layout_active():
+        count = int(spec) if isinstance(spec, int) else len(list(spec))
+        return [st.container() for _ in range(max(count, 1))]
+    return list(st.columns(spec, gap=gap))
+
+
+def _responsive_two_panel(*, gap: str = "large") -> list[object]:
+    return _responsive_columns(2, gap=gap)
 
 
 def _auth_username() -> str:
@@ -2609,6 +2976,9 @@ def _restore_database_login_from_cookie() -> bool:
 
 def _render_login_gate_sidebar() -> None:
     app_track = (os.getenv("APP_TRACK") or "local").strip().lower()
+    if _mobile_layout_active():
+        _render_mobile_auth_shell()
+        return
     with st.sidebar:
         _render_sidebar_brand_panel()
         _render_sidebar_editorial_links(placement="sidebar_brand")
@@ -2648,6 +3018,7 @@ def _render_legacy_login_gate() -> None:
     if submitted:
         if username.strip() == username_expected and password == password_expected:
             session_id = _create_auth_session(username_expected)
+            _clear_auth_query_params()
             st.session_state["_ui_authenticated"] = True
             st.session_state["_ui_auth_session_id"] = session_id
             st.session_state["_ui_auth_mode"] = "legacy"
@@ -2714,6 +3085,7 @@ def _render_database_login_gate() -> None:
                 context = result.get("context")
                 session_token = str(result.get("session_token") or "")
                 if isinstance(context, auth_service.UserContext) and session_token:
+                    _clear_auth_query_params()
                     st.session_state["_ui_authenticated"] = True
                     st.session_state["_ui_auth_session_id"] = session_token
                     st.session_state["_ui_auth_mode"] = "database"
@@ -2721,7 +3093,7 @@ def _render_database_login_gate() -> None:
                     _store_user_context(context)
                     _render_auth_cookie_sync("set", session_token, persistent=remember_me)
                     _apply_post_login_destination()
-                    st.rerun()
+                    return
             else:
                 st.error(str(result.get("message") or "Login failed."))
 
@@ -2763,7 +3135,7 @@ def _render_database_login_gate() -> None:
                         _render_auth_cookie_sync("set", session_token, persistent=True)
                         _apply_post_login_destination()
                         st.success("Account created. Loading your workspace...")
-                        st.rerun()
+                        return
                 else:
                     st.error(str(result.get("message") or "Account creation failed."))
 
@@ -2922,7 +3294,7 @@ def _render_invite_email_designer(*, current_user: auth_service.UserContext) -> 
     if loaded_template is not None:
         st.caption(f"Loaded in editor: {str(loaded_template.get('name') or loaded_template_id)}")
 
-    action_load_col, action_active_col, action_delete_col = st.columns(3)
+    action_load_col, action_active_col, action_delete_col = _responsive_columns(3)
     with action_load_col:
         if st.button("Load Template", key="_access_invite_template_load", use_container_width=True):
             _queue_invite_template_state_update(
@@ -2963,7 +3335,7 @@ def _render_invite_email_designer(*, current_user: auth_service.UserContext) -> 
             else:
                 st.error(str(result.get("message") or "Unable to delete template."))
 
-    save_name_col, save_current_col, save_new_col = st.columns([1.8, 1.1, 1.1])
+    save_name_col, save_current_col, save_new_col = _responsive_columns([1.8, 1.1, 1.1])
     with save_name_col:
         st.text_input("Template Name", key=_INVITE_TEMPLATE_NAME_KEY)
     with save_current_col:
@@ -3016,7 +3388,7 @@ def _render_invite_email_designer(*, current_user: auth_service.UserContext) -> 
                 notice={"level": "success", "message": "New template saved and activated."},
             )
 
-    text_col, color_col = st.columns(2)
+    text_col, color_col = _responsive_two_panel()
     with text_col:
         st.text_input("Kicker", key=_invite_theme_widget_state_key("kicker"))
         st.text_input("Headline", key=_invite_theme_widget_state_key("headline"))
@@ -3136,7 +3508,7 @@ def _render_llm_config_admin() -> None:
     if config is None:
         st.warning("No LLM is configured. Set LLM_API_KEY (or OPENAI_API_KEY) to enable.")
     else:
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3 = _responsive_columns(3)
         col1.metric("Provider", config.provider)
         col2.metric("Model", config.model or config.deployment)
         col3.metric("Temperature", str(config.temperature))
@@ -3160,8 +3532,8 @@ def _render_llm_config_admin() -> None:
     st.subheader("System Prompts & Tuning Parameters")
     st.caption("Edit prompts and numeric limits below. Changes apply after saving. Pipeline prompts take effect on next job run.")
     # Ensure modules are imported so their register_narrative_prompt calls run.
+    import services.aql_zopedia_engine  # noqa: F401
     import services.attention_market_events  # noqa: F401
-    import services.attention_feed_brief  # noqa: F401
     import services.attention_home_1d  # noqa: F401
     import services.attention_live_research  # noqa: F401
     import services.attention_context_llm  # noqa: F401
@@ -3183,9 +3555,10 @@ def _render_llm_config_admin() -> None:
         st.info("No prompts or parameters registered yet.")
 
     _PROMPT_GROUP_DESCRIPTIONS = {
-        "Chat + Search": "Powers the omnibar research agent. Changes take effect on the next query.",
+        "Zopedia": "Powers the research memory agent. Changes take effect on the next query.",
         "Attention Pipeline": "Generate feed cards, narratives, and event text. Changes take effect on next pipeline run.",
         "AQL / Research": "Write research summaries, hypotheses, and event analysis. Changes take effect on next pipeline run.",
+        "AQL / Zopedia Engine": "Shared research, memory, tool, evidence, and summary spine. Changes affect chat immediately and jobs on next run.",
     }
     prompts_by_group: dict[str, list[dict]] = {}
     for entry in prompts:
@@ -3224,7 +3597,8 @@ def _render_llm_config_admin() -> None:
     _GROUP_DESCRIPTIONS = {
         "Display Limits": "Applied at render time — changes take effect instantly.",
         "LLM Context Window": "Applied at pipeline job time — changes require a pipeline re-run.",
-        "Chat + Search": "Applied to the omnibar agent — changes take effect on the next query.",
+        "Zopedia": "Applied to the research memory agent — changes take effect on the next query.",
+        "AQL / Zopedia Engine": "Applied to the shared research/memory/tool spine. Chat changes take effect immediately; job changes apply on next run.",
     }
     if params_by_group:
         st.divider()
@@ -3235,7 +3609,7 @@ def _render_llm_config_admin() -> None:
             if group_desc:
                 st.caption(group_desc)
             for param in group_params:
-                col_label, col_input, col_default = st.columns([3, 1.5, 1.5])
+                col_label, col_input, col_default = _responsive_columns([3, 1.5, 1.5])
                 with col_label:
                     override_tag = " *(overridden)*" if param.get("is_override") else ""
                     st.markdown(f"{param['name']}{override_tag}")
@@ -3371,7 +3745,7 @@ def _render_api_keys_admin(
 
             status_icon = "active" if key_status == "active" else "revoked"
             with st.expander(f"{key_name_display}  |  {key_prefix}...  |  {status_icon}", expanded=False):
-                info_cols = st.columns([1, 1, 1])
+                info_cols = _responsive_columns([1, 1, 1])
                 with info_cols[0]:
                     st.caption(f"Status: **{key_status}**")
                     st.caption(f"Prefix: `{key_prefix}`")
@@ -3511,7 +3885,7 @@ curl -o export.zip "DOWNLOAD_URL"
 
 
 def _render_access_admin_section() -> None:
-    header_cols = st.columns([4.6, 1.4])
+    header_cols = _responsive_columns([4.6, 1.4])
     with header_cols[0]:
         st.title(ADMIN_SECTION)
     with header_cols[1]:
@@ -3565,7 +3939,7 @@ def _render_access_admin_section() -> None:
     )
 
     if admin_view == "Access Management":
-        invite_col, reset_col = st.columns(2)
+        invite_col, reset_col = _responsive_two_panel()
         with invite_col:
             st.subheader("Create Invite")
             with st.form("access_admin_invite", clear_on_submit=True):
@@ -3682,7 +4056,7 @@ def _render_access_admin_section() -> None:
         )
 
         if admin_view == "Usage":
-            control_col_1, control_col_2, control_col_3, control_col_4 = st.columns([1, 1, 1.6, 0.9])
+            control_col_1, control_col_2, control_col_3, control_col_4 = _responsive_columns([1, 1, 1.6, 0.9])
             with control_col_1:
                 usage_window_days = int(
                     st.selectbox(
@@ -3722,7 +4096,7 @@ def _render_access_admin_section() -> None:
                     )
                 )
         else:
-            control_col_1, control_col_2, control_col_3 = st.columns([1, 1, 1.8])
+            control_col_1, control_col_2, control_col_3 = _responsive_columns([1, 1, 1.8])
             with control_col_1:
                 security_window_days = int(
                     st.selectbox(
@@ -3920,7 +4294,7 @@ def _render_pipeline_admin(*, source_refresh_flags: dict[str, bool]) -> None:
         succeeded = int((status_table["status"] == "Succeeded").sum())
         running = int((status_table["status"] == "Running").sum())
         failing = int((status_table["status"] == "Failed").sum())
-        c1, c2, c3 = st.columns(3)
+        c1, c2, c3 = _responsive_columns(3)
         c1.metric("Succeeded", succeeded)
         c2.metric("Running", running)
         c3.metric("Failed", failing)
@@ -3937,7 +4311,7 @@ def _render_pipeline_admin(*, source_refresh_flags: dict[str, bool]) -> None:
         if len(datasets_list) > 4:
             dataset_preview += f", +{len(datasets_list) - 4} more"
 
-        cols = st.columns([3, 2, 1.2])
+        cols = _responsive_columns([3, 2, 1.2])
         with cols[0]:
             st.markdown(f"**{group['label']}** — {', '.join(sources)}")
             st.caption(f"`{job_name}` · Datasets: {dataset_preview}")
@@ -4309,7 +4683,7 @@ def _render_ticker_snapshot_table(
     if not show_header and len(rows) == 1:
         row = rows[0]
         compact_spec = [2.8, 1.45] if interactive_preview else [0.9, 2.5, 1.45]
-        compact_cols = st.columns(compact_spec, gap="small")
+        compact_cols = _responsive_columns(compact_spec, gap="small")
         if interactive_preview:
             with compact_cols[0]:
                 _render_ticker_preview_identity(
@@ -4352,14 +4726,14 @@ def _render_ticker_snapshot_table(
     if show_header:
         if interactive_preview:
             header_spec = [3.3, 1.6, 1.8] if show_context_column else [3.5, 1.6]
-            header_cols = st.columns(header_spec, gap="small")
+            header_cols = _responsive_columns(header_spec, gap="small")
             header_cols[0].caption("Ticker")
             header_cols[1].caption("Chart")
             if show_context_column:
                 header_cols[2].caption("Context")
         else:
             header_spec = [0.9, 2.5, 1.6, 1.8] if show_context_column else [0.9, 2.7, 1.6]
-            header_cols = st.columns(header_spec, gap="small")
+            header_cols = _responsive_columns(header_spec, gap="small")
             header_cols[0].caption("Ticker")
             header_cols[1].caption("Name")
             header_cols[2].caption("Chart")
@@ -4369,7 +4743,7 @@ def _render_ticker_snapshot_table(
         row_container = st.container(border=show_header or len(rows) > 1)
         with row_container:
             row_spec = [3.3, 1.6, 1.8] if interactive_preview and show_context_column else [3.5, 1.6] if interactive_preview else [0.9, 2.5, 1.6, 1.8] if show_context_column else [0.9, 2.7, 1.6]
-            row_cols = st.columns(row_spec, gap="small")
+            row_cols = _responsive_columns(row_spec, gap="small")
             if interactive_preview:
                 with row_cols[0]:
                     _render_ticker_preview_identity(
@@ -4628,9 +5002,9 @@ def _render_related_news_database_section(
     )
     st.markdown(f"**{heading}**")
     if rows.empty:
-        st.caption("No related database-backed news was available in the latest materialized snapshot.")
+        st.caption("No related news was available.")
         return
-    st.caption("Source: materialized `news_articles` dataset")
+    st.caption("Source: news database")
     for index, (_, row) in enumerate(rows.iterrows()):
         headline = str(row.get("headline") or "Untitled").strip()
         source = str(row.get("source") or "News").strip()
@@ -4657,7 +5031,7 @@ def _render_related_news_database_section(
 
 def _compact_background_fallback_text(ticker: str) -> str:
     target = str(ticker or "").upper().strip()
-    return f"No relevant catalyst found in web coverage for {target} in the latest agentic run."
+    return f"No relevant catalyst found in web coverage for {target}."
 
 
 def _is_low_signal_company_context_text(text: object) -> bool:
@@ -4746,7 +5120,7 @@ def _render_compact_background_sections(
     if _is_low_signal_company_context_text(happened_text):
         happened_text = ""
     if not background_text:
-        background_text = f"Company background is not available in the latest materialized context for {str(ticker or '').upper().strip()}."
+        background_text = f"Company background is not available for {str(ticker or '').upper().strip()}."
     if not happened_text:
         happened_text = fallback
 
@@ -4758,7 +5132,7 @@ def _render_compact_background_sections(
 
     st.markdown("**Evidence**")
     if not evidence_links:
-        st.caption("No relevant evidence links were available in the latest agentic run.")
+        st.caption("No relevant evidence links were available.")
         return
     for index, item in enumerate(evidence_links[:8]):
         headline = str((item or {}).get("headline") or "Untitled").strip()
@@ -4802,7 +5176,7 @@ def _render_home_ticker_background_panel(
     with st.container(border=show_container_border):
         if show_header:
             if show_open_button or show_clear_button:
-                header_cols = st.columns([5.4, 1.4 if show_open_button and show_clear_button else 0.7], gap="small")
+                header_cols = _responsive_columns([5.4, 1.4 if show_open_button and show_clear_button else 0.7], gap="small")
                 title_col = header_cols[0]
                 action_col = header_cols[1]
             else:
@@ -5587,7 +5961,45 @@ def _dispatch_agentic_omnibar_progress(
 
 
 def _humanize_agentic_omnibar_tool_name(tool_name: object) -> str:
-    clean_name = str(tool_name or "").strip().replace("_", " ")
+    raw_name = str(tool_name or "").strip()
+    normalized = raw_name.lower().replace("_", ".").replace(" ", ".")
+    friendly_names = {
+        "research.retained.context": "saved research",
+        "research.market.impact.map": "market context",
+        "research.live.event.evidence": "recent news",
+        "research.search.evidence": "evidence search",
+        "research.open.page": "source page",
+        "zopedia.search.pages": "Zopedia memory",
+        "zopedia.read.page": "memory page",
+        "zopedia.read.source": "source evidence",
+        "zopedia.sources.for.page": "page sources",
+        "zopedia.trace.to.evidence": "source trail",
+        "zopedia.neighborhood": "linked memory",
+        "zopedia.ingest.source": "source intake",
+        "zopedia.ingest.youtube": "transcript intake",
+        "zopedia.propose.change": "memory review",
+        "zopedia.list.proposals": "memory review queue",
+        "zopedia.list.mutations": "memory changes",
+        "zopedia.list.maintenance.reports": "memory health",
+        "zopedia.apply.mutation": "memory update",
+        "zopedia.rollback.mutation": "memory rollback",
+        "investigator.technical.signals": "technical signals",
+        "investigator.forecast": "forecast data",
+        "investigator.company.context": "company context",
+        "investigator.fundamentals": "fundamentals",
+        "investigator.recent.news": "company news",
+        "dataset.run.anomaly.check": "anomaly check",
+        "analysis.run.python": "analysis workspace",
+        "hypothesis.verify": "verification",
+        "scratchpad.write": "research notes",
+        "scratchpad.read": "research notes",
+        "system.capabilities": "available data",
+    }
+    if normalized in friendly_names:
+        return friendly_names[normalized]
+    clean_name = raw_name.replace("_", " ").replace(".", " ").strip()
+    if clean_name.startswith("zopedia."):
+        return clean_name.replace("zopedia.", "Zopedia ")
     return clean_name if clean_name else "the next data source"
 
 
@@ -5610,20 +6022,20 @@ def _agentic_omnibar_progress_message(event: dict[str, object]) -> str:
     if stage == "agent_dispatch":
         return "Starting the analysis."
     if stage == "start":
-        return "Setting up the analysis agent."
+        return "Starting the research."
     if stage == "tool_catalog_ready":
-        return "Loading the available data sources."
+        return "Getting ready."
     if stage == "hidden_step_heartbeat":
         elapsed = int(event.get("elapsed_seconds") or 0)
-        return f"Still preparing evidence... ({elapsed}s)"
+        return f"Checking saved research... ({elapsed}s)"
     if stage == "hidden_step_timeout":
         elapsed = int(event.get("elapsed_seconds") or 0)
-        return f"One preparation step timed out after {elapsed}s. Continuing."
+        return f"Saved-research check timed out after {elapsed}s. Continuing."
     if stage == "planner_start":
-        return "Deciding the next step."
+        return "Planning the next research step."
     if stage == "planner_heartbeat":
         elapsed = int(event.get("elapsed_seconds") or 0)
-        return f"Still thinking... ({elapsed}s)"
+        return f"Still reasoning... ({elapsed}s)"
     if stage == "planner_reasoning":
         reasoning = str(event.get("reasoning") or "").strip()
         return reasoning if reasoning else "Thinking about the next step."
@@ -5641,6 +6053,25 @@ def _agentic_omnibar_progress_message(event: dict[str, object]) -> str:
         return f"{tool_label.capitalize()} did not return usable data. Trying another path."
     if stage in {"planner_final", "final_synthesis_start"}:
         return "Writing the answer."
+    if stage == "final_synthesis_heartbeat":
+        elapsed = int(event.get("elapsed_seconds") or 0)
+        return f"Writing the answer... ({elapsed}s)"
+    if stage == "final_synthesis_timeout":
+        return "Synthesis timed out. Returning the evidence gathered so far."
+    if stage == "memory_reflection_start":
+        return "Checking whether Zopedia memory should change."
+    if stage == "memory_reflection_complete":
+        return str(event.get("message") or "Zopedia memory checked.")
+    if stage == "memory_reflection_timeout":
+        return "Zopedia memory check timed out. Continuing."
+    if stage == "memory_reflection_failed":
+        return "Zopedia memory check failed. Continuing."
+    if stage == "memory_mutation_start":
+        return "Updating Zopedia memory."
+    if stage == "memory_mutation_complete":
+        return str(event.get("message") or "Zopedia memory updated.")
+    if stage == "memory_mutation_failed":
+        return "Zopedia memory update failed. Continuing."
     if stage == "failed":
         return "The analysis hit an error."
     if stage in {"completed", "status"}:
@@ -5707,32 +6138,49 @@ def _render_answer_metrics(metrics: list[dict[str, str]]) -> None:
     """Render extracted ticker metrics as a horizontal strip of cards."""
     if not metrics:
         return
-    cols = st.columns(min(len(metrics), 6))
+    cols = _responsive_columns(min(len(metrics), 6))
     for i, m in enumerate(metrics):
         with cols[i]:
             st.metric(m["ticker"], m["value"])
 
 
+def _is_public_web_source_url(url: str) -> bool:
+    parsed = urlparse(str(url or "").strip())
+    if parsed.scheme.lower() not in {"http", "https"}:
+        return False
+    host = (parsed.hostname or "").strip().lower()
+    if not host:
+        return False
+    if host in {"localhost", "127.0.0.1", "0.0.0.0"}:
+        return False
+    return not host.endswith((".local", ".localhost", ".test", ".invalid"))
+
+
+def _source_domain(url: str) -> str:
+    parsed = urlparse(str(url or "").strip())
+    return (parsed.hostname or "").replace("www.", "")[:30]
+
+
 def _render_source_evidence_strip(sources: list[dict[str, str]]) -> None:
-    """Render Perplexity-style numbered source cards."""
+    """Render public web source cards. Internal/debug refs stay out of citations."""
     unique: list[dict[str, str]] = []
     seen_urls: set[str] = set()
     for src in sources:
         if not isinstance(src, dict):
             continue
         url = str(src.get("url") or "").strip()
-        if not url or url in seen_urls:
+        if not url or url in seen_urls or not _is_public_web_source_url(url):
             continue
         seen_urls.add(url)
         unique.append(src)
     if not unique:
         return
     display = unique[:5]
-    cols = st.columns(min(len(display), 5))
+    cols = _responsive_columns(min(len(display), 5))
     for i, src in enumerate(display):
         url = str(src.get("url") or "").strip()
         label = str(src.get("label") or "").strip()
-        domain = url.split("//")[-1].split("/")[0].replace("www.", "")[:30]
+        domain = _source_domain(url)
         short_label = (label[:45] + "...") if len(label) > 48 else label if label else domain
         with cols[i]:
             with st.container(border=True):
@@ -5746,9 +6194,49 @@ def _render_thinking_trace_content(
     key_prefix: str = "trace",
 ) -> None:
     """Render verbose thinking trace inside an expanded st.status widget."""
+
+    def _render_analysis_result(render_payload: dict[str, object], *, key: str) -> None:
+        analysis = dict(render_payload.get("analysis") or {})
+        metrics = [dict(item) for item in list(analysis.get("metrics") or []) if isinstance(item, dict)]
+        if metrics:
+            st.dataframe(pd.DataFrame(metrics), use_container_width=True, hide_index=True)
+        for table_idx, table in enumerate(list(analysis.get("tables") or [])[:2]):
+            if not isinstance(table, dict):
+                continue
+            rows = list(table.get("rows") or [])
+            if not rows:
+                continue
+            st.caption(str(table.get("name") or f"table_{table_idx + 1}"))
+            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+        for chart_idx, chart in enumerate(list(analysis.get("charts") or [])[:2]):
+            if not isinstance(chart, dict):
+                continue
+            x_values = list(chart.get("x") or [])
+            y_values = pd.to_numeric(pd.Series(list(chart.get("y") or [])), errors="coerce")
+            if not x_values or len(x_values) != len(y_values) or y_values.dropna().empty:
+                continue
+            chart_kind = str(chart.get("kind") or "line").strip().lower()
+            fig = go.Figure()
+            trace_name = str(chart.get("series_name") or chart.get("name") or "series").strip()
+            if chart_kind == "bar":
+                fig.add_trace(go.Bar(x=x_values, y=y_values, name=trace_name))
+            else:
+                mode = "markers" if chart_kind == "scatter" else "lines+markers"
+                fig.add_trace(go.Scatter(x=x_values, y=y_values, mode=mode, name=trace_name))
+            fig.update_layout(
+                template="plotly_dark",
+                title=str(chart.get("name") or "Analysis chart"),
+                margin={"l": 18, "r": 18, "t": 42, "b": 18},
+                height=260,
+            )
+            st.plotly_chart(fig, use_container_width=True, key=f"{key}_analysis_chart_{chart_idx}")
+        error = str(analysis.get("error") or "").strip()
+        if error:
+            st.caption(f"Analysis error: {error}")
+
     if not trace:
         tool_calls = list((agent_result or {}).get("tool_calls") or [])
-        for tc in tool_calls:
+        for tc_idx, tc in enumerate(tool_calls):
             tool_name = str(tc.get("tool_name") or "tool")
             tc_status = str(tc.get("status") or "unknown")
             try:
@@ -5761,6 +6249,9 @@ def _render_thinking_trace_content(
                 st.caption(f"← [{tc_status}] {preview}")
             else:
                 st.caption(f"← [{tc_status}]")
+            rp = (tc.get("result_summary") or {}).get("render_payload") if isinstance(tc.get("result_summary"), dict) else None
+            if isinstance(rp, dict) and rp.get("kind") == "analysis_result":
+                _render_analysis_result(rp, key=f"{key_prefix}_tool_{tc_idx}")
         return
 
     for step_idx, step in enumerate(trace):
@@ -5815,6 +6306,8 @@ def _render_thinking_trace_content(
                             st.plotly_chart(fig, use_container_width=True, key=f"{key_prefix}_chart_{step_idx}")
                     except Exception:
                         pass
+            if isinstance(rp, dict) and rp.get("kind") == "analysis_result":
+                _render_analysis_result(rp, key=f"{key_prefix}_{step_idx}")
             links = step.get("source_links")
             if isinstance(links, list) and links:
                 link_parts = []
@@ -5822,12 +6315,42 @@ def _render_thinking_trace_content(
                     if isinstance(link, dict):
                         url = str(link.get("url") or "").strip()
                         lbl = str(link.get("label") or url).strip()
-                        if url:
+                        if url and _is_public_web_source_url(url):
                             link_parts.append(f"[{lbl}]({url})")
                 if link_parts:
                     st.caption("Sources: " + " · ".join(link_parts))
         elif step_type == "message":
             st.markdown(f"- {step.get('text', '')}")
+
+
+def _thinking_trace_stable_id(panel_id: object) -> str:
+    return re.sub(r"[^A-Za-z0-9_]+", "_", str(panel_id or "trace")).strip("_") or "trace"
+
+
+def _thinking_trace_open_key(panel_id: object) -> str:
+    return f"zopedia_thinking_trace_open_{_thinking_trace_stable_id(panel_id)}"
+
+
+def _render_thinking_trace_panel(
+    trace: list[dict[str, object]],
+    agent_result: dict[str, object] | None = None,
+    *,
+    panel_id: str,
+    key_prefix: str,
+    default_open: bool = False,
+) -> None:
+    if not trace:
+        return
+    open_key = _thinking_trace_open_key(panel_id)
+    if open_key not in st.session_state:
+        st.session_state[open_key] = bool(default_open)
+    is_open = st.toggle(
+        f"Thinking Trace ({len(trace)} steps)",
+        key=open_key,
+    )
+    if is_open:
+        with st.container(border=True):
+            _render_thinking_trace_content(trace, agent_result, key_prefix=key_prefix)
 
 
 def _render_inline_search_results(
@@ -5840,7 +6363,7 @@ def _render_inline_search_results(
         label = str(result.get("label") or "Result").strip()
         subtitle = str(result.get("subtitle") or "").strip()
         with st.container(border=True):
-            result_cols = st.columns([5, 2])
+            result_cols = _responsive_columns([5, 2])
             with result_cols[0]:
                 st.markdown(f"**{label}**")
                 if subtitle:
@@ -5861,18 +6384,194 @@ def _render_inline_search_results(
                         _open_workspace_section(BROAD_ECONOMY_SECTION)
 
 
+def _split_long_answer_paragraph(paragraph: str, *, max_chars: int = 520) -> list[str]:
+    text = " ".join(str(paragraph or "").strip().split())
+    if len(text) <= max_chars:
+        return [text] if text else []
+    if re.match(r"^\s*(```|#{1,6}\s|[-*]\s|\d+\.\s)", paragraph):
+        return [paragraph.strip()]
+    sentences = [
+        item.strip()
+        for item in re.split(r"(?<=[.!?])\s+(?=(?:\*\*)?[A-Z0-9$])", text)
+        if item.strip()
+    ]
+    if len(sentences) <= 1:
+        return [text[i : i + max_chars].strip() for i in range(0, len(text), max_chars)]
+    chunks: list[str] = []
+    current = ""
+    for sentence in sentences:
+        candidate = f"{current} {sentence}".strip() if current else sentence
+        if current and len(candidate) > max_chars:
+            chunks.append(current)
+            current = sentence
+        else:
+            current = candidate
+    if current:
+        chunks.append(current)
+    return chunks
+
+
+def _prepare_answer_markdown_blocks(answer: str) -> list[str]:
+    text = str(answer or "").strip()
+    if not text:
+        return []
+    text = re.sub(r"\s+(#{1,6}\s+)", r"\n\n\1", text)
+    text = re.sub(r"(?<!\n)\s+([-*]\s+(?:\*\*)?[A-Z0-9$])", r"\n\n\1", text)
+    raw_blocks = [block.strip() for block in re.split(r"\n\s*\n", text) if block.strip()]
+    blocks: list[str] = []
+    for block in raw_blocks:
+        if block.startswith("```"):
+            blocks.append(block)
+            continue
+        heading_match = re.match(r"^(#{1,6}\s+)(.+)$", block, flags=re.DOTALL)
+        if heading_match:
+            heading_prefix = heading_match.group(1)
+            heading_body = re.sub(r"\s+", " ", heading_match.group(2).strip())
+            if len(heading_body) <= 88:
+                blocks.append(f"{heading_prefix}{heading_body}")
+                continue
+            words = heading_body.split()
+            heading_words: list[str] = []
+            if words and words[0].strip(":").lower() in {"takeaway", "verdict", "conclusion"}:
+                heading_words = [words[0].strip(":")]
+            else:
+                for word_idx, word in enumerate(words):
+                    clean_word = re.sub(r"^[^A-Za-z0-9$]+|[^A-Za-z0-9$]+$", "", word)
+                    prev_word = re.sub(
+                        r"^[^A-Za-z0-9$]+|[^A-Za-z0-9$]+$",
+                        "",
+                        words[word_idx - 1],
+                    ) if word_idx > 0 else ""
+                    if word == "-" and len(heading_words) >= 2:
+                        break
+                    if (
+                        word_idx >= 3
+                        and clean_word[:1].isupper()
+                        and prev_word[:1].islower()
+                    ):
+                        break
+                    if word_idx >= 9:
+                        break
+                    heading_words.append(word)
+            if not heading_words:
+                heading_words = words[: min(len(words), 6)]
+            heading = " ".join(heading_words).strip()
+            rest = " ".join(words[len(heading_words) :]).strip()
+            blocks.append(f"{heading_prefix}{heading}")
+            blocks.extend(_split_long_answer_paragraph(rest))
+            continue
+        blocks.extend(_split_long_answer_paragraph(block))
+    return blocks
+
+
+def _answer_block_label(block: str, *, idx: int) -> str:
+    clean = re.sub(r"```.*?```", "code block", str(block or ""), flags=re.DOTALL)
+    clean = re.sub(r"^#{1,6}\s+", "", clean.strip())
+    clean = re.sub(r"[*_`>#\[\]()]|https?://\S+", "", clean)
+    clean = re.sub(r"\s+", " ", clean).strip(" -")
+    if not clean:
+        clean = "Answer passage"
+    if len(clean) > 190:
+        clean = clean[:187].rstrip() + "..."
+    return f"{idx + 1}. {clean}"
+
+
+def _answer_block_preview(block: str, *, max_chars: int = 520) -> str:
+    text = str(block or "").strip()
+    if len(text) <= max_chars:
+        return text
+    candidate = text[:max_chars].rstrip()
+    last_space = candidate.rfind(" ")
+    if last_space > max_chars * 0.7:
+        candidate = candidate[:last_space].rstrip()
+    return candidate + "..."
+
+
+def _answer_deeper_query(
+    *,
+    original_query: str,
+    selected_text: str,
+) -> dict[str, str]:
+    selected = str(selected_text or "").strip()
+    snippet = re.sub(r"\s+", " ", re.sub(r"[*_`>#\[\]()]|https?://\S+", "", selected)).strip()
+    if len(snippet) > 120:
+        snippet = snippet[:117].rstrip() + "..."
+    return {
+        "display_query": f"Go deeper on: {snippet or 'selected passage'}",
+        "agent_query": (
+            "Dive deeper into this selected passage from the previous Zopedia answer.\n\n"
+            f"Original user question:\n{str(original_query or '').strip() or 'Not available'}\n\n"
+            f"Selected passage:\n{selected}\n\n"
+            "Expand this passage with relevant Zopedia memory, source evidence, market data, and current research where needed. "
+            "If the selected passage exposes a stale or missing memory fact, use the safe Zopedia memory mutation path or create a proposal."
+        ),
+    }
+
+
+def _render_interactive_answer_markdown(
+    answer: str,
+    *,
+    query: str,
+    msg_id: str,
+) -> None:
+    blocks = _prepare_answer_markdown_blocks(answer)
+    if not blocks:
+        return
+    stable_id = hashlib.sha256(str(msg_id or answer[:120]).encode("utf-8")).hexdigest()[:12]
+    for idx, block in enumerate(blocks):
+        block = str(block or "").strip()
+        if not block:
+            continue
+        if re.match(r"^#{1,6}\s+", block):
+            st.markdown(block)
+            continue
+        if block.startswith("```"):
+            st.markdown(block)
+            continue
+        state_key = f"zopedia_answer_block_open_{stable_id}_{idx}"
+        expand_key = f"zopedia_answer_block_expand_{stable_id}_{idx}"
+        is_open = bool(st.session_state.get(state_key))
+        is_long = len(block) > 620
+        visible_block = block if is_open or not is_long else _answer_block_preview(block)
+        st.markdown(visible_block)
+        if is_long:
+            action_cols = _responsive_columns([1.1, 6.9])
+            with action_cols[0]:
+                if st.button(
+                    "Show less" if is_open else "Read more",
+                    key=expand_key,
+                    width="stretch",
+                ):
+                    if is_open:
+                        st.session_state.pop(state_key, None)
+                    else:
+                        st.session_state[state_key] = True
+                    st.rerun()
+
+
 def _render_omnibar_welcome(beats: list[dict[str, object]]) -> None:
     """Render the empty-state welcome screen with clickable example prompts."""
     st.markdown("#### What would you like to research?")
+
+    def _example_label(value: str, *, max_chars: int = 72) -> str:
+        text = re.sub(r"\s+", " ", str(value or "").strip())
+        if len(text) <= max_chars:
+            return text
+        clipped = text[:max_chars].rstrip()
+        last_space = clipped.rfind(" ")
+        if last_space > max_chars * 0.65:
+            clipped = clipped[:last_space].rstrip()
+        return clipped + "..."
+
     examples: list[str] = []
     for beat in beats[:2]:
         sentence = str(beat.get("sentence") or "").strip()
         if sentence:
-            examples.append(sentence[:65])
+            examples.append(_example_label(sentence))
     defaults = ["What's driving oil stocks today?", "Analyze semis after CPI", "Compare banks vs software"]
     while len(examples) < 3 and defaults:
         examples.append(defaults.pop(0))
-    cols = st.columns(min(len(examples), 3))
+    cols = _responsive_columns(min(len(examples), 3))
     for i, ex in enumerate(examples[:3]):
         with cols[i]:
             if st.button(ex, key=f"omnibar_welcome_{i}", use_container_width=True):
@@ -5888,7 +6587,7 @@ def _render_agent_response_message(msg: dict[str, object]) -> None:
 
     # Error message
     if error:
-        st.error(f"The research agent encountered an error: {error}")
+        st.error(f"Zopedia encountered an error: {error}")
 
     # Source evidence strip
     sources = list(msg.get("source_links") or [])
@@ -5904,7 +6603,11 @@ def _render_agent_response_message(msg: dict[str, object]) -> None:
 
     # Answer text
     if answer and not error:
-        st.markdown(answer)
+        _render_interactive_answer_markdown(
+            answer,
+            query=str(msg.get("query") or "").strip(),
+            msg_id=str(msg.get("msg_id") or hashlib.sha256(answer.encode("utf-8")).hexdigest()[:12]),
+        )
 
     # Confidence and limitations
     confidence = str(msg.get("confidence") or "").strip()
@@ -5917,20 +6620,29 @@ def _render_agent_response_message(msg: dict[str, object]) -> None:
             footer_parts.append(" · ".join(limitations[:2]))
         st.caption(" | ".join(footer_parts))
 
-    # Thinking trace — explicit expander
+    # Thinking trace — persistent toggle so reruns do not collapse it.
     msg_id = str(msg.get("msg_id") or "hist")
     if trace:
-        with st.expander(f"Thinking Trace ({len(trace)} steps)", expanded=False):
-            _render_thinking_trace_content(trace, agent_result, key_prefix=f"hist_{msg_id}")
+        _render_thinking_trace_panel(
+            trace,
+            agent_result,
+            panel_id=msg_id,
+            key_prefix=f"hist_{msg_id}",
+        )
 
     # Search results
     search_results = list(msg.get("search_results") or [])
-    if search_results:
+    if search_results and (not answer or error):
         _render_inline_search_results(search_results, msg_id)
 
     # Dig deeper
     if answer and not error:
-        if st.button("Dig deeper", key=f"dig_{msg.get('msg_id', '')}"):
+        if st.button(
+            "Dig deeper",
+            key=f"dig_{msg.get('msg_id', '')}",
+            type="tertiary",
+            icon=":material/travel_explore:",
+        ):
             original_query = str(msg.get("query") or "").strip()
             st.session_state["_omnibar_pending_query"] = f"{original_query} — verify and expand with more evidence"
             st.rerun()
@@ -5948,7 +6660,7 @@ def _run_agentic_omnibar_resolution(
     conversation_history: list[dict[str, object]] | None = None,
     ) -> dict[str, object]:
     normalized_query = _omnibar_normalize_text(query)
-    agent_query, followup_resolved = omnibar_agent_service.resolve_conversation_followup_query(
+    agent_query, followup_resolved = resolve_aql_zopedia_followup_query(
         normalized_query,
         conversation_history,
     )
@@ -6010,8 +6722,10 @@ def _run_agentic_omnibar_resolution(
             bridged_event["progress"] = 0.34 + (agent_progress * 0.62)
             _dispatch_agentic_omnibar_progress(progress_callback, **bridged_event)
 
-        resolution["agent_result"] = omnibar_agent_service.run_omnibar_agent(
+        resolution["agent_result"] = run_aql_zopedia_agent(
             query=agent_query,
+            task="chat",
+            surface="zopedia.chat",
             force_refresh=force_data_refresh,
             progress_callback=_agent_progress_bridge,
             conversation_history=conversation_history,
@@ -6022,7 +6736,7 @@ def _run_agentic_omnibar_resolution(
     _dispatch_agentic_omnibar_progress(
         progress_callback,
         stage="completed",
-        message="Chat + Search response ready.",
+        message="Zopedia response ready.",
         progress=1.0,
         intent=str(resolution.get("intent") or "search"),
     )
@@ -6134,14 +6848,15 @@ def _build_agentic_omnibar_tool_figure(render_payload: dict[str, object]) -> go.
     return fig
 
 
-def _render_agentic_omnibar_debug_panel(resolution: dict[str, object]) -> None:
+def _render_agentic_omnibar_debug_panel(resolution: dict[str, object], *, embedded: bool = False) -> None:
     agent_result = dict(resolution.get("agent_result") or {})
     tool_calls = list(agent_result.get("tool_calls") or [])
     transcript = list(st.session_state.get("agentic_omnibar_transcript") or [])
 
-    with st.expander("Admin Debug", expanded=False):
+    panel = st.container() if embedded else st.expander("Admin Debug", expanded=False)
+    with panel:
         st.caption("Route")
-        route_cols = st.columns(4)
+        route_cols = _responsive_columns(4)
         route_cols[0].metric("Intent", str(resolution.get("intent") or "n/a").capitalize())
         route_cols[1].metric("Confidence", str(resolution.get("confidence_band") or "n/a").capitalize())
         route_cols[2].metric("Mode", str(resolution.get("preferred_mode") or "auto").capitalize())
@@ -6155,7 +6870,7 @@ def _render_agentic_omnibar_debug_panel(resolution: dict[str, object]) -> None:
 
         if agent_result:
             st.caption("Agent")
-            agent_meta_cols = st.columns(4)
+            agent_meta_cols = _responsive_columns(4)
             agent_meta_cols[0].metric("Agent Status", str(agent_result.get("status") or "n/a").capitalize())
             agent_meta_cols[1].metric("Tool Calls", str(len(tool_calls)))
             agent_meta_cols[2].metric("Agent Confidence", str(agent_result.get("confidence") or "low").capitalize())
@@ -6165,9 +6880,9 @@ def _render_agentic_omnibar_debug_panel(resolution: dict[str, object]) -> None:
                 st.caption("Limitations: " + " | ".join(limitations[:3]))
             if tool_calls:
                 with st.expander("Tool Calls", expanded=False):
-                    for tool_call in tool_calls:
+                    for call_id, tool_call in enumerate(tool_calls):
                         with st.container(border=True):
-                            header_cols = st.columns([3.2, 1.1, 1.7])
+                            header_cols = _responsive_columns([3.2, 1.1, 1.7])
                             with header_cols[0]:
                                 st.markdown(f"**{tool_call.get('tool_name') or 'tool'}**")
                                 try:
@@ -6205,25 +6920,868 @@ def _render_agentic_omnibar_debug_panel(resolution: dict[str, object]) -> None:
                         st.markdown(str(message.get("content") or "").strip())
 
 
+def _zopedia_query_from_page(row: pd.Series) -> dict[str, str]:
+    page_id = str(row.get("page_id") or "").strip()
+    title = str(row.get("title") or page_id).strip()
+    return {
+        "display_query": f"Read Zopedia page: {title}",
+        "agent_query": (
+            "Read this Zopedia page and explain the useful implications for Spectral Nature. "
+            f"Use zopedia.read_page with page_id={page_id}. "
+            "If the page is stale, wrong, or missing linked context, use zopedia.apply_mutation for safe reversible updates "
+            "or zopedia.propose_change for risky changes."
+        ),
+    }
+
+
+def _zopedia_source_open_args(ref: dict[str, object]) -> dict[str, str]:
+    return {
+        "page_id": str(ref.get("page_id") or "").strip(),
+        "ref": str(ref.get("ref") or "").strip(),
+        "kind": str(ref.get("kind") or "").strip(),
+        "chunk_record_id": str(ref.get("chunk_record_id") or "").strip(),
+        "canonical_document_id": str(ref.get("canonical_document_id") or "").strip(),
+        "url": str(ref.get("url") or ref.get("source_url") or "").strip(),
+    }
+
+
+def _render_zopedia_source_inspection() -> None:
+    inspected = st.session_state.get("_zopedia_inspected_sources")
+    if not isinstance(inspected, dict):
+        return
+    page = inspected.get("page") if isinstance(inspected.get("page"), dict) else {}
+    page_title = str(page.get("title") or inspected.get("page_id") or "Selected page").strip()
+    sources = [item for item in list(inspected.get("sources") or []) if isinstance(item, dict)]
+    st.markdown("**Sources**")
+    st.caption(f"{page_title} | {len(sources)} source reference(s)")
+    if not sources:
+        st.caption("No source references found for this page.")
+        return
+    for idx, ref in enumerate(sources[:12]):
+        title = str(ref.get("title") or ref.get("source_title") or ref.get("url") or ref.get("ref") or "Source").strip()
+        kind = str(ref.get("kind") or "source").strip()
+        url = str(ref.get("url") or ref.get("source_url") or "").strip()
+        excerpt = str(ref.get("body_excerpt") or ref.get("summary_text") or "").strip()
+        ref_cols = _responsive_columns([5.5, 1.2])
+        with ref_cols[0]:
+            st.markdown(f"**{title}**")
+            st.caption(" | ".join(part for part in (kind, url) if part))
+            if excerpt:
+                st.write(excerpt)
+        with ref_cols[1]:
+            open_key = hashlib.sha256(
+                json.dumps(_zopedia_source_open_args(ref), sort_keys=True).encode("utf-8")
+            ).hexdigest()[:12]
+            if st.button("Open", key=f"zopedia_open_source_{idx}_{open_key}", use_container_width=True):
+                try:
+                    st.session_state["_zopedia_open_source"] = zopedia_read_source(**_zopedia_source_open_args(ref))
+                except Exception as exc:
+                    st.session_state["_zopedia_open_source"] = {
+                        "status": "error",
+                        "message": str(exc),
+                        "title": title,
+                    }
+                st.rerun()
+    opened = st.session_state.get("_zopedia_open_source")
+    if isinstance(opened, dict):
+        status = str(opened.get("status") or "").strip()
+        title = str(opened.get("title") or opened.get("source_title") or opened.get("url") or "Source").strip()
+        url = str(opened.get("url") or opened.get("source_url") or "").strip()
+        text = str(opened.get("text") or opened.get("display_excerpt") or opened.get("message") or "").strip()
+        st.markdown("**Source Text**")
+        st.caption(" | ".join(part for part in (status, str(opened.get("source_kind") or "").strip(), title, url) if part))
+        if text:
+            st.text_area("Opened source", value=text, height=260, disabled=True, key="zopedia_open_source_text")
+        else:
+            st.caption("No retained text is available for this source reference.")
+
+
+def _render_zopedia_page_results(frame: pd.DataFrame, *, key_prefix: str) -> None:
+    if not isinstance(frame, pd.DataFrame) or frame.empty:
+        st.caption("No Zopedia pages found.")
+        return
+    for idx, row in frame.head(12).iterrows():
+        title = str(row.get("title") or "Untitled page").strip()
+        page_type = str(row.get("page_type") or "page").strip()
+        summary = str(row.get("summary") or "").strip()
+        source_urls = list(row.get("source_urls") or [])
+        cols = _responsive_columns([4.8, 1.2, 1.2])
+        with cols[0]:
+            st.markdown(f"**{title}**")
+            meta = page_type
+            if source_urls:
+                meta += f" | {source_urls[0]}"
+            st.caption(meta)
+            if summary:
+                st.write(summary)
+        with cols[1]:
+            if st.button("Read", key=f"{key_prefix}_read_{idx}", use_container_width=True):
+                st.session_state["_omnibar_pending_query"] = _zopedia_query_from_page(row)
+                st.rerun()
+        with cols[2]:
+            if st.button("Sources", key=f"{key_prefix}_sources_{idx}", use_container_width=True):
+                page_id = str(row.get("page_id") or "").strip()
+                try:
+                    st.session_state["_zopedia_inspected_sources"] = zopedia_sources_for_page(page_id=page_id)
+                    st.session_state.pop("_zopedia_open_source", None)
+                except Exception as exc:
+                    st.session_state["_zopedia_inspected_sources"] = {
+                        "status": "error",
+                        "page_id": page_id,
+                        "sources": [],
+                        "message": str(exc),
+                    }
+                st.rerun()
+
+
+def _zopedia_chat_user_key() -> str:
+    context = _current_user_context()
+    if context is None:
+        return "anonymous"
+    return (
+        str(context.email or context.user_id or context.label or "anonymous").strip()
+        or "anonymous"
+    )
+
+
+def _zopedia_thread_messages_for_session(thread_payload: dict[str, object]) -> list[dict[str, object]]:
+    messages: list[dict[str, object]] = []
+    for item in list(thread_payload.get("messages") or []):
+        if not isinstance(item, dict):
+            continue
+        role = str(item.get("role") or "").strip().lower()
+        payload = dict(item.get("payload") or {}) if isinstance(item.get("payload"), dict) else {}
+        content = str(item.get("content") or "").strip()
+        if role == "assistant":
+            assistant_msg = {"role": "assistant", **payload}
+            if content and not assistant_msg.get("content"):
+                assistant_msg["content"] = content
+            if item.get("run_id") and not assistant_msg.get("run_id"):
+                assistant_msg["run_id"] = item.get("run_id")
+            messages.append(assistant_msg)
+        elif role == "user":
+            messages.append({"role": "user", "content": content})
+    return messages
+
+
+def _ensure_zopedia_chat_thread(*, user_key: str, title: str) -> str:
+    thread_id = str(st.session_state.get("agentic_omnibar_thread_id") or "").strip()
+    if thread_id:
+        return thread_id
+    created = create_chat_thread(user_key=user_key, title=title, metadata={"source": "zopedia_chat"})
+    thread_id = str((created or {}).get("thread_id") or "").strip()
+    if thread_id:
+        st.session_state["agentic_omnibar_thread_id"] = thread_id
+        st.session_state["agentic_omnibar_thread_title"] = str((created or {}).get("title") or title).strip()
+    return thread_id
+
+
+def _persist_zopedia_chat_message(
+    *,
+    thread_id: str,
+    user_key: str,
+    role: str,
+    content: str,
+    payload: dict[str, object] | None = None,
+    run_id: str = "",
+    title: str = "",
+) -> str:
+    saved = append_chat_message(
+        thread_id=thread_id or None,
+        user_key=user_key,
+        role=role,
+        content=content,
+        payload=payload or {},
+        run_id=run_id,
+        title=title or content,
+    )
+    saved_thread_id = str((saved or {}).get("thread_id") or thread_id or "").strip()
+    if saved_thread_id:
+        st.session_state["agentic_omnibar_thread_id"] = saved_thread_id
+    return saved_thread_id
+
+
+def _reset_zopedia_chat_session() -> None:
+    for state_key in [
+        "agentic_omnibar_chat",
+        "agentic_omnibar_thread_id",
+        "agentic_omnibar_thread_title",
+        "agentic_omnibar_resolution",
+        "agentic_omnibar_transcript",
+        "agentic_omnibar_thinking_trace",
+    ]:
+        st.session_state.pop(state_key, None)
+
+
+def _format_zopedia_thread_time(value: object) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except Exception:
+        return text[:16]
+    if parsed.tzinfo is not None:
+        parsed = parsed.astimezone()
+    return parsed.strftime("%b %d, %I:%M %p").replace(" 0", " ")
+
+
+def _zopedia_clean_title(value: object, *, fallback: str = "New Zopedia chat", max_chars: int = 72) -> str:
+    title = re.sub(r"\s+", " ", str(value or "").strip())
+    if not title:
+        title = fallback
+    if len(title) <= max_chars:
+        return title
+    clipped = title[:max_chars].rstrip()
+    last_space = clipped.rfind(" ")
+    if last_space > max_chars * 0.65:
+        clipped = clipped[:last_space].rstrip()
+    return clipped + "..."
+
+
+def _zopedia_thread_meta(item: dict[str, object]) -> str:
+    updated = _format_zopedia_thread_time(item.get("updated_at"))
+    created = _format_zopedia_thread_time(item.get("created_at"))
+    if updated:
+        return f"Updated {updated}"
+    if created:
+        return f"Created {created}"
+    return "Saved chat"
+
+
+def _load_zopedia_thread_into_session(*, thread_id: str, user_key: str) -> bool:
+    loaded = load_chat_thread(thread_id=thread_id, user_key=user_key)
+    if not isinstance(loaded, dict):
+        return False
+    st.session_state["agentic_omnibar_chat"] = _zopedia_thread_messages_for_session(loaded)
+    st.session_state["agentic_omnibar_thread_id"] = str(loaded.get("thread_id") or "")
+    st.session_state["agentic_omnibar_thread_title"] = str(loaded.get("title") or "Zopedia chat")
+    for state_key in list(st.session_state.keys()):
+        if str(state_key).startswith("zopedia_thinking_trace_open_"):
+            st.session_state.pop(state_key, None)
+    return True
+
+
+def _zopedia_recent_threads(*, user_key: str, limit: int = 30) -> list[dict[str, object]]:
+    try:
+        return list(list_chat_threads(user_key=user_key, limit=limit) or [])
+    except Exception:
+        return []
+
+
+def _render_zopedia_new_chat_action(*, key: str, label: str = "New") -> None:
+    if st.button(label, key=key, type="tertiary", icon=":material/add:", width="stretch"):
+        _reset_zopedia_chat_session()
+        st.session_state.pop("zopedia_workspace_active_panel", None)
+        st.rerun()
+
+
+def _render_zopedia_thread_list(
+    *,
+    user_key: str,
+    threads: list[dict[str, object]] | None = None,
+    limit: int = 12,
+    key_prefix: str = "zopedia_thread",
+    show_filter: bool = True,
+) -> None:
+    threads = list(threads if threads is not None else _zopedia_recent_threads(user_key=user_key, limit=30))
+    if not threads:
+        st.caption("No saved chats yet.")
+        return
+
+    search_text = ""
+    if show_filter:
+        search_text = st.text_input(
+            "Search chats",
+            key=f"{key_prefix}_filter",
+            placeholder="Search recent chats...",
+            label_visibility="collapsed",
+        ).strip().lower()
+
+    current_thread_id = str(st.session_state.get("agentic_omnibar_thread_id") or "").strip()
+    current_chat_loaded = bool(st.session_state.get("agentic_omnibar_chat"))
+    visible_threads: list[dict[str, object]] = []
+    for item in threads:
+        title = _zopedia_clean_title(item.get("title"), fallback="Zopedia chat", max_chars=120)
+        if search_text and search_text not in title.lower():
+            continue
+        visible_threads.append(item)
+
+    if not visible_threads:
+        st.caption("No chats match that filter.")
+        return
+
+    for idx, item in enumerate(visible_threads[:limit]):
+        thread_id = str(item.get("thread_id") or "").strip()
+        if not thread_id:
+            continue
+        title = _zopedia_clean_title(item.get("title"), fallback="Zopedia chat", max_chars=68)
+        meta = _zopedia_thread_meta(item)
+        is_current = thread_id == current_thread_id and current_chat_loaded
+        label = f"{title}\n{meta}{' · Current' if is_current else ''}"
+        if st.button(
+            label,
+            key=f"{key_prefix}_row_{idx}_{hashlib.sha256(thread_id.encode('utf-8')).hexdigest()[:10]}",
+            type="primary" if is_current else "tertiary",
+            width="stretch",
+            disabled=is_current,
+        ):
+            if _load_zopedia_thread_into_session(thread_id=thread_id, user_key=user_key):
+                st.rerun()
+            st.warning("Could not load that chat.")
+
+
+def _render_zopedia_chat_history_controls(*, user_key: str) -> None:
+    current_title = _zopedia_clean_title(st.session_state.get("agentic_omnibar_thread_title"))
+    st.markdown(f"**{current_title}**")
+    _render_zopedia_new_chat_action(key="zopedia_new_chat", label="New chat")
+    _render_zopedia_thread_list(user_key=user_key, key_prefix="zopedia_history_panel")
+
+
+def _ingest_zopedia_source_from_inputs(
+    *,
+    url: str,
+    title: str,
+    source_text: str,
+    uploaded_source: object | None,
+) -> dict[str, object]:
+    resolved_title = str(title or "").strip()
+    resolved_text = str(source_text or "").strip()
+    source_type = "source"
+    source_metadata: dict[str, object] = {}
+    normalized_url = str(url or "").strip()
+    if not resolved_text and uploaded_source is not None:
+        upload_result = prepare_zopedia_uploaded_source(
+            filename=str(getattr(uploaded_source, "name", "") or "uploaded-source"),
+            content=uploaded_source.getvalue(),
+            content_type=str(getattr(uploaded_source, "type", "") or ""),
+        )
+        if upload_result.get("status") != "ok":
+            return {
+                "status": upload_result.get("status") or "upload_unavailable",
+                "message": upload_result.get("message") or "This upload could not be read.",
+                "pages": [],
+                "page_count": 0,
+                "enrichment_status": "not_started",
+            }
+        resolved_text = str(upload_result.get("source_text") or "").strip()
+        resolved_title = resolved_title or str(upload_result.get("title") or "").strip()
+        source_type = str(upload_result.get("source_type") or "uploaded_file").strip()
+        source_metadata = dict(upload_result.get("metadata") or {})
+    if not resolved_text and normalized_url:
+        if "youtube.com" in normalized_url or "youtu.be" in normalized_url:
+            transcript = fetch_youtube_transcript(normalized_url)
+            resolved_text = str(transcript.get("transcript") or "").strip()
+            source_type = "youtube_transcript"
+            if not resolved_title:
+                resolved_title = f"YouTube {transcript.get('video_id') or normalized_url}"
+        else:
+            page = browse_page(normalized_url, max_text_chars=12000)
+            resolved_text = str(page.get("text") or page.get("excerpt") or "").strip()
+            resolved_title = resolved_title or str(page.get("title") or normalized_url).strip()
+            source_type = "web_page"
+    return ingest_zopedia_source(
+        title=resolved_title or normalized_url or "Untitled Source",
+        source_text=resolved_text,
+        url=normalized_url,
+        source_type=source_type,
+        source_metadata=source_metadata,
+        llm_client=load_aql_zopedia_llm_client(surface="zopedia.ui.ingest_source"),
+    )
+
+
+def _render_zopedia_source_upload_compact() -> None:
+    url_tab, upload_tab, text_tab = st.tabs(["URL", "File", "Text"])
+    with url_tab:
+        with st.form("zopedia_compact_url_source_form"):
+            url = st.text_input("URL or YouTube", key="zopedia_compact_add_url")
+            title = st.text_input("Title", key="zopedia_compact_url_title")
+            submitted = st.form_submit_button("Add URL")
+        if submitted:
+            st.session_state["_zopedia_last_compact_ingest"] = _ingest_zopedia_source_from_inputs(
+                url=url,
+                title=title,
+                source_text="",
+                uploaded_source=None,
+            )
+            st.rerun()
+    with upload_tab:
+        with st.form("zopedia_compact_file_source_form"):
+            uploaded_source = st.file_uploader(
+                "Upload file",
+                key="zopedia_compact_source_file",
+                accept_multiple_files=False,
+            )
+            title = st.text_input("Title", key="zopedia_compact_file_title")
+            submitted = st.form_submit_button("Add File")
+        if submitted:
+            st.session_state["_zopedia_last_compact_ingest"] = _ingest_zopedia_source_from_inputs(
+                url="",
+                title=title,
+                source_text="",
+                uploaded_source=uploaded_source,
+            )
+            st.rerun()
+    with text_tab:
+        with st.form("zopedia_compact_text_source_form"):
+            title = st.text_input("Title", key="zopedia_compact_text_title")
+            url = st.text_input("Source URL", key="zopedia_compact_text_url")
+            source_text = st.text_area(
+                "Source text",
+                key="zopedia_compact_add_source_text",
+                height=180,
+                placeholder="Paste memo text, transcript, notes, or article text.",
+            )
+            submitted = st.form_submit_button("Add Text")
+        if submitted:
+            st.session_state["_zopedia_last_compact_ingest"] = _ingest_zopedia_source_from_inputs(
+                url=url,
+                title=title,
+                source_text=source_text,
+                uploaded_source=None,
+            )
+            st.rerun()
+    last_ingest = st.session_state.get("_zopedia_last_compact_ingest")
+    if isinstance(last_ingest, dict):
+        if last_ingest.get("status") == "stored":
+            st.success(
+                f"Stored {last_ingest.get('page_count') or 0} page(s). "
+                f"Enrichment: {last_ingest.get('enrichment_status') or 'unknown'}."
+            )
+        else:
+            st.warning(str(last_ingest.get("message") or last_ingest.get("status") or "Zopedia did not store a page."))
+
+
+def _ensure_zopedia_shell_styles() -> None:
+    st.markdown(
+        """
+        <style>
+        [class*="st-key-zopedia_thread_rail_row_"] button,
+        [class*="st-key-zopedia_history_panel_row_"] button,
+        [class*="st-key-zopedia_mobile_thread_row_"] button {
+            justify-content: flex-start !important;
+            text-align: left !important;
+            min-height: 3.1rem !important;
+            border-radius: 0.45rem !important;
+            padding: 0.62rem 0.72rem !important;
+            white-space: pre-line !important;
+        }
+        [class*="st-key-zopedia_thread_rail_row_"] button p,
+        [class*="st-key-zopedia_history_panel_row_"] button p,
+        [class*="st-key-zopedia_mobile_thread_row_"] button p {
+            text-align: left !important;
+            white-space: pre-line !important;
+            line-height: 1.22 !important;
+        }
+        [class*="st-key-zopedia_rail_new"] button,
+        [class*="st-key-zopedia_mobile_new"] button,
+        [class*="st-key-zopedia_attach"] button,
+        [class*="st-key-zopedia_admin_drawer"] button {
+            border-radius: 0.42rem !important;
+        }
+        .sn-zopedia-title {
+            margin: 0 0 0.18rem 0;
+            color: var(--sn-ink);
+            font-size: 1.65rem;
+            font-weight: 760;
+            line-height: 1.1;
+            letter-spacing: 0;
+        }
+        .sn-zopedia-thread-title {
+            margin: 0 0 0.65rem 0;
+            color: var(--sn-muted-strong);
+            font-size: 0.88rem;
+            line-height: 1.35;
+        }
+        .sn-zopedia-rail-title {
+            color: var(--sn-muted);
+            font-size: 0.74rem;
+            font-weight: 720;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            margin: 0.8rem 0 0.45rem 0;
+        }
+        .sn-zopedia-source-chip {
+            display: inline-flex;
+            align-items: center;
+            max-width: 100%;
+            margin: 0.15rem 0.25rem 0.25rem 0;
+            padding: 0.24rem 0.48rem;
+            border: 1px solid var(--sn-border);
+            border-radius: 999px;
+            color: var(--sn-muted-strong);
+            font-size: 0.78rem;
+            line-height: 1.2;
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .sn-zopedia-main-spacer {
+            height: 0.25rem;
+        }
+        [data-testid="stChatMessageAvatarUser"],
+        [data-testid="stChatMessageAvatarAssistant"] {
+            background: rgba(148, 163, 184, 0.14) !important;
+            color: var(--sn-muted-strong) !important;
+            border: 1px solid rgba(148, 163, 184, 0.20) !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _render_zopedia_source_status() -> None:
+    last_ingest = st.session_state.get("_zopedia_last_compact_ingest")
+    if not isinstance(last_ingest, dict):
+        return
+    if last_ingest.get("status") == "stored":
+        pages = list(last_ingest.get("pages") or [])
+        labels = [
+            _zopedia_clean_title(page.get("title") if isinstance(page, dict) else page, fallback="Source", max_chars=44)
+            for page in pages[:3]
+        ]
+        if not labels:
+            labels = [f"{int(last_ingest.get('page_count') or 0)} page(s) stored"]
+        chips = "".join(f"<span class='sn-zopedia-source-chip'>{html.escape(label)}</span>" for label in labels)
+        st.markdown(chips, unsafe_allow_html=True)
+    else:
+        st.warning(str(last_ingest.get("message") or last_ingest.get("status") or "Zopedia did not store a page."))
+
+
+def _render_zopedia_attach_popover(*, key_prefix: str = "zopedia_attach") -> None:
+    with st.popover("Attach source", icon=":material/attach_file:", use_container_width=True):
+        st.caption("Add source material to Zopedia memory before or during a chat.")
+        url_tab, text_tab = st.tabs(["URL", "Text"])
+        with url_tab:
+            with st.form(f"{key_prefix}_url_form"):
+                url = st.text_input("URL or YouTube", key=f"{key_prefix}_url")
+                title = st.text_input("Title", key=f"{key_prefix}_url_title")
+                submitted = st.form_submit_button("Attach URL")
+            if submitted:
+                st.session_state["_zopedia_last_compact_ingest"] = _ingest_zopedia_source_from_inputs(
+                    url=url,
+                    title=title,
+                    source_text="",
+                    uploaded_source=None,
+                )
+                st.rerun()
+        with text_tab:
+            with st.form(f"{key_prefix}_text_form"):
+                title = st.text_input("Title", key=f"{key_prefix}_text_title")
+                url = st.text_input("Source URL", key=f"{key_prefix}_text_url")
+                source_text = st.text_area(
+                    "Source text",
+                    key=f"{key_prefix}_text",
+                    height=160,
+                    placeholder="Paste memo text, transcript, notes, or article text.",
+                )
+                submitted = st.form_submit_button("Attach Text")
+            if submitted:
+                st.session_state["_zopedia_last_compact_ingest"] = _ingest_zopedia_source_from_inputs(
+                    url=url,
+                    title=title,
+                    source_text=source_text,
+                    uploaded_source=None,
+                )
+                st.rerun()
+        _render_zopedia_source_status()
+
+
+def _ingest_zopedia_chat_uploads(files: object) -> list[dict[str, object]]:
+    if not files:
+        return []
+    if not isinstance(files, list):
+        files = [files]
+    ingested: list[dict[str, object]] = []
+    for uploaded in files:
+        if uploaded is None:
+            continue
+        result = _ingest_zopedia_source_from_inputs(
+            url="",
+            title=str(getattr(uploaded, "name", "") or "Uploaded source"),
+            source_text="",
+            uploaded_source=uploaded,
+        )
+        ingested.append(result)
+    if ingested:
+        stored = [result for result in ingested if result.get("status") == "stored"]
+        if stored:
+            st.session_state["_zopedia_last_compact_ingest"] = stored[-1]
+        else:
+            st.session_state["_zopedia_last_compact_ingest"] = ingested[-1]
+    return ingested
+
+
+def _zopedia_chat_input_parts(value: object) -> tuple[str, list[object]]:
+    if value is None:
+        return "", []
+    if isinstance(value, str):
+        return value.strip(), []
+    text = ""
+    files: list[object] = []
+    if isinstance(value, dict):
+        text = str(value.get("text") or value.get("message") or "").strip()
+        raw_files = value.get("files") or []
+    else:
+        text = str(getattr(value, "text", "") or getattr(value, "message", "") or "").strip()
+        raw_files = getattr(value, "files", []) or []
+    if isinstance(raw_files, list):
+        files = raw_files
+    elif raw_files:
+        files = [raw_files]
+    return text, files
+
+
+def _render_zopedia_memory_panel() -> None:
+    search_tab, proposals_tab, mutations_tab, health_tab = st.tabs(["Search", "Proposals", "Mutations", "Health"])
+
+    with search_tab:
+        include_debug_sources = st.checkbox(
+            "Include eval/debug memory",
+            value=False,
+            key="zopedia_include_debug_memory",
+            help="Admin-only view for product eval pages and other non-user memory.",
+        )
+        search_cols = _responsive_columns([4.6, 1.2])
+        with search_cols[0]:
+            query = st.text_input(
+                "Search pages",
+                key="zopedia_page_search_query",
+                placeholder="Search concepts, events, tickers, transcripts...",
+            )
+        with search_cols[1]:
+            limit = st.number_input("Limit", min_value=4, max_value=20, value=8, step=1, key="zopedia_page_search_limit")
+        try:
+            pages = search_zopedia_pages(query=query, limit=int(limit), include_debug_sources=include_debug_sources)
+        except Exception as exc:
+            pages = pd.DataFrame()
+            st.warning(f"Zopedia memory is unavailable: {exc}")
+        _render_zopedia_page_results(pages, key_prefix="zopedia_search")
+        _render_zopedia_source_inspection()
+
+    with proposals_tab:
+        with st.form("zopedia_proposal_form"):
+            proposal_type = st.selectbox(
+                "Change",
+                ["update", "delete", "add_page", "split", "merge"],
+                key="zopedia_proposal_type",
+            )
+            page_id = st.text_input("Page ID", key="zopedia_proposal_page_id")
+            title = st.text_input("Proposal title", key="zopedia_proposal_title")
+            rationale = st.text_area("Rationale", key="zopedia_proposal_rationale", height=110)
+            proposal_submitted = st.form_submit_button("Propose Change")
+        if proposal_submitted:
+            proposal = build_zopedia_change_proposal(
+                proposal_type=proposal_type,
+                page_id=page_id,
+                title=title,
+                rationale=rationale,
+                payload={"source": "zopedia_ui"},
+            )
+            persist_zopedia_change_proposals([proposal])
+            st.session_state["_zopedia_last_proposal"] = proposal
+            st.rerun()
+        last_proposal = st.session_state.get("_zopedia_last_proposal")
+        if isinstance(last_proposal, dict):
+            st.success(f"Proposed: {last_proposal.get('title')}")
+        proposals = list_zopedia_change_proposals(status="open", limit=12)
+        if isinstance(proposals, pd.DataFrame) and not proposals.empty:
+            for _, row in proposals.iterrows():
+                st.markdown(f"**{row.get('title') or row.get('proposal_id')}**")
+                st.caption(f"{row.get('proposal_type')} | {row.get('page_id') or 'new page'}")
+                rationale = str(row.get("rationale") or "").strip()
+                if rationale:
+                    st.write(rationale)
+        else:
+            st.caption("No open Zopedia proposals.")
+
+    with mutations_tab:
+        last_rollback = st.session_state.get("_zopedia_last_rollback")
+        if isinstance(last_rollback, dict):
+            st.info(
+                f"Last rollback: {last_rollback.get('status') or 'unknown'} "
+                f"for {last_rollback.get('mutation_id') or 'unknown mutation'}."
+            )
+        try:
+            mutations = list_zopedia_mutation_audits(limit=12)
+        except Exception as exc:
+            mutations = pd.DataFrame()
+            st.warning(f"Zopedia mutation audit is unavailable: {exc}")
+        if isinstance(mutations, pd.DataFrame) and not mutations.empty:
+            for idx, row in mutations.iterrows():
+                mutation_id = str(row.get("mutation_id") or "").strip()
+                mutation_type = str(row.get("mutation_type") or "mutation").strip()
+                status = str(row.get("status") or "unknown").strip()
+                risk = str(row.get("risk_level") or "unknown").strip()
+                source = str(row.get("source") or "").strip()
+                try:
+                    page_ids = json.loads(str(row.get("page_ids_json") or "[]"))
+                except Exception:
+                    page_ids = []
+                cols = _responsive_columns([4.5, 1.2])
+                with cols[0]:
+                    st.markdown(f"**{mutation_type}**")
+                    st.caption(" | ".join(part for part in (status, risk, source, mutation_id) if part))
+                    st.write(f"{len(page_ids) if isinstance(page_ids, list) else 0} page(s) affected.")
+                with cols[1]:
+                    rollback_disabled = status != "committed" or mutation_type == "rollback"
+                    if st.button(
+                        "Rollback",
+                        key=f"zopedia_rollback_{idx}",
+                        use_container_width=True,
+                        disabled=rollback_disabled,
+                    ):
+                        try:
+                            st.session_state["_zopedia_last_rollback"] = rollback_zopedia_mutation(
+                                mutation_id=mutation_id,
+                                source="zopedia.ui.rollback",
+                            )
+                        except Exception as exc:
+                            st.session_state["_zopedia_last_rollback"] = {
+                                "status": "error",
+                                "mutation_id": mutation_id,
+                                "message": str(exc),
+                            }
+                        st.rerun()
+        else:
+            st.caption("No Zopedia mutation audit rows yet.")
+
+    with health_tab:
+        try:
+            reports = list_zopedia_maintenance_reports(limit=3)
+        except Exception as exc:
+            reports = pd.DataFrame()
+            st.warning(f"Zopedia maintenance reports are unavailable: {exc}")
+        if isinstance(reports, pd.DataFrame) and not reports.empty:
+            latest = dict(reports.iloc[0].to_dict())
+            try:
+                summary = json.loads(str(latest.get("summary_json") or "{}"))
+            except Exception:
+                summary = {}
+            metric_cols = _responsive_columns(4)
+            metric_cols[0].metric("Pages", int(latest.get("page_count") or 0))
+            metric_cols[1].metric("Edges", int(latest.get("edge_count") or 0))
+            metric_cols[2].metric("Communities", int(summary.get("community_count") or 0))
+            metric_cols[3].metric("Issues", int(latest.get("issue_count") or 0))
+            st.caption(
+                "Latest maintenance run: "
+                + " | ".join(
+                    str(part)
+                    for part in (
+                        latest.get("run_id"),
+                        latest.get("status"),
+                        latest.get("created_at_utc"),
+                    )
+                    if part
+                )
+            )
+            communities = list(summary.get("top_communities") or []) if isinstance(summary, dict) else []
+            if communities:
+                st.markdown("**Important communities**")
+                community_rows = [
+                    {
+                        "label": str(item.get("label") or "").strip(),
+                        "page_count": int(item.get("page_count") or 0),
+                        "score": float(item.get("score") or 0.0),
+                        "central_page_ids": ", ".join(str(pid) for pid in list(item.get("central_page_ids") or [])[:3]),
+                    }
+                    for item in communities[:8]
+                    if isinstance(item, dict)
+                ]
+                st.dataframe(pd.DataFrame(community_rows), hide_index=True, use_container_width=True)
+            try:
+                issues = json.loads(str(latest.get("issue_rows_json") or "[]"))
+            except Exception:
+                issues = []
+            if issues:
+                st.markdown("**Review queue**")
+                issue_rows = [
+                    {
+                        "severity": str(item.get("severity") or "").strip(),
+                        "issue_type": str(item.get("issue_type") or "").strip(),
+                        "title": str(item.get("title") or "").strip(),
+                        "suggested_action": str(item.get("suggested_action") or "").strip(),
+                    }
+                    for item in issues[:12]
+                    if isinstance(item, dict)
+                ]
+                st.dataframe(pd.DataFrame(issue_rows), hide_index=True, use_container_width=True)
+        else:
+            st.caption("No Zopedia maintenance report has been written yet.")
+
+
+def _render_zopedia_left_rail(*, user_key: str) -> None:
+    st.markdown("<div class='sn-zopedia-rail-title'>Threads</div>", unsafe_allow_html=True)
+    _render_zopedia_new_chat_action(key="zopedia_rail_new", label="New chat")
+    _render_zopedia_thread_list(
+        user_key=user_key,
+        key_prefix="zopedia_thread_rail",
+        limit=14,
+        show_filter=True,
+    )
+
+
+def _render_zopedia_right_drawer(*, last_resolution: dict[str, object] | None) -> None:
+    st.markdown("<div class='sn-zopedia-rail-title'>Context</div>", unsafe_allow_html=True)
+    with st.popover("Sources", icon=":material/source_notes:", use_container_width=True, key="zopedia_sources_drawer"):
+        _render_zopedia_source_status()
+        st.divider()
+        _render_zopedia_source_upload_compact()
+    if _current_user_is_admin():
+        with st.popover("Admin", icon=":material/admin_panel_settings:", use_container_width=True, key="zopedia_admin_drawer"):
+            debug_tab, memory_tab = st.tabs(["Debug", "Memory"])
+            with debug_tab:
+                if last_resolution:
+                    _render_agentic_omnibar_debug_panel(last_resolution, embedded=True)
+                else:
+                    st.caption("No agent run selected yet.")
+            with memory_tab:
+                _render_zopedia_memory_panel()
+
+
+def _render_zopedia_mobile_context(*, user_key: str, last_resolution: dict[str, object] | None) -> None:
+    action_cols = _responsive_columns([1, 1, 1])
+    with action_cols[0]:
+        _render_zopedia_new_chat_action(key="zopedia_mobile_new", label="New")
+    with action_cols[1]:
+        with st.popover("History", icon=":material/history:", use_container_width=True, key="zopedia_mobile_history"):
+            _render_zopedia_thread_list(
+                user_key=user_key,
+                key_prefix="zopedia_mobile_thread",
+                limit=12,
+                show_filter=True,
+            )
+    with action_cols[2]:
+        with st.popover("Sources", icon=":material/attach_file:", use_container_width=True, key="zopedia_mobile_sources"):
+            _render_zopedia_source_status()
+            st.divider()
+            _render_zopedia_source_upload_compact()
+    if _current_user_is_admin():
+        with st.popover("Admin", icon=":material/admin_panel_settings:", use_container_width=True, key="zopedia_mobile_admin"):
+            if last_resolution:
+                _render_agentic_omnibar_debug_panel(last_resolution, embedded=True)
+            else:
+                st.caption("No agent run selected yet.")
+
+
+def _render_zopedia_header() -> None:
+    current_title = _zopedia_clean_title(
+        st.session_state.get("agentic_omnibar_thread_title"),
+        fallback="Ask about a market, company, source, or theme",
+        max_chars=96,
+    )
+    st.markdown("<div class='sn-zopedia-title'>Zopedia</div>", unsafe_allow_html=True)
+    st.markdown(
+        f"<div class='sn-zopedia-thread-title'>{html.escape(current_title)}</div>",
+        unsafe_allow_html=True,
+    )
+
+
 def _render_agentic_omnibar_section(
     cfg: AppConfig,
     *,
     force_data_refresh: bool,
 ) -> None:
-    # ── Minimal header ──
-    header_cols = st.columns([5.5, 1.2, 1.3])
-    with header_cols[1]:
-        _render_section_back_button("agentic_omnibar_back")
-    with header_cols[2]:
-        if st.button("Clear", key="agentic_omnibar_clear", use_container_width=True):
-            for state_key in [
-                "agentic_omnibar_chat",
-                "agentic_omnibar_resolution",
-                "agentic_omnibar_transcript",
-                "agentic_omnibar_thinking_trace",
-            ]:
-                st.session_state.pop(state_key, None)
-            st.rerun()
+    _ensure_zopedia_shell_styles()
 
     # ── Load context ──
     home_payload = _load_homepage_narrative_payload(
@@ -6250,56 +7808,142 @@ def _render_agentic_omnibar_section(
     if "agentic_omnibar_chat" not in st.session_state:
         st.session_state["agentic_omnibar_chat"] = []
     chat: list[dict[str, object]] = st.session_state["agentic_omnibar_chat"]
-
-    # ── Empty state ──
-    if not chat:
-        _render_omnibar_welcome(beats)
-
-    # ── Render history ──
-    for msg in chat:
-        with st.chat_message(str(msg.get("role") or "assistant")):
-            if msg.get("role") == "assistant":
-                _render_agent_response_message(msg)
-            else:
-                st.markdown(str(msg.get("content") or ""))
-
-    # ── Input handling ──
-    pending_query = st.session_state.pop("_omnibar_pending_query", None)
-    typed_query = st.chat_input("Ask about any market, ticker, or event...")
-    active_query = str(pending_query or typed_query or "").strip()
-
-    if active_query:
-        # Add user message to history
-        chat.append({"role": "user", "content": active_query})
-        with st.chat_message("user"):
-            st.markdown(active_query)
-
-        # Run agent with live progress and render structured response
-        # Pass prior turns (everything before the just-appended user message)
-        # so the agent can resolve follow-up references.
-        prior_turns = chat[:-1] if len(chat) > 1 else []
-        with st.chat_message("assistant"):
-            msg_data = _run_and_render_agent_live(
-                cfg,
-                active_query,
-                beats,
-                symbol_catalog,
-                force_data_refresh=force_data_refresh,
-                conversation_history=prior_turns,
-            )
-
-        # Save assistant message to history
-        chat.append({"role": "assistant", **msg_data})
-        st.session_state["agentic_omnibar_chat"] = chat
-
-    # ── Admin debug (last resolution) ──
+    zopedia_user_key = _zopedia_chat_user_key()
+    last_admin_resolution = None
     if _current_user_is_admin() and chat:
         last_assistant = next(
             (m for m in reversed(chat) if m.get("role") == "assistant"),
             None,
         )
         if last_assistant and last_assistant.get("resolution"):
-            _render_agentic_omnibar_debug_panel(dict(last_assistant["resolution"]))
+            last_admin_resolution = dict(last_assistant["resolution"])
+
+    conversation_area = st.container()
+    if _mobile_layout_active():
+        _render_zopedia_header()
+        st.markdown("<div class='sn-zopedia-main-spacer'></div>", unsafe_allow_html=True)
+
+        conversation_area = st.container()
+        with conversation_area:
+            if not chat:
+                _render_omnibar_welcome(beats)
+            for msg in chat:
+                with st.chat_message(str(msg.get("role") or "assistant")):
+                    if msg.get("role") == "assistant":
+                        _render_agent_response_message(msg)
+                    else:
+                        st.markdown(str(msg.get("content") or ""))
+
+        _render_zopedia_source_status()
+        _render_zopedia_attach_popover(key_prefix="zopedia_attach_mobile")
+        _render_zopedia_mobile_context(user_key=zopedia_user_key, last_resolution=last_admin_resolution)
+    else:
+        rail_col, main_col, context_col = _responsive_columns([1.05, 3.15, 0.95], gap="large")
+        with rail_col:
+            _render_zopedia_left_rail(user_key=zopedia_user_key)
+        with main_col:
+            _render_zopedia_header()
+            conversation_area = st.container()
+            with conversation_area:
+                if not chat:
+                    _render_omnibar_welcome(beats)
+                for msg in chat:
+                    with st.chat_message(str(msg.get("role") or "assistant")):
+                        if msg.get("role") == "assistant":
+                            _render_agent_response_message(msg)
+                        else:
+                            st.markdown(str(msg.get("content") or ""))
+            _render_zopedia_source_status()
+            _render_zopedia_attach_popover(key_prefix="zopedia_attach_desktop")
+        with context_col:
+            _render_zopedia_right_drawer(last_resolution=last_admin_resolution)
+
+    # ── Input handling ──
+    pending_query = st.session_state.pop("_omnibar_pending_query", None)
+    typed_value = st.chat_input(
+        "Ask about any market, ticker, source, or event...",
+        accept_file="multiple",
+        file_type=["txt", "md", "csv", "json", "pdf"],
+        key="zopedia_chat_input",
+    )
+    typed_query, uploaded_files = _zopedia_chat_input_parts(typed_value)
+    ingested_uploads = _ingest_zopedia_chat_uploads(uploaded_files)
+    if ingested_uploads and not typed_query and pending_query is None:
+        st.rerun()
+    if isinstance(pending_query, dict):
+        display_query = str(
+            pending_query.get("display_query") or pending_query.get("query") or pending_query.get("agent_query") or ""
+        ).strip()
+        active_query = str(pending_query.get("agent_query") or display_query).strip()
+    else:
+        active_query = str(pending_query or typed_query or "").strip()
+        display_query = active_query
+
+    stored_uploads = [result for result in ingested_uploads if isinstance(result, dict) and result.get("status") == "stored"]
+    if active_query and stored_uploads:
+        attached_titles: list[str] = []
+        for result in stored_uploads:
+            pages = list(result.get("pages") or [])
+            for page in pages[:2]:
+                if isinstance(page, dict):
+                    title = _zopedia_clean_title(page.get("title"), fallback="Attached source", max_chars=80)
+                    if title not in attached_titles:
+                        attached_titles.append(title)
+        if attached_titles:
+            active_query = (
+                f"{active_query}\n\n"
+                "Attached source material was added to Zopedia memory for this turn: "
+                + "; ".join(attached_titles[:4])
+                + ". Use it if relevant and cite the underlying source evidence when making claims."
+            )
+
+    if active_query:
+        thread_id = _ensure_zopedia_chat_thread(user_key=zopedia_user_key, title=display_query or active_query)
+        # Add user message to history
+        chat.append({"role": "user", "content": display_query or active_query})
+        if thread_id:
+            _persist_zopedia_chat_message(
+                thread_id=thread_id,
+                user_key=zopedia_user_key,
+                role="user",
+                content=display_query or active_query,
+                title=display_query or active_query,
+            )
+        with conversation_area:
+            with st.chat_message("user"):
+                st.markdown(display_query or active_query)
+                if stored_uploads:
+                    st.caption(f"Attached {len(stored_uploads)} source{'s' if len(stored_uploads) != 1 else ''}.")
+
+        # Run agent with live progress and render structured response
+        # Pass prior turns (everything before the just-appended user message)
+        # so the agent can resolve follow-up references.
+        prior_turns = chat[:-1] if len(chat) > 1 else []
+        with conversation_area:
+            with st.chat_message("assistant"):
+                msg_data = _run_and_render_agent_live(
+                    cfg,
+                    active_query,
+                    beats,
+                    symbol_catalog,
+                    force_data_refresh=force_data_refresh,
+                    conversation_history=prior_turns,
+                )
+
+        # Save assistant message to history
+        chat.append({"role": "assistant", **msg_data})
+        if thread_id:
+            agent_result = dict(msg_data.get("agent_result") or {})
+            _persist_zopedia_chat_message(
+                thread_id=thread_id,
+                user_key=zopedia_user_key,
+                role="assistant",
+                content=str(msg_data.get("content") or msg_data.get("answer") or ""),
+                payload=msg_data,
+                run_id=str(agent_result.get("run_id") or msg_data.get("msg_id") or ""),
+                title=display_query or active_query,
+            )
+        st.session_state["agentic_omnibar_chat"] = chat
 
 
 def _run_and_render_agent_live(
@@ -6318,27 +7962,31 @@ def _run_and_render_agent_live(
 
     status_widget = st.status("Researching...", expanded=True)
 
+    def _update_live_status(label: str, *, state: str | None = None) -> None:
+        kwargs: dict[str, object] = {"label": label, "expanded": True}
+        if state:
+            kwargs["state"] = state
+        status_widget.update(**kwargs)
+
     def _progress_callback(event: dict[str, object]) -> None:
         nonlocal tool_count
         stage = str(event.get("stage") or "").strip().lower()
         message = _agentic_omnibar_progress_message(event)
 
         if stage == "planner_start":
-            iteration = int(event.get("iteration") or 1)
             prior_tools = int(event.get("tool_call_count") or 0)
             if prior_tools > 0:
-                status_widget.update(label=f"Thinking... (step {iteration}, {prior_tools} source{'s' if prior_tools != 1 else ''} so far)")
+                _update_live_status(f"Reviewing {prior_tools} finding{'s' if prior_tools != 1 else ''}...")
             else:
-                status_widget.update(label=f"Thinking... (step {iteration})")
+                _update_live_status("Planning the research...")
         elif stage == "planner_heartbeat":
             elapsed = int(event.get("elapsed_seconds") or 0)
-            iteration = int(event.get("iteration") or 1)
             prior_tools = int(event.get("tool_call_count") or 0)
-            parts = [f"step {iteration}"]
+            parts = []
             if prior_tools > 0:
-                parts.append(f"{prior_tools} source{'s' if prior_tools != 1 else ''}")
+                parts.append(f"{prior_tools} finding{'s' if prior_tools != 1 else ''}")
             parts.append(f"{elapsed}s")
-            status_widget.update(label=f"Thinking... ({', '.join(parts)})")
+            _update_live_status(f"Reasoning... ({', '.join(parts)})")
         elif stage == "planner_reasoning":
             reasoning = str(event.get("reasoning") or "").strip()
             if reasoning:
@@ -6363,12 +8011,12 @@ def _run_and_render_agent_live(
             human_tool = _humanize_agentic_omnibar_tool_name(tool_name)
             with status_widget:
                 st.markdown(f"→ **{human_tool}**")
-            status_widget.update(label=f"Checking {human_tool}... (step {tool_count})")
+            _update_live_status(f"Checking {human_tool}...")
         elif stage == "tool_heartbeat":
             tool_name = str(event.get("tool_name") or "")
             human_tool = _humanize_agentic_omnibar_tool_name(tool_name)
             elapsed = int(event.get("elapsed_seconds") or 0)
-            status_widget.update(label=f"Checking {human_tool}... (step {tool_count}, {elapsed}s)")
+            _update_live_status(f"Checking {human_tool}... ({elapsed}s)")
         elif stage == "tool_timeout":
             tool_name = str(event.get("tool_name") or "")
             human_tool = _humanize_agentic_omnibar_tool_name(tool_name)
@@ -6376,7 +8024,7 @@ def _run_and_render_agent_live(
             thinking_trace.append({"type": "message", "text": f"{human_tool} timed out after {elapsed}s; moving on."})
             with status_widget:
                 st.caption(f"{human_tool} timed out after {elapsed}s; moving on.")
-            status_widget.update(label=f"{human_tool} timed out; continuing...")
+            _update_live_status(f"{human_tool} timed out; continuing...")
         elif stage == "tool_complete":
             preview = str(event.get("result_preview") or "").strip()
             trace_entry: dict[str, object] = {"type": "tool_complete", "preview": preview}
@@ -6390,20 +8038,29 @@ def _run_and_render_agent_live(
             if preview or render_payload or links:
                 thinking_trace.append(trace_entry)
         elif stage == "planner_final":
-            status_widget.update(label=f"Writing answer from {tool_count} source{'s' if tool_count != 1 else ''}...")
+            _update_live_status(f"Writing answer from {tool_count} source{'s' if tool_count != 1 else ''}...")
         elif stage == "final_synthesis_start":
-            status_widget.update(label=f"Synthesizing answer from {tool_count} source{'s' if tool_count != 1 else ''}...")
+            _update_live_status(f"Synthesizing answer from {tool_count} source{'s' if tool_count != 1 else ''}...")
+        elif stage.startswith("memory_"):
+            thinking_trace.append({"type": "message", "text": message})
+            _update_live_status(message)
         elif stage == "tool_catalog_ready":
             tool_total = int(event.get("tool_count") or 0)
             if tool_total > 0:
-                status_widget.update(label=f"Loaded {tool_total} tools, thinking...")
+                _update_live_status("Getting the research workspace ready...")
         elif stage == "hidden_step_heartbeat":
             elapsed = int(event.get("elapsed_seconds") or 0)
-            status_widget.update(label=f"Preparing evidence... ({elapsed}s)")
+            _update_live_status(f"Checking saved research... ({elapsed}s)")
         elif stage == "hidden_step_timeout":
             elapsed = int(event.get("elapsed_seconds") or 0)
-            thinking_trace.append({"type": "message", "text": f"Evidence preparation timed out after {elapsed}s; continuing."})
-            status_widget.update(label="Evidence preparation timed out; continuing...")
+            thinking_trace.append({"type": "message", "text": f"Saved-research check timed out after {elapsed}s; continuing."})
+            _update_live_status("Saved-research check timed out; continuing...")
+        elif stage == "final_synthesis_heartbeat":
+            elapsed = int(event.get("elapsed_seconds") or 0)
+            _update_live_status(f"Writing the answer... ({elapsed}s)")
+        elif stage == "final_synthesis_timeout":
+            thinking_trace.append({"type": "message", "text": "Synthesis timed out; returning the evidence gathered so far."})
+            _update_live_status("Synthesis timed out; returning gathered evidence...")
         elif stage not in {"completed", "status", "resolve_start", "intent_ready", "agent_dispatch", "start"}:
             thinking_trace.append({"type": "message", "text": message})
 
@@ -6430,16 +8087,14 @@ def _run_and_render_agent_live(
 
     # Close status — show error state if failed
     if run_error:
-        status_widget.update(
-            label=f"Error after {duration:.0f}s ({tool_count} source{'s' if tool_count != 1 else ''} checked)",
+        _update_live_status(
+            f"Error after {duration:.0f}s ({tool_count} source{'s' if tool_count != 1 else ''} checked)",
             state="error",
-            expanded=False,
         )
     else:
-        status_widget.update(
-            label=f"Researched {tool_count} source{'s' if tool_count != 1 else ''} · {duration:.0f}s",
+        _update_live_status(
+            f"Researched {tool_count} source{'s' if tool_count != 1 else ''} · {duration:.0f}s",
             state="complete",
-            expanded=False,
         )
 
     # ── Render structured response ──
@@ -6449,10 +8104,12 @@ def _run_and_render_agent_live(
     limitations = [str(item).strip() for item in list(agent_result.get("limitations") or []) if str(item).strip()]
     search_results = list(resolution.get("search_results") or [])
     request_id = str(resolution.get("request_id") or "live")
+    if thinking_trace:
+        st.session_state[_thinking_trace_open_key(request_id)] = True
 
     # Error message
     if run_error:
-        st.error(f"The research agent encountered an error: {run_error}")
+        st.error(f"Zopedia encountered an error: {run_error}")
 
     # Source evidence strip
     if source_links_all:
@@ -6466,7 +8123,11 @@ def _run_and_render_agent_live(
 
     # Answer
     if answer:
-        st.markdown(answer)
+        _render_interactive_answer_markdown(
+            answer,
+            query=query,
+            msg_id=request_id,
+        )
     elif not search_results and not run_error:
         st.markdown("No answer could be generated for this query.")
 
@@ -6479,18 +8140,28 @@ def _run_and_render_agent_live(
             footer_parts.append(" · ".join(limitations[:2]))
         st.caption(" | ".join(footer_parts))
 
-    # Thinking trace — explicit expander so it's always findable
+    # Thinking trace — persistent toggle so reruns do not collapse it.
     if thinking_trace:
-        with st.expander(f"Thinking Trace ({len(thinking_trace)} steps)", expanded=False):
-            _render_thinking_trace_content(thinking_trace, agent_result, key_prefix=f"live_{request_id}")
+        _render_thinking_trace_panel(
+            thinking_trace,
+            agent_result,
+            panel_id=request_id,
+            key_prefix=f"live_{request_id}",
+            default_open=True,
+        )
 
     # Search results (simplified)
-    if search_results:
+    if search_results and not answer:
         _render_inline_search_results(search_results, request_id)
 
     # Dig deeper button
     if answer:
-        if st.button("Dig deeper", key=f"dig_live_{request_id}"):
+        if st.button(
+            "Dig deeper",
+            key=f"dig_live_{request_id}",
+            type="tertiary",
+            icon=":material/travel_explore:",
+        ):
             st.session_state["_omnibar_pending_query"] = f"{query} — verify and expand with more evidence"
             st.rerun()
 
@@ -6560,7 +8231,7 @@ def _render_homepage_v2_detail_panel(
     if meta:
         st.caption(" | ".join(meta))
 
-    metric_cols = st.columns(3)
+    metric_cols = _responsive_columns(3)
     with metric_cols[0]:
         st.metric("Score", _format_scalar(row.get("attention_score"), digits=1))
     with metric_cols[1]:
@@ -6689,7 +8360,7 @@ def _render_attention_card(
     linked_news_count = int(linked_news_raw) if pd.notna(linked_news_raw) else 0
 
     with st.container(border=True):
-        header_cols = st.columns([6.2, 1.4, 1.4])
+        header_cols = _responsive_columns([6.2, 1.4, 1.4])
         with header_cols[0]:
             st.markdown(f"##### {title}")
             meta = [item for item in [source_label, subtitle, entity_id, status] if item]
@@ -6730,7 +8401,7 @@ def _render_attention_card(
         key_points_text = _attention_key_points_text(row)
         chart = _build_attention_micro_chart(row)
 
-        insight_cols = st.columns([1.05, 1.55], gap="large")
+        insight_cols = _responsive_columns([1.05, 1.55], gap="large")
         with insight_cols[0]:
             if chart is not None:
                 st.plotly_chart(
@@ -6820,7 +8491,7 @@ def _render_attention_card(
             if expected_text:
                 st.caption(expected_text)
 
-        footer_cols = st.columns([5.6, 2.4])
+        footer_cols = _responsive_columns([5.6, 2.4])
         with footer_cols[0]:
             next_action = str(row.get("next_best_action") or "").strip()
             if next_action:
@@ -6908,7 +8579,7 @@ def _render_market_event_card(
     ) or MARKET_EXPLORER_SECTION
 
     with st.container(border=True):
-        header_cols = st.columns([5.4, 1.3, 1.3])
+        header_cols = _responsive_columns([5.4, 1.3, 1.3])
         with header_cols[0]:
             st.markdown(f"##### {title}")
             meta = [item for item in [anchor_symbol, confidence_label, f"{breadth_count} buckets" if breadth_count else ""] if item]
@@ -7139,7 +8810,7 @@ def _render_attention_home_event_card(
         if str(item).strip()
     ]
     with st.container(border=True):
-        header_cols = st.columns([5.2, 1.2, 1.6])
+        header_cols = _responsive_columns([5.2, 1.2, 1.6])
         with header_cols[0]:
             st.markdown(f"##### {event_title}")
             _render_ticker_snapshot_table(
@@ -7228,7 +8899,7 @@ def _render_attention_home_mover_card(
     why_today = _raw_attention_text(payload.get("why_now_text") or mover.get("why_now_text"))
     what_else_moved = _raw_attention_text(payload.get("what_else_moved_text") or mover.get("what_else_moved_text"))
     with st.container(border=True):
-        header_cols = st.columns([4.8, 1.0, 1.5])
+        header_cols = _responsive_columns([4.8, 1.0, 1.5])
         with header_cols[0]:
             st.markdown(f"##### {title}")
             _render_ticker_snapshot_table(
@@ -7551,7 +9222,7 @@ def _render_home_attention(
     show_trend_surface: bool = True,
     require_api: bool = True,
 ) -> None:
-    header_cols = st.columns([4.8, 1.4])
+    header_cols = _responsive_columns([4.8, 1.4])
     with header_cols[0]:
         st.title(page_title)
         st.caption(page_caption)
@@ -7565,7 +9236,7 @@ def _render_home_attention(
     try:
         with _inline_loading_banner(
             "Loading today's attention overview",
-            "Pulling the latest precomputed snapshot for top events, standout movers, and unresolved market signals.",
+            "Pulling top events, standout movers, and unresolved market signals.",
         ):
             home_payload = _load_attention_home_1d_cached(
                 cfg,
@@ -7584,7 +9255,7 @@ def _render_home_attention(
     snapshot_label = generated_at.strftime("%Y-%m-%d %H:%M UTC") if pd.notna(generated_at) else "just now"
     trend_cohort_count = sum(len(list(item.get("cohorts") or [])) for item in taxonomy_trends)
 
-    metric_cols = st.columns(5)
+    metric_cols = _responsive_columns(5)
     with metric_cols[0]:
         st.metric("Snapshot", snapshot_label)
     with metric_cols[1]:
@@ -7597,7 +9268,7 @@ def _render_home_attention(
         st.metric("Trend Cohorts", str(trend_cohort_count))
 
     if not pipeline_store_configured():
-        st.caption("Pipeline snapshots are not configured, so this page is running on the live on-demand fallback.")
+        st.caption("Using live market data because the retained attention store is not configured.")
 
     if not top_events and not must_read and not unresolved:
         st.info("No daily attention items were produced from the latest market activity. Refresh after the market data sources update.")
@@ -7610,7 +9281,7 @@ def _render_home_attention(
     st.markdown("---")
     st.subheader("Top Market Events Today")
     if not top_events:
-        st.info("No market-wide events cleared the bar in the latest run.")
+        st.info("No market-wide events cleared the bar in the latest market read.")
     else:
         for event in top_events:
                 _render_attention_home_event_card(
@@ -7623,7 +9294,7 @@ def _render_home_attention(
                 )
 
     st.markdown("---")
-    second_cols = st.columns(2, gap="large")
+    second_cols = _responsive_two_panel()
     with second_cols[0]:
         st.subheader("Must-Read Movers Today")
         if not must_read:
@@ -7643,7 +9314,7 @@ def _render_home_attention(
     with second_cols[1]:
         st.subheader("Unresolved Large Moves")
         if not unresolved:
-            st.info("No large unresolved moves in the latest run.")
+            st.info("No large unresolved moves in the latest market read.")
         else:
             for mover in unresolved:
                 _render_attention_home_mover_card(
@@ -7660,7 +9331,7 @@ def _render_home_attention(
         st.markdown("---")
         st.subheader("Taxonomy Trend Surface")
         if not taxonomy_trends:
-            st.info("No multi-horizon taxonomy cohorts were produced in this run.")
+            st.info("No multi-horizon taxonomy cohorts were produced in the latest market read.")
         else:
             for horizon_row in taxonomy_trends:
                 horizon_label = str(horizon_row.get("horizon_label") or horizon_row.get("horizon") or "").strip()
@@ -7820,7 +9491,7 @@ def _render_homepage_exp_rail_header(
                 unsafe_allow_html=True,
             )
         return
-    header_cols = st.columns([8.8, 0.65], gap="small")
+    header_cols = _responsive_columns([8.8, 0.65], gap="small")
     with header_cols[0]:
         st.markdown(
             f"<div class='sn-rail-title'>{html.escape(cleaned_title)}</div>",
@@ -7881,7 +9552,7 @@ def _render_homepage_v2_story_fragment(
         HOMEPAGE_V2_COMPANY_PANEL: f"Company background{f' · {selected_ticker}' if selected_ticker else ''}",
     }
 
-    main_cols = st.columns([1.45, 1.05], gap="large")
+    main_cols = _responsive_columns([1.45, 1.05], gap="large")
     with main_cols[0]:
         st.subheader("Narrative Thread")
         st.caption("Each beat stays compact. Choose any headline to load retained research in the rail, or choose any ticker preview to switch the rail into company background.")
@@ -8028,7 +9699,7 @@ def _render_homepage_exp_story_fragment(
     }
     selected_beat = beat_lookup.get(selected_bundle_id, {})
 
-    main_cols = st.columns([1.45, 1.05], gap="large")
+    main_cols = _responsive_columns([1.45, 1.05], gap="large")
     with main_cols[0]:
         for index, beat in enumerate(beats):
             beat_sentence = str(beat.get("sentence") or "").strip()
@@ -8197,7 +9868,7 @@ def _load_homepage_replay_payload(target_date: str) -> dict[str, object] | None:
 
 
 def _render_homepage_v2(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_refresh: bool) -> None:
-    _, _back_col = st.columns([5, 1.4])
+    _, _back_col = _responsive_columns([5, 1.4])
     with _back_col:
         _render_section_back_button("homepage_v2_back")
 
@@ -8222,12 +9893,21 @@ def _render_homepage_v2(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_ref
     generated_at = pd.to_datetime(home_payload.get("generated_at_utc"), utc=True, errors="coerce")
     snapshot_label = generated_at.strftime("%Y-%m-%d %H:%M UTC") if pd.notna(generated_at) else "just now"
 
-    _render_homepage_v2_graph_banner(home_payload)
-    _render_attention_home_summary_card(
-        home_payload,
-        snapshot_label=snapshot_label,
-        title="Market Summary",
-    )
+    if _mobile_layout_active():
+        _render_attention_home_summary_card(
+            home_payload,
+            snapshot_label=snapshot_label,
+            title="Market Summary",
+        )
+        with st.expander("Market graph", expanded=False):
+            _render_homepage_v2_graph_banner(home_payload)
+    else:
+        _render_homepage_v2_graph_banner(home_payload)
+        _render_attention_home_summary_card(
+            home_payload,
+            snapshot_label=snapshot_label,
+            title="Market Summary",
+        )
     _render_homepage_exp_story_fragment(
         cfg,
         beats,
@@ -8496,7 +10176,7 @@ def _render_experiment_placeholder_page(
     snapshot = load_knowledge_graph_snapshot()
     runtime_status = knowledge_graph_runtime_status()
 
-    header_cols = st.columns([4.8, 1.4])
+    header_cols = _responsive_columns([4.8, 1.4])
     with header_cols[0]:
         st.title(HOME_EXP_SECTION)
         st.caption("Open knowledge graph PoC. This is separate from the homepage attention graph.")
@@ -8512,7 +10192,7 @@ def _render_experiment_placeholder_page(
         else:
             st.error(str(feedback.get("message")))
 
-    status_cols = st.columns(5)
+    status_cols = _responsive_columns(5)
     status_cols[0].metric("Nodes", f"{len(list(snapshot.get('nodes') or []))}")
     status_cols[1].metric("Edges", f"{len(list(snapshot.get('edges') or []))}")
     status_cols[2].metric(
@@ -8543,7 +10223,7 @@ def _render_experiment_placeholder_page(
         st.session_state.pop("_knowledge_graph_commit_feedback", None)
         _clear_experiment_graph_state(keep_query=True)
 
-    control_cols = st.columns([1.4, 1.4, 2.2])
+    control_cols = _responsive_columns([1.4, 1.4, 2.2])
     include_agentic_expansion = control_cols[0].toggle(
         "Use agentic expansion",
         value=True,
@@ -8936,6 +10616,35 @@ def _render_help_popover(title: str, body: str, label: str = "How to read") -> N
         st.markdown(body)
 
 
+def _compact_zopedia_context(value: object, *, limit: int = 12000) -> str:
+    try:
+        text = json.dumps(_json_ready(value), ensure_ascii=True, sort_keys=True, default=str)
+    except Exception:
+        text = str(value)
+    if len(text) <= limit:
+        return text
+    return text[: limit - 3].rstrip() + "..."
+
+
+def _zopedia_page_analysis_payload(surface: str, context: dict[str, object]) -> dict[str, str]:
+    clean_surface = str(surface or "").strip() or "Current page"
+    safe_context = _json_ready(context if isinstance(context, dict) else {})
+    ticker = str(safe_context.get("ticker") or "").upper().strip()
+    if ticker and clean_surface == STOCK_INVESTIGATOR_SECTION:
+        display_query = f"Analyze {ticker} from the current Stock Investigator context"
+    else:
+        display_query = f"Analyze the current {clean_surface} view"
+    agent_query = (
+        f"Use Zopedia and AQL evidence to analyze the current {clean_surface} view. "
+        "Start from the supplied page context, then use retained evidence, live evidence, and relevant tools where needed. "
+        "Keep the answer in product language. Return a concise research read with what changed, what matters, "
+        "what to investigate next, and any data gaps.\n\n"
+        "Current page context JSON:\n"
+        f"{_compact_zopedia_context(safe_context)}"
+    )
+    return {"display_query": display_query, "agent_query": agent_query}
+
+
 def _render_page_agentic_summary_panel(
     surface: str,
     context: dict[str, object],
@@ -8951,12 +10660,12 @@ def _render_page_agentic_summary_panel(
     st.session_state[summary_key] = summary
     st.session_state[signature_key] = context_signature
     with st.container(border=True):
-        st.subheader("Agentic Summary")
+        st.subheader("Zopedia Summary")
         status = str(summary.get("status") or "").strip()
         headline = str(summary.get("headline") or "").strip()
-        if headline:
-            st.markdown(f"**{headline}**")
-        if status in {"ok", "fallback"} and str(summary.get("summary_markdown") or "").strip():
+        if status == "ok" and str(summary.get("summary_markdown") or "").strip():
+            if headline:
+                st.markdown(f"**{headline}**")
             st.markdown(str(summary.get("summary_markdown") or "").strip())
             watch_items = [
                 str(item).strip()
@@ -8977,20 +10686,11 @@ def _render_page_agentic_summary_panel(
             confidence = str(summary.get("confidence") or "").strip()
             if confidence:
                 st.caption(f"Confidence: {confidence}")
-            if status == "fallback":
-                st.caption("Using materialized page facts because the scheduled AQL summary was unavailable.")
         else:
-            error = str(summary.get("error") or "").strip()
-            if error:
-                st.info(error)
-            elif ticker and str(surface or "").strip() == STOCK_INVESTIGATOR_SECTION:
-                st.info(
-                    f"No precomputed Agentic Summary matched {ticker}. "
-                    "The attention job precomputes Stock Investigator summaries for a configured candidate set, "
-                    "not every possible ticker."
-                )
-            else:
-                st.info("No materialized summary is available for this view yet.")
+            st.info("Zopedia can analyze this view with the current page context.")
+            if st.button("Analyze in Zopedia", key=f"{key_prefix}_analyze_in_zopedia", use_container_width=True):
+                st.session_state["_omnibar_pending_query"] = _zopedia_page_analysis_payload(surface, safe_context)
+                _open_workspace_section(AGENTIC_OMNIBAR_SECTION)
     return summary
 
 
@@ -9150,7 +10850,7 @@ def _render_stock_investigator_workspace(
     if not str(st.session_state.get("stock_investigator_ticker_widget") or "").strip():
         st.session_state["stock_investigator_ticker_widget"] = default_ticker
 
-    control_cols = st.columns([2.4, 2.2, 1.4])
+    control_cols = _responsive_columns([2.4, 2.2, 1.4])
     with control_cols[0]:
         ticker = st.text_input(
             "Ticker",
@@ -9256,7 +10956,7 @@ def _render_stock_investigator_workspace(
                 force_refresh=force_data_refresh,
             )
 
-            metric_cols = st.columns(6)
+            metric_cols = _responsive_columns(6)
             with metric_cols[0]:
                 st.metric("Pullback vs ATH", f"{signal_summary.get('pullback_from_ath_pct', np.nan):.1f}%")
             with metric_cols[1]:
@@ -9280,13 +10980,13 @@ def _render_stock_investigator_workspace(
                     "ATH and channel signals are computed from up to 10 years of daily bars."
                 )
 
-            channel_left, channel_right = st.columns(2)
+            channel_left, channel_right = _responsive_two_panel()
             with channel_left:
                 st.plotly_chart(build_price_channel_figure(visible_signal_frame, ticker), use_container_width=True)
             with channel_right:
                 st.plotly_chart(build_pullback_figure(visible_signal_frame, ticker), use_container_width=True)
 
-            forecast_left, forecast_right = st.columns(2)
+            forecast_left, forecast_right = _responsive_two_panel()
             with forecast_left:
                 if forecast:
                     st.plotly_chart(
@@ -9413,7 +11113,7 @@ def _render_market_opportunity_experiments(
     lens_name: str,
     lens_symbols: list[str],
 ) -> None:
-    heading_cols = st.columns([10, 2])
+    heading_cols = _responsive_columns([10, 2])
     with heading_cols[0]:
         st.subheader("Advanced")
         st.caption("Less-standard scanners for regime shifts, structural leadership, and commodity transmission.")
@@ -9442,7 +11142,7 @@ def _render_phase_shift_experiment(
     business_filter: str,
     business_symbols: list[str],
 ) -> None:
-    heading_cols = st.columns([10, 2])
+    heading_cols = _responsive_columns([10, 2])
     with heading_cols[0]:
         st.markdown("##### Broad Markets")
         st.caption(
@@ -9468,7 +11168,7 @@ def _render_phase_shift_experiment(
             """,
         )
 
-    control_cols = st.columns(5)
+    control_cols = _responsive_columns(5)
     with control_cols[0]:
         benchmark = st.selectbox(
             "Benchmark",
@@ -9554,7 +11254,7 @@ def _render_phase_shift_experiment(
         ]
     ]
 
-    table_left, table_right = st.columns(2)
+    table_left, table_right = _responsive_two_panel()
     with table_left:
         selected_experiment_ticker = _render_selectable_ticker_table(
             "Decoupling Leaders",
@@ -9581,9 +11281,9 @@ def _render_phase_shift_experiment(
     scatter_frame["corr_break_abs"] = pd.to_numeric(scatter_frame["correlation_break_score"], errors="coerce").abs()
     scatter_frame, phase_size_col = _prepare_scatter_size(scatter_frame, "corr_break_abs")
 
-    chart_left, chart_right = st.columns(2)
+    chart_left, chart_right = _responsive_two_panel()
     with chart_left:
-        chart_help_cols = st.columns([10, 2])
+        chart_help_cols = _responsive_columns([10, 2])
         with chart_help_cols[1]:
             _render_help_popover(
                 "Phase Shift Map",
@@ -9624,7 +11324,7 @@ The further a ticker is from the center, the more unusual the regime shift is.
         st.plotly_chart(fig_phase, use_container_width=True)
 
     with chart_right:
-        chart_help_cols = st.columns([10, 2])
+        chart_help_cols = _responsive_columns([10, 2])
         with chart_help_cols[1]:
             _render_help_popover(
                 "Correlation Phase Surface",
@@ -9703,7 +11403,7 @@ Use this when you want to compare several names at once and see which ones are b
         return
 
     detail = detail_row.iloc[0]
-    metric_cols = st.columns(6)
+    metric_cols = _responsive_columns(6)
     with metric_cols[0]:
         st.metric("Phase Regime", str(detail.get("phase_regime") or "n/a"))
     with metric_cols[1]:
@@ -9723,9 +11423,9 @@ Use this when you want to compare several names at once and see which ones are b
     if visible_history.empty:
         visible_history = detail_history.copy()
 
-    detail_chart_left, detail_chart_right = st.columns(2)
+    detail_chart_left, detail_chart_right = _responsive_two_panel()
     with detail_chart_left:
-        chart_help_cols = st.columns([10, 2])
+        chart_help_cols = _responsive_columns([10, 2])
         with chart_help_cols[1]:
             _render_help_popover(
                 "Relative Path",
@@ -9764,7 +11464,7 @@ This compares the selected stock against the benchmark on the same starting scal
         st.plotly_chart(fig_relative, use_container_width=True)
 
     with detail_chart_right:
-        chart_help_cols = st.columns([10, 2])
+        chart_help_cols = _responsive_columns([10, 2])
         with chart_help_cols[1]:
             _render_help_popover(
                 "Correlation Regime",
@@ -9803,7 +11503,7 @@ If `Rolling Corr` is still high but `Corr RoC` is dropping, the stock may be sta
         )
         st.plotly_chart(fig_corr, use_container_width=True)
 
-    momentum_help_cols = st.columns([10, 2])
+    momentum_help_cols = _responsive_columns([10, 2])
     with momentum_help_cols[1]:
         _render_help_popover(
             "Compounding Momentum Phase",
@@ -9853,7 +11553,7 @@ def _render_commodity_experiment(
     commodity_focus: str,
     commodity_symbols: list[str],
 ) -> None:
-    heading_cols = st.columns([10, 2])
+    heading_cols = _responsive_columns([10, 2])
     with heading_cols[0]:
         st.markdown("##### Commodity Section")
         st.caption(
@@ -9878,7 +11578,7 @@ def _render_commodity_experiment(
             """,
         )
 
-    control_cols = st.columns(4)
+    control_cols = _responsive_columns(4)
     with control_cols[0]:
         experiment_days = st.slider("History (days)", 126, 504, 252, step=21, key="market_commodity_days")
     with control_cols[1]:
@@ -9995,7 +11695,7 @@ def _render_commodity_experiment(
     laggard = summary.sort_values("return_1m_pct", ascending=True, na_position="last").head(1)
     accelerator = summary.sort_values("momentum_roc_score", ascending=False, na_position="last").head(1)
 
-    metric_cols = st.columns(4)
+    metric_cols = _responsive_columns(4)
     with metric_cols[0]:
         if not leader.empty:
             st.metric(
@@ -10062,7 +11762,7 @@ def _render_commodity_experiment(
         ]
     ]
 
-    table_left, table_right = st.columns(2)
+    table_left, table_right = _responsive_two_panel()
     with table_left:
         selected_commodity_ticker = _render_selectable_ticker_table(
             "Moving Up",
@@ -10085,7 +11785,7 @@ def _render_commodity_experiment(
         key="market_commodity_decouplers",
     ) or selected_commodity_ticker
 
-    series_left, series_right = st.columns(2)
+    series_left, series_right = _responsive_two_panel()
     with series_left:
         if moving_up.empty:
             st.info("No commodities are currently in the `up` bucket for this filter.")
@@ -10136,9 +11836,9 @@ def _render_commodity_experiment(
     scatter_frame["rotation_abs"] = pd.to_numeric(scatter_frame["momentum_roc_score"], errors="coerce").abs()
     scatter_frame, commodity_size_col = _prepare_scatter_size(scatter_frame, "rotation_abs")
 
-    chart_left, chart_right = st.columns(2)
+    chart_left, chart_right = _responsive_two_panel()
     with chart_left:
-        chart_help_cols = st.columns([10, 2])
+        chart_help_cols = _responsive_columns([10, 2])
         with chart_help_cols[1]:
             _render_help_popover(
                 "Direction Heatmap",
@@ -10166,7 +11866,7 @@ This is the fastest answer to "what is moving and in what direction?"
         st.plotly_chart(fig_heatmap, use_container_width=True)
 
     with chart_right:
-        chart_help_cols = st.columns([10, 2])
+        chart_help_cols = _responsive_columns([10, 2])
         with chart_help_cols[1]:
             _render_help_popover(
                 "Leadership vs Pullback",
@@ -10207,9 +11907,9 @@ This separates strong leaders from weak laggards.
 
     dependency_edges = commodity_dependency_graph(commodity_symbols)
     if not dependency_edges.empty:
-        sankey_left, sankey_right = st.columns([2.2, 1.2])
+        sankey_left, sankey_right = _responsive_columns([2.2, 1.2])
         with sankey_left:
-            chart_help_cols = st.columns([10, 2])
+            chart_help_cols = _responsive_columns([10, 2])
             with chart_help_cols[1]:
                 _render_help_popover(
                     "Commodity Dependency Graph",
@@ -10331,7 +12031,7 @@ This graph shows common transmission paths.
     st.write(commodity_description)
     st.caption(f"Commodity type: {commodity_label} | Filter: {commodity_focus}")
 
-    metric_cols = st.columns(6)
+    metric_cols = _responsive_columns(6)
     with metric_cols[0]:
         st.metric("Direction", str(detail.get("direction_label") or "n/a"))
     with metric_cols[1]:
@@ -10351,9 +12051,9 @@ This graph shows common transmission paths.
     if visible_history.empty:
         visible_history = detail_history.copy()
 
-    detail_chart_left, detail_chart_right = st.columns(2)
+    detail_chart_left, detail_chart_right = _responsive_two_panel()
     with detail_chart_left:
-        chart_help_cols = st.columns([10, 2])
+        chart_help_cols = _responsive_columns([10, 2])
         with chart_help_cols[1]:
             _render_help_popover(
                 "Relative Path vs Commodity Basket",
@@ -10392,7 +12092,7 @@ This compares the selected commodity against the broad commodity basket from the
         st.plotly_chart(fig_relative, use_container_width=True)
 
     with detail_chart_right:
-        chart_help_cols = st.columns([10, 2])
+        chart_help_cols = _responsive_columns([10, 2])
         with chart_help_cols[1]:
             _render_help_popover(
                 "Return Ladder",
@@ -10430,7 +12130,7 @@ This condenses the move across horizons into one chart.
         fig_ladder.add_vline(x=0, line_dash="dot", line_color="#666")
         st.plotly_chart(fig_ladder, use_container_width=True)
 
-    transmission_help_cols = st.columns([10, 2])
+    transmission_help_cols = _responsive_columns([10, 2])
     with transmission_help_cols[1]:
         _render_help_popover(
             "Trend Structure",
@@ -10844,7 +12544,7 @@ def _render_trading_agent_signal_bar(label: str, value: int, display: str) -> No
 
 def _render_trading_agent_sparkline(values: list[float], *, key: str) -> None:
     if len(values) < 2:
-        st.caption("No 3M sparkline available from the materialized feed.")
+        st.caption("No 3M sparkline available.")
         return
     frame = pd.DataFrame({"point": range(len(values)), "value": values})
     fig = go.Figure(
@@ -11031,7 +12731,7 @@ def _render_trading_agent_candidate_card(
     signal_model = _trading_agent_signal_model(opportunity, controls)
 
     with st.container(border=True):
-        header_cols = st.columns([3.7, 1.0, 1.0, 1.1])
+        header_cols = _responsive_columns([3.7, 1.0, 1.0, 1.1])
         identity = ticker or "n/a"
         if company_name:
             identity = f"{identity} · {company_name}"
@@ -11044,7 +12744,7 @@ def _render_trading_agent_candidate_card(
         if setup:
             st.markdown(f"**Setup:** {setup}")
 
-        signal_cols = st.columns([1.05, 1.35, 1.2])
+        signal_cols = _responsive_columns([1.05, 1.35, 1.2])
         with signal_cols[0]:
             st.markdown("**Market signal rank**")
             st.metric(
@@ -11070,7 +12770,7 @@ def _render_trading_agent_candidate_card(
                 key=f"trading_agent_sparkline_{idx}_{ticker or 'na'}",
             )
 
-        price_cols = st.columns(4)
+        price_cols = _responsive_columns(4)
         price_cols[0].metric("1D move", _trading_agent_pct(signal_model.get("daily_move")))
         price_cols[1].metric(
             f"{_trading_agent_text(signal_model.get('selected_horizon_label'))} return",
@@ -11113,7 +12813,7 @@ def _render_trading_agent_candidate_card(
                 if _trading_agent_text(attention_context.get(key))
             ]
 
-        body_cols = st.columns([1.15, 1.0])
+        body_cols = _responsive_columns([1.15, 1.0])
         with body_cols[0]:
             if evidence:
                 st.markdown("**Evidence**")
@@ -11176,7 +12876,7 @@ def _render_trading_agent_candidate_card(
         if action_label:
             st.caption(f"Decision: {action_label}" + (f" ({latest_status})" if latest_status else ""))
 
-        action_cols = st.columns([1.0, 1.0, 2.4])
+        action_cols = _responsive_columns([1.0, 1.0, 2.4])
         action_disabled = bool(latest_action in {"place_requested", "rejected"}) or not candidate_id
         with action_cols[0]:
             if st.button(
@@ -11351,7 +13051,7 @@ def _render_trading_agent_section(
         )
 
     if runs.empty or candidates_frame.empty:
-        st.info("No materialized Trading Agent candidates are available. Trading Agent Build is managed from Admin > Pipeline Jobs.")
+        st.info("No Trading Agent candidates are available yet.")
         return
 
     if "generated_at_utc" in runs.columns:
@@ -11501,7 +13201,10 @@ def _render_trading_agent_section(
             st.dataframe(display_actions[show_cols], use_container_width=True, hide_index=True)
 
 
+_layout_mode = _resolve_layout_mode()
 _ensure_app_shell_styles()
+if _layout_mode == "mobile":
+    _ensure_mobile_layout_styles()
 
 # Detect logo click (?nav=home) and queue navigation to Home.
 if _query_param_value("nav") == "home":
@@ -11583,24 +13286,24 @@ if (
     and not _auth_action_query_param_present()
     and _routing_target == "Home"
 ):
-    with st.sidebar:
-        _render_sidebar_brand_panel()
-        _render_sidebar_editorial_links(placement="sidebar_brand")
-        _pub_replay_today = pd.Timestamp.now(tz="UTC").normalize().date()
-        _pub_replay_selected = st.date_input(
-            "Snapshot date",
-            value=_pub_replay_today,
-            max_value=_pub_replay_today,
-            key="homepage_replay_date",
-            label_visibility="collapsed",
-        )
-        if _pub_replay_selected is not None and _pub_replay_selected < _pub_replay_today:
-            st.session_state["_homepage_replay_date"] = str(_pub_replay_selected)
-        else:
-            st.session_state.pop("_homepage_replay_date", None)
-        if st.button("Sign in", type="primary", use_container_width=True, key="public_home_signin"):
-            st.session_state["_show_login_form"] = True
-            st.rerun()
+    if _layout_mode == "mobile":
+        _render_mobile_public_home_shell()
+    else:
+        with st.sidebar:
+            _render_sidebar_brand_panel()
+            _render_sidebar_editorial_links(placement="sidebar_brand")
+            _pub_replay_today = pd.Timestamp.now(tz="UTC").normalize().date()
+            _pub_replay_selected = st.date_input(
+                "Snapshot date",
+                value=_pub_replay_today,
+                max_value=_pub_replay_today,
+                key="homepage_replay_date",
+                label_visibility="collapsed",
+            )
+            _apply_homepage_replay_date(_pub_replay_selected, _pub_replay_today)
+            if st.button("Sign in", type="primary", use_container_width=True, key="public_home_signin"):
+                st.session_state["_show_login_form"] = True
+                st.rerun()
     _render_homepage_v2(cfg, None, force_data_refresh=False)
     st.stop()
 
@@ -11637,64 +13340,70 @@ elif st.session_state.get("workspace_section") not in section_options:
 
 current_user = _current_user_context()
 
-with st.sidebar:
-    _render_sidebar_brand_panel()
-    _render_sidebar_editorial_links(placement="sidebar_brand")
-    # Snapshot date picker — only meaningful on Home, but always rendered
-    # in the sidebar to keep the key stable across section changes.
-    _replay_today = pd.Timestamp.now(tz="UTC").normalize().date()
-    _replay_selected = st.date_input(
-        "Snapshot date",
-        value=_replay_today,
-        max_value=_replay_today,
-        key="homepage_replay_date",
-        label_visibility="collapsed",
+_nav_current = _normalize_workspace_section(st.session_state.get("workspace_section", section_options[0]))
+if _layout_mode == "mobile":
+    section, sidebar_connection, sidebar_status, sidebar_buying_power = _render_mobile_workspace_shell(
+        section_options=section_options,
+        current_section=_nav_current,
+        cache_disabled=cache_disabled,
+        force_refresh_default=force_refresh_default,
+        current_user=current_user,
     )
-    if _replay_selected is not None and _replay_selected < _replay_today:
-        st.session_state["_homepage_replay_date"] = str(_replay_selected)
-    else:
-        st.session_state.pop("_homepage_replay_date", None)
-    _nav_current = _normalize_workspace_section(st.session_state.get("workspace_section", section_options[0]))
-    st.markdown('<p class="sn-nav-label">Navigate</p>', unsafe_allow_html=True)
-    for _nav_opt in section_options:
-        _nav_slug = _nav_opt.lower().replace(" ", "_").replace("-", "_")
-        _nav_key = f"sn_nav_active_{_nav_slug}" if _nav_opt == _nav_current else f"sn_nav_{_nav_slug}"
-        if st.button(_nav_opt, key=_nav_key, use_container_width=True):
-            st.session_state["_pending_workspace_section"] = _nav_opt
-            st.rerun()
-    section = _nav_current
+else:
+    with st.sidebar:
+        _render_sidebar_brand_panel()
+        _render_sidebar_editorial_links(placement="sidebar_brand")
+        # Snapshot date picker — only meaningful on Home, but always rendered
+        # in the sidebar to keep the key stable across section changes.
+        _replay_today = pd.Timestamp.now(tz="UTC").normalize().date()
+        _replay_selected = st.date_input(
+            "Snapshot date",
+            value=_replay_today,
+            max_value=_replay_today,
+            key="homepage_replay_date",
+            label_visibility="collapsed",
+        )
+        _apply_homepage_replay_date(_replay_selected, _replay_today)
+        st.markdown('<p class="sn-nav-label">Navigate</p>', unsafe_allow_html=True)
+        for _nav_opt in section_options:
+            _nav_slug = _nav_opt.lower().replace(" ", "_").replace("-", "_")
+            _nav_key = f"sn_nav_active_{_nav_slug}" if _nav_opt == _nav_current else f"sn_nav_{_nav_slug}"
+            if st.button(_nav_opt, key=_nav_key, use_container_width=True):
+                st.session_state["_pending_workspace_section"] = _nav_opt
+                st.rerun()
+        section = _nav_current
 
-    with st.expander("Workspace Status", expanded=False):
-        if pipeline_store_configured():
-            if _presentation_layer_only():
-                st.caption("Data mode: Presentation-only pipeline snapshots")
+        with st.expander("Workspace Status", expanded=False):
+            if pipeline_store_configured():
+                if _presentation_layer_only():
+                    st.caption("Data mode: Curated presentation snapshots")
+                else:
+                    st.caption("Data mode: Curated metadata + parquet snapshots")
             else:
-                st.caption("Data mode: Pipeline metadata + parquet snapshots")
-        else:
-            st.caption("Data mode: Snapshot store unavailable")
-        st.caption(f"Cache: {'disabled' if cache_disabled else 'enabled'}")
-        st.caption(f"Inline force refresh: {'disabled' if _presentation_layer_only() else ('on' if force_refresh_default else 'off')}")
-        st.caption(f"CSV cache: {cache_data_root()}")
-        st.caption(f"Cache policy: {cache_policy_path()}")
-        if st.button("Logout", key="dashboard_logout", use_container_width=True):
-            if st.session_state.get("_ui_auth_mode") == "database":
-                auth_service.record_access_event(
-                    event_type="logout",
-                    event_category="usage",
-                    user=current_user,
-                    session_token=str(st.session_state.get("_ui_auth_session_id") or ""),
-                    ip_address=_request_ip_address(),
-                    user_agent=_request_user_agent(),
-                )
-                auth_service.logout_session(str(st.session_state.get("_ui_auth_session_id") or ""))
-            else:
-                _invalidate_auth_session(st.session_state.get("_ui_auth_session_id"))
-            _clear_local_auth_state()
-            st.session_state["_ui_clear_auth_cookie"] = True
-            st.rerun()
-        sidebar_connection = st.empty()
-        sidebar_status = st.empty()
-        sidebar_buying_power = st.empty()
+                st.caption("Data mode: Snapshot store unavailable")
+            st.caption(f"Cache: {'disabled' if cache_disabled else 'enabled'}")
+            st.caption(f"Inline force refresh: {'disabled' if _presentation_layer_only() else ('on' if force_refresh_default else 'off')}")
+            st.caption(f"CSV cache: {cache_data_root()}")
+            st.caption(f"Cache policy: {cache_policy_path()}")
+            if st.button("Logout", key="dashboard_logout", use_container_width=True):
+                if st.session_state.get("_ui_auth_mode") == "database":
+                    auth_service.record_access_event(
+                        event_type="logout",
+                        event_category="usage",
+                        user=current_user,
+                        session_token=str(st.session_state.get("_ui_auth_session_id") or ""),
+                        ip_address=_request_ip_address(),
+                        user_agent=_request_user_agent(),
+                    )
+                    auth_service.logout_session(str(st.session_state.get("_ui_auth_session_id") or ""))
+                else:
+                    _invalidate_auth_session(st.session_state.get("_ui_auth_session_id"))
+                _clear_local_auth_state()
+                st.session_state["_ui_clear_auth_cookie"] = True
+                st.rerun()
+            sidebar_connection = st.empty()
+            sidebar_status = st.empty()
+            sidebar_buying_power = st.empty()
 
 _log_event("ui_sidebar_ready")
 _record_workspace_section_view(section_name=section, current_user=current_user, app_track=app_track)
@@ -11762,7 +13471,7 @@ elif section == AGENTIC_OMNIBAR_SECTION:
     )
 
 elif section == PORTFOLIO_SECTION:
-    header_cols = st.columns([3.2, 1.6])
+    header_cols = _responsive_columns([3.2, 1.6])
     with header_cols[0]:
         st.title(PORTFOLIO_SECTION)
         if current_user is not None and not current_user.can_view_full_portfolio:
@@ -11793,7 +13502,7 @@ elif section == PORTFOLIO_SECTION:
                 sidebar_status.metric("Account Status", "ERROR")
                 sidebar_buying_power.metric("Buying Power", "Unavailable")
 
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4 = _responsive_columns(4)
         col1.metric("Equity", f"${_to_float(account, 'equity'):,.2f}")
         col2.metric("Cash", f"${_to_float(account, 'cash'):,.2f}")
         col3.metric("Portfolio Value", f"${_to_float(account, 'portfolio_value'):,.2f}")
@@ -11811,7 +13520,7 @@ elif section == PORTFOLIO_SECTION:
             st.warning(f"Could not load positions: {exc}")
             positions = pd.DataFrame()
 
-        left, right = st.columns([1.2, 1.8])
+        left, right = _responsive_columns([1.2, 1.8], gap="large")
 
         with left:
             st.subheader("Current Positions")
@@ -11898,7 +13607,7 @@ elif section == PORTFOLIO_SECTION:
                 st.warning(f"Could not compute momentum: {exc}")
 
 elif section == PORTFOLIO_PERFORMANCE_SECTION:
-    header_cols = st.columns([3.2, 1.6])
+    header_cols = _responsive_columns([3.2, 1.6])
     with header_cols[0]:
         st.title(PORTFOLIO_PERFORMANCE_SECTION)
         if current_user is not None and not current_user.can_view_full_portfolio:
@@ -11954,10 +13663,6 @@ elif section == TRADING_AGENT_SECTION:
 
 elif section == BROAD_ECONOMY_SECTION:
     st.title(BROAD_ECONOMY_SECTION)
-    st.caption(
-        "Economic indicators sourced from FRED. The dashboard now defaults to the fresher per-series path, "
-        "with derived YoY and stationarized views rebuilt from the underlying observations."
-    )
 
     fred_api_key = load_fred_api_key()
     if not fred_api_key:
@@ -12033,10 +13738,6 @@ elif section == BROAD_ECONOMY_SECTION:
             for value, units in zip(overview["yoy_delta"], overview["units_short"])
         ]
         overview["latest_date"] = pd.to_datetime(overview["latest_date"], errors="coerce").dt.strftime("%Y-%m-%d")
-        st.caption(
-            "Stationarized change is on by default across Broad Economy. Level series use obs-to-obs percent change; "
-            "rate-like series use first differences."
-        )
         _render_page_agentic_summary_panel(
             BROAD_ECONOMY_SECTION,
             broad_economy_summary_context(
@@ -12059,7 +13760,7 @@ elif section == BROAD_ECONOMY_SECTION:
             m2_latest_date = pd.to_datetime(m2_row["latest_date"].iloc[0], errors="coerce") if not m2_row.empty else pd.NaT
 
             st.subheader("M2 Money Supply")
-            hero_metric_cols = st.columns(4)
+            hero_metric_cols = _responsive_columns(4)
             with hero_metric_cols[0]:
                 st.metric(
                     "Latest",
@@ -12119,7 +13820,7 @@ elif section == BROAD_ECONOMY_SECTION:
                     hide_index=True,
                 )
 
-                chart_cols = st.columns(2)
+                chart_cols = _responsive_two_panel()
                 for idx, spec in enumerate(specs_by_category.get(category, [])):
                     with chart_cols[idx % 2]:
                         row = category_summary[category_summary["series_id"] == spec.series_id]
@@ -12172,7 +13873,7 @@ elif section == BROAD_ECONOMY_SECTION:
                 if "release_name" not in explorer_series.columns:
                     explorer_series["release_name"] = pd.Series(pd.NA, index=explorer_series.index)
 
-                explorer_cols = st.columns([2, 1])
+                explorer_cols = _responsive_columns([2, 1])
                 with explorer_cols[0]:
                     search_query = st.text_input(
                         "Search loaded series",
@@ -12234,7 +13935,7 @@ elif section == BROAD_ECONOMY_SECTION:
                     )
                     selected_summary = build_fred_series_summary(selected_spec, selected_meta, selected_frame)
 
-                    explorer_metric_cols = st.columns(3)
+                    explorer_metric_cols = _responsive_columns(3)
                     with explorer_metric_cols[0]:
                         st.metric(
                             "Latest",
@@ -12279,26 +13980,22 @@ elif section == BROAD_ECONOMY_SECTION:
         if not series_index.empty:
             release_count = int(release_index["release_id"].nunique()) if not release_index.empty else 0
             series_count = int(series_index["series_id"].nunique())
-            bulk_cols = st.columns(3)
+            bulk_cols = _responsive_columns(3)
             with bulk_cols[0]:
                 st.metric("Loaded Releases", f"{release_count}")
             with bulk_cols[1]:
                 st.metric("Loaded Series", f"{series_count}")
             with bulk_cols[2]:
                 st.metric("Curated Indicators", f"{len(summary)}")
-            st.caption(
-                "The curated dashboard tracks the releases and series needed for inflation, labor, growth, housing, "
-                "credit distress, policy, and money-supply analysis."
-            )
 
 elif section == MARKET_EXPLORER_SECTION:
     st.title(MARKET_EXPLORER_SECTION)
     if not _has_live_api(
         api,
-        f"{MARKET_EXPLORER_SECTION} requires a working live market connection or pipeline snapshots.",
+        f"{MARKET_EXPLORER_SECTION} requires a working live market connection or retained market snapshots.",
         allow_pipeline=True,
     ):
-        st.info("Restore the live market connection or configure pipeline snapshots to scan movers and load price history.")
+        st.info("Restore the live market connection or configure retained market snapshots to scan movers and load price history.")
     else:
         market_view_options = ["Markets", "Broad Markets", "Commodity Section"]
         _prime_widget_choice("market_view", market_view_options, fallback="Markets", pending_key="_pending_market_view")
@@ -12321,7 +14018,7 @@ elif section == MARKET_EXPLORER_SECTION:
                 fallback="Broad Commodity Market",
                 pending_key="_pending_market_commodity_focus",
             )
-            lens_cols = st.columns([2.2, 3.8])
+            lens_cols = _responsive_columns([2.2, 3.8])
             with lens_cols[0]:
                 experiment_filter = st.selectbox(
                     "Commodity Filter",
@@ -12348,7 +14045,7 @@ elif section == MARKET_EXPLORER_SECTION:
                 fallback="All Market",
                 pending_key="_pending_market_business_filter",
             )
-            lens_cols = st.columns([2.2, 3.8])
+            lens_cols = _responsive_columns([2.2, 3.8])
             with lens_cols[0]:
                 experiment_filter = st.selectbox(
                     "Business Filter",
@@ -12378,7 +14075,7 @@ elif section == MARKET_EXPLORER_SECTION:
                 pending_key="_pending_market_business_filter",
             )
 
-            lens_cols = st.columns([2.2, 3.8])
+            lens_cols = _responsive_columns([2.2, 3.8])
             with lens_cols[0]:
                 business_filter = st.selectbox(
                     "Business Filter",
@@ -12422,7 +14119,7 @@ elif section == MARKET_EXPLORER_SECTION:
         opportunity_feed = locals().get("opportunity_feed", pd.DataFrame())
 
         if opportunity_feed.empty:
-            st.info("No materialized market opportunity rows were available for this market lens. The feed is rebuilt by the scheduled attention job.")
+            st.info("No market opportunity rows matched this lens.")
         else:
             _render_page_agentic_summary_panel(
                 MARKET_EXPLORER_SECTION,
@@ -12497,7 +14194,7 @@ elif section == MARKET_EXPLORER_SECTION:
             )
             st.plotly_chart(tree, use_container_width=True)
         else:
-            st.info("Daily mover volume was not available in the materialized feed, so the treemap is hidden.")
+            st.info("Daily mover volume was not available, so the treemap is hidden.")
 
         scanned_detail_symbols: set[str] = set()
         if not opportunity_feed.empty and "symbol" in opportunity_feed.columns:
@@ -12519,7 +14216,7 @@ elif section == MARKET_EXPLORER_SECTION:
             )
 
         if focus_ticker:
-            handoff_cols = st.columns([4.8, 1.4])
+            handoff_cols = _responsive_columns([4.8, 1.4])
             with handoff_cols[0]:
                 st.caption(
                     f"Stock focus: {focus_ticker}. Open Stock Investigator for technicals, fundamentals, and company context."
@@ -12539,10 +14236,10 @@ elif section == STOCK_INVESTIGATOR_SECTION:
 
     if not _has_live_api(
         api,
-        "Stock Investigator requires a working live market connection or pipeline snapshots.",
+        "Stock Investigator requires a working live market connection or retained market snapshots.",
         allow_pipeline=True,
     ):
-        st.info("Restore the live market connection or configure pipeline snapshots to inspect ticker details.")
+        st.info("Restore the live market connection or configure retained market snapshots to inspect ticker details.")
     else:
         _render_stock_investigator_workspace(
             cfg,
@@ -12555,7 +14252,7 @@ elif section == "Option Strategizer":
 
     if ticker and _has_live_api(
         api,
-        "Option Strategizer requires a working live market connection or pipeline snapshots.",
+        "Option Strategizer requires a working live market connection or retained market snapshots.",
         allow_pipeline=True,
     ):
         spot_price = np.nan
@@ -12599,7 +14296,7 @@ elif section == "Option Strategizer":
                 calls = pd.DataFrame()
                 puts = pd.DataFrame()
 
-            c1, c2 = st.columns(2)
+            c1, c2 = _responsive_two_panel()
             with c1:
                 st.subheader("Top Calls")
                 st.dataframe(rank_options(calls), use_container_width=True, hide_index=True)
@@ -12630,7 +14327,7 @@ elif section == "Option Strategizer":
                     "Scenario model uses delta, gamma, and theta to approximate option value at your target date, "
                     "then scores contracts for projected return, leverage, lower decay, lower cost, and liquidity."
                 )
-                control_cols = st.columns(3)
+                control_cols = _responsive_columns(3)
                 with control_cols[0]:
                     st.metric("Spot Reference", f"${spot_price:,.2f}")
                 with control_cols[1]:
@@ -12696,7 +14393,7 @@ elif section == "Option Strategizer":
                         st.info("No option candidates had enough quote and Greek data for scenario analysis.")
                     else:
                         best = candidates.iloc[0]
-                        metric_cols = st.columns(5)
+                        metric_cols = _responsive_columns(5)
                         with metric_cols[0]:
                             st.metric("Best Contract", str(best.get("contractSymbol") or "n/a"))
                         with metric_cols[1]:

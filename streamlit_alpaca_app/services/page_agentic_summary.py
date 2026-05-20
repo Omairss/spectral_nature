@@ -177,7 +177,7 @@ def _aql_agent_query(*, surface: str, context: dict[str, Any]) -> str:
     symbols = _extract_symbols(context)
     symbol_line = f" Focus symbols: {', '.join(symbols)}." if symbols else ""
     return (
-        f"Use the shared AQL / Chat + Search evidence path to write a grounded top-of-page summary for {surface}."
+        f"Use the shared AQL / Zopedia evidence path to write a grounded top-of-page summary for {surface}."
         f"{symbol_line} Start from the supplied page data, then check retained evidence or live evidence if needed. "
         "Focus on what changed, what is worth investigating next, and meaningful data gaps. "
         "Use watch/investigate language, not personalized financial advice.\n\n"
@@ -187,9 +187,11 @@ def _aql_agent_query(*, surface: str, context: dict[str, Any]) -> str:
 
 
 def _default_aql_agent_runner(**kwargs: Any) -> dict[str, Any]:
-    from .omnibar_agent import run_omnibar_agent
+    from .aql_zopedia_engine import run_aql_zopedia_agent
 
-    return run_omnibar_agent(**kwargs)
+    kwargs.setdefault("task", "page_summary")
+    kwargs.setdefault("surface", "page_agentic_summary")
+    return run_aql_zopedia_agent(**kwargs)
 
 
 def _aql_agent_context(result: dict[str, Any]) -> dict[str, Any]:
@@ -209,6 +211,8 @@ def _aql_agent_context(result: dict[str, Any]) -> dict[str, Any]:
         )
     return {
         "run_id": _clean((result or {}).get("run_id")),
+        "evidence_pack_id": _clean((result or {}).get("aql_evidence_pack_id")),
+        "evidence_pack": result.get("aql_evidence_pack") if isinstance(result.get("aql_evidence_pack"), dict) else {},
         "status": _clean((result or {}).get("status")),
         "answer_markdown": _clean((result or {}).get("answer_markdown")),
         "confidence": _clean((result or {}).get("confidence")),
@@ -217,87 +221,20 @@ def _aql_agent_context(result: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _fallback_page_summary(
+def _unavailable_page_summary(
     *,
     surface: str,
-    context: dict[str, Any],
     reason: str,
     aql_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     clean_surface = _clean(surface) or "Page"
-    watch_items: list[str] = []
-    summary_bits: list[str] = []
-
-    opportunities = [item for item in to_list((context or {}).get("opportunities")) if isinstance(item, dict)]
-    if opportunities:
-        top = opportunities[0]
-        symbol = _clean(top.get("symbol"))
-        opportunity = _clean(top.get("opportunity"))
-        direction = _clean(top.get("direction"))
-        details = _clean(top.get("details"))
-        label = " ".join(part for part in [symbol, opportunity, direction] if part)
-        if label:
-            summary_bits.append(f"Top market setup: {label}.")
-        if details:
-            summary_bits.append(details)
-        for item in opportunities[:5]:
-            candidate = " - ".join(
-                part
-                for part in [
-                    _clean(item.get("symbol")),
-                    _clean(item.get("opportunity")),
-                    _clean(item.get("details")),
-                ]
-                if part
-            )
-            if candidate:
-                watch_items.append(candidate)
-
-    macro = [item for item in to_list((context or {}).get("macro_indicators")) if isinstance(item, dict)]
-    if macro:
-        for item in macro[:3]:
-            indicator = _clean(item.get("indicator") or item.get("series_id"))
-            latest = _clean(item.get("latest"))
-            yoy = _clean(item.get("yoy"))
-            line = " ".join(part for part in [indicator, latest, f"YoY {yoy}" if yoy else ""] if part)
-            if line:
-                summary_bits.append(line + ".")
-        watch_items.extend(
-            [
-                "Check the latest inflation, labor, growth, and policy indicators.",
-                "Look for release timing before treating the macro read as current.",
-            ]
-        )
-
-    ticker = _clean((context or {}).get("ticker")).upper()
-    background = context.get("background") if isinstance(context, dict) else {}
-    attention_context = context.get("attention_context") if isinstance(context, dict) else {}
-    if ticker:
-        headline = _clean((attention_context or {}).get("llm_headline")) if isinstance(attention_context, dict) else ""
-        background_text = _clean((background or {}).get("description_text")) if isinstance(background, dict) else ""
-        if headline:
-            summary_bits.append(f"{ticker}: {headline}.")
-        elif background_text:
-            summary_bits.append(f"{ticker}: {background_text}.")
-        watch_items.extend(
-            [
-                f"Validate {ticker} against fresh price action and news before acting.",
-                f"Check whether {ticker} still appears in the latest materialized opportunity feed.",
-            ]
-        )
-
-    if not summary_bits:
-        summary_bits.append("No materialized page facts were available for a fallback read.")
-    if not watch_items:
-        watch_items.append("Rerun the attention job to refresh the materialized AQL summary.")
-
     data_gaps = [reason] if reason else []
     return {
-        "status": "fallback",
+        "status": "unavailable",
         "surface": clean_surface,
-        "headline": f"{clean_surface} summary fallback",
-        "summary_markdown": " ".join(summary_bits[:3]),
-        "watch_items": watch_items[:5],
+        "headline": "",
+        "summary_markdown": "",
+        "watch_items": [],
         "data_gaps": data_gaps[:5],
         "confidence": "low",
         "error": reason,
@@ -305,16 +242,14 @@ def _fallback_page_summary(
     }
 
 
-def build_fallback_page_agentic_summary(
+def build_unavailable_page_agentic_summary(
     *,
     surface: str,
-    context: dict[str, Any],
     reason: str,
     aql_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    return _fallback_page_summary(
+    return _unavailable_page_summary(
         surface=surface,
-        context=context,
         reason=reason,
         aql_context=aql_context,
     )
@@ -486,10 +421,9 @@ def build_page_agentic_summary(
             persist_findings=False,
         )
     except Exception as exc:
-        return _fallback_page_summary(
+        return _unavailable_page_summary(
             surface=clean_surface,
-            context=context or {},
-            reason=f"AQL summary job failed: {type(exc).__name__}: {exc}",
+            reason=f"AQL summary failed: {type(exc).__name__}: {exc}",
         )
 
     aql_context = _aql_agent_context(aql_result if isinstance(aql_result, dict) else {})
@@ -504,9 +438,8 @@ def build_page_agentic_summary(
             ]
             if _clean(item)
         )
-        return _fallback_page_summary(
+        return _unavailable_page_summary(
             surface=clean_surface,
-            context=context or {},
             reason=reason or "AQL agent did not produce a grounded page summary.",
             aql_context=aql_context,
         )
@@ -528,16 +461,14 @@ def build_page_agentic_summary(
             schema=_PAGE_SUMMARY_SCHEMA,
         )
     except LLMAPIError as exc:
-        return _fallback_page_summary(
+        return _unavailable_page_summary(
             surface=clean_surface,
-            context=context or {},
             reason=f"LLM summary formatting failed: {exc}",
             aql_context=aql_context,
         )
     except Exception as exc:
-        return _fallback_page_summary(
+        return _unavailable_page_summary(
             surface=clean_surface,
-            context=context or {},
             reason=f"LLM summary formatting failed: {type(exc).__name__}: {exc}",
             aql_context=aql_context,
         )
@@ -557,9 +488,9 @@ def build_page_agentic_summary(
 
 __all__ = [
     "broad_economy_summary_context",
-    "build_fallback_page_agentic_summary",
     "build_materialized_page_agentic_summary_row",
     "build_page_agentic_summary",
+    "build_unavailable_page_agentic_summary",
     "market_summary_context",
     "materialized_page_agentic_summary",
     "page_summary_context_signature",

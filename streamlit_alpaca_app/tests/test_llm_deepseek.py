@@ -39,6 +39,7 @@ def test_deepseek_client_uses_json_object_and_captures_reasoning():
             api_key="test",
             model="deepseek-reasoner",
             base_url="https://api.deepseek.com",
+            reasoning_effort="high",
         ),
         session=session,
     )
@@ -53,17 +54,20 @@ def test_deepseek_client_uses_json_object_and_captures_reasoning():
     assert session.url == "https://api.deepseek.com/chat/completions"
     assert session.payload["response_format"] == {"type": "json_object"}
     assert "temperature" not in session.payload
+    assert "reasoning_effort" not in session.payload
     assert result["answer_markdown"] == "Done"
     assert result["__reasoning_content"] == "Checked the evidence before answering."
 
 
-def test_load_llm_client_supports_omnibar_agent_deepseek_prefix(monkeypatch):
-    monkeypatch.setenv("OMNIBAR_AGENT_LLM_PROVIDER", "deepseek")
-    monkeypatch.setenv("OMNIBAR_AGENT_LLM_API_KEY", "test")
-    monkeypatch.setenv("OMNIBAR_AGENT_LLM_MODEL", "deepseek-reasoner")
-    monkeypatch.setenv("OMNIBAR_AGENT_LLM_BASE_URL", "https://api.deepseek.com")
+def test_load_llm_client_supports_global_deepseek(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "deepseek")
+    monkeypatch.setenv("LLM_API_KEY", "test")
+    monkeypatch.setenv("LLM_MODEL", "deepseek-reasoner")
+    monkeypatch.setenv("LLM_BASE_URL", "https://api.deepseek.com")
+    monkeypatch.setenv("LLM_REASONING_EFFORT", "high")
 
-    client = llm.load_llm_client(env_prefix="OMNIBAR_AGENT_")
+    client = llm.load_llm_client()
 
     assert isinstance(client, llm.DeepSeekChatJSONClient)
     assert client.config.model == "deepseek-reasoner"
+    assert client.config.reasoning_effort == ""

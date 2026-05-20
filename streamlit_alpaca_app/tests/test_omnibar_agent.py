@@ -44,6 +44,93 @@ class _StubQueryService:
         )
 
 
+def _arg(name: str, value: object) -> dict[str, object]:
+    if isinstance(value, bool):
+        return {
+            "name": name,
+            "value_kind": "boolean",
+            "string_value": None,
+            "number_value": None,
+            "boolean_value": value,
+            "string_list_value": None,
+            "json_value": None,
+            "object_value": None,
+            "object_list_value": None,
+        }
+    if isinstance(value, int | float):
+        return {
+            "name": name,
+            "value_kind": "number",
+            "string_value": None,
+            "number_value": value,
+            "boolean_value": None,
+            "string_list_value": None,
+            "json_value": None,
+            "object_value": None,
+            "object_list_value": None,
+        }
+    if isinstance(value, list):
+        return {
+            "name": name,
+            "value_kind": "string_list",
+            "string_value": None,
+            "number_value": None,
+            "boolean_value": None,
+            "string_list_value": value,
+            "json_value": None,
+            "object_value": None,
+            "object_list_value": None,
+        }
+    return {
+        "name": name,
+        "value_kind": "string",
+        "string_value": str(value),
+        "number_value": None,
+        "boolean_value": None,
+        "string_list_value": None,
+        "json_value": None,
+        "object_value": None,
+        "object_list_value": None,
+    }
+
+
+def test_coerce_tool_arguments_supports_object_list_values():
+    args, error = omnibar_agent._coerce_tool_arguments(
+        [
+            {
+                "name": "dataset_refs",
+                "value_kind": "object_list",
+                "string_value": None,
+                "number_value": None,
+                "boolean_value": None,
+                "string_list_value": None,
+                "json_value": None,
+                "object_value": None,
+                "object_list_value": [
+                    {"name": "price_history", "alias": "price_jpm", "params": {"ticker": "JPM", "days": 60}}
+                ],
+            }
+        ]
+    )
+
+    assert error == ""
+    assert args == {
+        "dataset_refs": [{"name": "price_history", "alias": "price_jpm", "params": {"ticker": "JPM", "days": 60}}]
+    }
+
+
+def _judge_accept(answer: str, confidence: str = "medium") -> dict[str, object]:
+    return {
+        "verdict": "accept",
+        "critique_summary": "The draft answer is supported by the collected evidence.",
+        "answer_markdown": answer,
+        "confidence": confidence,
+        "limitations": [],
+        "unsupported_claims": [],
+        "evidence_gaps": [],
+    }
+
+
 class _StubLLM:
     def __init__(self) -> None:
         self.config = SimpleNamespace(model="gpt-test")
@@ -84,10 +171,27 @@ class _StubLLM:
             }
         if schema_name == "omnibar_agent_final":
             return {
-                "answer_markdown": "Fallback answer.",
+                "answer_markdown": "Latest CPI reading is 319.8 with YoY inflation at 2.9%.",
                 "confidence": "medium",
                 "limitations": [],
                 "used_tool_call_ids": [],
+            }
+        if schema_name == "omnibar_agent_judge":
+            return _judge_accept("Latest CPI reading is 319.8 with YoY inflation at 2.9%.", "medium")
+        if schema_name == "zopedia_memory_reflection":
+            return {
+                "action": "no_action",
+                "rationale": "The answer used a volatile datapoint and does not require a durable wiki update.",
+                "mutation_type": "",
+                "proposal_type": "",
+                "page_id": "",
+                "target_page_id": "",
+                "title": "",
+                "pages": [],
+                "metadata_patch": {},
+                "evidence_refs": [],
+                "payload": {},
+                "allow_risky": False,
             }
         raise AssertionError(f"Unexpected schema_name: {schema_name}")
 
@@ -122,6 +226,8 @@ class _FinalSynthesisTransportDropLLM:
                 "Connection aborted.",
                 RemoteDisconnected("Remote end closed connection without response"),
             )
+        if schema_name == "omnibar_agent_judge":
+            return _judge_accept("Evidence collected before the model connection dropped.", "low")
         raise AssertionError(f"Unexpected schema_name: {schema_name}")
 
 
@@ -150,18 +256,48 @@ class _FollowupLLM:
                 "limitations": [],
                 "used_tool_call_ids": [],
             }
+        if schema_name == "omnibar_agent_judge":
+            return _judge_accept("Continuing the airline thread with more evidence.", "medium")
         raise AssertionError(f"Unexpected schema_name: {schema_name}")
 
 
-class _SynthesisOnlyLLM:
+class _CompanyEvidencePlannerLLM:
     def __init__(self) -> None:
         self.config = SimpleNamespace(model="gpt-test")
         self.final_prompts: list[str] = []
+        self.step_calls = 0
 
     def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict[str, object]) -> dict[str, object]:
         del system_prompt, schema
         if schema_name == "omnibar_agent_step":
-            raise AssertionError("Planner should be skipped when deterministic bootstrap evidence is enough.")
+            self.step_calls += 1
+            assert "Evidence contract" in user_prompt or "Evidence contract" in omnibar_agent._planner_system_prompt()
+            plan = [
+                ("investigator.company_context", [_arg("ticker", "VRT")]),
+                ("investigator.fundamentals", [_arg("ticker", "VRT")]),
+                ("investigator.recent_news", [_arg("ticker", "VRT"), _arg("days", 30), _arg("limit", 8)]),
+                ("research.search_evidence", [_arg("query", "VRT AI data-center power catalysts"), _arg("tickers", ["VRT"]), _arg("max_results", 10)]),
+            ]
+            if self.step_calls <= len(plan):
+                tool_name, tool_arguments = plan[self.step_calls - 1]
+                return {
+                    "action": "tool_call",
+                    "reasoning": "Satisfy the company evidence contract before synthesis.",
+                    "tool_name": tool_name,
+                    "tool_arguments": tool_arguments,
+                    "answer_markdown": "",
+                    "confidence": "low",
+                    "needs_more_tools": True,
+                }
+            return {
+                "action": "final",
+                "reasoning": "Company evidence contract is satisfied.",
+                "tool_name": "",
+                "tool_arguments": [],
+                "answer_markdown": "",
+                "confidence": "medium",
+                "needs_more_tools": False,
+            }
         if schema_name == "omnibar_agent_final":
             self.final_prompts.append(user_prompt)
             return {
@@ -170,7 +306,147 @@ class _SynthesisOnlyLLM:
                 "limitations": [],
                 "used_tool_call_ids": [],
             }
+        if schema_name == "omnibar_agent_judge":
+            return _judge_accept(
+                "Vertiv is a data-center infrastructure supplier with current AI power catalysts.",
+                "high",
+            )
         raise AssertionError(f"Unexpected schema_name: {schema_name}")
+
+
+class _TimeoutToolPlannerLLM:
+    def __init__(self) -> None:
+        self.config = SimpleNamespace(model="gpt-test")
+        self.step_calls = 0
+
+    def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict[str, object]) -> dict[str, object]:
+        del system_prompt, user_prompt, schema
+        if schema_name == "omnibar_agent_step":
+            self.step_calls += 1
+            if self.step_calls == 1:
+                return {
+                    "action": "tool_call",
+                    "reasoning": "Need live evidence, but the tool may be slow.",
+                    "tool_name": "research.live_event_evidence",
+                    "tool_arguments": [_arg("query", "AI datacenter buildout"), _arg("max_results", 6)],
+                    "answer_markdown": "",
+                    "confidence": "low",
+                    "needs_more_tools": True,
+                }
+            return {
+                "action": "final",
+                "reasoning": "Use collected evidence and limitations.",
+                "tool_name": "",
+                "tool_arguments": [],
+                "answer_markdown": "Evidence collection timed out, but the agent remained bounded.",
+                "confidence": "low",
+                "needs_more_tools": False,
+            }
+        if schema_name == "omnibar_agent_final":
+            return {
+                "answer_markdown": "Evidence collection timed out, but the agent remained bounded.",
+                "confidence": "low",
+                "limitations": [],
+                "used_tool_call_ids": [],
+            }
+        if schema_name == "omnibar_agent_judge":
+            return _judge_accept("Evidence collection timed out, but the agent remained bounded.", "low")
+        raise AssertionError(f"Unexpected schema_name: {schema_name}")
+
+
+class _SingleEvidenceHighConfidenceLLM:
+    def __init__(self) -> None:
+        self.config = SimpleNamespace(model="gpt-test")
+        self.step_calls = 0
+
+    def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict[str, object]) -> dict[str, object]:
+        del system_prompt, user_prompt, schema
+        if schema_name == "omnibar_agent_step":
+            self.step_calls += 1
+            if self.step_calls == 1:
+                return {
+                    "action": "tool_call",
+                    "reasoning": "Need one dataset.",
+                    "tool_name": "dataset.fred_dashboard",
+                    "tool_arguments": [_arg("years", 1)],
+                    "answer_markdown": "",
+                    "confidence": "low",
+                    "needs_more_tools": True,
+                }
+            return {
+                "action": "final",
+                "reasoning": "Enough for a draft.",
+                "tool_name": "",
+                "tool_arguments": [],
+                "answer_markdown": "A single source supports the direction.",
+                "confidence": "high",
+                "needs_more_tools": False,
+            }
+        if schema_name == "omnibar_agent_final":
+            return {
+                "answer_markdown": "A single source supports the direction.",
+                "confidence": "high",
+                "limitations": [],
+                "used_tool_call_ids": [],
+            }
+        if schema_name == "omnibar_agent_judge":
+            return _judge_accept("A single source supports the direction.", "high")
+        raise AssertionError(f"Unexpected schema_name: {schema_name}")
+
+
+class _JudgeRevisionLLM:
+    def __init__(self) -> None:
+        self.config = SimpleNamespace(model="deepseek-test")
+        self.judge_prompts: list[str] = []
+
+    def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict[str, object]) -> dict[str, object]:
+        del system_prompt, schema
+        if schema_name == "omnibar_agent_step":
+            return {
+                "action": "final",
+                "reasoning": "Drafting before enough evidence.",
+                "tool_name": "",
+                "tool_arguments": [],
+                "answer_markdown": "Yes. This is guaranteed to double next week.",
+                "confidence": "high",
+                "needs_more_tools": False,
+            }
+        if schema_name == "omnibar_agent_judge":
+            self.judge_prompts.append(user_prompt)
+            return {
+                "verdict": "insufficient",
+                "critique_summary": "The draft makes an unsupported guarantee.",
+                "answer_markdown": "I do not have enough collected evidence to support that claim.",
+                "confidence": "low",
+                "limitations": ["No supporting tool evidence was collected."],
+                "unsupported_claims": ["Guaranteed to double next week."],
+                "evidence_gaps": ["No fundamentals, price, or current news evidence."],
+            }
+        raise AssertionError(f"Unexpected schema_name: {schema_name}")
+
+
+class _MemoryApplyLLM:
+    def __init__(self) -> None:
+        self.config = SimpleNamespace(model="deepseek-test")
+
+    def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict[str, object]) -> dict[str, object]:
+        del system_prompt, schema
+        assert schema_name == "zopedia_memory_reflection"
+        assert "Evidence references available" in user_prompt
+        return {
+            "action": "apply_mutation",
+            "rationale": "The collected evidence supports a durable page link.",
+            "mutation_type": "link_pages",
+            "proposal_type": "",
+            "page_id": "zpage::nvda",
+            "target_page_id": "zpage::ai-capex",
+            "title": "",
+            "pages": [],
+            "metadata_patch": {},
+            "evidence_refs": [{"kind": "source_link", "url": "https://example.com/nvda"}],
+            "payload": {},
+            "allow_risky": False,
+        }
 
 
 def test_run_omnibar_agent_uses_shared_tool_registry():
@@ -187,13 +463,60 @@ def test_run_omnibar_agent_uses_shared_tool_registry():
     assert "319.8" in result["answer_markdown"]
     assert result["tool_calls"][0]["tool_name"] == "dataset.fred_dashboard"
     assert result["tool_calls"][0]["status"] == "completed"
+    assert result["aql_evidence_pack_id"].startswith("aqlpack::")
+    assert result["aql_evidence_pack"]["schema_version"] == "aql_evidence_pack_v1"
+    assert result["aql_evidence_pack"]["trace"][0]["tool_name"] == "dataset.fred_dashboard"
     assert len(service.calls) == 1
     assert service.calls[0].operation == "dataset"
     assert service.calls[0].name == "fred_dashboard"
 
 
+def test_run_omnibar_agent_caps_high_confidence_with_single_evidence_source():
+    result = omnibar_agent.run_omnibar_agent(
+        query="What is moving oil today?",
+        service=_StubQueryService(),
+        llm_client=_SingleEvidenceHighConfidenceLLM(),
+        max_tool_calls=1,
+        persist_findings=False,
+    )
+
+    assert result["status"] == "completed"
+    assert result["confidence"] == "medium"
+    assert "only one evidence source" in " ".join(result["limitations"]).lower()
+
+
+def test_run_omnibar_agent_answer_judge_can_revise_unsupported_draft():
+    events: list[dict[str, object]] = []
+    llm = _JudgeRevisionLLM()
+
+    result = omnibar_agent.run_omnibar_agent(
+        query="Will this company double next week?",
+        service=_StubQueryService(),
+        llm_client=llm,
+        max_tool_calls=1,
+        progress_callback=events.append,
+        persist_findings=False,
+    )
+
+    assert result["status"] == "completed"
+    assert "not have enough collected evidence" in result["answer_markdown"]
+    assert "guaranteed to double" not in result["answer_markdown"].lower()
+    assert result["confidence"] == "low"
+    assert result["quality_review"]["verdict"] == "insufficient"
+    assert result["quality_review"]["revised_answer_applied"] is True
+    assert "No supporting tool evidence was collected." in result["limitations"]
+    assert any(event.get("stage") == "answer_judge_complete" for event in events)
+    assert any("Draft answer" in prompt for prompt in llm.judge_prompts)
+
+
 def test_run_omnibar_agent_reports_unavailable_llm(monkeypatch):
-    monkeypatch.setattr(omnibar_agent, "load_llm_client", lambda **kwargs: None)
+    captured_kwargs = {}
+
+    def _fake_load(**kwargs):
+        captured_kwargs.update(kwargs)
+        return None
+
+    monkeypatch.setattr(omnibar_agent, "load_aql_zopedia_llm_client", _fake_load)
 
     result = omnibar_agent.run_omnibar_agent(
         query="What changed in payrolls?",
@@ -203,6 +526,7 @@ def test_run_omnibar_agent_reports_unavailable_llm(monkeypatch):
 
     assert result["status"] == "unavailable"
     assert "cannot run tool-based analysis" in result["answer_markdown"]
+    assert captured_kwargs == {"surface": "zopedia.agent"}
 
 
 def test_run_omnibar_agent_can_skip_persistence(monkeypatch):
@@ -224,6 +548,82 @@ def test_run_omnibar_agent_can_skip_persistence(monkeypatch):
 
     assert result["status"] == "completed"
     assert persisted["called"] is False
+
+
+def test_post_answer_memory_agent_applies_safe_mutation(monkeypatch):
+    calls: list[tuple[str, dict[str, object]]] = []
+
+    def _fake_invoke_tool(*, service, tool_name, arguments=None, run_id=""):
+        del service, run_id
+        args = dict(arguments or {})
+        calls.append((tool_name, args))
+        return {
+            "result_type": "research",
+            "payload": {
+                "status": "committed",
+                "summary": [
+                    {
+                        "kind": "zopedia_mutation",
+                        "mutation_id": "zmut_1",
+                        "summary_text": "link_pages committed.",
+                    }
+                ],
+                "llm_context_text": "Zopedia apply mutation type=link_pages status=committed.",
+            },
+            "provenance": None,
+        }
+
+    events: list[dict[str, object]] = []
+    monkeypatch.setattr(omnibar_agent, "invoke_tool", _fake_invoke_tool)
+
+    result = omnibar_agent._run_post_answer_memory_agent(
+        llm=_MemoryApplyLLM(),
+        service=_StubQueryService(),
+        run_id="agrun_test",
+        query="How does NVDA connect to AI capex?",
+        answer_markdown="NVDA is tied to AI capex through accelerator demand.",
+        confidence="high",
+        limitations=[],
+        quality_review={"status": "completed", "verdict": "accept"},
+        tool_calls=[
+            {
+                "tool_call_id": "agtc_1",
+                "tool_name": "research.live_event_evidence",
+                "arguments": {"query": "NVDA AI capex"},
+                "status": "completed",
+                "result_summary": {
+                    "llm_context_text": "Source-backed NVDA AI capex evidence.",
+                    "source_links": [{"url": "https://example.com/nvda", "label": "NVDA evidence"}],
+                },
+            }
+        ],
+        conversation_history=None,
+        prefetched_context="",
+        timeout_seconds=5,
+        progress_callback=events.append,
+    )
+
+    assert result["status"] == "completed"
+    assert result["action"] == "apply_mutation"
+    assert result["tool_call"]["tool_name"] == "zopedia.apply_mutation"
+    assert calls == [
+        (
+            "zopedia.apply_mutation",
+            {
+                "mutation_type": "link_pages",
+                "page_id": "zpage::nvda",
+                "target_page_id": "zpage::ai-capex",
+                "pages": [],
+                "metadata_patch": {},
+                "evidence_refs": [{"kind": "source_link", "url": "https://example.com/nvda"}],
+                "rationale": "The collected evidence supports a durable page link.",
+                "payload": {},
+                "allow_risky": False,
+            },
+        )
+    ]
+    assert any(event.get("stage") == "memory_reflection_start" for event in events)
+    assert any(event.get("stage") == "memory_mutation_complete" for event in events)
 
 
 def test_resolve_conversation_followup_query_turns_yes_into_actionable_context():
@@ -268,7 +668,7 @@ def test_run_omnibar_agent_resolves_bare_yes_before_planning():
     assert any("Previous assistant answer" in prompt for prompt in llm.prompts)
 
 
-def test_run_omnibar_agent_bootstraps_obvious_ticker_context(monkeypatch):
+def test_run_omnibar_agent_planner_uses_company_evidence_contract(monkeypatch):
     calls: list[tuple[str, dict[str, object]]] = []
 
     def _fake_invoke_tool(*, service, tool_name, arguments=None, run_id=""):
@@ -291,22 +691,25 @@ def test_run_omnibar_agent_bootstraps_obvious_ticker_context(monkeypatch):
         }
 
     monkeypatch.setattr(omnibar_agent, "invoke_tool", _fake_invoke_tool)
-    llm = _SynthesisOnlyLLM()
+    llm = _CompanyEvidencePlannerLLM()
 
     result = omnibar_agent.run_omnibar_agent(
         query="VRT: what is the company context and latest catalysts?",
         service=_StubQueryService(),
         llm_client=llm,
+        max_tool_calls=5,
         persist_findings=False,
     )
 
     assert result["status"] == "completed"
     assert calls[0][0] == "investigator.company_context"
+    assert any(name == "investigator.fundamentals" for name, _ in calls)
     assert any(name == "investigator.recent_news" for name, _ in calls)
+    assert any(name == "research.search_evidence" for name, _ in calls)
     assert any("Vertiv supplies power" in prompt for prompt in llm.final_prompts)
 
 
-def test_bootstrap_multi_ticker_current_query_gets_all_contexts_before_live_evidence():
+def test_bootstrap_plan_no_longer_uses_hardcoded_query_routing():
     catalog = omnibar_agent.build_tool_catalog(_StubQueryService())
 
     plan = omnibar_agent._bootstrap_tool_plan(
@@ -316,13 +719,79 @@ def test_bootstrap_multi_ticker_current_query_gets_all_contexts_before_live_evid
         max_calls=4,
     )
 
-    assert plan[:3] == [
-        ("investigator.company_context", {"ticker": "NVDA"}),
-        ("investigator.company_context", {"ticker": "AVGO"}),
-        ("investigator.company_context", {"ticker": "TSM"}),
+    assert plan == []
+
+
+def test_planner_prompt_contains_generic_evidence_contract():
+    prompt = omnibar_agent._planner_system_prompt()
+
+    assert "Evidence contract" in prompt
+    assert "For public company or ticker questions" in prompt
+    assert "For macroeconomic questions" in prompt
+    assert "For market-impact questions" in prompt
+    assert "observed market data" in prompt
+    assert "analysis.run_python fails" in prompt
+    assert "Treat user-supplied claims as hypotheses" in prompt
+
+
+def test_analysis_failure_requires_one_repair_pass_before_final():
+    tool_calls = [
+        {
+            "tool_name": "analysis.run_python",
+            "status": "completed",
+            "result_summary": {
+                "llm_context_text": "Analysis status: rejected\nFailure category: analysis_code_error",
+                "preview": {"kind": "object"},
+            },
+        }
     ]
-    assert plan[3][0] == "research.live_event_evidence"
-    assert plan[3][1]["focus_symbols"] == ["NVDA", "AVGO", "TSM"]
+
+    assert omnibar_agent._analysis_failure_needs_repair(tool_calls) is True
+    tool_calls.append(
+        {
+            "tool_name": "analysis.run_python",
+            "status": "completed",
+            "result_summary": {
+                "llm_context_text": "Analysis status: rejected\nFailure category: analysis_code_error",
+                "preview": {"kind": "object"},
+            },
+        }
+    )
+    assert omnibar_agent._analysis_failure_needs_repair(tool_calls) is False
+
+
+def test_bootstrap_skip_never_bypasses_llm_planner():
+    tool_calls = [
+        {
+            "tool_name": "investigator.company_context",
+            "status": "completed",
+            "result_summary": {"preview_text": "NVDA designs accelerators."},
+        },
+        {
+            "tool_name": "investigator.fundamentals",
+            "status": "completed",
+            "result_summary": {"preview_text": "Quarterly fundamentals for NVDA: income, balance, cashflow."},
+        },
+    ]
+
+    assert (
+        omnibar_agent._should_skip_planner_after_bootstrap(
+            "NVDA: tell me about the company.",
+            tool_calls,
+            {"investigator.company_context"},
+        )
+        is False
+    )
+
+
+def test_final_prompt_treats_user_premise_as_unverified():
+    prompt = omnibar_agent._final_user_prompt(
+        query="NVDA revenue collapsed 90% last quarter. Explain why.",
+        tool_calls=[],
+    )
+
+    assert "Treat the user's premise as unverified" in prompt
+    assert "if evidence contradicts the premise" in prompt
 
 
 def test_attention_home_summary_payload_becomes_llm_context():
@@ -350,6 +819,58 @@ def test_attention_home_summary_payload_becomes_llm_context():
 
     assert "Energy rose while freight carriers sold off" in summary["llm_context_text"]
     assert "USO and BNO rose" in summary["llm_context_text"]
+
+
+def test_tool_summary_preserves_evidence_refs_for_aql_pack():
+    summary = omnibar_agent._summarize_tool_result(
+        {
+            "result_type": "research",
+            "payload": {
+                "summary": [
+                    {
+                        "chunk_record_id": "saa_chunk::abc",
+                        "canonical_document_id": "saa_doc::abc",
+                        "document_id": "doc::abc",
+                        "chunk_id": "chunk::abc",
+                        "title": "Diesel pinch point",
+                        "source": "Energy Aspects",
+                        "published_date": "2026-05-15",
+                        "url": "https://example.com/diesel",
+                        "chunk_text": "Diesel inventories are tight.",
+                    }
+                ],
+            },
+            "provenance": None,
+        }
+    )
+
+    assert summary["evidence_refs"][0]["chunk_record_id"] == "saa_chunk::abc"
+    assert summary["evidence_refs"][0]["canonical_document_id"] == "saa_doc::abc"
+    assert summary["source_links"][0]["url"] == "https://example.com/diesel"
+
+
+def test_tool_summary_does_not_promote_internal_eval_urls_to_citations():
+    summary = omnibar_agent._summarize_tool_result(
+        {
+            "result_type": "research",
+            "payload": {
+                "summary": [
+                    {
+                        "title": "Supply Pressure",
+                        "url": "https://eval.local/zopedia/run/supply-pressure",
+                    },
+                    {
+                        "title": "Public evidence",
+                        "url": "https://example.com/public-evidence",
+                    },
+                ],
+            },
+            "provenance": None,
+        }
+    )
+
+    assert summary["evidence_refs"][0]["url"] == "https://eval.local/zopedia/run/supply-pressure"
+    assert [item["url"] for item in summary["source_links"]] == ["https://example.com/public-evidence"]
 
 
 def test_seeded_tool_timeout_emits_heartbeat_and_timeout(monkeypatch):
@@ -435,7 +956,7 @@ def test_run_omnibar_agent_bounds_prefetch_and_tool_calls(monkeypatch):
     result = omnibar_agent.run_omnibar_agent(
         query="Are STRL, ECG, and PRIM all related to the AI datacenter buildout?",
         service=_StubQueryService(),
-        llm_client=_SynthesisOnlyLLM(),
+        llm_client=_TimeoutToolPlannerLLM(),
         progress_callback=events.append,
         persist_findings=False,
     )
@@ -470,3 +991,115 @@ def test_run_omnibar_agent_sanitizes_transient_transport_drop_after_tools():
     assert "research or model connection dropped" in result["error"]
     assert "RemoteDisconnected" not in result["error"]
     assert "Connection aborted" not in result["error"]
+
+
+def test_summarize_tool_result_exposes_analysis_render_payload():
+    summary = omnibar_agent._summarize_tool_result(
+        {
+            "result_type": "analysis_result",
+            "payload": {
+                "analysis_run_id": "zopedia_analysis::test",
+                "status": "succeeded",
+                "objective": "row count",
+                "metrics": [{"name": "rows", "value": 3}],
+                "tables": [{"name": "preview", "rows": [{"x": 1}], "row_count": 1, "columns": ["x"]}],
+                "charts": [],
+                "artifacts": [],
+                "llm_context_text": "Zopedia analysis run zopedia_analysis::test succeeded.",
+            },
+            "provenance": {"mode": "computed", "datasets": ["saa_zopedia_analysis_runs"]},
+        }
+    )
+
+    assert summary["render_payload"]["kind"] == "analysis_result"
+    assert summary["render_payload"]["analysis"]["analysis_run_id"] == "zopedia_analysis::test"
+    assert "Zopedia analysis run" in summary["llm_context_text"]
+
+
+def test_tool_summary_includes_empty_result_messages_for_planner():
+    summary = omnibar_agent._summarize_tool_result(
+        {
+            "result_type": "dataset",
+            "payload": [],
+            "provenance": {
+                "mode": "on_demand",
+                "datasets": ["event_significance"],
+                "details": {"empty_reason": "insufficient_observations"},
+            },
+            "messages": [
+                "The event study did not have enough observations after the event date for a significance test.",
+                "Next tool hint: Use dataset.price_history or event-window returns when significance windows are too short.",
+            ],
+        }
+    )
+
+    assert "Tool messages:" in summary["llm_context_text"]
+    assert "not have enough observations" in summary["llm_context_text"]
+    assert "dataset.price_history" in summary["llm_context_text"]
+
+
+def test_tool_summary_keeps_small_market_baskets_visible():
+    rows = [{"symbol": f"SYM{i}", "change_pct": i} for i in range(1, 7)]
+    summary = omnibar_agent._summarize_tool_result(
+        {
+            "result_type": "dataset",
+            "payload": rows,
+            "provenance": {"mode": "on_demand", "datasets": ["daily_movers"], "details": {}},
+            "messages": [],
+        }
+    )
+
+    assert "SYM1" in summary["preview_text"]
+    assert "SYM6" in summary["preview_text"]
+
+
+def test_market_impact_recovery_requires_observed_market_data_before_final():
+    tool_catalog = [
+        {"name": "research.market_impact_map"},
+        {"name": "dataset.daily_movers"},
+    ]
+
+    recovery = omnibar_agent._market_impact_recovery_tool(
+        query="What is the impact of the bond market today?",
+        answer="Long rates are rising and equities may be pressured.",
+        tool_calls=[],
+        tool_catalog=tool_catalog,
+    )
+
+    assert recovery is not None
+    assert recovery[0] == "research.market_impact_map"
+
+
+def test_market_impact_recovery_uses_impact_map_symbols_for_daily_movers():
+    tool_catalog = [
+        {"name": "research.market_impact_map"},
+        {"name": "dataset.daily_movers"},
+    ]
+    tool_calls = [
+        {
+            "tool_call_id": "agtc_1",
+            "tool_name": "research.market_impact_map",
+            "arguments": {"query": "bond market impact"},
+            "status": "completed",
+            "result_summary": {
+                "preview": {
+                    "sample": [
+                        {"symbol": "SPY", "role": "broad equity benchmark"},
+                        {"symbol": "QQQ", "role": "growth benchmark"},
+                    ]
+                },
+                "llm_context_text": "Likely impacted symbols to check next: SPY, QQQ.",
+            },
+        }
+    ]
+
+    recovery = omnibar_agent._market_impact_recovery_tool(
+        query="What is the impact of the bond market today?",
+        answer="Equities may be pressured by higher long rates.",
+        tool_calls=tool_calls,
+        tool_catalog=tool_catalog,
+    )
+
+    assert recovery is not None
+    assert recovery[0] == "dataset.daily_movers"
+    assert recovery[1]["symbols"] == ["SPY", "QQQ"]

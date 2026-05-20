@@ -4,7 +4,6 @@ AQL config — env helpers, profile loading, search client loading.
 from __future__ import annotations
 
 import copy
-import json
 import os
 from pathlib import Path
 from typing import Any
@@ -21,6 +20,53 @@ from ..web_research import (
     load_tavily_config,
 )
 from .constants import _ATTENTION_MACRO_PROFILE_DEFAULT_PATH
+
+
+def _parse_scalar_yaml_value(value: str) -> Any:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    if text.startswith("[") and text.endswith("]"):
+        inner = text[1:-1].strip()
+        if not inner:
+            return []
+        return [item.strip().strip("'\"") for item in inner.split(",") if item.strip()]
+    lowered = text.lower()
+    if lowered in {"true", "false"}:
+        return lowered == "true"
+    if lowered in {"null", "none"}:
+        return None
+    try:
+        if "." in text:
+            return float(text)
+        return int(text)
+    except Exception:
+        return text.strip("'\"")
+
+
+def _fallback_parse_mapping_yaml(raw: str) -> dict[str, Any]:
+    root: dict[str, Any] = {}
+    stack: list[tuple[int, dict[str, Any]]] = [(-1, root)]
+    for raw_line in str(raw or "").splitlines():
+        if not raw_line.strip() or raw_line.lstrip().startswith("#"):
+            continue
+        indent = len(raw_line) - len(raw_line.lstrip(" "))
+        line = raw_line.strip()
+        if ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        key = key.strip().strip("'\"")
+        value = value.strip()
+        while stack and indent <= stack[-1][0]:
+            stack.pop()
+        parent = stack[-1][1] if stack else root
+        if value:
+            parent[key] = _parse_scalar_yaml_value(value)
+        else:
+            child: dict[str, Any] = {}
+            parent[key] = child
+            stack.append((indent, child))
+    return root
 
 
 def _safe_float_env(name: str, default: float, *, min_value: float | None = None) -> float:
@@ -254,7 +300,7 @@ def _load_attention_macro_signal_profile() -> dict[str, Any]:
         print(f"[warn] macro profile read failed path={profile_path}: {type(exc).__name__}: {exc}")
         return defaults
     try:
-        loaded = yaml.safe_load(raw) if yaml is not None else json.loads(raw)
+        loaded = yaml.safe_load(raw) if yaml is not None else _fallback_parse_mapping_yaml(raw)
     except Exception as exc:
         print(f"[warn] macro profile parse failed path={profile_path}: {type(exc).__name__}: {exc}")
         return defaults

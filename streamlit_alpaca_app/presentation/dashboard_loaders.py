@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import base64
-import json
 from typing import Any, Callable
 
 import pandas as pd
@@ -9,11 +8,8 @@ import requests
 import streamlit as st
 
 from compute.fundamentals import latest_share_count
-from services.attention_feed_brief import build_attention_feed_brief
 from services.config import AppConfig
-from services.llm import LLMAPIError, load_llm_client
 from services.pipeline_store import load_latest_dataset_frame
-from services.trading_agent import build_trading_agent_suggestions
 
 _CurrentUserContextProvider = Callable[[], Any]
 _DataAccessLayerFactory = Callable[..., Any]
@@ -428,18 +424,6 @@ def _load_page_agentic_summary_cached(
         context_signature=str(context_signature or ""),
         ticker=str(ticker or ""),
         force_refresh=force_refresh,
-    )
-
-
-@st.cache_data(ttl=900, show_spinner=False)
-def _build_trading_agent_suggestions_cached(context_json: str) -> dict[str, object]:
-    try:
-        context = json.loads(context_json)
-    except Exception:
-        context = {}
-    return build_trading_agent_suggestions(
-        context=context if isinstance(context, dict) else {},
-        llm_client=load_llm_client(),
     )
 
 
@@ -985,27 +969,3 @@ def _load_attention_rollups_cached(
         limit=limit,
         force_refresh=force_refresh,
     )
-
-
-@st.cache_data(ttl=900, show_spinner=False)
-def _load_attention_feed_brief_cached(
-    brief_input_json: str,
-    *,
-    use_llm: bool,
-) -> dict[str, object]:
-    try:
-        brief_input = json.loads(brief_input_json or "{}")
-    except Exception:
-        brief_input = {}
-    try:
-        brief = build_attention_feed_brief(brief_input, load_llm_client() if use_llm else None)
-        brief["error"] = ""
-        return brief
-    except LLMAPIError as exc:
-        brief = build_attention_feed_brief(brief_input, None)
-        brief["error"] = str(exc)
-        return brief
-    except Exception as exc:
-        brief = build_attention_feed_brief(brief_input, None)
-        brief["error"] = f"{type(exc).__name__}: {exc}"
-        return brief

@@ -33,6 +33,8 @@ from pipeline.jobs.main import (
     run_fred,
     run_news,
     run_trading_agent,
+    run_zopedia_learning_job,
+    run_zopedia_maintenance_job,
 )
 from services.pipeline_store import SOURCE_DATASETS, SOURCE_JOB_MAP
 
@@ -185,6 +187,87 @@ def test_persist_dataset_retains_attention_evidence_chunks_before_upload(monkeyp
     uploaded_frame = captured["uploaded_frame"]
     assert isinstance(uploaded_frame, pd.DataFrame)
     assert uploaded_frame.loc[0, "chunk_record_id"] == "saa_chunk::uso"
+
+
+def test_run_zopedia_maintenance_job_calls_service(monkeypatch):
+    captured: dict[str, object] = {}
+    progress: list[dict[str, object]] = []
+
+    def _fake_run_zopedia_maintenance(**kwargs):
+        captured.update(kwargs)
+        return {
+            "status": "ready",
+            "summary": {
+                "page_count": 4,
+                "edge_count": 6,
+                "community_count": 2,
+                "issue_count": 1,
+            },
+        }
+
+    monkeypatch.setenv("ZOPEDIA_MAINTENANCE_PAGE_LIMIT", "321")
+    monkeypatch.setenv("ZOPEDIA_MAINTENANCE_STALE_AFTER_DAYS", "90")
+    monkeypatch.setenv("ZOPEDIA_MAINTENANCE_BLOAT_CHAR_LIMIT", "12000")
+    monkeypatch.setattr("pipeline.jobs.main.run_zopedia_maintenance_service", _fake_run_zopedia_maintenance)
+    monkeypatch.setattr(
+        "pipeline.jobs.main._job_progress",
+        lambda ctx, conn, **kwargs: progress.append({"ctx": ctx, "conn": conn, **kwargs}),
+    )
+    ctx = JobContext(
+        name="zopedia-maintenance",
+        run_id="zopedia-maintenance-test",
+        asof=datetime(2026, 5, 17, 12, 0, tzinfo=timezone.utc),
+        universe_version="20260517",
+    )
+    conn = object()
+
+    run_zopedia_maintenance_job(ctx, conn=conn)
+
+    assert captured["run_id"] == "zopedia-maintenance-test"
+    assert captured["page_limit"] == 321
+    assert captured["stale_after_days"] == 90
+    assert captured["bloat_char_limit"] == 12000
+    assert captured["conn"] is conn
+    assert progress[-1]["stage"] == "done"
+    assert "pages=4" in str(progress[-1]["message"])
+
+
+def test_run_zopedia_learning_job_calls_service(monkeypatch):
+    captured: dict[str, object] = {}
+    progress: list[dict[str, object]] = []
+
+    def _fake_run_zopedia_learning(**kwargs):
+        captured.update(kwargs)
+        return {
+            "threads_scanned": 3,
+            "events_detected": 2,
+            "evals_generated": 2,
+            "safe_updates_applied": 1,
+            "verified": 1,
+            "regressed": 0,
+        }
+
+    monkeypatch.setenv("ZOPEDIA_LEARNING_THREAD_LIMIT", "17")
+    monkeypatch.setattr("pipeline.jobs.main.run_zopedia_learning_service", _fake_run_zopedia_learning)
+    monkeypatch.setattr(
+        "pipeline.jobs.main._job_progress",
+        lambda ctx, conn, **kwargs: progress.append({"ctx": ctx, "conn": conn, **kwargs}),
+    )
+    ctx = JobContext(
+        name="zopedia-learning",
+        run_id="zopedia-learning-test",
+        asof=datetime(2026, 5, 19, 12, 0, tzinfo=timezone.utc),
+        universe_version="20260519",
+    )
+    conn = object()
+
+    run_zopedia_learning_job(ctx, conn=conn)
+
+    assert captured["limit"] == 17
+    assert captured["conn"] is conn
+    assert progress[-1]["stage"] == "done"
+    assert "events=2" in str(progress[-1]["message"])
+    assert "verified=1" in str(progress[-1]["message"])
 
 
 def test_pipeline_store_lists_attention_datasets_under_derivatives():
@@ -475,7 +558,7 @@ def test_run_trading_agent_persists_runs_and_candidates(monkeypatch):
 
     monkeypatch.setattr("pipeline.jobs.main._load_latest_materialized_frame", _fake_load)
     monkeypatch.setattr("pipeline.jobs.main._persist_dataset", _fake_persist)
-    monkeypatch.setattr("pipeline.jobs.main.load_llm_client", lambda: object())
+    monkeypatch.setattr("pipeline.jobs.main.load_aql_zopedia_llm_client", lambda **kwargs: object())
     monkeypatch.setattr("pipeline.jobs.main.build_trading_agent_suggestions", _fake_suggestions)
     monkeypatch.setenv("TRADING_AGENT_HORIZON_TIMEOUT_SECONDS", "30")
 
@@ -607,8 +690,8 @@ def test_build_page_agentic_summary_frame_materializes_page_summaries(monkeypatc
         lambda *, surface, context, llm_client: {
             "status": "ok",
             "surface": surface,
-            "headline": f"{surface} materialized",
-            "summary_markdown": "Materialized by the attention job.",
+            "headline": f"{surface} summary",
+            "summary_markdown": "Grounded page summary.",
             "watch_items": [],
             "data_gaps": [],
             "confidence": "medium",
@@ -662,11 +745,11 @@ def test_build_page_agentic_summary_frame_materializes_page_summaries(monkeypatc
     )
 
     assert set(frame["surface"]) == {"Market Explorer", "Broad Economy", "Stock Investigator"}
-    assert frame["summary_json"].astype(str).str.contains("materialized").all()
+    assert frame["summary_json"].astype(str).str.contains("Grounded page summary").all()
     assert frame["context_signature"].astype(str).str.len().min() == 64
 
 
-def test_build_page_agentic_summary_frame_uses_fallback_on_timeout(monkeypatch):
+def test_build_page_agentic_summary_frame_fails_closed_on_timeout(monkeypatch):
     import pipeline.jobs.attention_home_build as attention_home_build_module
 
     def _timeout(label, timeout_seconds, func):
@@ -699,10 +782,10 @@ def test_build_page_agentic_summary_frame_uses_fallback_on_timeout(monkeypatch):
     )
 
     assert not frame.empty
-    assert set(frame["status"]) == {"fallback"}
+    assert set(frame["status"]) == {"unavailable"}
     summaries = [json.loads(value) for value in frame["summary_json"].astype(str)]
-    assert all(summary["summary_markdown"] for summary in summaries)
-    assert all("Page summary materialization failed" in summary["data_gaps"][0] for summary in summaries)
+    assert all(not summary["summary_markdown"] for summary in summaries)
+    assert all("Page summary failed" in summary["data_gaps"][0] for summary in summaries)
 
 
 def test_db_mark_job_start_uses_matching_parameter_count():
@@ -1027,7 +1110,7 @@ def test_run_entity_taxonomy_persists_listing_and_taxonomy_datasets(monkeypatch)
 
     monkeypatch.setattr("pipeline.jobs.main._build_us_equity_listings_snapshot", lambda: listings)
     monkeypatch.setattr("pipeline.jobs.main.fetch_entity_taxonomy_frame", lambda: pd.DataFrame())
-    monkeypatch.setattr("pipeline.jobs.main.load_llm_client", lambda: None)
+    monkeypatch.setattr("pipeline.jobs.main.load_aql_zopedia_llm_client", lambda **kwargs: None)
     monkeypatch.setattr("pipeline.jobs.main.build_entity_taxonomy_snapshot", lambda *args, **kwargs: snapshot)
     monkeypatch.setattr(
         "pipeline.jobs.main._persist_dataset",
@@ -1096,7 +1179,7 @@ def test_run_entity_taxonomy_records_progress_updates(monkeypatch):
 
     monkeypatch.setattr("pipeline.jobs.main._build_us_equity_listings_snapshot", lambda: listings)
     monkeypatch.setattr("pipeline.jobs.main.fetch_entity_taxonomy_frame", lambda: pd.DataFrame())
-    monkeypatch.setattr("pipeline.jobs.main.load_llm_client", lambda: None)
+    monkeypatch.setattr("pipeline.jobs.main.load_aql_zopedia_llm_client", lambda **kwargs: None)
 
     def _fake_build_snapshot(*args, **kwargs):
         callback = kwargs.get("progress_callback")
@@ -1203,7 +1286,7 @@ def test_run_news_persists_attention_context(monkeypatch):
     )
     monkeypatch.setattr("pipeline.jobs.main._load_latest_materialized_frame", lambda dataset_name: pd.DataFrame())
     monkeypatch.setattr("pipeline.jobs.main.EdgarClient", lambda: FakeEdgarClient())
-    monkeypatch.setattr("pipeline.jobs.main.load_llm_client", lambda: None)
+    monkeypatch.setattr("pipeline.jobs.main.load_aql_zopedia_llm_client", lambda **kwargs: None)
     monkeypatch.setattr(
         "pipeline.jobs.main._persist_dataset",
         lambda dataset_name, frame, ctx, conn: persisted.append((dataset_name, len(frame))),
@@ -1267,7 +1350,7 @@ def test_run_attention_home_materializes_attention_home_and_research_outputs(mon
         "pipeline.jobs.main._load_latest_materialized_frame",
         lambda dataset_name: latest_frames.get(dataset_name, pd.DataFrame()).copy(),
     )
-    monkeypatch.setattr("pipeline.jobs.attention_home_build.load_llm_client", lambda: None)
+    monkeypatch.setattr("pipeline.jobs.attention_home_build.load_aql_zopedia_llm_client", lambda **kwargs: None)
     monkeypatch.setattr("pipeline.jobs.attention_home_build.load_embedding_client", lambda: None)
     monkeypatch.setattr(
         "pipeline.jobs.attention_home_build.attach_attention_home_summary_audio",
@@ -1453,18 +1536,21 @@ def test_build_materialized_homepage_summary_prefers_agentic_summary_when_llm_is
     }
 
     monkeypatch.setattr(
-        "pipeline.jobs.attention_home_build.build_attention_agentic_summary",
-        lambda payload, *, llm_client, embedding_client=None: {
-            "headline": "Market Summary",
-            "hypothesis": "Lower yields and easing supply-risk are connecting market activity.",
-            "summary_text": "**Market Hypothesis**\nLower yields and easing supply-risk are connecting market activity.",
-            "audio_text": "Market hypothesis: Lower yields and easing supply-risk are connecting market activity.",
-            "event_count": 1,
-            "must_read_count": 0,
-            "unresolved_count": 0,
-            "featured_symbols": ["USO", "UAL", "TLT"],
-            "beats": [],
-        },
+        "pipeline.jobs.attention_home_build.build_attention_agentic_summary_with_trace",
+        lambda payload, *, llm_client, embedding_client=None: (
+            {
+                "headline": "Market Summary",
+                "hypothesis": "Lower yields and easing supply-risk are connecting market activity.",
+                "summary_text": "**Market Hypothesis**\nLower yields and easing supply-risk are connecting market activity.",
+                "audio_text": "Market hypothesis: Lower yields and easing supply-risk are connecting market activity.",
+                "event_count": 1,
+                "must_read_count": 0,
+                "unresolved_count": 0,
+                "featured_symbols": ["USO", "UAL", "TLT"],
+                "beats": [],
+            },
+            {},
+        ),
     )
     monkeypatch.setattr(
         "pipeline.jobs.attention_home_build.attach_attention_home_summary_audio",
@@ -1493,7 +1579,7 @@ def test_build_materialized_homepage_summary_falls_back_when_agentic_summary_fai
     }
 
     monkeypatch.setattr(
-        "pipeline.jobs.attention_home_build.build_attention_agentic_summary",
+        "pipeline.jobs.attention_home_build.build_attention_agentic_summary_with_trace",
         lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("search unavailable")),
     )
     monkeypatch.setattr(
@@ -1551,7 +1637,7 @@ def test_run_attention_home_fails_when_required_mover_inputs_are_missing(monkeyp
     )
 
     monkeypatch.setattr("pipeline.jobs.main._load_latest_materialized_frame", lambda dataset_name: pd.DataFrame())
-    monkeypatch.setattr("pipeline.jobs.attention_home_build.load_llm_client", lambda: None)
+    monkeypatch.setattr("pipeline.jobs.attention_home_build.load_aql_zopedia_llm_client", lambda **kwargs: None)
     monkeypatch.setattr(
         "pipeline.jobs.main._job_progress",
         lambda *args, **kwargs: progress_calls.append(

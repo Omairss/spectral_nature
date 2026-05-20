@@ -12,7 +12,6 @@
 # Submodule mapping:
 #   services.attention.agentic       -> services.attention_agentic (shim -> services.aql)
 #   services.attention.context_llm   -> services.attention_context_llm
-#   services.attention.feed_brief    -> services.attention_feed_brief
 #   services.attention.graph_network -> services.attention_graph_network
 #   services.attention.graph_topology -> services.attention_graph_topology
 #   services.attention.home_1d       -> services.attention_home_1d
@@ -26,7 +25,6 @@
 # Re-export submodules so `from services.attention import agentic` works
 from services import attention_agentic as agentic  # noqa: F401
 from services import attention_context_llm as context_llm  # noqa: F401
-from services import attention_feed_brief as feed_brief  # noqa: F401
 from services import attention_graph_network as graph_network  # noqa: F401
 from services import attention_graph_topology as graph_topology  # noqa: F401
 from services import attention_home_1d as home_1d  # noqa: F401
