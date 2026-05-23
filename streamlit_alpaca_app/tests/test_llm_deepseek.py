@@ -47,7 +47,7 @@ def test_deepseek_client_uses_json_object_and_captures_reasoning():
     result = client.generate_json(
         system_prompt="System",
         user_prompt="User",
-        schema_name="omnibar_agent_final",
+        schema_name="zopedia_agent_final",
         schema={"type": "object", "properties": {}, "required": []},
     )
 

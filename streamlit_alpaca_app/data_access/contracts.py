@@ -47,6 +47,8 @@ def to_jsonable(value: Any) -> Any:
         return frame_to_records(value)
     if isinstance(value, pd.Series):
         return [_jsonable_scalar(item) for item in value.tolist()]
+    if isinstance(value, np.ndarray):
+        return [to_jsonable(item) for item in value.tolist()]
     if is_dataclass(value):
         return {key: to_jsonable(item) for key, item in asdict(value).items()}
     if isinstance(value, dict):

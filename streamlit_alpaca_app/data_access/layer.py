@@ -55,7 +55,14 @@ from services.llm import load_embedding_client, load_llm_client
 from services.aql.evidence_index import parse_json_list
 from services.market import load_price_history, scan_commodity_regimes, scan_correlation_phase_shifts, scan_daily_movers, scan_event_significance, scan_momentum_profiles
 from services.options import analyze_option_candidates, load_option_chain, load_option_surface, select_option_surface_window
-from services.pipeline_store import latest_job_status_table, load_dataset_frame_asof, load_latest_dataset_frame, pipeline_store_configured, start_source_refresh_job
+from services.pipeline_store import (
+    latest_job_status_table,
+    load_dataset_frame_asof,
+    load_latest_dataset_frame,
+    load_recent_dataset_frames,
+    pipeline_store_configured,
+    start_source_refresh_job,
+)
 from services.saa import load_retained_document, load_retained_document_metadata, search_retained_documents, search_retained_evidence_chunks
 from services.treasury_yields import TreasuryYieldError, load_treasury_yield_curve
 from services.universe import build_liquidity_ranked_equity_universe
@@ -725,6 +732,21 @@ class DataAccessLayer:
             if isinstance(frame, pd.DataFrame) and not frame.empty:
                 return dataset_name, frame, details
         return None
+
+    def _recent_materialized_frames(
+        self,
+        dataset_name: str,
+        *,
+        limit: int = 8,
+    ) -> list[tuple[pd.DataFrame, dict[str, Any]]]:
+        if not pipeline_store_configured():
+            return []
+        out: list[tuple[pd.DataFrame, dict[str, Any]]] = []
+        for frame, metadata in load_recent_dataset_frames(dataset_name, limit=limit):
+            if not isinstance(frame, pd.DataFrame) or frame.empty:
+                continue
+            out.append((frame, _pipeline_details(metadata)))
+        return out
 
     def _contains_legacy_attention_text(self, value: Any) -> bool:
         text = str(value or "").strip().lower()
@@ -2741,27 +2763,46 @@ class DataAccessLayer:
             "context_signature": _coerce_text(context_signature),
             "ticker": _coerce_text(ticker).upper(),
         }
-        materialized = self._first_materialized_frame(
-            PAGE_AGENTIC_SUMMARY_DATASETS,
-            force_refresh=False,
-        )
-        if materialized is not None:
-            dataset_name, frame, materialized_details = materialized
-            from services.page_agentic_summary import materialized_page_agentic_summary
-
-            payload = materialized_page_agentic_summary(
-                frame,
-                surface=surface,
-                context_signature=context_signature,
-                ticker=ticker,
-            )
-            if payload:
-                return self._resolved(
-                    payload,
-                    mode="materialized",
-                    datasets=(dataset_name,),
-                    details={**materialized_details, **details},
+        latest_payload: dict[str, Any] = {}
+        latest_details: dict[str, Any] = {}
+        for dataset_name in PAGE_AGENTIC_SUMMARY_DATASETS:
+            materialized_frames = self._recent_materialized_frames(dataset_name, limit=8)
+            if not materialized_frames:
+                materialized = self._first_materialized_frame(
+                    (dataset_name,),
+                    force_refresh=False,
                 )
+                materialized_frames = [(materialized[1], materialized[2])] if materialized is not None else []
+            for frame, materialized_details in materialized_frames:
+                if not isinstance(frame, pd.DataFrame) or frame.empty:
+                    continue
+                from services.page_agentic_summary import materialized_page_agentic_summary
+
+                payload = materialized_page_agentic_summary(
+                    frame,
+                    surface=surface,
+                    context_signature=context_signature,
+                    ticker=ticker,
+                )
+                if not payload:
+                    continue
+                if not latest_payload:
+                    latest_payload = payload
+                    latest_details = materialized_details
+                if _coerce_text(payload.get("status")).lower() == "ok":
+                    return self._resolved(
+                        payload,
+                        mode="materialized",
+                        datasets=(dataset_name,),
+                        details={**materialized_details, **details},
+                    )
+        if latest_payload:
+            return self._resolved(
+                latest_payload,
+                mode="materialized",
+                datasets=PAGE_AGENTIC_SUMMARY_DATASETS,
+                details={**latest_details, **details},
+            )
 
         materialized_only = self._materialized_only_result(
             {},

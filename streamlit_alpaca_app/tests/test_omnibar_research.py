@@ -59,8 +59,8 @@ def test_open_page_uses_browser_helper(monkeypatch):
 
 
 def test_live_event_evidence_uses_impact_symbols_when_no_focus_symbols(monkeypatch):
-    def _fake_search_market_event_news_payload(event, *, max_results, serp_client=None, tavily_client=None):
-        del serp_client, tavily_client
+    def _fake_search_market_event_news_payload(event, *, max_results, serp_client=None, tavily_client=None, **kwargs):
+        del serp_client, tavily_client, kwargs
         assert event["event_type"] == "oil"
         assert "USO" in event["supporting_symbols"]
         return {
@@ -133,3 +133,48 @@ def test_live_event_evidence_uses_impact_symbols_when_no_focus_symbols(monkeypat
     assert payload["theme"] == "oil"
     assert "USO" in payload["focus_symbols"]
     assert payload["summary"][0]["headline"]
+
+
+def test_live_event_evidence_returns_partial_when_internal_impact_map_times_out(monkeypatch):
+    def _slow_market_impact_map(*args, **kwargs):
+        import time
+
+        del args, kwargs
+        time.sleep(1.0)
+        return {"theme": "oil", "expected_direction": "down", "focus_symbols": ["USO"], "summary": []}
+
+    def _fake_search_market_event_news_payload(event, *, max_results, serp_client=None, tavily_client=None, **kwargs):
+        del event, max_results, serp_client, tavily_client, kwargs
+        return {
+            "articles": pd.DataFrame(
+                [
+                    {
+                        "headline": "Oil falls as geopolitical risk premium fades",
+                        "summary": "Talks reduced supply-risk expectations.",
+                        "source": "Reuters",
+                        "published_at": pd.Timestamp("2026-05-20T12:00:00Z"),
+                        "url": "https://example.com/oil-geopolitics",
+                    }
+                ]
+            ),
+            "messages": [],
+        }
+
+    class _FakeLayer:
+        def resolve_attention_home_1d(self, *, force_refresh: bool = False):
+            del force_refresh
+            return type("Resolved", (), {"payload": {}})()
+
+    monkeypatch.setattr(omnibar_research, "market_impact_map", _slow_market_impact_map)
+    monkeypatch.setattr(omnibar_research, "search_market_event_news_payload", _fake_search_market_event_news_payload)
+    monkeypatch.setattr(omnibar_research, "_fast_search_clients", lambda timeout_seconds: (None, None))
+    monkeypatch.setattr(omnibar_research, "get_config_param", lambda key: 1 if "timeout" in str(key).lower() else 6)
+
+    payload = omnibar_research.live_event_evidence(
+        query="What about geopolitics?",
+        focus_symbols=["USO"],
+        layer=_FakeLayer(),
+    )
+
+    assert payload["summary"][0]["headline"] == "Oil falls as geopolitical risk premium fades"
+    assert any("live_event_impact_map timed out" in item for item in payload["messages"])

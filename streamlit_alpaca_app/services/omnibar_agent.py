@@ -208,7 +208,8 @@ _AGENT_FINAL_SYSTEM_PROMPT = register_narrative_prompt(
         "(3) Use **bold** for tickers and key metrics (e.g. **NVDA** +3.2%). "
         "(4) Use bullet points for lists of data points. "
         "(5) Keep paragraphs short, with blank lines between paragraphs; never return one large unbroken paragraph. "
-        "(6) End with a brief takeaway or what to watch next. "
+        "(6) If you use a Markdown table, it must have a header row, separator row, and one row per line; if that is awkward, use bullets instead. "
+        "(7) End with a brief takeaway or what to watch next. "
         "When Zopedia memory is used, name the supporting Zopedia page title or page_id. "
         "When live external evidence was used, lightly reference one or two supporting sources or URLs. "
         "If the answer discusses market, equity, ETF, sector, or rate-move impact, it must be grounded in observed market data from tools such as daily movers, price history, or analysis artifacts; otherwise state the missing observed-data gap."
@@ -243,7 +244,8 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
         "If the draft is good, accept it. If it needs correction, return a revised markdown answer that fixes the issue. "
         "If the evidence is too thin, return the best cautious answer and name the evidence gap. "
         "If the draft discusses market, equity, ETF, sector, or rate-move impact without observed price/mover/analysis evidence, mark it insufficient or revise it to say that observed market-impact evidence is missing. "
-        "Do not introduce facts that are not present in the tool evidence or pre-fetched internal evidence."
+        "Do not introduce facts that are not present in the tool evidence or pre-fetched internal evidence. "
+        "Fix malformed Markdown tables before accepting or revising the answer; every table needs a header row, separator row, and one row per line."
     ),
 )
 
@@ -431,7 +433,7 @@ def _preview_payload(payload: Any) -> dict[str, Any]:
         nested_keys: list[str] = []
         for key, value in list(payload.items())[:10]:
             if isinstance(value, (str, int, float, bool)) or value is None:
-                scalar_items[str(key)] = value
+                scalar_items[str(key)] = _scalar_preview_value(str(key), value)
             else:
                 nested_keys.append(str(key))
         return {
@@ -441,6 +443,127 @@ def _preview_payload(payload: Any) -> dict[str, Any]:
             "nested_keys": nested_keys[:8],
         }
     return {"kind": "scalar", "value": payload}
+
+
+def _is_raw_context_key(key: str) -> bool:
+    normalized = str(key or "").strip().lower()
+    if normalized in {
+        "raw_text",
+        "stdout",
+        "stderr",
+        "traceback",
+        "log_text",
+        "logs",
+        "code_text",
+        "search_text",
+    }:
+        return True
+    return normalized.endswith("_raw_text") or normalized.endswith("_log_text")
+
+
+def _scalar_preview_value(key: str, value: Any) -> Any:
+    if value is None or isinstance(value, (int, float, bool)):
+        return value
+    text = str(value)
+    if not text:
+        return text
+    if _is_raw_context_key(key) or len(text) > 800:
+        line_count = len(text.splitlines())
+        return f"<{len(text)} chars, {line_count} line(s); raw text omitted from default tool context>"
+    return value
+
+
+def _as_float(value: Any) -> float | None:
+    try:
+        number = float(value)
+    except Exception:
+        return None
+    if number != number:
+        return None
+    if number in {float("inf"), float("-inf")}:
+        return None
+    return number
+
+
+def _format_number(value: Any, *, digits: int = 2, suffix: str = "") -> str:
+    number = _as_float(value)
+    if number is None:
+        return ""
+    return f"{number:.{digits}f}{suffix}"
+
+
+def _dataset_name_from_result(result: dict[str, Any]) -> str:
+    request = result.get("request")
+    if isinstance(request, dict):
+        return _clean(request.get("name")).lower()
+    return ""
+
+
+def _rows_llm_context(result: dict[str, Any], payload: Any) -> str:
+    if not isinstance(payload, list) or not payload or not all(isinstance(row, dict) for row in payload[:4]):
+        return ""
+
+    dataset_name = _dataset_name_from_result(result)
+    rows = [row for row in payload if isinstance(row, dict)]
+    columns = {str(key) for row in rows[:12] for key in row.keys()}
+
+    if dataset_name == "momentum_profiles" or {"return_1m_pct", "return_3m_pct"}.issubset(columns):
+        lines = [f"Momentum profiles returned {len(rows)} row(s)."]
+        for row in rows[:12]:
+            symbol = _clean(row.get("symbol"))
+            if not symbol:
+                continue
+            parts = [symbol]
+            close = _format_number(row.get("close"), digits=2)
+            if close:
+                parts.append(f"close={close}")
+            for label, key in [
+                ("1W", "return_1w_pct"),
+                ("1M", "return_1m_pct"),
+                ("3M", "return_3m_pct"),
+                ("1Y", "return_1y_pct"),
+                ("5Y", "return_5y_pct"),
+            ]:
+                formatted = _format_number(row.get(key), digits=1, suffix="%")
+                if formatted:
+                    parts.append(f"{label}={formatted}")
+            trend_r2 = _format_number(row.get("trend_r2_3m"), digits=2)
+            if trend_r2:
+                parts.append(f"3M trend r2={trend_r2}")
+            lines.append("; ".join(parts))
+        return _truncate("\n".join(lines), limit=int(get_config_param(_P_TOOL_RESULT_CONTEXT_LIMIT)))
+
+    if dataset_name == "price_history" or {"timestamp", "close"}.issubset(columns):
+        by_symbol: dict[str, list[dict[str, Any]]] = {}
+        for row in rows:
+            symbol = _clean(row.get("symbol")) or _clean(row.get("ticker")) or "series"
+            if _as_float(row.get("close")) is None:
+                continue
+            by_symbol.setdefault(symbol, []).append(row)
+        if not by_symbol:
+            return ""
+        lines = [f"Price history returned {len(rows)} row(s)."]
+        for symbol, symbol_rows in list(by_symbol.items())[:8]:
+            ordered = sorted(symbol_rows, key=lambda item: _clean(item.get("timestamp") or item.get("date")))
+            first = ordered[0]
+            last = ordered[-1]
+            first_close = _as_float(first.get("close"))
+            last_close = _as_float(last.get("close"))
+            first_date = _clean(first.get("timestamp") or first.get("date"))[:10]
+            last_date = _clean(last.get("timestamp") or last.get("date"))[:10]
+            if first_close is None or last_close is None:
+                continue
+            return_pct = ((last_close / first_close) - 1.0) * 100.0 if first_close else None
+            return_text = _format_number(return_pct, digits=1, suffix="%")
+            close_text = f"{first_close:.2f} -> {last_close:.2f}"
+            suffix = f"; return={return_text}" if return_text else ""
+            lines.append(
+                f"{symbol}: {len(ordered)} rows from {first_date or 'unknown'} to {last_date or 'unknown'}; "
+                f"close {close_text}{suffix}"
+            )
+        return _truncate("\n".join(lines), limit=int(get_config_param(_P_TOOL_RESULT_CONTEXT_LIMIT)))
+
+    return ""
 
 
 def _build_render_payload(result: dict[str, Any]) -> dict[str, Any] | None:
@@ -607,6 +730,8 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
             "\n".join(part for part in [llm_context_text, message_text] if part),
             limit=int(get_config_param(_P_TOOL_RESULT_CONTEXT_LIMIT)),
         )
+    if not llm_context_text:
+        llm_context_text = _rows_llm_context(result, payload)
 
     # Build a user-facing preview (clean, concise) separate from the LLM preview
     user_preview = ""
@@ -978,6 +1103,7 @@ _PLANNER_SYSTEM_PROMPT = register_narrative_prompt(
         "12. When evidence shows Zopedia memory is wrong, stale, or missing a durable page, use zopedia.apply_mutation only for safe reversible changes; otherwise create a zopedia.propose_change entry. "
         "\n\nOnce you have enough evidence, return action='final' with a structured markdown answer. "
         "Start with a bold verdict sentence, use ### headings for multi-part answers, keep each heading on its own line with a blank line after it, keep paragraphs short with blank lines, **bold** tickers and metrics, and end with a takeaway. "
+        "If you use a Markdown table, it must have a header row, separator row, and one row per line; use bullets if a table would be cramped. "
         "When prior conversation is provided, resolve references like 'this', 'that', 'it' from prior turns."
         "\n\nTool argument encoding: use object_list for arrays of objects such as analysis.run_python dataset_refs "
         "or inline_datasets, object for single objects, json for arbitrary JSON values, string_list only for arrays "
@@ -1155,6 +1281,33 @@ def _is_affirmative_followup(query: str) -> bool:
     return normalized in _AFFIRMATIVE_FOLLOWUP_REPLIES
 
 
+def _is_contextual_followup_query(query: str) -> bool:
+    normalized = _clean(query).lower().strip()
+    stripped = normalized.strip(" \t\r\n.!?")
+    if not stripped or len(stripped) > 180:
+        return False
+    starters = (
+        "what about ",
+        "how about ",
+        "what of ",
+        "and ",
+        "also ",
+        "but ",
+        "then ",
+        "so ",
+        "does that ",
+        "is that ",
+        "can you expand",
+        "go deeper",
+        "dig deeper",
+    )
+    if stripped.startswith(starters):
+        return True
+    reference_terms = {"this", "that", "it", "they", "them", "those", "there"}
+    tokens = {token for token in stripped.replace("?", " ").split() if token}
+    return bool(tokens & reference_terms) and len(tokens) <= 14
+
+
 def resolve_conversation_followup_query(
     query: str,
     conversation_history: list[dict[str, Any]] | None,
@@ -1168,7 +1321,9 @@ def resolve_conversation_followup_query(
     search and skip the agent path that has conversation context.
     """
     normalized_query = _clean(query)
-    if not _is_affirmative_followup(normalized_query):
+    is_affirmative = _is_affirmative_followup(normalized_query)
+    is_contextual = _is_contextual_followup_query(normalized_query)
+    if not is_affirmative and not is_contextual:
         return normalized_query, False
 
     previous_user, previous_assistant = _latest_user_and_assistant_turn(conversation_history)
@@ -1182,9 +1337,19 @@ def resolve_conversation_followup_query(
     if not previous_user:
         previous_user = "the previous market question"
 
+    if is_affirmative:
+        instruction = (
+            "The user replied affirmatively, so carry out the natural next step implied by the prior assistant answer."
+        )
+    else:
+        instruction = (
+            "The user asked a contextual follow-up. Resolve the follow-up against the prior question and answer, "
+            "then answer that combined question with fresh evidence where needed."
+        )
+
     resolved_query = (
-        "Continue the previous Zopedia thread. The user replied "
-        f"'{normalized_query}', so carry out the natural next step implied by the prior assistant answer. "
+        "Continue the previous Zopedia thread. "
+        f"{instruction} "
         "Use the prior answer and prior question as context; verify or expand with evidence instead of "
         "treating the reply as a standalone query.\n\n"
         f"Previous user question:\n{previous_user}\n\n"
@@ -1225,6 +1390,7 @@ def _successful_evidence_tool_count(tool_calls: list[dict[str, Any]]) -> int:
         "zopedia.list_mutations",
         "zopedia.list_maintenance_reports",
         "zopedia.rollback_mutation",
+        "analysis.read_raw_output",
     }
     count = 0
     for call in tool_calls:
@@ -1697,6 +1863,7 @@ def _final_user_prompt(
         f"{_tool_history_prompt(tool_calls)}\n\n"
         "Write the best grounded markdown answer you can from this evidence only. "
         "Make it readable: start with a bold verdict, use ### headings for distinct themes, keep each heading on its own line with a blank line after it, keep paragraphs short, and put blank lines between paragraphs. "
+        "If you use a Markdown table, it must have a header row, separator row, and one row per line; use bullets if a table would be cramped. "
         "Treat the user's premise as unverified unless the evidence supports it; if evidence contradicts the premise, say so plainly. "
         "If you use Zopedia memory, cite the relevant Zopedia page title or page_id in the answer. "
         "If the evidence includes fresh web research, lightly mention one or two supporting sources or links. "
@@ -1735,7 +1902,8 @@ def _judge_user_prompt(
         "Use verdict='accept' only when the draft is supported by the evidence and the confidence is appropriate. "
         "Use verdict='revise' when the answer should be corrected or made more precise. "
         "Use verdict='insufficient' when the evidence does not support a substantive answer. "
-        "Return the answer_markdown that should be shown to the user."
+        "Return the answer_markdown that should be shown to the user. "
+        "Repair malformed Markdown tables before returning the final answer."
     )
 
 
@@ -1791,7 +1959,7 @@ def _run_answer_judge(
                     conversation_history=conversation_history,
                     prefetched_context=prefetched_context,
                 ),
-                schema_name="omnibar_agent_judge",
+                schema_name="zopedia_agent_judge",
                 schema=_JUDGE_SCHEMA,
             )
         except BaseException as exc:
@@ -2136,7 +2304,7 @@ def _run_post_answer_memory_agent(
         }
 
 
-def run_omnibar_agent(
+def _run_zopedia_agent_loop(
     *,
     query: str,
     force_refresh: bool = False,
@@ -2441,7 +2609,7 @@ def run_omnibar_agent(
                             conversation_history=conversation_history,
                             prefetched_context=prefetched_context,
                         ),
-                        schema_name="omnibar_agent_step",
+                        schema_name="zopedia_agent_step",
                         schema=_STEP_SCHEMA,
                     )
                 except BaseException as exc:
@@ -2825,7 +2993,7 @@ def run_omnibar_agent(
                     _final_result[0] = synthesis_llm.generate_json(
                         system_prompt=get_prompt(_AGENT_FINAL_SYSTEM_PROMPT),
                         user_prompt=_final_user_prompt(query=agent_query, tool_calls=tool_calls, conversation_history=conversation_history, prefetched_context=prefetched_context),
-                        schema_name="omnibar_agent_final",
+                        schema_name="zopedia_agent_final",
                         schema=_FINAL_SCHEMA,
                     )
                 except BaseException as exc:
@@ -3146,5 +3314,4 @@ def _write_back_agent_evidence(
 __all__ = [
     "DEFAULT_MAX_TOOL_CALLS",
     "resolve_conversation_followup_query",
-    "run_omnibar_agent",
 ]

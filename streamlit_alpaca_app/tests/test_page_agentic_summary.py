@@ -252,3 +252,30 @@ def test_materialized_page_agentic_summary_allows_latest_surface_lookup():
     assert resolved["headline"] == "Latest macro read."
     assert resolved["materialized"]["context_match"] == "surface"
     assert resolved["materialized"]["run_id"] == "run_new"
+
+
+def test_materialized_page_agentic_summary_falls_back_to_latest_surface_on_signature_mismatch():
+    row = page_agentic_summary.build_materialized_page_agentic_summary_row(
+        surface="Broad Economy",
+        context={"surface": "Broad Economy", "macro_indicators": [{"series_id": "CPIAUCSL"}]},
+        summary={
+            "status": "ok",
+            "surface": "Broad Economy",
+            "headline": "Latest scheduled macro read.",
+            "summary_markdown": "The scheduled Broad Economy summary is available.",
+            "watch_items": [],
+            "data_gaps": [],
+            "confidence": "medium",
+        },
+        generated_at_utc="2026-04-27T17:00:00Z",
+        run_id="run_broad",
+    )
+
+    resolved = page_agentic_summary.materialized_page_agentic_summary(
+        pd.DataFrame([row]),
+        surface="Broad Economy",
+        context_signature="different-context-signature",
+    )
+
+    assert resolved["headline"] == "Latest scheduled macro read."
+    assert resolved["materialized"]["context_match"] == "surface_fallback"

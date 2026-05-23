@@ -15,9 +15,24 @@ if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
 from data_access.contracts import DataProvenance, QueryRequest, ResolvedPayload
+from data_access.contracts import frame_to_records
 from data_access.layer import DataAccessLayer
 from data_access.query_service import QueryService
 from presentation.plotly import render_chart_model
+
+
+def test_frame_to_records_serializes_array_like_cells():
+    frame = pd.DataFrame(
+        {
+            "symbol": ["APLD"],
+            "sparkline_3m": [np.array([1.0, 2.0, 3.0])],
+            "return_1y_pct": [np.nan],
+        }
+    )
+
+    records = frame_to_records(frame)
+
+    assert records == [{"symbol": "APLD", "sparkline_3m": [1.0, 2.0, 3.0], "return_1y_pct": None}]
 
 
 def test_data_access_layer_prefers_materialized_price_history_when_available(monkeypatch):
@@ -255,6 +270,11 @@ def test_data_access_layer_resolves_latest_materialized_page_summary(monkeypatch
         "_try_pipeline_frame",
         lambda self, dataset_name, force_refresh: (materialized.copy(), {"dataset_name": dataset_name}),
     )
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_recent_materialized_frames",
+        lambda self, dataset_name, limit=8: [(materialized.copy(), {"dataset_name": dataset_name})],
+    )
 
     resolved = DataAccessLayer().resolve_page_agentic_summary(
         surface="Broad Economy",
@@ -265,6 +285,78 @@ def test_data_access_layer_resolves_latest_materialized_page_summary(monkeypatch
     assert resolved.provenance.datasets == ("page_agentic_summaries",)
     assert resolved.payload["headline"] == "Latest macro read"
     assert resolved.payload["materialized"]["context_match"] == "surface"
+
+
+def test_data_access_layer_page_summary_searches_recent_versions_for_ok_payload(monkeypatch):
+    newer_unavailable = pd.DataFrame(
+        [
+            {
+                "surface": "Broad Economy",
+                "ticker": "",
+                "context_signature": "new",
+                "status": "unavailable",
+                "headline": "",
+                "confidence": "low",
+                "summary_json": json.dumps(
+                    {
+                        "status": "unavailable",
+                        "surface": "Broad Economy",
+                        "headline": "",
+                        "summary_markdown": "",
+                        "watch_items": [],
+                        "data_gaps": ["Attention job does not own Broad Economy."],
+                        "confidence": "low",
+                    }
+                ),
+                "generated_at_utc": "2026-04-27T18:00:00Z",
+                "run_id": "newer",
+            }
+        ]
+    )
+    older_ok = pd.DataFrame(
+        [
+            {
+                "surface": "Broad Economy",
+                "ticker": "",
+                "context_signature": "old",
+                "status": "ok",
+                "headline": "Macro job read",
+                "confidence": "medium",
+                "summary_json": json.dumps(
+                    {
+                        "status": "ok",
+                        "surface": "Broad Economy",
+                        "headline": "Macro job read",
+                        "summary_markdown": "Macro job read",
+                        "watch_items": [],
+                        "data_gaps": [],
+                        "confidence": "medium",
+                    }
+                ),
+                "generated_at_utc": "2026-04-27T17:00:00Z",
+                "run_id": "older",
+            }
+        ]
+    )
+
+    monkeypatch.setattr(
+        DataAccessLayer,
+        "_recent_materialized_frames",
+        lambda self, dataset_name, limit=8: [
+            (newer_unavailable.copy(), {"dataset_name": dataset_name, "dataset_version_id": "newer"}),
+            (older_ok.copy(), {"dataset_name": dataset_name, "dataset_version_id": "older"}),
+        ],
+    )
+
+    resolved = DataAccessLayer().resolve_page_agentic_summary(
+        surface="Broad Economy",
+        context_signature="different",
+    )
+
+    assert resolved.provenance.mode == "materialized"
+    assert resolved.payload["status"] == "ok"
+    assert resolved.payload["headline"] == "Macro job read"
+    assert resolved.payload["materialized"]["run_id"] == "older"
 
 
 def test_data_access_layer_materialized_only_does_not_fallback_for_attention_home(monkeypatch):

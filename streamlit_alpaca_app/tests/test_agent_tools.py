@@ -22,6 +22,7 @@ def test_build_tool_catalog_uses_typed_param_schemas():
     assert "zopedia.apply_mutation" in tools_by_name
     assert "zopedia.rollback_mutation" in tools_by_name
     assert "analysis.run_python" in tools_by_name
+    assert "analysis.read_raw_output" in tools_by_name
     fred_tool = tools_by_name["dataset.fred_dashboard"]
     price_tool = tools_by_name["dataset.price_history"]
     analysis_tool = tools_by_name["analysis.run_python"]
@@ -31,6 +32,7 @@ def test_build_tool_catalog_uses_typed_param_schemas():
     assert price_tool["inputSchema"]["required"] == ["ticker"]
     assert price_tool["inputSchema"]["properties"]["ticker"]["type"] == "string"
     assert analysis_tool["inputSchema"]["required"] == ["objective", "code"]
+    assert tools_by_name["analysis.read_raw_output"]["inputSchema"]["required"] == ["analysis_run_id"]
 
 
 def test_invoke_research_tool_dispatches_to_research_module(monkeypatch):
@@ -249,6 +251,39 @@ def test_invoke_analysis_tool_dispatches_to_analysis_runner(monkeypatch):
     assert result["request"]["operation"] == "analysis"
     assert result["result_type"] == "analysis_result"
     assert result["payload"]["metrics"][0]["name"] == "rows"
+
+
+def test_invoke_analysis_read_raw_output_dispatches_to_analysis_storage(monkeypatch):
+    captured: dict[str, object] = {}
+
+    def _fake_read_analysis_raw_output(**kwargs):
+        captured.update(kwargs)
+        return {
+            "analysis_run_id": "zopedia_analysis::test",
+            "status": "ok",
+            "stream": "stdout",
+            "raw_text": "rows=2 last=11",
+            "returned_chars": 14,
+            "total_chars": 14,
+            "truncated": False,
+            "llm_context_text": "Explicit raw stdout output for zopedia_analysis::test.\nRaw excerpt:\nrows=2 last=11",
+        }
+
+    monkeypatch.setattr(agent_tools.zopedia_analysis, "read_analysis_raw_output", _fake_read_analysis_raw_output)
+
+    service = QueryService(data_access=object())
+    result = agent_tools.invoke_tool(
+        service=service,
+        tool_name="analysis.read_raw_output",
+        arguments={"analysis_run_id": "zopedia_analysis::test", "stream": "stdout", "max_chars": 200},
+    )
+
+    assert captured["analysis_run_id"] == "zopedia_analysis::test"
+    assert captured["stream"] == "stdout"
+    assert captured["max_chars"] == 200
+    assert result["request"]["operation"] == "analysis"
+    assert result["result_type"] == "analysis_raw_output"
+    assert result["payload"]["raw_text"] == "rows=2 last=11"
 
 
 def test_invoke_analysis_tool_repairs_flattened_code_once(monkeypatch):

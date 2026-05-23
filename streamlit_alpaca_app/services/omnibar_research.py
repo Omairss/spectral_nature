@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import json
 import re
+import threading
+import time
 from typing import Any
 
 import pandas as pd
@@ -43,6 +46,24 @@ _P_LIVE_EVENT_MAX_SYMBOLS = register_config_param(
     group="Zopedia",
     default=8,
     description="Max symbols to resolve for live event evidence searches",
+)
+_P_LIVE_EVENT_TOTAL_BUDGET_SECONDS = register_config_param(
+    "Live event total budget seconds",
+    group="Zopedia",
+    default=18,
+    description="Total internal wall-clock budget for live_event_evidence before returning partial results",
+)
+_P_LIVE_EVENT_LLM_HELPER_TIMEOUT_SECONDS = register_config_param(
+    "Live event LLM helper timeout seconds",
+    group="Zopedia",
+    default=4,
+    description="Max seconds for internal live-event helper LLM calls before using direct query fallbacks",
+)
+_P_LIVE_EVENT_PROVIDER_TIMEOUT_SECONDS = register_config_param(
+    "Live event provider timeout seconds",
+    group="Zopedia",
+    default=6,
+    description="Per-provider timeout for interactive live-event news searches",
 )
 _P_RETAINED_CONTEXT_MAX_ITEMS = register_config_param(
     "Retained context max items",
@@ -107,6 +128,23 @@ def _trim(text: object, *, limit: int = 220) -> str:
     return clean[: limit - 3].rstrip() + "..."
 
 
+def _dedupe_text_items(items: list[str], *, limit: int | None = None) -> list[str]:
+    out: list[str] = []
+    seen: set[str] = set()
+    for raw in items:
+        text = _clean(raw)
+        if not text:
+            continue
+        key = re.sub(r"[^a-z0-9]+", " ", text.lower()).strip()
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        out.append(text)
+        if limit is not None and len(out) >= max(int(limit), 1):
+            break
+    return out
+
+
 def _normalize_symbol(value: object) -> str:
     symbol = _clean(value).upper()
     if re.fullmatch(r"[A-Z][A-Z0-9.\-]{0,6}", symbol):
@@ -137,6 +175,65 @@ def _safe_int(value: object, default: int, *, minimum: int = 1, maximum: int = 2
     except Exception:
         parsed = int(default)
     return min(max(parsed, minimum), maximum)
+
+
+def _run_with_timeout(label: str, timeout_seconds: int, func: Any, fallback: Any) -> tuple[Any, str]:
+    """Run a helper in a daemon thread and return a fallback if it exceeds its budget."""
+    timeout = max(int(timeout_seconds), 1)
+    result_box: list[Any] = [fallback]
+    error_box: list[BaseException | None] = [None]
+
+    def _runner() -> None:
+        try:
+            result_box[0] = func()
+        except BaseException as exc:
+            error_box[0] = exc
+
+    thread = threading.Thread(target=_runner, name=f"zopedia-live-{label[:32]}", daemon=True)
+    thread.start()
+    thread.join(timeout=timeout)
+    if thread.is_alive():
+        return fallback, f"{label} timed out after {timeout}s"
+    if error_box[0] is not None:
+        exc = error_box[0]
+        return fallback, f"{label} failed: {type(exc).__name__}"
+    return result_box[0], ""
+
+
+def _remaining_budget(deadline: float) -> int:
+    return max(int(deadline - time.monotonic()), 0)
+
+
+def _fallback_event_search_query(event: dict[str, Any]) -> str:
+    event_title = _coerce_text(event.get("event_title"))
+    anchor_symbol = _normalize_symbol(event.get("anchor_symbol"))
+    supporting_symbols = [
+        _normalize_symbol(symbol)
+        for symbol in list(event.get("supporting_symbols") or [])
+        if _normalize_symbol(symbol)
+    ]
+    parts = [event_title] if event_title else []
+    parts.extend(([anchor_symbol] if anchor_symbol else []) + supporting_symbols[:3])
+    return f"{' '.join(part for part in parts if part)} today".strip() or "market news today"
+
+
+def _fast_search_clients(timeout_seconds: int) -> tuple[SerpAPISearchClient | None, TavilySearchClient | None]:
+    safe_timeout = max(int(timeout_seconds), 3)
+    serp_client = None
+    tavily_client = None
+    try:
+        serp_cfg = load_serpapi_config()
+        if serp_cfg is not None:
+            serp_client = SerpAPISearchClient(replace(serp_cfg, timeout_seconds=safe_timeout))
+    except Exception:
+        serp_client = None
+    try:
+        tavily_cfg = load_tavily_config()
+        if tavily_cfg is not None:
+            tavily_client = TavilySearchClient(replace(tavily_cfg, timeout_seconds=safe_timeout))
+    except Exception:
+        tavily_client = None
+    return serp_client, tavily_client
 
 
 def _layer(layer: DataAccessLayer | None = None) -> DataAccessLayer:
@@ -459,22 +556,70 @@ def live_event_evidence(
     layer: DataAccessLayer | None = None,
 ) -> dict[str, Any]:
     resolved_layer = _layer(layer)
+    normalized_query = _clean(query)
     default_results = int(get_config_param(_P_LIVE_EVENT_MAX_RESULTS))
     safe_limit = _safe_int(max_results if max_results != 6 else default_results, default_results, minimum=1, maximum=15)
     max_sym = int(get_config_param(_P_LIVE_EVENT_MAX_SYMBOLS))
-    impact = market_impact_map(query=query, max_symbols=max_sym)
+    total_budget_seconds = _safe_int(
+        get_config_param(_P_LIVE_EVENT_TOTAL_BUDGET_SECONDS),
+        18,
+        minimum=6,
+        maximum=60,
+    )
+    helper_timeout_seconds = _safe_int(
+        get_config_param(_P_LIVE_EVENT_LLM_HELPER_TIMEOUT_SECONDS),
+        4,
+        minimum=1,
+        maximum=20,
+    )
+    provider_timeout_seconds = _safe_int(
+        get_config_param(_P_LIVE_EVENT_PROVIDER_TIMEOUT_SECONDS),
+        6,
+        minimum=3,
+        maximum=20,
+    )
+    deadline = time.monotonic() + total_budget_seconds
+    messages: list[str] = []
+
+    selected_symbols = _symbol_list(focus_symbols)
+    impact_fallback = {
+        "query": normalized_query,
+        "theme": "generic",
+        "expected_direction": "down",
+        "evidence_needed": True,
+        "search_keywords": [normalized_query] if normalized_query else [],
+        "focus_symbols": selected_symbols,
+        "summary": [],
+        "llm_context_text": "Live evidence used the user's query directly because the helper classifier was unavailable.",
+    }
+    impact, impact_warning = _run_with_timeout(
+        "live_event_impact_map",
+        min(helper_timeout_seconds, max(_remaining_budget(deadline), 1)),
+        lambda: market_impact_map(query=normalized_query, max_symbols=max_sym),
+        impact_fallback,
+    )
+    if impact_warning:
+        messages.append(impact_warning)
+    if not isinstance(impact, dict):
+        impact = impact_fallback
     theme = _clean(impact.get("theme")) or "generic"
     direction = _clean(impact.get("expected_direction")) or "down"
 
-    selected_symbols = _symbol_list(focus_symbols)
     explicitly_resolved = bool(selected_symbols)
     if not selected_symbols:
-        resolution = resolve_omnibar(
-            query=query,
-            preferred_mode="search",
-            force_refresh=force_refresh,
-            layer=resolved_layer,
+        resolution, resolution_warning = _run_with_timeout(
+            "live_event_symbol_resolution",
+            min(helper_timeout_seconds, max(_remaining_budget(deadline), 1)),
+            lambda: resolve_omnibar(
+                query=normalized_query,
+                preferred_mode="search",
+                force_refresh=force_refresh,
+                layer=resolved_layer,
+            ),
+            {"search_results": []},
         )
+        if resolution_warning:
+            messages.append(resolution_warning)
         selected_symbols = [
             _normalize_symbol(item.get("symbol") or item.get("ref"))
             for item in list(resolution.get("search_results") or [])
@@ -487,34 +632,73 @@ def live_event_evidence(
 
     rows: list[dict[str, Any]] = []
     if impact.get("evidence_needed", True):
-        event_payload = search_market_event_news_payload(
-            {
-                "event_type": theme,
-                "anchor_direction": direction,
-                "supporting_symbols": selected_symbols,
-                # Pass the original query as event_title so the search query
-                # preserves the user's actual phrasing (e.g. "short squeeze")
-                # instead of only using the classified theme/proxy symbols.
-                "event_title": _clean(query),
-            },
-            max_results=max(min(safe_limit, 6), 3),
+        serp_client, tavily_client = _fast_search_clients(provider_timeout_seconds)
+        event_payload, event_warning = _run_with_timeout(
+            "live_event_news_search",
+            max(min(_remaining_budget(deadline), provider_timeout_seconds * 2 + 3), 1),
+            lambda: search_market_event_news_payload(
+                {
+                    "event_type": theme,
+                    "anchor_direction": direction,
+                    "supporting_symbols": selected_symbols,
+                    # Pass the original query as event_title so search preserves
+                    # the user's actual phrasing instead of category labels.
+                    "event_title": normalized_query,
+                },
+                max_results=max(min(safe_limit, 6), 3),
+                serp_client=serp_client,
+                tavily_client=tavily_client,
+                search_query=normalized_query,
+                allow_llm_query=False,
+            ),
+            {"articles": pd.DataFrame(), "messages": ["Live event news search did not finish within budget."]},
         )
+        if event_warning:
+            messages.append(event_warning)
+        if isinstance(event_payload, dict):
+            messages.extend([_clean(item) for item in list(event_payload.get("messages") or []) if _clean(item)])
         rows.extend(_news_rows_from_payload(event_payload, scope="market_event"))
 
+    event_rows_are_sufficient = len(rows) >= min(max(safe_limit // 2, 3), safe_limit)
+    if len(rows) >= safe_limit or event_rows_are_sufficient:
+        symbol_search_limit = 0
+    else:
+        symbol_search_limit = 4 if explicitly_resolved else 2
     # Only run per-symbol news search for symbols that came from the user or resolved
     # Search per-symbol news for explicitly resolved symbols (up to 4) or
     # intent-classified symbols (up to 2) since the classifier now returns
     # actual affected tickers rather than generic proxies.
-    llm_client = load_aql_zopedia_llm_client(surface="zopedia.live_event_symbol_news")
-    symbol_search_limit = 4 if explicitly_resolved else 2
     for symbol in selected_symbols[:symbol_search_limit]:
-        company_name = _asset_name(resolved_layer, symbol, force_refresh=force_refresh)
-        payload = search_symbol_news_payload(
-            symbol,
-            company_name=company_name,
-            max_results=max(min(safe_limit, 6), 3),
-            llm_client=llm_client,
+        remaining = _remaining_budget(deadline)
+        if remaining <= max(provider_timeout_seconds, 3):
+            messages.append("Skipped remaining symbol news searches because the live-event budget was exhausted.")
+            break
+        company_name, asset_warning = _run_with_timeout(
+            f"asset_name_{symbol}",
+            min(helper_timeout_seconds, max(_remaining_budget(deadline), 1)),
+            lambda symbol=symbol: _asset_name(resolved_layer, symbol, force_refresh=force_refresh),
+            "",
         )
+        if asset_warning:
+            messages.append(asset_warning)
+        serp_client, tavily_client = _fast_search_clients(min(provider_timeout_seconds, max(remaining, 3)))
+        payload, symbol_warning = _run_with_timeout(
+            f"symbol_news_{symbol}",
+            max(min(remaining, provider_timeout_seconds + 3), 1),
+            lambda symbol=symbol, company_name=company_name, serp_client=serp_client, tavily_client=tavily_client: search_symbol_news_payload(
+                symbol,
+                company_name=company_name,
+                max_results=max(min(safe_limit, 6), 3),
+                serp_client=serp_client,
+                tavily_client=tavily_client,
+                llm_client=None,
+            ),
+            {"articles": pd.DataFrame(), "messages": [f"Symbol news search for {symbol} did not finish within budget."]},
+        )
+        if symbol_warning:
+            messages.append(symbol_warning)
+        if isinstance(payload, dict):
+            messages.extend([_clean(item) for item in list(payload.get("messages") or []) if _clean(item)])
         rows.extend(_news_rows_from_payload(payload, symbol=symbol, scope="symbol"))
 
     deduped: list[dict[str, Any]] = []
@@ -541,6 +725,8 @@ def live_event_evidence(
     ]
     if selected_symbols:
         llm_lines.append("Focused symbols: " + ", ".join(selected_symbols) + ".")
+    if messages:
+        llm_lines.append("Live evidence warnings: " + "; ".join(_dedupe_text_items(messages, limit=4)) + ".")
     for row in ordered[:6]:
         label = _clean(row.get("symbol")) or _clean(row.get("scope"))
         source = _clean(row.get("source"))
@@ -557,12 +743,13 @@ def live_event_evidence(
         llm_lines.append(line)
 
     return {
-        "query": _clean(query),
+        "query": normalized_query,
         "theme": theme,
         "expected_direction": direction,
         "focus_symbols": selected_symbols,
         "summary": ordered,
         "llm_context_text": " ".join(item for item in llm_lines if item),
+        "messages": _dedupe_text_items(messages, limit=8),
     }
 
 

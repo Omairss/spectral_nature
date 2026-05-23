@@ -11,3 +11,5 @@ Boundary rule: Attention owns market activity detection, event grouping, signal 
 - `ATTENTION_RESEARCH_QUALITY_FIX_2026-04-14.md`: staged fix for generic hypotheses and weak event text
 - `ATTENTION_HOME_SUMMARY_SAA_WIRING_2026-04-15.md`: homepage summary evidence through SAA retrieval
 - `ATTENTION_HOME_UI_RUNTIME_FIX_2026-04-15.md`: homepage UI trace and runtime behavior fixes
+- `ATTENTION_FEED_GENERATION_TRACE_AND_OVERINDEXING_2026-05-19.md`: verified end-to-end trace of how each feed item is produced today, plus the root-cause diagnosis of solar/AEHR-style overindexing (selection + scoring artifact, not hardcoding)
+- `CLICKABLE_STOCK_SUMMARY_PLAN.md`: TODO — make stock summary sentences clickable for Zopedia deep-dive ("past context in light of new information")

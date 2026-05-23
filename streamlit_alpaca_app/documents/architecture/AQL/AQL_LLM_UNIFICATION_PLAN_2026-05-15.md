@@ -56,8 +56,8 @@ Use this split:
 | --- | --- | --- |
 | `services/aql/*` | AQL core. | Keep as owner. |
 | Homepage attention summary | Uses AQL summary path and critique in `attention_home_build.py`. | Extend evidence pack with Zopedia memory later. |
-| Page agentic summaries | Calls `run_omnibar_agent` first, then formats result. | Keep, but replace generic agent result JSON with formal AQL evidence pack. |
-| Trading Agent | Calls `run_omnibar_agent` first, then formats candidates. | Keep, but require formal AQL evidence pack and citations before formatting. |
+| Page agentic summaries | Calls `run_aql_zopedia_agent` first, then formats result. | Keep, but replace generic agent result JSON with formal AQL evidence pack. |
+| Trading Agent | Calls `run_aql_zopedia_agent` first, then formats candidates. | Keep, but require formal AQL evidence pack and citations before formatting. |
 | Zopedia / Omnibar agent | Tool loop, retained search, live search, hypothesis tool. | Keep as the interactive AQL runtime, not a separate research brain. |
 
 ### Direct LLM Calls That Can Stay Utility-Scoped
@@ -126,13 +126,13 @@ Status on 2026-05-15:
 ### Phase -1B: Formal Evidence Pack
 
 - Add AQL evidence-pack models and serializer.
-- Make `run_omnibar_agent` or a sibling service return the pack in addition to answer markdown.
+- Make `run_aql_zopedia_agent` or a sibling service return the pack in addition to answer markdown.
 - Include source IDs, citations, tool trace, and data gaps.
 
 Status on 2026-05-15:
 
 - Added `services/aql/evidence_pack.py`.
-- `run_omnibar_agent` now returns:
+- `run_aql_zopedia_agent` now returns:
   - `aql_evidence_pack_id`
   - `aql_evidence_pack`
 - Tool summaries now preserve `evidence_refs` when tool payloads expose stable IDs.

@@ -155,6 +155,60 @@ add_table("renamed_prices", prices)
     assert result["status"] == "succeeded"
     assert "rows=2 last=11" in result["stdout"]
     assert "Stdout:" in result["llm_context_text"]
+    assert "line(s)" in result["llm_context_text"]
+    assert "char(s)" in result["llm_context_text"]
+    assert "analysis.read_raw_output" in result["llm_context_text"]
+    assert "rows=2 last=11" not in result["llm_context_text"]
+
+
+def test_read_analysis_raw_output_returns_bounded_explicit_log_text():
+    class _Cursor:
+        def __init__(self, row):
+            self.row = row
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def execute(self, *_args, **_kwargs):
+            return None
+
+        def fetchone(self):
+            return self.row
+
+    class _Conn:
+        def __init__(self, row):
+            self.row = row
+
+        def cursor(self):
+            return _Cursor(self.row)
+
+    row = (
+        "zopedia_analysis::raw",
+        "succeeded",
+        "debug output",
+        "first line\nrows=2 last=11\nthird line",
+        "",
+        "",
+        "",
+        "2026-05-22T00:00:00+00:00",
+    )
+
+    result = zopedia_analysis.read_analysis_raw_output(
+        analysis_run_id="zopedia_analysis::raw",
+        stream="stdout",
+        max_chars=28,
+        conn=_Conn(row),
+    )
+
+    assert result["status"] == "ok"
+    assert result["stream"] == "stdout"
+    assert result["total_chars"] > result["returned_chars"]
+    assert result["truncated"] is True
+    assert "rows=2 last=11" in result["raw_text"]
+    assert "Raw excerpt:" in result["llm_context_text"]
     assert "rows=2 last=11" in result["llm_context_text"]
 
 

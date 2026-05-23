@@ -84,14 +84,16 @@ def _status_for_run(result: dict[str, Any], *, timeout: bool = False) -> str:
 
 
 def _single_question(index: int, *, max_tool_calls: int, env_file: Path) -> dict[str, Any]:
-    from services.omnibar_agent import run_omnibar_agent
+    from services.aql_zopedia_engine import run_aql_zopedia_agent
 
     _load_env_file(env_file)
     os.environ.setdefault("LLM_TIMEOUT_SECONDS", "90")
     item = QUESTIONS[index]
     started = time.monotonic()
-    result = run_omnibar_agent(
+    result = run_aql_zopedia_agent(
         query=item["question"],
+        task="question_probe",
+        surface="zopedia.question_probe",
         max_tool_calls=max_tool_calls,
         force_refresh=False,
         persist_findings=False,

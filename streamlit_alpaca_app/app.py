@@ -41,7 +41,7 @@ from services.attention_home_summary import (
 from services import attention_surface as attention_surface_module
 from services.company import build_attention_news_narrative, summarize_recent_news
 from services.config import AppConfig, alpaca_secret_name_settings, load_config
-from services.data_cache import cache_bundle_exists, cache_data_root, cache_policy_path, dataset_scope
+from services.data_cache import cache_data_root, cache_policy_path, dataset_scope
 from services.elevenlabs_tts import (
     ElevenLabsTTSAPIError,
     load_elevenlabs_tts_config,
@@ -136,6 +136,12 @@ from services.saa import (
     zopedia_sources_for_page,
 )
 from services.secrets import resolve_secret_value
+from services.zopedia_presentation import (
+    parse_markdown_table,
+    prepare_answer_markdown_blocks as prepare_zopedia_answer_markdown_blocks,
+    trace_step_body,
+    trace_step_title,
+)
 from services.fundamentals import plot_statement
 from services.market import (
     business_focus_description,
@@ -261,6 +267,8 @@ if "_llm_readiness_logged" not in st.session_state:
         st.session_state["_llm_readiness_logged"] = True
 
 HOME_EXP_SECTION = "Experiment"
+HOME_V2_SECTION = "Home v2"
+HOME_V3_SECTION = "Home v3"
 AGENTIC_OMNIBAR_SECTION = "Zopedia"
 STOCK_INVESTIGATOR_SECTION = "Stock Investigator"
 PORTFOLIO_SECTION = "Portfolio"
@@ -270,15 +278,18 @@ BROAD_ECONOMY_SECTION = "Broad Economy"
 TRADING_AGENT_SECTION = "Trading Agent"
 ADMIN_SECTION = "Admin"
 
+NAV_SEPARATOR = "---"
 BASE_SECTION_OPTIONS = [
     "Home",
     AGENTIC_OMNIBAR_SECTION,
+    BROAD_ECONOMY_SECTION,
+    MARKET_EXPLORER_SECTION,
+    NAV_SEPARATOR,
     PORTFOLIO_SECTION,
     PORTFOLIO_PERFORMANCE_SECTION,
-    MARKET_EXPLORER_SECTION,
+    NAV_SEPARATOR,
     STOCK_INVESTIGATOR_SECTION,
     "Option Strategizer",
-    BROAD_ECONOMY_SECTION,
 ]
 OMNIBAR_POLICY_VERSION = "streamlit-agentic-omnibar-v1"
 OMNIBAR_MACRO_RELEASES: tuple[dict[str, object], ...] = (
@@ -2336,10 +2347,6 @@ def _alpaca_cache_scope(cfg: AppConfig) -> str:
     return f"{trading_scope}__{data_scope}__{account_scope}"
 
 
-def _fred_cache_scope(api_key: str) -> str:
-    return dataset_scope("fred", api_key)
-
-
 def _render_connection_issue(summary: str, *, details: str | None = None, setup_code: str | None = None) -> None:
     st.error(summary)
     if details:
@@ -2613,16 +2620,22 @@ def _record_workspace_section_view(
 def _section_options() -> list[str]:
     options = list(BASE_SECTION_OPTIONS)
     if _current_user_is_admin():
-        options.insert(2, HOME_EXP_SECTION)
-        options.append(TRADING_AGENT_SECTION)
-        options.append(ADMIN_SECTION)
+        trading_idx = options.index(BROAD_ECONOMY_SECTION)
+        options.insert(trading_idx, TRADING_AGENT_SECTION)
+        options.extend([
+            NAV_SEPARATOR,
+            ADMIN_SECTION,
+            HOME_EXP_SECTION,
+            HOME_V2_SECTION,
+        ])
     return options
 
 
 def _normalize_workspace_section(section_name: object) -> str:
     normalized = str(section_name or "").strip()
     alias_map = {
-        "Homepage - v2": "Home",
+        "Homepage - v2": HOME_V2_SECTION,
+        "Home v3": "Home",
         "Homepage Exp": HOME_EXP_SECTION,
         "Home Experimental": HOME_EXP_SECTION,
         "Daily Market Overview": HOME_EXP_SECTION,
@@ -2751,12 +2764,10 @@ def _resolve_layout_mode() -> str:
     query_mode = _normalized_layout_mode(_query_param_value("layout"))
     if query_mode:
         st.session_state["_ui_layout_mode_override"] = query_mode
-
-    selected_mode = (
-        _normalized_layout_mode(st.session_state.get("_ui_layout_mode_override"))
-        or _normalized_layout_mode(os.getenv("STREAMLIT_LAYOUT_MODE_DEFAULT"))
-        or "desktop"
-    )
+        selected_mode = query_mode
+    else:
+        st.session_state.pop("_ui_layout_mode_override", None)
+        selected_mode = _normalized_layout_mode(os.getenv("STREAMLIT_LAYOUT_MODE_DEFAULT")) or "desktop"
     if selected_mode == "auto":
         resolved = "mobile" if _mobile_user_agent(_request_user_agent()) else "desktop"
     else:
@@ -2771,6 +2782,50 @@ def _current_layout_mode() -> str:
 
 def _mobile_layout_active() -> bool:
     return _current_layout_mode() == "mobile"
+
+
+def _ensure_client_layout_auto_redirect(layout_mode: str) -> None:
+    if not _mobile_ui_enabled():
+        return
+    if _normalized_layout_mode(os.getenv("STREAMLIT_LAYOUT_MODE_DEFAULT")) != "auto":
+        return
+    if _normalized_layout_mode(_query_param_value("layout")):
+        return
+    if _normalized_layout_mode(layout_mode) == "mobile":
+        return
+
+    components_html(
+        """
+        <script>
+        (function () {
+          try {
+            const parentWindow = window.parent || window.top || window;
+            const parentDocument = parentWindow.document || document;
+            const currentUrl = new URL(parentWindow.location.href);
+            if (currentUrl.searchParams.has("layout")) {
+              return;
+            }
+            const viewportWidth = Math.min(
+              parentWindow.innerWidth || Number.POSITIVE_INFINITY,
+              parentDocument.documentElement ? parentDocument.documentElement.clientWidth : Number.POSITIVE_INFINITY
+            );
+            const userAgent = String(parentWindow.navigator && parentWindow.navigator.userAgent || "");
+            const mobileUserAgent = /(iPhone|iPod|Windows Phone|Mobile|Android)/i.test(userAgent) && !/(iPad|Tablet)/i.test(userAgent);
+            const coarsePhone = parentWindow.matchMedia
+              ? parentWindow.matchMedia("(pointer: coarse) and (max-width: 900px)").matches
+              : false;
+            if (viewportWidth <= 760 || mobileUserAgent || coarsePhone) {
+              currentUrl.searchParams.set("layout", "mobile");
+              parentWindow.location.replace(currentUrl.toString());
+            }
+          } catch (error) {
+            // Keep server-side desktop fallback if the component cannot read the parent window.
+          }
+        }());
+        </script>
+        """,
+        height=0,
+    )
 
 
 def _responsive_columns(spec: int | Sequence[float], *, gap: str = "small") -> list[object]:
@@ -6112,7 +6167,7 @@ _METRIC_STOP_WORDS = frozenset({
     "THE", "AND", "FOR", "THIS", "BUT", "NOT", "WITH", "FROM", "ETF", "RSI",
     "USD", "EUR", "GDP", "CPI", "PCE", "NFP", "YOY", "QOQ", "MOM", "EPS",
     "IPO", "CEO", "CFO", "COO", "SEC", "FED", "OIL", "GAS", "ALL", "ANY",
-    "BPS", "RHS", "LHS", "AVG", "MAX", "MIN", "NET", "PRE", "YTD",
+    "BPS", "RHS", "LHS", "AVG", "MAX", "MIN", "NET", "PRE", "YTD", "UST",
 })
 
 
@@ -6193,7 +6248,7 @@ def _render_thinking_trace_content(
     agent_result: dict[str, object] | None = None,
     key_prefix: str = "trace",
 ) -> None:
-    """Render verbose thinking trace inside an expanded st.status widget."""
+    """Render the product-visible research trace as readable steps."""
 
     def _render_analysis_result(render_payload: dict[str, object], *, key: str) -> None:
         analysis = dict(render_payload.get("analysis") or {})
@@ -6243,12 +6298,23 @@ def _render_thinking_trace_content(
                 args_text = json.dumps(tc.get("arguments") or {}, sort_keys=True, default=str)
             except Exception:
                 args_text = str(tc.get("arguments") or {})
-            st.code(f"{tool_name}({args_text})", language="python")
+            human_tool = _humanize_agentic_omnibar_tool_name(tool_name)
+            st.markdown(
+                "<div class='sn-zopedia-trace-step'>"
+                f"<div class='sn-zopedia-trace-title'>{html.escape(str(tc_idx + 1))}. {html.escape(human_tool)}</div>"
+                f"<div class='sn-zopedia-trace-body'>{html.escape(tc_status.capitalize())}"
+                + (f"<br><span>{html.escape(args_text)}</span>" if args_text and args_text != "{}" else "")
+                + "</div></div>",
+                unsafe_allow_html=True,
+            )
             preview = str((tc.get("result_summary") or {}).get("preview_text") or "").strip()
             if preview:
-                st.caption(f"← [{tc_status}] {preview}")
-            else:
-                st.caption(f"← [{tc_status}]")
+                for preview_block in _prepare_answer_markdown_blocks(preview)[:3]:
+                    table = parse_markdown_table(preview_block)
+                    if table:
+                        st.dataframe(pd.DataFrame(table.rows, columns=table.columns), use_container_width=True, hide_index=True)
+                    else:
+                        st.markdown(preview_block)
             rp = (tc.get("result_summary") or {}).get("render_payload") if isinstance(tc.get("result_summary"), dict) else None
             if isinstance(rp, dict) and rp.get("kind") == "analysis_result":
                 _render_analysis_result(rp, key=f"{key_prefix}_tool_{tc_idx}")
@@ -6256,18 +6322,40 @@ def _render_thinking_trace_content(
 
     for step_idx, step in enumerate(trace):
         step_type = str(step.get("type") or "")
+        tool_label = _humanize_agentic_omnibar_tool_name(step.get("tool_name"))
+        title = trace_step_title(step, index=step_idx + 1, tool_label=tool_label)
+        body = trace_step_body(step)
+        if step_type in {"reasoning", "model_reasoning_trace", "tool_start", "tool_complete", "message"}:
+            body_html = ""
+            if body:
+                body_paragraphs = [
+                    html.escape(paragraph.strip())
+                    for paragraph in re.split(r"\n\s*\n|(?<=[.!?])\s+(?=[A-Z0-9])", body)
+                    if paragraph.strip()
+                ]
+                body_html = "".join(f"<p>{paragraph}</p>" for paragraph in body_paragraphs[:6])
+            st.markdown(
+                "<div class='sn-zopedia-trace-step'>"
+                f"<div class='sn-zopedia-trace-title'>{html.escape(title)}</div>"
+                f"<div class='sn-zopedia-trace-body'>{body_html}</div>"
+                "</div>",
+                unsafe_allow_html=True,
+            )
         if step_type == "reasoning":
-            st.markdown(f"*{step.get('text', '')}*")
+            continue
         elif step_type == "model_reasoning_trace":
-            trace_text = str(step.get("text") or "").strip()
-            if trace_text:
-                st.code(trace_text, language="text")
+            continue
         elif step_type == "tool_start":
-            st.code(f"{step.get('tool_name', '')}({step.get('args_text', '')})", language="python")
+            continue
         elif step_type == "tool_complete":
             preview = str(step.get("preview") or "")
             if preview:
-                st.caption(f"← {preview}")
+                for preview_block in _prepare_answer_markdown_blocks(preview)[:3]:
+                    table = parse_markdown_table(preview_block)
+                    if table:
+                        st.dataframe(pd.DataFrame(table.rows, columns=table.columns), use_container_width=True, hide_index=True)
+                    else:
+                        st.markdown(preview_block)
             rp = step.get("render_payload")
             if isinstance(rp, dict) and rp.get("kind") == "chart_model":
                 try:
@@ -6320,7 +6408,7 @@ def _render_thinking_trace_content(
                 if link_parts:
                     st.caption("Sources: " + " · ".join(link_parts))
         elif step_type == "message":
-            st.markdown(f"- {step.get('text', '')}")
+            continue
 
 
 def _thinking_trace_stable_id(panel_id: object) -> str:
@@ -6412,56 +6500,7 @@ def _split_long_answer_paragraph(paragraph: str, *, max_chars: int = 520) -> lis
 
 
 def _prepare_answer_markdown_blocks(answer: str) -> list[str]:
-    text = str(answer or "").strip()
-    if not text:
-        return []
-    text = re.sub(r"\s+(#{1,6}\s+)", r"\n\n\1", text)
-    text = re.sub(r"(?<!\n)\s+([-*]\s+(?:\*\*)?[A-Z0-9$])", r"\n\n\1", text)
-    raw_blocks = [block.strip() for block in re.split(r"\n\s*\n", text) if block.strip()]
-    blocks: list[str] = []
-    for block in raw_blocks:
-        if block.startswith("```"):
-            blocks.append(block)
-            continue
-        heading_match = re.match(r"^(#{1,6}\s+)(.+)$", block, flags=re.DOTALL)
-        if heading_match:
-            heading_prefix = heading_match.group(1)
-            heading_body = re.sub(r"\s+", " ", heading_match.group(2).strip())
-            if len(heading_body) <= 88:
-                blocks.append(f"{heading_prefix}{heading_body}")
-                continue
-            words = heading_body.split()
-            heading_words: list[str] = []
-            if words and words[0].strip(":").lower() in {"takeaway", "verdict", "conclusion"}:
-                heading_words = [words[0].strip(":")]
-            else:
-                for word_idx, word in enumerate(words):
-                    clean_word = re.sub(r"^[^A-Za-z0-9$]+|[^A-Za-z0-9$]+$", "", word)
-                    prev_word = re.sub(
-                        r"^[^A-Za-z0-9$]+|[^A-Za-z0-9$]+$",
-                        "",
-                        words[word_idx - 1],
-                    ) if word_idx > 0 else ""
-                    if word == "-" and len(heading_words) >= 2:
-                        break
-                    if (
-                        word_idx >= 3
-                        and clean_word[:1].isupper()
-                        and prev_word[:1].islower()
-                    ):
-                        break
-                    if word_idx >= 9:
-                        break
-                    heading_words.append(word)
-            if not heading_words:
-                heading_words = words[: min(len(words), 6)]
-            heading = " ".join(heading_words).strip()
-            rest = " ".join(words[len(heading_words) :]).strip()
-            blocks.append(f"{heading_prefix}{heading}")
-            blocks.extend(_split_long_answer_paragraph(rest))
-            continue
-        blocks.extend(_split_long_answer_paragraph(block))
-    return blocks
+    return prepare_zopedia_answer_markdown_blocks(answer)
 
 
 def _answer_block_label(block: str, *, idx: int) -> str:
@@ -6523,10 +6562,23 @@ def _render_interactive_answer_markdown(
         if not block:
             continue
         if re.match(r"^#{1,6}\s+", block):
-            st.markdown(block)
+            heading = re.sub(r"^#{1,6}\s+", "", block).strip()
+            st.markdown(
+                f"<div class='sn-zopedia-answer-heading'>{html.escape(heading)}</div>",
+                unsafe_allow_html=True,
+            )
             continue
         if block.startswith("```"):
             st.markdown(block)
+            continue
+        table = parse_markdown_table(block)
+        if table:
+            st.dataframe(
+                pd.DataFrame(table.rows, columns=table.columns),
+                use_container_width=True,
+                hide_index=True,
+                key=f"zopedia_answer_table_{stable_id}_{idx}",
+            )
             continue
         state_key = f"zopedia_answer_block_open_{stable_id}_{idx}"
         expand_key = f"zopedia_answer_block_expand_{stable_id}_{idx}"
@@ -7417,6 +7469,36 @@ def _ensure_zopedia_shell_styles() -> None:
         .sn-zopedia-main-spacer {
             height: 0.25rem;
         }
+        .sn-zopedia-answer-heading {
+            margin: 1.15rem 0 0.45rem 0;
+            color: var(--sn-ink);
+            font-size: 1.08rem;
+            font-weight: 760;
+            line-height: 1.25;
+            letter-spacing: 0;
+        }
+        .sn-zopedia-trace-step {
+            margin: 0.48rem 0 0.62rem 0;
+            padding: 0.76rem 0.88rem;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            border-radius: 0.45rem;
+            background: rgba(15, 23, 42, 0.18);
+        }
+        .sn-zopedia-trace-title {
+            color: var(--sn-ink);
+            font-size: 0.9rem;
+            font-weight: 760;
+            line-height: 1.25;
+            margin-bottom: 0.36rem;
+        }
+        .sn-zopedia-trace-body {
+            color: var(--sn-muted-strong);
+            font-size: 0.86rem;
+            line-height: 1.48;
+        }
+        .sn-zopedia-trace-body p {
+            margin: 0 0 0.42rem 0;
+        }
         [data-testid="stChatMessageAvatarUser"],
         [data-testid="stChatMessageAvatarAssistant"] {
             background: rgba(148, 163, 184, 0.14) !important;
@@ -7899,21 +7981,29 @@ def _render_agentic_omnibar_section(
 
     if active_query:
         thread_id = _ensure_zopedia_chat_thread(user_key=zopedia_user_key, title=display_query or active_query)
-        # Add user message to history
-        chat.append({"role": "user", "content": display_query or active_query})
-        if thread_id:
+        visible_user_text = display_query or active_query
+        last_turn = chat[-1] if chat else {}
+        already_pending_user = (
+            str(last_turn.get("role") or "").strip().lower() == "user"
+            and " ".join(str(last_turn.get("content") or "").split()) == " ".join(str(visible_user_text or "").split())
+        )
+        # Add user message to history unless this is a retry of an unanswered identical turn.
+        if not already_pending_user:
+            chat.append({"role": "user", "content": visible_user_text})
+        if thread_id and not already_pending_user:
             _persist_zopedia_chat_message(
                 thread_id=thread_id,
                 user_key=zopedia_user_key,
                 role="user",
-                content=display_query or active_query,
-                title=display_query or active_query,
+                content=visible_user_text,
+                title=visible_user_text,
             )
         with conversation_area:
-            with st.chat_message("user"):
-                st.markdown(display_query or active_query)
-                if stored_uploads:
-                    st.caption(f"Attached {len(stored_uploads)} source{'s' if len(stored_uploads) != 1 else ''}.")
+            if not already_pending_user:
+                with st.chat_message("user"):
+                    st.markdown(visible_user_text)
+                    if stored_uploads:
+                        st.caption(f"Attached {len(stored_uploads)} source{'s' if len(stored_uploads) != 1 else ''}.")
 
         # Run agent with live progress and render structured response
         # Pass prior turns (everything before the just-appended user message)
@@ -8027,13 +8117,17 @@ def _run_and_render_agent_live(
             _update_live_status(f"{human_tool} timed out; continuing...")
         elif stage == "tool_complete":
             preview = str(event.get("result_preview") or "").strip()
-            trace_entry: dict[str, object] = {"type": "tool_complete", "preview": preview}
+            trace_entry: dict[str, object] = {
+                "type": "tool_complete",
+                "preview": preview,
+                "tool_name": str(event.get("tool_name") or ""),
+            }
             links = event.get("source_links")
             if isinstance(links, list) and links:
                 source_links_all.extend(links)
                 trace_entry["source_links"] = links
             render_payload = event.get("render_payload")
-            if isinstance(render_payload, dict) and render_payload.get("kind") == "chart_model":
+            if isinstance(render_payload, dict) and render_payload.get("kind") in {"chart_model", "analysis_result"}:
                 trace_entry["render_payload"] = render_payload
             if preview or render_payload or links:
                 thinking_trace.append(trace_entry)
@@ -8629,6 +8723,7 @@ def _render_attention_research_bundle_panel(
     *,
     ticker_click_target: str = "",
     ticker_table_key_prefix: str = "",
+    suppress_ticker_tables: bool = False,
 ) -> None:
     bundle_type = str(bundle.get("bundle_type") or "").strip()
     if bundle_type == "event":
@@ -8671,6 +8766,7 @@ def _render_attention_research_bundle_panel(
     if quality_parts:
         st.caption(" | ".join(quality_parts))
 
+    key_pfx = ticker_table_key_prefix or "attention_bundle"
     evidence = bundle.get("evidence") or []
     if isinstance(evidence, list) and evidence:
         st.markdown("**Evidence**")
@@ -8686,7 +8782,7 @@ def _render_attention_research_bundle_panel(
                 _render_tracked_activity_link(
                     headline,
                     url,
-                    key=_activity_link_key(f"attention_bundle_evidence_{index}", label=headline, url=url),
+                    key=_activity_link_key(f"{key_pfx}_evidence_{index}", label=headline, url=url),
                     surface="attention_bundle_evidence",
                     target_type="evidence_link",
                     source=source,
@@ -8713,7 +8809,7 @@ def _render_attention_research_bundle_panel(
                 _render_tracked_activity_link(
                     headline,
                     url,
-                    key=_activity_link_key(f"attention_bundle_background_{index}", label=headline, url=url),
+                    key=_activity_link_key(f"{key_pfx}_background_{index}", label=headline, url=url),
                     surface="attention_bundle_background_context",
                     target_type="background_link",
                     source=source,
@@ -8725,66 +8821,67 @@ def _render_attention_research_bundle_panel(
     elif str(bundle.get("background_context_text") or "").strip():
         st.markdown(f"**Background Context**  \n{str(bundle.get('background_context_text') or '').strip()}")
 
-    peer_moves = bundle.get("peer_moves") or []
-    if isinstance(peer_moves, list) and peer_moves:
-        st.markdown("**Peer Moves**")
-        try:
-            snapshot_cfg = load_config()
-        except Exception:
-            snapshot_cfg = None
-        peer_rows: list[dict[str, object]] = []
-        for item in peer_moves[:6]:
-            symbol = str((item or {}).get("symbol") or "").strip()
-            change_pct = pd.to_numeric((item or {}).get("change_pct"), errors="coerce")
-            relationship = str((item or {}).get("relationship") or "").strip()
-            headline = str((item or {}).get("headline") or "").strip()
-            note_parts = []
-            if pd.notna(change_pct):
-                note_parts.append(f"{float(change_pct):+.1f}%")
-            if relationship:
-                note_parts.append(relationship)
-            peer_rows.append(
-                {
-                    "symbol": symbol,
-                    "note": " | ".join(note_parts),
-                    "note_secondary": headline,
-                }
+    if not suppress_ticker_tables:
+        peer_moves = bundle.get("peer_moves") or []
+        if isinstance(peer_moves, list) and peer_moves:
+            st.markdown("**Peer Moves**")
+            try:
+                snapshot_cfg = load_config()
+            except Exception:
+                snapshot_cfg = None
+            peer_rows: list[dict[str, object]] = []
+            for item in peer_moves[:6]:
+                symbol = str((item or {}).get("symbol") or "").strip()
+                change_pct = pd.to_numeric((item or {}).get("change_pct"), errors="coerce")
+                relationship = str((item or {}).get("relationship") or "").strip()
+                headline = str((item or {}).get("headline") or "").strip()
+                note_parts = []
+                if pd.notna(change_pct):
+                    note_parts.append(f"{float(change_pct):+.1f}%")
+                if relationship:
+                    note_parts.append(relationship)
+                peer_rows.append(
+                    {
+                        "symbol": symbol,
+                        "note": " | ".join(note_parts),
+                        "note_secondary": headline,
+                    }
+                )
+            _render_ticker_snapshot_table(
+                snapshot_cfg,
+                peer_rows,
+                show_header=True,
+                click_target=ticker_click_target,
+                key_prefix=f"{ticker_table_key_prefix or 'attention_bundle'}_peer_moves",
             )
-        _render_ticker_snapshot_table(
-            snapshot_cfg,
-            peer_rows,
-            show_header=True,
-            click_target=ticker_click_target,
-            key_prefix=f"{ticker_table_key_prefix or 'attention_bundle'}_peer_moves",
-        )
 
-    related_symbols = bundle.get("related_symbols") or []
-    if isinstance(related_symbols, list) and related_symbols:
-        st.markdown("**Related Symbols**")
-        try:
-            snapshot_cfg = load_config()
-        except Exception:
-            snapshot_cfg = None
-        related_rows: list[dict[str, object]] = []
-        for item in related_symbols[:8]:
-            symbol = str((item or {}).get("symbol") or "").strip()
-            headline = str((item or {}).get("headline") or "").strip()
-            change_pct = pd.to_numeric((item or {}).get("change_pct"), errors="coerce")
-            note = f"{float(change_pct):+.1f}%" if pd.notna(change_pct) else ""
-            related_rows.append(
-                {
-                    "symbol": symbol,
-                    "note": note,
-                    "note_secondary": headline or "Linked move",
-                }
+        related_symbols = bundle.get("related_symbols") or []
+        if isinstance(related_symbols, list) and related_symbols:
+            st.markdown("**Related Symbols**")
+            try:
+                snapshot_cfg = load_config()
+            except Exception:
+                snapshot_cfg = None
+            related_rows: list[dict[str, object]] = []
+            for item in related_symbols[:8]:
+                symbol = str((item or {}).get("symbol") or "").strip()
+                headline = str((item or {}).get("headline") or "").strip()
+                change_pct = pd.to_numeric((item or {}).get("change_pct"), errors="coerce")
+                note = f"{float(change_pct):+.1f}%" if pd.notna(change_pct) else ""
+                related_rows.append(
+                    {
+                        "symbol": symbol,
+                        "note": note,
+                        "note_secondary": headline or "Linked move",
+                    }
+                )
+            _render_ticker_snapshot_table(
+                snapshot_cfg,
+                related_rows,
+                show_header=True,
+                click_target=ticker_click_target,
+                key_prefix=f"{ticker_table_key_prefix or 'attention_bundle'}_related_symbols",
             )
-        _render_ticker_snapshot_table(
-            snapshot_cfg,
-            related_rows,
-            show_header=True,
-            click_target=ticker_click_target,
-            key_prefix=f"{ticker_table_key_prefix or 'attention_bundle'}_related_symbols",
-        )
 
 
 def _render_attention_home_event_card(
@@ -10554,6 +10651,325 @@ def _render_homepage_exp(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_re
     )
 
 
+# ---------------------------------------------------------------------------
+# Homepage — narrative beats with nested stock summaries and fundamentals
+# ---------------------------------------------------------------------------
+
+def _load_zopedia_enrichments_lookup() -> dict[str, dict[str, object]]:
+    def _cell_text(row: pd.Series, key: str) -> str:
+        value = row.get(key)
+        if value is None:
+            return ""
+        try:
+            if pd.isna(value):
+                return ""
+        except Exception:
+            pass
+        return str(value or "").strip()
+
+    def _json_cell(row: pd.Series, key: str, default: object) -> object:
+        raw = _cell_text(row, key)
+        if not raw:
+            return default
+        import json as _json
+        try:
+            return _json.loads(raw)
+        except Exception:
+            return default
+
+    cache_key = "_homev3_zopedia_enrichments_lookup"
+    cached = st.session_state.get(cache_key)
+    if isinstance(cached, dict):
+        return cached
+    try:
+        from services.pipeline_store import load_latest_dataset_frame
+        frame, _ = load_latest_dataset_frame("attention_ticker_zopedia_enrichments")
+    except Exception:
+        frame = pd.DataFrame()
+    lookup: dict[str, dict[str, object]] = {}
+    if isinstance(frame, pd.DataFrame) and not frame.empty and "symbol" in frame.columns:
+        for _, row in frame.iterrows():
+            symbol = _cell_text(row, "symbol").upper()
+            if not symbol:
+                continue
+            lookup[symbol] = {
+                "status": _cell_text(row, "status"),
+                "answer_markdown": _cell_text(row, "answer_markdown"),
+                "confidence": _cell_text(row, "confidence"),
+                "limitations": _json_cell(row, "limitations_json", []),
+                "tool_calls": _json_cell(row, "tool_calls_json", []),
+                "quality_review": _json_cell(row, "quality_review_json", {}),
+                "audio_text": _cell_text(row, "audio_text"),
+                "audio_base64": _cell_text(row, "audio_base64"),
+                "audio_text_hash": _cell_text(row, "audio_text_hash"),
+                "audio_mime_type": _cell_text(row, "audio_mime_type"),
+                "audio_file_extension": _cell_text(row, "audio_file_extension"),
+                "voice_id": _cell_text(row, "voice_id"),
+                "model_id": _cell_text(row, "model_id"),
+                "output_format": _cell_text(row, "output_format"),
+            }
+    st.session_state[cache_key] = lookup
+    return lookup
+
+
+def _zopedia_audio_text(result: dict[str, object]) -> str:
+    audio_text = str(result.get("audio_text") or "").strip()
+    if audio_text:
+        return audio_text
+    answer = str(result.get("answer_markdown") or "").strip()
+    if not answer:
+        return ""
+    normalized = re.sub(r"```.*?```", " ", answer, flags=re.DOTALL)
+    normalized = re.sub(r"`([^`]*)`", r"\1", normalized)
+    normalized = re.sub(r"!\[[^\]]*\]\([^)]+\)", " ", normalized)
+    normalized = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", normalized)
+    normalized = re.sub(r"^#{1,6}\s*", "", normalized, flags=re.MULTILINE)
+    normalized = re.sub(r"^\s*[-*+]\s+", "", normalized, flags=re.MULTILINE)
+    normalized = re.sub(r"[*_~>|]+", " ", normalized)
+    normalized = re.sub(r"\s+", " ", normalized)
+    return normalized.strip()[:4000]
+
+
+def _render_zopedia_summary_audio(result: dict[str, object]) -> None:
+    audio_text = _zopedia_audio_text(result)
+    if not audio_text:
+        return
+    preloaded_audio_bytes = _try_decode_attention_summary_audio(result, audio_text=audio_text)
+    if preloaded_audio_bytes:
+        _render_attention_summary_audio_player(
+            audio_bytes=preloaded_audio_bytes,
+            mime_type=str(result.get("audio_mime_type") or "audio/mpeg"),
+        )
+        return
+    elevenlabs_cfg = load_elevenlabs_tts_config()
+    if not elevenlabs_cfg:
+        return
+    async_task_key = _attention_summary_audio_task_key(
+        audio_text=audio_text,
+        voice_id=str(getattr(elevenlabs_cfg, "voice_id", "") or ""),
+        model_id=str(getattr(elevenlabs_cfg, "model_id", "") or ""),
+        output_format=str(getattr(elevenlabs_cfg, "output_format", "") or ""),
+        base_url=str(getattr(elevenlabs_cfg, "base_url", "") or ""),
+    )
+    async_audio_encoded = str(st.session_state.get(_attention_summary_audio_session_key(async_task_key)) or "").strip()
+    if async_audio_encoded:
+        try:
+            async_audio_bytes = base64.b64decode(async_audio_encoded.encode("ascii"), validate=True)
+        except Exception:
+            async_audio_bytes = b""
+        if async_audio_bytes:
+            from services.elevenlabs_tts import audio_mime_type as elevenlabs_audio_mime_type
+
+            _render_attention_summary_audio_player(
+                audio_bytes=async_audio_bytes,
+                mime_type=elevenlabs_audio_mime_type(str(getattr(elevenlabs_cfg, "output_format", "") or "")),
+            )
+            return
+    if str(st.session_state.get(_attention_summary_audio_error_session_key(async_task_key)) or "").strip():
+        return
+    _render_attention_summary_async_audio_fallback(
+        task_key=async_task_key,
+        audio_text=audio_text,
+        elevenlabs_cfg=elevenlabs_cfg,
+    )
+
+
+def _render_zopedia_ticker_result(result: dict[str, object], *, debug: bool = False) -> None:
+    import re as _re
+
+    answer = str(result.get("answer_markdown") or "").strip()
+    confidence = str(result.get("confidence") or "").strip().lower()
+    limitations = [str(l).strip() for l in list(result.get("limitations") or []) if str(l).strip()]
+    tool_calls = list(result.get("tool_calls") or [])
+    quality_review = dict(result.get("quality_review") or {})
+
+    if not answer:
+        error = str(result.get("error") or "Analysis unavailable").strip()
+        st.warning(error)
+        return
+
+    answer = _re.sub(r"\(see Zopedia:[^)]*\)", "", answer).strip()
+
+    sections = _split_zopedia_answer_sections(answer)
+    for idx, (heading, body) in enumerate(sections):
+        if heading:
+            if idx > 0:
+                st.markdown("---")
+            st.markdown(f"###### {heading}")
+        st.markdown(body)
+
+    if confidence and confidence not in ("", "low", "medium"):
+        st.caption(f"Confidence: {confidence.title()}")
+
+    if debug:
+        meta_parts: list[str] = []
+        if confidence:
+            meta_parts.append(f"Confidence: {confidence.title()}")
+        critique = str(quality_review.get("critique_summary") or "").strip()
+        if critique:
+            meta_parts.append(critique)
+        sources_used = list(dict.fromkeys(
+            str(tc.get("tool_name") or "").replace("_", " ").title()
+            for tc in tool_calls
+            if str(tc.get("tool_name") or "").strip()
+        ))
+        if sources_used:
+            meta_parts.append(f"Sources: {', '.join(sources_used)}")
+        if meta_parts:
+            st.caption(" · ".join(meta_parts))
+        if limitations:
+            with st.expander("Limitations", expanded=False):
+                for lim in limitations:
+                    st.markdown(f"- {lim}")
+
+
+def _split_zopedia_answer_sections(markdown: str) -> list[tuple[str, str]]:
+    """Split markdown answer into (heading, body) pairs for structured rendering."""
+    import re
+    normalized = re.sub(r"(?<!\n)(#{1,4}\s+)", r"\n\1", markdown)
+    parts: list[tuple[str, str]] = []
+    current_heading = ""
+    current_lines: list[str] = []
+    for line in normalized.split("\n"):
+        match = re.match(r"^#{1,4}\s+(.+)$", line.strip())
+        if match:
+            if current_lines:
+                parts.append((current_heading, "\n".join(current_lines).strip()))
+            current_heading = match.group(1).strip()
+            current_lines = []
+        else:
+            current_lines.append(line)
+    if current_lines:
+        parts.append((current_heading, "\n".join(current_lines).strip()))
+    return [(h, b) for h, b in parts if b]
+
+
+@st.fragment
+def _render_homepage_v3_story_fragment(
+    cfg: AppConfig,
+    beats: list[dict[str, object]],
+    *,
+    run_token: str,
+    force_data_refresh: bool,
+    zopedia_lookup: dict[str, dict[str, object]],
+) -> None:
+    active_run_token = str(run_token or "").strip()
+    bundle_symbol_lookup = homepage_v2_bundle_symbol_lookup(beats)
+
+    for index, beat in enumerate(beats):
+        beat_sentence = str(beat.get("sentence") or "").strip()
+        bundle_id = str(beat.get("bundle_id") or "").strip()
+        if not beat_sentence:
+            continue
+        beat_summary = str(beat.get("summary") or "").strip()
+        beat_kind = str(beat.get("kind") or "").replace("_", " ").title().strip()
+        beat_symbols = bundle_symbol_lookup.get(bundle_id) or [
+            str(symbol).upper().strip()
+            for symbol in list(beat.get("symbols") or [])
+            if str(symbol).strip()
+        ]
+
+        with st.container(border=True):
+            st.markdown(f"**{index + 1}. {beat_sentence}**")
+            meta = [item for item in [beat_kind, f"{len(beat_symbols)} symbols" if beat_symbols else ""] if item]
+            if meta:
+                st.caption(" · ".join(meta))
+            if beat_summary:
+                st.write(beat_summary)
+
+            if bundle_id:
+                with st.expander("Research", expanded=False, icon=":material/search:"):
+                    if _has_cached_attention_bundle(bundle_id, run_token=active_run_token) and not force_data_refresh:
+                        bundle = _load_attention_research_bundle_session_cached(
+                            cfg, bundle_id, run_token=active_run_token, force_refresh=False,
+                        )
+                    else:
+                        with st.spinner("Loading retained research..."):
+                            bundle = _load_attention_research_bundle_session_cached(
+                                cfg, bundle_id, run_token=active_run_token, force_refresh=force_data_refresh,
+                            )
+                    _render_attention_research_bundle_panel(
+                        bundle,
+                        ticker_table_key_prefix=f"homev3_bundle_{bundle_id}",
+                        suppress_ticker_tables=True,
+                    )
+
+                    if beat_symbols:
+                        st.markdown("---")
+                        for symbol in beat_symbols[:6]:
+                            enrichment = zopedia_lookup.get(symbol.upper())
+                            has_enrichment = bool(enrichment and str(enrichment.get("answer_markdown") or "").strip())
+                            with st.expander(symbol, expanded=False, icon=":material/query_stats:"):
+                                if has_enrichment:
+                                    _render_zopedia_ticker_result(enrichment, debug=_homev3_debug_mode())
+                                else:
+                                    st.caption("Attention stock summary not yet available.")
+                                _render_overview_fundamentals(
+                                    cfg,
+                                    symbol,
+                                    force_data_refresh=force_data_refresh,
+                                )
+
+
+def _homev3_debug_mode() -> bool:
+    return bool(_current_user_is_admin() and st.session_state.get("_homev3_debug_mode"))
+
+
+def _render_homepage_v3(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_refresh: bool) -> None:
+    _top_cols = _responsive_columns([5, 1.4])
+    with _top_cols[0]:
+        if _current_user_is_admin():
+            st.toggle("Debug", key="_homev3_debug_mode", help="Show internal quality signals")
+    with _top_cols[1]:
+        _render_section_back_button("homepage_v3_back")
+
+    replay_date = st.session_state.get("_homepage_replay_date")
+    if replay_date is not None:
+        home_payload = _load_homepage_replay_payload(replay_date)
+    else:
+        home_payload = _load_homepage_narrative_payload(
+            cfg,
+            force_data_refresh=force_data_refresh,
+        )
+    if not isinstance(home_payload, dict):
+        return
+
+    beats = _build_homepage_narrative_beats(home_payload)
+    if not beats:
+        st.info("No daily narrative beats were produced from the latest market tape.")
+        return
+
+    generated_at = pd.to_datetime(home_payload.get("generated_at_utc"), utc=True, errors="coerce")
+    snapshot_label = generated_at.strftime("%Y-%m-%d %H:%M UTC") if pd.notna(generated_at) else "just now"
+
+    _render_homepage_v2_graph_banner(home_payload)
+
+    zopedia_lookup = _load_zopedia_enrichments_lookup()
+    market_summary = zopedia_lookup.get("__MARKET_SUMMARY__")
+    if market_summary and str(market_summary.get("answer_markdown") or "").strip():
+        with st.container(border=True):
+            _render_zopedia_ticker_result(market_summary, debug=_homev3_debug_mode())
+            _render_zopedia_summary_audio(market_summary)
+    else:
+        _render_attention_home_summary_card(
+            home_payload,
+            snapshot_label=snapshot_label,
+            title="Market Summary",
+        )
+
+    st.markdown("---")
+    st.subheader("Market Narrative")
+    st.caption("Each beat is a distinct market signal. Expand to see retained research or a Zopedia deep dive on any ticker.")
+
+    _render_homepage_v3_story_fragment(
+        cfg,
+        beats,
+        run_token=str(home_payload.get("run_id") or home_payload.get("generated_at_utc") or "").strip(),
+        zopedia_lookup=zopedia_lookup,
+        force_data_refresh=force_data_refresh,
+    )
+
+
 def _prepare_scatter_size(df: pd.DataFrame, column: str) -> tuple[pd.DataFrame, str | None]:
     if df.empty or column not in df.columns:
         return df, None
@@ -10616,35 +11032,6 @@ def _render_help_popover(title: str, body: str, label: str = "How to read") -> N
         st.markdown(body)
 
 
-def _compact_zopedia_context(value: object, *, limit: int = 12000) -> str:
-    try:
-        text = json.dumps(_json_ready(value), ensure_ascii=True, sort_keys=True, default=str)
-    except Exception:
-        text = str(value)
-    if len(text) <= limit:
-        return text
-    return text[: limit - 3].rstrip() + "..."
-
-
-def _zopedia_page_analysis_payload(surface: str, context: dict[str, object]) -> dict[str, str]:
-    clean_surface = str(surface or "").strip() or "Current page"
-    safe_context = _json_ready(context if isinstance(context, dict) else {})
-    ticker = str(safe_context.get("ticker") or "").upper().strip()
-    if ticker and clean_surface == STOCK_INVESTIGATOR_SECTION:
-        display_query = f"Analyze {ticker} from the current Stock Investigator context"
-    else:
-        display_query = f"Analyze the current {clean_surface} view"
-    agent_query = (
-        f"Use Zopedia and AQL evidence to analyze the current {clean_surface} view. "
-        "Start from the supplied page context, then use retained evidence, live evidence, and relevant tools where needed. "
-        "Keep the answer in product language. Return a concise research read with what changed, what matters, "
-        "what to investigate next, and any data gaps.\n\n"
-        "Current page context JSON:\n"
-        f"{_compact_zopedia_context(safe_context)}"
-    )
-    return {"display_query": display_query, "agent_query": agent_query}
-
-
 def _render_page_agentic_summary_panel(
     surface: str,
     context: dict[str, object],
@@ -10687,10 +11074,7 @@ def _render_page_agentic_summary_panel(
             if confidence:
                 st.caption(f"Confidence: {confidence}")
         else:
-            st.info("Zopedia can analyze this view with the current page context.")
-            if st.button("Analyze in Zopedia", key=f"{key_prefix}_analyze_in_zopedia", use_container_width=True):
-                st.session_state["_omnibar_pending_query"] = _zopedia_page_analysis_payload(surface, safe_context)
-                _open_workspace_section(AGENTIC_OMNIBAR_SECTION)
+            st.info("Zopedia Summary is refreshing from the latest data.")
     return summary
 
 
@@ -13203,6 +13587,7 @@ def _render_trading_agent_section(
 
 _layout_mode = _resolve_layout_mode()
 _ensure_app_shell_styles()
+_ensure_client_layout_auto_redirect(_layout_mode)
 if _layout_mode == "mobile":
     _ensure_mobile_layout_styles()
 
@@ -13343,7 +13728,7 @@ current_user = _current_user_context()
 _nav_current = _normalize_workspace_section(st.session_state.get("workspace_section", section_options[0]))
 if _layout_mode == "mobile":
     section, sidebar_connection, sidebar_status, sidebar_buying_power = _render_mobile_workspace_shell(
-        section_options=section_options,
+        section_options=[s for s in section_options if s != NAV_SEPARATOR],
         current_section=_nav_current,
         cache_disabled=cache_disabled,
         force_refresh_default=force_refresh_default,
@@ -13366,6 +13751,12 @@ else:
         _apply_homepage_replay_date(_replay_selected, _replay_today)
         st.markdown('<p class="sn-nav-label">Navigate</p>', unsafe_allow_html=True)
         for _nav_opt in section_options:
+            if _nav_opt == NAV_SEPARATOR:
+                st.markdown(
+                    '<hr style="margin:4px 0;border:none;border-top:1px solid rgba(255,255,255,0.08);">',
+                    unsafe_allow_html=True,
+                )
+                continue
             _nav_slug = _nav_opt.lower().replace(" ", "_").replace("-", "_")
             _nav_key = f"sn_nav_active_{_nav_slug}" if _nav_opt == _nav_current else f"sn_nav_{_nav_slug}"
             if st.button(_nav_opt, key=_nav_key, use_container_width=True):
@@ -13451,7 +13842,7 @@ if startup_error_summary:
 force_data_refresh = force_refresh_default
 
 if section == "Home":
-    _render_homepage_v2(
+    _render_homepage_v3(
         cfg,
         api,
         force_data_refresh=force_data_refresh,
@@ -13459,6 +13850,13 @@ if section == "Home":
 
 elif section == HOME_EXP_SECTION:
     _render_homepage_exp(
+        cfg,
+        api,
+        force_data_refresh=force_data_refresh,
+    )
+
+elif section == HOME_V2_SECTION:
+    _render_homepage_v2(
         cfg,
         api,
         force_data_refresh=force_data_refresh,
@@ -13680,31 +14078,13 @@ elif section == BROAD_ECONOMY_SECTION:
     else:
         lookback_years = st.slider("Lookback (years)", 3, 20, 10, step=1)
         show_stationary_overlay = True
-        fred_cache_key = f"{_fred_cache_scope(fred_api_key)}__{lookback_years}y"
-        fred_cache_ready = cache_bundle_exists(
-            "fred_dashboard",
-            fred_cache_key,
-            required_files=["summary.csv", "observations.csv"],
-        )
-        load_fred_now = st.button(
-            "Load FRED Data",
-            type="primary" if not fred_cache_ready else "secondary",
-            help="Cold FRED loads can take a while on remote sessions. Cached data loads immediately.",
-        )
-        allow_fred_defer = (not pipeline_store_configured()) and (not cache_disabled)
-        if allow_fred_defer and not fred_cache_ready and not load_fred_now and not force_data_refresh:
-            st.info(
-                "FRED downloads are deferred until requested. This prevents the app from appearing to hang on "
-                "a cold remote load. Click `Load FRED Data` once, or use cached data on the next visit."
-            )
-            st.stop()
         try:
             with st.spinner("Loading FRED macro dashboard..."):
                 with _timed("load_fred_dashboard", years=lookback_years):
                     dashboard = _load_fred_dashboard_cached(
                         fred_api_key,
                         lookback_years,
-                        force_refresh=(force_data_refresh or load_fred_now),
+                        force_refresh=force_data_refresh,
                     )
         except FredAPIError as exc:
             _log_event("load_fred_dashboard_failed", error=str(exc)[:200], years=lookback_years)

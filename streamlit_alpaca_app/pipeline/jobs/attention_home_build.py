@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import queue
+import re
 import threading
 from typing import Any, Callable
 
@@ -10,10 +11,12 @@ import pandas as pd
 
 from services.attention_agentic import build_bottom_up_attention_artifacts, search_symbol_news_payload
 from services.attention_home_summary import build_attention_home_summary_payload
+from services.aql.summarizer import build_attention_home_narrative_beats
 from services.aql_zopedia_engine import (
     attach_aql_zopedia_summary_audio as attach_attention_home_summary_audio,
     build_aql_zopedia_attention_home_summary_with_trace as build_attention_agentic_summary_with_trace,
     load_aql_zopedia_llm_client,
+    run_aql_zopedia_agent,
 )
 from services.attention_home_1d import build_attention_entity_master, resolve_macro_anchor_symbols, shortlist_attention_symbols_1d
 from services.attention_materialized import bars_by_symbol_from_price_history, serialize_attention_home_payload, serialize_attention_research_bundles
@@ -24,14 +27,12 @@ from services.attention_ticker_snapshots import (
     deserialize_attention_ticker_background_frame,
 )
 from services.elevenlabs_tts import ElevenLabsTTSAPIError
-from services.fred import format_fred_delta, format_fred_value
 from services.knowledge_graph_proposals import build_attention_knowledge_graph_proposals
 from services.json_utils import to_list
 from services.llm import LLMAPIError, load_embedding_client
 from services.market import business_focus_options, business_focus_universe
 from services.market_opportunity import build_market_opportunity_feed, build_materialized_market_opportunity_feeds
 from services.page_agentic_summary import (
-    broad_economy_summary_context,
     build_materialized_page_agentic_summary_row,
     build_page_agentic_summary,
     build_unavailable_page_agentic_summary,
@@ -246,14 +247,6 @@ def _page_agentic_stock_summary_limit() -> int:
         return 4
 
 
-def _fred_page_summary_lookback_years() -> int:
-    raw = (os.getenv("FRED_LOOKBACK_YEARS") or "10").strip()
-    try:
-        return max(int(raw), 1)
-    except Exception:
-        return 10
-
-
 def _market_opportunity_focus_symbol_map() -> dict[str, list[str]]:
     focus_map: dict[str, list[str]] = {}
     for focus in business_focus_options():
@@ -270,30 +263,6 @@ def _market_opportunity_focus_symbol_map() -> dict[str, list[str]]:
             focus_map[focus_label] = []
     focus_map.setdefault("All Market", [])
     return focus_map
-
-
-def _fred_overview_for_page_summary(fred_summary_frame: pd.DataFrame) -> pd.DataFrame:
-    if not isinstance(fred_summary_frame, pd.DataFrame) or fred_summary_frame.empty:
-        return pd.DataFrame()
-    overview = fred_summary_frame.copy()
-    if "latest" not in overview.columns and {"latest_value", "units_short"}.issubset(overview.columns):
-        overview["latest"] = [
-            format_fred_value(value, units)
-            for value, units in zip(overview["latest_value"], overview["units_short"])
-        ]
-    if "prev" not in overview.columns and {"prev_delta", "units_short"}.issubset(overview.columns):
-        overview["prev"] = [
-            format_fred_delta(value, units)
-            for value, units in zip(overview["prev_delta"], overview["units_short"])
-        ]
-    if "yoy" not in overview.columns and {"yoy_delta", "units_short"}.issubset(overview.columns):
-        overview["yoy"] = [
-            format_fred_delta(value, units)
-            for value, units in zip(overview["yoy_delta"], overview["units_short"])
-        ]
-    if "latest_date" in overview.columns:
-        overview["latest_date"] = pd.to_datetime(overview["latest_date"], errors="coerce").dt.strftime("%Y-%m-%d")
-    return overview
 
 
 def _technical_signal_payload(frame: pd.DataFrame, symbol: str) -> dict[str, Any]:
@@ -363,8 +332,6 @@ def _build_page_agentic_summary_frame(
     llm_client: Any | None,
     daily_movers: pd.DataFrame,
     momentum_profiles: pd.DataFrame,
-    fred_summary_frame: pd.DataFrame,
-    fred_release_index_frame: pd.DataFrame,
     ticker_background_frame: pd.DataFrame,
     technical_signals_latest_frame: pd.DataFrame,
     universe_snapshot_frame: pd.DataFrame,
@@ -395,24 +362,6 @@ def _build_page_agentic_summary_frame(
                 generated_at_utc=ctx.asof,
                 run_id=ctx.run_id,
                 context_label="All Market / 1 Month",
-            )
-        )
-
-    fred_overview = _fred_overview_for_page_summary(fred_summary_frame)
-    if not fred_overview.empty:
-        broad_context = broad_economy_summary_context(
-            overview=fred_overview,
-            release_index=fred_release_index_frame,
-            lookback_years=_fred_page_summary_lookback_years(),
-        )
-        rows.append(
-            _materialized_page_summary_row(
-                surface="Broad Economy",
-                context=broad_context,
-                llm_client=llm_client,
-                generated_at_utc=ctx.asof,
-                run_id=ctx.run_id,
-                context_label="Latest FRED snapshot",
             )
         )
 
@@ -502,6 +451,265 @@ def _merge_summary_trace_frames(
         )
     return merged
 
+
+
+def _zopedia_enrichment_limit() -> int:
+    return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_LIMIT", 15)
+
+
+def _zopedia_enrichment_timeout_seconds() -> int:
+    return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_TIMEOUT_SECONDS", 120)
+
+
+def _extract_beat_symbols(payload: dict[str, Any]) -> list[str]:
+    beats = build_attention_home_narrative_beats(payload)
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for beat in beats:
+        for symbol in list(beat.get("symbols") or []):
+            norm = str(symbol).upper().strip()
+            if norm and norm not in seen:
+                seen.add(norm)
+                ordered.append(norm)
+    return ordered
+
+
+def _run_single_zopedia_enrichment(
+    symbol: str,
+    *,
+    timeout_seconds: int,
+) -> dict[str, Any]:
+    try:
+        result = _call_with_timeout(
+            f"zopedia-enrich-{symbol}",
+            timeout_seconds,
+            lambda: run_aql_zopedia_agent(
+                query=(
+                    f"What is driving {symbol} right now? "
+                    "Be direct and concise. Every sentence must add new information. "
+                    "If evidence is thin, say so in one sentence — do not elaborate on the absence. "
+                    "Structure: ### Catalyst (what triggered the move), "
+                    "### Context (relevant fundamentals or sector dynamics), "
+                    "### Takeaway (what to watch next). "
+                    "Skip any section where you have nothing substantive to say. "
+                    "Keep the total answer under 200 words."
+                ),
+                task="attention_ticker_enrichment",
+                surface="attention_home.zopedia_ticker_enrichment",
+                force_refresh=True,
+                max_tool_calls=6,
+                persist_findings=False,
+            ),
+        )
+        return {
+            "symbol": symbol,
+            "status": str(result.get("status") or "unknown"),
+            "answer_markdown": str(result.get("answer_markdown") or ""),
+            "confidence": str(result.get("confidence") or ""),
+            "limitations_json": json.dumps(list(result.get("limitations") or [])),
+            "tool_calls_json": json.dumps([
+                {
+                    "tool_name": str(tc.get("tool_name") or ""),
+                    "status": str(tc.get("status") or ""),
+                }
+                for tc in list(result.get("tool_calls") or [])
+                if isinstance(tc, dict)
+            ]),
+            "quality_review_json": json.dumps(dict(result.get("quality_review") or {})),
+            "model": str(result.get("model") or ""),
+        }
+    except Exception as exc:
+        return {
+            "symbol": symbol,
+            "status": "failed",
+            "answer_markdown": "",
+            "confidence": "",
+            "limitations_json": json.dumps([f"{type(exc).__name__}: {exc}"]),
+            "tool_calls_json": "[]",
+            "quality_review_json": "{}",
+            "model": "",
+        }
+
+
+ZOPEDIA_MARKET_SUMMARY_KEY = "__MARKET_SUMMARY__"
+
+
+def _plain_audio_text_from_markdown(markdown: object) -> str:
+    text = str(markdown or "").strip()
+    if not text:
+        return ""
+    text = re.sub(r"```.*?```", " ", text, flags=re.DOTALL)
+    text = re.sub(r"`([^`]*)`", r"\1", text)
+    text = re.sub(r"!\[[^\]]*\]\([^)]+\)", " ", text)
+    text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
+    text = re.sub(r"^#{1,6}\s*", "", text, flags=re.MULTILINE)
+    text = re.sub(r"^\s*[-*+]\s+", "", text, flags=re.MULTILINE)
+    text = re.sub(r"[*_~>|]+", " ", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()[:4000]
+
+
+def _attach_market_summary_audio(row: dict[str, Any]) -> dict[str, Any]:
+    answer = str(row.get("answer_markdown") or "").strip()
+    if not answer:
+        return row
+    audio_payload = {
+        "summary_text": answer,
+        "audio_text": _plain_audio_text_from_markdown(answer),
+    }
+    if not str(audio_payload.get("audio_text") or "").strip():
+        return row
+    try:
+        narrated = attach_attention_home_summary_audio(audio_payload)
+    except ElevenLabsTTSAPIError as exc:
+        print(f"[warn] zopedia market summary ElevenLabs narration unavailable: {exc}")
+        return row
+    except Exception as exc:
+        print(f"[warn] zopedia market summary unexpected ElevenLabs narration error: {type(exc).__name__}: {exc}")
+        return row
+    out = dict(row)
+    for key in (
+        "audio_text",
+        "audio_base64",
+        "audio_text_hash",
+        "audio_mime_type",
+        "audio_file_extension",
+        "voice_id",
+        "model_id",
+        "output_format",
+    ):
+        value = narrated.get(key)
+        if value:
+            out[key] = value
+    return out
+
+
+def _build_market_summary_query(payload: dict[str, Any]) -> str:
+    beats = build_attention_home_narrative_beats(payload)
+    beat_lines = []
+    for beat in beats[:10]:
+        sentence = str(beat.get("sentence") or "").strip()
+        symbols = ", ".join(str(s).strip() for s in list(beat.get("symbols") or []) if str(s).strip())
+        if sentence:
+            beat_lines.append(f"- {sentence} [{symbols}]" if symbols else f"- {sentence}")
+    beats_text = "\n".join(beat_lines) if beat_lines else "No beats available."
+    return (
+        "Write a daily market summary for an informed investor. "
+        "You MUST call at least 3 research tools before writing your answer — "
+        "check recent news, fundamentals, and macro data. Do not answer from the beats alone. "
+        "The narrative beats below tell you what moved; your job is to explain WHY with evidence.\n\n"
+        "Structure with short paragraphs, no bullet lists:\n"
+        "1. **Dominant theme** — what defined today's session and why\n"
+        "2. **Key movers** — the 3-5 most important equity moves with grounded explanations\n"
+        "3. **Macro backdrop** — rates, dollar, commodities, anything driving the broader tape\n"
+        "4. **What to watch** — upcoming catalysts or risks for the next session\n\n"
+        "Write 300-500 words. Every sentence must add information the investor cannot get from a ticker screen. "
+        "Do not hedge or pad — if you lack evidence for a claim, drop the claim.\n\n"
+        f"Today's narrative beats:\n{beats_text}"
+    )
+
+
+def _run_zopedia_market_summary(
+    payload: dict[str, Any],
+    *,
+    timeout_seconds: int,
+) -> dict[str, Any]:
+    query = _build_market_summary_query(payload)
+    try:
+        result = _call_with_timeout(
+            "zopedia-market-summary",
+            timeout_seconds,
+            lambda: run_aql_zopedia_agent(
+                query=query,
+                task="attention_market_summary",
+                surface="attention_home.zopedia_market_summary",
+                force_refresh=True,
+                max_tool_calls=8,
+                persist_findings=False,
+            ),
+        )
+        row = {
+            "symbol": ZOPEDIA_MARKET_SUMMARY_KEY,
+            "status": str(result.get("status") or "unknown"),
+            "answer_markdown": str(result.get("answer_markdown") or ""),
+            "confidence": str(result.get("confidence") or ""),
+            "limitations_json": json.dumps(list(result.get("limitations") or [])),
+            "tool_calls_json": json.dumps([
+                {
+                    "tool_name": str(tc.get("tool_name") or ""),
+                    "status": str(tc.get("status") or ""),
+                }
+                for tc in list(result.get("tool_calls") or [])
+                if isinstance(tc, dict)
+            ]),
+            "quality_review_json": json.dumps(dict(result.get("quality_review") or {})),
+            "model": str(result.get("model") or ""),
+        }
+        return _attach_market_summary_audio(row)
+    except Exception as exc:
+        return {
+            "symbol": ZOPEDIA_MARKET_SUMMARY_KEY,
+            "status": "failed",
+            "answer_markdown": "",
+            "confidence": "",
+            "limitations_json": json.dumps([f"{type(exc).__name__}: {exc}"]),
+            "tool_calls_json": "[]",
+            "quality_review_json": "{}",
+            "model": "",
+        }
+
+
+def _build_zopedia_enrichment_frame(
+    payload: dict[str, Any],
+    *,
+    asof_time_utc: object,
+    run_id: str,
+) -> pd.DataFrame:
+    limit = _zopedia_enrichment_limit()
+    timeout = _zopedia_enrichment_timeout_seconds()
+    symbols = _extract_beat_symbols(payload)[:limit]
+
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    rows: list[dict[str, Any]] = []
+
+    print("[info] attention-home-build zopedia market summary starting")
+    summary_row = _run_zopedia_market_summary(payload, timeout_seconds=timeout)
+    rows.append(summary_row)
+    print(f"[info] zopedia market summary: {summary_row.get('status', 'unknown')}")
+
+    if symbols:
+        print(f"[info] attention-home-build zopedia ticker enrichment: {len(symbols)} symbols, timeout={timeout}s each")
+        max_workers = min(len(symbols), 4)
+        with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="zopedia-enrich") as pool:
+            futures = {
+                pool.submit(_run_single_zopedia_enrichment, symbol, timeout_seconds=timeout): symbol
+                for symbol in symbols
+            }
+            for future in as_completed(futures):
+                symbol = futures[future]
+                try:
+                    row = future.result()
+                except Exception as exc:
+                    print(f"[warn] zopedia enrichment thread failed symbol={symbol}: {type(exc).__name__}: {exc}")
+                    row = {
+                        "symbol": symbol,
+                        "status": "failed",
+                        "answer_markdown": "",
+                        "confidence": "",
+                        "limitations_json": json.dumps([str(exc)]),
+                        "tool_calls_json": "[]",
+                        "quality_review_json": "{}",
+                        "model": "",
+                    }
+                rows.append(row)
+                status = row.get("status", "unknown")
+                print(f"[info] zopedia enrichment {symbol}: {status}")
+
+    frame = pd.DataFrame(rows)
+    ts = pd.Timestamp(asof_time_utc)
+    frame["generated_at_utc"] = ts.tz_localize("UTC") if ts.tzinfo is None else ts.tz_convert("UTC")
+    frame["run_id"] = str(run_id)
+    return frame.reset_index(drop=True)
 
 
 def _normalize_symbol(value: object) -> str:
@@ -970,6 +1178,23 @@ def build_attention_home_output_frames(
             generated_at_utc=ctx.asof,
         )
 
+    # --- Zopedia ticker enrichment: pre-compute deep dives for homepage tickers ---
+    try:
+        print("[info] attention-home-build starting zopedia ticker enrichment")
+        artifacts.frames["attention_ticker_zopedia_enrichments"] = _build_zopedia_enrichment_frame(
+            payload,
+            asof_time_utc=ctx.asof,
+            run_id=ctx.run_id,
+        )
+        enrichment_count = len(artifacts.frames["attention_ticker_zopedia_enrichments"])
+        completed_count = int(
+            (artifacts.frames["attention_ticker_zopedia_enrichments"]["status"] == "completed").sum()
+        ) if enrichment_count > 0 else 0
+        print(f"[info] attention-home-build zopedia enrichment done: {completed_count}/{enrichment_count} completed")
+    except Exception as exc:
+        print(f"[warn] attention-home-build zopedia enrichment failed (non-fatal): {type(exc).__name__}: {exc}")
+        artifacts.frames["attention_ticker_zopedia_enrichments"] = pd.DataFrame()
+
     snapshot_symbols = collect_attention_ticker_symbols(payload, artifacts.bundle_map, max_symbols=120)
     merged_news_frame = _merge_news_frames(
         news_frame,
@@ -1014,8 +1239,6 @@ def build_attention_home_output_frames(
             llm_client=llm_client,
             daily_movers=daily_movers,
             momentum_profiles=momentum_profiles_frame,
-            fred_summary_frame=fred_summary_frame,
-            fred_release_index_frame=load_materialized_frame_fn("fred_release_index"),
             ticker_background_frame=artifacts.frames["attention_ticker_background_snapshots"],
             technical_signals_latest_frame=load_materialized_frame_fn("technical_signals_latest"),
             universe_snapshot_frame=universe_snapshot_frame,

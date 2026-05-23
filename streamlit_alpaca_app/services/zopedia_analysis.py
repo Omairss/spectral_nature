@@ -36,6 +36,8 @@ MAX_TABLE_ROWS = 200
 MAX_ARTIFACTS = 24
 DEFAULT_TIMEOUT_SECONDS = 20
 DEFAULT_MEMORY_MB = 2048
+DEFAULT_RAW_OUTPUT_MAX_CHARS = 2_000
+MAX_RAW_OUTPUT_MAX_CHARS = 12_000
 
 ANALYSIS_RUN_TABLE = "saa_zopedia_analysis_runs"
 ANALYSIS_ARTIFACT_TABLE = "saa_zopedia_analysis_artifacts"
@@ -286,6 +288,7 @@ def bootstrap_zopedia_analysis_storage(conn: Any, *, commit: bool = True) -> Non
                 output_summary_json JSONB,
                 stdout_text TEXT,
                 stderr_text TEXT,
+                traceback_text TEXT,
                 error_text TEXT,
                 duration_ms INTEGER,
                 created_at_utc TIMESTAMPTZ NOT NULL,
@@ -294,6 +297,7 @@ def bootstrap_zopedia_analysis_storage(conn: Any, *, commit: bool = True) -> Non
             """
         )
         cur.execute("ALTER TABLE saa_zopedia_analysis_runs ADD COLUMN IF NOT EXISTS code_text TEXT")
+        cur.execute("ALTER TABLE saa_zopedia_analysis_runs ADD COLUMN IF NOT EXISTS traceback_text TEXT")
         cur.execute(
             """
             CREATE INDEX IF NOT EXISTS idx_saa_zopedia_analysis_runs_created
@@ -343,8 +347,8 @@ def _persist_analysis_result(conn: Any, payload: dict[str, Any]) -> None:
             """
             INSERT INTO saa_zopedia_analysis_runs (
                 run_id, status, objective, code_hash, code_text, input_refs_json, output_summary_json,
-                stdout_text, stderr_text, error_text, duration_ms, created_at_utc, metadata_json
-            ) VALUES (%s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, %s, %s, %s, %s, %s, %s::jsonb)
+                stdout_text, stderr_text, traceback_text, error_text, duration_ms, created_at_utc, metadata_json
+            ) VALUES (%s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, %s, %s, %s, %s, %s, %s, %s::jsonb)
             ON CONFLICT (run_id) DO UPDATE SET
                 status = EXCLUDED.status,
                 objective = EXCLUDED.objective,
@@ -354,6 +358,7 @@ def _persist_analysis_result(conn: Any, payload: dict[str, Any]) -> None:
                 output_summary_json = EXCLUDED.output_summary_json,
                 stdout_text = EXCLUDED.stdout_text,
                 stderr_text = EXCLUDED.stderr_text,
+                traceback_text = EXCLUDED.traceback_text,
                 error_text = EXCLUDED.error_text,
                 duration_ms = EXCLUDED.duration_ms,
                 metadata_json = EXCLUDED.metadata_json
@@ -368,6 +373,7 @@ def _persist_analysis_result(conn: Any, payload: dict[str, Any]) -> None:
                 _json_dumps(output_summary),
                 str(payload.get("stdout") or ""),
                 str(payload.get("stderr") or ""),
+                str(payload.get("traceback") or ""),
                 str(payload.get("error") or ""),
                 int(payload.get("duration_ms") or 0),
                 created_at,
@@ -882,6 +888,48 @@ def _analysis_worker(
         )
 
 
+def _text_stats(text: object) -> dict[str, Any]:
+    value = str(text or "")
+    lines = value.splitlines()
+    return {
+        "char_count": len(value),
+        "line_count": len(lines),
+        "nonempty_line_count": sum(1 for line in lines if line.strip()),
+        "sha256": hashlib.sha256(value.encode("utf-8")).hexdigest() if value else "",
+    }
+
+
+def _format_text_stats(label: str, text: object) -> str:
+    stats = _text_stats(text)
+    if not stats["char_count"]:
+        return ""
+    digest = str(stats.get("sha256") or "")[:12]
+    return (
+        f"{label}: {stats['line_count']} line(s), {stats['char_count']} char(s), "
+        f"sha256={digest}. Raw text is available through analysis.read_raw_output."
+    )
+
+
+def _summarize_result_payload(result_payload: object) -> str:
+    if not isinstance(result_payload, dict) or not result_payload:
+        return ""
+    scalar_parts: list[str] = []
+    collection_parts: list[str] = []
+    for key, value in result_payload.items():
+        if isinstance(value, (str, int, float, bool)) or value is None:
+            text = _coerce_text(value)
+            if text:
+                scalar_parts.append(f"{key}={text[:120]}")
+        elif isinstance(value, (list, tuple, set)):
+            collection_parts.append(f"{key}: {len(value)} item(s)")
+        elif isinstance(value, dict):
+            collection_parts.append(f"{key}: object with {len(value)} key(s)")
+        else:
+            collection_parts.append(f"{key}: {type(value).__name__}")
+    parts = scalar_parts[:10] + collection_parts[:10]
+    return "Result summary: " + "; ".join(parts) if parts else ""
+
+
 def _build_llm_context(payload: dict[str, Any]) -> str:
     lines = [
         f"Zopedia analysis run {payload.get('analysis_run_id')} {payload.get('status')}.",
@@ -919,20 +967,198 @@ def _build_llm_context(payload: dict[str, Any]) -> str:
                 lines.append(
                     f"- {table.get('name')}: {table.get('row_count')} rows; columns={', '.join(list(table.get('columns') or [])[:12])}"
                 )
-    stdout_text = _coerce_text(payload.get("stdout"))
-    if stdout_text:
-        lines.append("Stdout:")
-        lines.append(stdout_text[-2000:])
+    log_stats = [
+        _format_text_stats("Stdout", payload.get("stdout")),
+        _format_text_stats("Stderr", payload.get("stderr")),
+        _format_text_stats("Traceback", payload.get("traceback")),
+    ]
+    log_stats = [item for item in log_stats if item]
+    if log_stats:
+        lines.append("Output logs:")
+        lines.extend(f"- {item}" for item in log_stats)
     result_payload = payload.get("result")
-    if isinstance(result_payload, dict) and result_payload:
-        lines.append("Result:")
-        lines.append(_json_dumps(result_payload)[:2000])
+    result_summary = _summarize_result_payload(result_payload)
+    if result_summary:
+        lines.append(result_summary)
     if payload.get("error"):
         failure_category = str((payload.get("metadata") or {}).get("failure_category") or "").strip()
         if failure_category:
             lines.append(f"Failure category: {failure_category}")
         lines.append(f"Error: {payload.get('error')}")
     return "\n".join(line for line in lines if line)
+
+
+def _row_value(row: object, index: int, key: str, columns: list[str]) -> object:
+    if row is None:
+        return ""
+    if isinstance(row, dict):
+        return row.get(key)
+    try:
+        return row[index]
+    except Exception:
+        pass
+    try:
+        return getattr(row, key)
+    except Exception:
+        return ""
+
+
+def read_analysis_raw_output(
+    *,
+    analysis_run_id: str,
+    stream: str = "stdout",
+    max_chars: int = DEFAULT_RAW_OUTPUT_MAX_CHARS,
+    conn: Any | None = None,
+) -> dict[str, Any]:
+    """Read bounded raw output for a persisted analysis run.
+
+    Normal analysis results intentionally return summary-only LLM context. This
+    function is the explicit inspection path for stdout/stderr/error/traceback.
+    """
+    run_id = _coerce_text(analysis_run_id)
+    normalized_stream = _coerce_text(stream).lower() or "stdout"
+    if normalized_stream not in {"stdout", "stderr", "error", "traceback", "all"}:
+        normalized_stream = "stdout"
+    char_limit = _normalize_numeric(
+        max_chars,
+        default=DEFAULT_RAW_OUTPUT_MAX_CHARS,
+        minimum=1,
+        maximum=MAX_RAW_OUTPUT_MAX_CHARS,
+    )
+    if not run_id:
+        return {
+            "status": "failed",
+            "analysis_run_id": "",
+            "stream": normalized_stream,
+            "raw_text": "",
+            "returned_chars": 0,
+            "total_chars": 0,
+            "truncated": False,
+            "error": "analysis_run_id is required.",
+            "llm_context_text": "Raw analysis output lookup failed: analysis_run_id is required.",
+        }
+
+    own_conn = None
+    active_conn = conn
+    if active_conn is None:
+        own_conn = _db_connection()
+        active_conn = own_conn
+    if active_conn is None:
+        return {
+            "status": "failed",
+            "analysis_run_id": run_id,
+            "stream": normalized_stream,
+            "raw_text": "",
+            "returned_chars": 0,
+            "total_chars": 0,
+            "truncated": False,
+            "error": "Analysis storage is not configured.",
+            "llm_context_text": f"Raw analysis output for {run_id} is unavailable because analysis storage is not configured.",
+        }
+
+    try:
+        bootstrap_zopedia_analysis_storage(active_conn, commit=own_conn is not None)
+        columns = [
+            "run_id",
+            "status",
+            "objective",
+            "stdout_text",
+            "stderr_text",
+            "error_text",
+            "traceback_text",
+            "created_at_utc",
+        ]
+        with active_conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT run_id, status, objective, stdout_text, stderr_text,
+                       error_text, traceback_text, created_at_utc
+                FROM saa_zopedia_analysis_runs
+                WHERE run_id = %s
+                LIMIT 1
+                """,
+                (run_id,),
+            )
+            row = cur.fetchone()
+        if not row:
+            return {
+                "status": "not_found",
+                "analysis_run_id": run_id,
+                "stream": normalized_stream,
+                "raw_text": "",
+                "returned_chars": 0,
+                "total_chars": 0,
+                "truncated": False,
+                "error": "Analysis run not found.",
+                "llm_context_text": f"Raw analysis output not found for {run_id}.",
+            }
+        values = {
+            column: _row_value(row, idx, column, columns)
+            for idx, column in enumerate(columns)
+        }
+        streams = {
+            "stdout": str(values.get("stdout_text") or ""),
+            "stderr": str(values.get("stderr_text") or ""),
+            "error": str(values.get("error_text") or ""),
+            "traceback": str(values.get("traceback_text") or ""),
+        }
+        if normalized_stream == "all":
+            raw_parts = []
+            for label, text in streams.items():
+                if text:
+                    raw_parts.append(f"[{label}]\n{text}")
+            full_text = "\n\n".join(raw_parts)
+        else:
+            full_text = streams.get(normalized_stream, "")
+        raw_text = full_text[-char_limit:] if len(full_text) > char_limit else full_text
+        stats = _text_stats(full_text)
+        returned_stats = _text_stats(raw_text)
+        truncated = len(full_text) > len(raw_text)
+        llm_lines = [
+            (
+                f"Explicit raw {normalized_stream} output for {run_id}: "
+                f"{stats['line_count']} line(s), {stats['char_count']} char(s); "
+                f"returned {returned_stats['char_count']} char(s)"
+                + (" from the tail." if truncated else ".")
+            )
+        ]
+        if raw_text:
+            llm_lines.append("Raw excerpt:")
+            llm_lines.append(raw_text)
+        return {
+            "status": "ok",
+            "analysis_run_id": run_id,
+            "analysis_status": str(values.get("status") or ""),
+            "objective": str(values.get("objective") or ""),
+            "stream": normalized_stream,
+            "raw_text": raw_text,
+            "returned_chars": int(returned_stats["char_count"]),
+            "total_chars": int(stats["char_count"]),
+            "line_count": int(stats["line_count"]),
+            "nonempty_line_count": int(stats["nonempty_line_count"]),
+            "truncated": truncated,
+            "created_at_utc": str(values.get("created_at_utc") or ""),
+            "metadata": {"context_policy": "explicit_raw_output"},
+            "llm_context_text": "\n".join(llm_lines),
+        }
+    except Exception as exc:
+        return {
+            "status": "failed",
+            "analysis_run_id": run_id,
+            "stream": normalized_stream,
+            "raw_text": "",
+            "returned_chars": 0,
+            "total_chars": 0,
+            "truncated": False,
+            "error": f"{type(exc).__name__}: {exc}",
+            "llm_context_text": f"Raw analysis output lookup failed for {run_id}: {type(exc).__name__}.",
+        }
+    finally:
+        if own_conn is not None:
+            try:
+                own_conn.close()
+            except Exception:
+                pass
 
 
 def _base_result_payload(
@@ -967,6 +1193,7 @@ def _base_result_payload(
         "created_at_utc": _utc_now(),
         "metadata": {
             "runner": "zopedia_analysis.v1",
+            "context_policy": "summary_only_logs",
             **({"failure_category": failure_category} if failure_category else {}),
         },
     }
@@ -1132,6 +1359,7 @@ def run_analysis_python(
         "created_at_utc": _utc_now(),
         "metadata": {
             "runner": "zopedia_analysis.v1",
+            "context_policy": "summary_only_logs",
             "frame_names": sorted(frames),
             "timeout_seconds": timeout,
             **({"failure_category": "analysis_runtime_error"} if status not in {"succeeded", "success"} else {}),
@@ -1167,9 +1395,12 @@ __all__ = [
     "ANALYSIS_ARTIFACT_TABLE",
     "ANALYSIS_RUN_TABLE",
     "AnalysisRejectedError",
+    "DEFAULT_RAW_OUTPUT_MAX_CHARS",
+    "MAX_RAW_OUTPUT_MAX_CHARS",
     "bootstrap_zopedia_analysis_storage",
     "build_analysis_input_profile",
     "normalize_analysis_code",
+    "read_analysis_raw_output",
     "resolve_analysis_input_frames",
     "run_analysis_python",
     "validate_analysis_code",

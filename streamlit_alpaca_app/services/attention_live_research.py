@@ -758,15 +758,30 @@ def _event_search_query(event: dict[str, Any]) -> str:
     return " ".join(part for part in parts if part) + " market move today"
 
 
+def _fallback_event_search_query(event: dict[str, Any]) -> str:
+    event_title = _coerce_text(event.get("event_title"))
+    anchor_symbol = _normalize_symbol(event.get("anchor_symbol"))
+    supporting_symbols = [
+        _normalize_symbol(symbol)
+        for symbol in list(event.get("supporting_symbols") or [])
+        if _normalize_symbol(symbol)
+    ]
+    parts = [event_title] if event_title else []
+    parts.extend(([anchor_symbol] if anchor_symbol else []) + supporting_symbols[:3])
+    return f"{' '.join(part for part in parts if part)} today".strip() or "market news today"
+
+
 def search_market_event_news_payload(
     event: dict[str, Any],
     *,
     max_results: int = 8,
     serp_client: SerpAPISearchClient | None = None,
     tavily_client: TavilySearchClient | None = None,
+    search_query: str = "",
+    allow_llm_query: bool = True,
 ) -> dict[str, Any]:
     if not isinstance(event, dict) or not event:
-        return {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
+        return {"articles": pd.DataFrame(), "fallback_summary": None, "source": None, "messages": []}
 
     if serp_client is None:
         cfg = load_serpapi_config()
@@ -782,7 +797,9 @@ def search_market_event_news_payload(
         for symbol in list(event.get("supporting_symbols") or [])
         if _normalize_symbol(symbol)
     ]
-    query_base = _event_search_query(event)
+    query_base = _coerce_text(search_query)
+    if not query_base:
+        query_base = _event_search_query(event) if allow_llm_query else _fallback_event_search_query(event)
     article_rows: list[dict[str, Any]] = []
     sources: list[str] = []
     errors: list[str] = []
@@ -807,8 +824,8 @@ def search_market_event_news_payload(
                     }
                 )
             sources.append("serpapi")
-        except WebResearchError as exc:
-            errors.append(str(exc))
+        except Exception as exc:
+            errors.append(f"SerpApi failed: {type(exc).__name__}")
 
     if tavily_client is not None:
         try:
@@ -830,14 +847,20 @@ def search_market_event_news_payload(
                     }
                 )
             sources.append("tavily")
-        except WebResearchError as exc:
-            errors.append(str(exc))
+        except Exception as exc:
+            errors.append(f"Tavily failed: {type(exc).__name__}")
 
     frame = _to_article_frame(article_rows).head(max(int(max_results), 1))
     fallback_summary = None
     if errors and frame.empty:
         fallback_summary = errors[0]
-    return {"articles": frame, "fallback_summary": fallback_summary, "source": "+".join(sources) if sources else None}
+    return {
+        "articles": frame,
+        "fallback_summary": fallback_summary,
+        "source": "+".join(sources) if sources else None,
+        "messages": errors,
+        "search_query": query_base,
+    }
 
 
 def _normalize_news_evidence(

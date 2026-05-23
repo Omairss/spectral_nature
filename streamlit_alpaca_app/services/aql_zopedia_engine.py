@@ -108,17 +108,16 @@ def run_aql_zopedia_agent(
 ) -> dict[str, Any]:
     """Shared AQL/Zopedia orchestration entrypoint for tool-using research.
 
-    Existing omnibar implementation owns the planner/tool loop today. Keeping
-    this wrapper as the public engine call prevents chat, jobs, summaries, and
-    future surfaces from treating omnibar as a privileged side endpoint.
+    The legacy implementation module still owns the planner/tool loop, but the
+    only public product entrypoint is this AQL/Zopedia engine boundary.
     """
-    from .omnibar_agent import run_omnibar_agent
+    from .omnibar_agent import _run_zopedia_agent_loop
 
     resolved_budget = max_tool_calls
     if resolved_budget is None:
         resolved_budget = _int_param(_P_AGENT_MAX_TOOL_CALLS, minimum=1)
 
-    result = run_omnibar_agent(
+    result = _run_zopedia_agent_loop(
         query=query,
         force_refresh=force_refresh,
         max_tool_calls=int(resolved_budget),

@@ -23,7 +23,7 @@ LOAD_ZOPEDIA_CLIENT_ALLOWED = {
     "services/zopedia_runtime.py",
 }
 
-RUN_OMNIBAR_AGENT_ALLOWED = {
+RUN_ZOPEDIA_AGENT_LOOP_ALLOWED = {
     "services/aql_zopedia_engine.py",
     "services/omnibar_agent.py",
 }
@@ -90,14 +90,26 @@ def test_product_llm_loading_enters_aql_zopedia_engine_boundary():
     assert offenders == []
 
 
-def test_omnibar_agent_loop_is_only_called_by_shared_engine():
+def test_legacy_agent_loop_is_only_called_by_shared_engine():
     offenders: list[str] = []
     for path in _source_files():
         rel = _rel(path)
         text = path.read_text(encoding="utf-8")
-        if "run_omnibar_agent(" not in text:
+        if "_run_zopedia_agent_loop(" not in text:
             continue
-        if rel not in RUN_OMNIBAR_AGENT_ALLOWED:
+        if rel not in RUN_ZOPEDIA_AGENT_LOOP_ALLOWED:
+            offenders.append(rel)
+
+    assert offenders == []
+
+
+def test_removed_omnibar_agent_entrypoint_does_not_return():
+    legacy_symbol = "run_" + "omnibar_agent"
+    offenders: list[str] = []
+    for path in _source_files():
+        rel = _rel(path)
+        text = path.read_text(encoding="utf-8")
+        if legacy_symbol in text:
             offenders.append(rel)
 
     assert offenders == []

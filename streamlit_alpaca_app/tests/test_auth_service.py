@@ -53,7 +53,7 @@ def test_user_context_admin_detection_prefers_full_access_flag():
 def test_invite_email_html_includes_branding_logo_graph_and_cta():
     expires_at = datetime(2026, 4, 6, 12, 0, tzinfo=timezone.utc)
     html_body = auth_service._invite_email_html(
-        invite_url="https://torres-cap.com/?invite_token=abc123",
+        invite_url="https://spectral-nature.com/?invite_token=abc123",
         expires_at=expires_at,
         recipient_email="client@example.com",
         role="investor",
@@ -72,12 +72,12 @@ def test_invite_email_html_includes_branding_logo_graph_and_cta():
 def test_invite_email_text_contains_link_and_expiry():
     expires_at = datetime(2026, 4, 6, 12, 0, tzinfo=timezone.utc)
     text_body = auth_service._invite_email_text(
-        invite_url="https://torres-cap.com/?invite_token=abc123",
+        invite_url="https://spectral-nature.com/?invite_token=abc123",
         expires_at=expires_at,
         theme=auth_service.default_invite_email_theme(),
     )
 
-    assert "https://torres-cap.com/?invite_token=abc123" in text_body
+    assert "https://spectral-nature.com/?invite_token=abc123" in text_body
     assert "2026-04-06 12:00 UTC" in text_body
 
 
@@ -183,7 +183,7 @@ def test_invite_email_preview_supports_uploaded_gif_chart(monkeypatch):
     }
 
     preview = auth_service.build_invite_email_preview(
-        invite_url="https://torres-cap.com/?invite_token=abc123",
+        invite_url="https://spectral-nature.com/?invite_token=abc123",
         recipient_email="client@example.com",
         role="investor",
         expires_at=datetime(2026, 4, 6, 12, 0, tzinfo=timezone.utc),
@@ -367,13 +367,13 @@ def test_issue_invite_returns_specific_delivery_message_when_sender_secret_missi
         role="investor",
         share_fraction=0.25,
         created_by=admin,
-        base_url="https://torres-cap.com",
+        base_url="https://spectral-nature.com",
     )
 
     assert result["ok"] is True
     assert result["email_sent"] is False
     assert "app-email-from" in str(result["email_message"])
-    assert result["invite_url"] == "https://torres-cap.com/?invite_token=invite-token"
+    assert result["invite_url"] == "https://spectral-nature.com/?invite_token=invite-token"
 
 
 def test_delete_pending_invite_requires_admin():
@@ -560,7 +560,7 @@ def test_resend_pending_invite_reissues_selected_invite(monkeypatch):
         return {
             "ok": True,
             "invite": {"id": "invite-456"},
-            "invite_url": "https://torres-cap.com/?invite_token=abc123",
+            "invite_url": "https://spectral-nature.com/?invite_token=abc123",
             "email_sent": True,
             "email_message": "Email sent to investor@example.com.",
         }
@@ -570,7 +570,7 @@ def test_resend_pending_invite_reissues_selected_invite(monkeypatch):
     result = auth_service.resend_pending_invite(
         invite_id="invite-123",
         requested_by=admin,
-        base_url="https://torres-cap.com",
+        base_url="https://spectral-nature.com",
     )
 
     assert result["ok"] is True
@@ -579,7 +579,7 @@ def test_resend_pending_invite_reissues_selected_invite(monkeypatch):
     assert called["role"] == "investor"
     assert called["share_fraction"] == 0.125
     assert called["created_by"] == admin
-    assert called["base_url"] == "https://torres-cap.com"
+    assert called["base_url"] == "https://spectral-nature.com"
 
 
 def test_record_access_event_hashes_session_token_before_store(monkeypatch):

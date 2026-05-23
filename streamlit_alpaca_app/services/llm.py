@@ -803,7 +803,7 @@ def load_embedding_client() -> OpenAIEmbeddingClient | AzureOpenAIEmbeddingClien
     config = load_llm_config()
     if config is None:
         return None
-    if config.provider == "openai":
+    if config.provider in ("openai", "deepseek"):
         return OpenAIEmbeddingClient(config)
     if config.provider == "azure_openai":
         if not config.embedding_deployment:

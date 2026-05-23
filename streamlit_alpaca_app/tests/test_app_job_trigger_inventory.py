@@ -15,4 +15,6 @@ def test_feature_pages_do_not_render_job_trigger_buttons():
     assert "Run equities refresh job" not in source
     assert "Run FRED refresh job" not in source
     assert "Run options refresh job" not in source
+    assert "Load FRED Data" not in source
+    assert "Analyze in Zopedia" not in source
     assert "key=f\"admin_run_job_{job_name}\"" in source

@@ -271,7 +271,11 @@ The old `attention_feed` and `commodity_attention_feed` remain supporting datase
 
 ### Base universe
 
-- top ~1500 liquid US equities by dollar volume
+- target top ~1500 liquid US equities by dollar volume
+- implementation note (verified 2026-05-19): the shipped default is
+  `EQUITY_UNIVERSE_TARGET_SIZE=1000`, snapshots use the IEX feed, and the universe is
+  padded up to the target with a sub-threshold `liquidity_fallback` tier when fewer names
+  pass the liquidity filters. See `ATTENTION_FEED_GENERATION_TRACE_AND_OVERINDEXING_2026-05-19.md`.
 - all current portfolio holdings
 - curated macro anchors across oil, gas, gold, silver, Treasuries, dollar, credit, volatility, airlines, travel, semis, defensives, and broad-market ETFs
 

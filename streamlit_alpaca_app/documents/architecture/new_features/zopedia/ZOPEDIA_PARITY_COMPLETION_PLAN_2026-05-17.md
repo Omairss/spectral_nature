@@ -30,7 +30,7 @@ Source-level change:
 - Added `services/aql_zopedia_engine.py` as the product-facing engine boundary.
 - Added admin-visible config group **AQL / Zopedia Engine** for shared agent and summary evidence budgets.
 - Routed Zopedia chat through `run_aql_zopedia_agent(...)`.
-- Routed page-summary AQL calls through the engine instead of calling `run_omnibar_agent` directly.
+- Routed page-summary AQL calls through the engine instead of calling `run_aql_zopedia_agent` directly.
 - Routed Trading Agent AQL calls and Zopedia learning replay through the engine.
 - Routed `attention_home_build` homepage summaries through `build_aql_zopedia_attention_home_summary_with_trace(...)`.
 - Routed the public `services.attention_home_summary` facade through the same engine wrapper, so future callers do not accidentally bypass it.

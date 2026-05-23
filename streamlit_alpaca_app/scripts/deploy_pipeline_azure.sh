@@ -121,7 +121,7 @@ LLM_TEMPERATURE="${LLM_TEMPERATURE:-}"
 LLM_REASONING_EFFORT="${LLM_REASONING_EFFORT:-}"
 EMBEDDING_MODEL="${EMBEDDING_MODEL:-}"
 EMBEDDING_DEPLOYMENT="${EMBEDDING_DEPLOYMENT:-}"
-LLM_ENV_SOURCE_JOBS="${LLM_ENV_SOURCE_JOBS:-attention-home-build news-ingest-and-features zopedia-maintenance zopedia-learning}"
+LLM_ENV_SOURCE_JOBS="${LLM_ENV_SOURCE_JOBS:-macro-fred-daily attention-home-build news-ingest-and-features zopedia-maintenance zopedia-learning}"
 PIPELINE_CACHE_MAX_BYTES="${PIPELINE_CACHE_MAX_BYTES:-}"
 TAVILY_INCLUDE_RAW_CONTENT="${TAVILY_INCLUDE_RAW_CONTENT:-true}"
 

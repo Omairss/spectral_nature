@@ -22,8 +22,8 @@ if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
 from services.agent_tools import invoke_tool
+from services.aql_zopedia_engine import run_aql_zopedia_agent
 from services.llm import check_llm_readiness
-from services.omnibar_agent import run_omnibar_agent
 from services.saa.storage import _db_connection
 from services.saa.zopedia import (
     build_zopedia_change_proposal,
@@ -577,8 +577,10 @@ def _run_agent_smoke(run: EvalRun, *, tag: str) -> None:
         "Use Zopedia memory first, then answer with citations or clear limitations."
     )
     try:
-        result = run_omnibar_agent(
+        result = run_aql_zopedia_agent(
             query=query,
+            task="product_eval_memory_question",
+            surface="zopedia.product_eval",
             max_tool_calls=5,
             force_refresh=False,
             progress_callback=_progress,
@@ -651,8 +653,10 @@ def _run_company_macro_resilience_checks(run: EvalRun, *, conn: Any, tag: str) -
     )
     started = time.monotonic()
     try:
-        company_result = run_omnibar_agent(
+        company_result = run_aql_zopedia_agent(
             query=company_query,
+            task="product_eval_company_question",
+            surface="zopedia.product_eval",
             max_tool_calls=8,
             force_refresh=False,
             persist_findings=False,
@@ -698,8 +702,10 @@ def _run_company_macro_resilience_checks(run: EvalRun, *, conn: Any, tag: str) -
     )
     started = time.monotonic()
     try:
-        macro_result = run_omnibar_agent(
+        macro_result = run_aql_zopedia_agent(
             query=macro_query,
+            task="product_eval_macro_question",
+            surface="zopedia.product_eval",
             max_tool_calls=8,
             force_refresh=False,
             persist_findings=False,
@@ -745,8 +751,10 @@ def _run_company_macro_resilience_checks(run: EvalRun, *, conn: Any, tag: str) -
     )
     started = time.monotonic()
     try:
-        false_result = run_omnibar_agent(
+        false_result = run_aql_zopedia_agent(
             query=false_query,
+            task="product_eval_false_premise",
+            surface="zopedia.product_eval",
             max_tool_calls=8,
             force_refresh=False,
             persist_findings=False,
@@ -822,8 +830,10 @@ def _run_company_macro_resilience_checks(run: EvalRun, *, conn: Any, tag: str) -
     )
     started = time.monotonic()
     try:
-        update_result = run_omnibar_agent(
+        update_result = run_aql_zopedia_agent(
             query=update_query,
+            task="product_eval_memory_update",
+            surface="zopedia.product_eval",
             max_tool_calls=8,
             force_refresh=False,
             persist_findings=False,

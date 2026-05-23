@@ -41,7 +41,7 @@
 - `read_summary(run_id)` — compact entry count by kind + latest hypothesis
 - `scratchpad.write` and `scratchpad.read` added as agent tools in `agent_tools.py`
 - Agent can persist intermediate state between tool calls and across verification passes
-- Run_id flows from `run_omnibar_agent` through `invoke_tool` to the scratchpad
+- Run_id flows from `run_aql_zopedia_agent` through `invoke_tool` to the scratchpad
 
 ---
 

@@ -89,7 +89,7 @@
 - `_render_thinking_trace_content(trace, agent_result)` — verbose trace content for expanded status
 
 ### Conversation history threading (2026-04-22)
-- Prior chat turns now flow from `app.py` → `_run_agentic_omnibar_resolution` → `run_omnibar_agent` → planner/final prompts
+- Prior chat turns now flow from `app.py` → `_run_agentic_omnibar_resolution` → `run_aql_zopedia_agent` → planner/final prompts
 - Compact history: most recent answer up to 1500 chars, older answers ~300 chars, user messages in full, 3000 char total cap
 - `conversation.prior_answers` tool: agent can search full text of prior turns by keyword when compact summary isn't enough
 - Planner prompt updated to resolve ambiguous references from conversation context

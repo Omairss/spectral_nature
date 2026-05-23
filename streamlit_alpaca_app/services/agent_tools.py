@@ -574,7 +574,9 @@ def _analysis_tools() -> list[dict[str, Any]]:
                 "datasets plus typed params, or inline_datasets for user-uploaded tabular data. "
                 "Code must be valid multiline Python. Inputs are preloaded as pandas DataFrames in "
                 "`datasets` and as variables named by each dataset alias. Do not call load_dataset, "
-                "get_dataset, context, globals, open, or filesystem/network APIs from the code."
+                "get_dataset, context, globals, open, or filesystem/network APIs from the code. "
+                "Normal results summarize stdout/stderr by statistics only; call analysis.read_raw_output "
+                "with the returned analysis_run_id only when exact logs are required."
             ),
             "inputSchema": {
                 "type": "object",
@@ -613,6 +615,25 @@ def _analysis_tools() -> list[dict[str, Any]]:
                 "additionalProperties": False,
             },
         },
+        {
+            "name": "analysis.read_raw_output",
+            "description": (
+                "Explicitly read bounded raw stdout, stderr, error, traceback, or all output for a persisted "
+                "analysis.run_python run. Use only when exact logs are needed for debugging or answering "
+                "a user question about what the analysis printed; ordinary analysis context already includes "
+                "summary statistics."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "analysis_run_id": {"type": "string"},
+                    "stream": {"type": "string"},
+                    "max_chars": {"type": "integer"},
+                },
+                "required": ["analysis_run_id"],
+                "additionalProperties": False,
+            },
+        },
     ]
 
 
@@ -646,7 +667,7 @@ def is_investigator_tool(tool_name: str) -> bool:
 
 
 def is_analysis_tool(tool_name: str) -> bool:
-    return str(tool_name or "").strip() == "analysis.run_python"
+    return str(tool_name or "").strip() in {"analysis.run_python", "analysis.read_raw_output"}
 
 
 def build_tool_catalog(service: QueryService) -> list[dict[str, Any]]:
@@ -766,6 +787,10 @@ def _invoke_research_tool(
     else:
         raise ValueError(f"Unsupported tool '{tool_name}'.")
 
+    tool_messages: list[str] = []
+    if isinstance(payload, dict):
+        tool_messages = [str(item).strip() for item in list(payload.get("messages") or []) if str(item).strip()]
+
     return {
         "request": {"operation": "research", "name": tool_name, "params": args},
         "result_type": "research",
@@ -775,7 +800,7 @@ def _invoke_research_tool(
             "datasets": list(datasets),
             "details": {"tool_name": tool_name},
         },
-        "messages": [],
+        "messages": tool_messages,
     }
 
 
@@ -898,6 +923,23 @@ def _invoke_analysis_tool(
     arguments: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     args = coerce_object(arguments, field_name="arguments")
+    if tool_name == "analysis.read_raw_output":
+        payload = zopedia_analysis.read_analysis_raw_output(
+            analysis_run_id=str(args.get("analysis_run_id") or ""),
+            stream=str(args.get("stream") or "stdout"),
+            max_chars=_int_arg(args.get("max_chars"), default=zopedia_analysis.DEFAULT_RAW_OUTPUT_MAX_CHARS),
+        )
+        return {
+            "request": {"operation": "analysis", "name": tool_name, "params": args},
+            "result_type": "analysis_raw_output",
+            "payload": payload,
+            "provenance": {
+                "mode": "computed",
+                "datasets": [zopedia_analysis.ANALYSIS_RUN_TABLE],
+                "details": {"tool_name": tool_name, "analysis_run_id": payload.get("analysis_run_id")},
+            },
+            "messages": [],
+        }
     if tool_name != "analysis.run_python":
         raise ValueError(f"Unsupported tool '{tool_name}'.")
     normalized_args = _normalize_analysis_arguments(args)

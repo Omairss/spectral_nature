@@ -13,6 +13,7 @@ from pipeline.jobs.attention_home_build import (
     _build_materialized_homepage_summary,
     _build_materialized_homepage_summary_with_trace,
     _build_page_agentic_summary_frame,
+    _build_zopedia_enrichment_frame,
     _news_payloads_from_articles_frame,
     build_attention_home_output_frames,
 )
@@ -335,7 +336,13 @@ def test_run_fred_persists_series_and_release_indexes(monkeypatch):
 
     run_fred(ctx, conn=object())
 
-    assert {"fred_summary", "fred_observations", "fred_series_index", "fred_release_index"}.issubset(set(persisted))
+    assert {
+        "fred_summary",
+        "fred_observations",
+        "fred_series_index",
+        "fred_release_index",
+        "page_agentic_summaries",
+    }.issubset(set(persisted))
 
 
 def test_run_fred_raises_if_fred_step_fails(monkeypatch):
@@ -713,21 +720,6 @@ def test_build_page_agentic_summary_frame_materializes_page_summaries(monkeypatc
                 }
             ]
         ),
-        fred_summary_frame=pd.DataFrame(
-            [
-                {
-                    "category": "Labor",
-                    "indicator": "Payrolls",
-                    "series_id": "PAYEMS",
-                    "latest_value": 100.0,
-                    "prev_delta": 1.0,
-                    "yoy_delta": 2.0,
-                    "latest_date": "2026-04-01",
-                    "units_short": "index",
-                }
-            ]
-        ),
-        fred_release_index_frame=pd.DataFrame([{"release_id": "10", "release_name": "Employment", "release_date": "2026-04-03"}]),
         ticker_background_frame=pd.DataFrame(
             [
                 {
@@ -744,7 +736,7 @@ def test_build_page_agentic_summary_frame_materializes_page_summaries(monkeypatc
         universe_snapshot_frame=pd.DataFrame([{"symbol": "AAPL", "security_name": "Apple Inc."}]),
     )
 
-    assert set(frame["surface"]) == {"Market Explorer", "Broad Economy", "Stock Investigator"}
+    assert set(frame["surface"]) == {"Market Explorer", "Stock Investigator"}
     assert frame["summary_json"].astype(str).str.contains("Grounded page summary").all()
     assert frame["context_signature"].astype(str).str.len().min() == 64
 
@@ -774,8 +766,6 @@ def test_build_page_agentic_summary_frame_fails_closed_on_timeout(monkeypatch):
                 }
             ]
         ),
-        fred_summary_frame=pd.DataFrame(),
-        fred_release_index_frame=pd.DataFrame(),
         ticker_background_frame=pd.DataFrame(),
         technical_signals_latest_frame=pd.DataFrame(),
         universe_snapshot_frame=pd.DataFrame(),
@@ -1625,6 +1615,53 @@ def test_build_materialized_homepage_summary_with_trace_returns_summary_trace_fr
     assert summary["audio_base64"] == "YXVkaW8="
     assert trace["attention_search_requests"]["query_id"].tolist() == ["query::summary"]
     assert trace["attention_evidence_chunks"]["research_scope"].tolist() == ["home_summary"]
+
+
+def test_zopedia_market_summary_enrichment_carries_its_own_audio(monkeypatch):
+    payload = {"top_events": [{"event_title": "Rates connect equities", "supporting_symbols": []}]}
+    agent_calls: list[dict[str, object]] = []
+
+    monkeypatch.setattr(
+        "pipeline.jobs.attention_home_build.build_attention_home_narrative_beats",
+        lambda payload: [{"sentence": "Rates connect equities", "symbols": [], "kind": "event"}],
+    )
+
+    def _fake_agent(**kwargs):
+        agent_calls.append(kwargs)
+        return {
+            "status": "completed",
+            "answer_markdown": "### Theme\nRates are the dominant cross-asset signal today.",
+            "confidence": "medium",
+            "limitations": [],
+            "tool_calls": [{"tool_name": "dataset.yield_curve_summary", "status": "ok"}],
+            "quality_review": {"approved": True},
+            "model": "test-model",
+        }
+
+    monkeypatch.setattr("pipeline.jobs.attention_home_build.run_aql_zopedia_agent", _fake_agent)
+    monkeypatch.setattr(
+        "pipeline.jobs.attention_home_build.attach_attention_home_summary_audio",
+        lambda summary_payload: {
+            **dict(summary_payload),
+            "audio_base64": "YXVkaW8=",
+            "audio_text_hash": "hash-123",
+            "audio_mime_type": "audio/mpeg",
+            "voice_id": "voice-123",
+        },
+    )
+
+    frame = _build_zopedia_enrichment_frame(
+        payload,
+        asof_time_utc=datetime(2026, 5, 23, tzinfo=timezone.utc),
+        run_id="home-zopedia-summary-test",
+    )
+
+    summary_row = frame[frame["symbol"] == "__MARKET_SUMMARY__"].iloc[0].to_dict()
+    assert summary_row["status"] == "completed"
+    assert summary_row["audio_base64"] == "YXVkaW8="
+    assert summary_row["audio_mime_type"] == "audio/mpeg"
+    assert "###" not in summary_row["audio_text"]
+    assert agent_calls[0]["surface"] == "attention_home.zopedia_market_summary"
 
 
 def test_run_attention_home_fails_when_required_mover_inputs_are_missing(monkeypatch):

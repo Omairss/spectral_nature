@@ -124,7 +124,7 @@ def materialized_page_agentic_summary(
             rows = exact_rows
             context_match = "exact"
         elif not target_ticker:
-            return {}
+            context_match = "surface_fallback"
     if target_ticker and "ticker" in rows.columns:
         ticker_rows = rows[rows["ticker"].astype(str).str.upper().str.strip() == target_ticker]
         if not ticker_rows.empty:
@@ -391,6 +391,32 @@ def broad_economy_summary_context(
     }
 
 
+def broad_economy_overview_from_fred_summary(fred_summary_frame: pd.DataFrame) -> pd.DataFrame:
+    if not isinstance(fred_summary_frame, pd.DataFrame) or fred_summary_frame.empty:
+        return pd.DataFrame()
+    from .fred import format_fred_delta, format_fred_value
+
+    overview = fred_summary_frame.copy()
+    if "latest" not in overview.columns and {"latest_value", "units_short"}.issubset(overview.columns):
+        overview["latest"] = [
+            format_fred_value(value, units)
+            for value, units in zip(overview["latest_value"], overview["units_short"])
+        ]
+    if "prev" not in overview.columns and {"prev_delta", "units_short"}.issubset(overview.columns):
+        overview["prev"] = [
+            format_fred_delta(value, units)
+            for value, units in zip(overview["prev_delta"], overview["units_short"])
+        ]
+    if "yoy" not in overview.columns and {"yoy_delta", "units_short"}.issubset(overview.columns):
+        overview["yoy"] = [
+            format_fred_delta(value, units)
+            for value, units in zip(overview["yoy_delta"], overview["units_short"])
+        ]
+    if "latest_date" in overview.columns:
+        overview["latest_date"] = pd.to_datetime(overview["latest_date"], errors="coerce").dt.strftime("%Y-%m-%d")
+    return overview
+
+
 def build_page_agentic_summary(
     *,
     surface: str,
@@ -488,6 +514,7 @@ def build_page_agentic_summary(
 
 __all__ = [
     "broad_economy_summary_context",
+    "broad_economy_overview_from_fred_summary",
     "build_materialized_page_agentic_summary_row",
     "build_page_agentic_summary",
     "build_unavailable_page_agentic_summary",

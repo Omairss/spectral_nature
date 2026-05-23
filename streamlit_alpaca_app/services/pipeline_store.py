@@ -793,6 +793,69 @@ def load_latest_dataset_frame(dataset_name: str) -> tuple[pd.DataFrame, Pipeline
     return frame, metadata
 
 
+def recent_dataset_metadata(dataset_name: str, *, limit: int = 8) -> list[PipelineDataset]:
+    dataset_key = str(dataset_name or "").strip()
+    if not dataset_key:
+        return []
+    capped_limit = max(1, min(int(limit or 8), 25))
+    conn = _db_connect()
+    if conn is None:
+        latest = latest_dataset_metadata(dataset_key)
+        return [latest] if latest is not None else []
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT dataset_name, dataset_version_id, blob_path, asof_time_utc,
+                       ingested_at_utc, row_count
+                FROM dataset_versions
+                WHERE dataset_name = %s AND status = 'ready'
+                ORDER BY ingested_at_utc DESC
+                LIMIT %s
+                """,
+                (dataset_key, capped_limit),
+            )
+            rows = cur.fetchall()
+        out: list[PipelineDataset] = []
+        for row in rows or []:
+            out.append(
+                PipelineDataset(
+                    dataset_name=str(row[0]),
+                    dataset_version_id=str(row[1]),
+                    blob_path=str(row[2]),
+                    asof_time_utc=str(row[3]),
+                    ingested_at_utc=str(row[4]),
+                    row_count=int(row[5] or 0),
+                )
+            )
+        return out
+    except Exception:
+        latest = latest_dataset_metadata(dataset_key)
+        return [latest] if latest is not None else []
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
+def load_recent_dataset_frames(dataset_name: str, *, limit: int = 8) -> list[tuple[pd.DataFrame, PipelineDataset]]:
+    out: list[tuple[pd.DataFrame, PipelineDataset]] = []
+    for metadata in recent_dataset_metadata(dataset_name, limit=limit):
+        cached = _read_local_frame_cache(metadata)
+        if cached is not None:
+            out.append((cached, metadata))
+            continue
+        frame = _read_blob_parquet(metadata.blob_path)
+        if isinstance(frame, pd.DataFrame):
+            try:
+                _write_local_frame_cache(metadata, frame)
+            except Exception:
+                pass
+            out.append((frame, metadata))
+    return out
+
+
 TRADING_AGENT_ACTION_COLUMNS = [
     "action_id",
     "candidate_id",

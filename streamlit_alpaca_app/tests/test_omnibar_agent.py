@@ -138,7 +138,7 @@ class _StubLLM:
 
     def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict[str, object]) -> dict[str, object]:
         del system_prompt, schema
-        if schema_name == "omnibar_agent_step":
+        if schema_name == "zopedia_agent_step":
             self.step_calls += 1
             if self.step_calls == 1:
                 assert "dataset.fred_dashboard" in user_prompt
@@ -169,14 +169,14 @@ class _StubLLM:
                 "confidence": "high",
                 "needs_more_tools": False,
             }
-        if schema_name == "omnibar_agent_final":
+        if schema_name == "zopedia_agent_final":
             return {
                 "answer_markdown": "Latest CPI reading is 319.8 with YoY inflation at 2.9%.",
                 "confidence": "medium",
                 "limitations": [],
                 "used_tool_call_ids": [],
             }
-        if schema_name == "omnibar_agent_judge":
+        if schema_name == "zopedia_agent_judge":
             return _judge_accept("Latest CPI reading is 319.8 with YoY inflation at 2.9%.", "medium")
         if schema_name == "zopedia_memory_reflection":
             return {
@@ -202,7 +202,7 @@ class _FinalSynthesisTransportDropLLM:
 
     def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict[str, object]) -> dict[str, object]:
         del system_prompt, user_prompt, schema
-        if schema_name == "omnibar_agent_step":
+        if schema_name == "zopedia_agent_step":
             return {
                 "action": "tool_call",
                 "reasoning": "Need one data source before answering.",
@@ -221,12 +221,12 @@ class _FinalSynthesisTransportDropLLM:
                 "confidence": "low",
                 "needs_more_tools": True,
             }
-        if schema_name == "omnibar_agent_final":
+        if schema_name == "zopedia_agent_final":
             raise requests.ConnectionError(
                 "Connection aborted.",
                 RemoteDisconnected("Remote end closed connection without response"),
             )
-        if schema_name == "omnibar_agent_judge":
+        if schema_name == "zopedia_agent_judge":
             return _judge_accept("Evidence collected before the model connection dropped.", "low")
         raise AssertionError(f"Unexpected schema_name: {schema_name}")
 
@@ -239,7 +239,7 @@ class _FollowupLLM:
     def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict[str, object]) -> dict[str, object]:
         del system_prompt, schema
         self.prompts.append(user_prompt)
-        if schema_name == "omnibar_agent_step":
+        if schema_name == "zopedia_agent_step":
             return {
                 "action": "final",
                 "reasoning": "The prior turn gives the target context.",
@@ -249,14 +249,14 @@ class _FollowupLLM:
                 "confidence": "medium",
                 "needs_more_tools": False,
             }
-        if schema_name == "omnibar_agent_final":
+        if schema_name == "zopedia_agent_final":
             return {
                 "answer_markdown": "Continuing the airline thread with more evidence.",
                 "confidence": "medium",
                 "limitations": [],
                 "used_tool_call_ids": [],
             }
-        if schema_name == "omnibar_agent_judge":
+        if schema_name == "zopedia_agent_judge":
             return _judge_accept("Continuing the airline thread with more evidence.", "medium")
         raise AssertionError(f"Unexpected schema_name: {schema_name}")
 
@@ -269,7 +269,7 @@ class _CompanyEvidencePlannerLLM:
 
     def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict[str, object]) -> dict[str, object]:
         del system_prompt, schema
-        if schema_name == "omnibar_agent_step":
+        if schema_name == "zopedia_agent_step":
             self.step_calls += 1
             assert "Evidence contract" in user_prompt or "Evidence contract" in omnibar_agent._planner_system_prompt()
             plan = [
@@ -298,7 +298,7 @@ class _CompanyEvidencePlannerLLM:
                 "confidence": "medium",
                 "needs_more_tools": False,
             }
-        if schema_name == "omnibar_agent_final":
+        if schema_name == "zopedia_agent_final":
             self.final_prompts.append(user_prompt)
             return {
                 "answer_markdown": "Vertiv is a data-center infrastructure supplier with current AI power catalysts.",
@@ -306,7 +306,7 @@ class _CompanyEvidencePlannerLLM:
                 "limitations": [],
                 "used_tool_call_ids": [],
             }
-        if schema_name == "omnibar_agent_judge":
+        if schema_name == "zopedia_agent_judge":
             return _judge_accept(
                 "Vertiv is a data-center infrastructure supplier with current AI power catalysts.",
                 "high",
@@ -321,7 +321,7 @@ class _TimeoutToolPlannerLLM:
 
     def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict[str, object]) -> dict[str, object]:
         del system_prompt, user_prompt, schema
-        if schema_name == "omnibar_agent_step":
+        if schema_name == "zopedia_agent_step":
             self.step_calls += 1
             if self.step_calls == 1:
                 return {
@@ -342,14 +342,14 @@ class _TimeoutToolPlannerLLM:
                 "confidence": "low",
                 "needs_more_tools": False,
             }
-        if schema_name == "omnibar_agent_final":
+        if schema_name == "zopedia_agent_final":
             return {
                 "answer_markdown": "Evidence collection timed out, but the agent remained bounded.",
                 "confidence": "low",
                 "limitations": [],
                 "used_tool_call_ids": [],
             }
-        if schema_name == "omnibar_agent_judge":
+        if schema_name == "zopedia_agent_judge":
             return _judge_accept("Evidence collection timed out, but the agent remained bounded.", "low")
         raise AssertionError(f"Unexpected schema_name: {schema_name}")
 
@@ -361,7 +361,7 @@ class _SingleEvidenceHighConfidenceLLM:
 
     def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict[str, object]) -> dict[str, object]:
         del system_prompt, user_prompt, schema
-        if schema_name == "omnibar_agent_step":
+        if schema_name == "zopedia_agent_step":
             self.step_calls += 1
             if self.step_calls == 1:
                 return {
@@ -382,14 +382,14 @@ class _SingleEvidenceHighConfidenceLLM:
                 "confidence": "high",
                 "needs_more_tools": False,
             }
-        if schema_name == "omnibar_agent_final":
+        if schema_name == "zopedia_agent_final":
             return {
                 "answer_markdown": "A single source supports the direction.",
                 "confidence": "high",
                 "limitations": [],
                 "used_tool_call_ids": [],
             }
-        if schema_name == "omnibar_agent_judge":
+        if schema_name == "zopedia_agent_judge":
             return _judge_accept("A single source supports the direction.", "high")
         raise AssertionError(f"Unexpected schema_name: {schema_name}")
 
@@ -401,7 +401,7 @@ class _JudgeRevisionLLM:
 
     def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict[str, object]) -> dict[str, object]:
         del system_prompt, schema
-        if schema_name == "omnibar_agent_step":
+        if schema_name == "zopedia_agent_step":
             return {
                 "action": "final",
                 "reasoning": "Drafting before enough evidence.",
@@ -411,7 +411,7 @@ class _JudgeRevisionLLM:
                 "confidence": "high",
                 "needs_more_tools": False,
             }
-        if schema_name == "omnibar_agent_judge":
+        if schema_name == "zopedia_agent_judge":
             self.judge_prompts.append(user_prompt)
             return {
                 "verdict": "insufficient",
@@ -449,11 +449,11 @@ class _MemoryApplyLLM:
         }
 
 
-def test_run_omnibar_agent_uses_shared_tool_registry():
+def test__run_zopedia_agent_loop_uses_shared_tool_registry():
     service = _StubQueryService()
     llm = _StubLLM()
 
-    result = omnibar_agent.run_omnibar_agent(
+    result = omnibar_agent._run_zopedia_agent_loop(
         query="What was the latest CPI reading?",
         service=service,
         llm_client=llm,
@@ -471,8 +471,8 @@ def test_run_omnibar_agent_uses_shared_tool_registry():
     assert service.calls[0].name == "fred_dashboard"
 
 
-def test_run_omnibar_agent_caps_high_confidence_with_single_evidence_source():
-    result = omnibar_agent.run_omnibar_agent(
+def test__run_zopedia_agent_loop_caps_high_confidence_with_single_evidence_source():
+    result = omnibar_agent._run_zopedia_agent_loop(
         query="What is moving oil today?",
         service=_StubQueryService(),
         llm_client=_SingleEvidenceHighConfidenceLLM(),
@@ -485,11 +485,11 @@ def test_run_omnibar_agent_caps_high_confidence_with_single_evidence_source():
     assert "only one evidence source" in " ".join(result["limitations"]).lower()
 
 
-def test_run_omnibar_agent_answer_judge_can_revise_unsupported_draft():
+def test__run_zopedia_agent_loop_answer_judge_can_revise_unsupported_draft():
     events: list[dict[str, object]] = []
     llm = _JudgeRevisionLLM()
 
-    result = omnibar_agent.run_omnibar_agent(
+    result = omnibar_agent._run_zopedia_agent_loop(
         query="Will this company double next week?",
         service=_StubQueryService(),
         llm_client=llm,
@@ -509,7 +509,7 @@ def test_run_omnibar_agent_answer_judge_can_revise_unsupported_draft():
     assert any("Draft answer" in prompt for prompt in llm.judge_prompts)
 
 
-def test_run_omnibar_agent_reports_unavailable_llm(monkeypatch):
+def test__run_zopedia_agent_loop_reports_unavailable_llm(monkeypatch):
     captured_kwargs = {}
 
     def _fake_load(**kwargs):
@@ -518,7 +518,7 @@ def test_run_omnibar_agent_reports_unavailable_llm(monkeypatch):
 
     monkeypatch.setattr(omnibar_agent, "load_aql_zopedia_llm_client", _fake_load)
 
-    result = omnibar_agent.run_omnibar_agent(
+    result = omnibar_agent._run_zopedia_agent_loop(
         query="What changed in payrolls?",
         service=_StubQueryService(),
         llm_client=None,
@@ -529,7 +529,7 @@ def test_run_omnibar_agent_reports_unavailable_llm(monkeypatch):
     assert captured_kwargs == {"surface": "zopedia.agent"}
 
 
-def test_run_omnibar_agent_can_skip_persistence(monkeypatch):
+def test__run_zopedia_agent_loop_can_skip_persistence(monkeypatch):
     service = _StubQueryService()
     llm = _StubLLM()
     persisted = {"called": False}
@@ -539,7 +539,7 @@ def test_run_omnibar_agent_can_skip_persistence(monkeypatch):
 
     monkeypatch.setattr(omnibar_agent, "_persist_agent_findings", _fake_persist)
 
-    result = omnibar_agent.run_omnibar_agent(
+    result = omnibar_agent._run_zopedia_agent_loop(
         query="What was the latest CPI reading?",
         service=service,
         llm_client=llm,
@@ -644,10 +644,28 @@ def test_resolve_conversation_followup_query_turns_yes_into_actionable_context()
     assert "jet fuel is rising" in resolved
 
 
-def test_run_omnibar_agent_resolves_bare_yes_before_planning():
+def test_resolve_conversation_followup_query_turns_contextual_question_into_actionable_context():
+    resolved, did_resolve = omnibar_agent.resolve_conversation_followup_query(
+        "What about geopolitics?",
+        [
+            {"role": "user", "content": "What is happening with oil today? Why did it fall?"},
+            {
+                "role": "assistant",
+                "answer": "Oil fell today, but the live news search timed out and no catalyst was confirmed.",
+            },
+        ],
+    )
+
+    assert did_resolve is True
+    assert "contextual follow-up" in resolved
+    assert "What is happening with oil today" in resolved
+    assert "What about geopolitics?" in resolved
+
+
+def test__run_zopedia_agent_loop_resolves_bare_yes_before_planning():
     llm = _FollowupLLM()
 
-    result = omnibar_agent.run_omnibar_agent(
+    result = omnibar_agent._run_zopedia_agent_loop(
         query="yes",
         service=_StubQueryService(),
         llm_client=llm,
@@ -668,7 +686,7 @@ def test_run_omnibar_agent_resolves_bare_yes_before_planning():
     assert any("Previous assistant answer" in prompt for prompt in llm.prompts)
 
 
-def test_run_omnibar_agent_planner_uses_company_evidence_contract(monkeypatch):
+def test__run_zopedia_agent_loop_planner_uses_company_evidence_contract(monkeypatch):
     calls: list[tuple[str, dict[str, object]]] = []
 
     def _fake_invoke_tool(*, service, tool_name, arguments=None, run_id=""):
@@ -693,7 +711,7 @@ def test_run_omnibar_agent_planner_uses_company_evidence_contract(monkeypatch):
     monkeypatch.setattr(omnibar_agent, "invoke_tool", _fake_invoke_tool)
     llm = _CompanyEvidencePlannerLLM()
 
-    result = omnibar_agent.run_omnibar_agent(
+    result = omnibar_agent._run_zopedia_agent_loop(
         query="VRT: what is the company context and latest catalysts?",
         service=_StubQueryService(),
         llm_client=llm,
@@ -923,7 +941,7 @@ def test_hidden_prefetch_step_timeout_emits_progress():
     assert any(event.get("stage") == "hidden_step_timeout" for event in events)
 
 
-def test_run_omnibar_agent_bounds_prefetch_and_tool_calls(monkeypatch):
+def test__run_zopedia_agent_loop_bounds_prefetch_and_tool_calls(monkeypatch):
     original_get_config_param = omnibar_agent.get_config_param
 
     def _fake_get_config_param(param):
@@ -953,7 +971,7 @@ def test_run_omnibar_agent_bounds_prefetch_and_tool_calls(monkeypatch):
     monkeypatch.setattr(omnibar_agent, "invoke_tool", _fake_invoke_tool)
 
     started = time.monotonic()
-    result = omnibar_agent.run_omnibar_agent(
+    result = omnibar_agent._run_zopedia_agent_loop(
         query="Are STRL, ECG, and PRIM all related to the AI datacenter buildout?",
         service=_StubQueryService(),
         llm_client=_TimeoutToolPlannerLLM(),
@@ -977,8 +995,8 @@ def test_final_prompt_lightly_prefers_supporting_sources():
     assert "Do not turn the answer into a citation list." in prompt
 
 
-def test_run_omnibar_agent_sanitizes_transient_transport_drop_after_tools():
-    result = omnibar_agent.run_omnibar_agent(
+def test__run_zopedia_agent_loop_sanitizes_transient_transport_drop_after_tools():
+    result = omnibar_agent._run_zopedia_agent_loop(
         query="What changed in macro data?",
         service=_StubQueryService(),
         llm_client=_FinalSynthesisTransportDropLLM(),
@@ -1016,6 +1034,21 @@ def test_summarize_tool_result_exposes_analysis_render_payload():
     assert "Zopedia analysis run" in summary["llm_context_text"]
 
 
+def test_tool_summary_omits_raw_text_from_generic_object_preview():
+    raw_text = "\n".join(f"raw line {idx}" for idx in range(100))
+    summary = omnibar_agent._summarize_tool_result(
+        {
+            "result_type": "dataset",
+            "payload": {"title": "Retained document", "raw_text": raw_text},
+            "provenance": {"mode": "computed", "datasets": ["saa_documents"]},
+        }
+    )
+
+    assert "Retained document" in summary["preview_text"]
+    assert "raw line 99" not in summary["preview_text"]
+    assert "raw text omitted" in summary["preview_text"]
+
+
 def test_tool_summary_includes_empty_result_messages_for_planner():
     summary = omnibar_agent._summarize_tool_result(
         {
@@ -1051,6 +1084,52 @@ def test_tool_summary_keeps_small_market_baskets_visible():
 
     assert "SYM1" in summary["preview_text"]
     assert "SYM6" in summary["preview_text"]
+
+
+def test_tool_summary_builds_long_term_context_from_momentum_profiles():
+    summary = omnibar_agent._summarize_tool_result(
+        {
+            "request": {"operation": "dataset", "name": "momentum_profiles", "params": {}},
+            "result_type": "dataset",
+            "payload": [
+                {
+                    "symbol": "APLD",
+                    "close": 46.88,
+                    "return_1w_pct": 10.2,
+                    "return_1m_pct": 31.0,
+                    "return_3m_pct": 49.7,
+                    "return_1y_pct": 514.2,
+                    "sparkline_3m": [1.0, 2.0, 3.0],
+                }
+            ],
+            "provenance": {"mode": "materialized", "datasets": ["momentum_profiles"], "details": {}},
+            "messages": [],
+        }
+    )
+
+    assert "Momentum profiles returned 1 row" in summary["llm_context_text"]
+    assert "APLD" in summary["llm_context_text"]
+    assert "1Y=514.2%" in summary["llm_context_text"]
+
+
+def test_tool_summary_builds_price_history_window_context():
+    summary = omnibar_agent._summarize_tool_result(
+        {
+            "request": {"operation": "dataset", "name": "price_history", "params": {"ticker": "APLD"}},
+            "result_type": "dataset",
+            "payload": [
+                {"symbol": "APLD", "timestamp": "2025-05-22T04:00:00+00:00", "close": 7.47},
+                {"symbol": "APLD", "timestamp": "2025-05-23T04:00:00+00:00", "close": 7.35},
+                {"symbol": "APLD", "timestamp": "2026-05-21T04:00:00+00:00", "close": 46.88},
+            ],
+            "provenance": {"mode": "materialized", "datasets": ["price_history"], "details": {}},
+            "messages": [],
+        }
+    )
+
+    assert "Price history returned 3 row" in summary["llm_context_text"]
+    assert "from 2025-05-22 to 2026-05-21" in summary["llm_context_text"]
+    assert "return=527.6%" in summary["llm_context_text"]
 
 
 def test_market_impact_recovery_requires_observed_market_data_before_final():

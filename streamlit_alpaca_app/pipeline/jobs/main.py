@@ -58,6 +58,13 @@ from services.market_data import (
 )
 from services.aql_zopedia_engine import load_aql_zopedia_llm_client
 from services.options import build_option_snapshot_surface, load_option_chain
+from services.page_agentic_summary import (
+    broad_economy_overview_from_fred_summary,
+    broad_economy_summary_context,
+    build_materialized_page_agentic_summary_row,
+    build_page_agentic_summary,
+    build_unavailable_page_agentic_summary,
+)
 from services.pipeline_store import load_latest_dataset_frame
 from services.saa import (
     bootstrap_saa_storage,
@@ -791,6 +798,56 @@ def _load_latest_materialized_frame(dataset_name: str) -> pd.DataFrame:
     return frame.copy() if isinstance(frame, pd.DataFrame) else pd.DataFrame()
 
 
+def _build_broad_economy_page_summary_frame(
+    *,
+    ctx: JobContext,
+    fred_summary_frame: pd.DataFrame,
+    fred_release_index_frame: pd.DataFrame,
+) -> pd.DataFrame:
+    overview = broad_economy_overview_from_fred_summary(fred_summary_frame)
+    if overview.empty:
+        return pd.DataFrame()
+
+    lookback_years_raw = (os.getenv("FRED_LOOKBACK_YEARS") or "10").strip()
+    try:
+        lookback_years = max(int(lookback_years_raw), 1)
+    except Exception:
+        lookback_years = 10
+    context = broad_economy_summary_context(
+        overview=overview,
+        release_index=fred_release_index_frame,
+        lookback_years=lookback_years,
+    )
+
+    try:
+        llm_client = load_aql_zopedia_llm_client(surface="broad_economy.page_summary")
+    except Exception as exc:
+        print(f"[warn] Broad Economy Zopedia Summary LLM unavailable: {type(exc).__name__}: {exc}")
+        llm_client = None
+
+    try:
+        summary = build_page_agentic_summary(
+            surface="Broad Economy",
+            context=context,
+            llm_client=llm_client,
+        )
+    except Exception as exc:
+        summary = build_unavailable_page_agentic_summary(
+            surface="Broad Economy",
+            reason=f"Broad Economy summary failed: {type(exc).__name__}: {exc}",
+        )
+
+    row = build_materialized_page_agentic_summary_row(
+        surface="Broad Economy",
+        context=context,
+        summary=summary,
+        generated_at_utc=ctx.asof,
+        run_id=ctx.run_id,
+        context_label="Latest FRED snapshot",
+    )
+    return pd.DataFrame([row])
+
+
 def _load_attention_positions(api: AlpacaAPI) -> pd.DataFrame:
     try:
         positions = api.get_positions()
@@ -1397,6 +1454,24 @@ def run_fred(ctx: JobContext, conn: Any | None = None) -> None:
             _persist_dataset("fred_observations", observations, ctx, conn)
             _persist_dataset("fred_series_index", series_index, ctx, conn)
             _persist_dataset("fred_release_index", release_index, ctx, conn)
+            try:
+                _job_progress(
+                    ctx,
+                    conn,
+                    stage="broad_economy_summary",
+                    message="Building Broad Economy Zopedia Summary.",
+                    progress_pct=55.0,
+                )
+                broad_summary_frame = _build_broad_economy_page_summary_frame(
+                    ctx=ctx,
+                    fred_summary_frame=summary,
+                    fred_release_index_frame=release_index,
+                )
+                _persist_dataset("page_agentic_summaries", broad_summary_frame, ctx, conn)
+            except Exception as exc:
+                message = f"Broad Economy Zopedia Summary failed: {type(exc).__name__}: {exc}"
+                print(f"[warn] {message}")
+                errors.append(message)
         except FredAPIError as exc:
             message = f"FRED preload failed: {exc}"
             print(f"[error] {message}")
