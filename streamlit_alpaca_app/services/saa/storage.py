@@ -12,7 +12,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 import pandas as pd
 
 from services.llm import load_embedding_client
-from services.secrets import build_azure_credential, resolve_secret_value
+from services.secrets import build_azure_credential, postgres_connect_timeout_seconds, resolve_secret_value
 
 
 try:
@@ -190,6 +190,24 @@ def _safe_json_vector(value: object) -> list[float]:
     return vector
 
 
+def _safe_datetime_series(values: pd.Series) -> pd.Series:
+    def normalize(value: object) -> str:
+        text = _coerce_text(value)
+        if not text:
+            return ""
+        match = re.match(r"^([+-]?\d{1,})-", text)
+        if match:
+            try:
+                year = int(match.group(1))
+            except Exception:
+                return ""
+            if year < 1 or year > 9999:
+                return ""
+        return text
+
+    return pd.to_datetime(values.map(normalize), utc=True, errors="coerce", format="mixed")
+
+
 def _normalized_tokens(value: object) -> list[str]:
     return [token for token in re.split(r"[^a-z0-9]+", _coerce_text(value).lower()) if len(token) >= 2]
 
@@ -281,7 +299,7 @@ def _db_connection() -> Any | None:
     if not conn_str or psycopg is None:
         return None
     try:
-        return psycopg.connect(conn_str)
+        return psycopg.connect(conn_str, connect_timeout=postgres_connect_timeout_seconds())
     except Exception:
         return None
 
@@ -1127,7 +1145,7 @@ def _frame_from_retained_chunk_rows(rows: list[tuple[Any, ...]]) -> pd.DataFrame
     if frame.empty:
         return frame
     for column in ("published_at", "asof_time_utc"):
-        frame[column] = pd.to_datetime(frame[column], utc=True, errors="coerce")
+        frame[column] = _safe_datetime_series(frame[column])
     for json_column, list_column in (
         ("mentioned_tickers_json", "mentioned_tickers"),
         ("mentioned_commodities_json", "mentioned_commodities"),
@@ -1420,7 +1438,7 @@ def _frame_from_retained_rows(rows: list[tuple[Any, ...]]) -> pd.DataFrame:
     if frame.empty:
         return frame
     for column in ("published_at", "last_asof_time_utc"):
-        frame[column] = pd.to_datetime(frame[column], utc=True, errors="coerce")
+        frame[column] = _safe_datetime_series(frame[column])
     for json_column, list_column in (
         ("mentioned_tickers_json", "mentioned_tickers"),
         ("mentioned_commodities_json", "mentioned_commodities"),
@@ -1646,9 +1664,9 @@ def load_retained_document_metadata(
                 SELECT
                     canonical_document_id, canonical_url, url_host, title, display_excerpt, search_text,
                     source_kind, source_provider, search_provider, bundle_subject, source_authority_bucket,
-                    authority_rank, published_at, published_date, primary_date, raw_text_blob_path,
+                    authority_rank, published_at::text AS published_at, published_date, primary_date, raw_text_blob_path,
                     raw_text_chars, raw_text_origin, last_document_id, last_dataset_name,
-                    last_dataset_version_id, last_run_id, last_asof_time_utc, mentioned_tickers_json::text,
+                    last_dataset_version_id, last_run_id, last_asof_time_utc::text AS last_asof_time_utc, mentioned_tickers_json::text,
                     mentioned_tickers_key, mentioned_commodities_json::text, mentioned_commodities_key,
                     event_tags_json::text, event_tags_key, mentioned_dates_json::text, mentioned_dates_key,
                     metadata_json::text
@@ -1722,9 +1740,9 @@ def search_retained_documents(
                 SELECT
                     canonical_document_id, canonical_url, url_host, title, display_excerpt, search_text,
                     source_kind, source_provider, search_provider, bundle_subject, source_authority_bucket,
-                    authority_rank, published_at, published_date, primary_date, raw_text_blob_path,
+                    authority_rank, published_at::text AS published_at, published_date, primary_date, raw_text_blob_path,
                     raw_text_chars, raw_text_origin, last_document_id, last_dataset_name,
-                    last_dataset_version_id, last_run_id, last_asof_time_utc, mentioned_tickers_json::text,
+                    last_dataset_version_id, last_run_id, last_asof_time_utc::text AS last_asof_time_utc, mentioned_tickers_json::text,
                     mentioned_tickers_key, mentioned_commodities_json::text, mentioned_commodities_key,
                     event_tags_json::text, event_tags_key, mentioned_dates_json::text, mentioned_dates_key,
                     metadata_json::text

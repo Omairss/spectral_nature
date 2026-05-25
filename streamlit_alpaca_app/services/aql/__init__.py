@@ -72,6 +72,7 @@ from .summarizer import (
     build_attention_home_narrative_beats,
     build_attention_home_summary,
     build_attention_home_summary_payload,
+    build_market_stories,
     verify_hypothesis,
 )
 from .critique import critique_home_summary, judge_revise_summary
@@ -107,6 +108,7 @@ __all__ = [
     "bootstrap_chat_log",
     "build_bottom_up_attention_bundle",
     "build_bottom_up_attention_home",
+    "build_market_stories",
     "count_chat_sessions",
     "critique_home_summary",
     "judge_revise_summary",

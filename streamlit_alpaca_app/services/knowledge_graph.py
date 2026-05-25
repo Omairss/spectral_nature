@@ -18,7 +18,7 @@ import plotly.graph_objects as go
 
 from .dependency_graphs import load_dependency_graph_payloads
 from .llm import LLMAPIError, load_embedding_client
-from .secrets import resolve_secret_value
+from .secrets import postgres_connect_timeout_seconds, resolve_secret_value
 from .web_research import (
     SerpAPISearchClient,
     TavilySearchClient,
@@ -239,7 +239,7 @@ def _db_connect() -> Any | None:
     if not conn_str or psycopg is None:
         return None
     try:
-        return psycopg.connect(conn_str)
+        return psycopg.connect(conn_str, connect_timeout=postgres_connect_timeout_seconds())
     except Exception:
         return None
 

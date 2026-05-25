@@ -28,7 +28,6 @@ from services import attention_context_llm as context_llm  # noqa: F401
 from services import attention_graph_network as graph_network  # noqa: F401
 from services import attention_graph_topology as graph_topology  # noqa: F401
 from services import attention_home_1d as home_1d  # noqa: F401
-from services import attention_home_summary as home_summary  # noqa: F401
 from services import attention_live_research as live_research  # noqa: F401
 from services import attention_market_events as market_events  # noqa: F401
 from services import attention_materialized as materialized  # noqa: F401

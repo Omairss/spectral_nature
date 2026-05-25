@@ -33,11 +33,11 @@ INVITE_EMAIL_UPLOAD_MAX_BYTES = 4 * 1024 * 1024
 INVITE_EMAIL_UPLOAD_ALLOWED_MIME_TYPES = {"image/png", "image/gif"}
 _TRUE_VALUES = {"1", "true", "yes", "on"}
 INVITE_EMAIL_THEME_WHITE_DEFAULT: dict[str, Any] = {
-    "kicker": "Private Client Workspace Access",
-    "headline": "Your account invite is ready",
-    "intro_text": "Activate your account to review market intelligence, portfolio context, and daily research in a single workspace.",
+    "kicker": "Spectral Nature",
+    "headline": "Activate your account",
+    "intro_text": "Use this link to finish setting up your account.",
     "cta_label": "Activate account",
-    "graph_caption": "Signal quality typically improves over the first few sessions as market and portfolio context is layered in.",
+    "graph_caption": "",
     "footer_note": "If you did not expect this invitation, you can safely ignore this message.",
     "background_color": "#f3f4f6",
     "card_background_color": "#ffffff",
@@ -51,11 +51,11 @@ INVITE_EMAIL_THEME_WHITE_DEFAULT: dict[str, Any] = {
     "show_graph": True,
 }
 INVITE_EMAIL_THEME_DARK_DEFAULT: dict[str, Any] = {
-    "kicker": "Private Client Workspace Access",
-    "headline": "Your account invite is ready",
-    "intro_text": "Activate your account to review market intelligence, portfolio context, and daily research in a single workspace.",
+    "kicker": "Spectral Nature",
+    "headline": "Activate your account",
+    "intro_text": "Use this link to finish setting up your account.",
     "cta_label": "Activate account",
-    "graph_caption": "Signal quality typically improves over the first few sessions as market and portfolio context is layered in.",
+    "graph_caption": "",
     "footer_note": "If you did not expect this invitation, you can safely ignore this message.",
     "background_color": "#0b1220",
     "card_background_color": "#111827",

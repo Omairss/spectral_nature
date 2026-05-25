@@ -140,7 +140,7 @@ def test_live_event_evidence_returns_partial_when_internal_impact_map_times_out(
         import time
 
         del args, kwargs
-        time.sleep(1.0)
+        time.sleep(2.0)
         return {"theme": "oil", "expected_direction": "down", "focus_symbols": ["USO"], "summary": []}
 
     def _fake_search_market_event_news_payload(event, *, max_results, serp_client=None, tavily_client=None, **kwargs):

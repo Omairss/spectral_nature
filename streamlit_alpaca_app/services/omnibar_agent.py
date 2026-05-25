@@ -703,7 +703,7 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
         explicit_context = _clean(payload.get("llm_context_text"))
         if explicit_context:
             llm_context_text = _truncate(explicit_context, limit=int(get_config_param(_P_TOOL_RESULT_CONTEXT_LIMIT)))
-        elif isinstance(payload.get("homepage_summary"), dict):
+        elif isinstance(payload.get("top_events"), list):
             llm_context_text = _truncate(
                 _attention_home_llm_context(payload),
                 limit=int(get_config_param(_P_TOOL_RESULT_CONTEXT_LIMIT)),
@@ -841,14 +841,6 @@ def _attention_home_llm_context(payload: dict[str, Any]) -> str:
                 counts.append(f"{value} {label}")
         if counts:
             lines.append("Coverage: " + ", ".join(counts) + ".")
-    homepage_summary = payload.get("homepage_summary")
-    if isinstance(homepage_summary, dict):
-        headline = _clean(homepage_summary.get("headline"))
-        summary_text = _clean(homepage_summary.get("summary_text"))
-        if headline:
-            lines.append(f"Homepage headline: {headline}.")
-        if summary_text:
-            lines.append(summary_text)
     top_events = payload.get("top_events")
     if isinstance(top_events, list) and top_events:
         lines.append("Top events:")

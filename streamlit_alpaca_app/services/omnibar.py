@@ -7,7 +7,7 @@ import uuid
 from typing import Any
 
 from data_access.layer import DataAccessLayer
-from services.attention_home_summary import build_attention_home_narrative_beats
+from services.aql import build_market_stories
 
 
 OMNIBAR_POLICY_VERSION = "streamlit-agentic-omnibar-v1"
@@ -54,7 +54,7 @@ OMNIBAR_MACRO_RELEASES: tuple[dict[str, object], ...] = (
 @dataclass(frozen=True)
 class OmnibarContext:
     home_payload: dict[str, Any]
-    beats: list[dict[str, object]]
+    stories: list[dict[str, object]]
     symbol_catalog: dict[str, dict[str, object]]
 
 
@@ -144,15 +144,15 @@ def _load_symbol_name_map(
 
 
 def _build_symbol_catalog(
-    beats: list[dict[str, object]],
+    stories: list[dict[str, object]],
     symbol_name_map: dict[str, str],
 ) -> dict[str, dict[str, object]]:
     catalog: dict[str, dict[str, object]] = {}
-    for beat in beats:
-        bundle_id = _normalize_text(beat.get("bundle_id"))
-        sentence = _normalize_text(beat.get("sentence"))
-        summary = _normalize_text(beat.get("summary"))
-        for raw_symbol in list(beat.get("symbols") or []):
+    for story in stories:
+        bundle_id = _normalize_text(story.get("bundle_id"))
+        sentence = _normalize_text(story.get("sentence"))
+        summary = _normalize_text(story.get("summary"))
+        for raw_symbol in list(story.get("symbols") or []):
             symbol = str(raw_symbol or "").upper().strip()
             if not symbol:
                 continue
@@ -162,14 +162,14 @@ def _build_symbol_catalog(
                     "symbol": symbol,
                     "company_name": "",
                     "bundle_ids": [],
-                    "beat_titles": [],
+                    "story_titles": [],
                     "summaries": [],
                 },
             )
             if bundle_id and bundle_id not in entry["bundle_ids"]:
                 entry["bundle_ids"].append(bundle_id)
-            if sentence and sentence not in entry["beat_titles"]:
-                entry["beat_titles"].append(sentence)
+            if sentence and sentence not in entry["story_titles"]:
+                entry["story_titles"].append(sentence)
             if summary and summary not in entry["summaries"]:
                 entry["summaries"].append(summary)
     for symbol, entry in catalog.items():
@@ -189,12 +189,12 @@ def build_omnibar_context(
         home_payload = {}
     if not isinstance(home_payload, dict):
         home_payload = {}
-    beats = build_attention_home_narrative_beats(home_payload if isinstance(home_payload, dict) else {})
+    stories = build_market_stories(home_payload if isinstance(home_payload, dict) else {})
     tracked_symbols = sorted(
         {
             str(symbol).upper().strip()
-            for beat in beats
-            for symbol in list(beat.get("symbols") or [])
+            for story in stories
+            for symbol in list(story.get("symbols") or [])
             if str(symbol).strip()
         }
     )
@@ -203,10 +203,10 @@ def build_omnibar_context(
         tracked_symbols,
         force_refresh=force_refresh,
     ) if tracked_symbols else {}
-    symbol_catalog = _build_symbol_catalog(beats, symbol_name_map)
+    symbol_catalog = _build_symbol_catalog(stories, symbol_name_map)
     return OmnibarContext(
         home_payload=home_payload,
-        beats=beats,
+        stories=stories,
         symbol_catalog=symbol_catalog,
     )
 
@@ -215,7 +215,7 @@ def _build_results(
     *,
     layer: DataAccessLayer,
     query: str,
-    beats: list[dict[str, object]],
+    stories: list[dict[str, object]],
     symbol_catalog: dict[str, dict[str, object]],
     force_refresh: bool = False,
 ) -> list[dict[str, object]]:
@@ -237,7 +237,7 @@ def _build_results(
                 "symbol": exact_symbol,
                 "company_name": _normalize_text(fallback_name_map.get(exact_symbol)),
                 "bundle_ids": [],
-                "beat_titles": [],
+                "story_titles": [],
                 "summaries": [],
             }
         company_name = _normalize_text(symbol_entry.get("company_name"))
@@ -281,13 +281,13 @@ def _build_results(
             }
         )
 
-    for beat in beats:
-        bundle_id = _normalize_text(beat.get("bundle_id"))
-        sentence = _normalize_text(beat.get("sentence"))
-        summary = _normalize_text(beat.get("summary"))
+    for story in stories:
+        bundle_id = _normalize_text(story.get("bundle_id"))
+        sentence = _normalize_text(story.get("sentence"))
+        summary = _normalize_text(story.get("summary"))
         score = 1.0 if bundle_id and normalized_query == bundle_id else _match_score(
             normalized_query,
-            [sentence, summary, " ".join(list(beat.get("symbols") or [])), bundle_id],
+            [sentence, summary, " ".join(list(story.get("symbols") or [])), bundle_id],
         )
         if score < 0.46:
             continue
@@ -301,7 +301,7 @@ def _build_results(
                 "bundle_id": bundle_id,
                 "symbols": [
                     str(item).upper().strip()
-                    for item in list(beat.get("symbols") or [])
+                    for item in list(story.get("symbols") or [])
                     if str(item).strip()
                 ],
             }
@@ -316,7 +316,7 @@ def _build_results(
             [
                 symbol,
                 company_name,
-                " ".join(list(entry.get("beat_titles") or [])),
+                " ".join(list(entry.get("story_titles") or [])),
                 " ".join(list(entry.get("summaries") or [])),
             ],
         )
@@ -325,9 +325,9 @@ def _build_results(
         subtitle_parts: list[str] = []
         if company_name:
             subtitle_parts.append(company_name)
-        beat_titles = list(entry.get("beat_titles") or [])
-        if beat_titles:
-            subtitle_parts.append(_trim_text(beat_titles[0], limit=96))
+        story_titles = list(entry.get("story_titles") or [])
+        if story_titles:
+            subtitle_parts.append(_trim_text(story_titles[0], limit=96))
         results.append(
             {
                 "kind": "symbol",
@@ -413,7 +413,7 @@ def resolve_omnibar(
     search_results = _build_results(
         layer=resolved_layer,
         query=normalized_query,
-        beats=context.beats,
+        stories=context.stories,
         symbol_catalog=context.symbol_catalog,
         force_refresh=force_refresh,
     )
@@ -475,22 +475,22 @@ def list_omnibar_suggestions(
         resolved_layer = layer or DataAccessLayer.from_environment()
         context = build_omnibar_context(layer=resolved_layer, force_refresh=force_refresh)
     except Exception:
-        context = OmnibarContext(home_payload={}, beats=[], symbol_catalog={})
+        context = OmnibarContext(home_payload={}, stories=[], symbol_catalog={})
 
     suggestions: list[dict[str, object]] = []
     seen_queries: set[str] = set()
 
-    for beat in context.beats[:safe_limit]:
-        query = _normalize_text(beat.get("bundle_id") or beat.get("sentence"))
+    for story in context.stories[:safe_limit]:
+        query = _normalize_text(story.get("bundle_id") or story.get("sentence"))
         if not query or query in seen_queries:
             continue
         seen_queries.add(query)
         suggestions.append(
             {
-                "kind": str(beat.get("kind") or "bundle"),
+                "kind": str(story.get("kind") or "bundle"),
                 "query": query,
-                "label": _normalize_text(beat.get("sentence")) or query,
-                "subtitle": _trim_text(beat.get("summary"), limit=140),
+                "label": _normalize_text(story.get("sentence")) or query,
+                "subtitle": _trim_text(story.get("summary"), limit=140),
             }
         )
         if len(suggestions) >= safe_limit:

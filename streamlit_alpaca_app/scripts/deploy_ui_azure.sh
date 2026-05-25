@@ -562,9 +562,10 @@ ${dev_row}
 - UI container apps live in resource group \`${RESOURCE_GROUP}\`.
 - Both apps use the same managed identity and Key Vault-based auth configuration.
 - Browser session persistence is **on by default**. Disable with \`UI_DISABLE_BROWSER_SESSION_COOKIE=1\`. The legacy \`UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE=0\` also disables it.
-- Development UI deploys default to automatic web layout (\`STREAMLIT_MOBILE_UI_ENABLED=true\`, \`STREAMLIT_LAYOUT_MODE_DEFAULT=auto\`) unless the deploy command explicitly overrides those vars.
+- UI deploys default to automatic web layout (\`STREAMLIT_MOBILE_UI_ENABLED=true\`, \`STREAMLIT_LAYOUT_MODE_DEFAULT=auto\`) unless the deploy command explicitly overrides those vars.
 - Sidebar now displays \`Environment: production\` or \`Environment: development\` via \`APP_TRACK\`.
 - Keep Production stable by avoiding direct experimental changes to \`${PROD_CONTAINER_APP}\`.
+- Custom-domain health must be checked on the exact hostname users open, including DNS, \`/_stcore/health\`, and a browser WebSocket session. Azure custom-domain binding alone is not enough proof.
 EOF
 }
 
@@ -648,15 +649,13 @@ if [[ -n "$PROMOTE_FROM" ]]; then
 fi
 TARGET_TRACK_VALUE="development"
 TARGET_CACHE_DISABLED_VALUE="true"
-if [[ "$TARGET" == "dev" ]]; then
-  # Dev is where the mobile web UI is validated. Keep it on unless a deploy
-  # command explicitly opts out with STREAMLIT_* env overrides.
-  if ! requested_env_override_present "STREAMLIT_MOBILE_UI_ENABLED"; then
-    STREAMLIT_MOBILE_UI_ENABLED="true"
-  fi
-  if ! requested_env_override_present "STREAMLIT_LAYOUT_MODE_DEFAULT"; then
-    STREAMLIT_LAYOUT_MODE_DEFAULT="auto"
-  fi
+# Mobile web is a product runtime setting, not a one-off Azure edit. Keep it on
+# for both dev and prod unless a deploy command explicitly opts out.
+if ! requested_env_override_present "STREAMLIT_MOBILE_UI_ENABLED"; then
+  STREAMLIT_MOBILE_UI_ENABLED="true"
+fi
+if ! requested_env_override_present "STREAMLIT_LAYOUT_MODE_DEFAULT"; then
+  STREAMLIT_LAYOUT_MODE_DEFAULT="auto"
 fi
 #
 # Keep force refresh disabled by default in both dev and prod. For snapshot-first
@@ -706,8 +705,8 @@ TARGET_EMBEDDING_DEPLOYMENT_VALUE="$(existing_or_override_or_source_env "$TARGET
 TARGET_PIPELINE_CACHE_MAX_BYTES_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "PIPELINE_CACHE_MAX_BYTES" "${PIPELINE_CACHE_MAX_BYTES:-}" "$PROMOTION_SOURCE_APP")"
 TARGET_PIPELINE_RESOURCE_GROUP_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "PIPELINE_RESOURCE_GROUP" "${PIPELINE_RESOURCE_GROUP:-${RESOURCE_GROUP:-}}" "$PROMOTION_SOURCE_APP")"
 TARGET_AZURE_SUBSCRIPTION_ID_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "AZURE_SUBSCRIPTION_ID" "${AZURE_SUBSCRIPTION_ID:-}" "$PROMOTION_SOURCE_APP")"
-TARGET_STREAMLIT_MOBILE_UI_ENABLED_VALUE="$(existing_or_override_env "$TARGET_APP" "STREAMLIT_MOBILE_UI_ENABLED" "${STREAMLIT_MOBILE_UI_ENABLED:-}")"
-TARGET_STREAMLIT_LAYOUT_MODE_DEFAULT_VALUE="$(existing_or_override_env "$TARGET_APP" "STREAMLIT_LAYOUT_MODE_DEFAULT" "${STREAMLIT_LAYOUT_MODE_DEFAULT:-}")"
+TARGET_STREAMLIT_MOBILE_UI_ENABLED_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "STREAMLIT_MOBILE_UI_ENABLED" "${STREAMLIT_MOBILE_UI_ENABLED:-}" "$PROMOTION_SOURCE_APP")"
+TARGET_STREAMLIT_LAYOUT_MODE_DEFAULT_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "STREAMLIT_LAYOUT_MODE_DEFAULT" "${STREAMLIT_LAYOUT_MODE_DEFAULT:-}" "$PROMOTION_SOURCE_APP")"
 
 if [[ -n "$PROMOTE_FROM" ]]; then
   log "[1/5] Resolving image from ${PROMOTION_SOURCE_APP}"

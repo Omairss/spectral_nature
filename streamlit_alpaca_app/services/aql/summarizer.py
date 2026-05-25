@@ -908,88 +908,6 @@ _HYPOTHESIS_VERIFICATION_SYSTEM_PROMPT = register_narrative_prompt(
     ),
 )
 
-def verify_hypothesis(
-    *,
-    hypothesis: str,
-    claims: list[dict[str, Any]],
-    beats: list[dict[str, object]],
-    llm_client: LLMClient,
-    signal_context: str = "",
-) -> dict[str, Any]:
-    """Grade a hypothesis against its supporting claims and beats.
-
-    Returns a verification dict with verdict, confidence, supporting/contradicting
-    claims, gap_queries, and reasoning. Falls back to a heuristic verdict when the
-    LLM is unavailable or fails.
-    """
-    claim_rows = [
-        {
-            "claim_text": _coerce_text(item.get("claim_text")),
-            "claim_type": _coerce_text(item.get("claim_type")),
-            "source": _coerce_text(item.get("source")),
-            "freshness_class": _coerce_text(item.get("freshness_class")),
-            "confidence_score": float(item.get("confidence_score") or 0.0),
-            "relevance_score": float(item.get("relevance_score") or 0.0),
-            "causal_score": float(item.get("causal_score") or 0.0),
-            "is_same_day": bool(item.get("is_same_day")),
-        }
-        for item in claims
-        if _coerce_text(item.get("claim_text"))
-    ]
-    if not claim_rows:
-        return _heuristic_verification(hypothesis, claims)
-
-    beat_rows = [
-        {
-            "kind": _coerce_text(beat.get("kind")),
-            "sentence": _coerce_text(beat.get("sentence")),
-            "symbols": [str(s).upper().strip() for s in list(beat.get("symbols") or []) if str(s).strip()],
-        }
-        for beat in (beats or [])[:6]
-    ]
-    user_data: dict[str, Any] = {
-        "hypothesis": hypothesis,
-        "claims": claim_rows[:12],
-        "beats": beat_rows,
-    }
-    if signal_context:
-        user_data["signal_context"] = _trim_text(signal_context, limit=800)
-
-    try:
-        data = llm_client.generate_json(
-            system_prompt=get_prompt(_HYPOTHESIS_VERIFICATION_SYSTEM_PROMPT),
-            user_prompt=json.dumps(user_data, ensure_ascii=False, default=str),
-            schema_name="hypothesis_verification",
-            schema=HYPOTHESIS_VERIFICATION_SCHEMA,
-        )
-    except (LLMAPIError, Exception):
-        return _heuristic_verification(hypothesis, claims)
-
-    verdict = _coerce_text(data.get("verdict")).lower()
-    if verdict not in {"supported", "weak", "conflicting", "unsupported"}:
-        verdict = "weak"
-    confidence = _coerce_text(data.get("confidence")).lower()
-    if confidence not in {"high", "medium", "low"}:
-        confidence = "low"
-
-    gap_queries: list[dict[str, str]] = []
-    for item in list(data.get("gap_queries") or []):
-        if isinstance(item, dict):
-            query = _coerce_text(item.get("query"))
-            rationale = _coerce_text(item.get("rationale"))
-            if query:
-                gap_queries.append({"query": query, "rationale": rationale})
-
-    return {
-        "verdict": verdict,
-        "confidence": confidence,
-        "supporting_claims": [_coerce_text(c) for c in list(data.get("supporting_claims") or []) if _coerce_text(c)],
-        "contradicting_claims": [_coerce_text(c) for c in list(data.get("contradicting_claims") or []) if _coerce_text(c)],
-        "gap_queries": gap_queries,
-        "reasoning": _coerce_text(data.get("reasoning")),
-    }
-
-
 def _heuristic_verification(hypothesis: str, claims: list[dict[str, Any]]) -> dict[str, Any]:
     """Score-based fallback when LLM verification is unavailable."""
     if not claims:
@@ -1148,7 +1066,7 @@ def build_attention_agentic_summary_with_trace(
     verification = verify_hypothesis(
         hypothesis=hypothesis,
         claims=claims,
-        beats=list(base_summary.get("beats") or []),
+        stories=list(base_summary.get("beats") or []),
         llm_client=llm_client,
         signal_context=signal_context,
     )
@@ -1311,6 +1229,8 @@ def attach_attention_home_summary_audio(
 verify_hypothesis = _common_verify_hypothesis
 _heuristic_verification = _common_heuristic_verification
 
+build_market_stories = build_attention_home_narrative_beats
+
 
 __all__ = [
     "attach_attention_home_summary_audio",
@@ -1319,5 +1239,6 @@ __all__ = [
     "build_attention_home_narrative_beats",
     "build_attention_home_summary",
     "build_attention_home_summary_payload",
+    "build_market_stories",
     "verify_hypothesis",
 ]

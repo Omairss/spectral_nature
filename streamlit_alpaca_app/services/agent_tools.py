@@ -63,7 +63,7 @@ def _hypothesis_tools() -> list[dict[str, Any]]:
                             "required": ["claim_text"],
                         },
                     },
-                    "beats": {
+                    "stories": {
                         "type": "array",
                         "items": {
                             "type": "object",
@@ -1185,18 +1185,18 @@ def _invoke_hypothesis_tool(
             for c in list(args.get("claims") or [])
             if str(c.get("claim_text") or "").strip()
         ]
-        beats = [
+        stories = [
             {
-                "kind": "beat",
+                "kind": "story",
                 "sentence": str(b.get("sentence") or ""),
                 "symbols": list(b.get("symbols") or []),
             }
-            for b in list(args.get("beats") or [])
+            for b in list(args.get("stories") or args.get("beats") or [])
         ]
         result = verify_hypothesis(
             hypothesis=str(args.get("hypothesis") or ""),
             claims=claims,
-            beats=beats,
+            stories=stories,
             llm_client=llm_client,
         )
         return {

@@ -16,7 +16,7 @@ def _summary_fixture() -> dict:
         "must_read_count": 1,
         "unresolved_count": 0,
         "featured_symbols": ["BNO"],
-        "beats": [],
+        "stories": [],
     }
 
 

@@ -17,7 +17,7 @@ def test_missing_layout_query_clears_stale_session_override():
 def test_dev_ui_deploy_defaults_to_auto_layout_unless_explicitly_overridden():
     source = DEPLOY_SCRIPT.read_text(encoding="utf-8")
 
-    assert 'if [[ "$TARGET" == "dev" ]]; then' in source
+    assert "for both dev and prod unless a deploy command explicitly opts out" in source
     assert 'if ! requested_env_override_present "STREAMLIT_MOBILE_UI_ENABLED"; then' in source
     assert 'STREAMLIT_MOBILE_UI_ENABLED="true"' in source
     assert 'if ! requested_env_override_present "STREAMLIT_LAYOUT_MODE_DEFAULT"; then' in source

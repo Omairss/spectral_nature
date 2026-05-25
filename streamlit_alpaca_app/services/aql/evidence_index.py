@@ -17,7 +17,6 @@ import pandas as pd
 from ..llm import LLMAPIError
 from ..market import COMMODITY_PROXY_METADATA, default_universe_symbols
 from ..saa import build_canonical_document_fields
-from ..aql_zopedia_engine import load_aql_zopedia_llm_client
 from ._shared import _coerce_text, _json_dumps, _normalize_symbol
 
 
@@ -276,6 +275,7 @@ def build_evidence_metadata(
     bundle_subject: object,
     source_kind: object,
     asof_time_utc: pd.Timestamp,
+    llm_client: Any | None = None,
 ) -> dict[str, str]:
     search_text = " ".join(part for part in [_coerce_text(title), _coerce_text(text)] if part)
     mentioned_tickers = _extract_tickers(search_text, bundle_subject=bundle_subject)
@@ -284,7 +284,7 @@ def build_evidence_metadata(
         search_text,
         tickers=mentioned_tickers,
         source_kind=_coerce_text(source_kind).lower(),
-        llm_client=load_aql_zopedia_llm_client(surface="aql.evidence_index.tag_extraction"),
+        llm_client=llm_client,
     )
     published_date = _published_date_text(published_at)
     primary_date = published_date or (mentioned_dates[0] if mentioned_dates else "")
@@ -310,6 +310,7 @@ def annotate_source_documents(
     documents: list[dict[str, Any]],
     *,
     asof_time_utc: pd.Timestamp,
+    llm_client: Any | None = None,
 ) -> list[dict[str, Any]]:
     annotated: list[dict[str, Any]] = []
     for row in list(documents or []):
@@ -322,6 +323,7 @@ def annotate_source_documents(
                 bundle_subject=item.get("bundle_subject"),
                 source_kind=item.get("source_kind"),
                 asof_time_utc=asof_time_utc,
+                llm_client=llm_client,
             )
         )
         item.update(build_canonical_document_fields(item))

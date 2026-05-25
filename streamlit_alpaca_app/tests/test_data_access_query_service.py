@@ -1578,6 +1578,47 @@ def test_data_access_layer_recent_news_falls_back_to_attention_web_search_news(m
     assert resolved.payload["source"] == "serpapi+SerpApi"
 
 
+def test_data_access_layer_resolves_materialized_news_business_resolutions(monkeypatch):
+    import data_access.layer as layer_module
+
+    materialized = pd.DataFrame(
+        [
+            {
+                "symbol": "CRWV",
+                "company_name": "CoreWeave",
+                "coherent_story_markdown": "CoreWeave demand is improving.",
+                "asof_time_utc": "2026-05-24T12:00:00Z",
+                "source_published_at": "2026-05-21T12:00:00Z",
+            },
+            {
+                "symbol": "NBIS",
+                "company_name": "Nebius",
+                "coherent_story_markdown": "Nebius demand is improving.",
+                "asof_time_utc": "2026-05-24T11:00:00Z",
+                "source_published_at": "2026-05-21T11:00:00Z",
+            },
+        ]
+    )
+    metadata = SimpleNamespace(
+        dataset_name="zopedia_news_business_resolutions",
+        dataset_version_id="zopedia_news_business_resolutions__20260524T120000Z__abcd1234",
+        blob_path="datasets/zopedia_news_business_resolutions/example.parquet",
+        asof_time_utc="2026-05-24T12:00:00Z",
+        ingested_at_utc="2026-05-24T12:05:00Z",
+        row_count=2,
+    )
+
+    monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
+    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", lambda dataset_name: (materialized.copy(), metadata))
+
+    resolved = DataAccessLayer(materialized_only=True).resolve_news_business_resolutions("CRWV", limit=5)
+
+    assert resolved.provenance.mode == "materialized"
+    assert resolved.provenance.datasets == ("zopedia_news_business_resolutions",)
+    assert resolved.payload["symbol"].tolist() == ["CRWV"]
+    assert resolved.payload.iloc[0]["company_name"] == "CoreWeave"
+
+
 def test_data_access_layer_asset_metadata_falls_back_to_universe_snapshot(monkeypatch):
     import data_access.layer as layer_module
 

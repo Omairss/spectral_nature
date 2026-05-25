@@ -7,7 +7,7 @@ import re
 import uuid
 from typing import Any
 
-from .secrets import resolve_secret_value
+from .secrets import postgres_connect_timeout_seconds, resolve_secret_value
 
 
 try:
@@ -44,7 +44,7 @@ def _db_connect() -> Any | None:
     if not conn_str or psycopg is None:
         return None
     try:
-        return psycopg.connect(conn_str)
+        return psycopg.connect(conn_str, connect_timeout=postgres_connect_timeout_seconds())
     except Exception:
         return None
 

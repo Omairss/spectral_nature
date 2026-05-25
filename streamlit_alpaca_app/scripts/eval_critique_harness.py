@@ -88,7 +88,7 @@ SCENARIOS: dict[str, dict] = {
             "must_read_count": 0,
             "unresolved_count": 2,
             "featured_symbols": ["BNO", "USO", "XOM", "CVX"],
-            "beats": [],
+            "stories": [],
         },
         "home_payload": {
             "run_id": "synthetic-bno-hormuz",
@@ -158,7 +158,7 @@ SCENARIOS: dict[str, dict] = {
             "must_read_count": 0,
             "unresolved_count": 3,
             "featured_symbols": ["CRWV", "NBIS", "IREN", "ORCL", "NTNX"],
-            "beats": [],
+            "stories": [],
         },
         "home_payload": {
             "run_id": "synthetic-tech-squeeze",

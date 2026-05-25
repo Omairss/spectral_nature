@@ -10,8 +10,6 @@ import pandas as pd
 
 from pipeline.jobs.attention_home_build import (
     AttentionHomeBuildError,
-    _build_materialized_homepage_summary,
-    _build_materialized_homepage_summary_with_trace,
     _build_page_agentic_summary_frame,
     _build_zopedia_enrichment_frame,
     _news_payloads_from_articles_frame,
@@ -331,6 +329,10 @@ def test_run_fred_persists_series_and_release_indexes(monkeypatch):
         "pipeline.jobs.main._build_treasury_yield_snapshots",
         lambda asof_time_utc: (pd.DataFrame(), pd.DataFrame(), pd.DataFrame()),
     )
+    monkeypatch.setattr(
+        "pipeline.jobs.main._build_broad_economy_page_summary_frame",
+        lambda **kwargs: pd.DataFrame([{"surface": "Broad Economy", "run_id": ctx.run_id}]),
+    )
     monkeypatch.setattr("pipeline.jobs.main._persist_dataset", lambda dataset_name, frame, ctx, conn: persisted.append(dataset_name))
     monkeypatch.setattr("pipeline.jobs.main._job_progress", lambda *args, **kwargs: None)
 
@@ -471,6 +473,8 @@ def test_pipeline_store_lists_attention_context_datasets_under_news():
         "edgar_evidence",
         "attention_context_llm",
         "attention_context_bundle",
+        "zopedia_news_business_resolutions",
+        "zopedia_company_business_memory_pages",
     }.issubset(news_datasets)
 
 
@@ -635,18 +639,23 @@ def test_build_attention_home_output_frames_backfills_missing_news_with_search(m
             frames={"attention_search_results": pd.DataFrame()},
         ),
     )
+    monkeypatch.setattr(attention_home_build_module, "build_attention_entity_master", lambda symbols: [])
+    monkeypatch.setattr(attention_home_build_module, "resolve_macro_anchor_symbols", lambda symbols: [])
     monkeypatch.setattr(attention_home_build_module, "collect_attention_ticker_symbols", lambda *args, **kwargs: ["VRDN"])
     monkeypatch.setattr(
         attention_home_build_module,
         "build_attention_ticker_snapshot_frame",
         lambda *args, **kwargs: pd.DataFrame([{"symbol": "VRDN", "run_id": ctx.run_id}]),
     )
+    monkeypatch.setattr(attention_home_build_module, "_market_opportunity_focus_symbol_map", lambda: {"All Market": []})
+    monkeypatch.setattr(attention_home_build_module, "build_attention_knowledge_graph_proposals", lambda *args, **kwargs: pd.DataFrame())
 
     def _background_snapshot(*args, news_frame: pd.DataFrame, **kwargs) -> pd.DataFrame:
         captured["news_frame"] = news_frame.copy()
         return pd.DataFrame([{"symbol": "VRDN", "company_name": "Viridian Therapeutics", "run_id": ctx.run_id}])
 
     monkeypatch.setattr(attention_home_build_module, "build_attention_ticker_background_snapshot_frame", _background_snapshot)
+    monkeypatch.setattr(attention_home_build_module, "_build_zopedia_enrichment_frame", lambda *args, **kwargs: pd.DataFrame())
 
     outputs = build_attention_home_output_frames(
         ctx=ctx,
@@ -1270,6 +1279,7 @@ def test_run_news_persists_attention_context(monkeypatch):
 
     monkeypatch.setattr("pipeline.jobs.main._alpaca_config", lambda: object())
     monkeypatch.setattr("pipeline.jobs.main.AlpacaAPI", lambda cfg: FakeAPI())
+    monkeypatch.setattr("pipeline.jobs.main._symbols_from_latest_universe", lambda limit: [])
     monkeypatch.setattr(
         "pipeline.jobs.main._load_latest_attention_seed",
         lambda limit: pd.DataFrame({"entity_id": ["AAPL"], "attention_score": [80.0]}),
@@ -1290,6 +1300,8 @@ def test_run_news_persists_attention_context(monkeypatch):
     assert ("edgar_evidence", 0) in persisted
     assert ("attention_context_llm", 0) in persisted
     assert ("attention_context_bundle", 1) in persisted
+    assert ("zopedia_news_business_resolutions", 1) in persisted
+    assert ("zopedia_company_business_memory_pages", 1) in persisted
 
 
 def test_run_attention_home_materializes_attention_home_and_research_outputs(monkeypatch):
@@ -1353,6 +1365,30 @@ def test_run_attention_home_materializes_attention_home_and_research_outputs(mon
             "model_id": "eleven_multilingual_v2",
             "output_format": "mp3_44100_128",
         },
+    )
+    monkeypatch.setattr(
+        "pipeline.jobs.attention_home_build._build_zopedia_enrichment_frame",
+        lambda *args, **kwargs: pd.DataFrame(),
+    )
+    monkeypatch.setattr(
+        "pipeline.jobs.attention_home_build._market_opportunity_focus_symbol_map",
+        lambda: {"All Market": []},
+    )
+    monkeypatch.setattr(
+        "pipeline.jobs.attention_home_build.build_attention_entity_master",
+        lambda symbols: [],
+    )
+    monkeypatch.setattr(
+        "pipeline.jobs.attention_home_build.search_symbol_news_payload",
+        lambda *args, **kwargs: {"articles": pd.DataFrame(), "fallback_summary": None, "source": "unit-test"},
+    )
+    monkeypatch.setattr(
+        "pipeline.jobs.attention_home_build.shortlist_attention_symbols_1d",
+        lambda *args, **kwargs: ["AAPL", "TLT", "USO"],
+    )
+    monkeypatch.setattr(
+        "pipeline.jobs.attention_home_build.build_attention_knowledge_graph_proposals",
+        lambda *args, **kwargs: pd.DataFrame(),
     )
     monkeypatch.setattr(
         "pipeline.jobs.attention_home_build.build_bottom_up_attention_artifacts",
@@ -1509,112 +1545,6 @@ def test_run_attention_home_materializes_attention_home_and_research_outputs(mon
     assert not persisted["attention_ticker_background_snapshots"].empty
     assert set(persisted["attention_research_bundles"]["bundle_id"]) == {"event::oil:USO:event", "symbol::AAPL"}
     assert json.loads(persisted["attention_home_1d"].iloc[0]["homepage_graph_json"])["figure"]["layout"]["height"] == 320
-    homepage_summary = json.loads(persisted["attention_home_1d"].iloc[0]["homepage_summary_json"])
-    assert homepage_summary["summary_text"]
-    assert homepage_summary["audio_base64"]
-    assert homepage_summary["voice_id"] == "voice-123"
-
-
-def test_build_materialized_homepage_summary_prefers_agentic_summary_when_llm_is_available(monkeypatch):
-    payload = {
-        "top_events": [
-            {
-                "event_title": "Energy and airlines are repricing together",
-                "supporting_symbols": ["USO", "UAL", "TLT"],
-            }
-        ]
-    }
-
-    monkeypatch.setattr(
-        "pipeline.jobs.attention_home_build.build_attention_agentic_summary_with_trace",
-        lambda payload, *, llm_client, embedding_client=None: (
-            {
-                "headline": "Market Summary",
-                "hypothesis": "Lower yields and easing supply-risk are connecting market activity.",
-                "summary_text": "**Market Hypothesis**\nLower yields and easing supply-risk are connecting market activity.",
-                "audio_text": "Market hypothesis: Lower yields and easing supply-risk are connecting market activity.",
-                "event_count": 1,
-                "must_read_count": 0,
-                "unresolved_count": 0,
-                "featured_symbols": ["USO", "UAL", "TLT"],
-                "beats": [],
-            },
-            {},
-        ),
-    )
-    monkeypatch.setattr(
-        "pipeline.jobs.attention_home_build.attach_attention_home_summary_audio",
-        lambda summary_payload: {
-            **dict(summary_payload),
-            "audio_base64": "YXVkaW8=",
-        },
-    )
-
-    summary = _build_materialized_homepage_summary(payload, llm_client=object())
-
-    assert summary["hypothesis"] == "Lower yields and easing supply-risk are connecting market activity."
-    assert summary["audio_base64"] == "YXVkaW8="
-
-
-def test_build_materialized_homepage_summary_falls_back_when_agentic_summary_fails(monkeypatch):
-    payload = {
-        "must_read_movers": [
-            {
-                "headline": "AAPL moves sharply today",
-                "symbol": "AAPL",
-                "what_changed_text": "AAPL rose 4.2% today.",
-                "why_now_text": "Investors are reacting to stronger checkout commentary.",
-            }
-        ]
-    }
-
-    monkeypatch.setattr(
-        "pipeline.jobs.attention_home_build.build_attention_agentic_summary_with_trace",
-        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("search unavailable")),
-    )
-    monkeypatch.setattr(
-        "pipeline.jobs.attention_home_build.attach_attention_home_summary_audio",
-        lambda summary_payload: dict(summary_payload),
-    )
-
-    summary = _build_materialized_homepage_summary(payload, llm_client=object())
-
-    assert "hypothesis" not in summary
-    assert summary["headline"] == "Market Summary"
-    assert summary["summary_text"]
-
-
-def test_build_materialized_homepage_summary_with_trace_returns_summary_trace_frames(monkeypatch):
-    payload = {"top_events": [{"event_title": "Energy and airlines are repricing together"}]}
-
-    monkeypatch.setattr(
-        "pipeline.jobs.attention_home_build.build_attention_agentic_summary_with_trace",
-        lambda payload, *, llm_client, embedding_client=None: (
-            {
-                "headline": "Market Summary",
-                "hypothesis": "Lower yields are connecting market activity.",
-                "summary_text": "**Market Hypothesis**\nLower yields are connecting market activity.",
-                "audio_text": "Market hypothesis: Lower yields are connecting market activity.",
-            },
-            {
-                "attention_search_requests": pd.DataFrame([{"query_id": "query::summary", "research_scope": "home_summary"}]),
-                "attention_search_results": pd.DataFrame([{"result_id": "result::summary", "research_scope": "home_summary"}]),
-                "attention_source_documents": pd.DataFrame([{"document_id": "doc::summary", "research_scope": "home_summary"}]),
-                "attention_evidence_chunks": pd.DataFrame([{"chunk_id": "chunk::summary", "research_scope": "home_summary"}]),
-                "attention_claims": pd.DataFrame([{"claim_id": "claim::summary", "research_scope": "home_summary"}]),
-            },
-        ),
-    )
-    monkeypatch.setattr(
-        "pipeline.jobs.attention_home_build.attach_attention_home_summary_audio",
-        lambda summary_payload: {**dict(summary_payload), "audio_base64": "YXVkaW8="},
-    )
-
-    summary, trace = _build_materialized_homepage_summary_with_trace(payload, llm_client=object())
-
-    assert summary["audio_base64"] == "YXVkaW8="
-    assert trace["attention_search_requests"]["query_id"].tolist() == ["query::summary"]
-    assert trace["attention_evidence_chunks"]["research_scope"].tolist() == ["home_summary"]
 
 
 def test_zopedia_market_summary_enrichment_carries_its_own_audio(monkeypatch):
@@ -1622,7 +1552,7 @@ def test_zopedia_market_summary_enrichment_carries_its_own_audio(monkeypatch):
     agent_calls: list[dict[str, object]] = []
 
     monkeypatch.setattr(
-        "pipeline.jobs.attention_home_build.build_attention_home_narrative_beats",
+        "pipeline.jobs.attention_home_build.build_market_stories",
         lambda payload: [{"sentence": "Rates connect equities", "symbols": [], "kind": "event"}],
     )
 

@@ -43,11 +43,11 @@ def verify_hypothesis(
     *,
     hypothesis: str,
     claims: list[dict[str, Any]],
-    beats: list[dict[str, object]],
+    stories: list[dict[str, object]],
     llm_client: Any,
     signal_context: str = "",
 ) -> dict[str, Any]:
-    """Grade a hypothesis against supporting claims and narrative beats."""
+    """Grade a hypothesis against supporting claims and market stories."""
     claim_rows = [
         {
             "claim_text": _coerce_text(item.get("claim_text")),
@@ -65,18 +65,18 @@ def verify_hypothesis(
     if not claim_rows:
         return _heuristic_verification(hypothesis, claims)
 
-    beat_rows = [
+    story_rows = [
         {
-            "kind": _coerce_text(beat.get("kind")),
-            "sentence": _coerce_text(beat.get("sentence")),
-            "symbols": [str(s).upper().strip() for s in list(beat.get("symbols") or []) if str(s).strip()],
+            "kind": _coerce_text(story.get("kind")),
+            "sentence": _coerce_text(story.get("sentence")),
+            "symbols": [str(s).upper().strip() for s in list(story.get("symbols") or []) if str(s).strip()],
         }
-        for beat in (beats or [])[:6]
+        for story in (stories or [])[:6]
     ]
     user_data: dict[str, Any] = {
         "hypothesis": hypothesis,
         "claims": claim_rows[:12],
-        "beats": beat_rows,
+        "stories": story_rows,
     }
     if signal_context:
         user_data["signal_context"] = _trim_text(signal_context, limit=800)

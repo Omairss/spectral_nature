@@ -1237,6 +1237,7 @@ class DataAccessLayer:
                 must_read_limit=1,
                 unresolved_limit=1,
                 research_limit=1,
+                load_search_clients=True,
             )
             bundle = dict((artifacts.bundle_map or {}).get(f"symbol::{target}") or {})
             return bundle
@@ -1395,6 +1396,7 @@ class DataAccessLayer:
                 top_events_limit=5,
                 must_read_limit=10,
                 unresolved_limit=5,
+                load_search_clients=True,
             )
             payload = dict(artifacts.home_payload or {})
             coverage = dict(payload.get("coverage_summary") or {})
@@ -2436,6 +2438,45 @@ class DataAccessLayer:
             force_refresh=force_refresh,
         )
         return self._resolved(payload, mode="on_demand", datasets=("recent_news",), details={"ticker": ticker.upper(), "days": days, "limit": limit})
+
+    def resolve_news_business_resolutions(self, ticker: str = "", *, limit: int = 5, force_refresh: bool = False) -> ResolvedPayload:
+        materialized = self._try_pipeline_frame("zopedia_news_business_resolutions", force_refresh=force_refresh)
+        normalized = str(ticker or "").upper().strip()
+        if materialized is not None:
+            frame, details = materialized
+            rows = frame.copy() if isinstance(frame, pd.DataFrame) else pd.DataFrame()
+            if not rows.empty and normalized and "symbol" in rows.columns:
+                rows = rows[rows["symbol"].astype(str).str.upper().str.strip() == normalized].copy()
+            if not rows.empty:
+                for column in ("asof_time_utc", "source_published_at", "created_at_utc"):
+                    if column in rows.columns:
+                        rows[column] = pd.to_datetime(rows[column], utc=True, errors="coerce")
+                sort_columns = [column for column in ("asof_time_utc", "source_published_at", "created_at_utc") if column in rows.columns]
+                if sort_columns:
+                    rows = rows.sort_values(sort_columns, ascending=[False] * len(sort_columns), na_position="last")
+                rows = rows.head(max(int(limit), 1)).reset_index(drop=True)
+            resolved_details = dict(details)
+            resolved_details.update({"ticker": normalized, "limit": limit})
+            if rows.empty:
+                resolved_details.setdefault("empty_reason", "no_news_business_resolution_rows")
+            return self._resolved(rows, mode="materialized", datasets=("zopedia_news_business_resolutions",), details=resolved_details)
+        materialized_only = self._materialized_only_result(
+            pd.DataFrame(),
+            datasets=("zopedia_news_business_resolutions",),
+            details={"ticker": normalized, "limit": limit},
+        )
+        if materialized_only is not None:
+            return materialized_only
+        return self._resolved(
+            pd.DataFrame(),
+            mode="on_demand",
+            datasets=("zopedia_news_business_resolutions",),
+            details={
+                "ticker": normalized,
+                "limit": limit,
+                "warning": "news business resolution dataset not available",
+            },
+        )
 
     def resolve_attention_context(self, ticker: str, *, force_refresh: bool = False) -> ResolvedPayload:
         target = str(ticker or "").upper().strip()

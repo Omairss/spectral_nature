@@ -449,7 +449,12 @@ class _MemoryApplyLLM:
         }
 
 
-def test__run_zopedia_agent_loop_uses_shared_tool_registry():
+def test__run_zopedia_agent_loop_uses_shared_tool_registry(monkeypatch):
+    import services.saa as saa_module
+    import services.omnibar_research as omnibar_research
+
+    monkeypatch.setattr(saa_module, "search_retained_evidence_chunks", lambda *args, **kwargs: pd.DataFrame())
+    monkeypatch.setattr(omnibar_research, "market_impact_map", lambda *args, **kwargs: {"search_keywords": []})
     service = _StubQueryService()
     llm = _StubLLM()
 
@@ -457,6 +462,7 @@ def test__run_zopedia_agent_loop_uses_shared_tool_registry():
         query="What was the latest CPI reading?",
         service=service,
         llm_client=llm,
+        persist_findings=False,
     )
 
     assert result["status"] == "completed"
@@ -471,7 +477,12 @@ def test__run_zopedia_agent_loop_uses_shared_tool_registry():
     assert service.calls[0].name == "fred_dashboard"
 
 
-def test__run_zopedia_agent_loop_caps_high_confidence_with_single_evidence_source():
+def test__run_zopedia_agent_loop_caps_high_confidence_with_single_evidence_source(monkeypatch):
+    import services.saa as saa_module
+    import services.omnibar_research as omnibar_research
+
+    monkeypatch.setattr(saa_module, "search_retained_evidence_chunks", lambda *args, **kwargs: pd.DataFrame())
+    monkeypatch.setattr(omnibar_research, "market_impact_map", lambda *args, **kwargs: {"search_keywords": []})
     result = omnibar_agent._run_zopedia_agent_loop(
         query="What is moving oil today?",
         service=_StubQueryService(),
@@ -812,17 +823,13 @@ def test_final_prompt_treats_user_premise_as_unverified():
     assert "if evidence contradicts the premise" in prompt
 
 
-def test_attention_home_summary_payload_becomes_llm_context():
+def test_attention_home_top_events_become_llm_context():
     summary = omnibar_agent._summarize_tool_result(
         {
             "result_type": "dataset",
             "payload": {
                 "generated_at_utc": "2026-05-05T12:00:00+00:00",
                 "coverage_summary": {"candidate_count": 12, "event_count": 2},
-                "homepage_summary": {
-                    "headline": "Market Summary",
-                    "summary_text": "Energy rose while freight carriers sold off.",
-                },
                 "top_events": [
                     {
                         "event_title": "Oil pressure lifts energy",
@@ -835,7 +842,6 @@ def test_attention_home_summary_payload_becomes_llm_context():
         }
     )
 
-    assert "Energy rose while freight carriers sold off" in summary["llm_context_text"]
     assert "USO and BNO rose" in summary["llm_context_text"]
 
 

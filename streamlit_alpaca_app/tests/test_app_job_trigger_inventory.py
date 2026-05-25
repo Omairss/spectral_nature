@@ -3,7 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 
 
-APP_PATH = Path(__file__).resolve().parents[1] / "app.py"
+APP_ROOT = Path(__file__).resolve().parents[1]
+APP_PATH = APP_ROOT / "app.py"
+ADMIN_VIEW_PATH = APP_ROOT / "views" / "access_admin.py"
 
 
 def test_feature_pages_do_not_render_job_trigger_buttons():
@@ -17,4 +19,8 @@ def test_feature_pages_do_not_render_job_trigger_buttons():
     assert "Run options refresh job" not in source
     assert "Load FRED Data" not in source
     assert "Analyze in Zopedia" not in source
-    assert "key=f\"admin_run_job_{job_name}\"" in source
+
+    admin_source = ADMIN_VIEW_PATH.read_text(encoding="utf-8")
+    assert '"System Health"' in admin_source
+    assert "connector_call_rollup" in admin_source
+    assert "key=f\"admin_run_job_{job_name}\"" in admin_source

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from services import config as config_module
-from services import secrets as secrets_module
 from pipeline.jobs import main as pipeline_main
 
 
@@ -13,12 +12,12 @@ def test_load_config_uses_key_vault_secret_names_and_ignores_raw_alpaca_env(monk
     monkeypatch.setenv("APCA_API_KEY", "raw-key-should-not-be-used")
     monkeypatch.setenv("APCA_API_SECRET_KEY", "raw-secret-should-not-be-used")
     monkeypatch.setattr(
-        secrets_module,
-        "_get_secret",
-        lambda name: {
+        config_module,
+        "resolve_secret_value",
+        lambda env_names, **kwargs: {
             "custom-apca-key": "kv-key",
             "custom-apca-secret": "kv-secret",
-        }.get(name, ""),
+        }.get(str(kwargs.get("default_secret_name") or ""), ""),
     )
 
     cfg = config_module.load_config()
@@ -34,12 +33,12 @@ def test_pipeline_alpaca_config_uses_key_vault_secret_names(monkeypatch):
     monkeypatch.setenv("APCA_API_KEY", "raw-key-should-not-be-used")
     monkeypatch.setenv("APCA_API_SECRET_KEY", "raw-secret-should-not-be-used")
     monkeypatch.setattr(
-        secrets_module,
-        "_get_secret",
-        lambda name: {
+        pipeline_main,
+        "resolve_secret_value",
+        lambda env_names, **kwargs: {
             "custom-apca-key": "kv-key",
             "custom-apca-secret": "kv-secret",
-        }.get(name, ""),
+        }.get(str(kwargs.get("default_secret_name") or ""), ""),
     )
 
     cfg = pipeline_main._alpaca_config()

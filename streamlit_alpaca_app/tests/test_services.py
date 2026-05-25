@@ -25,13 +25,12 @@ from services.attention_home_1d import (
     build_attention_home_1d,
     build_attention_research_bundle,
 )
-from services.attention_home_summary import (
+from services.aql import (
     attach_attention_home_summary_audio,
     build_attention_agentic_summary,
     build_attention_agentic_summary_with_trace,
-    build_attention_home_narrative_beats,
+    build_market_stories,
     build_attention_home_summary,
-    build_attention_home_summary_payload,
 )
 from services.attention_live_research import build_live_attention_research_bundle, merge_news_payloads
 from services.attention_market_events import build_attention_market_events
@@ -2764,6 +2763,7 @@ def test_bottom_up_attention_artifacts_promotes_high_importance_macro_release_in
         fred_summary_frame=fred_summary_frame,
         llm_client=None,
         top_events_limit=1,
+        load_search_clients=True,
     )
 
     top_events = list(artifacts.home_payload.get("top_events") or [])
@@ -2973,7 +2973,7 @@ def test_bottom_up_attention_artifacts_builds_macro_relationship_checks_and_hypo
     assert str(macro_event.get("hypothesis_status") or "").lower() in {"supported", "continuation", "conflicting", "unresolved"}
 
 
-def test_bottom_up_attention_artifacts_verifies_macro_hypotheses_with_search(monkeypatch):
+def test_bottom_up_attention_artifacts_verifies_macro_hypotheses_with_search():
     class _SerpClient:
         def search(self, query: str, *, news: bool = False, num: int = 10):
             del query, news, num
@@ -2987,8 +2987,6 @@ def test_bottom_up_attention_artifacts_verifies_macro_hypotheses_with_search(mon
                     published_at="2026-03-24T14:00:00Z",
                 )
             ]
-
-    monkeypatch.setattr("services.attention_agentic._load_search_clients", lambda: (_SerpClient(), None))
 
     daily_movers = pd.DataFrame(
         [
@@ -3031,6 +3029,7 @@ def test_bottom_up_attention_artifacts_verifies_macro_hypotheses_with_search(mon
         fred_summary_frame=fred_summary_frame,
         llm_client=None,
         top_events_limit=1,
+        search_clients=(_SerpClient(), None),
     )
 
     hypotheses = artifacts.frames["attention_hypotheses_1d"]
@@ -3818,12 +3817,12 @@ def test_build_homepage_v2_market_digest_uses_market_event_titles_and_underlying
 
     assert digest["mode"] == "market_events"
     assert digest["headline"] == "Energy & Oil move lower together today"
-    assert digest["beats"][0]["sentence"] == "Energy & Oil move lower together today"
-    assert digest["beats"][0]["event_ids"] == ["bno", "uso", "ual", "tlt"]
-    assert "easing supply-risk" in digest["beats"][0]["summary"].lower()
+    assert digest["stories"][0]["sentence"] == "Energy & Oil move lower together today"
+    assert digest["stories"][0]["event_ids"] == ["bno", "uso", "ual", "tlt"]
+    assert "easing supply-risk" in digest["stories"][0]["summary"].lower()
 
 
-def test_build_attention_home_narrative_beats_and_summary_cover_all_daily_market_sections():
+def test_build_market_stories_and_summary_cover_all_daily_market_sections():
     payload = {
         "top_events": [
             {
@@ -3856,10 +3855,10 @@ def test_build_attention_home_narrative_beats_and_summary_cover_all_daily_market
         ],
     }
 
-    beats = build_attention_home_narrative_beats(payload)
+    stories = build_market_stories(payload)
     summary = build_attention_home_summary(payload)
 
-    assert [beat["kind"] for beat in beats] == ["event", "mover", "unresolved"]
+    assert [s["kind"] for s in stories] == ["event", "mover", "unresolved"]
     assert summary["event_count"] == 1
     assert summary["must_read_count"] == 1
     assert summary["unresolved_count"] == 1
@@ -3913,10 +3912,10 @@ def test_build_attention_home_summary_drops_fragmentary_ellipsis_text():
         "unresolved_large_moves": [],
     }
 
-    beats = build_attention_home_narrative_beats(payload)
+    stories = build_market_stories(payload)
     summary = build_attention_home_summary(payload)
 
-    assert len(beats) == 2
+    assert len(stories) == 2
     assert "..." not in summary["summary_text"]
     assert "..." not in summary["audio_text"]
     assert "The stock has been" not in summary["summary_text"]
@@ -3998,7 +3997,7 @@ def test_verify_hypothesis_llm_returns_structured_verdict():
             {"claim_text": "Oil fell 3% on easing supply risk.", "confidence_score": 0.7, "is_same_day": True},
             {"claim_text": "Airline earnings missed estimates.", "confidence_score": 0.5, "is_same_day": False},
         ],
-        beats=[{"kind": "event", "sentence": "Oil and airlines repricing", "symbols": ["USO", "UAL"]}],
+        stories=[{"kind": "event", "sentence": "Oil and airlines repricing", "symbols": ["USO", "UAL"]}],
         llm_client=FakeLLMClient(),
     )
 
@@ -4012,7 +4011,7 @@ def test_verify_hypothesis_llm_returns_structured_verdict():
 
 
 def test_verify_hypothesis_heuristic_fallback_with_strong_claims():
-    from services.aql.summarizer import _heuristic_verification
+    from services.common.hypothesis import _heuristic_verification
 
     claims = [
         {"claim_text": "Claim A", "confidence_score": 0.75, "is_same_day": True},
@@ -4026,7 +4025,7 @@ def test_verify_hypothesis_heuristic_fallback_with_strong_claims():
 
 
 def test_verify_hypothesis_heuristic_fallback_with_no_claims():
-    from services.aql.summarizer import _heuristic_verification
+    from services.common.hypothesis import _heuristic_verification
 
     result = _heuristic_verification("Some hypothesis", [])
     assert result["verdict"] == "unsupported"
@@ -4036,6 +4035,7 @@ def test_verify_hypothesis_heuristic_fallback_with_no_claims():
 
 def test_build_attention_agentic_summary_adds_hypothesis_from_search_backed_claims(monkeypatch):
     from services.aql import summarizer as aql_summarizer
+    from services import aql_zopedia_engine as aql_zopedia_engine_module
 
     payload = {
         "run_id": "summary-test-run",
@@ -4154,6 +4154,7 @@ def test_build_attention_agentic_summary_adds_hypothesis_from_search_backed_clai
         "critique_home_summary",
         lambda **kw: {"issues": [], "tool_calls": [], "skipped": True},
     )
+    monkeypatch.setattr(aql_zopedia_engine_module, "get_config_param", lambda key: 0)
 
     summary = build_attention_agentic_summary(
         payload,
@@ -4336,7 +4337,7 @@ def test_hypothesis_verify_agent_tool_invocation(monkeypatch):
             "claims": [
                 {"claim_text": "BDC stocks fell sharply today.", "source": "Reuters", "is_same_day": True},
             ],
-            "beats": [
+            "stories": [
                 {"sentence": "BDC lenders under pressure", "symbols": ["ARCC", "OBDC"]},
             ],
         },
@@ -4409,7 +4410,7 @@ def test_supporting_claims_from_results_enrich_seeking_alpha_pages(monkeypatch):
 
 
 def test_attach_attention_home_summary_audio_embeds_base64_metadata():
-    summary_payload = build_attention_home_summary_payload(
+    summary_payload = build_attention_home_summary(
         {
             "must_read_movers": [
                 {
@@ -5946,11 +5947,6 @@ def test_serialize_attention_home_payload_preserves_homepage_graph():
             "figure": {"data": [], "layout": {"height": 320, "showlegend": False}},
             "summary": {"connected_components": 1},
         },
-        "homepage_summary": {
-            "summary_text": "**Events**\nExample summary.",
-            "audio_base64": "cHJlYnVpbHQtYXVkaW8=",
-            "voice_id": "voice-123",
-        },
     }
 
     frame = serialize_attention_home_payload(payload)
@@ -5959,8 +5955,6 @@ def test_serialize_attention_home_payload_preserves_homepage_graph():
     assert restored["run_id"] == "run-123"
     assert restored["homepage_graph"]["figure"]["layout"]["height"] == 320
     assert restored["homepage_graph"]["summary"]["connected_components"] == 1
-    assert restored["homepage_summary"]["summary_text"]
-    assert restored["homepage_summary"]["voice_id"] == "voice-123"
 
 
 def test_build_homepage_attention_graph_payload_returns_compact_banner_figure():

@@ -39,7 +39,6 @@ def serialize_attention_home_payload(payload: dict[str, Any]) -> pd.DataFrame:
         "event_impacts_1d_json": _json_dumps((payload or {}).get("event_impacts_1d") or []),
         "entity_master_json": _json_dumps((payload or {}).get("entity_master") or []),
         "homepage_graph_json": _json_dumps((payload or {}).get("homepage_graph") or {}),
-        "homepage_summary_json": _json_dumps((payload or {}).get("homepage_summary") or {}),
     }
     return pd.DataFrame([row])
 
@@ -60,7 +59,6 @@ def deserialize_attention_home_payload(frame: pd.DataFrame) -> dict[str, Any]:
         "event_impacts_1d": _json_loads(row.get("event_impacts_1d_json"), default=[]),
         "entity_master": _json_loads(row.get("entity_master_json"), default=[]),
         "homepage_graph": _json_loads(row.get("homepage_graph_json"), default={}),
-        "homepage_summary": _json_loads(row.get("homepage_summary_json"), default={}),
     }
 
 

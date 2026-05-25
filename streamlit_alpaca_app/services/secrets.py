@@ -26,6 +26,9 @@ except Exception:
     SecretClient = None
 
 
+APP_ROOT = Path(__file__).resolve().parents[1]
+
+
 def _clean(value: str | None, placeholders: set[str] | None = None) -> str:
     cleaned = (value or "").strip()
     if not cleaned:
@@ -36,14 +39,82 @@ def _clean(value: str | None, placeholders: set[str] | None = None) -> str:
     return cleaned
 
 
+def _deployment_env_paths() -> tuple[Path, ...]:
+    override = _clean(os.getenv("DEPLOYMENT_ENV_FILE"))
+    candidates: list[Path] = []
+    if override:
+        override_path = Path(override)
+        if not override_path.is_absolute():
+            override_path = APP_ROOT / override_path
+        candidates.append(override_path)
+    candidates.extend(
+        (
+            APP_ROOT / "infra" / ".generated" / "deployment.local.env",
+            APP_ROOT / "infra" / "deployment.outputs.env",
+        )
+    )
+
+    unique_paths: list[Path] = []
+    seen: set[Path] = set()
+    for path in candidates:
+        if path in seen:
+            continue
+        seen.add(path)
+        unique_paths.append(path)
+    return tuple(unique_paths)
+
+
+def _local_deployment_env() -> dict[str, str]:
+    for env_file in _deployment_env_paths():
+        if not env_file.exists():
+            continue
+        values: dict[str, str] = {}
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            clean = line.strip()
+            if not clean or clean.startswith("#") or "=" not in clean:
+                continue
+            key, value = clean.split("=", 1)
+            key = key.strip()
+            if key.startswith("export "):
+                key = key.removeprefix("export ").strip()
+            if key:
+                values[key] = value.strip().strip("'\"")
+        if values:
+            return values
+    return {}
+
+
+def _runtime_env_value(name: str) -> str:
+    return _clean(os.getenv(name)) or _clean(_local_deployment_env().get(name))
+
+
+def _runtime_env_value_with_source(
+    name: str,
+    *,
+    placeholders: set[str] | None = None,
+) -> tuple[str, str, bool]:
+    raw = os.getenv(name)
+    value = _clean(raw, placeholders=placeholders)
+    if value:
+        return value, "env", False
+    blocked = bool((raw or "").strip())
+
+    local_raw = _local_deployment_env().get(name)
+    local_value = _clean(local_raw, placeholders=placeholders)
+    if local_value:
+        return local_value, "deployment_env", blocked
+    blocked = blocked or bool((local_raw or "").strip())
+    return "", "", blocked
+
+
 def _vault_url() -> str:
-    explicit = (os.getenv("AZURE_KEY_VAULT_URL") or "").strip()
+    explicit = _runtime_env_value("AZURE_KEY_VAULT_URL")
     if explicit:
         return explicit
     name = (
-        os.getenv("KEYVAULT_NAME")
-        or os.getenv("AZURE_KEY_VAULT_NAME")
-        or os.getenv("KEY_VAULT_NAME")
+        _runtime_env_value("KEYVAULT_NAME")
+        or _runtime_env_value("AZURE_KEY_VAULT_NAME")
+        or _runtime_env_value("KEY_VAULT_NAME")
         or ""
     ).strip()
     if not name:
@@ -52,14 +123,14 @@ def _vault_url() -> str:
 
 
 def _vault_name() -> str:
-    explicit = (os.getenv("AZURE_KEY_VAULT_URL") or "").strip().rstrip("/")
+    explicit = _runtime_env_value("AZURE_KEY_VAULT_URL").rstrip("/")
     if explicit:
         host = explicit.replace("https://", "").replace("http://", "").split("/", 1)[0].strip()
         return host.replace(".vault.azure.net", "")
     return (
-        os.getenv("KEYVAULT_NAME")
-        or os.getenv("AZURE_KEY_VAULT_NAME")
-        or os.getenv("KEY_VAULT_NAME")
+        _runtime_env_value("KEYVAULT_NAME")
+        or _runtime_env_value("AZURE_KEY_VAULT_NAME")
+        or _runtime_env_value("KEY_VAULT_NAME")
         or ""
     ).strip()
 
@@ -221,13 +292,12 @@ def describe_secret_resolution(
 ) -> dict[str, Any]:
     blocked_env_names: list[str] = []
     for env_name in env_names:
-        raw = os.getenv(env_name)
-        value = _clean(raw, placeholders=placeholders)
+        value, source, blocked = _runtime_env_value_with_source(env_name, placeholders=placeholders)
         if value:
             return {
                 "resolved": True,
                 "value": value,
-                "source": "env",
+                "source": source,
                 "env_name": env_name,
                 "blocked_env_names": blocked_env_names,
                 "secret_name": "",
@@ -238,23 +308,26 @@ def describe_secret_resolution(
                 "error_type": "",
                 "error_message": "",
             }
-        if (raw or "").strip():
+        if blocked:
             blocked_env_names.append(env_name)
 
     secret_name = ""
     secret_name_source = ""
     if secret_name_env:
-        secret_name = (os.getenv(secret_name_env) or "").strip()
+        secret_name, secret_name_source, blocked = _runtime_env_value_with_source(secret_name_env)
         if secret_name:
-            secret_name_source = secret_name_env
+            secret_name_source = (
+                secret_name_env if secret_name_source == "env" else f"deployment_env:{secret_name_env}"
+            )
+        elif blocked:
+            blocked_env_names.append(secret_name_env)
     if not secret_name and default_secret_name:
         secret_name = default_secret_name
         secret_name_source = "default"
 
     resolved_vault_url = _vault_url()
     try:
-        secret_value = _get_secret(secret_name)
-        result = {"value": secret_value, "reason": "", "error_type": "", "error_message": ""}
+        result = _read_secret(secret_name, resolved_vault_url)
     except Exception as exc:
         result = {
             "value": "",
@@ -313,3 +386,12 @@ def resolve_secret_value(
         placeholders=placeholders,
     )
     return str(details.get("value") or "")
+
+
+def postgres_connect_timeout_seconds(default: int = 5) -> int:
+    raw = _runtime_env_value("POSTGRES_CONNECT_TIMEOUT_SECONDS") or str(default)
+    try:
+        parsed = int(str(raw).strip())
+    except Exception:
+        parsed = default
+    return min(max(parsed, 1), 60)

@@ -254,6 +254,7 @@ def _chunk_source_documents(
     run_id: str,
     asof_time_utc: pd.Timestamp,
     embedding_client: EmbeddingClient | None = None,
+    llm_client: LLMClient | None = None,
 ) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
     for doc in documents:
@@ -278,6 +279,7 @@ def _chunk_source_documents(
                 bundle_subject=doc.get("bundle_subject"),
                 source_kind=doc.get("source_kind"),
                 asof_time_utc=asof_time_utc,
+                llm_client=llm_client,
             )
             chunk_rows.append(
                 {

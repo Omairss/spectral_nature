@@ -963,7 +963,7 @@ def _fallback_summary_research_plan(home_payload: dict[str, Any]) -> dict[str, A
     queries.append(
         {
             "query": "market sector rotation today macro narrative rates growth defensives",
-            "rationale": "Check for rotation and rates-driven explanations that can connect multiple beats.",
+            "rationale": "Check for rotation and rates-driven explanations that can connect multiple stories.",
         }
     )
 

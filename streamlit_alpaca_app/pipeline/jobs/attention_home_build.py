@@ -10,11 +10,9 @@ from typing import Any, Callable
 import pandas as pd
 
 from services.attention_agentic import build_bottom_up_attention_artifacts, search_symbol_news_payload
-from services.attention_home_summary import build_attention_home_summary_payload
-from services.aql.summarizer import build_attention_home_narrative_beats
+from services.aql.summarizer import build_market_stories
 from services.aql_zopedia_engine import (
     attach_aql_zopedia_summary_audio as attach_attention_home_summary_audio,
-    build_aql_zopedia_attention_home_summary_with_trace as build_attention_agentic_summary_with_trace,
     load_aql_zopedia_llm_client,
     run_aql_zopedia_agent,
 )
@@ -91,10 +89,6 @@ def _env_positive_int(name: str, default: int) -> int:
     return max(parsed, 1)
 
 
-def _attention_home_summary_timeout_seconds() -> int:
-    return _env_positive_int("ATTENTION_HOME_SUMMARY_TIMEOUT_SECONDS", 300)
-
-
 def _page_agentic_summary_timeout_seconds() -> int:
     return _env_positive_int("PAGE_AGENTIC_SUMMARY_TIMEOUT_SECONDS", 120)
 
@@ -166,77 +160,6 @@ def _validate_mandatory_datasets(
             "The upstream pipeline job may not have run. Failing instead of producing stale output."
         )
     return frames
-
-
-def _build_materialized_homepage_summary(
-    payload: dict[str, Any],
-    *,
-    llm_client: Any | None = None,
-    embedding_client: Any | None = None,
-) -> dict[str, Any]:
-    summary_payload: dict[str, Any]
-    if llm_client is not None:
-        try:
-            print("[info] attention-home-build homepage AQL summary starting")
-            summary_payload = _call_with_timeout(
-                "attention homepage AQL summary",
-                _attention_home_summary_timeout_seconds(),
-                lambda: build_attention_agentic_summary_with_trace(
-                    payload,
-                    llm_client=llm_client,
-                    embedding_client=embedding_client,
-                )[0],
-            )
-            print("[info] attention-home-build homepage AQL summary completed")
-        except Exception as exc:
-            print(f"[warn] attention-home-build agentic summary failed, falling back: {type(exc).__name__}: {exc}")
-            summary_payload = build_attention_home_summary_payload(payload)
-    else:
-        summary_payload = build_attention_home_summary_payload(payload)
-    try:
-        return attach_attention_home_summary_audio(summary_payload)
-    except ElevenLabsTTSAPIError as exc:
-        print(f"[warn] attention-home-build ElevenLabs narration unavailable: {exc}")
-        return summary_payload
-    except Exception as exc:
-        print(f"[warn] attention-home-build unexpected ElevenLabs narration error: {type(exc).__name__}: {exc}")
-        return summary_payload
-
-
-def _build_materialized_homepage_summary_with_trace(
-    payload: dict[str, Any],
-    *,
-    llm_client: Any | None = None,
-    embedding_client: Any | None = None,
-) -> tuple[dict[str, Any], dict[str, pd.DataFrame]]:
-    summary_trace_frames: dict[str, pd.DataFrame] = {}
-    summary_payload: dict[str, Any]
-    if llm_client is not None:
-        try:
-            print("[info] attention-home-build homepage AQL summary starting")
-            summary_payload, summary_trace_frames = _call_with_timeout(
-                "attention homepage AQL summary",
-                _attention_home_summary_timeout_seconds(),
-                lambda: build_attention_agentic_summary_with_trace(
-                    payload,
-                    llm_client=llm_client,
-                    embedding_client=embedding_client,
-                ),
-            )
-            print("[info] attention-home-build homepage AQL summary completed")
-        except Exception as exc:
-            print(f"[warn] attention-home-build agentic summary failed, falling back: {type(exc).__name__}: {exc}")
-            summary_payload = build_attention_home_summary_payload(payload)
-            summary_trace_frames = {}
-    else:
-        summary_payload = build_attention_home_summary_payload(payload)
-    try:
-        summary_payload = attach_attention_home_summary_audio(summary_payload)
-    except ElevenLabsTTSAPIError as exc:
-        print(f"[warn] attention-home-build ElevenLabs narration unavailable: {exc}")
-    except Exception as exc:
-        print(f"[warn] attention-home-build unexpected ElevenLabs narration error: {type(exc).__name__}: {exc}")
-    return summary_payload, summary_trace_frames
 
 
 def _page_agentic_stock_summary_limit() -> int:
@@ -407,52 +330,6 @@ def _build_page_agentic_summary_frame(
     return pd.DataFrame(rows)
 
 
-_TRACE_DEDUPE_KEY_BY_DATASET: dict[str, str] = {
-    "attention_search_requests": "query_id",
-    "attention_search_results": "result_id",
-    "attention_source_documents": "document_id",
-    "attention_evidence_chunks": "chunk_id",
-    "attention_claims": "claim_id",
-    "aql_zopedia_engine_runs": "run_id",
-}
-
-
-def _merge_trace_frame(existing: pd.DataFrame | None, extra: pd.DataFrame | None, *, dataset_name: str) -> pd.DataFrame:
-    existing_frame = existing.copy() if isinstance(existing, pd.DataFrame) else pd.DataFrame()
-    extra_frame = extra.copy() if isinstance(extra, pd.DataFrame) else pd.DataFrame()
-    if existing_frame.empty:
-        return extra_frame.reset_index(drop=True) if not extra_frame.empty else existing_frame
-    if extra_frame.empty:
-        return existing_frame.reset_index(drop=True)
-    merged = pd.concat([existing_frame, extra_frame], ignore_index=True, sort=False)
-    dedupe_key = _TRACE_DEDUPE_KEY_BY_DATASET.get(dataset_name)
-    if dedupe_key and dedupe_key in merged.columns:
-        merged = merged.drop_duplicates(subset=[dedupe_key], keep="first")
-    return merged.reset_index(drop=True)
-
-
-def _merge_summary_trace_frames(
-    frames: dict[str, pd.DataFrame],
-    summary_trace_frames: dict[str, pd.DataFrame],
-) -> dict[str, pd.DataFrame]:
-    merged = dict(frames or {})
-    for dataset_name in (
-        "attention_search_requests",
-        "attention_search_results",
-        "attention_source_documents",
-        "attention_evidence_chunks",
-        "attention_claims",
-        "aql_zopedia_engine_runs",
-    ):
-        merged[dataset_name] = _merge_trace_frame(
-            merged.get(dataset_name, pd.DataFrame()),
-            summary_trace_frames.get(dataset_name, pd.DataFrame()) if isinstance(summary_trace_frames, dict) else pd.DataFrame(),
-            dataset_name=dataset_name,
-        )
-    return merged
-
-
-
 def _zopedia_enrichment_limit() -> int:
     return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_LIMIT", 15)
 
@@ -461,12 +338,12 @@ def _zopedia_enrichment_timeout_seconds() -> int:
     return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_TIMEOUT_SECONDS", 120)
 
 
-def _extract_beat_symbols(payload: dict[str, Any]) -> list[str]:
-    beats = build_attention_home_narrative_beats(payload)
+def _extract_story_symbols(payload: dict[str, Any]) -> list[str]:
+    stories = build_market_stories(payload)
     seen: set[str] = set()
     ordered: list[str] = []
-    for beat in beats:
-        for symbol in list(beat.get("symbols") or []):
+    for story in stories:
+        for symbol in list(story.get("symbols") or []):
             norm = str(symbol).upper().strip()
             if norm and norm not in seen:
                 seen.add(norm)
@@ -585,19 +462,19 @@ def _attach_market_summary_audio(row: dict[str, Any]) -> dict[str, Any]:
 
 
 def _build_market_summary_query(payload: dict[str, Any]) -> str:
-    beats = build_attention_home_narrative_beats(payload)
-    beat_lines = []
-    for beat in beats[:10]:
-        sentence = str(beat.get("sentence") or "").strip()
-        symbols = ", ".join(str(s).strip() for s in list(beat.get("symbols") or []) if str(s).strip())
+    stories = build_market_stories(payload)
+    story_lines = []
+    for story in stories[:10]:
+        sentence = str(story.get("sentence") or "").strip()
+        symbols = ", ".join(str(s).strip() for s in list(story.get("symbols") or []) if str(s).strip())
         if sentence:
-            beat_lines.append(f"- {sentence} [{symbols}]" if symbols else f"- {sentence}")
-    beats_text = "\n".join(beat_lines) if beat_lines else "No beats available."
+            story_lines.append(f"- {sentence} [{symbols}]" if symbols else f"- {sentence}")
+    stories_text = "\n".join(story_lines) if story_lines else "No market stories available."
     return (
         "Write a daily market summary for an informed investor. "
         "You MUST call at least 3 research tools before writing your answer — "
-        "check recent news, fundamentals, and macro data. Do not answer from the beats alone. "
-        "The narrative beats below tell you what moved; your job is to explain WHY with evidence.\n\n"
+        "check recent news, fundamentals, and macro data. Do not answer from the stories alone. "
+        "The market stories below tell you what moved; your job is to explain WHY with evidence.\n\n"
         "Structure with short paragraphs, no bullet lists:\n"
         "1. **Dominant theme** — what defined today's session and why\n"
         "2. **Key movers** — the 3-5 most important equity moves with grounded explanations\n"
@@ -605,7 +482,7 @@ def _build_market_summary_query(payload: dict[str, Any]) -> str:
         "4. **What to watch** — upcoming catalysts or risks for the next session\n\n"
         "Write 300-500 words. Every sentence must add information the investor cannot get from a ticker screen. "
         "Do not hedge or pad — if you lack evidence for a claim, drop the claim.\n\n"
-        f"Today's narrative beats:\n{beats_text}"
+        f"Today's market stories:\n{stories_text}"
     )
 
 
@@ -667,7 +544,7 @@ def _build_zopedia_enrichment_frame(
 ) -> pd.DataFrame:
     limit = _zopedia_enrichment_limit()
     timeout = _zopedia_enrichment_timeout_seconds()
-    symbols = _extract_beat_symbols(payload)[:limit]
+    symbols = _extract_story_symbols(payload)[:limit]
 
     from concurrent.futures import ThreadPoolExecutor, as_completed
     rows: list[dict[str, Any]] = []
@@ -1094,6 +971,7 @@ def build_attention_home_output_frames(
         must_read_limit=10,
         unresolved_limit=5,
         research_limit=research_limit,
+        load_search_clients=True,
         progress_callback=research_progress_fn,
     )
     payload = dict(artifacts.home_payload or {})
@@ -1157,13 +1035,6 @@ def build_attention_home_output_frames(
         payload.setdefault("cross_series_signals", [])
         payload.setdefault("fred_signals", [])
 
-    homepage_summary, summary_trace_frames = _build_materialized_homepage_summary_with_trace(
-        payload,
-        llm_client=llm_client,
-        embedding_client=embedding_client,
-    )
-    payload["homepage_summary"] = homepage_summary
-    artifacts.frames = _merge_summary_trace_frames(artifacts.frames, summary_trace_frames)
     artifacts.frames["knowledge_graph_update_proposals"] = build_attention_knowledge_graph_proposals(
         run_id=ctx.run_id,
         asof_time_utc=ctx.asof,

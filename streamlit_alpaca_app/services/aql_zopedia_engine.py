@@ -330,11 +330,11 @@ def build_aql_zopedia_attention_home_summary_with_trace(
     """
     from .aql.summarizer import (
         build_attention_agentic_summary_with_trace,
-        build_attention_home_summary_payload,
+        build_attention_home_summary,
     )
 
     if llm_client is None:
-        return build_attention_home_summary_payload(home_payload), {}
+        return build_attention_home_summary(home_payload), {}
 
     summary_payload, trace_frames = build_attention_agentic_summary_with_trace(
         home_payload,

@@ -15,7 +15,8 @@ Distilled from 41 past incidents (archived in `past_mistakes.md`). These are the
 
 ## Verification & Testing
 
-6. **Verify the user-facing path, not just the service layer.** A passing unit test does not prove the homepage, the API endpoint, or the materialized view is correct.
+6. **Clear `.pyc` cache before trusting test results after module renames.** Stale bytecode files mask missing or renamed source modules. Tests pass locally while the deployed container (which builds from source) crashes with `ModuleNotFoundError`. After renaming, deleting, or moving any `.py` file, run `find . -name "__pycache__" -exec rm -rf {} +` and re-run tests.
+7. **Verify the user-facing path, not just the service layer.** A passing unit test does not prove the homepage, the API endpoint, or the materialized view is correct.
 7. **After deploy, test the exact affected screen or endpoint.** HTTP 200 on the health check is not enough.
 8. **Raw SQL changes need a direct store-level test.** Service and API tests cannot catch a misaliased `FROM` clause.
 9. **"Code exists" does not mean "feature is live."** Verify the deployment, the config, and the runtime dependency. Embedding client constructed ≠ embedding deployment provisioned.
@@ -155,6 +156,13 @@ Distilled from 41 past incidents (archived in `past_mistakes.md`). These are the
 115. **Do not fix mobile by making desktop mobile.** Setting `STREAMLIT_LAYOUT_MODE_DEFAULT=mobile` globally routes desktop browsers into the phone shell. Mobile fixes must verify both desktop and phone viewports before calling the rollout done.
 116. **Do not put operational recovery controls on Broad Economy.** A missing Broad Economy Zopedia Summary is a job/materialization failure, not a user workflow. Do not add `Load FRED Data`, `Run FRED Job`, or `Analyze in Zopedia` controls to the page; fix the macro job and lookup contract, then verify the rendered dashboard.
 117. **Do not let a newer partial page-summary artifact mask an older valid surface summary.** `page_agentic_summaries` can be written by separate jobs. A latest attention-home artifact with an unavailable Broad Economy row should not hide the valid Broad Economy row produced by the macro job.
+118. **Do not answer codebase-cleanup questions with runtime token controls.** When the user asks whether a simplification plan is efficient, first inspect ownership duplication, wrappers, stale fallbacks, import direction, file size, test coverage, and deletion proof. Runtime LLM budgets are a different concern and should not be inserted unless explicitly requested.
+119. **Do not call a rename complete while public contracts still use the old name.** API paths, auth scopes, docs, evidence-pack defaults, retained-memory provider strings, and boundary tests are part of the product architecture. If they still say Omnibar, the Zopedia migration is not clean.
+120. **Do not let broad unit tests enter live enrichment or narration paths.** Attention-home unit tests that exercise dataset assembly must stub Zopedia enrichment and ElevenLabs narration unless the test is explicitly covering that integration. Otherwise a normal pytest run can block on provider IO instead of testing the local contract.
+121. **Do not leave Postgres connection attempts unbounded.** Optional DB-backed helpers are supposed to degrade gracefully. If `psycopg.connect()` has no shared `connect_timeout`, a missing or slow database can freeze tests and product fallbacks before the graceful path ever runs.
+122. **Do not let unit tests inherit local deployment connectivity.** A local Key Vault or Postgres config can make a no-DB test commit real Zopedia rows, and a default-enabled evidence pass can call the agent loop during a summary sequence test. Tests that assert isolated contracts must disable or inject those dependencies directly.
+123. **Do not promote broad Zopedia context into company memory.** A runtime proof run showed market-theme pages being copied into ticker `Business Model` sections. Company memory must be sourced from company baselines, filings, fundamentals, source news, or trusted human/authored memory, not from generic theme/concept matches.
+124. **Do not let generated memory recursively cite generated memory.** Once a weak generated draft exists, later cold-start runs can treat it as truth unless the resolver preserves original source markers and rejects self-referential summaries.
 
 ## Search Pipeline
 
@@ -183,3 +191,4 @@ Distilled from 41 past incidents (archived in `past_mistakes.md`). These are the
 53. **Do not let completed Zopedia runs reopen into raw reasoning.** The same audit showed a successful answer reopening on late thinking-trace steps and memory-action deliberation. Completed chat messages should resume answer-first, with full trace available only when explicitly expanded.
 54. **Do not render one homepage summary and narrate another.** Home v3 preferred the Zopedia market-summary row visually but kept the ElevenLabs player wired to the older `homepage_summary` payload. Summary text, audio text, and cached audio must be carried by the same materialized summary row.
 55. **Do not treat a custom-domain binding as DNS proof.** `spectral-nature.com` was bound in Azure with managed TLS, but the apex A records still pointed to Squarespace while `www` pointed to Azure. Public-site checks must test the exact hostname the user opens, not just the generated FQDN or Azure binding list.
+56. **Do not call mobile UI shipped if the runtime flag is off.** A prod image can contain mobile shell code while the live Container App still lacks `STREAMLIT_MOBILE_UI_ENABLED` and `STREAMLIT_LAYOUT_MODE_DEFAULT=auto`. Verify deployed env plus normal iPhone URL rendering before saying mobile changes reached prod.

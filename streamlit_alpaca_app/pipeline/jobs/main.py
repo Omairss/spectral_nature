@@ -57,6 +57,7 @@ from services.market_data import (
     scan_momentum_profiles,
 )
 from services.aql_zopedia_engine import load_aql_zopedia_llm_client
+from services.aql.news_business_resolution import build_news_business_resolution_frames
 from services.options import build_option_snapshot_surface, load_option_chain
 from services.page_agentic_summary import (
     broad_economy_overview_from_fred_summary,
@@ -68,11 +69,12 @@ from services.page_agentic_summary import (
 from services.pipeline_store import load_latest_dataset_frame
 from services.saa import (
     bootstrap_saa_storage,
+    list_zopedia_pages,
     persist_retained_evidence_chunks,
     persist_retained_source_documents,
     run_zopedia_maintenance as run_zopedia_maintenance_service,
 )
-from services.secrets import resolve_secret_value
+from services.secrets import postgres_connect_timeout_seconds, resolve_secret_value
 from services.simfin_refresh import build_quarterly_fundamentals_frame, simfin_refresh_configured
 from services.treasury_yields import TreasuryYieldError, load_treasury_yield_datasets
 from services.trading_agent import build_trading_agent_materialized_frames, build_trading_agent_suggestions
@@ -161,7 +163,7 @@ def _db_connection() -> Any | None:
     if not conn_str or psycopg is None:
         return None
     try:
-        return psycopg.connect(conn_str)
+        return psycopg.connect(conn_str, connect_timeout=postgres_connect_timeout_seconds())
     except Exception as exc:
         print(f"[warn] postgres connection unavailable; continuing without db sink: {exc}")
         return None
@@ -1697,6 +1699,68 @@ def run_options(ctx: JobContext, conn: Any | None = None) -> None:
     _persist_dataset("option_contract_snapshots", option_snapshots, ctx, conn)
 
 
+def _zopedia_pages_for_news_resolution(conn: Any | None = None) -> pd.DataFrame:
+    parts: list[pd.DataFrame] = []
+    try:
+        previous_drafts = _load_latest_materialized_frame("zopedia_company_business_memory_pages")
+    except Exception:
+        previous_drafts = pd.DataFrame()
+    if isinstance(previous_drafts, pd.DataFrame) and not previous_drafts.empty:
+        parts.append(previous_drafts)
+    if conn is not None:
+        try:
+            pages = list_zopedia_pages(limit=_parse_int_env("ZOPEDIA_NEWS_BUSINESS_PAGE_LIMIT", 500, minimum=1), conn=conn)
+        except Exception as exc:
+            print(f"[warn] news business resolution could not load Zopedia pages: {type(exc).__name__}: {exc}")
+            pages = pd.DataFrame()
+        if isinstance(pages, pd.DataFrame) and not pages.empty:
+            parts.append(pages)
+    if not parts:
+        return pd.DataFrame()
+    merged = pd.concat(parts, ignore_index=True, sort=False)
+    if "page_id" in merged.columns:
+        merged = merged.drop_duplicates(subset=["page_id"], keep="last")
+    return merged.reset_index(drop=True)
+
+
+def _build_news_business_resolution_output_frames(
+    *,
+    news: pd.DataFrame,
+    edgar_evidence: pd.DataFrame,
+    symbols: list[str],
+    llm_client: Any | None,
+    ctx: JobContext,
+    conn: Any | None,
+) -> dict[str, pd.DataFrame]:
+    if not isinstance(news, pd.DataFrame) or news.empty:
+        return {
+            "zopedia_news_business_resolutions": pd.DataFrame(),
+            "zopedia_company_business_memory_pages": pd.DataFrame(),
+        }
+    try:
+        company_baselines = _load_latest_materialized_frame("company_baselines")
+    except Exception:
+        company_baselines = pd.DataFrame()
+    try:
+        fundamentals = _load_latest_materialized_frame("quarterly_fundamentals")
+    except Exception:
+        fundamentals = pd.DataFrame()
+    zopedia_pages = _zopedia_pages_for_news_resolution(conn)
+    return build_news_business_resolution_frames(
+        news_frame=news,
+        company_baselines_frame=company_baselines,
+        fundamentals_frame=fundamentals,
+        zopedia_pages_frame=zopedia_pages,
+        edgar_evidence_frame=edgar_evidence,
+        symbols=symbols,
+        llm_client=llm_client,
+        run_id=ctx.run_id,
+        asof_time_utc=ctx.asof,
+        write_policy=os.getenv("ZOPEDIA_NEWS_BUSINESS_WRITE_POLICY", "propose"),
+        limit=_parse_int_env("ZOPEDIA_NEWS_BUSINESS_LIMIT", 12, minimum=1),
+    )
+
+
 def run_news(ctx: JobContext, conn: Any | None = None) -> None:
     _job_progress(ctx, conn, stage="starting", message="Starting news and attention preload.", progress_pct=1.0)
     cfg = _alpaca_config()
@@ -1758,6 +1822,7 @@ def run_news(ctx: JobContext, conn: Any | None = None) -> None:
             None,
             asof_time_utc=ctx.asof,
         )
+        llm_client = None
         try:
             _job_progress(
                 ctx,
@@ -1793,6 +1858,26 @@ def run_news(ctx: JobContext, conn: Any | None = None) -> None:
         _persist_dataset("edgar_evidence", edgar_evidence, ctx, conn)
         _persist_dataset("attention_context_llm", attention_context_llm, ctx, conn)
         _persist_dataset("attention_context_bundle", attention_context, ctx, conn)
+        try:
+            _job_progress(
+                ctx,
+                conn,
+                stage="news_business_resolution",
+                message="Resolving company news against cold-start business memory.",
+                progress_pct=84.0,
+            )
+            business_resolution_frames = _build_news_business_resolution_output_frames(
+                news=news,
+                edgar_evidence=edgar_evidence,
+                symbols=symbols,
+                llm_client=llm_client,
+                ctx=ctx,
+                conn=conn,
+            )
+            for dataset_name, frame in business_resolution_frames.items():
+                _persist_dataset(dataset_name, frame, ctx, conn)
+        except Exception as exc:
+            print(f"[warn] news business resolution skipped: {type(exc).__name__}: {exc}")
     except AlpacaAPIError as exc:
         print(f"[error] news preload failed: {exc}")
     except EdgarAPIError as exc:
@@ -2246,6 +2331,8 @@ def main() -> None:
         asof=_utc_now(),
         universe_version=(os.getenv("UNIVERSE_VERSION") or datetime.now(timezone.utc).strftime("%Y%m%d")).strip(),
     )
+    os.environ["PIPELINE_JOB_NAME"] = ctx.name
+    os.environ["PIPELINE_RUN_ID"] = ctx.run_id
     print(f"[info] job={ctx.name} run_id={ctx.run_id} asof={ctx.asof.isoformat()}")
 
     dispatch = {

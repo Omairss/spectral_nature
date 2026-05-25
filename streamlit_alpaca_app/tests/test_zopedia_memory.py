@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 
 import pandas as pd
+import pytest
 
 from services.aql.evidence_pack import build_aql_evidence_pack
 from services.saa.zopedia import (
@@ -21,6 +22,11 @@ from services.saa.zopedia import (
     zopedia_sources_for_page,
     zopedia_trace_to_evidence,
 )
+
+
+@pytest.fixture(autouse=True)
+def _disable_default_zopedia_db_connection(monkeypatch):
+    monkeypatch.setattr("services.saa.zopedia._db_connection", lambda: None)
 
 
 class _FakeLLM:

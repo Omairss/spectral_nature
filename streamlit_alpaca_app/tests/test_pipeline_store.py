@@ -192,6 +192,76 @@ def test_record_trading_agent_place_action_is_log_only_for_alpaca(monkeypatch):
     assert json.loads(params[11]) == {}
 
 
+def test_record_connector_call_writes_event_when_enabled(monkeypatch):
+    captured: dict[str, object] = {}
+
+    class _Cursor:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def execute(self, query, params=None):
+            if "INSERT INTO connector_call_events" in str(query):
+                captured["query"] = query
+                captured["params"] = params
+
+    class _Conn:
+        def cursor(self):
+            return _Cursor()
+
+        def commit(self):
+            captured["committed"] = True
+
+        def rollback(self):
+            captured["rolled_back"] = True
+
+        def close(self):
+            captured["closed"] = True
+
+    monkeypatch.setenv("CONNECTOR_TELEMETRY_ENABLED", "true")
+    monkeypatch.setenv("PIPELINE_JOB_NAME", "news-ingest-and-features")
+    monkeypatch.setenv("PIPELINE_RUN_ID", "run-1")
+    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: _Conn())
+
+    ok = pipeline_store.record_connector_call(
+        provider="Tavily",
+        operation="search",
+        status="success",
+        duration_ms=123.4,
+        http_status=200,
+        result_count=7,
+        metadata={"query_sha256": "abc"},
+    )
+
+    assert ok is True
+    params = captured["params"]
+    assert params[0] == "tavily"
+    assert params[1] == "search"
+    assert params[2] == "success"
+    assert params[5] == 200
+    assert params[6] == 7
+    assert params[9] == "news-ingest-and-features"
+    assert params[10] == "run-1"
+    assert json.loads(params[11]) == {"query_sha256": "abc"}
+    assert captured["committed"] is True
+
+
+def test_record_connector_call_skips_when_not_runtime(monkeypatch):
+    called = {"db": False}
+
+    monkeypatch.delenv("CONNECTOR_TELEMETRY_ENABLED", raising=False)
+    monkeypatch.delenv("PIPELINE_JOB_NAME", raising=False)
+    monkeypatch.delenv("APP_TRACK", raising=False)
+    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: called.update(db=True))
+
+    ok = pipeline_store.record_connector_call(provider="serpapi", operation="search", status="success")
+
+    assert ok is False
+    assert called["db"] is False
+
+
 def test_load_deployment_env_prefers_generated_local_file(monkeypatch, tmp_path):
     generated_dir = tmp_path / "infra" / ".generated"
     generated_dir.mkdir(parents=True)

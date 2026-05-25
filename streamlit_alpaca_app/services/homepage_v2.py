@@ -105,18 +105,18 @@ def homepage_v2_editorial_links(*, placement: str = "") -> list[dict[str, str]]:
     return links
 
 
-def homepage_v2_bundle_symbol_lookup(beats: list[dict[str, Any]] | None) -> dict[str, list[str]]:
+def homepage_v2_bundle_symbol_lookup(stories: list[dict[str, Any]] | None) -> dict[str, list[str]]:
     lookup: dict[str, list[str]] = {}
-    for beat in beats or []:
-        if not isinstance(beat, dict):
+    for story in stories or []:
+        if not isinstance(story, dict):
             continue
-        bundle_id = _coerce_text(beat.get("bundle_id"))
+        bundle_id = _coerce_text(story.get("bundle_id"))
         if not bundle_id:
             continue
         existing = lookup.setdefault(bundle_id, [])
         raw_symbols = [
             _coerce_text(symbol).upper()
-            for symbol in list(beat.get("symbols") or [])
+            for symbol in list(story.get("symbols") or [])
             if _coerce_text(symbol)
         ]
         if not raw_symbols:
@@ -131,13 +131,13 @@ def homepage_v2_bundle_symbol_lookup(beats: list[dict[str, Any]] | None) -> dict
 
 
 def normalize_homepage_v2_detail_state(
-    beats: list[dict[str, Any]] | None,
+    stories: list[dict[str, Any]] | None,
     *,
     selected_bundle_id: str = "",
     selected_ticker: str = "",
     active_panel: str = HOMEPAGE_V2_RESEARCH_PANEL,
 ) -> dict[str, str]:
-    bundle_symbol_lookup = homepage_v2_bundle_symbol_lookup(beats)
+    bundle_symbol_lookup = homepage_v2_bundle_symbol_lookup(stories)
     valid_bundle_ids = list(bundle_symbol_lookup.keys())
 
     normalized_bundle_id = _coerce_text(selected_bundle_id)
@@ -176,7 +176,7 @@ def build_homepage_v2_market_digest(
     else:
         records = [item for item in list(market_events or []) if isinstance(item, dict)]
 
-    beats: list[dict[str, Any]] = []
+    stories: list[dict[str, Any]] = []
     for index, raw in enumerate(records):
         title = _coerce_text(raw.get("event_title") or raw.get("title"))
         if not title:
@@ -203,9 +203,9 @@ def build_homepage_v2_market_digest(
             limit=4,
         )
         summary = _trim(" ".join(summary_parts), 520)
-        beats.append(
+        stories.append(
             {
-                "beat_id": f"market-event-{index + 1}",
+                "story_id": f"market-event-{index + 1}",
                 "sentence": title,
                 "summary": summary or title,
                 "event_ids": event_ids,
@@ -213,11 +213,11 @@ def build_homepage_v2_market_digest(
             }
         )
 
-    if not beats:
+    if not stories:
         return {
             "headline": "Top Market Events Today",
             "dek": "No clustered market events were available for the latest snapshot.",
-            "beats": [],
+            "stories": [],
             "mode": "market_events",
             "generated_at_utc": generated_at_utc,
             "model": "deterministic",
@@ -239,7 +239,7 @@ def build_homepage_v2_market_digest(
             " ".join(dek_parts) or "Cross-asset thread built from clustered market events instead of isolated symbol anomalies.",
             420,
         ),
-        "beats": beats,
+        "stories": stories,
         "mode": "market_events",
         "generated_at_utc": generated_at_utc,
         "model": "deterministic",

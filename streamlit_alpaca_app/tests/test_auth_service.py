@@ -361,6 +361,7 @@ def test_issue_invite_returns_specific_delivery_message_when_sender_secret_missi
             "mail_status": {},
         },
     )
+    monkeypatch.setattr(auth_service, "record_access_event", lambda **kwargs: True)
 
     result = auth_service.issue_invite(
         email="investor@example.com",

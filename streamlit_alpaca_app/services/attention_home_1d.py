@@ -1015,6 +1015,9 @@ def build_attention_home_1d(
     top_events_limit: int = 5,
     must_read_limit: int = 10,
     unresolved_limit: int = 5,
+    research_limit: int = 40,
+    load_search_clients: bool = False,
+    search_clients: list[Any] | tuple[Any, ...] | None = None,
 ) -> dict[str, Any]:
     from .attention_agentic import build_bottom_up_attention_home
 
@@ -1030,6 +1033,9 @@ def build_attention_home_1d(
         top_events_limit=top_events_limit,
         must_read_limit=must_read_limit,
         unresolved_limit=unresolved_limit,
+        research_limit=research_limit,
+        load_search_clients=load_search_clients,
+        search_clients=search_clients,
     )
 
 

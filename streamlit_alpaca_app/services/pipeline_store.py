@@ -15,7 +15,7 @@ import uuid
 import pandas as pd
 import requests
 
-from .secrets import build_azure_credential, resolve_secret_value
+from .secrets import build_azure_credential, postgres_connect_timeout_seconds, resolve_secret_value
 
 
 try:
@@ -100,6 +100,8 @@ SOURCE_DATASETS: dict[str, list[str]] = {
         "edgar_evidence",
         "attention_context_llm",
         "attention_context_bundle",
+        "zopedia_news_business_resolutions",
+        "zopedia_company_business_memory_pages",
     ],
     "attention": [
         "attention_web_search_news",
@@ -374,6 +376,10 @@ def _get_env(name: str, default: str = "") -> str:
     return (os.getenv(name) or default).strip()
 
 
+def _clean_text(value: object) -> str:
+    return str(value or "").strip()
+
+
 def _postgres_connection_string() -> str:
     return resolve_secret_value(
         ["POSTGRES_CONNECTION_STRING"],
@@ -512,7 +518,7 @@ def _db_connect() -> Any | None:
     if not conn_str or psycopg is None:
         return None
     try:
-        return psycopg.connect(conn_str)
+        return psycopg.connect(conn_str, connect_timeout=postgres_connect_timeout_seconds())
     except Exception:
         return None
 
@@ -1319,6 +1325,305 @@ def dataset_version_history(*, days: int = 7) -> pd.DataFrame:
         df = pd.DataFrame(rows, columns=columns)
         df["row_count"] = pd.to_numeric(df["row_count"], errors="coerce").fillna(0).astype(int)
         df["ingested_at_utc"] = pd.to_datetime(df["ingested_at_utc"], errors="coerce", utc=True)
+        return df
+    except Exception:
+        return pd.DataFrame(columns=columns)
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
+def latest_dataset_status_table() -> pd.DataFrame:
+    """Return the latest known snapshot for each materialized dataset."""
+    columns = [
+        "dataset_name",
+        "dataset_version_id",
+        "row_count",
+        "ingested_at_utc",
+        "run_id",
+        "age_hours",
+    ]
+    conn = _db_connect()
+    if conn is None:
+        return pd.DataFrame(columns=columns)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT DISTINCT ON (dataset_name)
+                    dataset_name, dataset_version_id, row_count, ingested_at_utc, run_id
+                FROM dataset_versions
+                ORDER BY dataset_name, ingested_at_utc DESC NULLS LAST
+                """
+            )
+            rows = cur.fetchall()
+        if not rows:
+            return pd.DataFrame(columns=columns)
+        df = pd.DataFrame(rows, columns=columns[:-1])
+        df["row_count"] = pd.to_numeric(df["row_count"], errors="coerce").fillna(0).astype(int)
+        df["ingested_at_utc"] = pd.to_datetime(df["ingested_at_utc"], errors="coerce", utc=True)
+        now = pd.Timestamp.now(tz="UTC")
+        df["age_hours"] = ((now - df["ingested_at_utc"]).dt.total_seconds() / 3600.0).round(1)
+        return df[columns]
+    except Exception:
+        return pd.DataFrame(columns=columns)
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
+def _connector_telemetry_enabled() -> bool:
+    raw = _get_env("CONNECTOR_TELEMETRY_ENABLED")
+    if raw:
+        return raw.lower() not in {"0", "false", "no", "off", "disabled"}
+    return bool(_get_env("PIPELINE_JOB_NAME") or _get_env("APP_TRACK"))
+
+
+def _ensure_connector_call_events_table(conn: Any) -> None:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS connector_call_events (
+                id BIGSERIAL PRIMARY KEY,
+                provider TEXT NOT NULL,
+                operation TEXT NOT NULL,
+                status TEXT NOT NULL,
+                started_at_utc TIMESTAMPTZ NOT NULL,
+                duration_ms DOUBLE PRECISION,
+                http_status INTEGER,
+                result_count INTEGER,
+                error_type TEXT,
+                error_summary TEXT,
+                job_name TEXT,
+                run_id TEXT,
+                metadata_json JSONB,
+                created_at_utc TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+            """
+        )
+        cur.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_connector_call_events_started
+            ON connector_call_events (started_at_utc DESC)
+            """
+        )
+        cur.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_connector_call_events_provider_status
+            ON connector_call_events (provider, status, started_at_utc DESC)
+            """
+        )
+
+
+def record_connector_call(
+    *,
+    provider: str,
+    operation: str,
+    status: str,
+    started_at_utc: datetime | None = None,
+    duration_ms: float | None = None,
+    http_status: int | None = None,
+    result_count: int | None = None,
+    error_type: str = "",
+    error_summary: str = "",
+    metadata: dict[str, Any] | None = None,
+) -> bool:
+    """Best-effort connector telemetry for Admin > System Health."""
+    if not _connector_telemetry_enabled():
+        return False
+    normalized_provider = _clean_text(provider).lower() or "unknown"
+    normalized_operation = _clean_text(operation) or "request"
+    normalized_status = _clean_text(status).lower() or "unknown"
+    timestamp = started_at_utc or datetime.now(timezone.utc)
+    safe_error_summary = _clean_text(error_summary)[:800]
+    safe_metadata = json.dumps(dict(metadata or {}), ensure_ascii=False, sort_keys=True, default=str)
+    conn = _db_connect()
+    if conn is None:
+        return False
+    try:
+        _ensure_connector_call_events_table(conn)
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO connector_call_events (
+                    provider, operation, status, started_at_utc, duration_ms, http_status,
+                    result_count, error_type, error_summary, job_name, run_id, metadata_json
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb)
+                """,
+                (
+                    normalized_provider,
+                    normalized_operation,
+                    normalized_status,
+                    timestamp,
+                    float(duration_ms) if duration_ms is not None else None,
+                    int(http_status) if http_status is not None else None,
+                    int(result_count) if result_count is not None else None,
+                    _clean_text(error_type)[:120],
+                    safe_error_summary,
+                    _get_env("PIPELINE_JOB_NAME") or _get_env("APP_TRACK"),
+                    _get_env("PIPELINE_RUN_ID"),
+                    safe_metadata,
+                ),
+            )
+        conn.commit()
+        return True
+    except Exception:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        return False
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
+def connector_call_rollup(*, days: int = 7) -> pd.DataFrame:
+    """Return connector call success/failure counts from telemetry."""
+    columns = [
+        "provider",
+        "operation",
+        "call_count",
+        "success_count",
+        "failure_count",
+        "result_count",
+        "avg_duration_ms",
+        "last_call_at_utc",
+        "last_error_summary",
+    ]
+    conn = _db_connect()
+    if conn is None:
+        return pd.DataFrame(columns=columns)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT to_regclass('public.connector_call_events')
+                """
+            )
+            if not cur.fetchone()[0]:
+                return pd.DataFrame(columns=columns)
+            cur.execute(
+                """
+                WITH recent AS (
+                    SELECT *
+                    FROM connector_call_events
+                    WHERE started_at_utc >= NOW() - (%s::text || ' days')::interval
+                ),
+                latest_errors AS (
+                    SELECT DISTINCT ON (provider, operation)
+                        provider, operation, error_summary
+                    FROM recent
+                    WHERE status <> 'success' AND COALESCE(error_summary, '') <> ''
+                    ORDER BY provider, operation, started_at_utc DESC
+                )
+                SELECT
+                    r.provider,
+                    r.operation,
+                    COUNT(*)::int AS call_count,
+                    SUM(CASE WHEN r.status = 'success' THEN 1 ELSE 0 END)::int AS success_count,
+                    SUM(CASE WHEN r.status <> 'success' THEN 1 ELSE 0 END)::int AS failure_count,
+                    COALESCE(SUM(r.result_count), 0)::int AS result_count,
+                    ROUND(AVG(r.duration_ms)::numeric, 1)::float AS avg_duration_ms,
+                    MAX(r.started_at_utc) AS last_call_at_utc,
+                    COALESCE(MAX(le.error_summary), '') AS last_error_summary
+                FROM recent r
+                LEFT JOIN latest_errors le
+                  ON le.provider = r.provider AND le.operation = r.operation
+                GROUP BY r.provider, r.operation
+                ORDER BY failure_count DESC, call_count DESC, provider, operation
+                """,
+                (max(int(days), 1),),
+            )
+            rows = cur.fetchall()
+        if not rows:
+            return pd.DataFrame(columns=columns)
+        df = pd.DataFrame(rows, columns=columns)
+        for column in ("call_count", "success_count", "failure_count", "result_count"):
+            df[column] = pd.to_numeric(df[column], errors="coerce").fillna(0).astype(int)
+        df["avg_duration_ms"] = pd.to_numeric(df["avg_duration_ms"], errors="coerce")
+        df["last_call_at_utc"] = pd.to_datetime(df["last_call_at_utc"], errors="coerce", utc=True)
+        return df
+    except Exception:
+        return pd.DataFrame(columns=columns)
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
+def retained_connector_evidence_health(*, days: int = 7) -> pd.DataFrame:
+    """Summarize retained evidence rows by connector/provider as a fallback signal."""
+    columns = [
+        "provider",
+        "evidence_rows",
+        "document_rows",
+        "chunk_rows",
+        "provider_error_rows",
+        "last_seen_at_utc",
+    ]
+    conn = _db_connect()
+    if conn is None:
+        return pd.DataFrame(columns=columns)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                WITH evidence AS (
+                    SELECT
+                        COALESCE(NULLIF(lower(search_provider), ''), NULLIF(lower(source_provider), ''), 'unknown') AS provider,
+                        'document' AS row_kind,
+                        GREATEST(first_seen_at_utc, last_seen_at_utc) AS seen_at,
+                        lower(COALESCE(title, '') || ' ' || COALESCE(display_excerpt, '') || ' ' || COALESCE(search_text, '')) AS text_blob
+                    FROM saa_documents
+                    WHERE GREATEST(first_seen_at_utc, last_seen_at_utc) >= NOW() - (%s::text || ' days')::interval
+                    UNION ALL
+                    SELECT
+                        COALESCE(NULLIF(lower(search_provider), ''), NULLIF(lower(source_provider), ''), 'unknown') AS provider,
+                        'chunk' AS row_kind,
+                        asof_time_utc AS seen_at,
+                        lower(COALESCE(title, '') || ' ' || COALESCE(display_excerpt, '') || ' ' || COALESCE(chunk_text, '') || ' ' || COALESCE(search_text, '')) AS text_blob
+                    FROM saa_evidence_chunks
+                    WHERE asof_time_utc >= NOW() - (%s::text || ' days')::interval
+                )
+                SELECT
+                    provider,
+                    COUNT(*)::int AS evidence_rows,
+                    SUM(CASE WHEN row_kind = 'document' THEN 1 ELSE 0 END)::int AS document_rows,
+                    SUM(CASE WHEN row_kind = 'chunk' THEN 1 ELSE 0 END)::int AS chunk_rows,
+                    SUM(
+                        CASE
+                            WHEN text_blob LIKE '%%request failed%%'
+                              OR text_blob LIKE '%%usage limit%%'
+                              OR text_blob LIKE '%%rate limit%%'
+                              OR text_blob LIKE '%%unauthorized%%'
+                              OR text_blob LIKE '%%forbidden%%'
+                              OR text_blob LIKE '%%timeout%%'
+                            THEN 1 ELSE 0
+                        END
+                    )::int AS provider_error_rows,
+                    MAX(seen_at) AS last_seen_at_utc
+                FROM evidence
+                GROUP BY provider
+                ORDER BY provider_error_rows DESC, evidence_rows DESC, provider
+                """,
+                (max(int(days), 1), max(int(days), 1)),
+            )
+            rows = cur.fetchall()
+        if not rows:
+            return pd.DataFrame(columns=columns)
+        df = pd.DataFrame(rows, columns=columns)
+        for column in ("evidence_rows", "document_rows", "chunk_rows", "provider_error_rows"):
+            df[column] = pd.to_numeric(df[column], errors="coerce").fillna(0).astype(int)
+        df["last_seen_at_utc"] = pd.to_datetime(df["last_seen_at_utc"], errors="coerce", utc=True)
         return df
     except Exception:
         return pd.DataFrame(columns=columns)

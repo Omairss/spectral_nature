@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
+import hashlib
 import os
+import time
 from typing import Any
 
 import requests
@@ -29,6 +32,54 @@ def _timeout_seconds() -> int:
         return max(int(raw), 5)
     except Exception:
         return 20
+
+
+def _connector_telemetry_requested() -> bool:
+    raw = _clean(os.getenv("CONNECTOR_TELEMETRY_ENABLED"))
+    if raw:
+        return raw.lower() not in {"0", "false", "no", "off", "disabled"}
+    return bool(_clean(os.getenv("PIPELINE_JOB_NAME")) or _clean(os.getenv("APP_TRACK")))
+
+
+def _query_digest(query: object) -> str:
+    text = _clean(query)
+    if not text:
+        return ""
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
+
+
+def _record_connector_call(
+    *,
+    provider: str,
+    operation: str,
+    started_at_utc: datetime,
+    started_monotonic: float,
+    status: str,
+    http_status: int | None = None,
+    result_count: int | None = None,
+    error: BaseException | str | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> None:
+    if not _connector_telemetry_requested():
+        return
+    error_summary = _clean(error)
+    try:
+        from .pipeline_store import record_connector_call
+
+        record_connector_call(
+            provider=provider,
+            operation=operation,
+            status=status,
+            started_at_utc=started_at_utc,
+            duration_ms=round((time.monotonic() - started_monotonic) * 1000.0, 1),
+            http_status=http_status,
+            result_count=result_count,
+            error_type=type(error).__name__ if isinstance(error, BaseException) else "",
+            error_summary=error_summary,
+            metadata=metadata or {},
+        )
+    except Exception:
+        return
 
 
 @dataclass(frozen=True)
@@ -116,97 +167,206 @@ class SerpAPISearchClient:
         self.session = session or requests.Session()
 
     def search(self, query: str, *, news: bool = False, num: int = 10) -> list[WebSearchResult]:
+        started_at = datetime.now(timezone.utc)
+        started_monotonic = time.monotonic()
+        operation = "search_news" if news else "search"
+        metadata = {
+            "query_sha256": _query_digest(query),
+            "query_chars": len(_clean(query)),
+            "engine": "google_news" if news else self.config.engine,
+            "num": max(int(num), 1),
+        }
+        recorded = False
         engine = "google_news" if news else self.config.engine
-        response = self.session.get(
-            "https://serpapi.com/search.json",
-            params={
-                "api_key": self.config.api_key,
-                "engine": engine,
-                "q": query,
-                "num": max(int(num), 1),
-                "google_domain": self.config.google_domain,
-                "hl": self.config.hl,
-                "gl": self.config.gl,
-            },
-            timeout=self.config.timeout_seconds,
-        )
-        if response.status_code != 200:
-            raise WebResearchError(f"SerpApi request failed status={response.status_code}: {response.text[:400]}")
-        payload = response.json()
-        rows: list[WebSearchResult] = []
-        organic_items = payload.get("news_results") if news else payload.get("organic_results")
-        if not isinstance(organic_items, list):
-            organic_items = []
-        for item in organic_items:
-            if not isinstance(item, dict):
-                continue
-            rows.append(
-                WebSearchResult(
-                    provider="serpapi",
-                    title=_clean(item.get("title")),
-                    url=_clean(item.get("link")),
-                    snippet=_clean(item.get("snippet") or item.get("summary")),
-                    raw_text=_clean(item.get("snippet") or item.get("summary")),
-                    source=_source_label(item.get("source")),
-                    published_at=_clean(item.get("date")),
-                    raw=item,
-                )
+        try:
+            response = self.session.get(
+                "https://serpapi.com/search.json",
+                params={
+                    "api_key": self.config.api_key,
+                    "engine": engine,
+                    "q": query,
+                    "num": max(int(num), 1),
+                    "google_domain": self.config.google_domain,
+                    "hl": self.config.hl,
+                    "gl": self.config.gl,
+                },
+                timeout=self.config.timeout_seconds,
             )
-        return rows
+            if response.status_code != 200:
+                message = f"SerpApi request failed status={response.status_code}: {response.text[:400]}"
+                _record_connector_call(
+                    provider="serpapi",
+                    operation=operation,
+                    started_at_utc=started_at,
+                    started_monotonic=started_monotonic,
+                    status="failure",
+                    http_status=response.status_code,
+                    error=message,
+                    metadata=metadata,
+                )
+                recorded = True
+                raise WebResearchError(message)
+            payload = response.json()
+            rows: list[WebSearchResult] = []
+            organic_items = payload.get("news_results") if news else payload.get("organic_results")
+            if not isinstance(organic_items, list):
+                organic_items = []
+            for item in organic_items:
+                if not isinstance(item, dict):
+                    continue
+                rows.append(
+                    WebSearchResult(
+                        provider="serpapi",
+                        title=_clean(item.get("title")),
+                        url=_clean(item.get("link")),
+                        snippet=_clean(item.get("snippet") or item.get("summary")),
+                        raw_text=_clean(item.get("snippet") or item.get("summary")),
+                        source=_source_label(item.get("source")),
+                        published_at=_clean(item.get("date")),
+                        raw=item,
+                    )
+                )
+            _record_connector_call(
+                provider="serpapi",
+                operation=operation,
+                started_at_utc=started_at,
+                started_monotonic=started_monotonic,
+                status="success",
+                http_status=response.status_code,
+                result_count=len(rows),
+                metadata=metadata,
+            )
+            return rows
+        except Exception as exc:
+            if not recorded:
+                _record_connector_call(
+                    provider="serpapi",
+                    operation=operation,
+                    started_at_utc=started_at,
+                    started_monotonic=started_monotonic,
+                    status="failure",
+                    error=exc,
+                    metadata=metadata,
+                )
+            raise
 
     def search_ai_overview(self, query: str) -> WebSearchResult | None:
-        response = self.session.get(
-            "https://serpapi.com/search.json",
-            params={
-                "api_key": self.config.api_key,
-                "engine": self.config.engine,
-                "q": query,
-                "num": 5,
-                "google_domain": self.config.google_domain,
-                "hl": self.config.hl,
-                "gl": self.config.gl,
-            },
-            timeout=self.config.timeout_seconds,
-        )
-        if response.status_code != 200:
-            raise WebResearchError(f"SerpApi request failed status={response.status_code}: {response.text[:400]}")
-        payload = response.json()
-        overview = payload.get("ai_overview")
-        if not isinstance(overview, dict):
-            overview = payload.get("ai_overview_result")
-        if not isinstance(overview, dict):
-            return None
-        snippet = _clean(
-            overview.get("snippet")
-            or overview.get("summary")
-            or overview.get("answer")
-            or overview.get("content")
-        )
-        title = _clean(overview.get("title")) or "Google AI Overview"
-        source_url = ""
-        sources = overview.get("sources")
-        if isinstance(sources, list) and sources:
-            first = sources[0]
-            if isinstance(first, dict):
-                source_url = _clean(first.get("link") or first.get("url"))
-        if not source_url:
-            organic_items = payload.get("organic_results")
-            if isinstance(organic_items, list) and organic_items:
-                first = organic_items[0]
+        started_at = datetime.now(timezone.utc)
+        started_monotonic = time.monotonic()
+        metadata = {
+            "query_sha256": _query_digest(query),
+            "query_chars": len(_clean(query)),
+            "engine": self.config.engine,
+            "num": 5,
+        }
+        recorded = False
+        try:
+            response = self.session.get(
+                "https://serpapi.com/search.json",
+                params={
+                    "api_key": self.config.api_key,
+                    "engine": self.config.engine,
+                    "q": query,
+                    "num": 5,
+                    "google_domain": self.config.google_domain,
+                    "hl": self.config.hl,
+                    "gl": self.config.gl,
+                },
+                timeout=self.config.timeout_seconds,
+            )
+            if response.status_code != 200:
+                message = f"SerpApi request failed status={response.status_code}: {response.text[:400]}"
+                _record_connector_call(
+                    provider="serpapi",
+                    operation="ai_overview",
+                    started_at_utc=started_at,
+                    started_monotonic=started_monotonic,
+                    status="failure",
+                    http_status=response.status_code,
+                    error=message,
+                    metadata=metadata,
+                )
+                recorded = True
+                raise WebResearchError(message)
+            payload = response.json()
+            overview = payload.get("ai_overview")
+            if not isinstance(overview, dict):
+                overview = payload.get("ai_overview_result")
+            if not isinstance(overview, dict):
+                _record_connector_call(
+                    provider="serpapi",
+                    operation="ai_overview",
+                    started_at_utc=started_at,
+                    started_monotonic=started_monotonic,
+                    status="success",
+                    http_status=response.status_code,
+                    result_count=0,
+                    metadata=metadata,
+                )
+                return None
+            snippet = _clean(
+                overview.get("snippet")
+                or overview.get("summary")
+                or overview.get("answer")
+                or overview.get("content")
+            )
+            title = _clean(overview.get("title")) or "Google AI Overview"
+            source_url = ""
+            sources = overview.get("sources")
+            if isinstance(sources, list) and sources:
+                first = sources[0]
                 if isinstance(first, dict):
-                    source_url = _clean(first.get("link"))
-        if not snippet and not source_url:
-            return None
-        return WebSearchResult(
-            provider="serpapi_ai_overview",
-            title=title,
-            url=source_url,
-            snippet=snippet,
-            raw_text=snippet,
-            source="Google AI Overview",
-            published_at="",
-            raw=overview,
-        )
+                    source_url = _clean(first.get("link") or first.get("url"))
+            if not source_url:
+                organic_items = payload.get("organic_results")
+                if isinstance(organic_items, list) and organic_items:
+                    first = organic_items[0]
+                    if isinstance(first, dict):
+                        source_url = _clean(first.get("link"))
+            if not snippet and not source_url:
+                _record_connector_call(
+                    provider="serpapi",
+                    operation="ai_overview",
+                    started_at_utc=started_at,
+                    started_monotonic=started_monotonic,
+                    status="success",
+                    http_status=response.status_code,
+                    result_count=0,
+                    metadata=metadata,
+                )
+                return None
+            _record_connector_call(
+                provider="serpapi",
+                operation="ai_overview",
+                started_at_utc=started_at,
+                started_monotonic=started_monotonic,
+                status="success",
+                http_status=response.status_code,
+                result_count=1,
+                metadata=metadata,
+            )
+            return WebSearchResult(
+                provider="serpapi_ai_overview",
+                title=title,
+                url=source_url,
+                snippet=snippet,
+                raw_text=snippet,
+                source="Google AI Overview",
+                published_at="",
+                raw=overview,
+            )
+        except Exception as exc:
+            if not recorded:
+                _record_connector_call(
+                    provider="serpapi",
+                    operation="ai_overview",
+                    started_at_utc=started_at,
+                    started_monotonic=started_monotonic,
+                    status="failure",
+                    error=exc,
+                    metadata=metadata,
+                )
+            raise
 
 
 class TavilySearchClient:
@@ -217,42 +377,87 @@ class TavilySearchClient:
         self.session = session or requests.Session()
 
     def search(self, query: str, *, max_results: int = 10, topic: str | None = None) -> list[WebSearchResult]:
-        response = self.session.post(
-            "https://api.tavily.com/search",
-            json={
-                "api_key": self.config.api_key,
-                "query": query,
-                "topic": topic or self.config.topic,
-                "search_depth": self.config.search_depth,
-                "max_results": max(int(max_results), 1),
-                "include_answer": self.config.include_answer,
-                "include_raw_content": self.config.include_raw_content,
-            },
-            timeout=self.config.timeout_seconds,
-        )
-        if response.status_code != 200:
-            raise WebResearchError(f"Tavily request failed status={response.status_code}: {response.text[:400]}")
-        payload = response.json()
-        results = payload.get("results")
-        if not isinstance(results, list):
-            results = []
-        rows: list[WebSearchResult] = []
-        for item in results:
-            if not isinstance(item, dict):
-                continue
-            rows.append(
-                WebSearchResult(
-                    provider="tavily",
-                    title=_clean(item.get("title")),
-                    url=_clean(item.get("url")),
-                    snippet=_clean(item.get("content")),
-                    raw_text=_clean(item.get("raw_content") or item.get("content")),
-                    source=_source_label(item.get("source") or item.get("domain")),
-                    published_at=_clean(item.get("published_date")),
-                    raw=item,
-                )
+        started_at = datetime.now(timezone.utc)
+        started_monotonic = time.monotonic()
+        metadata = {
+            "query_sha256": _query_digest(query),
+            "query_chars": len(_clean(query)),
+            "topic": topic or self.config.topic,
+            "max_results": max(int(max_results), 1),
+            "search_depth": self.config.search_depth,
+        }
+        recorded = False
+        try:
+            response = self.session.post(
+                "https://api.tavily.com/search",
+                json={
+                    "api_key": self.config.api_key,
+                    "query": query,
+                    "topic": topic or self.config.topic,
+                    "search_depth": self.config.search_depth,
+                    "max_results": max(int(max_results), 1),
+                    "include_answer": self.config.include_answer,
+                    "include_raw_content": self.config.include_raw_content,
+                },
+                timeout=self.config.timeout_seconds,
             )
-        return rows
+            if response.status_code != 200:
+                message = f"Tavily request failed status={response.status_code}: {response.text[:400]}"
+                _record_connector_call(
+                    provider="tavily",
+                    operation="search",
+                    started_at_utc=started_at,
+                    started_monotonic=started_monotonic,
+                    status="failure",
+                    http_status=response.status_code,
+                    error=message,
+                    metadata=metadata,
+                )
+                recorded = True
+                raise WebResearchError(message)
+            payload = response.json()
+            results = payload.get("results")
+            if not isinstance(results, list):
+                results = []
+            rows: list[WebSearchResult] = []
+            for item in results:
+                if not isinstance(item, dict):
+                    continue
+                rows.append(
+                    WebSearchResult(
+                        provider="tavily",
+                        title=_clean(item.get("title")),
+                        url=_clean(item.get("url")),
+                        snippet=_clean(item.get("content")),
+                        raw_text=_clean(item.get("raw_content") or item.get("content")),
+                        source=_source_label(item.get("source") or item.get("domain")),
+                        published_at=_clean(item.get("published_date")),
+                        raw=item,
+                    )
+                )
+            _record_connector_call(
+                provider="tavily",
+                operation="search",
+                started_at_utc=started_at,
+                started_monotonic=started_monotonic,
+                status="success",
+                http_status=response.status_code,
+                result_count=len(rows),
+                metadata=metadata,
+            )
+            return rows
+        except Exception as exc:
+            if not recorded:
+                _record_connector_call(
+                    provider="tavily",
+                    operation="search",
+                    started_at_utc=started_at,
+                    started_monotonic=started_monotonic,
+                    status="failure",
+                    error=exc,
+                    metadata=metadata,
+                )
+            raise
 
 
 __all__ = [

@@ -20,7 +20,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from services.secrets import build_azure_credential, resolve_secret_value
+from services.secrets import build_azure_credential, postgres_connect_timeout_seconds, resolve_secret_value
 
 
 try:
@@ -47,7 +47,7 @@ def _db_connection() -> Any | None:
     if not conn_str or psycopg is None:
         return None
     try:
-        return psycopg.connect(conn_str)
+        return psycopg.connect(conn_str, connect_timeout=postgres_connect_timeout_seconds())
     except Exception:
         return None
 

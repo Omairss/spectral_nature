@@ -138,6 +138,8 @@ def build_bottom_up_attention_artifacts(
     must_read_limit: int = 10,
     unresolved_limit: int = 5,
     research_limit: int = 40,
+    load_search_clients: bool = False,
+    search_clients: list[Any] | tuple[Any, ...] | None = None,
     progress_callback: Callable[[int, int, dict[str, Any]], None] | None = None,
 ) -> AgenticAttentionArtifacts:
     import uuid
@@ -201,9 +203,19 @@ def build_bottom_up_attention_artifacts(
         return AgenticAttentionArtifacts(home_payload=empty_payload, bundle_map={}, frames=frames)
 
     model_name = getattr(getattr(llm_client, "config", object()), "model", DEFAULT_WRITER_MODEL) if llm_client is not None else "heuristic"
-    serp_client, tavily_client = _aql_config._load_search_clients()
-
-    research_candidates = candidates.head(max(int(research_limit), 1)).to_dict(orient="records")
+    research_limit_safe = max(int(research_limit), 0)
+    if research_limit_safe > 0 and search_clients is not None:
+        client_items = list(search_clients or [])
+        serp_client = client_items[0] if len(client_items) > 0 else None
+        tavily_client = client_items[1] if len(client_items) > 1 else None
+    elif research_limit_safe > 0 and load_search_clients:
+        serp_client, tavily_client = _aql_config._load_search_clients()
+    else:
+        serp_client, tavily_client = None, None
+    if research_limit_safe > 0:
+        research_candidates = candidates.head(research_limit_safe).to_dict(orient="records")
+    else:
+        research_candidates = []
     plan_rows: list[dict[str, Any]] = []
     request_rows: list[dict[str, Any]] = []
     result_rows: list[dict[str, Any]] = []
@@ -318,12 +330,17 @@ def build_bottom_up_attention_artifacts(
                 continue
             seen_doc_ids.add(doc_id)
             deduped_documents.append(item)
-        deduped_documents = annotate_source_documents(deduped_documents, asof_time_utc=asof_time_utc)
+        deduped_documents = annotate_source_documents(
+            deduped_documents,
+            asof_time_utc=asof_time_utc,
+            llm_client=llm_client,
+        )
         chunks = _chunk_source_documents(
             deduped_documents,
             run_id=run_id,
             asof_time_utc=asof_time_utc,
             embedding_client=embedding_client,
+            llm_client=llm_client,
         )
         claims = _extract_claims(
             candidate,
@@ -667,6 +684,9 @@ def build_bottom_up_attention_home(
     top_events_limit: int = 5,
     must_read_limit: int = 10,
     unresolved_limit: int = 5,
+    research_limit: int = 40,
+    load_search_clients: bool = False,
+    search_clients: list[Any] | tuple[Any, ...] | None = None,
 ) -> dict[str, Any]:
     return build_bottom_up_attention_artifacts(
         daily_movers,
@@ -686,6 +706,9 @@ def build_bottom_up_attention_home(
         top_events_limit=top_events_limit,
         must_read_limit=must_read_limit,
         unresolved_limit=unresolved_limit,
+        research_limit=research_limit,
+        load_search_clients=load_search_clients,
+        search_clients=search_clients,
     ).home_payload
 
 

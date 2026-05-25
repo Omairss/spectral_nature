@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import json
+from types import SimpleNamespace
 
 import pandas as pd
+from services import secrets
 from services.aql.evidence_index import annotate_source_documents
+from services.saa import storage
 from services.saa.storage import (
     load_retained_document_metadata,
     load_retained_evidence_chunk,
@@ -164,6 +167,47 @@ class _Conn:
         return _Cursor(self.rows)
 
 
+def test_db_connection_uses_generated_deployment_vault(monkeypatch, tmp_path):
+    generated_dir = tmp_path / "infra" / ".generated"
+    generated_dir.mkdir(parents=True)
+    (generated_dir / "deployment.local.env").write_text(
+        "KEYVAULT_NAME=local-generated-vault\n",
+        encoding="utf-8",
+    )
+
+    captured_secret: dict[str, str] = {}
+    captured_connect: dict[str, str] = {}
+
+    def fake_read_secret(secret_name: str, vault_url: str) -> dict[str, str]:
+        captured_secret["secret_name"] = secret_name
+        captured_secret["vault_url"] = vault_url
+        return {"value": "postgres://example", "reason": "", "error_type": "", "error_message": ""}
+
+    def fake_connect(conn_str: str, **kwargs):
+        captured_connect["conn_str"] = conn_str
+        captured_connect["connect_timeout"] = kwargs.get("connect_timeout")
+        return "db-connection"
+
+    monkeypatch.setattr(secrets, "APP_ROOT", tmp_path)
+    monkeypatch.setattr(secrets, "_read_secret", fake_read_secret)
+    monkeypatch.setattr(storage, "psycopg", SimpleNamespace(connect=fake_connect))
+    monkeypatch.delenv("DEPLOYMENT_ENV_FILE", raising=False)
+    monkeypatch.delenv("POSTGRES_CONNECTION_STRING", raising=False)
+    monkeypatch.delenv("POSTGRES_CONNECTION_STRING_SECRET", raising=False)
+    monkeypatch.delenv("AZURE_KEY_VAULT_URL", raising=False)
+    monkeypatch.delenv("KEYVAULT_NAME", raising=False)
+    monkeypatch.delenv("AZURE_KEY_VAULT_NAME", raising=False)
+    monkeypatch.delenv("KEY_VAULT_NAME", raising=False)
+    monkeypatch.delenv("POSTGRES_CONNECT_TIMEOUT_SECONDS", raising=False)
+
+    assert storage._db_connection() == "db-connection"
+    assert captured_secret == {
+        "secret_name": "postgres-connection-string",
+        "vault_url": "https://local-generated-vault.vault.azure.net",
+    }
+    assert captured_connect == {"conn_str": "postgres://example", "connect_timeout": 5}
+
+
 def test_annotate_source_documents_adds_canonical_fields():
     documents = annotate_source_documents(
         [
@@ -288,6 +332,34 @@ def test_search_retained_documents_filters_historical_rows():
     assert resolved.iloc[0]["mentioned_tickers"] == ["USO", "BNO"]
     assert resolved.iloc[0]["event_tags"] == ["geopolitics", "supply_chain"]
     assert resolved.iloc[0]["search_score"] > 0
+
+
+def test_search_retained_documents_coerces_unusable_timestamps():
+    row = list(
+        _retained_row(
+            canonical_document_id="saa_doc::ionq",
+            title="IonQ revenue update",
+            display_excerpt="IonQ reported quantum demand commentary.",
+            search_text="IonQ quantum demand and customer interest increased.",
+            bundle_subject="IONQ",
+            source_provider="Motley Fool",
+            search_provider="tavily",
+            published_at="2026-03-24T17:30:00Z",
+            published_date="",
+            primary_date="",
+            mentioned_tickers=["IONQ"],
+            mentioned_commodities=[],
+            event_tags=["earnings"],
+            mentioned_dates=[],
+        )
+    )
+    row[12] = "48113-11-21 00:00:01+00"
+    rows = [tuple(row)]
+
+    resolved = search_retained_documents(query="quantum demand", limit=5, conn=_Conn(rows))
+
+    assert resolved["canonical_document_id"].tolist() == ["saa_doc::ionq"]
+    assert pd.isna(resolved.iloc[0]["published_at"])
 
 
 def test_load_retained_document_metadata_returns_single_row():

@@ -1,6 +1,15 @@
 from __future__ import annotations
 
-from services.web_research import SerpAPIConfig, SerpAPISearchClient, load_serpapi_config, load_tavily_config
+from services import web_research
+from services.web_research import (
+    SerpAPIConfig,
+    SerpAPISearchClient,
+    TavilyConfig,
+    TavilySearchClient,
+    WebResearchError,
+    load_serpapi_config,
+    load_tavily_config,
+)
 
 
 class _FakeResponse:
@@ -20,6 +29,11 @@ class _FakeSession:
     def get(self, *args, **kwargs):
         if not self._responses:
             raise AssertionError("No fake responses left for GET request.")
+        return self._responses.pop(0)
+
+    def post(self, *args, **kwargs):
+        if not self._responses:
+            raise AssertionError("No fake responses left for POST request.")
         return self._responses.pop(0)
 
 
@@ -75,3 +89,62 @@ def test_search_ai_overview_returns_none_when_not_present():
         session=_FakeSession([_FakeResponse({"organic_results": []})]),
     )
     assert client.search_ai_overview("BMY stock today") is None
+
+
+def test_serpapi_search_records_success_telemetry(monkeypatch):
+    calls: list[dict[str, object]] = []
+    monkeypatch.setenv("CONNECTOR_TELEMETRY_ENABLED", "true")
+    monkeypatch.setattr(web_research, "_record_connector_call", lambda **kwargs: calls.append(kwargs))
+    client = SerpAPISearchClient(
+        SerpAPIConfig(api_key="serp-test-key"),
+        session=_FakeSession(
+            [
+                _FakeResponse(
+                    {
+                        "news_results": [
+                            {
+                                "title": "BMY update",
+                                "link": "https://example.com/bmy",
+                                "summary": "BMY pipeline news",
+                                "source": "Example",
+                            }
+                        ]
+                    }
+                )
+            ]
+        ),
+    )
+
+    rows = client.search("BMY stock today", news=True, num=3)
+
+    assert len(rows) == 1
+    assert calls[0]["provider"] == "serpapi"
+    assert calls[0]["operation"] == "search_news"
+    assert calls[0]["status"] == "success"
+    assert calls[0]["http_status"] == 200
+    assert calls[0]["result_count"] == 1
+    assert calls[0]["metadata"]["query_sha256"]
+    assert "BMY stock today" not in str(calls[0]["metadata"])
+
+
+def test_tavily_search_records_failure_telemetry(monkeypatch):
+    calls: list[dict[str, object]] = []
+    monkeypatch.setenv("CONNECTOR_TELEMETRY_ENABLED", "true")
+    monkeypatch.setattr(web_research, "_record_connector_call", lambda **kwargs: calls.append(kwargs))
+    client = TavilySearchClient(
+        TavilyConfig(api_key="tavily-test-key"),
+        session=_FakeSession([_FakeResponse({"error": "quota"}, status_code=432, text="quota exceeded")]),
+    )
+
+    try:
+        client.search("BMY stock today", max_results=3)
+    except WebResearchError:
+        pass
+    else:
+        raise AssertionError("Expected Tavily failure")
+
+    assert calls[0]["provider"] == "tavily"
+    assert calls[0]["operation"] == "search"
+    assert calls[0]["status"] == "failure"
+    assert calls[0]["http_status"] == 432
+    assert "quota exceeded" in str(calls[0]["error"])

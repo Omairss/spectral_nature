@@ -10,7 +10,7 @@ import pandas as pd
 from .llm import AzureOpenAIChatJSONClient, OpenAIChatJSONClient
 from .pipeline_store import load_latest_dataset_frame
 from .runtime_policy import taxonomy_classifier_policy
-from .secrets import resolve_secret_value
+from .secrets import postgres_connect_timeout_seconds, resolve_secret_value
 
 
 try:
@@ -463,7 +463,7 @@ def _db_connection() -> Any | None:
     if not conn_str or psycopg is None:
         return None
     try:
-        return psycopg.connect(conn_str)
+        return psycopg.connect(conn_str, connect_timeout=postgres_connect_timeout_seconds())
     except Exception:
         return None
 
