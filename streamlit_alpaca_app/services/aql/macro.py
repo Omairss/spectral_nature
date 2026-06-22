@@ -762,28 +762,6 @@ def _macro_hypothesis_query(bundle: dict[str, Any], row: pd.Series) -> str:
     return _trim(" ".join(part for part in components if part), 240)
 
 
-def _heuristic_macro_verdict(hypothesis_text: str, title: str, snippet: str) -> str:
-    combined = _normalized_text(f"{title} {snippet}")
-    if not combined:
-        return "neutral"
-    contradiction_markers = (
-        "contrary",
-        "unexpectedly",
-        "despite",
-        "reversed",
-        "did not",
-        "failed to",
-        "against",
-        "opposite",
-    )
-    if any(marker in combined for marker in contradiction_markers):
-        return "contradict"
-    overlap = _text_overlap(hypothesis_text, combined)
-    if overlap >= 0.12:
-        return "support"
-    return "neutral"
-
-
 def _llm_macro_evidence_verdicts(
     *,
     llm_client: LLMClient | None,
@@ -906,11 +884,7 @@ def _verify_macro_hypotheses_with_web_evidence(
             result_id = _coerce_text(result.get("result_id"))
             title = _coerce_text(result.get("title"))
             snippet = _coerce_text(result.get("snippet"))
-            verdict = verdict_by_result.get(result_id) or _heuristic_macro_verdict(
-                _coerce_text(row.get("hypothesis_text")),
-                title,
-                snippet,
-            )
+            verdict = verdict_by_result.get(result_id) or "neutral"
             if verdict == "support":
                 support_hits += 1
             elif verdict == "contradict":

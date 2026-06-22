@@ -775,7 +775,7 @@ def test_resolve_attention_feed_includes_macro_provenance_details(monkeypatch):
     assert details["macro_release_visibility_summary"]["promoted"] == 1
 
 
-def test_resolve_attention_home_1d_rejects_stat_dump_materialized_payload(monkeypatch):
+def test_resolve_attention_home_1d_fails_closed_for_bad_materialized_payload(monkeypatch):
     bad_what = (
         "Energy and crude-linked products advanced with USO +5.95%, BNO +4.35%, and XOM +3.36%. "
         "Travel-related equities fell at the same time, including ABNB -6.28%, LUV -5.45%, UAL -4.61%, and BKNG -3.68%."
@@ -810,27 +810,6 @@ def test_resolve_attention_home_1d_rejects_stat_dump_materialized_payload(monkey
             }
         ]
     )
-    live_payload = {
-        "run_id": "live-run",
-        "generated_at_utc": "2026-03-30T03:15:00Z",
-        "top_events": [
-            {
-                "bundle_id": "event::cluster-02-067808a0a0",
-                "event_title": "Airlines lower while energy names hold up",
-                "what_happened_text": "Airline and travel names moved lower while energy-linked names were relatively firm.",
-                "why_happened_text": "Higher fuel-cost expectations can pressure airline margins and sentiment around discretionary travel demand.",
-                "affected_assets_summary_text": "The move spilled into travel-adjacent names while integrated energy equities held up better.",
-            }
-        ],
-        "must_read_movers": [],
-        "unresolved_large_moves": [],
-        "coverage_summary": {"candidate_count": 1},
-        "taxonomy_horizon_trends": [],
-        "event_candidates_1d": [],
-        "event_impacts_1d": [],
-        "entity_master": [],
-    }
-
     monkeypatch.setattr(DataAccessLayer, "_should_try_pipeline", lambda self, force_refresh: True)
     monkeypatch.setattr(
         DataAccessLayer,
@@ -840,17 +819,17 @@ def test_resolve_attention_home_1d_rejects_stat_dump_materialized_payload(monkey
     monkeypatch.setattr(
         DataAccessLayer,
         "_resolve_live_attention_artifacts",
-        lambda self, force_refresh: {"home_payload": live_payload, "bundle_map": {}, "run_id": "live-run"},
+        lambda self, force_refresh: (_ for _ in ()).throw(AssertionError("Home render must not live-build attention")),
     )
 
     resolved = DataAccessLayer().resolve_attention_home_1d()
 
-    assert resolved.provenance.mode == "on_demand"
-    assert resolved.payload["run_id"] == "live-run"
-    assert resolved.payload["top_events"][0]["event_title"] == "Airlines lower while energy names hold up"
+    assert resolved.provenance.mode == "materialized"
+    assert resolved.payload == {}
+    assert resolved.provenance.details["warning"] == "attention_home_materialized_stat_dump_text"
 
 
-def test_resolve_attention_research_bundle_rejects_stat_dump_materialized_payload(monkeypatch):
+def test_resolve_attention_research_bundle_fails_closed_for_stat_dump_materialized_payload(monkeypatch):
     bundle_id = "event::cluster-02-067808a0a0"
     bad_bundle_payload = {
         "bundle_id": bundle_id,
@@ -874,15 +853,6 @@ def test_resolve_attention_research_bundle_rejects_stat_dump_materialized_payloa
             }
         ]
     )
-    live_bundle = {
-        "bundle_id": bundle_id,
-        "bundle_type": "event",
-        "event_title": "Airlines lower while energy names hold up",
-        "what_happened_text": "Airline and travel names moved lower while energy-linked names remained comparatively firm.",
-        "why_happened_text": "Higher expected fuel costs can compress airline margins and weigh on travel demand expectations.",
-        "affected_assets_summary_text": "Spillover stayed concentrated in travel-adjacent names while integrated energy held up better.",
-    }
-
     monkeypatch.setattr(DataAccessLayer, "_should_try_pipeline", lambda self, force_refresh: True)
     monkeypatch.setattr(
         DataAccessLayer,
@@ -892,14 +862,14 @@ def test_resolve_attention_research_bundle_rejects_stat_dump_materialized_payloa
     monkeypatch.setattr(
         DataAccessLayer,
         "_resolve_live_attention_artifacts",
-        lambda self, force_refresh: {"home_payload": {}, "bundle_map": {bundle_id: live_bundle}, "run_id": "live-run"},
+        lambda self, force_refresh: (_ for _ in ()).throw(AssertionError("bundle render must not live-build attention")),
     )
 
-    resolved = DataAccessLayer().resolve_attention_research_bundle(bundle_id)
+    resolved = DataAccessLayer().resolve_attention_research_bundle(bundle_id, force_refresh=True)
 
-    assert resolved.provenance.mode == "on_demand"
-    assert resolved.payload["event_title"] == "Airlines lower while energy names hold up"
-    assert "USO +5.95%" not in resolved.payload["what_happened_text"]
+    assert resolved.provenance.mode == "materialized"
+    assert resolved.payload == {}
+    assert resolved.provenance.details["warning"] == "attention_research_bundle_materialized_snapshot_unavailable"
 
 
 def test_resolve_attention_research_bundle_symbol_prefers_on_demand_when_materialized_has_no_web_signal(monkeypatch):
@@ -969,7 +939,7 @@ def test_resolve_attention_research_bundle_symbol_prefers_on_demand_when_materia
         lambda self, symbol, force_refresh: direct_payload,
     )
 
-    resolved = DataAccessLayer().resolve_attention_research_bundle(bundle_id)
+    resolved = DataAccessLayer().resolve_attention_research_bundle(bundle_id, force_refresh=True)
 
     assert resolved.provenance.mode == "on_demand"
     assert resolved.payload["headline"].startswith("Bristol Myers drawdown")
@@ -1021,7 +991,7 @@ def test_resolve_attention_research_bundle_symbol_precomputed_only_skips_on_dema
         lambda self, symbol, force_refresh: (_ for _ in ()).throw(AssertionError("on-demand symbol bundle should be disabled in precomputed mode")),
     )
 
-    resolved = DataAccessLayer().resolve_attention_research_bundle(bundle_id)
+    resolved = DataAccessLayer().resolve_attention_research_bundle(bundle_id, force_refresh=True)
 
     assert resolved.provenance.mode == "materialized"
     assert resolved.provenance.details.get("precomputed_only") is True
@@ -1165,7 +1135,7 @@ def test_resolve_attention_ticker_background_prefers_agentic_symbol_bundle(monke
     assert resolved.payload["source_trace"]["bundle_id"] == "symbol::AAPL"
 
 
-def test_resolve_attention_ticker_background_reports_no_relevant_agentic_news(monkeypatch):
+def test_resolve_attention_ticker_background_surfaces_low_importance_web_context(monkeypatch):
     materialized_background = pd.DataFrame(
         [
             {
@@ -1239,10 +1209,10 @@ def test_resolve_attention_ticker_background_reports_no_relevant_agentic_news(mo
 
     resolved = DataAccessLayer().resolve_attention_ticker_background("IRDM")
 
-    assert resolved.payload["description_text"].startswith("No relevant catalyst found")
-    assert resolved.payload["news_summary_lines"][0].startswith("No relevant catalyst found")
-    assert resolved.payload["recent_headlines"] == []
-    assert resolved.payload["source_trace"]["relevant_news_count"] == 0
+    assert resolved.payload["description_text"].startswith("Iridium baseline move")
+    assert "same-day web item" in resolved.payload["news_summary_lines"][0]
+    assert resolved.payload["recent_headlines"][0]["headline"] == "Iridium minor filing update"
+    assert resolved.payload["source_trace"]["relevant_news_count"] == 1
 
 
 def test_resolve_attention_ticker_background_uses_company_baseline_when_materialized_missing(monkeypatch):
@@ -1413,7 +1383,7 @@ def test_resolve_attention_ticker_background_keeps_materialized_context_when_bun
     assert resolved.payload["description_text"].startswith("Bristol-Myers Squibb baseline context")
     assert resolved.payload["news_summary_lines"][0].startswith("6 recent article")
     assert resolved.payload["recent_headlines"][0]["headline"].startswith("Bristol Myers Squibb")
-    assert not resolved.payload["description_text"].startswith("No relevant catalyst found")
+    assert not resolved.payload["description_text"].startswith("No relevant business news found")
     assert resolved.payload["source_trace"]["relevant_news_count"] == 1
     assert resolved.payload["source_trace"]["source"] == "attention_ticker_background_snapshots"
 
@@ -1543,7 +1513,7 @@ def test_data_access_layer_recent_news_falls_back_to_attention_web_search_news(m
             "summary": ["Coverage highlighted progress in the thyroid eye disease program.", "Search backfill summary"],
             "source": ["SerpApi", "SerpApi"],
             "payload_source": ["serpapi", "serpapi"],
-            "published_at": [pd.Timestamp("2026-03-30T11:00:00Z"), pd.NaT],
+            "published_at": [pd.Timestamp("2026-05-27T11:00:00Z"), pd.NaT],
             "url": ["https://example.com/vrdn-search", ""],
             "fallback_summary": ["", "Search backfill summary"],
         }
@@ -1552,10 +1522,10 @@ def test_data_access_layer_recent_news_falls_back_to_attention_web_search_news(m
         "news_articles": None,
         "attention_web_search_news": SimpleNamespace(
             dataset_name="attention_web_search_news",
-            dataset_version_id="attention_web_search_news__20260330T120000Z__abcd1234",
+            dataset_version_id="attention_web_search_news__20260528T120000Z__abcd1234",
             blob_path="datasets/attention_web_search_news/example.parquet",
-            asof_time_utc="2026-03-30T12:00:00Z",
-            ingested_at_utc="2026-03-30T12:05:00Z",
+            asof_time_utc="2026-05-28T12:00:00Z",
+            ingested_at_utc="2026-05-28T12:05:00Z",
             row_count=2,
         ),
     }
@@ -1576,6 +1546,104 @@ def test_data_access_layer_recent_news_falls_back_to_attention_web_search_news(m
     assert resolved.payload["articles"]["headline"].tolist() == ["Viridian shares jump on trial coverage"]
     assert resolved.payload["fallback_summary"] == "Search backfill summary"
     assert resolved.payload["source"] == "serpapi+SerpApi"
+
+
+def test_data_access_layer_recent_news_uses_materialized_identity_for_web_refresh(monkeypatch):
+    import data_access.layer as layer_module
+
+    company_baselines = pd.DataFrame(
+        {
+            "symbol": ["APLD"],
+            "company_name": ["Applied Digital Corporation"],
+        }
+    )
+    metadata = SimpleNamespace(
+        dataset_name="company_baselines",
+        dataset_version_id="company_baselines__20260528T120000Z__abcd1234",
+        blob_path="datasets/company_baselines/example.parquet",
+        asof_time_utc="2026-05-28T12:00:00Z",
+        ingested_at_utc="2026-05-28T12:05:00Z",
+        row_count=1,
+    )
+    captured: dict[str, object] = {}
+
+    def _load(dataset_name: str):
+        if dataset_name == "company_baselines":
+            return company_baselines.copy(), metadata
+        return pd.DataFrame(), None
+
+    def _cached_news_payload(_namespace, _scope, factory, **_kwargs):
+        return factory()
+
+    def _search_symbol_news_payload(symbol, *, company_name="", **_kwargs):
+        captured["symbol"] = symbol
+        captured["company_name"] = company_name
+        return {
+            "articles": pd.DataFrame(
+                {
+                    "headline": ["Applied Digital secures AI data-center coverage"],
+                    "summary": ["Coverage discussed Applied Digital's AI data-center demand."],
+                    "description": ["Coverage discussed Applied Digital's AI data-center demand."],
+                    "source": ["ExampleWire"],
+                    "published_at": [pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=1)],
+                    "url": ["https://example.com/apld-2026-05-27"],
+                }
+            ),
+            "fallback_summary": None,
+            "source": "serpapi",
+        }
+
+    monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
+    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", _load)
+    monkeypatch.setattr(layer_module, "cached_news_payload", _cached_news_payload)
+    monkeypatch.setattr(layer_module, "search_symbol_news_payload", _search_symbol_news_payload)
+    monkeypatch.setattr(layer_module, "load_llm_client", lambda: None)
+
+    resolved = DataAccessLayer(cfg=None).resolve_recent_news("APLD", days=7, limit=5, force_refresh=True)
+
+    assert captured == {"symbol": "APLD", "company_name": "Applied Digital Corporation"}
+    assert resolved.provenance.datasets == ("web_search_news",)
+    assert resolved.payload["articles"]["headline"].tolist() == ["Applied Digital secures AI data-center coverage"]
+
+
+def test_data_access_layer_recent_news_ignores_summary_only_current_feed_rows(monkeypatch):
+    import data_access.layer as layer_module
+
+    search_news = pd.DataFrame(
+        {
+            "symbol": ["UMC"],
+            "row_type": ["summary"],
+            "headline": [""],
+            "summary": ["Old search backfill summary"],
+            "source": ["SerpApi"],
+            "payload_source": ["serpapi"],
+            "published_at": [pd.NaT],
+            "url": [""],
+            "fallback_summary": ["Old search backfill summary"],
+        }
+    )
+    metadata = SimpleNamespace(
+        dataset_name="attention_web_search_news",
+        dataset_version_id="attention_web_search_news__20260528T120000Z__abcd1234",
+        blob_path="datasets/attention_web_search_news/example.parquet",
+        asof_time_utc="2026-05-28T12:00:00Z",
+        ingested_at_utc="2026-05-28T12:05:00Z",
+        row_count=1,
+    )
+
+    def _load(dataset_name: str):
+        if dataset_name == "attention_web_search_news":
+            return search_news.copy(), metadata
+        return pd.DataFrame(), None
+
+    monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
+    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", _load)
+
+    resolved = DataAccessLayer(materialized_only=True).resolve_recent_news("UMC", limit=5)
+
+    assert resolved.provenance.datasets == ("news_articles",)
+    assert resolved.payload["articles"].empty
+    assert resolved.payload["fallback_summary"] is None
 
 
 def test_data_access_layer_resolves_materialized_news_business_resolutions(monkeypatch):
@@ -1617,6 +1685,47 @@ def test_data_access_layer_resolves_materialized_news_business_resolutions(monke
     assert resolved.provenance.datasets == ("zopedia_news_business_resolutions",)
     assert resolved.payload["symbol"].tolist() == ["CRWV"]
     assert resolved.payload.iloc[0]["company_name"] == "CoreWeave"
+
+
+def test_data_access_layer_resolves_materialized_ticker_business_model_stack(monkeypatch):
+    import data_access.layer as layer_module
+
+    materialized = pd.DataFrame(
+        [
+            {
+                "symbol": "CRWV",
+                "company_name": "CoreWeave",
+                "status": "ready",
+                "business_story_markdown": "CoreWeave sells AI infrastructure.",
+                "asof_time_utc": "2026-05-24T12:00:00Z",
+            },
+            {
+                "symbol": "NBIS",
+                "company_name": "Nebius",
+                "status": "ready",
+                "business_story_markdown": "Nebius sells AI infrastructure.",
+                "asof_time_utc": "2026-05-24T11:00:00Z",
+            },
+        ]
+    )
+    metadata = SimpleNamespace(
+        dataset_name="zopedia_ticker_business_model_stacks",
+        dataset_version_id="zopedia_ticker_business_model_stacks__20260524T120000Z__abcd1234",
+        blob_path="datasets/zopedia_ticker_business_model_stacks/example.parquet",
+        asof_time_utc="2026-05-24T12:00:00Z",
+        ingested_at_utc="2026-05-24T12:05:00Z",
+        row_count=2,
+    )
+
+    monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
+    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", lambda dataset_name: (materialized.copy(), metadata))
+
+    resolved = DataAccessLayer(materialized_only=True).resolve_ticker_business_model_stack("CRWV")
+
+    assert resolved.provenance.mode == "materialized"
+    assert resolved.provenance.datasets == ("zopedia_ticker_business_model_stacks",)
+    assert resolved.payload["symbol"].tolist() == ["CRWV"]
+    assert resolved.payload.iloc[0]["business_story_markdown"] == "CoreWeave sells AI infrastructure."
 
 
 def test_data_access_layer_asset_metadata_falls_back_to_universe_snapshot(monkeypatch):

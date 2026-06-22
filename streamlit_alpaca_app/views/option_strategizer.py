@@ -97,7 +97,7 @@ def _render_option_strategizer_section(
             template="plotly_dark",
             title=f"{ticker} Calls IV Surface ({exp})",
         )
-        st.plotly_chart(fig_c, use_container_width=True)
+        st.plotly_chart(fig_c, use_container_width=True, key=f"option_strategizer_{ticker}_{exp}_calls_iv_chart")
     elif not calls.empty:
         st.info("No call rows had both strike and implied volatility for plotting.")
 
@@ -233,7 +233,7 @@ def _render_option_strategizer_section(
             },
         )
         fig_surface.update_traces(marker=dict(opacity=0.78))
-        st.plotly_chart(fig_surface, use_container_width=True)
+        st.plotly_chart(fig_surface, use_container_width=True, key=f"option_strategizer_{ticker}_selection_surface_chart")
 
     greek_tradeoff = candidates.dropna(
         subset=["delta", "theta_drag_pct", "projected_return_pct", "selection_score"]
@@ -267,7 +267,7 @@ def _render_option_strategizer_section(
             },
         )
         fig_greeks.update_traces(marker=dict(opacity=0.78))
-        st.plotly_chart(fig_greeks, use_container_width=True)
+        st.plotly_chart(fig_greeks, use_container_width=True, key=f"option_strategizer_{ticker}_greek_tradeoff_chart")
 
     st.dataframe(
         candidates.head(15)[

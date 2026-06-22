@@ -12,6 +12,27 @@ def test_attention_text_helpers_normalize_blank_and_nan_values():
     assert attention_content._raw_attention_text(np.nan) == ""
 
 
+def test_display_markdown_sections_split_one_line_zopedia_answer_and_escape_dollars():
+    sections = attention_content.display_markdown_sections(
+        "### What Changed Snowflake reported EPS of $0.39 on $1.39B revenue. "
+        "### Most Likely Driver Company-specific earnings beat. "
+        "### What To Watch Watch whether SNOW holds above $240."
+    )
+
+    assert sections == [
+        ("What Changed", "Snowflake reported EPS of \\$0.39 on \\$1.39B revenue."),
+        ("Most Likely Driver", "Company-specific earnings beat."),
+        ("What To Watch", "Watch whether SNOW holds above \\$240."),
+    ]
+
+
+def test_streamlit_safe_markdown_text_removes_inline_code_and_heading_markers():
+    assert (
+        attention_content.streamlit_safe_markdown_text("### Background `0.39` and $1.39B")
+        == "Background 0.39 and \\$1.39B"
+    )
+
+
 def test_headline_items_from_news_payload_filters_blank_headlines():
     news_payload = {
         "articles": pd.DataFrame(
@@ -61,72 +82,6 @@ def test_headline_items_from_news_payload_filters_blank_headlines():
     ]
 
 
-def test_homepage_event_record_and_summary_prefer_brief_payload(monkeypatch):
-    monkeypatch.setattr(
-        attention_content,
-        "build_attention_news_narrative",
-        lambda symbol, news_payload, peer_group_name="": {"narrative_text": f"{symbol} cluster"},
-    )
-
-    row = pd.Series(
-        {
-            "_homepage_v2_event_id": "event-7",
-            "entity_id": "msft",
-            "title": "Microsoft alert",
-            "subtitle": "Cloud momentum",
-            "source_label": "Attention",
-            "horizon": "1d",
-            "anomaly_type": "earnings",
-            "attention_score": np.float64(72.5),
-            "why_now_text": "Fresh check",
-            "next_best_action": "Watch Azure growth",
-            "peer_group_name": "Megacap Tech",
-        }
-    )
-    news_payload = {
-        "articles": pd.DataFrame(
-            [
-                {"headline": "Headline 1"},
-                {"headline": "Headline 2"},
-                {"headline": "Headline 3"},
-                {"headline": "Headline 4"},
-            ]
-        )
-    }
-    context_payload = {
-        "llm_headline": "Context headline",
-        "llm_summary_text": "Context summary",
-        "llm_why_now": "Context why now",
-        "llm_management_signal": "Management signal",
-    }
-    brief_payload = {
-        "lead_text": "Lead sentence",
-        "cluster_text": "Cluster sentence",
-        "headline_text": "Headline sentence",
-        "company_text": "Company sentence",
-        "explainer_text": "Explainer sentence",
-        "watchpoint_text": "Watch backlog",
-    }
-
-    record = attention_content._build_homepage_v2_event_record(
-        row,
-        news_payload=news_payload,
-        context_payload=context_payload,
-        brief_payload=brief_payload,
-    )
-    summary = attention_content._homepage_v2_item_summary(
-        row,
-        context_payload=context_payload,
-        brief_payload=brief_payload,
-    )
-
-    assert record["event_id"] == "event-7"
-    assert record["symbol"] == "MSFT"
-    assert record["attention_score"] == 72.5
-    assert record["story_text"] == "Lead sentence"
-    assert record["cluster_text"] == "Cluster sentence"
-    assert record["news_headlines"] == ["Headline 1", "Headline 2", "Headline 3"]
-    assert summary == "Lead sentence Headline sentence Company sentence"
 
 
 def test_build_attention_micro_chart_returns_bar_chart_with_gap_annotation():

@@ -767,9 +767,6 @@ def _load_attention_ticker_snapshot_cached(
 def _is_stale_fallback_background_payload(payload: dict[str, object] | None) -> bool:
     if not isinstance(payload, dict):
         return False
-    description_text = str(payload.get("description_text") or "").strip().lower()
-    if not description_text.startswith("no relevant catalyst found"):
-        return False
     recent_headlines = list(payload.get("recent_headlines") or [])
     if recent_headlines:
         return False

@@ -8,6 +8,11 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from .common.news_freshness import (
+    coerce_article_published_at,
+    is_current_for_attention,
+    is_recent_for_attention,
+)
 from .runtime_policy import attention_candidate_policy, source_authority_policy
 
 ENTITY_MASTER_COLUMNS = [
@@ -293,6 +298,8 @@ def _quality_label(authority_rank: int, evidence_count: int) -> str:
 def _build_article_evidence(
     symbol: str,
     news_payload: dict[str, Any] | None,
+    *,
+    asof_time_utc: object | None = None,
 ) -> list[dict[str, Any]]:
     if not isinstance(news_payload, dict):
         return []
@@ -308,6 +315,17 @@ def _build_article_evidence(
         authority_bucket, authority_rank = _source_authority_bucket(source)
         if not headline and not summary:
             continue
+        published_at = coerce_article_published_at(
+            article.get("published_at"),
+            url=article.get("url"),
+            asof_time_utc=asof_time_utc,
+        )
+        if asof_time_utc is not None and not is_recent_for_attention(
+            published_at,
+            asof_time_utc=asof_time_utc,
+            include_undated=True,
+        ):
+            continue
         rows.append(
             {
                 "symbol": symbol,
@@ -317,7 +335,7 @@ def _build_article_evidence(
                 "headline": headline,
                 "summary": summary,
                 "url": _coerce_text(article.get("url")),
-                "published_at": pd.to_datetime(article.get("published_at"), utc=True, errors="coerce"),
+                "published_at": published_at,
             }
         )
     rows.sort(
@@ -407,10 +425,24 @@ def _symbol_evidence_rows(
     *,
     news_payloads: dict[str, dict[str, Any]] | None = None,
     context_payloads: dict[str, dict[str, Any]] | None = None,
+    asof_time_utc: object | None = None,
 ) -> list[dict[str, Any]]:
     evidence = _build_context_evidence(symbol, (context_payloads or {}).get(symbol))
-    evidence.extend(_build_article_evidence(symbol, (news_payloads or {}).get(symbol)))
+    evidence.extend(_build_article_evidence(symbol, (news_payloads or {}).get(symbol), asof_time_utc=asof_time_utc))
     return _sort_evidence_rows(evidence)
+
+
+def _current_evidence_rows(rows: list[dict[str, Any]], *, asof_time_utc: object) -> list[dict[str, Any]]:
+    current = [
+        item
+        for item in rows
+        if is_current_for_attention(
+            item.get("published_at"),
+            asof_time_utc=asof_time_utc,
+            include_undated=False,
+        )
+    ]
+    return _sort_evidence_rows(current)
 
 
 def _best_explanation_text(
@@ -591,16 +623,35 @@ def build_attention_entity_master(
     symbols: list[str],
     *,
     asset_metadata_by_symbol: dict[str, dict[str, Any]] | None = None,
+    taxonomy_frame: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     ordered_symbols = _ordered_unique(symbols)
     taxonomy_lookup: dict[str, dict[str, Any]] = {}
     if ordered_symbols:
-        try:
-            from .entity_taxonomy import taxonomy_lookup_by_symbol
+        if taxonomy_frame is not None:
+            try:
+                from .entity_taxonomy import normalize_entity_taxonomy_frame
 
-            taxonomy_lookup = taxonomy_lookup_by_symbol(ordered_symbols)
-        except Exception:
-            taxonomy_lookup = {}
+                normalized_symbols = {_normalize_symbol(symbol) for symbol in ordered_symbols if _normalize_symbol(symbol)}
+                normalized_frame = normalize_entity_taxonomy_frame(taxonomy_frame)
+                if not normalized_frame.empty and "symbol" in normalized_frame.columns:
+                    normalized_frame = normalized_frame[normalized_frame["symbol"].isin(normalized_symbols)].copy()
+                    if "is_active" in normalized_frame.columns:
+                        normalized_frame = normalized_frame[normalized_frame["is_active"]].copy()
+                    taxonomy_lookup = {
+                        _normalize_symbol(row.get("symbol")): row.to_dict()
+                        for _, row in normalized_frame.drop_duplicates(subset=["symbol"], keep="first").iterrows()
+                        if _normalize_symbol(row.get("symbol"))
+                    }
+            except Exception:
+                taxonomy_lookup = {}
+        else:
+            try:
+                from .entity_taxonomy import taxonomy_lookup_by_symbol
+
+                taxonomy_lookup = taxonomy_lookup_by_symbol(ordered_symbols)
+            except Exception:
+                taxonomy_lookup = {}
     rows = [
         _build_entity_row(
             symbol,
@@ -808,26 +859,38 @@ def build_attention_event_candidates_1d(
         expected_move_pct, surprise_pct, surprise_z = _compute_expectation_stats((bars_by_symbol or {}).get(symbol))
         if not np.isfinite(surprise_pct) and np.isfinite(change_pct):
             surprise_pct = change_pct - (expected_move_pct if np.isfinite(expected_move_pct) else 0.0)
-        evidence_rows = _symbol_evidence_rows(symbol, news_payloads=news_payloads, context_payloads=context_payloads)
-        best_authority_rank = min((int(item.get("authority_rank", 9)) for item in evidence_rows), default=9)
+        evidence_rows = _symbol_evidence_rows(
+            symbol,
+            news_payloads=news_payloads,
+            context_payloads=context_payloads,
+            asof_time_utc=asof_ts,
+        )
+        current_evidence_rows = _current_evidence_rows(evidence_rows, asof_time_utc=asof_ts)
+        best_authority_rank = min((int(item.get("authority_rank", 9)) for item in current_evidence_rows), default=9)
         same_day_evidence_count = sum(
             1
-            for item in evidence_rows
+            for item in current_evidence_rows
             if pd.notna(pd.to_datetime(item.get("published_at"), utc=True, errors="coerce"))
             and pd.to_datetime(item.get("published_at"), utc=True, errors="coerce").date() == asof_ts.date()
         )
-        cause_status = "supported" if evidence_rows else "unresolved"
-        why_now_text = _best_explanation_text(
-            symbol,
-            evidence_rows,
-            attention_row=attention_row,
-            context_payload=(context_payloads or {}).get(symbol),
+        cause_status = "supported" if current_evidence_rows else "unresolved"
+        why_now_text = ""
+        if current_evidence_rows:
+            why_now_text = _best_explanation_text(
+                symbol,
+                current_evidence_rows,
+                attention_row=attention_row,
+                context_payload=(context_payloads or {}).get(symbol),
+            )
+        top_source = _coerce_text(current_evidence_rows[0].get("source")) if current_evidence_rows else ""
+        source_count = len(
+            {
+                str(item.get("source") or "").strip()
+                for item in current_evidence_rows
+                if str(item.get("source") or "").strip()
+            }
         )
-        if why_now_text and cause_status == "unresolved":
-            cause_status = "developing"
-        top_source = _coerce_text(evidence_rows[0].get("source")) if evidence_rows else ""
-        source_count = len({str(item.get("source") or "").strip() for item in evidence_rows if str(item.get("source") or "").strip()})
-        confidence_label = _confidence_from_candidate(evidence_rows, surprise_z, change_pct)
+        confidence_label = _confidence_from_candidate(current_evidence_rows, surprise_z, change_pct)
         attention_score = _coerce_float(attention_row.get("attention_score"))
         severity_score = _coerce_float(attention_row.get("severity_score"))
         dollar_volume = _coerce_float(mover_row.get("dollar_volume"))
@@ -837,7 +900,7 @@ def build_attention_event_candidates_1d(
             surprise_z=surprise_z,
             dollar_volume=dollar_volume,
             best_authority_rank=best_authority_rank,
-            evidence_count=len(evidence_rows),
+            evidence_count=len(current_evidence_rows),
             attention_score=attention_score,
             is_macro_anchor=symbol in macro_anchor_symbols,
             in_portfolio=in_portfolio,
@@ -852,9 +915,9 @@ def build_attention_event_candidates_1d(
         what_changed_text = ""
         headline = _headline_text_from_evidence(
             symbol,
-            evidence_rows,
+            current_evidence_rows,
             attention_row=attention_row,
-            context_payload=(context_payloads or {}).get(symbol),
+            context_payload=(context_payloads or {}).get(symbol) if current_evidence_rows else {},
         )
         story_text = what_changed_text
         rows.append(
@@ -901,7 +964,7 @@ def build_attention_event_candidates_1d(
                 "top_source": top_source,
                 "best_authority_rank": int(best_authority_rank),
                 "source_count": int(source_count),
-                "evidence_count": int(len(evidence_rows)),
+                "evidence_count": int(len(current_evidence_rows)),
                 "same_day_evidence_count": int(same_day_evidence_count),
                 "story_text": story_text,
                 "bundle_id": f"symbol::{symbol}",
@@ -923,14 +986,22 @@ def _enriched_context_payloads(
     *,
     news_payloads: dict[str, dict[str, Any]] | None = None,
     context_payloads: dict[str, dict[str, Any]] | None = None,
+    asof_time_utc: object | None = None,
 ) -> dict[str, dict[str, Any]]:
     out: dict[str, dict[str, Any]] = {}
+    asof_ts = pd.to_datetime(asof_time_utc, utc=True, errors="coerce") if asof_time_utc is not None else pd.NaT
     for _, row in candidates.iterrows():
         symbol = _normalize_symbol(row.get("symbol"))
         current = dict((context_payloads or {}).get(symbol) or {})
-        evidence_rows = _symbol_evidence_rows(symbol, news_payloads=news_payloads, context_payloads=context_payloads)
-        if evidence_rows:
-            best = evidence_rows[0]
+        evidence_rows = _symbol_evidence_rows(
+            symbol,
+            news_payloads=news_payloads,
+            context_payloads=context_payloads,
+            asof_time_utc=asof_ts if pd.notna(asof_ts) else None,
+        )
+        current_rows = _current_evidence_rows(evidence_rows, asof_time_utc=asof_ts) if pd.notna(asof_ts) else []
+        if current_rows:
+            best = current_rows[0]
             if _is_low_signal_text(current.get("llm_why_now")):
                 current["llm_why_now"] = _coerce_text(best.get("summary") or best.get("headline"))
             if not _coerce_text(current.get("llm_summary_text")):
@@ -1055,12 +1126,21 @@ def build_attention_research_bundle(
     top_events = list(home_payload.get("top_events") or [])
     candidates = list(home_payload.get("event_candidates_1d") or [])
     candidate_lookup = {_normalize_symbol(item.get("symbol")): item for item in candidates if _normalize_symbol(item.get("symbol"))}
+    asof_ts = pd.to_datetime(home_payload.get("generated_at_utc"), utc=True, errors="coerce")
+    if pd.isna(asof_ts):
+        asof_ts = pd.Timestamp.now(tz="UTC")
 
     if normalized_bundle_id.startswith("symbol::"):
         symbol = _normalize_symbol(normalized_bundle_id.split("::", 1)[1])
         candidate = candidate_lookup.get(symbol, {})
-        evidence_rows = _symbol_evidence_rows(symbol, news_payloads=news_payloads, context_payloads=context_payloads)
-        authority_rank = min((int(item.get("authority_rank", 9)) for item in evidence_rows), default=9)
+        evidence_rows = _symbol_evidence_rows(
+            symbol,
+            news_payloads=news_payloads,
+            context_payloads=context_payloads,
+            asof_time_utc=asof_ts,
+        )
+        current_rows = _current_evidence_rows(evidence_rows, asof_time_utc=asof_ts)
+        authority_rank = min((int(item.get("authority_rank", 9)) for item in current_rows), default=9)
         return {
             "bundle_id": normalized_bundle_id,
             "bundle_type": "symbol",
@@ -1072,7 +1152,7 @@ def build_attention_research_bundle(
             "confidence_label": _coerce_text(candidate.get("confidence_label")) or "Developing",
             "sector": _coerce_text(candidate.get("sector")),
             "industry": _coerce_text(candidate.get("industry")),
-            "evidence_quality": _quality_label(authority_rank, len(evidence_rows)),
+            "evidence_quality": _quality_label(authority_rank, len(current_rows)),
             "evidence": [
                 {
                     "source": _coerce_text(item.get("source")),
@@ -1084,7 +1164,7 @@ def build_attention_research_bundle(
                     if pd.notna(pd.to_datetime(item.get("published_at"), utc=True, errors="coerce"))
                     else "",
                 }
-                for item in evidence_rows
+                for item in (current_rows or evidence_rows[:4])
             ],
             "related_symbols": [],
         }
@@ -1094,9 +1174,17 @@ def build_attention_research_bundle(
     supporting_candidates = [candidate_lookup.get(symbol, {}) for symbol in supporting_symbols]
     evidence_rows: list[dict[str, Any]] = []
     for symbol in supporting_symbols:
-        evidence_rows.extend(_symbol_evidence_rows(symbol, news_payloads=news_payloads, context_payloads=context_payloads))
+        evidence_rows.extend(
+            _symbol_evidence_rows(
+                symbol,
+                news_payloads=news_payloads,
+                context_payloads=context_payloads,
+                asof_time_utc=asof_ts,
+            )
+        )
     evidence_rows = _sort_evidence_rows(evidence_rows)
-    authority_rank = min((int(item.get("authority_rank", 9)) for item in evidence_rows), default=9)
+    current_rows = _current_evidence_rows(evidence_rows, asof_time_utc=asof_ts)
+    authority_rank = min((int(item.get("authority_rank", 9)) for item in current_rows), default=9)
     return {
         "bundle_id": normalized_bundle_id,
         "bundle_type": "event",
@@ -1106,7 +1194,7 @@ def build_attention_research_bundle(
         "affected_assets_summary_text": _coerce_text(event.get("affected_assets_summary_text")),
         "cause_status": _coerce_text(event.get("cause_status")) or "unresolved",
         "confidence_label": _coerce_text(event.get("confidence_label")) or "Developing",
-        "evidence_quality": _quality_label(authority_rank, len(evidence_rows)),
+        "evidence_quality": _quality_label(authority_rank, len(current_rows)),
         "evidence": [
             {
                 "symbol": _coerce_text(item.get("symbol")),
@@ -1119,7 +1207,7 @@ def build_attention_research_bundle(
                 if pd.notna(pd.to_datetime(item.get("published_at"), utc=True, errors="coerce"))
                 else "",
             }
-            for item in evidence_rows[:12]
+            for item in (current_rows or evidence_rows[:6])
         ],
         "related_symbols": [
             {

@@ -55,7 +55,7 @@ def test_load_ticker_snapshot_profile_can_skip_live_fallback(monkeypatch):
 
 def test_is_stale_fallback_background_payload_true_when_fallback_has_hidden_headlines():
     payload = {
-        "description_text": "No relevant catalyst found in web coverage for BMY.",
+        "description_text": "No relevant business news found in web coverage for BMY.",
         "recent_headlines": [],
         "source_trace": {
             "headline_count": 6,
@@ -67,7 +67,7 @@ def test_is_stale_fallback_background_payload_true_when_fallback_has_hidden_head
 
 def test_is_stale_fallback_background_payload_false_for_legit_no_news():
     payload = {
-        "description_text": "No relevant catalyst found in web coverage for IRDM.",
+        "description_text": "No relevant business news found in web coverage for IRDM.",
         "recent_headlines": [],
         "source_trace": {
             "headline_count": 0,
@@ -79,7 +79,7 @@ def test_is_stale_fallback_background_payload_false_for_legit_no_news():
 
 def test_load_attention_ticker_background_cached_bypasses_stale_memoized_payload(monkeypatch):
     stale_payload = {
-        "description_text": "No relevant catalyst found in web coverage for BMY.",
+        "description_text": "No relevant business news found in web coverage for BMY.",
         "recent_headlines": [],
         "source_trace": {"headline_count": 6, "relevant_news_count": 0},
     }
@@ -105,7 +105,7 @@ def test_load_attention_ticker_background_cached_bypasses_stale_memoized_payload
 
 def test_load_attention_ticker_background_cached_keeps_memoized_for_non_stale_payload(monkeypatch):
     memoized_payload = {
-        "description_text": "No relevant catalyst found in web coverage for IRDM.",
+        "description_text": "No relevant business news found in web coverage for IRDM.",
         "recent_headlines": [],
         "source_trace": {"headline_count": 0, "relevant_news_count": 0},
     }

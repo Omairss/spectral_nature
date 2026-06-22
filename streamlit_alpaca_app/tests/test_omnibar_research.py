@@ -41,7 +41,7 @@ def test_open_page_uses_browser_helper(monkeypatch):
     monkeypatch.setattr(
         omnibar_research,
         "browse_page",
-        lambda url, max_text_chars: {
+        lambda url, **kwargs: {
             "url": url,
             "final_url": url,
             "title": "Example page",
@@ -66,13 +66,13 @@ def test_live_event_evidence_uses_impact_symbols_when_no_focus_symbols(monkeypat
         return {
             "articles": pd.DataFrame(
                 [
-                    {
-                        "headline": "Oil rises on renewed supply risk",
-                        "summary": "Supply risk rose after talks stalled.",
-                        "source": "Reuters",
-                        "published_at": pd.Timestamp("2026-04-12T12:00:00Z"),
-                        "url": "https://example.com/oil-story",
-                    }
+                        {
+                            "headline": "Oil rises on renewed supply risk",
+                            "summary": "Supply risk rose after talks stalled.",
+                            "source": "Reuters",
+                            "published_at": pd.Timestamp.utcnow() - pd.Timedelta(hours=2),
+                            "url": "https://example.com/oil-story",
+                        }
                 ]
             )
         }
@@ -82,13 +82,13 @@ def test_live_event_evidence_uses_impact_symbols_when_no_focus_symbols(monkeypat
         return {
             "articles": pd.DataFrame(
                 [
-                    {
-                        "headline": f"{symbol} reacts to energy shock",
-                        "summary": "Symbol-specific follow-through.",
-                        "source": "Bloomberg",
-                        "published_at": pd.Timestamp("2026-04-12T13:00:00Z"),
-                        "url": f"https://example.com/{symbol.lower()}-story",
-                    }
+                        {
+                            "headline": f"{symbol} reacts to energy shock",
+                            "summary": "Symbol-specific follow-through.",
+                            "source": "Bloomberg",
+                            "published_at": pd.Timestamp.utcnow() - pd.Timedelta(hours=1),
+                            "url": f"https://example.com/{symbol.lower()}-story",
+                        }
                 ]
             )
         }
@@ -148,13 +148,13 @@ def test_live_event_evidence_returns_partial_when_internal_impact_map_times_out(
         return {
             "articles": pd.DataFrame(
                 [
-                    {
-                        "headline": "Oil falls as geopolitical risk premium fades",
-                        "summary": "Talks reduced supply-risk expectations.",
-                        "source": "Reuters",
-                        "published_at": pd.Timestamp("2026-05-20T12:00:00Z"),
-                        "url": "https://example.com/oil-geopolitics",
-                    }
+                        {
+                            "headline": "Oil falls as geopolitical risk premium fades",
+                            "summary": "Talks reduced supply-risk expectations.",
+                            "source": "Reuters",
+                            "published_at": pd.Timestamp.utcnow() - pd.Timedelta(hours=4),
+                            "url": "https://example.com/oil-geopolitics",
+                        }
                 ]
             ),
             "messages": [],

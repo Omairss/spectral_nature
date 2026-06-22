@@ -266,6 +266,13 @@ def _resolve_recent_news(data_access: Any, params: dict[str, Any]) -> ResolvedPa
     )
 
 
+def _resolve_ticker_business_model_stack(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
+    return data_access.resolve_ticker_business_model_stack(
+        _text(params, "ticker"),
+        force_refresh=_force_refresh(params),
+    )
+
+
 def _resolve_attention_context(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
     return data_access.resolve_attention_context(
         _text(params, "ticker"),
@@ -827,6 +834,12 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         ),
         resolution="materialized_first",
         handler=_resolve_recent_news,
+    ),
+    "ticker_business_model_stack": DatasetSpec(
+        params=(param("ticker", "string", required=True), param("force_refresh", "boolean")),
+        resolution="materialized",
+        handler=_resolve_ticker_business_model_stack,
+        description="Ticker-specific Zopedia/AQL business model stack: products, customers, demand, fundamentals, workforce, web attention, policy context, risks, and evidence gaps.",
     ),
     "attention_context": DatasetSpec(
         params=(param("ticker", "string", required=True), param("force_refresh", "boolean")),

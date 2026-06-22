@@ -121,6 +121,24 @@ _P_ANSWER_JUDGE_ENABLED = register_config_param(
     default=1,
     description="Run a bounded evidence-sufficiency review before returning final Zopedia answers",
 )
+_P_TRAJECTORY_MONITOR_ENABLED = register_config_param(
+    "Agent trajectory monitor enabled",
+    group="Zopedia",
+    default=1,
+    description="Run a bounded LLM monitor that catches off-contract tool wandering and can restart or kill the thread.",
+)
+_P_TRAJECTORY_MONITOR_MAX_RESTARTS = register_config_param(
+    "Agent trajectory monitor max restarts",
+    group="Zopedia",
+    default=2,
+    description="Maximum corrective restarts one agent run can receive from the trajectory monitor.",
+)
+_P_TRAJECTORY_MONITOR_TIMEOUT_SECONDS = register_config_param(
+    "Agent trajectory monitor timeout seconds",
+    group="Zopedia",
+    default=45,
+    description="Maximum seconds a trajectory monitor check may spend before letting the planner continue.",
+)
 _P_POST_ANSWER_MEMORY_ENABLED = register_config_param(
     "Agent post-answer memory enabled",
     group="Zopedia",
@@ -212,7 +230,8 @@ _AGENT_FINAL_SYSTEM_PROMPT = register_narrative_prompt(
         "(7) End with a brief takeaway or what to watch next. "
         "When Zopedia memory is used, name the supporting Zopedia page title or page_id. "
         "When live external evidence was used, lightly reference one or two supporting sources or URLs. "
-        "If the answer discusses market, equity, ETF, sector, or rate-move impact, it must be grounded in observed market data from tools such as daily movers, price history, or analysis artifacts; otherwise state the missing observed-data gap."
+        "If the answer discusses market, equity, ETF, sector, or rate-move impact, it must be grounded in observed market data from tools such as daily movers, price history, or analysis artifacts; otherwise state the missing observed-data gap. "
+        "For current-driver questions, separate durable business background from current evidence. Older or retained evidence can explain why a company is sensitive to a force, but it cannot be presented as today's driver unless current tool evidence directly connects that force to today's move."
     ),
 )
 
@@ -244,6 +263,9 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
         "If the draft is good, accept it. If it needs correction, return a revised markdown answer that fixes the issue. "
         "If the evidence is too thin, return the best cautious answer and name the evidence gap. "
         "If the draft discusses market, equity, ETF, sector, or rate-move impact without observed price/mover/analysis evidence, mark it insufficient or revise it to say that observed market-impact evidence is missing. "
+        "For current-driver questions, reject or revise answers that turn older retained evidence into today's cause. "
+        "If the evidence only proves a broad peer, sector, or market move, revise the answer to say that rather than naming a precise macro, geopolitical, policy, or company-specific driver. "
+        "A current-driver claim needs current evidence tying that driver to the ticker, its close peers, its sector, or the relevant market instrument; durable background alone is not enough. "
         "Do not introduce facts that are not present in the tool evidence or pre-fetched internal evidence. "
         "Fix malformed Markdown tables before accepting or revising the answer; every table needs a header row, separator row, and one row per line."
     ),
@@ -271,6 +293,49 @@ _JUDGE_SCHEMA: dict[str, Any] = {
         "evidence_gaps",
     ],
 }
+
+_TRAJECTORY_MONITOR_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "decision": {"type": "string", "enum": ["double_down", "restart", "kill"]},
+        "reason": {"type": "string"},
+        "corrective_instruction": {"type": "string"},
+        "off_contract_signals": {"type": "array", "items": {"type": "string"}},
+        "evidence_gaps": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": [
+        "decision",
+        "reason",
+        "corrective_instruction",
+        "off_contract_signals",
+        "evidence_gaps",
+    ],
+}
+
+_TRAJECTORY_MONITOR_SYSTEM_PROMPT = register_narrative_prompt(
+    name="Zopedia Agent Trajectory Monitor (wandering control)",
+    file="services/omnibar_agent.py",
+    group="Zopedia",
+    prompt=(
+        f"You are the Spectral Nature Zopedia trajectory monitor. {NARRATIVE_STYLE_RULE} "
+        "You do not answer the user. You inspect the active task, surface, user request, and tool trace, then decide whether the research thread is on contract. "
+        "Return double_down when the thread is anchored to the requested subject and the next step should continue. "
+        "Return restart when the thread has wandered or compressed evidence too early but can recover with one clear corrective instruction. "
+        "Return kill when the thread is off-contract, unsafe, fabricating, looping on low-signal tools, or likely to synthesize unsupported output. "
+        "When the newest trace item has status planned, judge the proposed tool before it runs. "
+        "If the proposed tool is recoverably off-task, return restart so the planner can choose a better next step; reserve kill for unrecoverable drift or exhausted restart budget. "
+        "For named company/ticker tasks, judge organization before narrowness. Spillover recall is useful when the thread keeps the requested company as the center of gravity. "
+        "Adjacent research is allowed: first-degree and second-degree neighbor tickers, parent/platform, peers, suppliers, customers, sector demand, policy, credit cycle, rates, regulation, and broad market context can all help explain the business. "
+        "Return restart only when the thread stops organizing that recall around the requested company, swaps the primary subject, loops without adding evidence, or moves toward unsupported synthesis. "
+        "A planned tool call does not need to be ticker-only; it should either deepen the primary company or collect adjacent context that can be clearly labeled later and kept inside the job budget. "
+        "Corrective instructions must name only tools that appear in Available tool names. "
+        "Do not kill a company-research thread solely because internal memory is empty while source-reading, live evidence, or web/page tools remain available within budget. "
+        "For Zopedia/wiki tasks, treat search without page read, page read without source trace for dependent claims, and generated memory without source refs as incomplete. "
+        "For current/live questions, treat stale memory-only answers as incomplete unless the task explicitly asks for durable memory. "
+        "Do not use keyword blacklists; judge semantic fit to the task and evidence coverage."
+    ),
+)
 
 _AGENT_MEMORY_SYSTEM_PROMPT = register_narrative_prompt(
     name="Zopedia Agent Memory Reflection (automatic wiki maintenance)",
@@ -323,6 +388,22 @@ _MEMORY_SCHEMA: dict[str, Any] = {
 
 def _clean(value: object) -> str:
     return " ".join(str(value or "").split()).strip()
+
+
+def _clean_model_output(value: object) -> str:
+    text = _clean(value)
+    if not text:
+        return ""
+    for token in (
+        "<|im_end|>",
+        "<|endoftext|>",
+        "<|end|>",
+        "<|assistant|>",
+        "<|user|>",
+        "<|system|>",
+    ):
+        text = text.replace(token, " ")
+    return _clean(text)
 
 
 def _truncate(text: object, *, limit: int = 1600) -> str:
@@ -914,9 +995,146 @@ def _normalized_arguments(
 ) -> dict[str, Any]:
     normalized = dict(arguments or {})
     properties = dict((tool_entry.get("inputSchema") or {}).get("properties") or {})
+    for name, schema in properties.items():
+        if name not in normalized:
+            continue
+        if not isinstance(schema, dict):
+            continue
+        normalized[name] = _coerce_argument_to_schema(normalized.get(name), schema)
     if "force_refresh" in properties and "force_refresh" not in normalized:
         normalized["force_refresh"] = force_refresh
     return normalized
+
+
+def _coerce_argument_to_schema(value: Any, schema: dict[str, Any]) -> Any:
+    """Repair common model encoding drift using the advertised tool schema."""
+    expected_type = schema.get("type")
+    if isinstance(expected_type, list):
+        types = [str(item) for item in expected_type]
+    else:
+        types = [str(expected_type)] if expected_type else []
+    if "array" in types:
+        items = schema.get("items") if isinstance(schema.get("items"), dict) else {}
+        if value is None:
+            return []
+        if not isinstance(value, list):
+            value = [value]
+        if items.get("type") == "string":
+            out: list[str] = []
+            for item in value:
+                if item is None:
+                    continue
+                if isinstance(item, dict):
+                    item = item.get("symbol") or item.get("ticker") or item.get("name") or item.get("value")
+                text = _clean(item)
+                if text:
+                    out.append(text)
+            return out
+        if items.get("type") == "object":
+            return [dict(item) for item in value if isinstance(item, dict)]
+        return value
+    if "integer" in types:
+        try:
+            return int(value)
+        except Exception:
+            return value
+    if "number" in types:
+        try:
+            return float(value)
+        except Exception:
+            return value
+    if "boolean" in types and isinstance(value, str):
+        lowered = value.strip().lower()
+        if lowered in {"true", "yes", "1"}:
+            return True
+        if lowered in {"false", "no", "0"}:
+            return False
+    if "object" in types and isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+        except Exception:
+            return value
+        return parsed if isinstance(parsed, dict) else value
+    return value
+
+
+def _normalize_scope_symbol(value: object) -> str:
+    symbol = _clean(value).upper()
+    if not symbol or any(ch.isspace() for ch in symbol):
+        return ""
+    allowed = "".join(ch for ch in symbol if ch.isalnum() or ch in {".", "-"})
+    if allowed != symbol or not any(ch.isalpha() for ch in symbol):
+        return ""
+    return symbol[:12]
+
+
+def _query_context_json(query: str) -> dict[str, Any]:
+    marker = "Context JSON:"
+    tail = str(query or "")
+    index = tail.find(marker)
+    if index >= 0:
+        tail = tail[index + len(marker) :]
+    start = tail.find("{")
+    if start < 0:
+        return {}
+    try:
+        payload, _ = json.JSONDecoder().raw_decode(tail[start:])
+    except Exception:
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _typed_context_focus_symbols(query: str) -> list[str]:
+    context = _query_context_json(query)
+    if not context:
+        return []
+    symbols: list[str] = []
+
+    def _add(value: object) -> None:
+        if isinstance(value, list):
+            for item in value:
+                _add(item)
+            return
+        symbol = _normalize_scope_symbol(value)
+        if symbol and symbol not in symbols:
+            symbols.append(symbol)
+
+    for key in ("symbol", "ticker", "target_symbol", "requested_symbol"):
+        _add(context.get(key))
+    for container_key in (
+        "company_baseline",
+        "baseline",
+        "asset",
+        "company",
+        "query_spec",
+    ):
+        nested = context.get(container_key)
+        if not isinstance(nested, dict):
+            continue
+        for key in ("symbol", "ticker", "target_symbol", "requested_symbol"):
+            _add(nested.get(key))
+    return symbols[:4]
+
+
+def _arguments_with_task_scope(
+    *,
+    tool_name: str,
+    arguments: dict[str, Any],
+    query: str,
+    task: str,
+) -> dict[str, Any]:
+    normalized_task = _clean(task)
+    if not normalized_task.startswith("ticker_business_model"):
+        return arguments
+    symbols = _typed_context_focus_symbols(query)
+    if not symbols:
+        return arguments
+    scoped = dict(arguments or {})
+    if tool_name in {"research.retained_context", "research.live_event_evidence"}:
+        existing = scoped.get("focus_symbols")
+        if not isinstance(existing, list) or not [_normalize_scope_symbol(item) for item in existing if _normalize_scope_symbol(item)]:
+            scoped["focus_symbols"] = symbols
+    return scoped
 
 
 def _coerce_tool_arguments(raw_arguments: Any) -> tuple[dict[str, Any], str]:
@@ -954,16 +1172,24 @@ def _coerce_tool_arguments(raw_arguments: Any) -> tuple[dict[str, Any], str]:
                 value = item.get("object_value")
                 if value is None:
                     value = item.get("json_value")
-                if not isinstance(value, dict):
+                if isinstance(value, dict):
+                    out[name] = dict(value)
+                elif isinstance(value, list):
+                    out[name] = list(value)
+                elif value is not None:
+                    out[name] = value
+                else:
                     return {}, f"Tool argument `{name}` requires object_value."
-                out[name] = dict(value)
             elif value_kind == "object_list":
                 values = item.get("object_list_value")
                 if values is None:
                     values = item.get("json_value")
-                if not isinstance(values, list) or any(not isinstance(value, dict) for value in values):
+                if not isinstance(values, list):
                     return {}, f"Tool argument `{name}` requires object_list_value."
-                out[name] = [dict(value) for value in values]
+                if any(not isinstance(value, dict) for value in values):
+                    out[name] = list(values)
+                else:
+                    out[name] = [dict(value) for value in values]
             elif value_kind in {"null", ""}:
                 out[name] = None
             else:
@@ -1038,26 +1264,6 @@ def _safe_agent_error_text(error: object) -> str:
     return _clean(raw) or "The research agent failed before it could produce an answer."
 
 
-def _fallback_answer(query: str, tool_calls: list[dict[str, Any]]) -> str:
-    successful = [call for call in tool_calls if str(call.get("status") or "") == "completed"]
-    if not successful:
-        return (
-            "I could not collect enough data to answer this from the available modules. "
-            f"Question: {query}"
-        )
-    lines = [
-        "I collected tool output but did not get a clean final synthesis from the model.",
-        f"Question: {query}",
-        "",
-        "Evidence collected:",
-    ]
-    for tool_call in successful[-3:]:
-        lines.append(
-            f"- {tool_call.get('tool_name')}: {tool_call.get('result_summary', {}).get('preview_text')}"
-        )
-    return "\n".join(lines)
-
-
 _PLANNER_SYSTEM_PROMPT = register_narrative_prompt(
     name="Zopedia Agent Planner (tool-calling reasoning)",
     file="services/omnibar_agent.py",
@@ -1080,6 +1286,19 @@ _PLANNER_SYSTEM_PROMPT = register_narrative_prompt(
         "Use zopedia.propose_change for destructive, ambiguous, low-evidence, merge, delete, or rewrite changes. "
         "Treat user-supplied claims as hypotheses until evidence supports them. "
         "If the user's premise conflicts with tool evidence, state the conflict plainly and do not repeat the premise as fact. "
+        "\n\nTask discipline: "
+        "The task/surface metadata and any Context JSON in the user prompt are part of the contract. "
+        "Use supplied typed context as evidence; tools are for reading the wiki/source trail, opening source URLs, filling missing slots, and checking freshness. "
+        "For a named company, ticker, person, source, page, or macro subject, keep every search anchored to that subject unless the task explicitly asks for discovery. "
+        "Do not use broad candidate-discovery, market-screening, or unrelated-symbol tools for a named-entity question. "
+        "If a query includes planned evidence questions, answer those questions directly; do not replace them with a generic market scan. "
+        "For ticker_business_model_* tasks, prefer the supplied Context JSON, zopedia.search_pages/read_page/source tracing, research.open_page on URLs already in context, and investigator company/fundamental/news tools. "
+        "Use wide recall when it helps: first-degree and second-degree neighbor tickers, peers, parent/platform, customers, suppliers, industry demand, regulation, credit cycle, rates, policy, and market spillovers can all be relevant. "
+        "Keep the output organized around the requested ticker/company instead of suppressing adjacent evidence. "
+        "When zopedia.search_pages returns a relevant page_id, read the page before treating the wiki as evidence. "
+        "When a Zopedia page has source refs and a claim depends on them, use sources_for_page, trace_to_evidence, read_source, or open_page as needed. "
+        "When snippets or SERP previews are too shallow, open the page through research.open_page before making the verdict. "
+        "Evidence labels are not analysis: never answer that evidence exists; say what the evidence means or name the exact missing slot. "
         "\n\nEvidence priority: "
         "1. Check the pre-fetched internal evidence already in this prompt first. "
         "2. Search Zopedia memory with zopedia.search_pages; read relevant pages with zopedia.read_page. "
@@ -1383,6 +1602,7 @@ def _successful_evidence_tool_count(tool_calls: list[dict[str, Any]]) -> int:
         "zopedia.list_maintenance_reports",
         "zopedia.rollback_mutation",
         "analysis.read_raw_output",
+        "trajectory.monitor",
     }
     count = 0
     for call in tool_calls:
@@ -1537,6 +1757,7 @@ def _execute_seeded_tool_call(
     tool_name: str,
     arguments: dict[str, Any],
     progress: float,
+    tool_call_timeout_seconds: int | None = None,
 ) -> bool:
     call_id = f"agtc_{len(tool_calls) + 1}"
     _emit_progress(
@@ -1559,6 +1780,7 @@ def _execute_seeded_tool_call(
             progress=progress,
             tool_call_id=call_id,
             tool_call_count=len(tool_calls),
+            timeout_seconds=tool_call_timeout_seconds,
         )
         result_summary = _summarize_tool_result(result)
         tool_calls.append(
@@ -1623,8 +1845,11 @@ def _invoke_tool_with_heartbeat(
     progress: float,
     tool_call_id: str,
     tool_call_count: int,
+    timeout_seconds: int | None = None,
 ) -> dict[str, Any]:
-    timeout_seconds = max(int(get_config_param(_P_TOOL_CALL_TIMEOUT_SECONDS)), 1)
+    if timeout_seconds is None:
+        timeout_seconds = int(get_config_param(_P_TOOL_CALL_TIMEOUT_SECONDS))
+    timeout_seconds = max(int(timeout_seconds), 1)
     result_box: list[dict[str, Any] | None] = [None]
     error_box: list[BaseException | None] = [None]
 
@@ -1797,12 +2022,61 @@ def _first_zopedia_page_id_from_search(tool_calls: list[dict[str, Any]]) -> str:
     return ""
 
 
+def _zopedia_page_already_read(tool_calls: list[dict[str, Any]], page_id: str) -> bool:
+    normalized = _clean(page_id)
+    if not normalized:
+        return False
+    for call in tool_calls:
+        if _clean(call.get("tool_name")) != "zopedia.read_page":
+            continue
+        if _clean(call.get("status")) != "completed":
+            continue
+        args = dict(call.get("arguments") or {})
+        if _clean(args.get("page_id")) == normalized:
+            return True
+    return False
+
+
+def _direct_structured_payload_answer(query: str, decision: dict[str, Any]) -> str:
+    if "Return only a valid JSON object matching schema" not in str(query or ""):
+        return ""
+    step_keys = set(_STEP_SCHEMA.get("properties") or {})
+    payload = {
+        key: value
+        for key, value in decision.items()
+        if key not in step_keys and not str(key).startswith("__")
+    }
+    if not payload:
+        return ""
+    if any(key in payload for key in ("queries", "slot_facts", "verdict_markdown", "business_story_markdown")):
+        return json.dumps(payload, ensure_ascii=True, sort_keys=True, default=str)
+    return ""
+
+
+def _budgeted_tool_calls(tool_calls: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    free_tools = {
+        "trajectory.monitor",
+        "research.prefetched_context",
+    }
+    return [
+        call
+        for call in list(tool_calls or [])
+        if _clean(call.get("tool_name")) not in free_tools
+    ]
+
+
+def _budgeted_tool_count(tool_calls: list[dict[str, Any]]) -> int:
+    return len(_budgeted_tool_calls(tool_calls))
+
+
 def _planner_user_prompt(
     *,
     query: str,
     tool_catalog: list[dict[str, Any]],
     tool_calls: list[dict[str, Any]],
     max_tool_calls: int,
+    task: str = "",
+    surface: str = "",
     conversation_history: list[dict[str, Any]] | None = None,
     prefetched_context: str = "",
 ) -> str:
@@ -1817,8 +2091,10 @@ def _planner_user_prompt(
     return (
         f"{history_block}"
         f"{evidence_block}"
+        f"Task: {_clean(task) or 'agent_answer'}\n"
+        f"Surface: {_clean(surface) or 'zopedia.chat'}\n\n"
         f"User question:\n{query}\n\n"
-        f"Tool budget: {max_tool_calls - len(tool_calls)} remaining out of {max_tool_calls}.\n\n"
+        f"Tool budget: {max_tool_calls - _budgeted_tool_count(tool_calls)} remaining out of {max_tool_calls}.\n\n"
         "Available tools:\n"
         f"{_tool_catalog_prompt(tool_catalog)}\n\n"
         "Tool call history:\n"
@@ -1838,6 +2114,8 @@ def _final_user_prompt(
     *,
     query: str,
     tool_calls: list[dict[str, Any]],
+    task: str = "",
+    surface: str = "",
     conversation_history: list[dict[str, Any]] | None = None,
     prefetched_context: str = "",
 ) -> str:
@@ -1850,10 +2128,13 @@ def _final_user_prompt(
     return (
         f"{history_block}"
         f"{evidence_block}"
+        f"Task: {_clean(task) or 'agent_answer'}\n"
+        f"Surface: {_clean(surface) or 'zopedia.chat'}\n\n"
         f"User question:\n{query}\n\n"
         "Tool evidence:\n"
         f"{_tool_history_prompt(tool_calls)}\n\n"
         "Write the best grounded markdown answer you can from this evidence only. "
+        "When the user question contains typed Context JSON, source_acquisition_rows, supplied source text, or inline datasets, treat that supplied context as evidence too, especially when the tool budget is zero. "
         "Make it readable: start with a bold verdict, use ### headings for distinct themes, keep each heading on its own line with a blank line after it, keep paragraphs short, and put blank lines between paragraphs. "
         "If you use a Markdown table, it must have a header row, separator row, and one row per line; use bullets if a table would be cramped. "
         "Treat the user's premise as unverified unless the evidence supports it; if evidence contradicts the premise, say so plainly. "
@@ -1871,6 +2152,8 @@ def _judge_user_prompt(
     draft_answer: str,
     draft_confidence: str,
     limitations: list[str],
+    task: str = "",
+    surface: str = "",
     conversation_history: list[dict[str, Any]] | None = None,
     prefetched_context: str = "",
 ) -> str:
@@ -1882,6 +2165,8 @@ def _judge_user_prompt(
     return (
         f"{history_block}"
         f"{evidence_block}"
+        f"Task: {_clean(task) or 'agent_answer'}\n"
+        f"Surface: {_clean(surface) or 'zopedia.chat'}\n\n"
         f"User question:\n{query}\n\n"
         "Tool evidence:\n"
         f"{_tool_history_prompt(tool_calls)}\n\n"
@@ -1891,6 +2176,7 @@ def _judge_user_prompt(
         "Known limitations:\n"
         f"{limitation_block}\n\n"
         "Review the draft answer for evidence sufficiency. "
+        "When the original user question contains typed Context JSON, source_acquisition_rows, supplied source text, or inline datasets, treat that supplied context as part of the evidence even if no tool calls were made. "
         "Use verdict='accept' only when the draft is supported by the evidence and the confidence is appropriate. "
         "Use verdict='revise' when the answer should be corrected or made more precise. "
         "Use verdict='insufficient' when the evidence does not support a substantive answer. "
@@ -1921,6 +2207,8 @@ def _run_answer_judge(
     prefetched_context: str,
     timeout_seconds: int,
     progress_callback: ProgressCallback | None,
+    task: str = "",
+    surface: str = "",
 ) -> dict[str, Any]:
     """Review a draft answer against evidence without blocking the whole run."""
     if int(get_config_param(_P_ANSWER_JUDGE_ENABLED)) == 0:
@@ -1944,6 +2232,8 @@ def _run_answer_judge(
                 system_prompt=get_prompt(_AGENT_JUDGE_SYSTEM_PROMPT),
                 user_prompt=_judge_user_prompt(
                     query=query,
+                    task=task,
+                    surface=surface,
                     tool_calls=tool_calls,
                     draft_answer=draft_answer,
                     draft_confidence=draft_confidence,
@@ -2011,7 +2301,7 @@ def _run_answer_judge(
         "status": "completed",
         "verdict": _clean(payload.get("verdict")).lower() or "accept",
         "critique_summary": _clean(payload.get("critique_summary")),
-        "answer_markdown": _clean(payload.get("answer_markdown")),
+        "answer_markdown": _clean_model_output(payload.get("answer_markdown")),
         "confidence": _clean(payload.get("confidence")).lower() or draft_confidence or "low",
         "limitations": [_clean(item) for item in list(payload.get("limitations") or []) if _clean(item)],
         "unsupported_claims": [_clean(item) for item in list(payload.get("unsupported_claims") or []) if _clean(item)],
@@ -2028,6 +2318,166 @@ def _run_answer_judge(
         evidence_gap_count=len(review["evidence_gaps"]),
     )
     return review
+
+
+def _trajectory_monitor_user_prompt(
+    *,
+    query: str,
+    task: str,
+    surface: str,
+    tool_catalog: list[dict[str, Any]],
+    tool_calls: list[dict[str, Any]],
+    max_tool_calls: int,
+    restart_count: int,
+) -> str:
+    tool_names = [_clean(tool.get("name")) for tool in tool_catalog if _clean(tool.get("name"))]
+    return (
+        f"Task: {_clean(task) or 'agent_answer'}\n"
+        f"Surface: {_clean(surface) or 'zopedia.chat'}\n"
+        f"Restart count: {int(restart_count)}\n"
+        f"Tool budget remaining: {max(int(max_tool_calls) - _budgeted_tool_count(tool_calls), 0)} of {int(max_tool_calls)}\n\n"
+        f"User question:\n{query}\n\n"
+        "Available tool names:\n"
+        f"{', '.join(tool_names)}\n\n"
+        "Tool call history:\n"
+        f"{_tool_history_prompt(tool_calls)}\n\n"
+        "Decide whether this thread should double down, restart with one corrective instruction, or kill/fail closed."
+    )
+
+
+def _run_trajectory_monitor(
+    *,
+    llm: LLMClient,
+    query: str,
+    task: str,
+    surface: str,
+    tool_catalog: list[dict[str, Any]],
+    tool_calls: list[dict[str, Any]],
+    max_tool_calls: int,
+    restart_count: int,
+    timeout_seconds: int,
+    progress_callback: ProgressCallback | None,
+) -> dict[str, Any]:
+    if int(get_config_param(_P_TRAJECTORY_MONITOR_ENABLED)) == 0:
+        return {"status": "skipped", "decision": "double_down", "reason": "disabled"}
+    visible_calls = [
+        call for call in tool_calls
+        if isinstance(call, dict) and _clean(call.get("tool_name")) != "trajectory.monitor"
+    ]
+    if not visible_calls:
+        return {"status": "skipped", "decision": "double_down", "reason": "no_tool_trace"}
+
+    _emit_progress(
+        progress_callback,
+        stage="trajectory_monitor_start",
+        message="Checking whether the research thread is still on task.",
+        progress=0.93,
+        tool_call_count=len(tool_calls),
+    )
+    result_box: list[dict[str, Any] | None] = [None]
+    error_box: list[BaseException | None] = [None]
+
+    def _runner() -> None:
+        try:
+            result_box[0] = llm.generate_json(
+                system_prompt=get_prompt(_TRAJECTORY_MONITOR_SYSTEM_PROMPT),
+                user_prompt=_trajectory_monitor_user_prompt(
+                    query=query,
+                    task=task,
+                    surface=surface,
+                    tool_catalog=tool_catalog,
+                    tool_calls=tool_calls,
+                    max_tool_calls=max_tool_calls,
+                    restart_count=restart_count,
+                ),
+                schema_name="zopedia_agent_trajectory_monitor",
+                schema=_TRAJECTORY_MONITOR_SCHEMA,
+            )
+        except BaseException as exc:
+            error_box[0] = exc
+
+    monitor_thread = threading.Thread(target=_runner, name="omnibar-trajectory-monitor", daemon=True)
+    monitor_thread.start()
+    heartbeat_interval = 5.0
+    elapsed = 0.0
+    while monitor_thread.is_alive():
+        monitor_thread.join(timeout=heartbeat_interval)
+        if not monitor_thread.is_alive():
+            break
+        elapsed += heartbeat_interval
+        if elapsed >= timeout_seconds:
+            _emit_progress(
+                progress_callback,
+                stage="trajectory_monitor_timeout",
+                message="Trajectory monitor timed out; continuing with the planner.",
+                progress=0.935,
+                elapsed_seconds=int(elapsed),
+                tool_call_count=len(tool_calls),
+            )
+            return {"status": "timeout", "decision": "double_down", "reason": "monitor_timeout"}
+        _emit_progress(
+            progress_callback,
+            stage="trajectory_monitor_heartbeat",
+            message=f"Still checking trajectory... ({int(elapsed)}s)",
+            progress=0.932,
+            elapsed_seconds=int(elapsed),
+            tool_call_count=len(tool_calls),
+        )
+    if error_box[0] is not None:
+        return {
+            "status": "failed",
+            "decision": "double_down",
+            "reason": _safe_agent_error_text(error_box[0]),
+        }
+    payload = result_box[0] if isinstance(result_box[0], dict) else {}
+    decision = _clean(payload.get("decision")).lower()
+    if decision not in {"double_down", "restart", "kill"}:
+        decision = "double_down"
+    payload["decision"] = decision
+    payload["status"] = "completed"
+    return payload
+
+
+def _append_trajectory_monitor_call(
+    tool_calls: list[dict[str, Any]],
+    *,
+    monitor_result: dict[str, Any],
+    restart_count: int,
+) -> None:
+    decision = _clean(monitor_result.get("decision")).lower() or "double_down"
+    reason = _clean(monitor_result.get("reason"))
+    corrective = _clean(monitor_result.get("corrective_instruction"))
+    off_contract = [
+        _clean(item) for item in list(monitor_result.get("off_contract_signals") or []) if _clean(item)
+    ]
+    gaps = [_clean(item) for item in list(monitor_result.get("evidence_gaps") or []) if _clean(item)]
+    lines = [
+        f"Trajectory monitor decision: {decision}.",
+        f"Reason: {reason}." if reason else "",
+        f"Corrective instruction: {corrective}." if corrective else "",
+    ]
+    if off_contract:
+        lines.append("Off-contract signals: " + "; ".join(off_contract[:5]) + ".")
+    if gaps:
+        lines.append("Evidence gaps: " + "; ".join(gaps[:5]) + ".")
+    context = "\n".join(line for line in lines if line)
+    tool_calls.append(
+        {
+            "tool_call_id": f"agtc_monitor_{restart_count}",
+            "tool_name": "trajectory.monitor",
+            "arguments": {"decision": decision, "restart_count": restart_count},
+            "status": "completed",
+            "error": None,
+            "result_summary": {
+                "preview_text": context,
+                "user_preview": _truncate(context, limit=int(get_config_param(_P_USER_PREVIEW_LIMIT))),
+                "llm_context_text": context,
+                "result_type": "trajectory_monitor",
+                "provenance": {"source": "aql_zopedia_trajectory_monitor"},
+                "preview": {"kind": "text", "chars": len(context)},
+            },
+        }
+    )
 
 
 def _has_memory_candidate(
@@ -2299,6 +2749,8 @@ def _run_post_answer_memory_agent(
 def _run_zopedia_agent_loop(
     *,
     query: str,
+    task: str = "agent_answer",
+    surface: str = "zopedia.chat",
     force_refresh: bool = False,
     max_tool_calls: int = DEFAULT_MAX_TOOL_CALLS,
     service: QueryService | None = None,
@@ -2306,6 +2758,9 @@ def _run_zopedia_agent_loop(
     progress_callback: ProgressCallback | None = None,
     conversation_history: list[dict[str, Any]] | None = None,
     persist_findings: bool = True,
+    tool_call_timeout_seconds: int | None = None,
+    llm_step_timeout_seconds: int | None = None,
+    prefetch_timeout_seconds: int | None = None,
 ) -> dict[str, Any]:
     normalized_query = _clean(query)
     agent_query, followup_resolved = resolve_conversation_followup_query(
@@ -2315,7 +2770,15 @@ def _run_zopedia_agent_loop(
     # Use config-param override when caller passed the module-level default
     if max_tool_calls == DEFAULT_MAX_TOOL_CALLS:
         max_tool_calls = int(get_config_param(_P_MAX_TOOL_CALLS))
-    llm_step_timeout_seconds = max(int(get_config_param(_P_LLM_STEP_TIMEOUT_SECONDS)), 1)
+    if tool_call_timeout_seconds is None:
+        tool_call_timeout_seconds = int(get_config_param(_P_TOOL_CALL_TIMEOUT_SECONDS))
+    tool_call_timeout_seconds = max(int(tool_call_timeout_seconds), 1)
+    if llm_step_timeout_seconds is None:
+        llm_step_timeout_seconds = int(get_config_param(_P_LLM_STEP_TIMEOUT_SECONDS))
+    llm_step_timeout_seconds = max(int(llm_step_timeout_seconds), 1)
+    if prefetch_timeout_seconds is None:
+        prefetch_timeout_seconds = min(tool_call_timeout_seconds, 15)
+    prefetch_timeout_seconds = max(int(prefetch_timeout_seconds), 1)
     run_id = f"agrun_{uuid.uuid4().hex[:10]}"
     if not agent_query:
         return _with_aql_evidence_pack({
@@ -2403,61 +2866,61 @@ def _run_zopedia_agent_loop(
     prefetched_context = ""
     _prefetch_limit = int(get_config_param(_P_PREFETCH_EVIDENCE_LIMIT))
     _prefetch_chunk_limit = int(get_config_param(_P_PREFETCH_CHUNK_TEXT_LIMIT))
-    try:
-        from .saa import search_retained_evidence_chunks
-        prefetch_timeout_seconds = min(max(int(get_config_param(_P_TOOL_CALL_TIMEOUT_SECONDS)), 1), 15)
-        saa_frame = _run_hidden_step_with_timeout(
-            label="retained-evidence prefetch",
-            timeout_seconds=prefetch_timeout_seconds,
-            progress_callback=progress_callback,
-            progress=0.085,
-            func=lambda: search_retained_evidence_chunks(
-                query=agent_query, limit=_prefetch_limit, use_semantic=False,
-            ),
-        )
-        # If the full natural-language query returns nothing, use the LLM intent
-        # classifier to extract domain-specific search keywords (e.g. "short squeeze")
-        # and retry with those.  This replaces brittle hardcoded stop-word lists.
-        if saa_frame.empty:
-            try:
-                from .omnibar_research import market_impact_map
-                impact = _run_hidden_step_with_timeout(
-                    label="prefetch keyword extraction",
-                    timeout_seconds=min(max(int(get_config_param(_P_TOOL_CALL_TIMEOUT_SECONDS)), 1), 15),
-                    progress_callback=progress_callback,
-                    progress=0.09,
-                    func=lambda: market_impact_map(query=agent_query),
-                )
-                search_kws = impact.get("search_keywords") or []
-                reduced = " ".join(str(k).strip() for k in search_kws if str(k).strip())
-            except Exception:
-                reduced = ""
-            if reduced:
-                saa_frame = _run_hidden_step_with_timeout(
-                    label="retained-evidence keyword prefetch",
-                    timeout_seconds=prefetch_timeout_seconds,
-                    progress_callback=progress_callback,
-                    progress=0.1,
-                    func=lambda: search_retained_evidence_chunks(
-                        query=reduced, limit=_prefetch_limit, use_semantic=False,
-                    ),
-                )
-        if not saa_frame.empty:
-            lines = [f"### Internal evidence ({len(saa_frame)} matches):"]
-            for _, row in saa_frame.head(_prefetch_limit).iterrows():
-                title = str(row.get("title") or "").strip()
-                date = str(row.get("published_date") or "").strip()
-                tickers = str(row.get("mentioned_tickers_key") or "").strip()
-                text = str(row.get("chunk_text") or "").strip()[:_prefetch_chunk_limit]
-                line = f"- [{date}] {title}"
-                if tickers:
-                    line += f" [{tickers}]"
-                if text:
-                    line += f": {text}"
-                lines.append(line)
-            prefetched_context = "\n".join(lines)
-    except Exception:
-        prefetched_context = ""
+    if int(max_tool_calls) > 0:
+        try:
+            from .saa import search_retained_evidence_chunks
+            saa_frame = _run_hidden_step_with_timeout(
+                label="retained-evidence prefetch",
+                timeout_seconds=prefetch_timeout_seconds,
+                progress_callback=progress_callback,
+                progress=0.085,
+                func=lambda: search_retained_evidence_chunks(
+                    query=agent_query, limit=_prefetch_limit, use_semantic=False,
+                ),
+            )
+            # If the full natural-language query returns nothing, use the LLM intent
+            # classifier to extract domain-specific search keywords (e.g. "short squeeze")
+            # and retry with those.  This replaces brittle hardcoded stop-word lists.
+            if saa_frame.empty:
+                try:
+                    from .omnibar_research import market_impact_map
+                    impact = _run_hidden_step_with_timeout(
+                        label="prefetch keyword extraction",
+                        timeout_seconds=prefetch_timeout_seconds,
+                        progress_callback=progress_callback,
+                        progress=0.09,
+                        func=lambda: market_impact_map(query=agent_query),
+                    )
+                    search_kws = impact.get("search_keywords") or []
+                    reduced = " ".join(str(k).strip() for k in search_kws if str(k).strip())
+                except Exception:
+                    reduced = ""
+                if reduced:
+                    saa_frame = _run_hidden_step_with_timeout(
+                        label="retained-evidence keyword prefetch",
+                        timeout_seconds=prefetch_timeout_seconds,
+                        progress_callback=progress_callback,
+                        progress=0.1,
+                        func=lambda: search_retained_evidence_chunks(
+                            query=reduced, limit=_prefetch_limit, use_semantic=False,
+                        ),
+                    )
+            if not saa_frame.empty:
+                lines = [f"### Internal evidence ({len(saa_frame)} matches):"]
+                for _, row in saa_frame.head(_prefetch_limit).iterrows():
+                    title = str(row.get("title") or "").strip()
+                    date = str(row.get("published_date") or "").strip()
+                    tickers = str(row.get("mentioned_tickers_key") or "").strip()
+                    text = str(row.get("chunk_text") or "").strip()[:_prefetch_chunk_limit]
+                    line = f"- [{date}] {title}"
+                    if tickers:
+                        line += f" [{tickers}]"
+                    if text:
+                        line += f": {text}"
+                    lines.append(line)
+                prefetched_context = "\n".join(lines)
+        except Exception:
+            prefetched_context = ""
 
     tool_calls: list[dict[str, Any]] = []
     seen_calls: set[str] = set()
@@ -2505,7 +2968,7 @@ def _run_zopedia_agent_loop(
     seeded_tool_names: set[str] = set()
     bootstrap_budget = min(
         max(int(get_config_param(_P_BOOTSTRAP_TOOL_CALLS)), 0),
-        max(int(max_tool_calls) - len(tool_calls), 0),
+        max(int(max_tool_calls) - _budgeted_tool_count(tool_calls), 0),
     )
     if bootstrap_budget > 0:
         bootstrap_plan = _bootstrap_tool_plan(
@@ -2532,11 +2995,12 @@ def _run_zopedia_agent_loop(
                 tool_name=seed_tool_name,
                 arguments=seed_arguments,
                 progress=min(0.13 + (idx * 0.04), 0.28),
+                tool_call_timeout_seconds=tool_call_timeout_seconds,
             )
         zopedia_page_id = _first_zopedia_page_id_from_search(tool_calls)
         if (
             zopedia_page_id
-            and len(tool_calls) < int(max_tool_calls)
+            and _budgeted_tool_count(tool_calls) < int(max_tool_calls)
             and _tool_available(tool_catalog, "zopedia.read_page")
         ):
             seeded_tool_names.add("zopedia.read_page")
@@ -2548,6 +3012,7 @@ def _run_zopedia_agent_loop(
                 tool_name="zopedia.read_page",
                 arguments={"page_id": zopedia_page_id},
                 progress=min(0.13 + (len(tool_calls) * 0.04), 0.34),
+                tool_call_timeout_seconds=tool_call_timeout_seconds,
             )
     for call in tool_calls:
         seen_calls.add(f"{_clean(call.get('tool_name'))}::{_json_dumps(call.get('arguments') or {}, limit=1200)}")
@@ -2558,19 +3023,147 @@ def _run_zopedia_agent_loop(
     )
     final_answer = ""
     final_confidence = "low"
+    direct_structured_payload_used = False
     limitations: list[str] = []
     quality_review: dict[str, Any] = {"status": "not_run"}
     memory_update: dict[str, Any] = {"status": "not_run"}
     consecutive_failed_tools = 0
+    trajectory_reviews: list[dict[str, Any]] = []
+    trajectory_restart_count = 0
+    trajectory_killed = False
+    trajectory_max_restarts = max(int(get_config_param(_P_TRAJECTORY_MONITOR_MAX_RESTARTS)), 0)
+
+    def _check_trajectory(pending_call: dict[str, Any] | None = None) -> str:
+        nonlocal trajectory_restart_count, trajectory_killed
+        monitor_tool_calls = list(tool_calls)
+        if pending_call is not None:
+            monitor_tool_calls.append(pending_call)
+        monitor_result = _run_trajectory_monitor(
+            llm=_synthesis_llm_client(resolved_llm),
+            query=agent_query,
+            task=task,
+            surface=surface,
+            tool_catalog=tool_catalog,
+            tool_calls=monitor_tool_calls,
+            max_tool_calls=int(max_tool_calls),
+            restart_count=trajectory_restart_count,
+            timeout_seconds=min(
+                llm_step_timeout_seconds,
+                max(int(get_config_param(_P_TRAJECTORY_MONITOR_TIMEOUT_SECONDS)), 1),
+            ),
+            progress_callback=progress_callback,
+        )
+        if monitor_result.get("status") == "completed":
+            trajectory_reviews.append(dict(monitor_result))
+        decision = _clean(monitor_result.get("decision")).lower() or "double_down"
+        if (
+            decision == "kill"
+            and _clean(task).startswith("ticker_business_model")
+            and _budgeted_tool_count(monitor_tool_calls) < int(max_tool_calls)
+            and not [
+                _clean(item)
+                for item in list(monitor_result.get("off_contract_signals") or [])
+                if _clean(item)
+            ]
+        ):
+            monitor_result = dict(monitor_result)
+            monitor_result["decision"] = "double_down"
+            monitor_result["reason"] = (
+                _clean(monitor_result.get("reason"))
+                + " Continuing because empty internal evidence is a coverage gap, not off-contract drift, and the job still has research budget."
+            ).strip()
+            decision = "double_down"
+            _emit_progress(
+                progress_callback,
+                stage="trajectory_monitor_continue",
+                message=_clean(monitor_result.get("reason")) or "Continuing on-contract research.",
+                progress=0.94,
+                tool_call_count=len(tool_calls),
+            )
+        if decision == "restart":
+            if trajectory_restart_count >= trajectory_max_restarts:
+                decision = "kill"
+                monitor_result = dict(monitor_result)
+                monitor_result["decision"] = "kill"
+                monitor_result["reason"] = (
+                    _clean(monitor_result.get("reason"))
+                    or "Trajectory monitor requested another restart after the restart budget was exhausted."
+                )
+            else:
+                trajectory_restart_count += 1
+                _append_trajectory_monitor_call(
+                    tool_calls,
+                    monitor_result=monitor_result,
+                    restart_count=trajectory_restart_count,
+                )
+                _emit_progress(
+                    progress_callback,
+                    stage="trajectory_monitor_restart",
+                    message=_clean(monitor_result.get("reason")) or "Restarting the planner with corrected task focus.",
+                    progress=0.94,
+                    restart_count=trajectory_restart_count,
+                )
+                return "restart"
+        if (
+            decision == "kill"
+            and _clean(task).startswith("ticker_business_model")
+            and _budgeted_tool_count(monitor_tool_calls) < int(max_tool_calls)
+            and not [
+                _clean(item)
+                for item in list(monitor_result.get("off_contract_signals") or [])
+                if _clean(item)
+            ]
+        ):
+            monitor_result = dict(monitor_result)
+            monitor_result["decision"] = "double_down"
+            monitor_result["reason"] = (
+                _clean(monitor_result.get("reason"))
+                + " Continuing because empty internal evidence is a coverage gap, not off-contract drift, and the job still has research budget."
+            ).strip()
+            decision = "double_down"
+            _emit_progress(
+                progress_callback,
+                stage="trajectory_monitor_continue",
+                message=_clean(monitor_result.get("reason")) or "Continuing on-contract research.",
+                progress=0.94,
+                tool_call_count=len(tool_calls),
+            )
+        if decision == "kill":
+            trajectory_killed = True
+            _append_trajectory_monitor_call(
+                tool_calls,
+                monitor_result=monitor_result,
+                restart_count=trajectory_restart_count,
+            )
+            reason = _clean(monitor_result.get("reason")) or "Trajectory monitor killed an off-contract research thread."
+            if reason not in limitations:
+                limitations.append(reason)
+            _emit_progress(
+                progress_callback,
+                stage="trajectory_monitor_kill",
+                message=reason,
+                progress=0.96,
+                tool_call_count=len(tool_calls),
+            )
+            return "kill"
+        return "double_down"
 
     try:
         total_steps = max(int(max_tool_calls), 1)
-        planner_steps = 0 if skip_planner_after_bootstrap else total_steps
+        planner_steps = 0 if skip_planner_after_bootstrap or int(max_tool_calls) <= 0 else total_steps
         if skip_planner_after_bootstrap:
             _emit_progress(
                 progress_callback,
                 stage="planner_skipped",
                 message="Initial evidence is sufficient; moving straight to synthesis.",
+                progress=0.9,
+                tool_call_count=len(tool_calls),
+            )
+        elif int(max_tool_calls) <= 0:
+            _emit_progress(
+                progress_callback,
+                stage="planner_skipped",
+                message="Tool budget is zero; synthesizing from supplied context only.",
                 progress=0.9,
                 tool_call_count=len(tool_calls),
             )
@@ -2595,6 +3188,8 @@ def _run_zopedia_agent_loop(
                         system_prompt=_planner_system_prompt(),
                         user_prompt=_planner_user_prompt(
                             query=agent_query,
+                            task=task,
+                            surface=surface,
                             tool_catalog=tool_catalog,
                             tool_calls=tool_calls,
                             max_tool_calls=max_tool_calls,
@@ -2674,6 +3269,7 @@ def _run_zopedia_agent_loop(
                                 progress=min(step_progress + 0.05, 0.88),
                                 tool_call_id=recovery_call_id,
                                 tool_call_count=len(tool_calls),
+                                timeout_seconds=tool_call_timeout_seconds,
                             )
                             recovery_summary = _summarize_tool_result(recovery_result)
                             tool_calls.append(
@@ -2742,9 +3338,52 @@ def _run_zopedia_agent_loop(
                     iteration=step_index + 1,
                     reasoning=reasoning,
                 )
+            if action not in {"tool_call", "final"}:
+                direct_answer = _direct_structured_payload_answer(agent_query, decision)
+                if direct_answer:
+                    final_answer = direct_answer
+                    final_confidence = "medium"
+                    direct_structured_payload_used = True
+                    limitations.append("Planner returned the requested structured payload directly.")
+                    _emit_progress(
+                        progress_callback,
+                        stage="planner_direct_structured_payload",
+                        message="Planner returned the requested structured payload directly.",
+                        progress=min(step_progress + 0.08, 0.9),
+                        iteration=step_index + 1,
+                    )
+                    break
             if action == "final":
-                candidate_answer = _clean(decision.get("answer_markdown"))
-                if _analysis_failure_needs_repair(tool_calls) and len(tool_calls) < int(max_tool_calls):
+                candidate_answer = _clean_model_output(decision.get("answer_markdown"))
+                zopedia_page_id = _first_zopedia_page_id_from_search(tool_calls)
+                if (
+                    zopedia_page_id
+            and _budgeted_tool_count(tool_calls) < int(max_tool_calls)
+                    and _tool_available(tool_catalog, "zopedia.read_page")
+                    and not _zopedia_page_already_read(tool_calls, zopedia_page_id)
+                ):
+                    _emit_progress(
+                        progress_callback,
+                        stage="zopedia_page_read_required",
+                        message="Reading the relevant Zopedia page before final synthesis.",
+                        progress=min(step_progress + 0.03, 0.9),
+                        tool_name="zopedia.read_page",
+                        tool_arguments={"page_id": zopedia_page_id},
+                    )
+                    _execute_seeded_tool_call(
+                        service=resolved_service,
+                        run_id=run_id,
+                        tool_calls=tool_calls,
+                        progress_callback=progress_callback,
+                        tool_name="zopedia.read_page",
+                        arguments={"page_id": zopedia_page_id},
+                        progress=min(step_progress + 0.05, 0.9),
+                        tool_call_timeout_seconds=tool_call_timeout_seconds,
+                    )
+                    for call in tool_calls:
+                        seen_calls.add(f"{_clean(call.get('tool_name'))}::{_json_dumps(call.get('arguments') or {}, limit=1200)}")
+                    continue
+                if _analysis_failure_needs_repair(tool_calls) and _budgeted_tool_count(tool_calls) < int(max_tool_calls):
                     _emit_progress(
                         progress_callback,
                         stage="analysis_repair_required",
@@ -2759,7 +3398,7 @@ def _run_zopedia_agent_loop(
                     tool_calls=tool_calls,
                     tool_catalog=tool_catalog,
                 )
-                if recovery and len(tool_calls) < int(max_tool_calls):
+                if recovery and _budgeted_tool_count(tool_calls) < int(max_tool_calls):
                     recovery_tool_name, recovery_arguments, recovery_reason = recovery
                     _emit_progress(
                         progress_callback,
@@ -2777,6 +3416,7 @@ def _run_zopedia_agent_loop(
                         tool_name=recovery_tool_name,
                         arguments=recovery_arguments,
                         progress=min(step_progress + 0.06, 0.9),
+                        tool_call_timeout_seconds=tool_call_timeout_seconds,
                     )
                     for call in tool_calls:
                         seen_calls.add(f"{_clean(call.get('tool_name'))}::{_json_dumps(call.get('arguments') or {}, limit=1200)}")
@@ -2832,6 +3472,12 @@ def _run_zopedia_agent_loop(
                 parsed_arguments,
                 force_refresh=force_refresh,
             )
+            arguments = _arguments_with_task_scope(
+                tool_name=tool_name,
+                arguments=arguments,
+                query=agent_query,
+                task=task,
+            )
             dedupe_signature = f"{tool_name}::{_json_dumps(arguments, limit=1200)}"
             if dedupe_signature in seen_calls:
                 tool_calls.append(
@@ -2857,9 +3503,40 @@ def _run_zopedia_agent_loop(
                     limitations.append("Stopping planning after repeated failed tool attempts.")
                     break
                 continue
-            seen_calls.add(dedupe_signature)
-
             if not tool_entry:
+                if trajectory_restart_count < trajectory_max_restarts:
+                    trajectory_restart_count += 1
+                    available_names = [
+                        _clean(tool.get("name"))
+                        for tool in tool_catalog
+                        if _clean(tool.get("name"))
+                    ]
+                    _append_trajectory_monitor_call(
+                        tool_calls,
+                        monitor_result={
+                            "decision": "restart",
+                            "reason": (
+                                "Planner selected a missing or unsupported tool name; retrying without spending "
+                                "research budget."
+                            ),
+                            "corrective_instruction": (
+                                "Choose exactly one tool from Available tool names. Do not leave tool_name blank. "
+                                f"Available examples: {', '.join(available_names[:12])}."
+                            ),
+                            "off_contract_signals": [f"unsupported tool: {tool_name or '(blank)'}"],
+                            "evidence_gaps": [],
+                        },
+                        restart_count=trajectory_restart_count,
+                    )
+                    _emit_progress(
+                        progress_callback,
+                        stage="planner_tool_repair",
+                        message="Planner selected an unavailable tool; restarting with the available tool list.",
+                        progress=min(step_progress + 0.05, 0.9),
+                        iteration=step_index + 1,
+                        restart_count=trajectory_restart_count,
+                    )
+                    continue
                 tool_calls.append(
                     {
                         "tool_call_id": call_id,
@@ -2884,6 +3561,28 @@ def _run_zopedia_agent_loop(
                     break
                 continue
 
+            pending_call = {
+                "tool_call_id": call_id,
+                "tool_name": tool_name,
+                "arguments": arguments,
+                "status": "planned",
+                "error": None,
+                "result_summary": {
+                    "preview_text": "Planner proposed this tool call; trajectory monitor is reviewing it before execution.",
+                    "result_type": "planned_tool_call",
+                    "provenance": None,
+                    "preview": {"kind": "planned_tool_call"},
+                },
+            }
+            trajectory_decision = _check_trajectory(pending_call)
+            if trajectory_decision == "kill":
+                break
+            if trajectory_decision == "restart":
+                for call in tool_calls:
+                    seen_calls.add(f"{_clean(call.get('tool_name'))}::{_json_dumps(call.get('arguments') or {}, limit=1200)}")
+                continue
+
+            seen_calls.add(dedupe_signature)
             _emit_progress(
                 progress_callback,
                 stage="tool_start",
@@ -2910,6 +3609,7 @@ def _run_zopedia_agent_loop(
                         progress=min(step_progress + 0.06, 0.9),
                         tool_call_id=call_id,
                         tool_call_count=len(tool_calls),
+                        timeout_seconds=tool_call_timeout_seconds,
                     )
                 result_summary = _summarize_tool_result(result)
                 tool_calls.append(
@@ -2936,6 +3636,13 @@ def _run_zopedia_agent_loop(
                     render_payload=result_summary.get("render_payload"),
                     source_links=result_summary.get("source_links"),
                 )
+                trajectory_decision = _check_trajectory()
+                if trajectory_decision == "kill":
+                    break
+                if trajectory_decision == "restart":
+                    for call in tool_calls:
+                        seen_calls.add(f"{_clean(call.get('tool_name'))}::{_json_dumps(call.get('arguments') or {}, limit=1200)}")
+                    continue
             except Exception as exc:
                 tool_calls.append(
                     {
@@ -2967,8 +3674,15 @@ def _run_zopedia_agent_loop(
                 ):
                     limitations.append("Stopping planning after repeated failed tool attempts.")
                     break
+                trajectory_decision = _check_trajectory()
+                if trajectory_decision == "kill":
+                    break
+                if trajectory_decision == "restart":
+                    for call in tool_calls:
+                        seen_calls.add(f"{_clean(call.get('tool_name'))}::{_json_dumps(call.get('arguments') or {}, limit=1200)}")
+                    continue
 
-        if not final_answer:
+        if not final_answer and not trajectory_killed:
             _emit_progress(
                 progress_callback,
                 stage="final_synthesis_start",
@@ -2984,7 +3698,14 @@ def _run_zopedia_agent_loop(
                 try:
                     _final_result[0] = synthesis_llm.generate_json(
                         system_prompt=get_prompt(_AGENT_FINAL_SYSTEM_PROMPT),
-                        user_prompt=_final_user_prompt(query=agent_query, tool_calls=tool_calls, conversation_history=conversation_history, prefetched_context=prefetched_context),
+                        user_prompt=_final_user_prompt(
+                            query=agent_query,
+                            task=task,
+                            surface=surface,
+                            tool_calls=tool_calls,
+                            conversation_history=conversation_history,
+                            prefetched_context=prefetched_context,
+                        ),
                         schema_name="zopedia_agent_final",
                         schema=_FINAL_SCHEMA,
                     )
@@ -3033,7 +3754,7 @@ def _run_zopedia_agent_loop(
                     progress=0.965,
                     reasoning_trace=final_reasoning_trace,
                 )
-            final_answer = _clean(final_payload.get("answer_markdown"))
+            final_answer = _clean_model_output(final_payload.get("answer_markdown"))
             final_confidence = _clean(final_payload.get("confidence")).lower() or "low"
             final_limitations = [
                 _clean(item)
@@ -3063,9 +3784,10 @@ def _run_zopedia_agent_loop(
             "mode": "sync",
             "model": str(resolved_llm.config.model),
             "tool_calls": tool_calls,
-            "answer_markdown": _fallback_answer(agent_query, tool_calls),
+            "answer_markdown": "",
             "confidence": "low",
             "limitations": limitations + [limitation],
+            "trajectory_reviews": trajectory_reviews,
             "error": error_text,
             "query": agent_query,
             "original_query": normalized_query,
@@ -3087,10 +3809,12 @@ def _run_zopedia_agent_loop(
             )
         return _with_aql_evidence_pack(error_result)
 
-    if final_answer:
+    if final_answer and not direct_structured_payload_used:
         quality_review = _run_answer_judge(
             llm=_synthesis_llm_client(resolved_llm),
             query=agent_query,
+            task=task,
+            surface=surface,
             tool_calls=tool_calls,
             draft_answer=final_answer,
             draft_confidence=final_confidence,
@@ -3102,7 +3826,7 @@ def _run_zopedia_agent_loop(
         )
         if quality_review.get("status") == "completed":
             verdict = _clean(quality_review.get("verdict")).lower()
-            judge_answer = _clean(quality_review.get("answer_markdown"))
+            judge_answer = _clean_model_output(quality_review.get("answer_markdown"))
             revised_answer_applied = False
             if verdict in {"revise", "insufficient"} and judge_answer:
                 final_answer = judge_answer
@@ -3127,7 +3851,7 @@ def _run_zopedia_agent_loop(
                 "revised_answer_applied": revised_answer_applied,
             }
 
-    answer_markdown = final_answer or _fallback_answer(agent_query, tool_calls)
+    answer_markdown = _clean_model_output(final_answer)
     evidence_tool_count = _successful_evidence_tool_count(tool_calls)
     if evidence_tool_count == 0:
         final_confidence = "low"
@@ -3164,13 +3888,23 @@ def _run_zopedia_agent_loop(
     _emit_progress(
         progress_callback,
         stage=status,
-        message="Agent response ready." if status == "completed" else "Agent run ended without an answer.",
+        message=(
+            "Agent response ready."
+            if status == "completed"
+            else "Trajectory monitor killed an off-contract thread."
+            if trajectory_killed
+            else "Agent run ended without an answer."
+        ),
         progress=1.0,
         tool_call_count=len(tool_calls),
         status=status,
     )
     duration = time.monotonic() - _run_start_time
-    error_text = None if status == "completed" else "Agent did not produce an answer."
+    error_text = None if status == "completed" else (
+        "Trajectory monitor killed an off-contract thread."
+        if trajectory_killed
+        else "Agent did not produce an answer."
+    )
     result = {
         "run_id": run_id,
         "status": status,
@@ -3183,6 +3917,7 @@ def _run_zopedia_agent_loop(
         "limitations": limitations,
         "quality_review": quality_review,
         "memory_update": memory_update,
+        "trajectory_reviews": trajectory_reviews,
         "error": error_text,
         "query": agent_query,
         "original_query": normalized_query,

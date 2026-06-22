@@ -12,7 +12,7 @@ We changed the app from implicit presentation-only behavior to hybrid behavior, 
 
 1. `APP_PRESENTATION_LAYER_ONLY` stopped defaulting to enabled when unset.
 2. `APP_FORCE_DATA_REFRESH_DEFAULT` was `true` in the dev container app.
-3. Home v2 passes `force_data_refresh` into `_load_attention_home_1d_cached(...)`.
+3. The Home renderer passed `force_data_refresh` into `_load_attention_home_1d_cached(...)`.
 4. When `force_refresh=True`, the data-access layer skips the pipeline snapshot path and falls back to the on-demand attention build path.
 
 ## Why Home Became Slow

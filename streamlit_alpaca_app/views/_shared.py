@@ -36,8 +36,6 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 BRANDING_ROOT = APP_ROOT / "branding" / "Logo Files"
 APP_SIDEBAR_LOGO_PATH = BRANDING_ROOT / "png" / "White logo - no background.png"
 
-HOME_EXP_SECTION = "Experiment"
-HOME_V2_SECTION = "Home v2"
 AGENTIC_OMNIBAR_SECTION = "Zopedia"
 STOCK_INVESTIGATOR_SECTION = "Stock Investigator"
 PORTFOLIO_SECTION = "Portfolio"
@@ -232,8 +230,6 @@ def _section_options() -> list[str]:
         options.extend([
             NAV_SEPARATOR,
             ADMIN_SECTION,
-            HOME_EXP_SECTION,
-            HOME_V2_SECTION,
         ])
     return options
 
@@ -241,11 +237,13 @@ def _section_options() -> list[str]:
 def _normalize_workspace_section(section_name: object) -> str:
     normalized = str(section_name or "").strip()
     alias_map = {
-        "Homepage - v2": HOME_V2_SECTION,
+        "Home v2": "Home",
+        "Experiment": "Home",
+        "Homepage - v2": "Home",
         "Home v3": "Home",
-        "Homepage Exp": HOME_EXP_SECTION,
-        "Home Experimental": HOME_EXP_SECTION,
-        "Daily Market Overview": HOME_EXP_SECTION,
+        "Homepage Exp": "Home",
+        "Home Experimental": "Home",
+        "Daily Market Overview": "Home",
         "Portfolio Overview": PORTFOLIO_SECTION,
         "Performance": PORTFOLIO_PERFORMANCE_SECTION,
         "Market Opportunity": MARKET_EXPLORER_SECTION,
@@ -589,11 +587,6 @@ def _open_attention_target(section_name: str, params: dict[str, object] | None =
 # ---------------------------------------------------------------------------
 
 
-def _compact_background_fallback_text(ticker: str) -> str:
-    target = str(ticker or "").upper().strip()
-    return f"No relevant catalyst found in web coverage for {target}."
-
-
 def _is_low_signal_company_context_text(text: object) -> bool:
     cleaned = " ".join(str(text or "").split()).strip().lower()
     if not cleaned:
@@ -670,35 +663,47 @@ def _collect_evidence_links(*, recent_headlines: list[dict[str, object]] | None 
 # ---------------------------------------------------------------------------
 
 
+def _render_display_markdown_sections(text: object) -> None:
+    for heading, body in attention_content.display_markdown_sections(text):
+        if heading:
+            st.markdown(f"###### {attention_content.streamlit_safe_markdown_text(heading)}")
+        if body:
+            st.markdown(body)
+
+
 def _render_compact_background_sections(
     ticker: str,
     *,
     background_summary: str,
     what_happened_summary: str,
     evidence_links: list[dict[str, str]],
+    key_prefix: str = "",
 ) -> None:
-    fallback = _compact_background_fallback_text(ticker)
+    cleaned_key_prefix = re.sub(
+        r"[^a-zA-Z0-9_]+",
+        "_",
+        str(key_prefix or f"ticker_background_{ticker}").strip(),
+    ) or "ticker_background"
     background_text = " ".join(str(background_summary or "").split()).strip()
     happened_text = " ".join(str(what_happened_summary or "").split()).strip()
     if _is_low_signal_company_context_text(background_text):
         background_text = ""
     if _is_low_signal_company_context_text(happened_text):
         happened_text = ""
-    if not background_text:
-        background_text = f"Company background is not available for {str(ticker or '').upper().strip()}."
-    if not happened_text:
-        happened_text = fallback
-
-    st.markdown("**Background**")
-    st.write(background_text)
-
-    st.markdown("**What Happened**")
-    st.write(happened_text)
-
-    st.markdown("**Evidence**")
-    if not evidence_links:
-        st.caption("No relevant evidence links were available.")
+    if not background_text and not happened_text and not evidence_links:
         return
+
+    if background_text:
+        st.markdown("**Background**")
+        _render_display_markdown_sections(background_text)
+
+    if happened_text:
+        st.markdown("**What Happened**")
+        _render_display_markdown_sections(happened_text)
+
+    if not evidence_links:
+        return
+    st.markdown("**Evidence**")
     for index, item in enumerate(evidence_links[:8]):
         headline = str((item or {}).get("headline") or "Untitled").strip()
         source = str((item or {}).get("source") or "News").strip()
@@ -708,7 +713,7 @@ def _render_compact_background_sections(
         _render_tracked_activity_link(
             headline,
             url,
-            key=_activity_link_key(f"ticker_background_evidence_{index}", label=headline, url=url),
+            key=_activity_link_key(f"{cleaned_key_prefix}_evidence_{index}", label=headline, url=url),
             surface="ticker_background_evidence",
             target_type="evidence_link",
             source=source,
@@ -746,8 +751,14 @@ def _render_fundamental_statement_charts(
     *,
     quarterly_titles: bool = False,
     bottom_labels: bool = False,
+    key_prefix: str = "",
 ) -> None:
     normalized_ticker = str(ticker or "").upper().strip()
+    cleaned_key_prefix = re.sub(
+        r"[^a-zA-Z0-9_]+",
+        "_",
+        str(key_prefix or f"fundamentals_{normalized_ticker}").strip(),
+    ) or "fundamentals"
     title_specs = [
         ("income", "Income Statement (Quarterly)" if quarterly_titles else "Income"),
         ("balance", "Balance Sheet (Quarterly)" if quarterly_titles else "Balance"),
@@ -759,7 +770,7 @@ def _render_fundamental_statement_charts(
             continue
         title = f"{normalized_ticker} - {title_suffix}" if quarterly_titles else f"{normalized_ticker} {title_suffix}"
         fig = plot_statement(frame, title, legend_bottom=bottom_labels)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key=f"{cleaned_key_prefix}_{statement_key}")
 
 
 def _render_overview_fundamentals(
@@ -768,6 +779,8 @@ def _render_overview_fundamentals(
     *,
     force_data_refresh: bool,
     asof_time_utc: object | None = None,
+    show_empty_state: bool = True,
+    key_prefix: str = "",
 ) -> None:
     normalized_ticker = str(ticker or "").upper().strip()
     if not normalized_ticker:
@@ -779,10 +792,12 @@ def _render_overview_fundamentals(
         return
     scoped = _filter_fundamentals_asof(fundamentals, asof_time_utc=asof_time_utc)
     has_any = any(isinstance((scoped or {}).get(key), pd.DataFrame) and not (scoped or {}).get(key).empty for key in ["income", "balance", "cashflow"])
-    st.markdown("**Fundamentals**")
     if not has_any:
-        st.caption("No quarterly fundamentals were available for this ticker.")
+        if show_empty_state:
+            st.markdown("**Fundamentals**")
+            st.caption("No quarterly fundamentals were available for this ticker.")
         return
+    st.markdown("**Fundamentals**")
     _fundamentals_staleness_days = 150
     try:
         _latest_report_dates = []
@@ -802,7 +817,12 @@ def _render_overview_fundamentals(
                 )
     except Exception:
         pass
-    _render_fundamental_statement_charts(normalized_ticker, scoped, quarterly_titles=True)
+    _render_fundamental_statement_charts(
+        normalized_ticker,
+        scoped,
+        quarterly_titles=True,
+        key_prefix=key_prefix or f"fundamentals_{normalized_ticker}",
+    )
 
 
 def _render_page_agentic_summary_panel(

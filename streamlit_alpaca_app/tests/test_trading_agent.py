@@ -7,7 +7,12 @@ import pandas as pd
 import requests
 
 from services.llm import LLMAPIError
-from services.trading_agent import TRADING_AGENT_HORIZON_SPECS, build_trading_agent_materialized_frames, build_trading_agent_suggestions
+from services.trading_agent import (
+    TRADING_AGENT_HORIZON_SPECS,
+    build_trading_agent_context,
+    build_trading_agent_materialized_frames,
+    build_trading_agent_suggestions,
+)
 
 
 class FakeTradingLLM:
@@ -59,6 +64,195 @@ class FakeAQLTradingAgent:
         }
 
 
+def test_trading_agent_stock_summary_lookup_does_not_cross_tickers():
+    opportunity_feed = pd.DataFrame(
+        [
+            {
+                "symbol": "AGX",
+                "company_name": "Argan, Inc.",
+                "opportunity": "Upside momentum",
+                "direction": "Up / accelerating",
+                "opportunity_score": 91.0,
+                "daily_change_pct": 3.0,
+                "return_1y_pct": 120.0,
+                "selected_horizon_col": "return_1y_pct",
+                "selected_horizon_label": "1 Year",
+                "asof_time_utc": "2026-05-05T12:00:00+00:00",
+                "run_id": "attention-run",
+            }
+        ]
+    )
+    page_summaries = pd.DataFrame(
+        [
+            {
+                "surface": "Stock Investigator",
+                "ticker": "MXL",
+                "headline": "MXL summary must not leak",
+                "confidence": "medium",
+                "summary_json": '{"status":"ok","headline":"MXL summary must not leak","watch_items":["MXL item"],"data_gaps":[],"confidence":"medium"}',
+                "generated_at_utc": "2026-05-05T12:00:00+00:00",
+                "run_id": "summary-run",
+            }
+        ]
+    )
+
+    context, _ = build_trading_agent_context(
+        opportunity_feed=opportunity_feed,
+        page_summaries=page_summaries,
+        horizon_key="1y",
+        horizon_col="return_1y_pct",
+        horizon_label="1 Year",
+        max_candidates=1,
+    )
+
+    assert context["ticker_evidence"][0]["ticker"] == "AGX"
+    assert context["ticker_evidence"][0]["company_name"] == "Argan, Inc."
+    assert context["ticker_evidence"][0]["stock_summary"] == {}
+    assert context["source_summaries"]["stock_investigator"] == []
+
+
+def test_trading_agent_runs_single_ticker_aql_packages():
+    class PackageLLM(FakeTradingLLM):
+        def generate_json(self, **kwargs):
+            self.user_prompt = kwargs["user_prompt"]
+            return {
+                "regime_read": "Single-ticker packages are ready.",
+                "portfolio_posture": "Use package evidence only.",
+                "candidates": [
+                    {
+                        "ticker": "MXL",
+                        "direction": "watch",
+                        "setup": "MaxLinear package setup",
+                        "hypothesis": "MaxLinear can continue if company evidence confirms the move.",
+                        "evidence": ["MXL package was completed."],
+                        "invalidation": "Package evidence turns stale.",
+                        "tail_risks": ["Semiconductor reversal"],
+                        "suggested_horizon": "1 Month",
+                        "confidence": "medium",
+                    }
+                ],
+                "data_gaps": [],
+            }
+
+    calls = []
+
+    def _package_agent(**kwargs):
+        calls.append(kwargs)
+        query = kwargs["query"]
+        if "Focus ticker: MXL" in query:
+            ticker = "MXL"
+        elif "Focus ticker: POET" in query:
+            ticker = "POET"
+        else:
+            ticker = "UNKNOWN"
+        return {
+            "run_id": f"agrun_{ticker.lower()}",
+            "status": "completed",
+            "answer_markdown": f"{ticker} package completed.",
+            "confidence": "medium",
+            "limitations": [],
+            "tool_calls": [
+                {
+                    "tool_name": "investigator.company_context",
+                    "status": "completed",
+                    "arguments": {"ticker": ticker},
+                    "result_summary": {"preview_text": f"{ticker} context"},
+                }
+            ],
+        }
+
+    llm = PackageLLM()
+    result = build_trading_agent_suggestions(
+        context={
+            "controls": {
+                "selected_horizon_label": "1 Month",
+                "selected_horizon_col": "return_1m_pct",
+                "max_candidates": 2,
+            },
+            "market_opportunity_feed": [
+                {
+                    "symbol": "MXL",
+                    "company_name": "MaxLinear, Inc.",
+                    "return_1m_pct": 91.8,
+                    "details": "1 Month +91.8%.",
+                },
+                {
+                    "symbol": "POET",
+                    "company_name": "POET Technologies Inc.",
+                    "return_1m_pct": 67.3,
+                    "details": "1 Month +67.3%.",
+                },
+            ],
+        },
+        llm_client=llm,
+        aql_agent_runner=_package_agent,
+    )
+
+    queries = [call["query"] for call in calls]
+    assert result["status"] == "ok"
+    assert len(calls) == 2
+    assert all(call["max_tool_calls"] == 8 for call in calls)
+    assert all(call["persist_findings"] is False for call in calls)
+    assert any("Focus ticker: MXL = MaxLinear, Inc." in query and "POET" not in query for query in queries)
+    assert any("Focus ticker: POET = POET Technologies Inc." in query and "MXL" not in query for query in queries)
+    assert "ticker_packages" in llm.user_prompt
+    assert result["aql_agent"]["ticker_packages"][0]["ticker"] == "MXL"
+    assert result["aql_agent"]["ticker_packages"][1]["ticker"] == "POET"
+
+
+def test_trading_agent_deduplicates_similar_gap_wording():
+    class GapLLM(FakeTradingLLM):
+        def generate_json(self, **kwargs):
+            return {
+                "regime_read": "Research package completed with gaps.",
+                "portfolio_posture": "Wait for confirmation.",
+                "candidates": [],
+                "data_gaps": [
+                    "No recent news for MXL in last 30 days",
+                    "No Zopedia pages to verify institutional knowledge",
+                ],
+            }
+
+    def _package_agent(**kwargs):
+        return {
+            "run_id": "agrun_mxl",
+            "status": "completed",
+            "answer_markdown": "MXL package completed for MaxLinear.",
+            "confidence": "medium",
+            "limitations": [
+                "No recent news found for MXL in the last 30 days.",
+                "No Zopedia pages for MXL or MaxLinear.",
+            ],
+            "tool_calls": [],
+        }
+
+    result = build_trading_agent_suggestions(
+        context={
+            "controls": {
+                "selected_horizon_label": "1 Month",
+                "selected_horizon_col": "return_1m_pct",
+                "max_candidates": 1,
+            },
+            "market_opportunity_feed": [
+                {
+                    "symbol": "MXL",
+                    "company_name": "MaxLinear, Inc.",
+                    "return_1m_pct": 81.8,
+                    "details": "1 Month +81.8%.",
+                }
+            ],
+        },
+        llm_client=GapLLM(),
+        aql_agent_runner=_package_agent,
+    )
+
+    assert result["data_gaps"] == [
+        "No recent news for MXL in last 30 days",
+        "No Zopedia pages to verify institutional knowledge",
+        "No Zopedia pages for MXL or MaxLinear.",
+    ]
+
+
 def test_trading_agent_suggestions_normalize_llm_output():
     fake = FakeTradingLLM()
     agent = FakeAQLTradingAgent()
@@ -75,7 +269,7 @@ def test_trading_agent_suggestions_normalize_llm_output():
     assert result["data_gaps"] == ["No options positioning evidence."]
     assert "market_opportunity_feed" in fake.user_prompt
     assert "AQL agent result JSON" in fake.user_prompt
-    assert "AQL / Zopedia" in agent.kwargs["query"]
+    assert "shared AQL research tool harness" in agent.kwargs["query"]
     assert "trade candidates" not in agent.kwargs["query"].lower()
     assert "automated execution" not in agent.kwargs["query"].lower()
     assert agent.kwargs["persist_findings"] is False
@@ -287,7 +481,7 @@ def test_trading_agent_handles_numpy_array_fields():
     assert result["status"] == "ok"
     assert result["candidates"][0]["ticker"] == "MSFT"
     assert result["candidates"][0]["evidence"] == ["Feed rank is high.", "AQL verified the setup."]
-    assert result["data_gaps"] == ["Options evidence missing."]
+    assert result["data_gaps"] == ["Options evidence missing.", "No options chain."]
 
 
 def test_trading_agent_materialization_runs_required_horizons():

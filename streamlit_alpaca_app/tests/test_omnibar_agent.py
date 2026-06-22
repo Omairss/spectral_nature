@@ -119,6 +119,27 @@ def test_coerce_tool_arguments_supports_object_list_values():
     }
 
 
+def test_coerce_tool_arguments_accepts_object_kind_with_json_list():
+    args, error = omnibar_agent._coerce_tool_arguments(
+        [
+            {
+                "name": "focus_symbols",
+                "value_kind": "object",
+                "string_value": None,
+                "number_value": None,
+                "boolean_value": None,
+                "string_list_value": None,
+                "json_value": ["UMC", "REMX"],
+                "object_value": None,
+                "object_list_value": None,
+            }
+        ]
+    )
+
+    assert error == ""
+    assert args == {"focus_symbols": ["UMC", "REMX"]}
+
+
 def _judge_accept(answer: str, confidence: str = "medium") -> dict[str, object]:
     return {
         "verdict": "accept",
@@ -1011,7 +1032,8 @@ def test__run_zopedia_agent_loop_sanitizes_transient_transport_drop_after_tools(
     )
 
     assert result["status"] == "failed"
-    assert "Evidence collected" in result["answer_markdown"]
+    assert result["answer_markdown"] == ""
+    assert result["tool_calls"]
     assert "research or model connection dropped" in result["error"]
     assert "RemoteDisconnected" not in result["error"]
     assert "Connection aborted" not in result["error"]

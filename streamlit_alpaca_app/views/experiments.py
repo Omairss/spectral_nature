@@ -39,7 +39,6 @@ from services.market import (
 )
 from services.pipeline_store import load_latest_dataset_frame
 from views._shared import (
-    HOME_EXP_SECTION,
     _current_user_context,
     _log_event,
     _prepare_scatter_size,
@@ -365,7 +364,7 @@ def _render_experiment_placeholder_page(
 
     header_cols = _responsive_columns([4.8, 1.4])
     with header_cols[0]:
-        st.title(HOME_EXP_SECTION)
+        st.title("Knowledge Graph Lab")
         st.caption("Open knowledge graph PoC. This is separate from the homepage attention graph.")
     with header_cols[1]:
         if st.button("Reset Draft", key="experiment_reset_draft", use_container_width=True):
@@ -449,7 +448,11 @@ def _render_experiment_placeholder_page(
             f"{overview_meta.get('shown_edges', len(list(overview.get('edges') or [])))} of "
             f"{overview_meta.get('total_edges', total_edges)} edges. Arrows show stored source -> target direction; thicker edges have higher severity and more opaque edges have higher confidence."
         )
-        st.plotly_chart(plot_knowledge_graph_draft(overview), use_container_width=True)
+        st.plotly_chart(
+            plot_knowledge_graph_draft(overview),
+            use_container_width=True,
+            key="experiments_knowledge_graph_overview_chart",
+        )
         overview_nodes = draft_nodes_frame(overview)
         if not overview_nodes.empty:
             st.dataframe(
@@ -667,7 +670,11 @@ def _render_experiment_placeholder_page(
             if str(limitation or "").strip():
                 st.warning(str(limitation))
 
-        st.plotly_chart(plot_knowledge_graph_draft(draft), use_container_width=True)
+        st.plotly_chart(
+            plot_knowledge_graph_draft(draft),
+            use_container_width=True,
+            key="experiments_knowledge_graph_editable_draft_chart",
+        )
         st.caption("If you change a node id, update any edges that reference it before commit.")
 
         draft_key = str(st.session_state.get("_knowledge_graph_draft_key") or "draft")
@@ -949,7 +956,7 @@ The further a ticker is from the center, the more unusual the regime shift is.
         )
         fig_phase.add_hline(y=0, line_dash="dot", line_color="#666")
         fig_phase.add_vline(x=0, line_dash="dot", line_color="#666")
-        st.plotly_chart(fig_phase, use_container_width=True)
+        st.plotly_chart(fig_phase, use_container_width=True, key=f"experiments_phase_shift_{benchmark}_chart")
 
     with chart_right:
         chart_help_cols = _responsive_columns([10, 2])
@@ -990,7 +997,7 @@ Use this when you want to compare several names at once and see which ones are b
             },
         )
         fig_phase_3d.update_traces(marker=dict(opacity=0.8))
-        st.plotly_chart(fig_phase_3d, use_container_width=True)
+        st.plotly_chart(fig_phase_3d, use_container_width=True, key=f"experiments_phase_surface_{benchmark}_chart")
 
     experiment_symbol_options = sorted(summary["symbol"].astype(str).unique().tolist())
     exp_selected_key = "market_experiment_selected_ticker"
@@ -1089,7 +1096,7 @@ This compares the selected stock against the benchmark on the same starting scal
             yaxis_title="Normalized Price",
             hovermode="x unified",
         )
-        st.plotly_chart(fig_relative, use_container_width=True)
+        st.plotly_chart(fig_relative, use_container_width=True, key=f"experiments_{experiment_ticker}_{benchmark}_relative_chart")
 
     with detail_chart_right:
         chart_help_cols = _responsive_columns([10, 2])
@@ -1129,7 +1136,7 @@ If `Rolling Corr` is still high but `Corr RoC` is dropping, the stock may be sta
             yaxis_title="Correlation",
             hovermode="x unified",
         )
-        st.plotly_chart(fig_corr, use_container_width=True)
+        st.plotly_chart(fig_corr, use_container_width=True, key=f"experiments_{experiment_ticker}_{benchmark}_correlation_chart")
 
     momentum_help_cols = _responsive_columns([10, 2])
     with momentum_help_cols[1]:
@@ -1172,7 +1179,7 @@ Easy interpretation:
         yaxis_title="Percent",
         hovermode="x unified",
     )
-    st.plotly_chart(fig_momentum, use_container_width=True)
+    st.plotly_chart(fig_momentum, use_container_width=True, key=f"experiments_{experiment_ticker}_momentum_chart")
 
 def _render_commodity_experiment(
     cfg: AppConfig,
@@ -1425,6 +1432,7 @@ def _render_commodity_experiment(
                     days=experiment_days,
                 ),
                 use_container_width=True,
+                key=f"experiments_{commodity_focus}_moving_up_chart",
             )
     with series_right:
         if moving_down.empty:
@@ -1438,6 +1446,7 @@ def _render_commodity_experiment(
                     days=experiment_days,
                 ),
                 use_container_width=True,
+                key=f"experiments_{commodity_focus}_moving_down_chart",
             )
 
     if consistent_trends.empty:
@@ -1451,6 +1460,7 @@ def _render_commodity_experiment(
                 days=experiment_days,
             ),
             use_container_width=True,
+            key=f"experiments_{commodity_focus}_consistent_trends_chart",
         )
 
     heatmap_frame = summary.sort_values("return_1m_pct", ascending=False, na_position="last").reset_index(drop=True)
@@ -1490,7 +1500,7 @@ This is the fastest answer to "what is moving and in what direction?"
             )
         )
         fig_heatmap.update_layout(template="plotly_dark", title=f"Commodity Direction Heatmap: {commodity_focus}")
-        st.plotly_chart(fig_heatmap, use_container_width=True)
+        st.plotly_chart(fig_heatmap, use_container_width=True, key=f"experiments_{commodity_focus}_direction_heatmap")
 
     with chart_right:
         chart_help_cols = _responsive_columns([10, 2])
@@ -1530,7 +1540,7 @@ This separates strong leaders from weak laggards.
         )
         fig_commodity.add_hline(y=0, line_dash="dot", line_color="#666")
         fig_commodity.add_vline(x=0, line_dash="dot", line_color="#666")
-        st.plotly_chart(fig_commodity, use_container_width=True)
+        st.plotly_chart(fig_commodity, use_container_width=True, key=f"experiments_{commodity_focus}_leadership_map")
 
     dependency_edges = commodity_dependency_graph(commodity_symbols)
     if not dependency_edges.empty:
@@ -1596,7 +1606,7 @@ This graph shows common transmission paths.
                 )
             )
             fig_sankey.update_layout(template="plotly_dark", title=f"Commodity Dependency Graph: {commodity_focus}")
-            st.plotly_chart(fig_sankey, use_container_width=True)
+            st.plotly_chart(fig_sankey, use_container_width=True, key=f"experiments_{commodity_focus}_dependency_sankey")
 
         with sankey_right:
             edge_view = dependency_edges[
@@ -1716,7 +1726,7 @@ This compares the selected commodity against the broad commodity basket from the
             yaxis_title="Normalized Price",
             hovermode="x unified",
         )
-        st.plotly_chart(fig_relative, use_container_width=True)
+        st.plotly_chart(fig_relative, use_container_width=True, key=f"experiments_{commodity_ticker}_commodity_relative_chart")
 
     with detail_chart_right:
         chart_help_cols = _responsive_columns([10, 2])
@@ -1755,7 +1765,7 @@ This condenses the move across horizons into one chart.
             labels={"value": "Percent", "horizon": ""},
         )
         fig_ladder.add_vline(x=0, line_dash="dot", line_color="#666")
-        st.plotly_chart(fig_ladder, use_container_width=True)
+        st.plotly_chart(fig_ladder, use_container_width=True, key=f"experiments_{commodity_ticker}_return_ladder_chart")
 
     transmission_help_cols = _responsive_columns([10, 2])
     with transmission_help_cols[1]:
@@ -1803,7 +1813,7 @@ Strong momentum with a shallow pullback usually signals leadership. Weak momentu
         yaxis_title="Percent",
         hovermode="x unified",
     )
-    st.plotly_chart(fig_transmission, use_container_width=True)
+    st.plotly_chart(fig_transmission, use_container_width=True, key=f"experiments_{commodity_ticker}_trend_structure_chart")
 
     related_edges = dependency_edges[
         (dependency_edges["source"] == commodity_ticker) | (dependency_edges["target"] == commodity_ticker)
@@ -1820,4 +1830,3 @@ Strong momentum with a shallow pullback usually signals leadership. Weak momentu
             use_container_width=True,
             hide_index=True,
         )
-

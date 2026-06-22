@@ -5,10 +5,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from typing import Any
 
 import pandas as pd
 
+from ..common.news_freshness import coerce_article_published_at, is_recent_for_attention
+from ..common.company_identity import clean_company_display_name
 from ..web_research import (
     SerpAPISearchClient,
     TavilySearchClient,
@@ -97,7 +100,17 @@ def _search_result_is_relevant(
 def _default_tavily_general_query(query: str, symbol: str, company_name: str) -> str:
     company = _coerce_text(company_name)
     subject = f"{company} ({symbol})" if company and symbol else company or symbol or query
-    return f"{subject} latest developments pipeline approvals clinical trial FDA partnership guidance"
+    original_query = _coerce_text(query)
+    return _trim(f"{subject} {original_query}".strip(), 200)
+
+
+def _symbol_news_general_query(symbol: str, company_name: str) -> str:
+    company = _coerce_text(company_name)
+    subject = f"{company} {symbol}".strip() if company else symbol
+    return _trim(
+        f"{subject} stock today latest news catalyst business update earnings guidance partnership sector",
+        220,
+    )
 
 
 def _provider_payload_json(value: object) -> str:
@@ -113,6 +126,33 @@ def _provider_result_text(item: WebSearchResult) -> str:
     return _coerce_text(item.snippet)
 
 
+def _symbol_news_max_age_days() -> int:
+    raw = _coerce_text(os.getenv("ATTENTION_SYMBOL_NEWS_MAX_AGE_DAYS"))
+    if raw:
+        try:
+            return max(int(raw), 1)
+        except Exception:
+            pass
+    return 7
+
+
+def _symbol_news_include_undated() -> bool:
+    raw = _coerce_text(os.getenv("ATTENTION_SYMBOL_NEWS_INCLUDE_UNDATED")).lower()
+    return raw in {"1", "true", "yes", "on"}
+
+
+def _current_symbol_news_timestamp(value: object, *, url: object, asof_time_utc: object) -> pd.Timestamp:
+    published_at = coerce_article_published_at(value, url=url, asof_time_utc=asof_time_utc)
+    if not is_recent_for_attention(
+        published_at,
+        asof_time_utc=asof_time_utc,
+        max_age_days=_symbol_news_max_age_days(),
+        include_undated=_symbol_news_include_undated(),
+    ):
+        return pd.NaT
+    return published_at
+
+
 def _llm_search_relevance_flags(
     *,
     query: str,
@@ -123,7 +163,7 @@ def _llm_search_relevance_flags(
 ) -> list[bool]:
     if not items:
         return []
-    fallback = [
+    baseline_flags = [
         _search_result_is_relevant(
             _coerce_text(item.get("title")),
             _coerce_text(item.get("snippet")),
@@ -133,16 +173,16 @@ def _llm_search_relevance_flags(
         for item in items
     ]
     if llm_client is None:
-        return fallback
+        return baseline_flags
     try:
         data = llm_client.generate_json(
             system_prompt=(
                 "You are a relevance gate for company news research. "
-                "Select only indices that are materially relevant to the target company and likely catalysts, "
+                "Select only indices that are materially relevant to the target company and likely business triggers, "
                 "including trials, approvals, guidance, partnerships, product/commercial updates, management actions, "
                 "or major financial/company developments. Exclude noisy insider/form-4/dividend-equivalent chatter, "
                 "routine ex-dividend notices, isolated analyst target tweaks, and generic stock-up/stock-down recaps "
-                "that do not identify a concrete business catalyst."
+                "that do not identify a concrete business development."
             ),
             user_prompt=json.dumps(
                 {
@@ -171,9 +211,9 @@ def _llm_search_relevance_flags(
             for value in list(data.get("relevant_indices") or [])
             if isinstance(value, (int, float)) and 0 <= int(value) < len(items)
         }
-        return [index in selected for index in range(len(items))]
+        return [bool(baseline_flags[index]) or index in selected for index in range(len(items))]
     except Exception:
-        return fallback
+        return baseline_flags
 
 
 def _llm_tavily_route_decision(
@@ -182,12 +222,12 @@ def _llm_tavily_route_decision(
     symbol: str,
     company_name: str,
     serp_preview: list[dict[str, str]],
-    heuristic_serp_relevant: bool,
+    serp_has_identity_match: bool,
     llm_client: LLMClient | None,
 ) -> tuple[bool, str, str, str]:
     default_tavily_query = _default_tavily_general_query(query, symbol, company_name)
     if llm_client is None:
-        if heuristic_serp_relevant:
+        if serp_has_identity_match:
             return False, "news", query, "serp_results_relevant"
         return True, "general", default_tavily_query, "serp_results_not_relevant"
     try:
@@ -195,10 +235,10 @@ def _llm_tavily_route_decision(
             system_prompt=(
                 "You are a research-router for market analysis. "
                 "Decide if SerpApi results are relevant enough to explain the move. "
-                "If not relevant, call Tavily as fallback using topic='general' for broader RAG retrieval. "
+                "If not relevant, call Tavily using topic='general' for broader RAG retrieval. "
                 "Prefer Tavily when Serp results are sparse or mostly low-signal (insider/form-4, ex-dividend, "
-                "analyst target-only notes, or generic price-action recaps without concrete company catalysts). "
-                "When using Tavily, output a high-recall query that includes company identity and likely catalysts."
+                "analyst target-only notes, or generic price-action recaps without concrete company developments). "
+                "When using Tavily, output a high-recall query that includes company identity and likely business triggers."
             ),
             user_prompt=json.dumps(
                 {
@@ -206,8 +246,8 @@ def _llm_tavily_route_decision(
                     "symbol": symbol,
                     "company_name": company_name,
                     "serp_preview": serp_preview[:4],
-                    "heuristic_serp_relevant": bool(heuristic_serp_relevant),
-                    "policy": "Use Tavily fallback when SerpApi evidence is sparse, generic, or off-topic.",
+                    "serp_has_identity_match": bool(serp_has_identity_match),
+                    "policy": "Use Tavily when SerpApi evidence is sparse, generic, or off-topic.",
                     "default_tavily_query": default_tavily_query,
                 },
                 ensure_ascii=False,
@@ -226,9 +266,9 @@ def _llm_tavily_route_decision(
             reason = "llm_router_decision"
         return use_tavily, topic, tavily_query, reason
     except Exception:
-        if heuristic_serp_relevant:
-            return False, "news", query, "serp_results_relevant_fallback"
-        return True, "general", default_tavily_query, "serp_results_not_relevant_fallback"
+        if serp_has_identity_match:
+            return False, "news", query, "serp_results_relevant"
+        return True, "general", default_tavily_query, "serp_results_not_relevant"
 
 
 def _to_article_frame(rows: list[dict[str, Any]]) -> pd.DataFrame:
@@ -238,7 +278,10 @@ def _to_article_frame(rows: list[dict[str, Any]]) -> pd.DataFrame:
     for column in ["headline", "summary", "description", "source", "url"]:
         if column not in frame.columns:
             frame[column] = ""
-    frame["published_at"] = pd.to_datetime(frame.get("published_at"), utc=True, errors="coerce")
+    frame["published_at"] = frame.apply(
+        lambda row: coerce_article_published_at(row.get("published_at"), url=row.get("url")),
+        axis=1,
+    )
     frame = frame.dropna(subset=["headline"]).copy()
     if frame.empty:
         return pd.DataFrame(columns=["headline", "summary", "description", "source", "published_at", "url"])
@@ -254,10 +297,15 @@ def search_symbol_news_payload(
     serp_client: SerpAPISearchClient | None = None,
     tavily_client: TavilySearchClient | None = None,
     llm_client: LLMClient | None = None,
+    asof_time_utc: object | None = None,
 ) -> dict[str, Any]:
     normalized_symbol = _normalize_symbol(symbol)
     if not normalized_symbol:
         return {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
+    company_name = clean_company_display_name(company_name) or _coerce_text(company_name)
+    asof_ts = pd.to_datetime(asof_time_utc, utc=True, errors="coerce")
+    if pd.isna(asof_ts):
+        asof_ts = pd.Timestamp.utcnow()
 
     if serp_client is None:
         cfg = load_serpapi_config()
@@ -278,6 +326,43 @@ def search_symbol_news_payload(
     serp_candidates: list[dict[str, str]] = []
     serp_failed = False
 
+    def _append_current_candidates(*, provider: str, query: str, candidates: list[dict[str, str]]) -> int:
+        nonlocal serp_relevant_count
+        if not candidates:
+            return 0
+        kept = 0
+        flags = _llm_search_relevance_flags(
+            query=query,
+            symbol=normalized_symbol,
+            company_name=company_name,
+            items=candidates,
+            llm_client=llm_client,
+        )
+        for row, keep in zip(candidates, flags):
+            serp_preview.append({"title": row.get("title", ""), "snippet": row.get("snippet", ""), "source": row.get("source", "")})
+            if not bool(keep):
+                continue
+            if pd.isna(row.get("published_at")):
+                continue
+            if _is_irrelevant_news_text(row.get("title"), row.get("snippet")):
+                continue
+            kept += 1
+            if provider == "serpapi":
+                serp_relevant_count += 1
+            article_rows.append(
+                {
+                    "headline": _coerce_text(row.get("title")),
+                    "summary": _evidence_text(row.get("provider_text") or row.get("snippet"), row.get("title")),
+                    "description": _evidence_text(row.get("provider_text") or row.get("snippet"), row.get("title")),
+                    "source": _coerce_text(row.get("source")) or provider,
+                    "provider": provider,
+                    "published_at": row.get("published_at"),
+                    "url": _coerce_text(row.get("url")),
+                    "provider_payload_json": _coerce_text(row.get("provider_payload_json")),
+                }
+            )
+        return kept
+
     if serp_client is not None:
         try:
             for item in serp_client.search(query_base, news=True, num=max(max_results, 3)):
@@ -292,7 +377,11 @@ def search_symbol_news_payload(
                         "provider_text": _provider_result_text(item),
                         "source": _coerce_text(item.source) or "SerpApi",
                         "url": _coerce_text(item.url),
-                        "published_at": _coerce_text(item.published_at),
+                        "published_at": _current_symbol_news_timestamp(
+                            item.published_at,
+                            url=item.url,
+                            asof_time_utc=asof_ts,
+                        ),
                         "provider_payload_json": _provider_payload_json(item.raw),
                     }
                 )
@@ -309,36 +398,39 @@ def search_symbol_news_payload(
                             "provider_text": _provider_result_text(ai_overview),
                             "source": _coerce_text(ai_overview.source) or "Google AI Overview",
                             "url": _coerce_text(ai_overview.url),
-                            "published_at": _coerce_text(ai_overview.published_at),
+                            "published_at": _current_symbol_news_timestamp(
+                                ai_overview.published_at,
+                                url=ai_overview.url,
+                                asof_time_utc=asof_ts,
+                            ),
                             "provider_payload_json": _provider_payload_json(ai_overview.raw),
                         }
                     )
-            serp_flags = _llm_search_relevance_flags(
-                query=query_base,
-                symbol=normalized_symbol,
-                company_name=company_name,
-                items=serp_candidates,
-                llm_client=llm_client,
-            )
-            for row, keep in zip(serp_candidates, serp_flags):
-                serp_preview.append({"title": row.get("title", ""), "snippet": row.get("snippet", ""), "source": row.get("source", "")})
-                if not bool(keep):
-                    continue
-                if _is_irrelevant_news_text(row.get("title"), row.get("snippet")):
-                    continue
-                serp_relevant_count += 1
-                article_rows.append(
-                    {
-                        "headline": _coerce_text(row.get("title")),
-                        "summary": _evidence_text(row.get("provider_text") or row.get("snippet"), row.get("title")),
-                        "description": _evidence_text(row.get("provider_text") or row.get("snippet"), row.get("title")),
-                        "source": _coerce_text(row.get("source")) or "SerpApi",
-                        "provider": "serpapi",
-                        "published_at": pd.to_datetime(row.get("published_at"), utc=True, errors="coerce"),
-                        "url": _coerce_text(row.get("url")),
-                        "provider_payload_json": _coerce_text(row.get("provider_payload_json")),
-                    }
-                )
+            _append_current_candidates(provider="serpapi", query=query_base, candidates=serp_candidates)
+            if serp_relevant_count <= 0:
+                general_query = _symbol_news_general_query(normalized_symbol, company_name)
+                general_candidates: list[dict[str, str]] = []
+                for item in serp_client.search(general_query, news=False, num=max(max_results, 3)):
+                    title = _coerce_text(item.title)
+                    snippet = _coerce_text(item.snippet)
+                    if not title and not snippet:
+                        continue
+                    general_candidates.append(
+                        {
+                            "title": title,
+                            "snippet": snippet,
+                            "provider_text": _provider_result_text(item),
+                            "source": _coerce_text(item.source) or "SerpApi",
+                            "url": _coerce_text(item.url),
+                            "published_at": _current_symbol_news_timestamp(
+                                item.published_at,
+                                url=item.url,
+                                asof_time_utc=asof_ts,
+                            ),
+                            "provider_payload_json": _provider_payload_json(item.raw),
+                        }
+                    )
+                _append_current_candidates(provider="serpapi", query=general_query, candidates=general_candidates)
             sources.append("serpapi")
         except WebResearchError as exc:
             errors.append(str(exc))
@@ -353,7 +445,7 @@ def search_symbol_news_payload(
             symbol=normalized_symbol,
             company_name=company_name,
             serp_preview=serp_preview,
-            heuristic_serp_relevant=serp_relevant_count > 0,
+            serp_has_identity_match=serp_relevant_count > 0,
             llm_client=llm_client,
         )
         if serp_relevant_count <= 0:
@@ -374,34 +466,15 @@ def search_symbol_news_payload(
                         "provider_text": _provider_result_text(item),
                         "source": _coerce_text(item.source) or "Tavily",
                         "url": _coerce_text(item.url),
-                        "published_at": _coerce_text(item.published_at),
+                        "published_at": _current_symbol_news_timestamp(
+                            item.published_at,
+                            url=item.url,
+                            asof_time_utc=asof_ts,
+                        ),
                         "provider_payload_json": _provider_payload_json(item.raw),
                     }
                 )
-            tavily_flags = _llm_search_relevance_flags(
-                query=tavily_query,
-                symbol=normalized_symbol,
-                company_name=company_name,
-                items=tavily_candidates,
-                llm_client=llm_client,
-            )
-            for row, keep in zip(tavily_candidates, tavily_flags):
-                if not bool(keep):
-                    continue
-                if _is_irrelevant_news_text(row.get("title"), row.get("snippet")):
-                    continue
-                article_rows.append(
-                    {
-                        "headline": _coerce_text(row.get("title")) or f"{normalized_symbol} web result",
-                        "summary": _evidence_text(row.get("provider_text") or row.get("snippet"), row.get("title")),
-                        "description": _evidence_text(row.get("provider_text") or row.get("snippet"), row.get("title")),
-                        "source": _coerce_text(row.get("source")) or "Tavily",
-                        "provider": "tavily",
-                        "published_at": pd.to_datetime(row.get("published_at"), utc=True, errors="coerce"),
-                        "url": _coerce_text(row.get("url")),
-                        "provider_payload_json": _coerce_text(row.get("provider_payload_json")),
-                    }
-                )
+            _append_current_candidates(provider="tavily", query=tavily_query, candidates=tavily_candidates)
             sources.append("tavily")
         except WebResearchError as exc:
             errors.append(str(exc))
@@ -486,7 +559,7 @@ def _search_query_results(
                     "provider_text": _provider_result_text(item),
                     "source": _coerce_text(item.source),
                     "url": _coerce_text(item.url),
-                    "published_at": _coerce_text(item.published_at),
+                    "published_at": coerce_article_published_at(item.published_at, url=item.url),
                     "provider_payload_json": _provider_payload_json(item.raw),
                 }
             )
@@ -525,7 +598,7 @@ def _search_query_results(
                     "error_text": "",
                     "result_kind": "result",
                     "source": _coerce_text(row.get("source")) or "serpapi",
-                    "published_at": _coerce_text(row.get("published_at")),
+                    "published_at": coerce_article_published_at(row.get("published_at"), url=row.get("url")),
                     "authority_bucket": authority_bucket,
                     "authority_rank": authority_rank,
                     "query_text": query,
@@ -543,7 +616,7 @@ def _search_query_results(
             symbol=normalized_symbol,
             company_name=normalized_company,
             serp_preview=serp_preview,
-            heuristic_serp_relevant=serp_relevant_count > 0,
+            serp_has_identity_match=serp_relevant_count > 0,
             llm_client=llm_client,
         )
         if serp_relevant_count <= 0:
@@ -558,7 +631,7 @@ def _search_query_results(
                 "query_id": query_id,
                 "provider": "tavily",
                 "query": tavily_query,
-                "route_mode": "rag_fallback" if serp_client is not None else "primary",
+                "route_mode": "rag_secondary" if serp_client is not None else "primary",
                 "route_reason": route_reason,
                 "topic": tavily_topic,
             }
@@ -598,7 +671,7 @@ def _search_query_results(
                     "provider_text": _provider_result_text(item),
                     "source": _coerce_text(item.source),
                     "url": _coerce_text(item.url),
-                    "published_at": _coerce_text(item.published_at),
+                    "published_at": coerce_article_published_at(item.published_at, url=item.url),
                     "provider_payload_json": _provider_payload_json(item.raw),
                 }
             )
@@ -632,7 +705,7 @@ def _search_query_results(
                     "error_text": "",
                     "result_kind": "result",
                     "source": _coerce_text(row.get("source")) or "tavily",
-                    "published_at": _coerce_text(row.get("published_at")),
+                    "published_at": coerce_article_published_at(row.get("published_at"), url=row.get("url")),
                     "authority_bucket": authority_bucket,
                     "authority_rank": authority_rank,
                     "query_text": tavily_query,
@@ -681,7 +754,11 @@ def _candidate_context_documents(
                     "authority_rank": authority_rank,
                     "title": _coerce_text(row.get("headline")),
                     "url": _coerce_text(row.get("url")),
-                    "published_at": pd.to_datetime(row.get("published_at"), utc=True, errors="coerce"),
+                    "published_at": coerce_article_published_at(
+                        row.get("published_at"),
+                        url=row.get("url"),
+                        asof_time_utc=asof_time_utc,
+                    ),
                     "raw_text": news_text,
                     "display_excerpt": _display_excerpt(news_text, row.get("headline")),
                     "search_provider": search_provider,
@@ -815,64 +892,14 @@ def _candidate_context_documents(
     return deduped
 
 
-def _generic_query_candidates(candidate: dict[str, Any], peer_symbols: list[str]) -> list[dict[str, str]]:
-    subject = _candidate_subject(candidate)
-    symbol = _normalize_symbol(candidate.get("symbol"))
-    sector = _coerce_text(candidate.get("sector"))
-    industry = _coerce_text(candidate.get("industry"))
-    tags = [tag for tag in _safe_list(candidate.get("macro_exposure_tags")) + _safe_list(candidate.get("business_tags")) if _coerce_text(tag)]
-    tag_blob = " ".join(dict.fromkeys(str(tag) for tag in tags[:3]))
-    queries: list[dict[str, str]] = []
-    base = subject or symbol
-    if base:
-        queries.append({"query": f"{base} move today", "rationale": "Look for same-day coverage tied to the observed move."})
-        queries.append({"query": f"{base} news today", "rationale": "Capture straightforward same-day news about the subject."})
-    if industry:
-        queries.append({"query": f"{base} {industry} today", "rationale": "Check for industry or peer context linked to the move."})
-    elif sector:
-        queries.append({"query": f"{base} {sector} today", "rationale": "Check for sector context linked to the move."})
-    if tag_blob:
-        queries.append({"query": f"{base} {tag_blob} today", "rationale": "Check macro and business-exposure context derived from the subject metadata."})
-    if peer_symbols:
-        queries.append({"query": f"{base} {' '.join(peer_symbols[:3])} today", "rationale": "Check whether peers or spillover names are moving on the same narrative."})
-    deduped: list[dict[str, str]] = []
-    seen: set[str] = set()
-    for item in queries:
-        query = _trim(item.get("query"), 160)
-        if not query or query.lower() in seen:
-            continue
-        seen.add(query.lower())
-        deduped.append({"query": query, "rationale": item.get("rationale", "")})
-    return deduped[:4]
-
-
-def _fallback_research_plan(candidate: dict[str, Any], peer_symbols: list[str]) -> dict[str, Any]:
-    routes = ["sec"] if _coerce_text(candidate.get("security_type")).lower() == "common_stock" else []
-    if _safe_list(candidate.get("macro_exposure_tags")) or _coerce_text(candidate.get("rates_role")) or _coerce_text(candidate.get("commodity_role")):
-        routes.append("fred")
-    if _yield_context_relevant(candidate):
-        routes.append("treasury")
-    routes.append("news")
-    routes = list(dict.fromkeys(route for route in routes if route))
-    subject = _candidate_subject(candidate)
-    tags = [str(tag) for tag in _safe_list(candidate.get("macro_exposure_tags")) + _safe_list(candidate.get("business_tags")) if _coerce_text(tag)]
-    hypotheses = []
-    if _coerce_text(candidate.get("security_type")).lower() == "common_stock":
-        hypotheses.append({"kind": "company_specific", "text": f"Company-specific news may explain why {subject} moved today."})
-    if tags:
-        hypotheses.append({"kind": "macro", "text": f"Macro or cross-asset context linked to {'/'.join(tags[:2])} may explain the move."})
-    hypotheses.append({"kind": "unresolved", "text": f"There may be no clear same-day catalyst for {subject}."})
-    priority_entities = [subject, _normalize_symbol(candidate.get("symbol")), _coerce_text(candidate.get("sector")), _coerce_text(candidate.get("industry"))]
-    priority_entities.extend(tags[:4])
-    priority_entities.extend(peer_symbols[:3])
+def _empty_research_plan() -> dict[str, Any]:
     return {
-        "research_subjects": [{"subject": subject or _normalize_symbol(candidate.get("symbol")), "role": "primary"}]
-        + [{"subject": symbol, "role": "peer"} for symbol in peer_symbols[:3]],
-        "hypotheses": hypotheses[:3],
-        "queries": _generic_query_candidates(candidate, peer_symbols),
-        "official_routes": routes,
-        "priority_entities": [entity for entity in dict.fromkeys(entity for entity in priority_entities if _coerce_text(entity))],
-        "evidence_budget": 8,
+        "research_subjects": [],
+        "hypotheses": [],
+        "queries": [],
+        "official_routes": [],
+        "priority_entities": [],
+        "evidence_budget": 0,
     }
 
 
@@ -908,96 +935,11 @@ def _summary_research_items(home_payload: dict[str, Any]) -> list[dict[str, Any]
     return items
 
 
-def _fallback_summary_research_plan(home_payload: dict[str, Any]) -> dict[str, Any]:
-    items = _summary_research_items(home_payload)
-    symbols: list[str] = []
-    sectors: list[str] = []
-    titles: list[str] = []
-    for item in items:
-        for symbol in list(item.get("symbols") or []):
-            clean_symbol = _normalize_symbol(symbol)
-            if clean_symbol and clean_symbol not in symbols:
-                symbols.append(clean_symbol)
-        sector = _coerce_text(item.get("sector"))
-        if sector and sector not in sectors:
-            sectors.append(sector)
-        title = _trim(item.get("title"), 120)
-        if title and title not in titles:
-            titles.append(title)
-
-    priority_entities = symbols[:6] + sectors[:4]
-    if not priority_entities:
-        priority_entities = ["market", "cross-asset", "sector rotation"]
-
-    queries: list[dict[str, str]] = []
-    symbol_blob = " ".join(symbols[:4]).strip()
-    sector_blob = " ".join(sectors[:3]).strip()
-    title_blob = " ".join(titles[:2]).strip()
-    if symbol_blob:
-        queries.append(
-            {
-                "query": f"{symbol_blob} move today macro sector driver",
-                "rationale": "Find one cross-market explanation tying the main market symbols together.",
-            }
-        )
-    if sector_blob:
-        queries.append(
-            {
-                "query": f"{sector_blob} stocks moving today macro driver",
-                "rationale": "Check whether sector-level context explains multiple movers at once.",
-            }
-        )
-    if title_blob:
-        queries.append(
-            {
-                "query": f"{title_blob} market narrative today",
-                "rationale": "Search the main observed market pattern directly.",
-            }
-        )
-    queries.append(
-        {
-            "query": "stocks Treasury yields oil dollar sectors moving today why",
-            "rationale": "Look for the broad cross-market narrative behind the session.",
-        }
-    )
-    queries.append(
-        {
-            "query": "market sector rotation today macro narrative rates growth defensives",
-            "rationale": "Check for rotation and rates-driven explanations that can connect multiple stories.",
-        }
-    )
-
-    deduped_queries: list[dict[str, str]] = []
-    seen_queries: set[str] = set()
-    for item in queries:
-        query = _trim(item.get("query"), 160)
-        if not query or query.lower() in seen_queries:
-            continue
-        seen_queries.add(query.lower())
-        deduped_queries.append({"query": query, "rationale": _coerce_text(item.get("rationale"))})
-        if len(deduped_queries) >= 5:
-            break
-
-    return {
-        "research_subjects": [{"subject": "market activity", "role": "primary"}],
-        "hypotheses": [
-            {"kind": "cross_market", "text": "A shared macro or sector narrative may be driving several market items at once."},
-            {"kind": "sector_rotation", "text": "Sector rotation or factor positioning may explain the mix of winners and losers."},
-            {"kind": "unresolved", "text": "Some moves may still be stock-specific or unresolved despite the broader market pattern."},
-        ],
-        "queries": deduped_queries,
-        "official_routes": ["news"],
-        "priority_entities": priority_entities,
-        "evidence_budget": 6,
-    }
-
-
 def _plan_summary_research(home_payload: dict[str, Any], *, llm_client: LLMClient | None) -> list[str]:
     import json as _json
 
-    fallback = _fallback_summary_research_plan(home_payload)
     if llm_client is None:
-        return [_coerce_text(item.get("query")) for item in fallback["queries"] if _coerce_text(item.get("query"))]
+        return []
 
     try:
         data = llm_client.generate_json(
@@ -1014,7 +956,6 @@ def _plan_summary_research(home_payload: dict[str, Any], *, llm_client: LLMClien
                         "coverage_summary": dict(home_payload.get("coverage_summary") or {}),
                         "items": _summary_research_items(home_payload),
                     },
-                    "fallback": fallback,
                     "instructions": {
                         "query_count": "3-5",
                         "no_per_symbol_queries": True,
@@ -1028,7 +969,7 @@ def _plan_summary_research(home_payload: dict[str, Any], *, llm_client: LLMClien
             schema=PLANNER_SCHEMA,
         )
     except Exception:
-        data = fallback
+        return []
 
     query_rows = [
         item
@@ -1036,7 +977,7 @@ def _plan_summary_research(home_payload: dict[str, Any], *, llm_client: LLMClien
         if _coerce_text((item or {}).get("query"))
     ]
     if not query_rows:
-        query_rows = list(fallback.get("queries") or [])
+        return []
 
     deduped: list[str] = []
     seen: set[str] = set()
@@ -1054,8 +995,7 @@ def _plan_summary_research(home_payload: dict[str, Any], *, llm_client: LLMClien
 def _plan_candidate_research(candidate: dict[str, Any], peer_symbols: list[str], llm_client: LLMClient | None) -> dict[str, Any]:
     import json as _json
     if llm_client is None:
-        return _fallback_research_plan(candidate, peer_symbols)
-    fallback = _fallback_research_plan(candidate, peer_symbols)
+        return _empty_research_plan()
     system_prompt = (
         "You are planning bottom-up market-move research. "
         "Use only the supplied facts. Do not use canned oil/rates/risk templates. "
@@ -1074,7 +1014,6 @@ def _plan_candidate_research(candidate: dict[str, Any], peer_symbols: list[str],
                 "business_tags": _safe_list(candidate.get("business_tags")),
                 "peer_symbols": peer_symbols[:5],
             },
-            "fallback": fallback,
         },
         ensure_ascii=False,
         default=str,
@@ -1088,17 +1027,17 @@ def _plan_candidate_research(candidate: dict[str, Any], peer_symbols: list[str],
         )
         queries = [item for item in data.get("queries", []) if _coerce_text((item or {}).get("query"))]
         if not queries:
-            return fallback
+            return _empty_research_plan()
         return {
-            "research_subjects": data.get("research_subjects") or fallback["research_subjects"],
-            "hypotheses": data.get("hypotheses") or fallback["hypotheses"],
+            "research_subjects": data.get("research_subjects") or [],
+            "hypotheses": data.get("hypotheses") or [],
             "queries": queries[:4],
-            "official_routes": data.get("official_routes") or fallback["official_routes"],
-            "priority_entities": data.get("priority_entities") or fallback["priority_entities"],
-            "evidence_budget": int(data.get("evidence_budget") or fallback["evidence_budget"] or 8),
+            "official_routes": data.get("official_routes") or [],
+            "priority_entities": data.get("priority_entities") or [],
+            "evidence_budget": int(data.get("evidence_budget") or len(queries) * 2 or 0),
         }
     except Exception:
-        return fallback
+        return _empty_research_plan()
 
 
 def _peer_candidates(candidate: dict[str, Any], candidates: pd.DataFrame, *, limit: int = 5) -> list[str]:

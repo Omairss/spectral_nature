@@ -6,8 +6,6 @@ from .aql import (
     _candidate_context_documents,
     _chunk_source_documents,
     _documents_from_search_results,
-    _fallback_claims_from_chunks,
-    _fallback_event_writer,
     _graph_edges,
     _history_correlation_map,
     _load_search_clients,

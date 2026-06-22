@@ -32,7 +32,10 @@ from services.attention_home_summary import (
     apply_display_limits,
     attention_mover_card_title as attention_mover_card_title_service,
     build_attention_home_narrative_beats,
-    build_attention_home_summary_payload,
+)
+from services.attention_materialized import (
+    deserialize_attention_research_bundles,
+    deserialize_attention_ticker_background_frame,
 )
 from services import attention_surface as attention_surface_module
 from services.company import build_attention_news_narrative, summarize_recent_news
@@ -54,14 +57,7 @@ from services.pipeline_store import (
     start_source_refresh_job,
     trading_agent_actions_table,
 )
-from services.homepage_v2 import (
-    HOMEPAGE_V2_COMPANY_PANEL,
-    HOMEPAGE_V2_RESEARCH_PANEL,
-    build_homepage_v2_market_digest,
-    homepage_v2_editorial_links,
-    homepage_v2_bundle_symbol_lookup,
-    normalize_homepage_v2_detail_state,
-)
+from services.homepage_support import homepage_bundle_symbol_lookup, homepage_editorial_links
 from services.entity_extraction import (
     extract_entities,
     graph_add_node_candidates,
@@ -140,8 +136,6 @@ from views._shared import (
     ATTENTION_SENSITIVITY_ORDER,
     BASE_SECTION_OPTIONS,
     BROAD_ECONOMY_SECTION,
-    HOME_EXP_SECTION,
-    HOME_V2_SECTION,
     JOB_LABELS,
     LOGGER,
     MARKET_EXPLORER_SECTION,
@@ -247,6 +241,7 @@ st.set_page_config(
     page_title="Spectral Nature",
     page_icon=_load_page_icon(),
     layout="wide",
+    initial_sidebar_state="expanded",
     menu_items={
         "Get help": None,
         "Report a Bug": None,
@@ -327,7 +322,7 @@ _AUTH_COOKIE_NAME = "spectral_nature_ui_session"
 _AUTH_COOKIE_TTL_SECONDS = 7 * 24 * 60 * 60
 _AUTH_COOKIE_REMEMBER_ME_TTL_SECONDS = 30 * 24 * 60 * 60
 APP_BRAND_SUBTITLE = "Research, portfolio context, and market structure in one refined workspace."
-_APP_SHELL_STYLE_VERSION = "2026-04-14-vertical-nav-v1"
+_APP_SHELL_STYLE_VERSION = "2026-05-27-permanent-sidebar-compact-v1"
 _INLINE_LOADING_STYLE_VERSION = "2026-04-02-inline-loading-v1"
 
 def _environment_label(app_track: str) -> str:
@@ -361,6 +356,7 @@ def _ensure_app_shell_styles() -> None:
             --sn-accent-strong: #d8e1ea;
             --sn-shadow: 0 18px 42px rgba(5, 8, 12, 0.22);
             --sn-shadow-soft: 0 12px 26px rgba(5, 8, 12, 0.16);
+            --sn-sidebar-width: 18rem;
         }
         .stApp {
             background: linear-gradient(180deg, var(--sn-bg-0) 0%, var(--sn-bg-1) 100%);
@@ -369,12 +365,12 @@ def _ensure_app_shell_styles() -> None:
         }
         #MainMenu,
         footer,
-        [data-testid="stMainMenu"],
-        [data-testid="stToolbar"],
-        [data-testid="stAppToolbar"],
+        [data-testid="stMainMenu"] {
+            display: none;
+        }
         [data-testid="stHeader"],
         [data-testid="stAppHeader"] {
-            display: none;
+            background: transparent;
         }
         .block-container {
             padding-top: 0.8rem;
@@ -451,6 +447,21 @@ def _ensure_app_shell_styles() -> None:
         [data-testid="stSidebar"] {
             background: #0f1319;
             border-right: 1px solid var(--sn-line);
+            display: block !important;
+            visibility: visible !important;
+            transform: translateX(0) !important;
+            min-width: var(--sn-sidebar-width) !important;
+            width: var(--sn-sidebar-width) !important;
+            max-width: var(--sn-sidebar-width) !important;
+        }
+        [data-testid="stSidebar"] > div:first-child {
+            min-width: var(--sn-sidebar-width) !important;
+            width: var(--sn-sidebar-width) !important;
+            max-width: var(--sn-sidebar-width) !important;
+        }
+        [data-testid="stSidebarCollapsedControl"],
+        [data-testid="stSidebarCollapseButton"] {
+            display: none !important;
         }
         [data-testid="stSidebar"] * {
             color: var(--sn-ink);
@@ -640,10 +651,8 @@ def _ensure_app_shell_styles() -> None:
             line-height: 1.4;
             text-align: left;
         }
-        [class*="st-key-homepage_v2_surface_idle_"] button,
-        [class*="st-key-homepage_v2_surface_selected_"] button,
-        [class*="st-key-homepage_exp_surface_idle_"] button,
-        [class*="st-key-homepage_exp_surface_selected_"] button {
+        [class*="st-key-homepage_v3_surface_idle_"] button,
+        [class*="st-key-homepage_v3_surface_selected_"] button {
             width: 100%;
             align-items: flex-start;
             justify-content: flex-start;
@@ -657,54 +666,35 @@ def _ensure_app_shell_styles() -> None:
             color: var(--sn-ink);
             line-height: 1.18;
         }
-        [class*="st-key-homepage_v2_surface_idle_"] button > div,
-        [class*="st-key-homepage_v2_surface_selected_"] button > div,
-        [class*="st-key-homepage_exp_surface_idle_"] button > div,
-        [class*="st-key-homepage_exp_surface_selected_"] button > div {
+        [class*="st-key-homepage_v3_surface_idle_"] button > div,
+        [class*="st-key-homepage_v3_surface_selected_"] button > div {
             width: 100%;
             justify-content: flex-start;
             text-align: left;
         }
-        [class*="st-key-homepage_v2_surface_idle_"] button:hover,
-        [class*="st-key-homepage_exp_surface_idle_"] button:hover {
+        [class*="st-key-homepage_v3_surface_idle_"] button:hover {
             border-color: rgba(216, 225, 234, 0.2);
             background: rgba(168, 184, 201, 0.06);
             color: var(--sn-accent-strong);
         }
-        [class*="st-key-homepage_v2_surface_selected_"] button,
-        [class*="st-key-homepage_exp_surface_selected_"] button {
+        [class*="st-key-homepage_v3_surface_selected_"] button {
             border-color: rgba(168, 184, 201, 0.24);
             background: rgba(168, 184, 201, 0.08);
             color: var(--sn-accent-strong);
         }
-        [class*="st-key-homepage_v2_surface_selected_"] button:hover,
-        [class*="st-key-homepage_exp_surface_selected_"] button:hover {
+        [class*="st-key-homepage_v3_surface_selected_"] button:hover {
             border-color: rgba(168, 184, 201, 0.28);
             background: rgba(168, 184, 201, 0.1);
             color: var(--sn-accent-strong);
         }
-        [class*="st-key-homepage_v2_surface_idle_"] button p,
-        [class*="st-key-homepage_v2_surface_selected_"] button p,
-        [class*="st-key-homepage_exp_surface_idle_"] button p,
-        [class*="st-key-homepage_exp_surface_selected_"] button p {
+        [class*="st-key-homepage_v3_surface_idle_"] button p,
+        [class*="st-key-homepage_v3_surface_selected_"] button p {
             margin: 0;
             width: 100%;
             font-size: 1.02rem;
             font-weight: 650;
             line-height: 1.18;
             text-align: left;
-        }
-        [class*="st-key-homepage_exp_surface_selected_"] button {
-            box-shadow: inset 2px 0 0 rgba(216, 225, 234, 0.72);
-        }
-        [class*="st-key-homepage_exp_surface_selected_company_"] button {
-            border-color: rgba(168, 184, 201, 0.3);
-            background: rgba(168, 184, 201, 0.11);
-            box-shadow: inset 3px 0 0 rgba(216, 225, 234, 0.82);
-        }
-        [class*="st-key-homepage_exp_surface_selected_company_"] button:hover {
-            border-color: rgba(168, 184, 201, 0.34);
-            background: rgba(168, 184, 201, 0.13);
         }
         [class*="st-key-ticker_preview_surface_idle_"] button,
         [class*="st-key-ticker_preview_surface_selected_"] button {
@@ -751,16 +741,6 @@ def _ensure_app_shell_styles() -> None:
             font-weight: 620;
             line-height: 1.16;
             text-align: left;
-        }
-        [class*="st-key-homepage_exp_close_"] button {
-            min-height: 2rem;
-            height: 2rem;
-            padding: 0;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.03);
-        }
-        [class*="st-key-homepage_exp_close_"] button:hover {
-            background: rgba(255, 255, 255, 0.06);
         }
         div[data-testid="stMetric"] {
             padding: 0.9rem 1rem;
@@ -1046,7 +1026,7 @@ def _sidebar_editorial_icon_svg(icon_name: str) -> str:
 
 def _render_sidebar_editorial_links(*, placement: str = "sidebar_brand") -> None:
     editorial_markup_parts: list[str] = []
-    for link in homepage_v2_editorial_links(placement=placement):
+    for link in homepage_editorial_links(placement=placement):
         editorial_url = str(link.get("url") or "").strip()
         editorial_label = str(link.get("button_label") or link.get("label") or "").strip()
         editorial_icon = _sidebar_editorial_icon_svg(str(link.get("icon_name") or "").strip())
@@ -1346,9 +1326,7 @@ def _consume_cross_page_inspector_query_params() -> None:
         return
     if inspect_view == "home":
         st.session_state["_pending_workspace_section"] = "Home"
-        st.session_state["home_selected_ticker"] = inspect_ticker
-        st.session_state.pop("homepage_v2_selected_ticker", None)
-        st.session_state.pop("homepage_v2_active_panel", None)
+        st.session_state["homepage_v3_selected_ticker"] = inspect_ticker
     elif inspect_view == "market":
         st.session_state["_pending_workspace_section"] = STOCK_INVESTIGATOR_SECTION
         _set_workspace_ticker(inspect_ticker)
@@ -1482,7 +1460,13 @@ def _render_auth_persistence_notice() -> None:
     st.caption(auth_service.browser_session_persistence_message())
 
 
-def _render_auth_cookie_sync(action: str, value: str = "", persistent: bool = True) -> None:
+def _render_auth_cookie_sync(
+    action: str,
+    value: str = "",
+    persistent: bool = True,
+    *,
+    reload_after: bool = False,
+) -> None:
     if action != "clear" and not _browser_session_cookie_enabled():
         return
     cookie_name = json.dumps(_AUTH_COOKIE_NAME)
@@ -1518,7 +1502,23 @@ def _render_auth_cookie_sync(action: str, value: str = "", persistent: bool = Tr
             + f"const cookieStr = {cookie_name} + '=' + encodeURIComponent({cookie_value}) + '; path=/; SameSite=Lax' + secureAttr;"
             + "uniqueDocs.forEach((doc) => { try { doc.cookie = cookieStr; } catch (e) {} });"
         )
+    if reload_after:
+        cookie_script += (
+            "setTimeout(() => {"
+            "  try { window.parent.location.reload(); }"
+            "  catch (e) { try { window.location.reload(); } catch (_) {} }"
+            "}, 80);"
+        )
     components_html(f"<script>{cookie_script}</script>", height=0)
+
+
+def _complete_successful_login(session_token: str, *, persistent: bool = True) -> None:
+    """Finish login without letting the auth screen and workspace render together."""
+    _render_auth_cookie_sync("set", session_token, persistent=persistent, reload_after=True)
+    if not _browser_session_cookie_enabled():
+        st.rerun()
+    st.info("Loading workspace...")
+    st.stop()
 
 
 def _create_auth_session(username: str) -> str:
@@ -1679,9 +1679,8 @@ def _render_legacy_login_gate() -> None:
             st.session_state["_ui_auth_mode"] = "legacy"
             st.session_state.pop("_show_login_form", None)
             _store_user_context(None)
-            _render_auth_cookie_sync("set", session_id)
             _apply_post_login_destination()
-            return
+            _complete_successful_login(session_id)
         st.error("Invalid username or password.")
     st.stop()
 
@@ -1746,9 +1745,8 @@ def _render_database_login_gate() -> None:
                     st.session_state["_ui_auth_mode"] = "database"
                     st.session_state.pop("_show_login_form", None)
                     _store_user_context(context)
-                    _render_auth_cookie_sync("set", session_token, persistent=remember_me)
                     _apply_post_login_destination()
-                    return
+                    _complete_successful_login(session_token, persistent=remember_me)
             else:
                 st.error(str(result.get("message") or "Login failed."))
 
@@ -1787,10 +1785,9 @@ def _render_database_login_gate() -> None:
                         st.session_state["_ui_auth_mode"] = "database"
                         st.session_state.pop("_show_login_form", None)
                         _store_user_context(context)
-                        _render_auth_cookie_sync("set", session_token, persistent=True)
                         _apply_post_login_destination()
                         st.success("Account created. Loading your workspace...")
-                        return
+                        _complete_successful_login(session_token, persistent=True)
                 else:
                     st.error(str(result.get("message") or "Account creation failed."))
 
@@ -1904,7 +1901,7 @@ def _ticker_inspector_href(symbol: str, *, target: str) -> str:
 def _open_ticker_snapshot_target(symbol: str, *, target: str) -> None:
     cleaned_symbol = str(symbol or "").upper().strip()
     cleaned_target = str(target or "").strip().lower()
-    if not cleaned_symbol or cleaned_target not in {"home", "home_v2", "home_exp", "market"}:
+    if not cleaned_symbol or cleaned_target not in {"home", "market"}:
         return
     _record_usage_interaction(
         event_type="ticker_open",
@@ -1917,15 +1914,7 @@ def _open_ticker_snapshot_target(symbol: str, *, target: str) -> None:
         },
     )
     if cleaned_target == "home":
-        st.session_state["home_selected_ticker"] = cleaned_symbol
-        return
-    if cleaned_target == "home_v2":
-        st.session_state["homepage_v2_selected_ticker"] = cleaned_symbol
-        _queue_homepage_v2_active_panel(HOMEPAGE_V2_COMPANY_PANEL)
-        return
-    if cleaned_target == "home_exp":
-        st.session_state["homepage_exp_selected_ticker"] = cleaned_symbol
-        st.session_state["homepage_exp_active_panel"] = HOMEPAGE_V2_COMPANY_PANEL
+        st.session_state["homepage_v3_selected_ticker"] = cleaned_symbol
         return
     _open_attention_target(STOCK_INVESTIGATOR_SECTION, {"ticker": cleaned_symbol})
 
@@ -1952,7 +1941,7 @@ def _render_ticker_snapshot_chart(
         return
 
     normalized_click_target = str(click_target or "").strip().lower()
-    if normalized_click_target in {"home", "home_v2", "home_exp"}:
+    if normalized_click_target == "home":
         return
     widget_key = str(button_key or f"ticker_snapshot_{click_target}_{symbol}").strip()
     if st.button(
@@ -1964,7 +1953,7 @@ def _render_ticker_snapshot_chart(
 
 
 def _ticker_preview_clickable(click_target: str) -> bool:
-    return str(click_target or "").strip().lower() in {"home", "home_v2", "home_exp"}
+    return str(click_target or "").strip().lower() == "home"
 
 
 def _ticker_preview_is_selected(symbol: str, *, click_target: str, click_bundle_id: str = "") -> bool:
@@ -1974,23 +1963,11 @@ def _ticker_preview_is_selected(symbol: str, *, click_target: str, click_bundle_
     if not normalized_symbol:
         return False
     if normalized_click_target == "home":
-        return str(st.session_state.get("home_selected_ticker") or "").upper().strip() == normalized_symbol
-    if normalized_click_target == "home_v2":
         return (
-            str(st.session_state.get("homepage_v2_selected_ticker") or "").upper().strip() == normalized_symbol
-            and str(st.session_state.get("homepage_v2_active_panel") or "").strip() == HOMEPAGE_V2_COMPANY_PANEL
+            str(st.session_state.get("homepage_v3_selected_ticker") or "").upper().strip() == normalized_symbol
             and (
                 not normalized_bundle_id
-                or str(st.session_state.get("homepage_v2_selected_bundle_id") or "").strip() == normalized_bundle_id
-            )
-        )
-    if normalized_click_target == "home_exp":
-        return (
-            str(st.session_state.get("homepage_exp_selected_ticker") or "").upper().strip() == normalized_symbol
-            and str(st.session_state.get("homepage_exp_active_panel") or "").strip() == HOMEPAGE_V2_COMPANY_PANEL
-            and (
-                not normalized_bundle_id
-                or str(st.session_state.get("homepage_exp_selected_bundle_id") or "").strip() == normalized_bundle_id
+                or str(st.session_state.get("homepage_v3_selected_bundle_id") or "").strip() == normalized_bundle_id
             )
         )
     return False
@@ -2027,10 +2004,6 @@ def _render_ticker_preview_identity(
         click_handler = _open_ticker_snapshot_target
         click_args: tuple[object, ...] = (symbol,)
         click_kwargs: dict[str, object] = {"target": normalized_click_target}
-        if normalized_click_target == "home_exp":
-            click_handler = _open_homepage_exp_ticker
-            click_args = (symbol, str(click_bundle_id or "").strip())
-            click_kwargs = {}
         st.button(
             label,
             key=_ticker_preview_surface_key(
@@ -2452,216 +2425,6 @@ def _render_related_news_database_section(
             st.caption(meta)
 
 
-def _render_home_ticker_background_panel(
-    cfg: AppConfig,
-    ticker: str,
-    *,
-    force_data_refresh: bool,
-    session_key: str = "home_selected_ticker",
-    clear_mode_key: str = "",
-    clear_mode_value: str = HOMEPAGE_V2_RESEARCH_PANEL,
-    panel_title: str = "",
-    panel_caption: str = "Loaded from the Home page ticker preview selection.",
-    open_button_label: str = "Open Stock Investigator",
-    clear_button_label: str = "Clear",
-    clear_button_key: str = "",
-    show_header: bool = True,
-    show_container_border: bool = True,
-) -> None:
-    target = str(ticker or "").upper().strip()
-    if not target:
-        return
-    show_open_button = bool(str(open_button_label or "").strip())
-    show_clear_button = bool(str(clear_button_label or "").strip())
-    with st.container(border=show_container_border):
-        if show_header:
-            if show_open_button or show_clear_button:
-                header_cols = _responsive_columns([5.4, 1.4 if show_open_button and show_clear_button else 0.7], gap="small")
-                title_col = header_cols[0]
-                action_col = header_cols[1]
-            else:
-                title_col = st.container()
-                action_col = None
-            with title_col:
-                st.markdown(f"### {panel_title or f'{target} Background'}")
-                if str(panel_caption or "").strip():
-                    st.caption(panel_caption)
-                taxonomy_summary = _taxonomy_summary_text(target)
-                if taxonomy_summary:
-                    st.caption(taxonomy_summary)
-            if action_col is not None:
-                with action_col:
-                    if show_open_button and st.button(
-                        open_button_label,
-                        key=f"home_background_open_market_{target}",
-                        use_container_width=True,
-                    ):
-                        _open_attention_target(STOCK_INVESTIGATOR_SECTION, {"ticker": target})
-                    if show_clear_button and st.button(
-                        clear_button_label,
-                        key=str(clear_button_key or f"home_background_clear_{target}_{session_key or 'home'}").strip(),
-                        use_container_width=True,
-                    ):
-                        st.session_state.pop(session_key or "home_selected_ticker", None)
-                        if clear_mode_key == "homepage_v2_active_panel":
-                            _queue_homepage_v2_active_panel(clear_mode_value)
-                        elif clear_mode_key:
-                            st.session_state[clear_mode_key] = clear_mode_value
-                        st.rerun()
-
-        materialized_background: dict[str, object] = {}
-        try:
-            materialized_background = dashboard_loaders._load_attention_ticker_background_cached(
-                cfg,
-                target,
-                force_refresh=force_data_refresh,
-            )
-        except Exception:
-            materialized_background = {}
-
-        if str(materialized_background.get("symbol") or "").upper().strip() == target:
-            price_points = materialized_background.get("price_points")
-            price_frame = pd.DataFrame(price_points if isinstance(price_points, list) else [])
-            if not price_frame.empty and {"timestamp", "close"}.issubset(price_frame.columns):
-                price_frame["timestamp"] = pd.to_datetime(price_frame["timestamp"], utc=True, errors="coerce")
-                price_frame["close"] = pd.to_numeric(price_frame["close"], errors="coerce")
-                price_frame = price_frame.dropna(subset=["timestamp", "close"]).sort_values("timestamp")
-            if price_frame.empty:
-                price_frame = dashboard_loaders._load_public_price_history_cached(
-                    target,
-                    days=180,
-                    force_refresh=force_data_refresh,
-                )
-            if not price_frame.empty:
-                price_fig = go.Figure(
-                    go.Scatter(
-                        x=price_frame["timestamp"],
-                        y=price_frame["close"],
-                        mode="lines",
-                        name=target,
-                        line={"color": "#38bdf8", "width": 2.3},
-                    )
-                )
-                price_fig.update_layout(
-                    template="plotly_dark",
-                    height=260,
-                    margin={"l": 12, "r": 12, "t": 8, "b": 12},
-                    xaxis_title="",
-                    yaxis_title="Price",
-                    showlegend=False,
-                )
-                st.plotly_chart(price_fig, use_container_width=True)
-
-            description = str(materialized_background.get("description_text") or "").strip()
-            summary_lines = [
-                str(item).strip()
-                for item in list(materialized_background.get("news_summary_lines") or [])
-                if str(item).strip()
-            ]
-            llm_headline = str(materialized_background.get("llm_headline") or "").strip()
-            llm_summary_text = str(materialized_background.get("llm_summary_text") or "").strip()
-            primary_context_text = str(materialized_background.get("context_story_text") or "").strip()
-            company_background_text = str(materialized_background.get("company_background_text") or "").strip()
-
-            background_summary = llm_summary_text or primary_context_text or company_background_text or description
-            what_happened_summary = llm_headline or (summary_lines[0] if summary_lines else "") or description
-            evidence_links = _collect_evidence_links(
-                recent_headlines=list(materialized_background.get("recent_headlines") or []),
-                limit=8,
-            )
-            _render_compact_background_sections(
-                target,
-                background_summary=background_summary,
-                what_happened_summary=what_happened_summary,
-                evidence_links=evidence_links,
-            )
-            _render_overview_fundamentals(
-                cfg,
-                target,
-                force_data_refresh=force_data_refresh,
-                asof_time_utc=materialized_background.get("asof_time_utc"),
-            )
-            return
-
-        try:
-            with st.spinner("Loading company background..."):
-                news_payload = dashboard_loaders._load_recent_news_cached(
-                    cfg,
-                    target,
-                    days=14,
-                    limit=6,
-                    force_refresh=force_data_refresh,
-                )
-                attention_context = dashboard_loaders._load_attention_context_cached(
-                    cfg,
-                    target,
-                    force_refresh=force_data_refresh,
-                )
-                price = dashboard_loaders._load_price_history_cached(
-                    cfg,
-                    target,
-                    days=180,
-                    force_refresh=force_data_refresh,
-                )
-        except Exception as exc:
-            st.warning(f"Could not load background for {target}: {exc}")
-            return
-
-        if isinstance(price, pd.DataFrame) and price.empty:
-            price = dashboard_loaders._load_public_price_history_cached(
-                target,
-                days=180,
-                force_refresh=force_data_refresh,
-            )
-
-        if isinstance(price, pd.DataFrame) and not price.empty and {"timestamp", "close"}.issubset(price.columns):
-            price_fig = go.Figure(
-                go.Scatter(
-                    x=price["timestamp"],
-                    y=price["close"],
-                    mode="lines",
-                    name=target,
-                    line={"color": "#38bdf8", "width": 2.3},
-                )
-            )
-            price_fig.update_layout(
-                template="plotly_dark",
-                height=260,
-                margin={"l": 12, "r": 12, "t": 8, "b": 12},
-                xaxis_title="",
-                yaxis_title="Price",
-                showlegend=False,
-            )
-            st.plotly_chart(price_fig, use_container_width=True)
-
-        news_summary = summarize_recent_news(target, news_payload)
-        summary_lines = [
-            str(item).strip()
-            for item in list(news_summary.get("summary_lines") or [])
-            if str(item).strip()
-        ]
-        llm_headline = str(attention_context.get("llm_headline") or "").strip()
-        llm_summary_text = str(attention_context.get("llm_summary_text") or "").strip()
-        primary_context_text = str(attention_context.get("context_story_text") or "").strip()
-        background_summary = llm_summary_text or primary_context_text
-        what_happened_summary = llm_headline or (summary_lines[0] if summary_lines else "")
-        evidence_links = _collect_evidence_links(
-            articles=news_summary.get("articles", pd.DataFrame()),
-            limit=8,
-        )
-        _render_compact_background_sections(
-            target,
-            background_summary=background_summary,
-            what_happened_summary=what_happened_summary,
-            evidence_links=evidence_links,
-        )
-        _render_overview_fundamentals(
-            cfg,
-            target,
-            force_data_refresh=force_data_refresh,
-            asof_time_utc=attention_context.get("asof_time_utc"),
-        )
-
 def _parse_drilldown_params(raw: object) -> dict[str, object]:
     if isinstance(raw, dict):
         return raw
@@ -2718,6 +2481,16 @@ def _attention_mover_card_title(mover: dict[str, object]) -> str:
     return attention_mover_card_title_service(mover if isinstance(mover, dict) else {})
 
 
+def _attention_display_title(raw_title: object, observed_text: object, cause_status: object, *, fallback: str) -> str:
+    title = str(raw_title or "").strip()
+    observed = attention_content._raw_attention_text(observed_text)
+    if str(cause_status or "").strip().lower() == "unresolved" and observed:
+        first = re.split(r"(?<=[.!?])\s+", observed, maxsplit=1)[0].strip(" .!?")
+        if first:
+            return first
+    return title or fallback
+
+
 def _attention_bundle_title(bundle: dict[str, object], *, fallback: dict[str, object] | None = None) -> str:
     bundle_type = str((bundle or {}).get("bundle_type") or "").strip().lower()
     if bundle_type == "event":
@@ -2732,26 +2505,12 @@ def _attention_bundle_title(bundle: dict[str, object], *, fallback: dict[str, ob
     return "Research bundle"
 
 
-def _queue_homepage_v2_active_panel(panel: str) -> None:
-    normalized_panel = str(panel or "").strip().lower()
-    if normalized_panel not in {HOMEPAGE_V2_RESEARCH_PANEL, HOMEPAGE_V2_COMPANY_PANEL}:
-        return
-    st.session_state["_pending_homepage_v2_active_panel"] = normalized_panel
-
-
-def _consume_homepage_v2_pending_panel() -> None:
-    pending_panel = str(st.session_state.pop("_pending_homepage_v2_active_panel", "") or "").strip().lower()
-    if pending_panel in {HOMEPAGE_V2_RESEARCH_PANEL, HOMEPAGE_V2_COMPANY_PANEL}:
-        st.session_state["homepage_v2_active_panel"] = pending_panel
-
-
 def _open_homepage_research_bundle_from_omnibar(bundle_id: str, symbols: list[str] | None = None) -> None:
     normalized_bundle_id = str(bundle_id or "").strip()
     if not normalized_bundle_id:
         _open_workspace_section("Home")
         return
-    _select_homepage_v2_bundle(normalized_bundle_id, symbols=symbols, title=normalized_bundle_id)
-    _queue_homepage_v2_active_panel(HOMEPAGE_V2_RESEARCH_PANEL)
+    _select_homepage_v3_bundle(normalized_bundle_id, symbols=symbols, title=normalized_bundle_id)
     st.session_state["_pending_workspace_section"] = "Home"
     st.rerun()
 
@@ -2760,11 +2519,10 @@ def _open_homepage_company_from_omnibar(symbol: str, *, bundle_id: str = "") -> 
     normalized_symbol = _set_workspace_ticker(symbol)
     if not normalized_symbol:
         return
-    st.session_state["homepage_v2_selected_ticker"] = normalized_symbol
+    st.session_state["homepage_v3_selected_ticker"] = normalized_symbol
     normalized_bundle_id = str(bundle_id or "").strip()
     if normalized_bundle_id:
-        st.session_state["homepage_v2_selected_bundle_id"] = normalized_bundle_id
-    _queue_homepage_v2_active_panel(HOMEPAGE_V2_COMPANY_PANEL)
+        st.session_state["homepage_v3_selected_bundle_id"] = normalized_bundle_id
     st.session_state["_pending_workspace_section"] = "Home"
     st.rerun()
 
@@ -5478,134 +5236,6 @@ def _attention_key_points_text(row: pd.Series) -> str:
     return " | ".join(piece for piece in pieces if piece)
 
 
-def _render_homepage_v2_detail_panel(
-    row: pd.Series,
-    *,
-    news_payload: dict[str, object] | None = None,
-    context_payload: dict[str, object] | None = None,
-    brief_payload: dict[str, object] | None = None,
-) -> None:
-    title = str(row.get("title") or row.get("entity_id") or "Attention detail").strip()
-    entity_id = str(row.get("entity_id") or "").upper().strip()
-    subtitle = str(row.get("subtitle") or "").strip()
-    source_label = str(row.get("source_label") or "").strip()
-    target_section = _normalize_workspace_section(row.get("drilldown_section")) or MARKET_EXPLORER_SECTION
-    params = _parse_drilldown_params(row.get("drilldown_params_json"))
-
-    st.markdown(f"### {title}")
-    meta = [item for item in [source_label, subtitle, entity_id] if item]
-    if meta:
-        st.caption(" | ".join(meta))
-
-    metric_cols = _responsive_columns(3)
-    with metric_cols[0]:
-        st.metric("Score", _format_scalar(row.get("attention_score"), digits=1))
-    with metric_cols[1]:
-        st.metric("Residual", _format_scalar(row.get("residual_value"), digits=2, suffix="%", signed=True))
-    with metric_cols[2]:
-        st.metric("Horizon", ATTENTION_HORIZON_LABELS.get(str(row.get("horizon") or "").strip(), str(row.get("horizon") or "n/a")))
-
-    chart = attention_content._build_attention_micro_chart(row)
-    if chart is not None:
-        st.plotly_chart(chart, use_container_width=True, config={"displayModeBar": False})
-
-    item_summary = attention_content._homepage_v2_item_summary(
-        row,
-        news_payload=news_payload,
-        context_payload=context_payload,
-        brief_payload=brief_payload,
-    )
-    if item_summary:
-        st.write(item_summary)
-
-    llm_headline = str((context_payload or {}).get("llm_headline") or "").strip()
-    llm_summary_text = str((context_payload or {}).get("llm_summary_text") or "").strip()
-    llm_narrative_text = str((context_payload or {}).get("llm_narrative_text") or "").strip()
-    llm_why_now = str((context_payload or {}).get("llm_why_now") or "").strip()
-    lead_text = str((brief_payload or {}).get("lead_text") or "").strip()
-    cluster_text = str((brief_payload or {}).get("cluster_text") or "").strip()
-    headline_text = str((brief_payload or {}).get("headline_text") or "").strip()
-    company_text = str((brief_payload or {}).get("company_text") or "").strip()
-    explainer_text = str((brief_payload or {}).get("explainer_text") or "").strip()
-    watchpoint_text = str((brief_payload or {}).get("watchpoint_text") or "").strip()
-    news_context = build_attention_news_narrative(
-        entity_id,
-        news_payload,
-        peer_group_name=str(row.get("peer_group_name") or "").strip(),
-    )
-    news_story = str(news_context.get("narrative_text") or "").strip()
-    headline_links = news_context.get("headline_links", [])
-    filing_links = (context_payload or {}).get("top_filing_links", [])
-
-    if lead_text:
-        st.markdown(f"**What Is Likely Going On**  \n{lead_text}")
-    if cluster_text:
-        st.markdown(f"**Coverage Cluster**  \n{cluster_text}")
-    if headline_text:
-        st.markdown(f"**Fresh Headline**  \n{headline_text}")
-    if company_text:
-        st.markdown(f"**Company In Plain English**  \n{company_text}")
-    if explainer_text:
-        st.markdown(f"**Term Explainer**  \n{explainer_text}")
-    if watchpoint_text:
-        st.caption(f"Watchpoint: {watchpoint_text}")
-
-    if llm_headline:
-        st.markdown(f"**Primary Source Read**  \n{llm_headline}")
-    if llm_summary_text:
-        st.write(llm_summary_text)
-    if llm_narrative_text:
-        st.caption(llm_narrative_text)
-    if llm_why_now:
-        st.caption(f"Why now: {llm_why_now}")
-
-    if news_story:
-        st.markdown(f"**News Summary**  \n{news_story}")
-    if isinstance(headline_links, list):
-        for index, item in enumerate(headline_links[:3]):
-            headline = str((item or {}).get("headline") or "").strip()
-            url = str((item or {}).get("url") or "").strip()
-            source = str((item or {}).get("source") or "News").strip()
-            published_at = pd.to_datetime((item or {}).get("published_at"), utc=True, errors="coerce")
-            published_label = published_at.strftime("%Y-%m-%d %H:%M UTC") if pd.notna(published_at) else ""
-            if not headline:
-                continue
-            _render_tracked_activity_link(
-                headline,
-                url,
-                key=_activity_link_key(f"home_ticker_news_summary_{ticker}_{index}", label=headline, url=url),
-                surface="home_ticker_news_summary",
-                target_type="news_article",
-                source=source,
-                published_at=published_label,
-                extra_detail={"symbol": str(ticker or "").upper().strip()},
-            )
-
-    if isinstance(filing_links, list) and filing_links:
-        st.caption("Supporting filings")
-        for index, item in enumerate(filing_links[:3]):
-            label = str((item or {}).get("label") or "").strip()
-            url = str((item or {}).get("url") or "").strip()
-            if not label:
-                continue
-            _render_tracked_activity_link(
-                label,
-                url,
-                key=_activity_link_key(f"homepage_v2_filing_{entity_id}_{index}", label=label, url=url),
-                surface="homepage_v2_filing_link",
-                target_type="filing_link",
-                extra_detail={"symbol": entity_id},
-            )
-
-    if st.button(
-        f"Open {target_section}",
-        key=f"homepage_v2_detail_open_{str(row.get('event_id') or entity_id or 'item')}",
-        use_container_width=True,
-        disabled=not target_section,
-    ):
-        _open_attention_target(target_section, params=params)
-
-
 def _render_attention_card(
     row: pd.Series,
     *,
@@ -5674,6 +5304,7 @@ def _render_attention_card(
                     chart,
                     use_container_width=True,
                     config={"displayModeBar": False, "staticPlot": True},
+                    key=f"{key_prefix}_{str(row.get('event_id') or entity_id or 'item')}_micro_chart",
                 )
         with insight_cols[1]:
             if story_text:
@@ -5857,11 +5488,11 @@ def _render_market_event_card(
             st.metric("Signals", str(len(supporting_ids) or len(supporting_symbols)))
 
         if what_happened_text:
-            st.markdown(f"**What Happened**  \n{what_happened_text}")
+            _render_attention_text_block("What Happened", what_happened_text)
         if why_happened_text:
-            st.markdown(f"**Why It Happened**  \n{why_happened_text}")
+            _render_attention_text_block("Why It Happened", why_happened_text)
         if affected_assets_summary_text:
-            st.markdown(f"**Affected Assets**  \n{affected_assets_summary_text}")
+            _render_attention_text_block("Affected Assets", affected_assets_summary_text)
         if headline_text:
             st.caption(headline_text)
         if source_line:
@@ -5890,6 +5521,20 @@ def _bundle_toggle_key(bundle_id: str, key_prefix: str) -> str:
     return f"{key_prefix}_{cleaned}_research_open"
 
 
+def _render_attention_text_block(label: str, text: object) -> None:
+    sections = attention_content.display_markdown_sections(text)
+    if not sections:
+        return
+    label_text = str(label or "").strip()
+    if label_text:
+        st.markdown(f"**{label_text}**")
+    for heading, body in sections:
+        if heading and heading.lower() != label_text.lower():
+            st.markdown(f"###### {attention_content.streamlit_safe_markdown_text(heading)}")
+        if body:
+            st.markdown(body)
+
+
 def _render_attention_research_bundle_panel(
     bundle: dict[str, object],
     *,
@@ -5902,30 +5547,45 @@ def _render_attention_research_bundle_panel(
         what_happened = attention_content._raw_attention_text(bundle.get("what_happened_text"))
         why_happened = attention_content._raw_attention_text(bundle.get("why_happened_text"))
         affected_assets = attention_content._raw_attention_text(bundle.get("affected_assets_summary_text"))
+        if str(bundle.get("cause_status") or "").strip().lower() == "unresolved":
+            why_happened = ""
+        business_context = attention_content._raw_attention_text(
+            bundle.get("business_resolution_text")
+            or bundle.get("business_context_text")
+            or bundle.get("surface_business_context_text")
+        )
         if what_happened:
-            st.markdown(f"**What Happened**  \n{what_happened}")
+            _render_attention_text_block("What Happened", what_happened)
         if why_happened:
-            st.markdown(f"**Why It Happened**  \n{why_happened}")
+            _render_attention_text_block("Why It Happened", why_happened)
         if affected_assets:
-            st.markdown(f"**Affected Assets**  \n{affected_assets}")
+            _render_attention_text_block("Affected Assets", affected_assets)
+        if business_context and business_context not in {why_happened, affected_assets}:
+            _render_attention_text_block("Business Context", business_context)
     else:
         what_changed = attention_content._raw_attention_text(bundle.get("what_changed_text"))
         why_now = attention_content._raw_attention_text(bundle.get("why_now_text"))
         what_else_moved = attention_content._raw_attention_text(bundle.get("what_else_moved_text"))
+        if str(bundle.get("cause_status") or "").strip().lower() == "unresolved":
+            why_now = ""
+        business_context = attention_content._raw_attention_text(
+            bundle.get("business_resolution_text")
+            or bundle.get("business_context_text")
+            or bundle.get("surface_business_context_text")
+        )
         if what_changed:
-            st.markdown(f"**What Changed Vs Expectation**  \n{what_changed}")
+            _render_attention_text_block("What Changed Vs Expectation", what_changed)
         if why_now:
-            st.markdown(f"**Why Today**  \n{why_now}")
+            _render_attention_text_block("Why Today", why_now)
         if what_else_moved:
-            st.markdown(f"**What Else Moved**  \n{what_else_moved}")
+            _render_attention_text_block("What Else Moved", what_else_moved)
+        if business_context and business_context not in {why_now, what_else_moved}:
+            _render_attention_text_block("Business Context", business_context)
         meta = [part for part in [str(bundle.get("sector") or "").strip(), str(bundle.get("industry") or "").strip()] if part]
         if meta:
             st.caption(" | ".join(meta))
 
     quality_parts = []
-    cause_status = str(bundle.get("cause_status") or "").strip()
-    if cause_status:
-        quality_parts.append(f"Cause status: {cause_status.replace('_', ' ').title()}")
     evidence_quality = str(bundle.get("evidence_quality") or "").strip()
     if evidence_quality:
         quality_parts.append(f"Evidence quality: {evidence_quality}")
@@ -5991,7 +5651,7 @@ def _render_attention_research_bundle_panel(
             if source:
                 st.caption(source)
     elif str(bundle.get("background_context_text") or "").strip():
-        st.markdown(f"**Background Context**  \n{str(bundle.get('background_context_text') or '').strip()}")
+        _render_attention_text_block("Background Context", bundle.get("background_context_text"))
 
     if not suppress_ticker_tables:
         peer_moves = bundle.get("peer_moves") or []
@@ -6069,10 +5729,30 @@ def _render_attention_home_event_card(
     toggle_key = _bundle_toggle_key(bundle_id, key_prefix)
     bundle = research_bundle if isinstance(research_bundle, dict) else {}
     payload = bundle if bundle else event
-    what_happened = attention_content._raw_attention_text(payload.get("what_happened_text") or event.get("what_happened_text"))
-    why_happened = attention_content._raw_attention_text(payload.get("why_happened_text") or event.get("why_happened_text"))
-    affected_assets = attention_content._raw_attention_text(payload.get("affected_assets_summary_text") or event.get("affected_assets_summary_text"))
-    event_title = str(payload.get("event_title") or event.get("event_title") or "Market event").strip()
+    preview = _attention_home_bundle_preview(event, bundle)
+    what_happened = attention_content._raw_attention_text(
+        preview.get("what_changed_text") or payload.get("what_happened_text") or event.get("what_happened_text")
+    )
+    why_happened = attention_content._raw_attention_text(preview.get("why_text"))
+    affected_assets = attention_content._raw_attention_text(
+        preview.get("what_else_moved_text") or payload.get("affected_assets_summary_text") or event.get("affected_assets_summary_text")
+    )
+    business_context = attention_content._raw_attention_text(
+        preview.get("business_resolution_text")
+        or preview.get("business_context_text")
+        or payload.get("business_resolution_text")
+        or payload.get("business_context_text")
+        or payload.get("surface_business_context_text")
+        or event.get("business_resolution_text")
+        or event.get("business_context_text")
+        or event.get("surface_business_context_text")
+    )
+    event_title = _attention_display_title(
+        payload.get("event_title") or event.get("event_title"),
+        what_happened,
+        preview.get("cause_status") or payload.get("cause_status") or event.get("cause_status"),
+        fallback="Market event",
+    )
     supporting_symbols = [
         str(item).upper().strip()
         for item in list(payload.get("supporting_symbols") or event.get("supporting_symbols") or [])
@@ -6110,11 +5790,13 @@ def _render_attention_home_event_card(
                 st.session_state[toggle_key] = not st.session_state.get(toggle_key, False)
 
         if what_happened:
-            st.markdown(f"**What Happened**  \n{what_happened}")
+            _render_attention_text_block("What Happened", what_happened)
         if why_happened:
-            st.markdown(f"**Why It Happened**  \n{why_happened}")
+            _render_attention_text_block("Why It Happened", why_happened)
         if affected_assets:
-            st.markdown(f"**Affected Assets**  \n{affected_assets}")
+            _render_attention_text_block("Affected Assets", affected_assets)
+        if business_context and business_context not in {why_happened, affected_assets}:
+            _render_attention_text_block("Business Context", business_context)
         if supporting_symbols:
             st.markdown("**Supporting Symbols**")
             _render_ticker_snapshot_table(
@@ -6130,7 +5812,6 @@ def _render_attention_home_event_card(
             part
             for part in [
                 str(payload.get("confidence_label") or event.get("confidence_label") or "").strip(),
-                str(payload.get("cause_status") or event.get("cause_status") or "").replace("_", " ").title().strip(),
                 str(payload.get("evidence_quality") or "").strip(),
                 str(payload.get("freshness_quality") or "").strip(),
                 str(payload.get("source_summary") or event.get("source_summary") or "").strip(),
@@ -6164,13 +5845,34 @@ def _render_attention_home_mover_card(
     toggle_key = _bundle_toggle_key(bundle_id, key_prefix)
     bundle = research_bundle if isinstance(research_bundle, dict) else {}
     payload = bundle if bundle else mover
-    what_changed = attention_content._raw_attention_text(payload.get("what_changed_text") or mover.get("what_changed_text"))
-    why_today = attention_content._raw_attention_text(payload.get("why_now_text") or mover.get("why_now_text"))
-    what_else_moved = attention_content._raw_attention_text(payload.get("what_else_moved_text") or mover.get("what_else_moved_text"))
+    preview = _attention_home_bundle_preview(mover, bundle)
+    what_changed = attention_content._raw_attention_text(
+        preview.get("what_changed_text") or payload.get("what_changed_text") or mover.get("what_changed_text")
+    )
+    why_today = attention_content._raw_attention_text(preview.get("why_text"))
+    what_else_moved = attention_content._raw_attention_text(
+        preview.get("what_else_moved_text") or payload.get("what_else_moved_text") or mover.get("what_else_moved_text")
+    )
+    business_context = attention_content._raw_attention_text(
+        preview.get("business_resolution_text")
+        or preview.get("business_context_text")
+        or payload.get("business_resolution_text")
+        or payload.get("business_context_text")
+        or payload.get("surface_business_context_text")
+        or mover.get("business_resolution_text")
+        or mover.get("business_context_text")
+        or mover.get("surface_business_context_text")
+    )
     with st.container(border=True):
         header_cols = _responsive_columns([4.8, 1.0, 1.5])
         with header_cols[0]:
-            st.markdown(f"##### {title}")
+            display_title = _attention_display_title(
+                title,
+                what_changed,
+                preview.get("cause_status") or payload.get("cause_status") or mover.get("cause_status"),
+                fallback=title or "Mover",
+            )
+            st.markdown(f"##### {display_title}")
             _render_ticker_snapshot_table(
                 cfg,
                 [
@@ -6198,16 +5900,17 @@ def _render_attention_home_mover_card(
                 st.session_state[toggle_key] = not st.session_state.get(toggle_key, False)
 
         if what_changed:
-            st.markdown(f"**What Changed Vs Expectation**  \n{what_changed}")
+            _render_attention_text_block("What Changed Vs Expectation", what_changed)
         if why_today:
-            st.markdown(f"**Why Today**  \n{why_today}")
+            _render_attention_text_block("Why Today", why_today)
         if what_else_moved:
-            st.markdown(f"**What Else Moved**  \n{what_else_moved}")
+            _render_attention_text_block("What Else Moved", what_else_moved)
+        if business_context and business_context not in {why_today, what_else_moved}:
+            _render_attention_text_block("Business Context", business_context)
         meta_line = [
             part
             for part in [
                 str(payload.get("confidence_label") or mover.get("confidence_label") or "").strip(),
-                str(payload.get("cause_status") or mover.get("cause_status") or "").replace("_", " ").title().strip(),
                 str(payload.get("evidence_quality") or "").strip(),
                 str(payload.get("freshness_quality") or "").strip(),
                 str(payload.get("source_summary") or mover.get("top_source") or "").strip(),
@@ -6419,34 +6122,11 @@ def _render_attention_home_summary_card(
     stored_summary_payload = home_payload.get("homepage_summary")
     summary_payload = dict(stored_summary_payload) if isinstance(stored_summary_payload, dict) else {}
     if not summary_payload:
-        summary_payload = build_attention_home_summary_payload(home_payload)
+        return
     summary_payload = apply_display_limits(summary_payload)
-    summary_text = str(summary_payload.get("summary_text") or "").strip()
+    summary_text = str(summary_payload.get("summary_text") or summary_payload.get("answer_markdown") or "").strip()
     audio_text = str(summary_payload.get("audio_text") or summary_text).strip()
-    elevenlabs_cfg = load_elevenlabs_tts_config()
     preloaded_audio_bytes = _try_decode_attention_summary_audio(summary_payload, audio_text=audio_text)
-    async_task_key = ""
-    async_audio_bytes = b""
-    async_audio_error = ""
-    if not preloaded_audio_bytes and audio_text and elevenlabs_cfg:
-        async_task_key = _attention_summary_audio_task_key(
-            audio_text=audio_text,
-            voice_id=str(getattr(elevenlabs_cfg, "voice_id", "") or ""),
-            model_id=str(getattr(elevenlabs_cfg, "model_id", "") or ""),
-            output_format=str(getattr(elevenlabs_cfg, "output_format", "") or ""),
-            base_url=str(getattr(elevenlabs_cfg, "base_url", "") or ""),
-        )
-        async_audio_encoded = str(
-            st.session_state.get(_attention_summary_audio_session_key(async_task_key)) or ""
-        ).strip()
-        async_audio_error = str(
-            st.session_state.get(_attention_summary_audio_error_session_key(async_task_key)) or ""
-        ).strip()
-        if async_audio_encoded:
-            try:
-                async_audio_bytes = base64.b64decode(async_audio_encoded.encode("ascii"), validate=True)
-            except Exception:
-                async_audio_bytes = b""
 
     with st.container(border=True):
         if summary_text:
@@ -6461,248 +6141,31 @@ def _render_attention_home_summary_card(
                 mime_type=str(summary_payload.get("audio_mime_type") or "audio/mpeg"),
             )
             return
-        if async_audio_bytes:
-            from services.elevenlabs_tts import audio_mime_type as elevenlabs_audio_mime_type
-
-            _render_attention_summary_audio_player(
-                audio_bytes=async_audio_bytes,
-                mime_type=elevenlabs_audio_mime_type(str(getattr(elevenlabs_cfg, "output_format", "") or "")),
-            )
-            return
-        if not elevenlabs_cfg:
-            return
-        if async_audio_error:
-            return
-
-        _render_attention_summary_async_audio_fallback(
-            task_key=async_task_key,
-            audio_text=audio_text,
-            elevenlabs_cfg=elevenlabs_cfg,
-        )
 
 
-def _render_home_attention(
-    cfg: AppConfig,
-    api: AlpacaAPI | None,
-    *,
-    force_data_refresh: bool,
-    page_title: str = "Attention Market Overview",
-    page_caption: str = "Today / 1d market activity: what changed versus expectation, why it changed today, and what else moved because of it.",
-    show_trend_surface: bool = True,
-    require_api: bool = True,
-) -> None:
-    header_cols = _responsive_columns([4.8, 1.4])
-    with header_cols[0]:
-        st.title(page_title)
-        st.caption(page_caption)
-    with header_cols[1]:
-        _render_section_back_button("home_attention_back")
-
-    if require_api and api is None:
-        st.info("Configure the live market connection to enable the daily market overview, market context, and research bundle lookups.")
-        return
-
-    try:
-        with _inline_loading_banner(
-            "Loading today's attention overview",
-            "Pulling top events, standout movers, and unresolved market signals.",
-        ):
-            home_payload = dashboard_loaders._load_attention_home_1d_cached(
-                cfg,
-                force_refresh=force_data_refresh,
-            )
-    except Exception as exc:
-        st.warning(f"Could not load the attention layer: {exc}")
-        return
-
-    top_events = list(home_payload.get("top_events") or [])
-    must_read = list(home_payload.get("must_read_movers") or [])
-    unresolved = list(home_payload.get("unresolved_large_moves") or [])
-    taxonomy_trends = list(home_payload.get("taxonomy_horizon_trends") or [])
-    coverage_summary = dict(home_payload.get("coverage_summary") or {})
-    generated_at = pd.to_datetime(home_payload.get("generated_at_utc"), utc=True, errors="coerce")
-    snapshot_label = generated_at.strftime("%Y-%m-%d %H:%M UTC") if pd.notna(generated_at) else "just now"
-    trend_cohort_count = sum(len(list(item.get("cohorts") or [])) for item in taxonomy_trends)
-
-    metric_cols = _responsive_columns(5)
-    with metric_cols[0]:
-        st.metric("Snapshot", snapshot_label)
-    with metric_cols[1]:
-        st.metric("Top Events", str(len(top_events)))
-    with metric_cols[2]:
-        st.metric("Must-Read Movers", str(len(must_read)))
-    with metric_cols[3]:
-        st.metric("Unresolved Large Moves", str(len(unresolved)))
-    with metric_cols[4]:
-        st.metric("Trend Cohorts", str(trend_cohort_count))
-
-    if not pipeline_store_configured():
-        st.caption("Using live market data because the retained attention store is not configured.")
-
-    if not top_events and not must_read and not unresolved:
-        st.info("No daily attention items were produced from the latest market activity. Refresh after the market data sources update.")
-        return
-
-    _render_attention_home_summary_card(
-        home_payload,
-        snapshot_label=snapshot_label,
-    )
-    st.markdown("---")
-    st.subheader("Top Market Events Today")
-    if not top_events:
-        st.info("No market-wide events cleared the bar in the latest market read.")
-    else:
-        for event in top_events:
-                _render_attention_home_event_card(
-                    cfg,
-                    event,
-                    research_bundle={},
-                    key_prefix="home_top_event",
-                    force_refresh=force_data_refresh,
-                    click_target="home",
-                )
-
-    st.markdown("---")
-    second_cols = _responsive_two_panel()
-    with second_cols[0]:
-        st.subheader("Must-Read Movers Today")
-        if not must_read:
-            st.info("No standalone movers survived after event clustering.")
-        else:
-            for mover in must_read:
-                _render_attention_home_mover_card(
-                    cfg,
-                    mover,
-                    title=_attention_mover_card_title(mover),
-                    research_bundle={},
-                    key_prefix="home_must_read",
-                    force_refresh=force_data_refresh,
-                    click_target="home",
-                )
-
-    with second_cols[1]:
-        st.subheader("Unresolved Large Moves")
-        if not unresolved:
-            st.info("No large unresolved moves in the latest market read.")
-        else:
-            for mover in unresolved:
-                _render_attention_home_mover_card(
-                    cfg,
-                    mover,
-                    title=_attention_mover_card_title(mover),
-                    research_bundle={},
-                    key_prefix="home_unresolved",
-                    force_refresh=force_data_refresh,
-                    click_target="home",
-                )
-
-    if show_trend_surface:
-        st.markdown("---")
-        st.subheader("Taxonomy Trend Surface")
-        if not taxonomy_trends:
-            st.info("No multi-horizon taxonomy cohorts were produced in the latest market read.")
-        else:
-            for horizon_row in taxonomy_trends:
-                horizon_label = str(horizon_row.get("horizon_label") or horizon_row.get("horizon") or "").strip()
-                cohorts = list(horizon_row.get("cohorts") or [])
-                if not cohorts:
-                    continue
-                st.caption(horizon_label or "Horizon")
-                trend_table = pd.DataFrame(
-                    [
-                        {
-                            "Cohort": str(item.get("peer_group_name") or "").strip(),
-                            "Members": int(pd.to_numeric(item.get("member_count"), errors="coerce") or 0),
-                            "Breadth": f"{int(pd.to_numeric(item.get('breadth_up'), errors='coerce') or 0)} up / {int(pd.to_numeric(item.get('breadth_down'), errors='coerce') or 0)} down",
-                            "Mean Attention": float(pd.to_numeric(item.get("mean_attention_score"), errors="coerce") or 0.0),
-                            "Mean |z|": float(pd.to_numeric(item.get("mean_abs_residual_zscore"), errors="coerce") or 0.0),
-                            "Leader": str(item.get("leader_symbol") or "").strip(),
-                        }
-                        for item in cohorts
-                    ]
-                )
-                if not trend_table.empty:
-                    st.dataframe(trend_table, hide_index=True, use_container_width=True)
-
-        with st.expander("Coverage Summary"):
-            st.write(
-                f"Universe: {int(pd.to_numeric(coverage_summary.get('equity_universe_count'), errors='coerce') or 0)} equities "
-                f"+ {int(pd.to_numeric(coverage_summary.get('macro_anchor_target_count'), errors='coerce') or 0)} macro anchors."
-            )
-            st.write(
-                f"Candidates: {int(pd.to_numeric(coverage_summary.get('candidate_count'), errors='coerce') or 0)} | "
-                f"News-backed: {int(pd.to_numeric(coverage_summary.get('news_backed_count'), errors='coerce') or 0)} | "
-                f"Portfolio overlap: {int(pd.to_numeric(coverage_summary.get('portfolio_overlap_count'), errors='coerce') or 0)}"
-            )
-            st.caption(
-                f"Trend surface: {int(pd.to_numeric(coverage_summary.get('taxonomy_trend_horizon_count'), errors='coerce') or 0)} horizons / "
-                f"{int(pd.to_numeric(coverage_summary.get('taxonomy_trend_cohort_count'), errors='coerce') or 0)} cohorts."
-            )
-
-    selected_home_ticker = str(st.session_state.get("home_selected_ticker") or "").upper().strip()
-    if selected_home_ticker:
-        st.markdown("---")
-        _render_home_ticker_background_panel(
-            cfg,
-            selected_home_ticker,
-            force_data_refresh=force_data_refresh,
-        )
-
-
-def _select_homepage_v2_bundle(bundle_id: str, symbols: list[str] | None = None, title: str = "") -> None:
+def _select_homepage_v3_bundle(bundle_id: str, symbols: list[str] | None = None, title: str = "") -> None:
     normalized_bundle_id = str(bundle_id or "").strip()
+    symbol_options = [str(symbol).upper().strip() for symbol in list(symbols or []) if str(symbol).strip()]
     if normalized_bundle_id:
         _record_usage_interaction(
             event_type="bundle_open",
             detail={
-                "surface": "home_v2",
+                "surface": "home_v3",
                 "target_type": "bundle",
                 "target_id": normalized_bundle_id,
                 "target_label": str(title or normalized_bundle_id).strip(),
                 "symbols": [str(symbol).upper().strip() for symbol in list(symbols or []) if str(symbol).strip()][:8],
             },
         )
-    st.session_state["homepage_v2_selected_bundle_id"] = normalized_bundle_id
-    st.session_state["homepage_v2_active_panel"] = HOMEPAGE_V2_RESEARCH_PANEL
-    current_ticker = str(st.session_state.get("homepage_v2_selected_ticker") or "").upper().strip()
-    if current_ticker:
-        st.session_state["homepage_v2_selected_ticker"] = current_ticker
-        return
-    symbol_options = [str(symbol).upper().strip() for symbol in list(symbols or []) if str(symbol).strip()]
-    st.session_state["homepage_v2_selected_ticker"] = symbol_options[0] if symbol_options else ""
-
-
-def _homepage_v2_surface_key(bundle_id: str, *, index: int, selected: bool) -> str:
-    cleaned = re.sub(r"[^a-zA-Z0-9_]+", "_", str(bundle_id or index).strip())
-    prefix = "homepage_v2_surface_selected" if selected else "homepage_v2_surface_idle"
-    return f"{prefix}_{cleaned}"
-
-
-def _select_homepage_exp_bundle(bundle_id: str, symbols: list[str] | None = None, title: str = "") -> None:
-    normalized_bundle_id = str(bundle_id or "").strip()
-    if normalized_bundle_id:
-        _record_usage_interaction(
-            event_type="bundle_open",
-            detail={
-                "surface": "home_exp",
-                "target_type": "bundle",
-                "target_id": normalized_bundle_id,
-                "target_label": str(title or normalized_bundle_id).strip(),
-                "symbols": [str(symbol).upper().strip() for symbol in list(symbols or []) if str(symbol).strip()][:8],
-            },
-        )
-    st.session_state["homepage_exp_selected_bundle_id"] = normalized_bundle_id
-    st.session_state["homepage_exp_active_panel"] = HOMEPAGE_V2_RESEARCH_PANEL
-    symbol_options = [str(symbol).upper().strip() for symbol in list(symbols or []) if str(symbol).strip()]
-    current_ticker = str(st.session_state.get("homepage_exp_selected_ticker") or "").upper().strip()
+    st.session_state["homepage_v3_selected_bundle_id"] = normalized_bundle_id
+    current_ticker = str(st.session_state.get("homepage_v3_selected_ticker") or "").upper().strip()
     if current_ticker and current_ticker in symbol_options:
-        st.session_state["homepage_exp_selected_ticker"] = current_ticker
-        return
-    if symbol_options:
-        st.session_state["homepage_exp_selected_ticker"] = symbol_options[0]
+        st.session_state["homepage_v3_selected_ticker"] = current_ticker
+    elif symbol_options:
+        st.session_state["homepage_v3_selected_ticker"] = symbol_options[0]
 
 
-def _open_homepage_exp_ticker(symbol: str, bundle_id: str = "") -> None:
+def _open_homepage_v3_ticker(symbol: str, bundle_id: str = "") -> None:
     cleaned_symbol = str(symbol or "").upper().strip()
     cleaned_bundle_id = str(bundle_id or "").strip()
     if not cleaned_symbol:
@@ -6710,7 +6173,7 @@ def _open_homepage_exp_ticker(symbol: str, bundle_id: str = "") -> None:
     _record_usage_interaction(
         event_type="ticker_open",
         detail={
-            "surface": "home_exp",
+            "surface": "home_v3",
             "symbol": cleaned_symbol,
             "target_type": "ticker",
             "target_label": cleaned_symbol,
@@ -6719,369 +6182,22 @@ def _open_homepage_exp_ticker(symbol: str, bundle_id: str = "") -> None:
         },
     )
     if cleaned_bundle_id:
-        st.session_state["homepage_exp_selected_bundle_id"] = cleaned_bundle_id
-    st.session_state["homepage_exp_selected_ticker"] = cleaned_symbol
-    st.session_state["homepage_exp_active_panel"] = HOMEPAGE_V2_COMPANY_PANEL
+        st.session_state["homepage_v3_selected_bundle_id"] = cleaned_bundle_id
+    st.session_state["homepage_v3_selected_ticker"] = cleaned_symbol
 
 
-def _homepage_exp_surface_key(bundle_id: str, *, index: int, state: str = "idle") -> str:
+def _close_homepage_v3_bundle() -> None:
+    st.session_state["homepage_v3_selected_bundle_id"] = ""
+    st.session_state["homepage_v3_selected_ticker"] = ""
+
+
+def _homepage_v3_surface_key(bundle_id: str, *, index: int, selected: bool) -> str:
     cleaned = re.sub(r"[^a-zA-Z0-9_]+", "_", str(bundle_id or index).strip())
-    if state == "selected_company":
-        prefix = "homepage_exp_surface_selected_company"
-    elif state == "selected_research":
-        prefix = "homepage_exp_surface_selected_research"
-    else:
-        prefix = "homepage_exp_surface_idle"
-    return f"{prefix}_{cleaned}"
+    prefix = "homepage_v3_surface_selected" if selected else "homepage_v3_surface_idle"
+    return f"{prefix}_{index}_{cleaned}"
 
 
-def _render_homepage_exp_rail_header(
-    title: str,
-    *,
-    caption: str = "",
-    clear_button_label: str = "",
-    clear_button_key: str = "",
-    clear_session_key: str = "",
-    clear_mode_key: str = "",
-    clear_mode_value: str = HOMEPAGE_V2_RESEARCH_PANEL,
-) -> None:
-    cleaned_title = str(title or "").strip()
-    cleaned_caption = str(caption or "").strip()
-    if not cleaned_title:
-        return
-    if not str(clear_button_label or "").strip():
-        st.markdown(
-            f"<div class='sn-rail-title'>{html.escape(cleaned_title)}</div>",
-            unsafe_allow_html=True,
-        )
-        if cleaned_caption:
-            st.markdown(
-                f"<div class='sn-rail-caption'>{html.escape(cleaned_caption)}</div>",
-                unsafe_allow_html=True,
-            )
-        return
-    header_cols = _responsive_columns([8.8, 0.65], gap="small")
-    with header_cols[0]:
-        st.markdown(
-            f"<div class='sn-rail-title'>{html.escape(cleaned_title)}</div>",
-            unsafe_allow_html=True,
-        )
-        if cleaned_caption:
-            st.markdown(
-                f"<div class='sn-rail-caption'>{html.escape(cleaned_caption)}</div>",
-                unsafe_allow_html=True,
-            )
-    with header_cols[1]:
-        if st.button(
-            clear_button_label,
-            key=str(clear_button_key or f"homepage_exp_rail_clear_{cleaned_title}").strip(),
-            use_container_width=True,
-        ):
-            st.session_state.pop(clear_session_key or "homepage_exp_selected_ticker", None)
-            if clear_mode_key == "homepage_v2_active_panel":
-                _queue_homepage_v2_active_panel(clear_mode_value)
-            elif clear_mode_key:
-                st.session_state[clear_mode_key] = clear_mode_value
-            st.rerun()
-
-
-@st.fragment
-def _render_homepage_v2_story_fragment(
-    cfg: AppConfig,
-    beats: list[dict[str, object]],
-    *,
-    run_token: str,
-    force_data_refresh: bool,
-) -> None:
-    active_run_token = str(run_token or "").strip()
-    previous_run_token = str(st.session_state.get("homepage_v2_bundle_run_token") or "").strip()
-    if active_run_token and previous_run_token and active_run_token != previous_run_token:
-        stale_keys = [key for key in st.session_state.keys() if str(key).startswith("attention_bundle_cache_")]
-        for key in stale_keys:
-            st.session_state.pop(key, None)
-    st.session_state["homepage_v2_bundle_run_token"] = active_run_token
-    _consume_homepage_v2_pending_panel()
-
-    selection_state = normalize_homepage_v2_detail_state(
-        beats,
-        selected_bundle_id=str(st.session_state.get("homepage_v2_selected_bundle_id") or "").strip(),
-        selected_ticker=str(st.session_state.get("homepage_v2_selected_ticker") or "").strip(),
-        active_panel=str(st.session_state.get("homepage_v2_active_panel") or "").strip(),
-    )
-    selected_bundle_id = str(selection_state.get("selected_bundle_id") or "").strip()
-    selected_ticker = str(selection_state.get("selected_ticker") or "").upper().strip()
-    active_panel = str(selection_state.get("active_panel") or HOMEPAGE_V2_RESEARCH_PANEL).strip()
-    st.session_state["homepage_v2_selected_bundle_id"] = selected_bundle_id
-    st.session_state["homepage_v2_selected_ticker"] = selected_ticker
-    st.session_state["homepage_v2_active_panel"] = active_panel
-
-    bundle_symbol_lookup = homepage_v2_bundle_symbol_lookup(beats)
-    panel_labels = {
-        HOMEPAGE_V2_RESEARCH_PANEL: "Retained research",
-        HOMEPAGE_V2_COMPANY_PANEL: f"Company background{f' · {selected_ticker}' if selected_ticker else ''}",
-    }
-
-    main_cols = _responsive_columns([1.45, 1.05], gap="large")
-    with main_cols[0]:
-        st.subheader("Narrative Thread")
-        st.caption("Each beat stays compact. Choose any headline to load retained research in the rail, or choose any ticker preview to switch the rail into company background.")
-        for index, beat in enumerate(beats):
-            beat_sentence = str(beat.get("sentence") or "").strip()
-            bundle_id = str(beat.get("bundle_id") or "").strip()
-            if not beat_sentence:
-                continue
-            beat_summary = str(beat.get("summary") or "").strip()
-            beat_kind = str(beat.get("kind") or "").replace("_", " ").title().strip()
-            beat_symbols = bundle_symbol_lookup.get(bundle_id) or [
-                str(symbol).upper().strip()
-                for symbol in list(beat.get("symbols") or [])
-                if str(symbol).strip()
-            ]
-            is_selected = bool(bundle_id) and bundle_id == selected_bundle_id and active_panel == HOMEPAGE_V2_RESEARCH_PANEL
-            with st.container(border=True):
-                if bundle_id:
-                    st.button(
-                        f"{index + 1}. {beat_sentence}",
-                        key=_homepage_v2_surface_key(bundle_id, index=index, selected=is_selected),
-                        use_container_width=True,
-                        type="tertiary",
-                        help="Load retained research for this beat in the drilldown rail.",
-                        on_click=_select_homepage_v2_bundle,
-                        args=(bundle_id, list(beat_symbols), beat_sentence),
-                    )
-                else:
-                    st.markdown(f"##### {index + 1}. {beat_sentence}")
-                meta = [item for item in [beat_kind, f"{len(beat_symbols)} symbols" if beat_symbols else ""] if item]
-                if is_selected:
-                    meta.append("In rail")
-                if meta:
-                    st.caption(" | ".join(meta))
-                if beat_summary:
-                    st.write(beat_summary)
-                if beat_symbols:
-                    _render_ticker_snapshot_table(
-                        cfg,
-                        [{"symbol": symbol} for symbol in beat_symbols[:8] if str(symbol).strip()],
-                        force_refresh=force_data_refresh,
-                        show_header=True,
-                        click_target="home_v2",
-                        key_prefix=f"homepage_v2_beat_{bundle_id or index}_symbols",
-                        allow_live_profile_fallback=False,
-                    )
-
-    with main_cols[1]:
-        st.subheader("Drilldown Rail")
-        available_panels = [HOMEPAGE_V2_RESEARCH_PANEL]
-        if selected_ticker:
-            available_panels.append(HOMEPAGE_V2_COMPANY_PANEL)
-        st.radio(
-            "Rail view",
-            available_panels,
-            key="homepage_v2_active_panel",
-            horizontal=True,
-            label_visibility="collapsed",
-            format_func=lambda key: panel_labels.get(key, key.replace("_", " ").title()),
-        )
-
-        with st.container(border=True):
-            active_panel = str(st.session_state.get("homepage_v2_active_panel") or HOMEPAGE_V2_RESEARCH_PANEL).strip()
-            if active_panel == HOMEPAGE_V2_COMPANY_PANEL:
-                if not selected_ticker:
-                    st.info("Choose a ticker preview from the narrative thread to load company background here.")
-                else:
-                    _render_home_ticker_background_panel(
-                        cfg,
-                        selected_ticker,
-                        force_data_refresh=force_data_refresh,
-                        session_key="homepage_v2_selected_ticker",
-                        clear_mode_key="homepage_v2_active_panel",
-                        clear_mode_value=HOMEPAGE_V2_RESEARCH_PANEL,
-                        panel_title=f"{selected_ticker} Company Background",
-                        panel_caption="Loaded from the narrative rail ticker preview selection.",
-                        clear_button_label="Close",
-                    )
-            elif not selected_bundle_id:
-                st.info("Pick a beat from the narrative thread to inspect the retained research.")
-            else:
-                if _has_cached_attention_bundle(selected_bundle_id, run_token=active_run_token) and not force_data_refresh:
-                    bundle = _load_attention_research_bundle_session_cached(
-                        cfg,
-                        selected_bundle_id,
-                        run_token=active_run_token,
-                        force_refresh=False,
-                    )
-                else:
-                    with _inline_loading_banner(
-                        "Loading research",
-                        "Pulling the retained evidence, price context, and linked symbols for this beat.",
-                    ):
-                        bundle = _load_attention_research_bundle_session_cached(
-                            cfg,
-                            selected_bundle_id,
-                            run_token=active_run_token,
-                            force_refresh=force_data_refresh,
-                        )
-                fallback_item = next((beat for beat in beats if str(beat.get("bundle_id") or "").strip() == selected_bundle_id), {})
-                title = _attention_bundle_title(bundle, fallback=fallback_item)
-                st.markdown(f"### {title}")
-                _render_attention_research_bundle_panel(
-                    bundle,
-                    ticker_click_target="home_v2",
-                    ticker_table_key_prefix=f"homepage_v2_bundle_{selected_bundle_id or 'selected'}",
-                )
-
-
-@st.fragment
-def _render_homepage_exp_story_fragment(
-    cfg: AppConfig,
-    beats: list[dict[str, object]],
-    *,
-    run_token: str,
-    force_data_refresh: bool,
-) -> None:
-    active_run_token = str(run_token or "").strip()
-    previous_run_token = str(st.session_state.get("homepage_exp_bundle_run_token") or "").strip()
-    if active_run_token and previous_run_token and active_run_token != previous_run_token:
-        stale_keys = [key for key in st.session_state.keys() if str(key).startswith("attention_bundle_cache_")]
-        for key in stale_keys:
-            st.session_state.pop(key, None)
-    st.session_state["homepage_exp_bundle_run_token"] = active_run_token
-
-    selection_state = normalize_homepage_v2_detail_state(
-        beats,
-        selected_bundle_id=str(st.session_state.get("homepage_exp_selected_bundle_id") or "").strip(),
-        selected_ticker=str(st.session_state.get("homepage_exp_selected_ticker") or "").strip(),
-        active_panel=str(st.session_state.get("homepage_exp_active_panel") or "").strip(),
-    )
-    selected_bundle_id = str(selection_state.get("selected_bundle_id") or "").strip()
-    selected_ticker = str(selection_state.get("selected_ticker") or "").upper().strip()
-    active_panel = str(selection_state.get("active_panel") or HOMEPAGE_V2_RESEARCH_PANEL).strip()
-    st.session_state["homepage_exp_selected_bundle_id"] = selected_bundle_id
-    st.session_state["homepage_exp_selected_ticker"] = selected_ticker
-    st.session_state["homepage_exp_active_panel"] = active_panel
-
-    bundle_symbol_lookup = homepage_v2_bundle_symbol_lookup(beats)
-    beat_lookup = {
-        str(beat.get("bundle_id") or "").strip(): beat
-        for beat in beats
-        if str((beat or {}).get("bundle_id") or "").strip()
-    }
-    selected_beat = beat_lookup.get(selected_bundle_id, {})
-
-    main_cols = _responsive_columns([1.45, 1.05], gap="large")
-    with main_cols[0]:
-        for index, beat in enumerate(beats):
-            beat_sentence = str(beat.get("sentence") or "").strip()
-            bundle_id = str(beat.get("bundle_id") or "").strip()
-            if not beat_sentence:
-                continue
-            beat_summary = str(beat.get("summary") or "").strip()
-            beat_kind = str(beat.get("kind") or "").replace("_", " ").title().strip()
-            beat_symbols = bundle_symbol_lookup.get(bundle_id) or [
-                str(symbol).upper().strip()
-                for symbol in list(beat.get("symbols") or [])
-                if str(symbol).strip()
-            ]
-            is_selected = bool(bundle_id) and bundle_id == selected_bundle_id
-            company_focus = (
-                active_panel == HOMEPAGE_V2_COMPANY_PANEL
-                and is_selected
-                and bool(selected_ticker)
-                and selected_ticker in beat_symbols
-            )
-            surface_state = "selected_company" if company_focus else "selected_research" if is_selected else "idle"
-            with st.container(border=True):
-                if bundle_id:
-                    st.button(
-                        f"{index + 1}. {beat_sentence}",
-                        key=_homepage_exp_surface_key(bundle_id, index=index, state=surface_state),
-                        use_container_width=True,
-                        type="tertiary",
-                        on_click=_select_homepage_exp_bundle,
-                        args=(bundle_id, list(beat_symbols), beat_sentence),
-                    )
-                else:
-                    st.markdown(f"##### {index + 1}. {beat_sentence}")
-                meta = [item for item in [beat_kind, f"{len(beat_symbols)} symbols" if beat_symbols else ""] if item]
-                if meta:
-                    st.caption(" | ".join(meta))
-                if beat_summary:
-                    st.write(beat_summary)
-                if beat_symbols:
-                    _render_ticker_snapshot_table(
-                        cfg,
-                        [{"symbol": symbol} for symbol in beat_symbols[:8] if str(symbol).strip()],
-                        force_refresh=force_data_refresh,
-                        show_header=True,
-                        click_target="home_exp",
-                        key_prefix=f"homepage_exp_beat_{bundle_id or index}_symbols",
-                        click_bundle_id=bundle_id,
-                        allow_live_profile_fallback=False,
-                    )
-
-    with main_cols[1]:
-        if active_panel == HOMEPAGE_V2_COMPANY_PANEL:
-            with st.container(border=True):
-                if not selected_ticker:
-                    st.info("Select a ticker to load company background.")
-                else:
-                    _render_homepage_exp_rail_header(
-                        f"{selected_ticker} Background",
-                        clear_button_label="X",
-                        clear_button_key=f"homepage_exp_close_{selected_ticker}",
-                        clear_session_key="homepage_exp_selected_ticker",
-                        clear_mode_key="homepage_exp_active_panel",
-                        clear_mode_value=HOMEPAGE_V2_RESEARCH_PANEL,
-                    )
-                    _render_home_ticker_background_panel(
-                        cfg,
-                        selected_ticker,
-                        force_data_refresh=force_data_refresh,
-                        session_key="homepage_exp_selected_ticker",
-                        clear_mode_key="homepage_exp_active_panel",
-                        clear_mode_value=HOMEPAGE_V2_RESEARCH_PANEL,
-                        panel_title="",
-                        panel_caption="",
-                        open_button_label="",
-                        clear_button_label="",
-                        clear_button_key="",
-                        show_header=False,
-                        show_container_border=False,
-                    )
-        elif not selected_bundle_id:
-            with st.container(border=True):
-                st.info("Select a beat to load retained research.")
-        else:
-            if _has_cached_attention_bundle(selected_bundle_id, run_token=active_run_token) and not force_data_refresh:
-                bundle = _load_attention_research_bundle_session_cached(
-                    cfg,
-                    selected_bundle_id,
-                    run_token=active_run_token,
-                    force_refresh=False,
-                )
-            else:
-                with _inline_loading_banner(
-                    "Loading research",
-                    "Pulling the retained evidence, price context, and linked symbols for this beat.",
-                ):
-                    bundle = _load_attention_research_bundle_session_cached(
-                        cfg,
-                        selected_bundle_id,
-                        run_token=active_run_token,
-                        force_refresh=force_data_refresh,
-                    )
-            fallback_item = selected_beat if isinstance(selected_beat, dict) else {}
-            title = _attention_bundle_title(bundle, fallback=fallback_item)
-            with st.container(border=True):
-                _render_homepage_exp_rail_header(title)
-                _render_attention_research_bundle_panel(
-                    bundle,
-                    ticker_click_target="home_exp",
-                    ticker_table_key_prefix=f"homepage_exp_bundle_{selected_bundle_id or 'selected'}",
-                )
-
-
-def _render_homepage_v2_graph_banner(home_payload: dict[str, object]) -> None:
+def _render_homepage_graph_banner(home_payload: dict[str, object]) -> None:
     homepage_graph = dict(home_payload.get("homepage_graph") or {}) if isinstance(home_payload, dict) else {}
     figure_json = homepage_graph.get("figure")
     if not isinstance(figure_json, dict) or not figure_json:
@@ -7095,6 +6211,7 @@ def _render_homepage_v2_graph_banner(home_payload: dict[str, object]) -> None:
             figure,
             use_container_width=True,
             config={"displayModeBar": False, "displaylogo": False, "scrollZoom": False},
+            key="homepage_v3_graph_banner",
         )
 
 def _build_homepage_narrative_beats(home_payload: dict[str, object]) -> list[dict[str, object]]:
@@ -7136,66 +6253,124 @@ def _load_homepage_replay_payload(target_date: str) -> dict[str, object] | None:
         return None
 
 
-def _render_homepage_v2(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_refresh: bool) -> None:
-    _, _back_col = _responsive_columns([5, 1.4])
-    with _back_col:
-        _render_section_back_button("homepage_v2_back")
-
-    # --- Historical replay: read date from sidebar selector ---
-    replay_date = st.session_state.get("_homepage_replay_date")
-
-    if replay_date is not None:
-        home_payload = _load_homepage_replay_payload(replay_date)
-    else:
-        home_payload = _load_homepage_narrative_payload(
-            cfg,
-            force_data_refresh=force_data_refresh,
-        )
-    if not isinstance(home_payload, dict):
+def _render_homepage_replay_banner(target_date: object, *, key: str) -> None:
+    replay_label = str(target_date or "").strip()
+    if not replay_label:
         return
-
-    beats = _build_homepage_narrative_beats(home_payload)
-    if not beats:
-        st.info("No daily narrative beats were produced from the latest market activity.")
-        return
-
-    generated_at = pd.to_datetime(home_payload.get("generated_at_utc"), utc=True, errors="coerce")
-    snapshot_label = generated_at.strftime("%Y-%m-%d %H:%M UTC") if pd.notna(generated_at) else "just now"
-
-    if _mobile_layout_active():
-        _render_attention_home_summary_card(
-            home_payload,
-            snapshot_label=snapshot_label,
-            title="Market Summary",
-        )
-        with st.expander("Market graph", expanded=False):
-            _render_homepage_v2_graph_banner(home_payload)
-    else:
-        _render_homepage_v2_graph_banner(home_payload)
-        _render_attention_home_summary_card(
-            home_payload,
-            snapshot_label=snapshot_label,
-            title="Market Summary",
-        )
-    _render_homepage_exp_story_fragment(
-        cfg,
-        beats,
-        run_token=str(home_payload.get("run_id") or home_payload.get("generated_at_utc") or "").strip(),
-        force_data_refresh=force_data_refresh,
-    )
-
-
-def _render_homepage_exp(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_refresh: bool) -> None:
-    from views.experiments import _render_experiment_placeholder_page
-    _render_experiment_placeholder_page(
-        cfg,
-        force_data_refresh=force_data_refresh,
-    )
+    with st.container(border=True):
+        cols = _responsive_columns([5, 1])
+        with cols[0]:
+            st.markdown(f"Viewing historical snapshot: **{replay_label}**")
+        with cols[1]:
+            if st.button("Return to today", key=key, use_container_width=True):
+                st.session_state.pop("_homepage_replay_date", None)
+                st.session_state["homepage_replay_date"] = pd.Timestamp.now(tz="UTC").normalize().date()
+                st.rerun()
 
 
 # ---------------------------------------------------------------------------
-# Homepage — narrative beats with nested stock summaries and fundamentals
+# Homepage — narrative beats with selected retained research
 # ---------------------------------------------------------------------------
+
+def _looks_like_failed_zopedia_synthesis_answer(answer: object) -> bool:
+    text = re.sub(r"\s+", " ", str(answer or "").strip().lower())
+    if not text:
+        return False
+    if "i collected tool output" in text or "did not get a clean final synthesis" in text:
+        return True
+    tool_markers = sum(
+        1
+        for marker in (
+            "evidence collected:",
+            "research.",
+            "investigator.",
+            "dataset.",
+            "question: what is driving",
+            "columns=",
+            "sample=[",
+        )
+        if marker in text
+    )
+    return tool_markers >= 3
+
+
+def _metadata_field(metadata: object, key: str) -> str:
+    if isinstance(metadata, dict):
+        return str(metadata.get(key) or "").strip()
+    return str(getattr(metadata, key, "") or "").strip()
+
+
+@st.cache_data(ttl=120, show_spinner=False)
+def _load_zopedia_enrichments_frame_cached() -> tuple[pd.DataFrame, str]:
+    try:
+        from services.pipeline_store import load_latest_dataset_frame
+        frame, metadata = load_latest_dataset_frame("attention_ticker_zopedia_enrichments")
+    except Exception:
+        return pd.DataFrame(), ""
+    dataset_version = (
+        _metadata_field(metadata, "dataset_version_id")
+        or _metadata_field(metadata, "asof_time_utc")
+    )
+    return frame if isinstance(frame, pd.DataFrame) else pd.DataFrame(), dataset_version
+
+
+@st.cache_data(ttl=120, show_spinner=False)
+def _load_homepage_v3_bundle_lookup_cached(run_token: str = "") -> tuple[dict[str, dict[str, object]], str]:
+    frame = pd.DataFrame()
+    metadata = None
+    dataset_name = ""
+    for candidate_dataset in ("attention_bundle_snapshots", "attention_research_bundles"):
+        try:
+            candidate_frame, candidate_metadata = load_latest_dataset_frame(candidate_dataset)
+        except Exception:
+            continue
+        if isinstance(candidate_frame, pd.DataFrame) and not candidate_frame.empty:
+            frame = candidate_frame
+            metadata = candidate_metadata
+            dataset_name = candidate_dataset
+            break
+    if frame.empty:
+        return {}, ""
+    normalized_run = str(run_token or "").strip()
+    if normalized_run and "run_id" in frame.columns:
+        scoped = frame[frame["run_id"].astype(str).str.strip().eq(normalized_run)]
+        if not scoped.empty:
+            frame = scoped.copy()
+    dataset_version = (
+        _metadata_field(metadata, "dataset_version_id")
+        or _metadata_field(metadata, "asof_time_utc")
+        or dataset_name
+    )
+    return deserialize_attention_research_bundles(frame), dataset_version
+
+
+@st.cache_data(ttl=120, show_spinner=False)
+def _load_homepage_v3_ticker_background_lookup_cached(run_token: str = "") -> tuple[dict[str, dict[str, object]], str]:
+    try:
+        frame, metadata = load_latest_dataset_frame("attention_ticker_background_snapshots")
+    except Exception:
+        return {}, ""
+    if not isinstance(frame, pd.DataFrame) or frame.empty or "symbol" not in frame.columns:
+        return {}, ""
+    normalized_run = str(run_token or "").strip()
+    if normalized_run and "run_id" in frame.columns:
+        scoped = frame[frame["run_id"].astype(str).str.strip().eq(normalized_run)]
+        if not scoped.empty:
+            frame = scoped.copy()
+    lookup: dict[str, dict[str, object]] = {}
+    for raw_symbol in frame["symbol"].dropna().astype(str).str.upper().str.strip().drop_duplicates().tolist():
+        if not raw_symbol:
+            continue
+        payload = deserialize_attention_ticker_background_frame(frame, raw_symbol)
+        if payload:
+            lookup[raw_symbol] = payload
+    dataset_version = (
+        _metadata_field(metadata, "dataset_version_id")
+        or _metadata_field(metadata, "asof_time_utc")
+        or "attention_ticker_background_snapshots"
+    )
+    return lookup, dataset_version
+
 
 def _load_zopedia_enrichments_lookup() -> dict[str, dict[str, object]]:
     def _cell_text(row: pd.Series, key: str) -> str:
@@ -7220,23 +6395,26 @@ def _load_zopedia_enrichments_lookup() -> dict[str, dict[str, object]]:
             return default
 
     cache_key = "_homev3_zopedia_enrichments_lookup"
+    cache_version_key = "_homev3_zopedia_enrichments_lookup_version"
+    frame, dataset_version = _load_zopedia_enrichments_frame_cached()
     cached = st.session_state.get(cache_key)
-    if isinstance(cached, dict):
+    cached_version = str(st.session_state.get(cache_version_key) or "").strip()
+    if isinstance(cached, dict) and dataset_version and cached_version == dataset_version:
         return cached
-    try:
-        from services.pipeline_store import load_latest_dataset_frame
-        frame, _ = load_latest_dataset_frame("attention_ticker_zopedia_enrichments")
-    except Exception:
-        frame = pd.DataFrame()
     lookup: dict[str, dict[str, object]] = {}
     if isinstance(frame, pd.DataFrame) and not frame.empty and "symbol" in frame.columns:
         for _, row in frame.iterrows():
             symbol = _cell_text(row, "symbol").upper()
             if not symbol:
                 continue
+            answer_markdown = _cell_text(row, "answer_markdown")
+            status = _cell_text(row, "status")
+            if _looks_like_failed_zopedia_synthesis_answer(answer_markdown):
+                answer_markdown = ""
+                status = "failed_synthesis"
             lookup[symbol] = {
-                "status": _cell_text(row, "status"),
-                "answer_markdown": _cell_text(row, "answer_markdown"),
+                "status": status,
+                "answer_markdown": answer_markdown,
                 "confidence": _cell_text(row, "confidence"),
                 "limitations": _json_cell(row, "limitations_json", []),
                 "tool_calls": _json_cell(row, "tool_calls_json", []),
@@ -7251,6 +6429,7 @@ def _load_zopedia_enrichments_lookup() -> dict[str, dict[str, object]]:
                 "output_format": _cell_text(row, "output_format"),
             }
     st.session_state[cache_key] = lookup
+    st.session_state[cache_version_key] = dataset_version
     return lookup
 
 
@@ -7283,43 +6462,14 @@ def _render_zopedia_summary_audio(result: dict[str, object]) -> None:
             mime_type=str(result.get("audio_mime_type") or "audio/mpeg"),
         )
         return
-    elevenlabs_cfg = load_elevenlabs_tts_config()
-    if not elevenlabs_cfg:
-        return
-    async_task_key = _attention_summary_audio_task_key(
-        audio_text=audio_text,
-        voice_id=str(getattr(elevenlabs_cfg, "voice_id", "") or ""),
-        model_id=str(getattr(elevenlabs_cfg, "model_id", "") or ""),
-        output_format=str(getattr(elevenlabs_cfg, "output_format", "") or ""),
-        base_url=str(getattr(elevenlabs_cfg, "base_url", "") or ""),
-    )
-    async_audio_encoded = str(st.session_state.get(_attention_summary_audio_session_key(async_task_key)) or "").strip()
-    if async_audio_encoded:
-        try:
-            async_audio_bytes = base64.b64decode(async_audio_encoded.encode("ascii"), validate=True)
-        except Exception:
-            async_audio_bytes = b""
-        if async_audio_bytes:
-            from services.elevenlabs_tts import audio_mime_type as elevenlabs_audio_mime_type
-
-            _render_attention_summary_audio_player(
-                audio_bytes=async_audio_bytes,
-                mime_type=elevenlabs_audio_mime_type(str(getattr(elevenlabs_cfg, "output_format", "") or "")),
-            )
-            return
-    if str(st.session_state.get(_attention_summary_audio_error_session_key(async_task_key)) or "").strip():
-        return
-    _render_attention_summary_async_audio_fallback(
-        task_key=async_task_key,
-        audio_text=audio_text,
-        elevenlabs_cfg=elevenlabs_cfg,
-    )
 
 
 def _render_zopedia_ticker_result(result: dict[str, object], *, debug: bool = False) -> None:
     import re as _re
 
     answer = str(result.get("answer_markdown") or "").strip()
+    if _looks_like_failed_zopedia_synthesis_answer(answer):
+        return
     confidence = str(result.get("confidence") or "").strip().lower()
     limitations = [str(l).strip() for l in list(result.get("limitations") or []) if str(l).strip()]
     tool_calls = list(result.get("tool_calls") or [])
@@ -7337,7 +6487,7 @@ def _render_zopedia_ticker_result(result: dict[str, object], *, debug: bool = Fa
         if heading:
             if idx > 0:
                 st.markdown("---")
-            st.markdown(f"###### {heading}")
+            st.markdown(f"###### {attention_content.streamlit_safe_markdown_text(heading)}")
         st.markdown(body)
 
     if confidence and confidence not in ("", "low", "medium"):
@@ -7365,25 +6515,102 @@ def _render_zopedia_ticker_result(result: dict[str, object], *, debug: bool = Fa
                     st.markdown(f"- {lim}")
 
 
+def _render_homepage_v3_materialized_ticker_background(
+    symbol: str,
+    background: dict[str, object],
+    *,
+    key_prefix: str,
+) -> None:
+    target = str(symbol or "").upper().strip()
+    payload = background if isinstance(background, dict) else {}
+    if not target or str(payload.get("symbol") or "").upper().strip() != target:
+        return
+    chart_key_prefix = re.sub(r"[^a-zA-Z0-9_]+", "_", str(key_prefix or target).strip()) or target
+
+    price_points = payload.get("price_points")
+    price_frame = pd.DataFrame(price_points if isinstance(price_points, list) else [])
+    if not price_frame.empty and {"timestamp", "close"}.issubset(price_frame.columns):
+        price_frame["timestamp"] = pd.to_datetime(price_frame["timestamp"], utc=True, errors="coerce")
+        price_frame["close"] = pd.to_numeric(price_frame["close"], errors="coerce")
+        price_frame = price_frame.dropna(subset=["timestamp", "close"]).sort_values("timestamp")
+    if not price_frame.empty:
+        price_fig = go.Figure(
+            go.Scatter(
+                x=price_frame["timestamp"],
+                y=price_frame["close"],
+                mode="lines",
+                name=target,
+                line={"color": "#38bdf8", "width": 2.3},
+            )
+        )
+        price_fig.update_layout(
+            template="plotly_dark",
+            height=240,
+            margin={"l": 12, "r": 12, "t": 8, "b": 12},
+            xaxis_title="",
+            yaxis_title="Price",
+            showlegend=False,
+        )
+        st.plotly_chart(
+            price_fig,
+            use_container_width=True,
+            key=f"{chart_key_prefix}_price",
+        )
+
+    metric_parts = [
+        str(payload.get("company_name") or "").strip(),
+        str(payload.get("market_cap_label") or "").strip(),
+        str(payload.get("business_lens") or "").strip(),
+    ]
+    metric_line = " | ".join(part for part in metric_parts if part)
+    if metric_line:
+        st.caption(metric_line)
+
+    llm_headline = str(payload.get("llm_headline") or "").strip()
+    zopedia_enrichment_text = str(payload.get("zopedia_enrichment_text") or "").strip()
+    company_background_text = str(payload.get("company_background_text") or "").strip()
+    source_trace = payload.get("source_trace")
+    source_trace = source_trace if isinstance(source_trace, dict) else {}
+    source_datasets = {
+        str(item).strip()
+        for item in list(source_trace.get("datasets") or [])
+        if str(item).strip()
+    }
+    has_zopedia_background = bool(
+        zopedia_enrichment_text
+        or source_trace.get("zopedia_enrichment_attached")
+        or "attention_ticker_zopedia_enrichments" in source_datasets
+    )
+    background_summary = zopedia_enrichment_text or (company_background_text if has_zopedia_background else "")
+    has_agentic_background = bool(background_summary)
+    what_happened_summary = llm_headline if has_agentic_background else ""
+    evidence_links = (
+        _collect_evidence_links(
+            recent_headlines=list(payload.get("recent_headlines") or []),
+            limit=8,
+        )
+        if has_agentic_background
+        else []
+    )
+    _render_compact_background_sections(
+        target,
+        background_summary=background_summary,
+        what_happened_summary=what_happened_summary,
+        evidence_links=evidence_links,
+        key_prefix=f"{chart_key_prefix}_background",
+    )
+
+
 def _split_zopedia_answer_sections(markdown: str) -> list[tuple[str, str]]:
     """Split markdown answer into (heading, body) pairs for structured rendering."""
-    import re
-    normalized = re.sub(r"(?<!\n)(#{1,4}\s+)", r"\n\1", markdown)
-    parts: list[tuple[str, str]] = []
-    current_heading = ""
-    current_lines: list[str] = []
-    for line in normalized.split("\n"):
-        match = re.match(r"^#{1,4}\s+(.+)$", line.strip())
-        if match:
-            if current_lines:
-                parts.append((current_heading, "\n".join(current_lines).strip()))
-            current_heading = match.group(1).strip()
-            current_lines = []
-        else:
-            current_lines.append(line)
-    if current_lines:
-        parts.append((current_heading, "\n".join(current_lines).strip()))
-    return [(h, b) for h, b in parts if b]
+    return attention_content.display_markdown_sections(markdown)
+
+
+def _homev3_expander_open(expander: object, *, default: bool = False) -> bool:
+    state = getattr(expander, "open", None)
+    if state is None:
+        return bool(default)
+    return bool(state)
 
 
 @st.fragment
@@ -7394,9 +6621,28 @@ def _render_homepage_v3_story_fragment(
     run_token: str,
     force_data_refresh: bool,
     zopedia_lookup: dict[str, dict[str, object]],
+    bundle_lookup: dict[str, dict[str, object]] | None = None,
+    ticker_background_lookup: dict[str, dict[str, object]] | None = None,
 ) -> None:
     active_run_token = str(run_token or "").strip()
-    bundle_symbol_lookup = homepage_v2_bundle_symbol_lookup(beats)
+    previous_run_token = str(st.session_state.get("homepage_v3_bundle_run_token") or "").strip()
+    if active_run_token and previous_run_token and active_run_token != previous_run_token:
+        st.session_state.pop("homepage_v3_selected_bundle_id", None)
+    st.session_state["homepage_v3_bundle_run_token"] = active_run_token
+
+    bundle_symbol_lookup = homepage_bundle_symbol_lookup(beats)
+    beat_lookup = {
+        str(beat.get("bundle_id") or "").strip(): beat
+        for beat in beats
+        if str((beat or {}).get("bundle_id") or "").strip()
+    }
+    selected_bundle_id = str(st.session_state.get("homepage_v3_selected_bundle_id") or "").strip()
+    if selected_bundle_id and selected_bundle_id not in beat_lookup:
+        selected_bundle_id = ""
+        st.session_state["homepage_v3_selected_bundle_id"] = ""
+    selected_ticker = str(st.session_state.get("homepage_v3_selected_ticker") or "").upper().strip()
+    loaded_bundle_lookup = bundle_lookup
+    loaded_ticker_background_lookup = ticker_background_lookup
 
     for index, beat in enumerate(beats):
         beat_sentence = str(beat.get("sentence") or "").strip()
@@ -7418,39 +6664,90 @@ def _render_homepage_v3_story_fragment(
                 st.caption(" · ".join(meta))
             if beat_summary:
                 st.write(beat_summary)
+            if beat_symbols:
+                st.caption("Tickers: " + ", ".join(beat_symbols[:8]))
 
             if bundle_id:
-                with st.expander("Research", expanded=False, icon=":material/search:"):
-                    if _has_cached_attention_bundle(bundle_id, run_token=active_run_token) and not force_data_refresh:
-                        bundle = _load_attention_research_bundle_session_cached(
-                            cfg, bundle_id, run_token=active_run_token, force_refresh=False,
-                        )
-                    else:
-                        with st.spinner("Loading retained research..."):
-                            bundle = _load_attention_research_bundle_session_cached(
-                                cfg, bundle_id, run_token=active_run_token, force_refresh=force_data_refresh,
-                            )
-                    _render_attention_research_bundle_panel(
-                        bundle,
-                        ticker_table_key_prefix=f"homev3_bundle_{bundle_id}",
-                        suppress_ticker_tables=True,
-                    )
+                is_selected = bool(selected_bundle_id) and bundle_id == selected_bundle_id
+                research_expander = st.expander(
+                    "Research",
+                    expanded=is_selected,
+                    icon=":material/search:",
+                    key=f"homev3_research_{active_run_token}_{index}_{bundle_id or 'bundle'}",
+                    on_change="rerun",
+                )
+                if not _homev3_expander_open(research_expander, default=is_selected):
+                    continue
+                with research_expander:
+                    if loaded_bundle_lookup is None:
+                        loaded_bundle_lookup, _bundle_lookup_version = _load_homepage_v3_bundle_lookup_cached(active_run_token)
+                    bundle = (loaded_bundle_lookup or {}).get(bundle_id, {})
 
-                    if beat_symbols:
-                        st.markdown("---")
-                        for symbol in beat_symbols[:6]:
-                            enrichment = zopedia_lookup.get(symbol.upper())
-                            has_enrichment = bool(enrichment and str(enrichment.get("answer_markdown") or "").strip())
-                            with st.expander(symbol, expanded=False, icon=":material/query_stats:"):
-                                if has_enrichment:
-                                    _render_zopedia_ticker_result(enrichment, debug=_homev3_debug_mode())
-                                else:
-                                    st.caption("Attention stock summary not yet available.")
-                                _render_overview_fundamentals(
-                                    cfg,
-                                    symbol,
-                                    force_data_refresh=force_data_refresh,
+                    if bundle:
+                        _render_attention_research_bundle_panel(
+                            bundle,
+                            ticker_table_key_prefix=(
+                                f"homev3_bundle_{active_run_token}_{index}_{bundle_id or 'bundle'}"
+                            ),
+                            suppress_ticker_tables=True,
+                        )
+
+                    selected_symbols = beat_symbols[:6]
+                    rendered_ticker_count = 0
+                    for symbol in selected_symbols:
+                        normalized_symbol = str(symbol or "").upper().strip()
+                        if not normalized_symbol:
+                            continue
+                        enrichment = zopedia_lookup.get(normalized_symbol, {})
+                        has_enrichment = bool(str(enrichment.get("answer_markdown") or "").strip())
+                        if rendered_ticker_count == 0:
+                            st.markdown("---")
+                            st.markdown("**Group Tickers**")
+                        rendered_ticker_count += 1
+                        ticker_expander = st.expander(
+                            normalized_symbol,
+                            expanded=bool(is_selected and selected_ticker == normalized_symbol),
+                            icon=":material/query_stats:",
+                            key=(
+                                f"homev3_ticker_{active_run_token}_"
+                                f"{bundle_id or index}_{normalized_symbol}"
+                            ),
+                            on_change="rerun",
+                        )
+                        if not _homev3_expander_open(
+                            ticker_expander,
+                            default=bool(is_selected and selected_ticker == normalized_symbol),
+                        ):
+                            continue
+                        with ticker_expander:
+                            if loaded_ticker_background_lookup is None:
+                                loaded_ticker_background_lookup, _ticker_background_version = (
+                                    _load_homepage_v3_ticker_background_lookup_cached(active_run_token)
                                 )
+                            background = (loaded_ticker_background_lookup or {}).get(normalized_symbol, {})
+                            has_background = bool(background)
+                            if has_enrichment and not str(background.get("zopedia_enrichment_text") or "").strip():
+                                _render_zopedia_ticker_result(enrichment, debug=_homev3_debug_mode())
+                            if has_background:
+                                _render_homepage_v3_materialized_ticker_background(
+                                    normalized_symbol,
+                                    background,
+                                    key_prefix=(
+                                        f"homev3_ticker_background_{active_run_token}_"
+                                        f"{bundle_id or index}_{normalized_symbol}"
+                                    ),
+                                )
+                            _render_overview_fundamentals(
+                                cfg,
+                                normalized_symbol,
+                                force_data_refresh=force_data_refresh,
+                                asof_time_utc=background.get("asof_time_utc") if isinstance(background, dict) else None,
+                                show_empty_state=False,
+                                key_prefix=(
+                                    f"homev3_ticker_fundamentals_{active_run_token}_"
+                                    f"{bundle_id or index}_{normalized_symbol}"
+                                ),
+                            )
 
 
 def _homev3_debug_mode() -> bool:
@@ -7467,6 +6764,7 @@ def _render_homepage_v3(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_ref
 
     replay_date = st.session_state.get("_homepage_replay_date")
     if replay_date is not None:
+        _render_homepage_replay_banner(replay_date, key="homepage_v3_clear_replay")
         home_payload = _load_homepage_replay_payload(replay_date)
     else:
         home_payload = _load_homepage_narrative_payload(
@@ -7483,8 +6781,9 @@ def _render_homepage_v3(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_ref
 
     generated_at = pd.to_datetime(home_payload.get("generated_at_utc"), utc=True, errors="coerce")
     snapshot_label = generated_at.strftime("%Y-%m-%d %H:%M UTC") if pd.notna(generated_at) else "just now"
+    run_token = str(home_payload.get("run_id") or home_payload.get("generated_at_utc") or "").strip()
 
-    _render_homepage_v2_graph_banner(home_payload)
+    _render_homepage_graph_banner(home_payload)
 
     zopedia_lookup = _load_zopedia_enrichments_lookup()
     market_summary = zopedia_lookup.get("__MARKET_SUMMARY__")
@@ -7506,7 +6805,7 @@ def _render_homepage_v3(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_ref
     _render_homepage_v3_story_fragment(
         cfg,
         beats,
-        run_token=str(home_payload.get("run_id") or home_payload.get("generated_at_utc") or "").strip(),
+        run_token=run_token,
         zopedia_lookup=zopedia_lookup,
         force_data_refresh=force_data_refresh,
     )
@@ -7877,7 +7176,7 @@ if (
             if st.button("Sign in", type="primary", use_container_width=True, key="public_home_signin"):
                 st.session_state["_show_login_form"] = True
                 st.rerun()
-    _render_homepage_v2(cfg, None, force_data_refresh=False)
+    _render_homepage_v3(cfg, None, force_data_refresh=False)
     st.stop()
 
 # Gate: unauthenticated visitor trying to reach a specific section.
@@ -8031,20 +7330,6 @@ force_data_refresh = force_refresh_default
 
 if section == "Home":
     _render_homepage_v3(
-        cfg,
-        api,
-        force_data_refresh=force_data_refresh,
-    )
-
-elif section == HOME_EXP_SECTION:
-    _render_homepage_exp(
-        cfg,
-        api,
-        force_data_refresh=force_data_refresh,
-    )
-
-elif section == HOME_V2_SECTION:
-    _render_homepage_v2(
         cfg,
         api,
         force_data_refresh=force_data_refresh,

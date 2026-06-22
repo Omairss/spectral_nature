@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import os
 from typing import Any, Callable
 
 import pandas as pd
@@ -31,7 +32,7 @@ _P_AGENT_MAX_TOOL_CALLS = register_config_param(
 _P_PAGE_SUMMARY_MAX_TOOL_CALLS = register_config_param(
     "Engine page summary max tool calls",
     group="AQL / Zopedia Engine",
-    default=4,
+    default=10,
     description="Tool budget for page summary evidence collection.",
 )
 _P_ATTENTION_SUMMARY_EVIDENCE_ENABLED = register_config_param(
@@ -71,6 +72,17 @@ def _int_param(key: str, *, minimum: int = 0) -> int:
     return max(value, minimum)
 
 
+def _env_int_or_none(name: str, *, minimum: int = 1) -> int | None:
+    raw = _clean(os.getenv(name))
+    if not raw:
+        return None
+    try:
+        value = int(raw)
+    except Exception:
+        return None
+    return max(value, int(minimum))
+
+
 def load_aql_zopedia_llm_client(
     *,
     surface: str,
@@ -105,6 +117,9 @@ def run_aql_zopedia_agent(
     progress_callback: ProgressCallback | None = None,
     conversation_history: list[dict[str, Any]] | None = None,
     persist_findings: bool = True,
+    tool_call_timeout_seconds: int | None = None,
+    llm_step_timeout_seconds: int | None = None,
+    prefetch_timeout_seconds: int | None = None,
 ) -> dict[str, Any]:
     """Shared AQL/Zopedia orchestration entrypoint for tool-using research.
 
@@ -116,9 +131,17 @@ def run_aql_zopedia_agent(
     resolved_budget = max_tool_calls
     if resolved_budget is None:
         resolved_budget = _int_param(_P_AGENT_MAX_TOOL_CALLS, minimum=1)
+    if tool_call_timeout_seconds is None:
+        tool_call_timeout_seconds = _env_int_or_none("AQL_ZOPEDIA_AGENT_TOOL_TIMEOUT_SECONDS", minimum=1)
+    if llm_step_timeout_seconds is None:
+        llm_step_timeout_seconds = _env_int_or_none("AQL_ZOPEDIA_AGENT_LLM_STEP_TIMEOUT_SECONDS", minimum=1)
+    if prefetch_timeout_seconds is None:
+        prefetch_timeout_seconds = _env_int_or_none("AQL_ZOPEDIA_AGENT_PREFETCH_TIMEOUT_SECONDS", minimum=1)
 
     result = _run_zopedia_agent_loop(
         query=query,
+        task=task,
+        surface=surface,
         force_refresh=force_refresh,
         max_tool_calls=int(resolved_budget),
         service=service,
@@ -126,6 +149,9 @@ def run_aql_zopedia_agent(
         progress_callback=progress_callback,
         conversation_history=conversation_history,
         persist_findings=persist_findings,
+        tool_call_timeout_seconds=tool_call_timeout_seconds,
+        llm_step_timeout_seconds=llm_step_timeout_seconds,
+        prefetch_timeout_seconds=prefetch_timeout_seconds,
     )
     if not isinstance(result, dict):
         result = {"status": "failed", "answer_markdown": "", "error": "Agent returned a non-dict result."}
@@ -136,9 +162,241 @@ def run_aql_zopedia_agent(
             "task": _clean(task) or "agent_answer",
             "surface": _clean(surface) or "zopedia.chat",
             "max_tool_calls": int(resolved_budget),
+            "tool_call_timeout_seconds": int(tool_call_timeout_seconds) if tool_call_timeout_seconds is not None else None,
+            "llm_step_timeout_seconds": int(llm_step_timeout_seconds) if llm_step_timeout_seconds is not None else None,
+            "prefetch_timeout_seconds": int(prefetch_timeout_seconds) if prefetch_timeout_seconds is not None else None,
         }
     )
     return result
+
+
+def _strip_json_answer_fence(value: object) -> str:
+    text = _clean(value)
+    if text.startswith("```"):
+        lines = text.splitlines()
+        if lines:
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        text = "\n".join(lines).strip()
+    return text
+
+
+def parse_aql_zopedia_structured_answer(value: object) -> dict[str, Any] | None:
+    """Parse a JSON object returned by the tool-using Zopedia agent."""
+    text = _strip_json_answer_fence(value)
+    if not text:
+        return None
+    try:
+        data = json.loads(text)
+    except Exception:
+        start = text.find("{")
+        end = text.rfind("}")
+        if start < 0 or end <= start:
+            return None
+        try:
+            data = json.loads(text[start : end + 1])
+        except Exception:
+            return None
+    return data if isinstance(data, dict) else None
+
+
+def _repair_structured_payload_from_agent_answer(
+    *,
+    answer_markdown: object,
+    schema_name: str,
+    schema: dict[str, Any],
+    llm_client: ZopediaLLMClient | None,
+) -> dict[str, Any] | None:
+    answer = _clean(answer_markdown)
+    if not answer or llm_client is None:
+        return None
+    try:
+        repaired = llm_client.generate_json(
+            system_prompt=(
+                "You repair AQL/Zopedia agent output into the requested JSON schema. "
+                "Use only facts and claims present in the agent answer. Do not add new evidence, "
+                "new analysis, or new source references."
+            ),
+            user_prompt=(
+                f"Schema name: {schema_name}\n\n"
+                "Agent answer to convert:\n"
+                f"{answer[:16000]}\n\n"
+                "Return only the JSON object matching the schema."
+            ),
+            schema_name=f"{schema_name}_structured_repair",
+            schema=schema,
+        )
+    except Exception:
+        return None
+    return repaired if isinstance(repaired, dict) else None
+
+
+def run_aql_zopedia_structured_agent(
+    *,
+    query: str,
+    schema_name: str,
+    schema: dict[str, Any],
+    task: str,
+    surface: str,
+    force_refresh: bool = False,
+    max_tool_calls: int | None = None,
+    service: Any | None = None,
+    llm_client: ZopediaLLMClient | None = None,
+    progress_callback: ProgressCallback | None = None,
+    conversation_history: list[dict[str, Any]] | None = None,
+    persist_findings: bool = False,
+    tool_call_timeout_seconds: int | None = None,
+    llm_step_timeout_seconds: int | None = None,
+    prefetch_timeout_seconds: int | None = None,
+) -> dict[str, Any]:
+    """Run the shared Zopedia tool agent and require a structured JSON answer.
+
+    This keeps product feature modules out of direct LLM calls while still
+    giving them typed materialization contracts.
+    """
+    structured_query = (
+        f"{query}\n\n"
+        f"Return only a valid JSON object matching schema `{schema_name}`. "
+        "Do not wrap it in commentary. Do not use markdown except inside string values.\n\n"
+        "JSON schema:\n"
+        f"{_compact_json(schema, limit=8000)}"
+    )
+    if max_tool_calls is not None and int(max_tool_calls) <= 0:
+        resolved_llm = llm_client or load_aql_zopedia_llm_client(surface=surface)
+        if resolved_llm is None:
+            return {
+                "status": "unavailable",
+                "payload": None,
+                "agent_result": {
+                    "status": "unavailable",
+                    "answer_markdown": "",
+                    "tool_calls": [],
+                    "confidence": "low",
+                    "error": "LLM runtime is unavailable.",
+                    "engine": {
+                        "name": "aql_zopedia",
+                        "task": _clean(task) or "structured_answer",
+                        "surface": _clean(surface) or "zopedia.structured",
+                        "max_tool_calls": 0,
+                        "structured_direct": True,
+                    },
+                },
+                "error": "LLM runtime is unavailable.",
+            }
+        if progress_callback is not None:
+            progress_callback(
+                {
+                    "stage": "structured_direct_start",
+                    "message": "Running structured AQL/Zopedia synthesis from supplied context.",
+                    "progress": 0.9,
+                    "tool_call_count": 0,
+                }
+            )
+        try:
+            payload = resolved_llm.generate_json(
+                system_prompt=(
+                    "You are the Spectral Nature AQL/Zopedia structured synthesis engine. "
+                    "Use the supplied prompt context as evidence. Do not call tools. "
+                    "Return only the requested JSON object and do not invent facts."
+                ),
+                user_prompt=structured_query,
+                schema_name=schema_name,
+                schema=schema,
+            )
+        except Exception as exc:
+            return {
+                "status": "failed",
+                "payload": None,
+                "agent_result": {
+                    "status": "failed",
+                    "answer_markdown": "",
+                    "tool_calls": [],
+                    "confidence": "low",
+                    "error": f"{type(exc).__name__}: {exc}",
+                    "engine": {
+                        "name": "aql_zopedia",
+                        "task": _clean(task) or "structured_answer",
+                        "surface": _clean(surface) or "zopedia.structured",
+                        "max_tool_calls": 0,
+                        "structured_direct": True,
+                    },
+                },
+                "error": f"{type(exc).__name__}: {exc}",
+            }
+        if isinstance(payload, dict):
+            payload.pop("__reasoning_content", None)
+        answer_markdown = json.dumps(to_jsonable(payload), ensure_ascii=True, sort_keys=True, default=str)
+        agent_result = {
+            "status": "completed",
+            "answer_markdown": answer_markdown,
+            "tool_calls": [],
+            "confidence": "medium",
+            "error": "",
+            "engine": {
+                "name": "aql_zopedia",
+                "task": _clean(task) or "structured_answer",
+                "surface": _clean(surface) or "zopedia.structured",
+                "max_tool_calls": 0,
+                "structured_direct": True,
+            },
+        }
+        if progress_callback is not None:
+            progress_callback(
+                {
+                    "stage": "structured_direct_complete",
+                    "message": "Structured AQL/Zopedia synthesis completed from supplied context.",
+                    "progress": 0.95,
+                    "tool_call_count": 0,
+                }
+            )
+        return {"status": "completed", "payload": payload, "agent_result": agent_result}
+    agent_result = run_aql_zopedia_agent(
+        query=structured_query,
+        task=task,
+        surface=surface,
+        force_refresh=force_refresh,
+        max_tool_calls=max_tool_calls,
+        service=service,
+        llm_client=llm_client,
+        progress_callback=progress_callback,
+        conversation_history=conversation_history,
+        persist_findings=persist_findings,
+        tool_call_timeout_seconds=tool_call_timeout_seconds,
+        llm_step_timeout_seconds=llm_step_timeout_seconds,
+        prefetch_timeout_seconds=prefetch_timeout_seconds,
+    )
+    payload = parse_aql_zopedia_structured_answer(agent_result.get("answer_markdown"))
+    status = _clean(agent_result.get("status"))
+    repair_used = False
+    if payload is None and status == "completed":
+        payload = _repair_structured_payload_from_agent_answer(
+            answer_markdown=agent_result.get("answer_markdown"),
+            schema_name=schema_name,
+            schema=schema,
+            llm_client=llm_client,
+        )
+        repair_used = payload is not None
+    if status == "completed" and payload is not None:
+        if repair_used:
+            agent_result = dict(agent_result)
+            engine = dict(agent_result.get("engine") or {})
+            engine["structured_repair_used"] = True
+            agent_result["engine"] = engine
+        return {
+            "status": "completed",
+            "payload": payload,
+            "agent_result": agent_result,
+        }
+    error = _clean(agent_result.get("error"))
+    if payload is None:
+        error = error or "AQL/Zopedia agent did not return valid structured JSON."
+    return {
+        "status": status or "failed",
+        "payload": None,
+        "agent_result": agent_result,
+        "error": error,
+    }
 
 
 def resolve_aql_zopedia_followup_query(
@@ -430,7 +688,9 @@ __all__ = [
     "attach_aql_zopedia_summary_audio",
     "build_aql_zopedia_attention_home_summary_with_trace",
     "load_aql_zopedia_llm_client",
+    "parse_aql_zopedia_structured_answer",
     "resolve_aql_zopedia_followup_query",
     "run_aql_zopedia_agent",
     "run_aql_zopedia_page_summary_agent",
+    "run_aql_zopedia_structured_agent",
 ]

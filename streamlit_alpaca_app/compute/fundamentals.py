@@ -190,52 +190,106 @@ def share_count_asof(
     symbol = str(ticker or "").upper().strip()
     if not symbol:
         return None, None, None
+    return share_counts_asof(
+        [symbol],
+        asof_time_utc=asof_time_utc,
+        diluted_preferred=diluted_preferred,
+        data_dir=data_dir,
+    ).get(symbol, (None, None, None))
+
+
+def _best_share_count_from_rows(
+    rows: pd.DataFrame,
+    *,
+    asof_cutoff: pd.Timestamp | None,
+    metric_order: list[str],
+) -> tuple[float | None, pd.Timestamp | None, str | None]:
+    if rows.empty:
+        return None, None, None
+    scoped = rows.copy()
+    if asof_cutoff is not None:
+        scoped = scoped[scoped["Report Date"] <= asof_cutoff].copy()
+        if scoped.empty:
+            return None, None, None
+
+    for metric_name in metric_order:
+        column = _resolve_column(list(scoped.columns), SHARE_COUNT_METRICS[metric_name])
+        if column is None:
+            continue
+
+        frame = pd.DataFrame(
+            {
+                "report_date": pd.to_datetime(scoped["Report Date"], errors="coerce"),
+                "value": pd.to_numeric(scoped[column], errors="coerce"),
+            }
+        ).dropna(subset=["report_date", "value"])
+        if frame.empty:
+            continue
+
+        latest = frame.sort_values("report_date").iloc[-1]
+        return float(latest["value"]), pd.Timestamp(latest["report_date"]), metric_name
+    return None, None, None
+
+
+def share_counts_asof(
+    tickers: list[str],
+    *,
+    asof_time_utc: object | None = None,
+    diluted_preferred: bool = True,
+    data_dir: str | None = None,
+) -> dict[str, tuple[float | None, pd.Timestamp | None, str | None]]:
+    symbols = [str(ticker or "").upper().strip() for ticker in list(tickers or []) if str(ticker or "").strip()]
+    symbols = list(dict.fromkeys(symbols))
+    out: dict[str, tuple[float | None, pd.Timestamp | None, str | None]] = {
+        symbol: (None, None, None) for symbol in symbols
+    }
+    if not symbols:
+        return out
 
     metric_order = ["Shares Diluted", "Shares Basic"] if diluted_preferred else ["Shares Basic", "Shares Diluted"]
-    best_value: float | None = None
-    best_date: pd.Timestamp | None = None
-    best_metric: str | None = None
     asof_ts = pd.to_datetime(asof_time_utc, utc=True, errors="coerce")
     asof_cutoff = asof_ts.tz_localize(None) if pd.notna(asof_ts) else None
+    alias_to_symbols: dict[str, list[str]] = {}
+    for symbol in symbols:
+        for alias in _ticker_aliases(symbol):
+            alias_to_symbols.setdefault(alias, []).append(symbol)
+    alias_set = set(alias_to_symbols)
 
     data_dir_key = str(data_dir or "").strip()
     for statement in ["income", "balance", "cashflow"]:
         try:
-            rows = _quarterly_rows(_load_statement(statement, data_dir_key), symbol)
+            statement_frame = _load_statement(statement, data_dir_key)
         except Exception:
-            rows = pd.DataFrame()
+            statement_frame = pd.DataFrame()
+        if statement_frame.empty or "Ticker" not in statement_frame.columns:
+            continue
+        rows = statement_frame.copy()
+        rows["_ticker_norm"] = rows["Ticker"].astype(str).map(_normalized)
+        rows = rows[rows["_ticker_norm"].isin(alias_set)].copy()
         if rows.empty:
             continue
-        if asof_cutoff is not None:
-            rows = rows[rows["Report Date"] <= asof_cutoff].copy()
-            if rows.empty:
+        rows["Report Date"] = pd.to_datetime(rows.get("Report Date"), errors="coerce")
+        rows = rows[rows["Fiscal Period"].astype(str).isin(["Q1", "Q2", "Q3", "Q4"])]
+        rows = rows.dropna(subset=["Report Date"])
+        if rows.empty:
+            continue
+        rows["Fiscal Year"] = pd.to_numeric(rows.get("Fiscal Year"), errors="coerce")
+        rows = rows.sort_values("Report Date").drop_duplicates(
+            subset=["_ticker_norm", "Fiscal Year", "Fiscal Period"],
+            keep="last",
+        )
+        for alias, alias_rows in rows.groupby("_ticker_norm", sort=False):
+            candidate = _best_share_count_from_rows(alias_rows, asof_cutoff=asof_cutoff, metric_order=metric_order)
+            value, report_date, metric_name = candidate
+            if value is None or report_date is None or metric_name is None:
                 continue
-
-        for metric_name in metric_order:
-            column = _resolve_column(list(rows.columns), SHARE_COUNT_METRICS[metric_name])
-            if column is None:
-                continue
-
-            frame = pd.DataFrame(
-                {
-                    "report_date": pd.to_datetime(rows["Report Date"], errors="coerce"),
-                    "value": pd.to_numeric(rows[column], errors="coerce"),
-                }
-            ).dropna(subset=["report_date", "value"])
-            if frame.empty:
-                continue
-
-            latest = frame.sort_values("report_date").iloc[-1]
-            report_date = pd.Timestamp(latest["report_date"])
-            value = float(latest["value"])
-            if best_date is None or report_date > best_date or (
-                report_date == best_date and best_metric == "Shares Basic" and metric_name == "Shares Diluted"
-            ):
-                best_value = value
-                best_date = report_date
-                best_metric = metric_name
-
-    return best_value, best_date, best_metric
+            for symbol in alias_to_symbols.get(str(alias), []):
+                best_value, best_date, best_metric = out.get(symbol, (None, None, None))
+                if best_date is None or report_date > best_date or (
+                    report_date == best_date and best_metric == "Shares Basic" and metric_name == "Shares Diluted"
+                ):
+                    out[symbol] = (value, report_date, metric_name)
+    return out
 
 
 def latest_share_count(
@@ -256,4 +310,5 @@ __all__ = [
     "latest_share_count",
     "load_quarterly_fundamentals",
     "share_count_asof",
+    "share_counts_asof",
 ]

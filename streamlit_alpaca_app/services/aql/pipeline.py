@@ -9,6 +9,7 @@ import math
 import os
 import queue
 import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from typing import Any, Callable
 
@@ -82,6 +83,10 @@ def _env_positive_int(name: str, default: int) -> int:
 
 def _candidate_research_timeout_seconds() -> int:
     return _env_positive_int("AQL_CANDIDATE_RESEARCH_TIMEOUT_SECONDS", 90)
+
+
+def _candidate_research_max_workers() -> int:
+    return _env_positive_int("AQL_CANDIDATE_RESEARCH_MAX_WORKERS", 4)
 
 
 def _event_bundle_timeout_seconds() -> int:
@@ -202,7 +207,7 @@ def build_bottom_up_attention_artifacts(
         }
         return AgenticAttentionArtifacts(home_payload=empty_payload, bundle_map={}, frames=frames)
 
-    model_name = getattr(getattr(llm_client, "config", object()), "model", DEFAULT_WRITER_MODEL) if llm_client is not None else "heuristic"
+    model_name = getattr(getattr(llm_client, "config", object()), "model", DEFAULT_WRITER_MODEL) if llm_client is not None else "llm_unavailable"
     research_limit_safe = max(int(research_limit), 0)
     if research_limit_safe > 0 and search_clients is not None:
         client_items = list(search_clients or [])
@@ -225,7 +230,7 @@ def build_bottom_up_attention_artifacts(
     bundle_map: dict[str, dict[str, Any]] = {}
     claim_map: dict[str, list[dict[str, Any]]] = {}
 
-    def _fallback_candidate_payload(candidate: dict[str, Any], reason: str) -> dict[str, Any]:
+    def _skipped_candidate_payload(candidate: dict[str, Any], reason: str) -> dict[str, Any]:
         symbol = _normalize_symbol(candidate.get("symbol"))
         plan_row = {
             "run_id": run_id,
@@ -233,14 +238,14 @@ def build_bottom_up_attention_artifacts(
             "candidate_id": _coerce_text(candidate.get("candidate_id")),
             "symbol": symbol,
             "prompt_version": prompt_version,
-            "model_name": "heuristic",
+            "model_name": "llm_unavailable",
             "research_subjects_json": _json_dumps([]),
             "hypotheses_json": _json_dumps([]),
             "queries_json": _json_dumps([]),
             "official_routes_json": _json_dumps([]),
             "priority_entities_json": _json_dumps([]),
             "evidence_budget": 0,
-            "fallback_reason": reason,
+            "skip_reason": reason,
         }
         bundle = _build_candidate_bundle(
             candidate,
@@ -249,7 +254,7 @@ def build_bottom_up_attention_artifacts(
             [],
             llm_client=None,
             prompt_version=prompt_version,
-            model_name="heuristic",
+            model_name="llm_unavailable",
             run_id=run_id,
             yield_facts=_latest_yield_facts(yield_curve_facts_frame) if _yield_context_relevant(candidate) else {},
         )
@@ -385,24 +390,85 @@ def build_bottom_up_attention_artifacts(
 
     research_total = len(research_candidates)
     candidate_timeout_seconds = _candidate_research_timeout_seconds()
-    for index, candidate in enumerate(research_candidates, start=1):
-        if progress_callback is not None:
-            try:
-                progress_callback(index, research_total, candidate)
-            except Exception:
-                pass
+    candidate_max_workers = min(research_total, _candidate_research_max_workers()) if research_total else 0
+    if research_total:
+        print(
+            "[info] AQL candidate research starting "
+            f"candidates={research_total} workers={candidate_max_workers} timeout={candidate_timeout_seconds}s"
+        )
+
+    def _run_candidate_research(index: int, candidate: dict[str, Any]) -> tuple[int, dict[str, Any], dict[str, Any]]:
         symbol = _normalize_symbol(candidate.get("symbol"))
         try:
+            print(
+                "[info] AQL candidate research started "
+                f"index={index}/{research_total} symbol={symbol or '?'}",
+                flush=True,
+            )
             candidate_payload = _call_with_timeout(
                 f"AQL candidate research {symbol or index}",
                 candidate_timeout_seconds,
                 lambda candidate=candidate: _research_one_candidate(candidate),
             )
+            claims_count = len(candidate_payload.get("claims") or []) if isinstance(candidate_payload, dict) else 0
+            document_rows = candidate_payload.get("document_rows") if isinstance(candidate_payload, dict) else []
+            document_count = len(document_rows) if hasattr(document_rows, "__len__") else 0
+            print(
+                "[info] AQL candidate research completed "
+                f"index={index}/{research_total} symbol={symbol or '?'} claims={claims_count} documents={document_count}",
+                flush=True,
+            )
         except Exception as exc:
             reason = f"{type(exc).__name__}: {exc}"
-            print(f"[warn] AQL candidate research fallback symbol={symbol or '?'} reason={reason}")
-            candidate_payload = _fallback_candidate_payload(candidate, reason)
+            print(
+                "[warn] AQL candidate research skipped "
+                f"index={index}/{research_total} symbol={symbol or '?'} reason={reason}",
+                flush=True,
+            )
+            candidate_payload = _skipped_candidate_payload(candidate, reason)
+        return index, candidate, candidate_payload
 
+    candidate_payloads_by_index: dict[int, dict[str, Any]] = {}
+    if candidate_max_workers <= 1:
+        for index, candidate in enumerate(research_candidates, start=1):
+            result_index, _, candidate_payload = _run_candidate_research(index, candidate)
+            candidate_payloads_by_index[result_index] = candidate_payload
+            if progress_callback is not None:
+                try:
+                    progress_callback(index, research_total, candidate)
+                except Exception:
+                    pass
+    else:
+        with ThreadPoolExecutor(max_workers=candidate_max_workers, thread_name_prefix="aql-candidate") as pool:
+            futures = {
+                pool.submit(_run_candidate_research, index, candidate): (index, candidate)
+                for index, candidate in enumerate(research_candidates, start=1)
+            }
+            completed = 0
+            for future in as_completed(futures):
+                planned_index, planned_candidate = futures[future]
+                try:
+                    result_index, result_candidate, candidate_payload = future.result()
+                except Exception as exc:
+                    result_index = planned_index
+                    result_candidate = planned_candidate
+                    symbol = _normalize_symbol(planned_candidate.get("symbol"))
+                    reason = f"{type(exc).__name__}: {exc}"
+                    print(f"[warn] AQL candidate research skipped symbol={symbol or '?'} reason={reason}")
+                    candidate_payload = _skipped_candidate_payload(planned_candidate, reason)
+                completed += 1
+                if progress_callback is not None:
+                    try:
+                        progress_callback(completed, research_total, result_candidate)
+                    except Exception:
+                        pass
+                candidate_payloads_by_index[result_index] = candidate_payload
+
+    for index in range(1, research_total + 1):
+        candidate_payload = candidate_payloads_by_index.get(index)
+        if not candidate_payload:
+            candidate = research_candidates[index - 1]
+            candidate_payload = _skipped_candidate_payload(candidate, "missing candidate research result")
         plan_rows.append(candidate_payload["plan_row"])
         request_rows.extend(candidate_payload["request_rows"])
         result_rows.extend(candidate_payload["result_rows"])
@@ -432,7 +498,7 @@ def build_bottom_up_attention_artifacts(
             [],
             llm_client=None,
             prompt_version=prompt_version,
-            model_name="heuristic",
+            model_name="llm_unavailable",
             run_id=run_id,
             yield_facts=_latest_yield_facts(yield_curve_facts_frame) if _yield_context_relevant(candidate) else {},
         )
@@ -483,14 +549,14 @@ def build_bottom_up_attention_artifacts(
                 ),
             )
         except Exception as exc:
-            print(f"[warn] AQL event bundle fallback cluster={cluster_id} reason={type(exc).__name__}: {exc}")
+            print(f"[warn] AQL event bundle skipped cluster={cluster_id} reason={type(exc).__name__}: {exc}")
             bundle = _build_event_bundle(
                 cluster_id,
                 cluster_rows,
                 cluster_claims,
                 llm_client=None,
                 prompt_version=prompt_version,
-                model_name="heuristic",
+                model_name="llm_unavailable",
                 run_id=run_id,
                 yield_facts=_latest_yield_facts(yield_curve_facts_frame),
             )
@@ -577,7 +643,7 @@ def build_bottom_up_attention_artifacts(
         )
         print("[info] AQL macro verification completed")
     except Exception as exc:
-        print(f"[warn] AQL macro verification fallback reason={type(exc).__name__}: {exc}")
+        print(f"[warn] AQL macro verification skipped reason={type(exc).__name__}: {exc}")
         verification_summary_by_release = {}
         macro_verification_request_rows = []
         macro_verification_result_rows = []

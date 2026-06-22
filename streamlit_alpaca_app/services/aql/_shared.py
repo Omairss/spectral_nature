@@ -128,6 +128,19 @@ def _looks_like_stat_dump(text: object) -> bool:
     ticker_pct_pairs = len(re.findall(r"\b[A-Z]{2,5}\s*[+\-]\d+(?:\.\d+)?%", clean))
     if re.search(r"\bup:\b|\bdown:\b", lowered):
         return True
+    if re.search(
+        r"\b(shares?|stock)\s+(rose|fell|gained|dropped|surged|slid|jumped|plunged)\s+[+\-]?\d+(?:\.\d+)?%\s+(?:on\s+)?(today|monday|tuesday|wednesday|thursday|friday)\b",
+        lowered,
+    ):
+        return True
+    if (
+        re.search(
+            r"\b(shares?|stock)\s+(rose|fell|gained|dropped|surged|slid|jumped|plunged)\s+[+\-]?\d+(?:\.\d+)?%\b",
+            lowered,
+        )
+        and not _has_causal_language(clean)
+    ):
+        return True
     if stat_count >= 6:
         return True
     if ticker_pct_pairs >= 3:
@@ -175,6 +188,7 @@ def _looks_like_generic_market_activity_title(text: object) -> bool:
     patterns = (
         r"\bmoves? sharply today\b",
         r"\bmoved sharply today\b",
+        r"\bshares?\s+(rose|fell|gained|dropped|surged|slid|jumped|plunged)\s+[+\-]?\d+(?:\.\d+)?%\b",
         r"\brises on today'?s market activity\b",
         r"\bfalls on today'?s market activity\b",
         r"\bon today'?s market activity\b",
@@ -421,17 +435,6 @@ def _search_mention_score(text: str, symbol: str, company_name: str) -> float:
     if company and company in lowered:
         score += 0.45
     return min(score, 1.0)
-
-
-def _what_changed_fallback(candidate: dict[str, Any]) -> str:
-    symbol = _normalize_symbol(candidate.get("symbol"))
-    move = _coerce_float(candidate.get("change_pct"), 0.0)
-    direction = _move_direction(move)
-    if direction == "up":
-        return f"{symbol} moved higher today."
-    if direction == "down":
-        return f"{symbol} moved lower today."
-    return f"{symbol} was little changed today."
 
 
 def _claim_authority_rank(item: dict[str, Any]) -> int:
@@ -761,16 +764,3 @@ def _best_why_claim_sentence(claims: list[dict[str, Any]]) -> str:
         return ""
     scored.sort(key=lambda pair: pair[0], reverse=True)
     return scored[0][1]
-
-
-def _specific_why_fallback(
-    retained_claims: list[dict[str, Any]],
-    *,
-    default_text: str = "",
-) -> str:
-    claim_seed = _best_why_claim_sentence(retained_claims)
-    if not claim_seed:
-        return _coerce_text(default_text)
-    if _looks_like_stat_dump(claim_seed) and not _has_causal_language(claim_seed):
-        return _coerce_text(default_text)
-    return claim_seed

@@ -273,6 +273,7 @@ CLAIM_SCHEMA: dict[str, Any] = {
                     "relevance_score": {"type": "number"},
                     "causal_score": {"type": "number"},
                     "confidence_score": {"type": "number"},
+                    "evidence_chunk_ids": {"type": "array", "items": {"type": "string"}},
                     "is_same_day": {"type": "boolean"},
                 },
                 "required": [
@@ -284,6 +285,7 @@ CLAIM_SCHEMA: dict[str, Any] = {
                     "relevance_score",
                     "causal_score",
                     "confidence_score",
+                    "evidence_chunk_ids",
                     "is_same_day",
                 ],
             },
@@ -433,14 +435,17 @@ EVENT_WRITER_SYSTEM_PROMPT = register_narrative_prompt(
         "Write specific, mechanism-first summaries — NOT wordy. "
         "Keep surface_summary to at most 4 sentences. "
         "Critical rule for why_happened_text: lead with a causal chain in plain English before any numbers. "
-        "Structure: catalyst → transmission channel → market pricing reaction. "
+        "Structure: supported trigger or business development → transmission channel → market pricing reaction. "
         "Transmission channels must be concrete (input costs, margins, volumes, funding costs, duration, policy, demand, or risk appetite). "
         "Do not write generic market-activity titles. Keep the title anchored to the strongest supported event theme. "
         "Avoid ticker and percentage recaps across all text fields. "
         "Do not list more than two tickers in why_happened_text. "
+        "Only same-day or very recent claims may support why_happened_text; older/background claims belong in background_context_text. "
         "Never open why_happened_text with Treasury, yield, ticker, or percentage statistics. "
         "what_happened_text summarizes the directional relationship across the cluster, not a market-activity enumeration. "
         "affected_assets_summary_text focuses on second-order spillover and cross-asset breadth. "
+        "Do not narrate missing evidence. If no mechanism is supported, leave why_happened_text empty "
+        "instead of narrating missing evidence. "
         "If causality is mixed, say so in plain language. "
         "When Treasury yield context is relevant, summarize direction and transmission in plain language without quoting bp numbers unless the rate move itself is the event."
     ),

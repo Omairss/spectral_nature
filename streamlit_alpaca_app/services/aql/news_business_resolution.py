@@ -5,11 +5,11 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import math
-from typing import Any
+import re
+from typing import Any, Callable
 
 import pandas as pd
 
-from ..llm import LLMAPIError
 from ..saa import (
     build_zopedia_change_proposal,
     build_zopedia_page_id,
@@ -51,6 +51,16 @@ SOURCE_BACKED_MEMORY_SOURCES: tuple[str, ...] = (
     "quarterly_fundamentals",
     "news_articles",
     "edgar_evidence",
+)
+
+SOURCE_BACKED_MEMORY_SOURCE_PREFIXES: tuple[str, ...] = (
+    "zopedia_business_model_search_result::",
+    "aql_zopedia_agent::",
+)
+
+GENERATED_BUSINESS_MEMORY_SOURCE_TYPES: tuple[str, ...] = (
+    "news_business_resolution_business_memory",
+    "ticker_business_model_stack_business_memory",
 )
 
 NEWS_BUSINESS_RESOLUTION_COLUMNS: tuple[str, ...] = (
@@ -122,6 +132,8 @@ NEWS_BUSINESS_RESOLUTION_SCHEMA: dict[str, Any] = {
     },
     "required": ["slot_facts", "resolved_changes", "coherent_story_markdown", "confidence", "data_gaps"],
 }
+
+AqlZopediaStructuredRunner = Callable[..., dict[str, Any]]
 
 
 @dataclass(frozen=True)
@@ -322,12 +334,28 @@ def _fundamental_rows(frame: pd.DataFrame | None, symbol: str, *, limit: int = 8
     preferred = (
         "Total Revenue",
         "Revenue",
+        "Operating Income",
         "Net Income",
+        "Gross Profit",
+        "EBITDA",
+        "Cash from Operating Activities",
         "Cash and Cash Equivalents",
         "Cash",
+        "Capital Expenditure",
+        "Capex",
         "Free Cash Flow",
         "Operating Cash Flow",
+        "Total Assets",
+        "Total Liabilities",
+        "Total Equity",
         "Total Debt",
+        "Long Term Debt",
+        "Net Debt",
+        "NAV",
+        "Net Asset Value",
+        "Investment Income",
+        "Net Investment Income",
+        "Distributable Earnings",
     )
     if "metric" in rows.columns:
         metric_text = rows["metric"].astype(str)
@@ -344,6 +372,7 @@ def _fundamental_rows(frame: pd.DataFrame | None, symbol: str, *, limit: int = 8
                 "metric": _coerce_text(row.get("metric")),
                 "value": value,
                 "statement": _coerce_text(row.get("statement")),
+                "year_quarter": _coerce_text(row.get("year_quarter")),
                 "report_date": _coerce_text(row.get("report_date")),
             }
         )
@@ -398,13 +427,13 @@ def _is_company_business_memory_page(page: dict[str, Any], *, symbol: str, compa
     )
     if not names_match:
         return False
-    if metadata.get("source_type") == "news_business_resolution_business_memory":
+    if metadata.get("source_type") in GENERATED_BUSINESS_MEMORY_SOURCE_TYPES:
         return True
     return page_type == "ticker" and ("business-memory" in slug or "business memory" in title)
 
 
 def _is_generated_business_memory_page(page: dict[str, Any]) -> bool:
-    return _page_metadata(page).get("source_type") == "news_business_resolution_business_memory"
+    return _page_metadata(page).get("source_type") in GENERATED_BUSINESS_MEMORY_SOURCE_TYPES
 
 
 def _company_business_memory_pages(
@@ -421,6 +450,64 @@ def _company_business_memory_pages(
         if len(out) >= max(int(limit), 1):
             break
     return out
+
+
+def _business_model_stack_row(frame: pd.DataFrame | None, *, symbol: str) -> dict[str, Any]:
+    if not isinstance(frame, pd.DataFrame) or frame.empty or "symbol" not in frame.columns:
+        return {}
+    rows = frame.copy()
+    rows["symbol"] = rows["symbol"].map(_normalize_symbol)
+    rows = rows[rows["symbol"] == symbol].copy()
+    if rows.empty:
+        return {}
+    for column in ("asof_time_utc", "created_at_utc"):
+        if column in rows.columns:
+            rows[f"_{column}"] = pd.to_datetime(rows[column], utc=True, errors="coerce")
+    sort_columns = [f"_{column}" for column in ("asof_time_utc", "created_at_utc") if f"_{column}" in rows.columns]
+    if sort_columns:
+        rows = rows.sort_values(sort_columns, ascending=[False] * len(sort_columns), na_position="last")
+    return rows.iloc[0].to_dict()
+
+
+def _slot_facts_from_business_model_stack(row: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
+    status = _coerce_text(row.get("status"))
+    if status in {"needs_zopedia_verdict", "insufficient_evidence"}:
+        return {}
+    payload = _json_dict(row.get("slot_facts_json") or row.get("slot_facts"))
+    if not payload:
+        return {}
+    out: dict[str, list[dict[str, Any]]] = {}
+    for slot, facts in payload.items():
+        clean_slot = _coerce_text(slot)
+        if clean_slot not in BUSINESS_MEMORY_SLOTS or not isinstance(facts, list):
+            continue
+        for item in facts:
+            if not isinstance(item, dict):
+                continue
+            _add_slot(
+                out,
+                clean_slot,
+                item.get("text"),
+                source=_coerce_text(item.get("source")) or "zopedia_ticker_business_model_stack",
+                confidence=_coerce_text(item.get("confidence")) or "medium",
+            )
+    return out
+
+
+def _business_model_stack_page_ids(row: dict[str, Any]) -> list[str]:
+    ids: list[str] = []
+    for value in _json_list(row.get("source_page_ids_json") or row.get("source_page_ids")):
+        clean = _coerce_text(value)
+        if clean:
+            ids.append(clean)
+    for value in _json_list(row.get("zopedia_page_ids_read_json") or row.get("zopedia_page_ids_read")):
+        clean = _coerce_text(value)
+        if clean:
+            ids.append(clean)
+    page_id = _coerce_text(row.get("business_memory_page_id"))
+    if page_id:
+        ids.append(page_id)
+    return list(dict.fromkeys(ids))
 
 
 def _slot_from_memory_heading(value: object) -> str:
@@ -440,7 +527,6 @@ def _source_backed_memory_facts(page: dict[str, Any]) -> dict[str, list[dict[str
     body = _coerce_text(page.get("body_markdown"))
     if not body:
         return {}
-    allowed_sources = set(SOURCE_BACKED_MEMORY_SOURCES)
     out: dict[str, list[dict[str, Any]]] = {}
     current_slot = ""
     for raw_line in body.splitlines():
@@ -451,11 +537,63 @@ def _source_backed_memory_facts(page: dict[str, Any]) -> dict[str, list[dict[str
         if not current_slot or not line.startswith("- "):
             continue
         fact_text, source = _split_memory_fact_source(line[2:].strip())
-        if source not in allowed_sources:
+        if not _is_source_backed_memory_source(source):
             continue
         out.setdefault(current_slot, [])
         out[current_slot].append({"text": fact_text, "source": source, "confidence": "medium"})
     return out
+
+
+def _is_source_backed_memory_source(source: object) -> bool:
+    clean = _coerce_text(source)
+    if clean in set(SOURCE_BACKED_MEMORY_SOURCES):
+        return True
+    return any(clean.startswith(prefix) for prefix in SOURCE_BACKED_MEMORY_SOURCE_PREFIXES)
+
+
+def _clean_business_fact_text(value: object, *, limit: int = 520) -> str:
+    text = " ".join(_coerce_text(value).split())
+    if not text:
+        return ""
+    text = re.sub(r"\s+Source:\s+.+?$", "", text).strip()
+    if ": " in text:
+        prefix, rest = text.split(": ", 1)
+        prefix_lower = prefix.lower()
+        title_markers = (
+            "424b",
+            "annual report",
+            "culture",
+            "financials",
+            "open positions",
+            "reports",
+            "reviews",
+            "working at",
+        )
+        label_markers = ("business lens", "company background")
+        if prefix_lower.startswith(label_markers) or any(marker in prefix_lower for marker in title_markers):
+            text = rest.strip()
+    if len(text) <= limit:
+        return text
+    return text[: max(int(limit), 20) - 3].rstrip(" ,;:") + "..."
+
+
+def _clean_company_name_for_display(value: object) -> str:
+    text = _coerce_text(value)
+    if not text:
+        return ""
+    text = re.sub(
+        r"\s+-\s+.*?\b(common stock|capital stock|ordinary shares|ordinary share|adr|ads|depositary shares?)\b.*$",
+        "",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
+        r"\b(class\s+[a-z]\s+)?(common stock|capital stock|ordinary shares?|depositary shares?)\b.*$",
+        "",
+        text,
+        flags=re.IGNORECASE,
+    )
+    return text.strip(" ,-") or _coerce_text(value)
 
 
 def _matching_zopedia_pages(frame: pd.DataFrame | None, *, symbol: str, company_name: str, query: str, limit: int = 5) -> list[dict[str, Any]]:
@@ -581,9 +719,74 @@ def _llm_page_context(page: dict[str, Any], *, symbol: str, company_name: str) -
     return context
 
 
-def _llm_resolution(
+def _default_aql_zopedia_structured_runner(**kwargs: Any) -> dict[str, Any]:
+    from ..aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+    return run_aql_zopedia_structured_agent(**kwargs)
+
+
+def _compact_json(value: Any, *, limit: int = 16000) -> str:
+    text = json.dumps(value, ensure_ascii=True, sort_keys=True, default=str)
+    if len(text) <= limit:
+        return text
+    return text[: limit - 3].rstrip() + "..."
+
+
+def _agent_runner_or_none(
     *,
+    zopedia_agent_runner: AqlZopediaStructuredRunner | None,
     llm_client: Any | None,
+) -> AqlZopediaStructuredRunner | None:
+    if zopedia_agent_runner is not None:
+        return zopedia_agent_runner
+    if llm_client is None:
+        return None
+    return _default_aql_zopedia_structured_runner
+
+
+def _safe_resolution_error(value: object, *, limit: int = 220) -> str:
+    text = _coerce_text(value)
+    text = re.sub(r"sk-[A-Za-z0-9*_\\-]{8,}", "[redacted_api_key]", text)
+    text = re.sub(r"(api[_-]?key[\"'=:\\s]+)[A-Za-z0-9*_\\-]{8,}", r"\1[redacted]", text, flags=re.IGNORECASE)
+    return text[:limit].rstrip()
+
+
+def _structured_agent_payload(
+    *,
+    zopedia_agent_runner: AqlZopediaStructuredRunner | None,
+    llm_client: Any | None,
+    query: str,
+    schema_name: str,
+    schema: dict[str, Any],
+    task: str,
+    surface: str,
+    max_tool_calls: int,
+) -> dict[str, Any]:
+    runner = _agent_runner_or_none(zopedia_agent_runner=zopedia_agent_runner, llm_client=llm_client)
+    if runner is None:
+        return {"status": "skipped", "payload": None, "error": "aql_zopedia_agent_not_configured"}
+    try:
+        result = runner(
+            query=query,
+            schema_name=schema_name,
+            schema=schema,
+            task=task,
+            surface=surface,
+            max_tool_calls=max_tool_calls,
+            llm_client=llm_client,
+            persist_findings=False,
+        )
+    except Exception as exc:
+        return {
+            "status": "failed",
+            "payload": None,
+            "error": f"{type(exc).__name__}: {_safe_resolution_error(exc)}",
+        }
+    return result if isinstance(result, dict) else {"status": "failed", "payload": None, "error": "AQL/Zopedia agent returned a non-dict result."}
+
+
+def _news_resolution_query(
+    *,
     symbol: str,
     company_name: str,
     news_row: pd.Series,
@@ -592,11 +795,10 @@ def _llm_resolution(
     edgar_rows: list[dict[str, Any]],
     zopedia_pages: list[dict[str, Any]],
     business_memory_pages: list[dict[str, Any]],
+    business_model_stack: dict[str, Any],
     initial_slot_facts: dict[str, list[dict[str, Any]]],
     data_gaps: list[str],
-) -> dict[str, Any] | None:
-    if llm_client is None:
-        return None
+) -> str:
     context = {
         "symbol": symbol,
         "company_name": company_name,
@@ -617,26 +819,78 @@ def _llm_resolution(
             _llm_page_context(page, symbol=symbol, company_name=company_name)
             for page in business_memory_pages[:3]
         ],
+        "ticker_business_model_stack": {
+            "status": _coerce_text(business_model_stack.get("status")),
+            "confidence": _coerce_text(business_model_stack.get("confidence")),
+            "business_story_markdown": _coerce_text(business_model_stack.get("business_story_markdown")),
+            "slot_facts": _json_dict(business_model_stack.get("slot_facts_json") or business_model_stack.get("slot_facts")),
+            "slot_gaps": _json_list(business_model_stack.get("slot_gaps_json") or business_model_stack.get("slot_gaps")),
+        }
+        if business_model_stack
+        else {},
         "initial_slot_facts": initial_slot_facts,
         "data_gaps": data_gaps,
         "allowed_slots": list(BUSINESS_MEMORY_SLOTS),
         "allowed_resolution_labels": list(RESOLUTION_LABELS),
     }
-    try:
-        return llm_client.generate_json(
-            system_prompt=(
-                "Resolve incoming company news against durable business memory. "
-                "Use the evidence provided. Fill only source-backed business slots. "
-                "Treat related theme, concept, or market-event pages as context only; do not promote them into company memory slots unless a company-specific source supports the fact. "
-                "Explain what the news confirms, extends, contradicts, or leaves unresolved. "
-                "Do not write a stock-price or technical-analysis summary."
-            ),
-            user_prompt=json.dumps(context, ensure_ascii=False, default=str),
-            schema_name="news_business_resolution",
-            schema=NEWS_BUSINESS_RESOLUTION_SCHEMA,
-        )
-    except (LLMAPIError, Exception):
+    return (
+        "Use the AQL/Zopedia tool path to resolve this incoming company news item against durable business memory. "
+        "Read relevant Zopedia business memory pages and source evidence when available. "
+        "Connect the news to the operating business: products, customers, demand, fundamentals, workforce, employee sentiment, web attention, policy, and execution risk. "
+        "Write a coherent business story explaining what the news confirms, extends, contradicts, or leaves unresolved. "
+        "Return explicit verdicts; do not say that evidence exists without explaining what it means. "
+        "Do not write stock-price, chart, or technical-analysis commentary.\n\n"
+        "Context JSON:\n"
+        f"{_compact_json(context, limit=20000)}"
+    )
+
+
+def _zopedia_resolution(
+    *,
+    zopedia_agent_runner: AqlZopediaStructuredRunner | None,
+    llm_client: Any | None,
+    symbol: str,
+    company_name: str,
+    news_row: pd.Series,
+    baseline: dict[str, Any],
+    fundamentals: list[dict[str, Any]],
+    edgar_rows: list[dict[str, Any]],
+    zopedia_pages: list[dict[str, Any]],
+    business_memory_pages: list[dict[str, Any]],
+    business_model_stack: dict[str, Any],
+    initial_slot_facts: dict[str, list[dict[str, Any]]],
+    data_gaps: list[str],
+    surface: str,
+) -> dict[str, Any] | None:
+    runner = _agent_runner_or_none(zopedia_agent_runner=zopedia_agent_runner, llm_client=llm_client)
+    if runner is None:
         return None
+    result = _structured_agent_payload(
+        zopedia_agent_runner=runner,
+        llm_client=llm_client,
+        query=_news_resolution_query(
+            symbol=symbol,
+            company_name=company_name,
+            news_row=news_row,
+            baseline=baseline,
+            fundamentals=fundamentals,
+            edgar_rows=edgar_rows,
+            zopedia_pages=zopedia_pages,
+            business_memory_pages=business_memory_pages,
+            business_model_stack=business_model_stack,
+            initial_slot_facts=initial_slot_facts,
+            data_gaps=data_gaps,
+        ),
+        schema_name="news_business_resolution",
+        schema=NEWS_BUSINESS_RESOLUTION_SCHEMA,
+        task="news_business_resolution",
+        surface=surface,
+        max_tool_calls=8,
+    )
+    payload = result.get("payload") if isinstance(result.get("payload"), dict) else None
+    if payload is None:
+        return None
+    return payload
 
 
 def _merge_slot_facts(base: dict[str, list[dict[str, Any]]], overlay: object) -> dict[str, list[dict[str, Any]]]:
@@ -660,37 +914,15 @@ def _merge_slot_facts(base: dict[str, list[dict[str, Any]]], overlay: object) ->
     return merged
 
 
-def _fallback_story(
-    *,
-    symbol: str,
-    company_name: str,
-    headline: str,
-    slot_facts: dict[str, list[dict[str, Any]]],
-    data_gaps: list[str],
-    has_existing_memory: bool,
-) -> tuple[list[dict[str, Any]], str, str]:
-    labels = ["extends_existing_story"] if has_existing_memory else ["insufficient_evidence"]
-    changes = [
+def _synthesis_unavailable_changes(slot_facts: dict[str, list[dict[str, Any]]]) -> list[dict[str, Any]]:
+    evidence_refs = ["news_articles"] + [slot for slot in BUSINESS_MEMORY_SLOTS if slot_facts.get(slot)][:5]
+    return [
         {
-            "label": labels[0],
-            "text": (
-                "The incoming news is mapped to the company business profile, but durable company memory is still thin."
-                if not has_existing_memory
-                else "The incoming news extends the existing company business memory."
-            ),
-            "evidence_refs": ["news_articles"],
+            "label": "insufficient_evidence",
+            "text": "Source-backed facts were retained, but no business verdict was produced.",
+            "evidence_refs": evidence_refs,
         }
     ]
-    business = (slot_facts.get("business_model") or [{}])[0].get("text", "")
-    fundamentals = "; ".join(item.get("text", "") for item in (slot_facts.get("fundamentals") or [])[:3] if item.get("text"))
-    story_parts = [f"### {company_name or symbol}", f"Incoming news: {headline or 'No headline provided.'}"]
-    if business:
-        story_parts.append(f"Business context: {business}")
-    if fundamentals:
-        story_parts.append(f"Fundamentals context: {fundamentals}")
-    if data_gaps:
-        story_parts.append(f"Open gaps: {', '.join(data_gaps[:4])}.")
-    return changes, "\n\n".join(story_parts).strip(), "medium" if business or fundamentals else "low"
 
 
 def _build_source_page(news_row: pd.Series, *, symbol: str, company_name: str, source_event_id: str, asof_time_utc: str) -> dict[str, Any]:
@@ -813,8 +1045,10 @@ def resolve_news_business_event(
     company_baselines_frame: pd.DataFrame | None = None,
     fundamentals_frame: pd.DataFrame | None = None,
     zopedia_pages_frame: pd.DataFrame | None = None,
+    business_model_stack_frame: pd.DataFrame | None = None,
     edgar_evidence_frame: pd.DataFrame | None = None,
     llm_client: Any | None = None,
+    zopedia_agent_runner: AqlZopediaStructuredRunner | None = None,
     run_id: str = "",
     asof_time_utc: object = "",
     surface: str = "pipeline.news_business_resolution",
@@ -838,7 +1072,9 @@ def resolve_news_business_event(
         symbol=normalized_symbol,
         company_name=company_name,
     )
-    has_existing_memory = bool(business_memory_pages)
+    business_model_stack = _business_model_stack_row(business_model_stack_frame, symbol=normalized_symbol)
+    business_stack_slot_facts = _slot_facts_from_business_model_stack(business_model_stack)
+    has_existing_memory = bool(business_memory_pages) or bool(business_stack_slot_facts)
     fundamentals = _fundamental_rows(fundamentals_frame, normalized_symbol)
     edgar_rows = _edgar_rows(edgar_evidence_frame, normalized_symbol)
     data_gaps: list[str] = []
@@ -861,7 +1097,9 @@ def resolve_news_business_event(
         edgar_rows=edgar_rows,
         business_memory_pages=business_memory_pages,
     )
-    llm_payload = _llm_resolution(
+    initial_slot_facts = _merge_slot_facts(initial_slot_facts, business_stack_slot_facts)
+    synthesis_payload = _zopedia_resolution(
+        zopedia_agent_runner=zopedia_agent_runner,
         llm_client=llm_client,
         symbol=normalized_symbol,
         company_name=company_name,
@@ -871,29 +1109,31 @@ def resolve_news_business_event(
         edgar_rows=edgar_rows,
         zopedia_pages=zopedia_pages,
         business_memory_pages=business_memory_pages,
+        business_model_stack=business_model_stack,
         initial_slot_facts=initial_slot_facts,
         data_gaps=data_gaps,
+        surface=surface,
     )
-    slot_facts = _merge_slot_facts(initial_slot_facts, (llm_payload or {}).get("slot_facts") if isinstance(llm_payload, dict) else None)
-    if isinstance(llm_payload, dict):
-        resolved_changes = [item for item in list(llm_payload.get("resolved_changes") or []) if isinstance(item, dict)]
-        story = _coerce_text(llm_payload.get("coherent_story_markdown"))
-        confidence = _coerce_text(llm_payload.get("confidence")).lower() or "medium"
-        for gap in list(llm_payload.get("data_gaps") or []):
+    slot_facts = _merge_slot_facts(initial_slot_facts, (synthesis_payload or {}).get("slot_facts") if isinstance(synthesis_payload, dict) else None)
+    if isinstance(synthesis_payload, dict):
+        resolved_changes = [item for item in list(synthesis_payload.get("resolved_changes") or []) if isinstance(item, dict)]
+        story = _coerce_text(synthesis_payload.get("coherent_story_markdown"))
+        confidence = _coerce_text(synthesis_payload.get("confidence")).lower() or "medium"
+        for gap in list(synthesis_payload.get("data_gaps") or []):
             clean_gap = _coerce_text(gap)
             if clean_gap and clean_gap not in data_gaps:
                 data_gaps.append(clean_gap)
     else:
-        resolved_changes, story, confidence = _fallback_story(
-            symbol=normalized_symbol,
-            company_name=company_name,
-            headline=headline,
-            slot_facts=slot_facts,
-            data_gaps=data_gaps,
-            has_existing_memory=has_existing_memory,
-        )
+        resolved_changes = _synthesis_unavailable_changes(slot_facts)
+        story = ""
+        confidence = "low"
+        if "business_synthesis_unavailable" not in data_gaps:
+            data_gaps.append("business_synthesis_unavailable")
+    synthesis_available = bool(story)
     if confidence not in {"high", "medium", "low"}:
         confidence = "medium"
+    if not synthesis_available:
+        confidence = "low"
     if not has_existing_memory and confidence == "high":
         confidence = "medium"
     if data_gaps and confidence == "high":
@@ -906,28 +1146,37 @@ def resolve_news_business_event(
         source_event_id=source_event_id,
         asof_time_utc=asof_iso,
     )
-    company_page = _build_company_memory_page(
-        symbol=normalized_symbol,
-        company_name=company_name,
-        slot_facts=slot_facts,
-        source_event_ids=[source_event_id],
-        source_urls=[_coerce_text(news_row.get("url"))] if _coerce_text(news_row.get("url")) else [],
-        asof_time_utc=asof_iso,
-        cold_start=not has_existing_memory,
+    company_page = (
+        _build_company_memory_page(
+            symbol=normalized_symbol,
+            company_name=company_name,
+            slot_facts=slot_facts,
+            source_event_ids=[source_event_id],
+            source_urls=[_coerce_text(news_row.get("url"))] if _coerce_text(news_row.get("url")) else [],
+            asof_time_utc=asof_iso,
+            cold_start=not has_existing_memory,
+        )
+        if synthesis_available
+        else {}
     )
-    proposed_frame, _ = prepare_zopedia_pages([source_page, company_page], now=pd.to_datetime(asof_iso, utc=True, errors="coerce").to_pydatetime())
+    pages_to_prepare = [source_page] + ([company_page] if company_page else [])
+    proposed_frame, _ = prepare_zopedia_pages(pages_to_prepare, now=pd.to_datetime(asof_iso, utc=True, errors="coerce").to_pydatetime())
     proposed_pages = proposed_frame.to_dict("records") if not proposed_frame.empty else []
     normalized_source_page_id = _coerce_text(source_page.get("page_id"))
-    proposal_rows = _proposal_rows(
-        symbol=normalized_symbol,
-        company_name=company_name,
-        company_page=company_page,
-        source_page=source_page,
-        slot_facts=slot_facts,
-        resolved_changes=resolved_changes,
-        data_gaps=data_gaps,
-        write_policy=write_policy,
-        asof_time_utc=asof_iso,
+    proposal_rows = (
+        _proposal_rows(
+            symbol=normalized_symbol,
+            company_name=company_name,
+            company_page=company_page,
+            source_page=source_page,
+            slot_facts=slot_facts,
+            resolved_changes=resolved_changes,
+            data_gaps=data_gaps,
+            write_policy=write_policy,
+            asof_time_utc=asof_iso,
+        )
+        if company_page
+        else []
     )
     labels = []
     for item in resolved_changes:
@@ -935,8 +1184,11 @@ def resolve_news_business_event(
         if label in RESOLUTION_LABELS and label not in labels:
             labels.append(label)
     if not labels:
-        labels = ["insufficient_evidence"] if not has_existing_memory else ["extends_existing_story"]
-    status = "cold_start_prepared" if not has_existing_memory else "resolved"
+        labels = ["extends_existing_story"] if synthesis_available else ["insufficient_evidence"]
+    if not synthesis_available:
+        status = "cold_start_needs_synthesis" if not has_existing_memory else "needs_synthesis"
+    else:
+        status = "cold_start_prepared" if not has_existing_memory else "resolved"
     if "no_source_event_text" in data_gaps:
         status = "insufficient_evidence"
     request = NewsBusinessResolutionRequest(
@@ -960,8 +1212,25 @@ def resolve_news_business_event(
         confidence=confidence,
         resolution_labels=labels,
         source_page_ids=[normalized_source_page_id] if normalized_source_page_id else [],
-        zopedia_page_ids_read=[_coerce_text(page.get("page_id")) for page in zopedia_pages if _coerce_text(page.get("page_id"))],
-        fundamental_datasets_used=["quarterly_fundamentals"] if fundamentals else [],
+        zopedia_page_ids_read=list(
+            dict.fromkeys(
+                [_coerce_text(page.get("page_id")) for page in zopedia_pages if _coerce_text(page.get("page_id"))]
+                + _business_model_stack_page_ids(business_model_stack)
+            )
+        ),
+        fundamental_datasets_used=list(
+            dict.fromkeys(
+                (["quarterly_fundamentals"] if fundamentals else [])
+                + [
+                    _coerce_text(item)
+                    for item in _json_list(
+                        business_model_stack.get("fundamental_datasets_used_json")
+                        or business_model_stack.get("fundamental_datasets_used")
+                    )
+                    if _coerce_text(item)
+                ]
+            )
+        ),
         slot_facts=slot_facts,
         resolved_changes=resolved_changes,
         coherent_story_markdown=story,
@@ -1041,9 +1310,11 @@ def build_news_business_resolution_results(
     company_baselines_frame: pd.DataFrame | None = None,
     fundamentals_frame: pd.DataFrame | None = None,
     zopedia_pages_frame: pd.DataFrame | None = None,
+    business_model_stack_frame: pd.DataFrame | None = None,
     edgar_evidence_frame: pd.DataFrame | None = None,
     symbols: list[str] | None = None,
     llm_client: Any | None = None,
+    zopedia_agent_runner: AqlZopediaStructuredRunner | None = None,
     run_id: str = "",
     asof_time_utc: object = "",
     surface: str = "pipeline.news_business_resolution",
@@ -1059,8 +1330,10 @@ def build_news_business_resolution_results(
                 company_baselines_frame=company_baselines_frame,
                 fundamentals_frame=fundamentals_frame,
                 zopedia_pages_frame=zopedia_pages_frame,
+                business_model_stack_frame=business_model_stack_frame,
                 edgar_evidence_frame=edgar_evidence_frame,
                 llm_client=llm_client,
+                zopedia_agent_runner=zopedia_agent_runner,
                 run_id=run_id,
                 asof_time_utc=asof_time_utc,
                 surface=surface,
@@ -1096,9 +1369,11 @@ def build_news_business_resolution_frames(
     company_baselines_frame: pd.DataFrame | None = None,
     fundamentals_frame: pd.DataFrame | None = None,
     zopedia_pages_frame: pd.DataFrame | None = None,
+    business_model_stack_frame: pd.DataFrame | None = None,
     edgar_evidence_frame: pd.DataFrame | None = None,
     symbols: list[str] | None = None,
     llm_client: Any | None = None,
+    zopedia_agent_runner: AqlZopediaStructuredRunner | None = None,
     run_id: str = "",
     asof_time_utc: object = "",
     surface: str = "pipeline.news_business_resolution",
@@ -1110,9 +1385,11 @@ def build_news_business_resolution_frames(
         company_baselines_frame=company_baselines_frame,
         fundamentals_frame=fundamentals_frame,
         zopedia_pages_frame=zopedia_pages_frame,
+        business_model_stack_frame=business_model_stack_frame,
         edgar_evidence_frame=edgar_evidence_frame,
         symbols=symbols,
         llm_client=llm_client,
+        zopedia_agent_runner=zopedia_agent_runner,
         run_id=run_id,
         asof_time_utc=asof_time_utc,
         surface=surface,

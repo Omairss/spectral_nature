@@ -112,7 +112,7 @@ def _render_portfolio_section(
                         title="Position Weights",
                         template="plotly_dark",
                     )
-                    st.plotly_chart(pie, use_container_width=True)
+                    st.plotly_chart(pie, use_container_width=True, key="portfolio_position_weights_chart")
 
         with right:
             st.subheader("Portfolio vs Benchmarks")
@@ -128,13 +128,13 @@ def _render_portfolio_section(
                         template="plotly_dark",
                         title="Your Dollar Equity",
                     )
-                    st.plotly_chart(dollar_fig, use_container_width=True)
+                    st.plotly_chart(dollar_fig, use_container_width=True, key="portfolio_dollar_equity_chart")
                 norm = normalize_timeseries_view(raw)
                 if norm.empty:
                     st.info("No portfolio history available.")
                 else:
                     fig = build_portfolio_vs_benchmarks_fig(norm)
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, use_container_width=True, key="portfolio_vs_benchmarks_chart")
             except AlpacaAPIError as exc:
                 _log_event("build_timeseries_failed", error=str(exc)[:200])
                 st.warning(f"Could not load portfolio history: {exc}")
@@ -160,7 +160,7 @@ def _render_portfolio_section(
                         template="plotly_dark",
                         title="Slope Rate-of-Change by Holding",
                     )
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, use_container_width=True, key="portfolio_holding_roc_chart")
                     st.dataframe(roc, use_container_width=True, hide_index=True)
             except AlpacaAPIError as exc:
                 _log_event("compute_holding_roc_failed", error=str(exc)[:200])
@@ -210,11 +210,15 @@ def _render_portfolio_performance_section(
                 template="plotly_dark",
                 title="Your Dollar Equity Over Time",
             )
-            st.plotly_chart(dollar_fig, use_container_width=True)
+            st.plotly_chart(dollar_fig, use_container_width=True, key="portfolio_performance_dollar_equity_chart")
         st.dataframe(perf, use_container_width=True, hide_index=True)
 
         metric = st.selectbox(
             "Metric",
             ["annual_return", "sharpe_ratio", "beta_vs_spy", "alpha_vs_spy", "max_drawdown"],
         )
-        st.plotly_chart(build_metric_bar(perf, metric), use_container_width=True)
+        st.plotly_chart(
+            build_metric_bar(perf, metric),
+            use_container_width=True,
+            key=f"portfolio_performance_metric_{metric}_chart",
+        )

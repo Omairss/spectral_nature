@@ -34,6 +34,197 @@ def test_browse_page_prefers_authenticated_seeking_alpha_helper(monkeypatch):
     assert payload["text"] == "Visible article text"
 
 
+def test_page_quality_issue_detects_blocked_and_shallow_pages():
+    assert page_browsing.page_quality_issue({"title": "Access denied", "text": "Verify you are human"})
+    assert page_browsing.page_quality_issue({"title": "Readable", "text": "short"}, min_text_chars=20) == "shallow:5<20"
+    assert (
+        page_browsing.page_quality_issue(
+            {
+                "title": "Cloudflare investor overview",
+                "text": "Cloudflare sells network security and developer services to enterprise customers. " * 12,
+            },
+            min_text_chars=120,
+        )
+        == ""
+    )
+    assert (
+        page_browsing.page_quality_issue(
+            {
+                "title": "Investor relations",
+                "text": (
+                    "Skip to main content Skip to section navigation Skip to footer "
+                    "Home About News Contact Careers IR Overview Manage Cookie Preferences "
+                    "A short visible page shell."
+                ),
+            },
+            min_text_chars=80,
+        )
+        == "navigation_dominated"
+    )
+    assert page_browsing.page_quality_issue({"title": "Readable", "text": "useful business evidence " * 24}) == ""
+
+
+def test_browse_page_escalates_from_shallow_browser_result_to_scrapling(monkeypatch):
+    calls: list[str] = []
+
+    async def _fake_playwright(url: str, *, timeout_seconds: int, max_text_chars: int):
+        del timeout_seconds, max_text_chars
+        calls.append("playwright")
+        return {
+            "url": url,
+            "final_url": url,
+            "title": "Security Check",
+            "description": "",
+            "excerpt": "Verify you are human",
+            "text": "Verify you are human",
+            "mode": "playwright",
+            "warning": "",
+        }
+
+    def _fake_http(url: str, *, timeout_seconds: int, max_text_chars: int, warning: str = ""):
+        del timeout_seconds, max_text_chars
+        calls.append("http")
+        return {
+            "url": url,
+            "final_url": url,
+            "title": "Overview",
+            "description": "",
+            "excerpt": "too short",
+            "text": "too short",
+            "mode": "http",
+            "warning": warning,
+        }
+
+    def _fake_scrapling(url: str, *, timeout_seconds: int, max_text_chars: int, warning: str = ""):
+        del timeout_seconds, max_text_chars
+        calls.append("scrapling")
+        return {
+            "url": url,
+            "final_url": url,
+            "title": "Company overview",
+            "description": "",
+            "excerpt": "Company sells critical infrastructure",
+            "text": "Company sells critical infrastructure to enterprise customers. " * 12,
+            "mode": "scrapling",
+            "warning": warning,
+        }
+
+    def _fake_firecrawl(*args, **kwargs):
+        raise AssertionError("Firecrawl should not run after Scrapling succeeds.")
+
+    monkeypatch.setattr(page_browsing, "_browse_with_playwright", _fake_playwright)
+    monkeypatch.setattr(page_browsing, "_browse_with_http", _fake_http)
+    monkeypatch.setattr(page_browsing, "_browse_with_scrapling", _fake_scrapling)
+    monkeypatch.setattr(page_browsing, "_browse_with_firecrawl", _fake_firecrawl)
+
+    payload = page_browsing.browse_page(
+        "https://example.com/company",
+        require_main_content=True,
+        min_text_chars=80,
+    )
+
+    assert calls == ["playwright", "http", "scrapling"]
+    assert payload["mode"] == "scrapling"
+    assert "Playwright quality issue" in payload["warning"]
+    assert "HTTP quality issue" in payload["warning"]
+    assert "enterprise customers" in payload["text"]
+
+
+def test_browse_page_escalates_to_firecrawl_when_scrapling_is_unusable(monkeypatch):
+    async def _fake_playwright(url: str, *, timeout_seconds: int, max_text_chars: int):
+        del timeout_seconds, max_text_chars
+        return {
+            "url": url,
+            "final_url": url,
+            "title": "Blocked",
+            "description": "",
+            "excerpt": "captcha",
+            "text": "captcha",
+            "mode": "playwright",
+            "warning": "",
+        }
+
+    def _fake_http(*args, **kwargs):
+        raise page_browsing.PageBrowsingError("HTTP blocked")
+
+    def _fake_scrapling(*args, **kwargs):
+        raise page_browsing.PageBrowsingError("Scrapling blocked")
+
+    def _fake_firecrawl(url: str, *, timeout_seconds: int, max_text_chars: int, warning: str = ""):
+        del timeout_seconds, max_text_chars
+        return {
+            "url": url,
+            "final_url": url,
+            "title": "Company investor relations",
+            "description": "",
+            "excerpt": "Firecrawl markdown",
+            "text": "The company sells software subscriptions and cloud services to commercial customers. " * 12,
+            "mode": "firecrawl",
+            "warning": warning,
+        }
+
+    monkeypatch.setattr(page_browsing, "_browse_with_playwright", _fake_playwright)
+    monkeypatch.setattr(page_browsing, "_browse_with_http", _fake_http)
+    monkeypatch.setattr(page_browsing, "_browse_with_scrapling", _fake_scrapling)
+    monkeypatch.setattr(page_browsing, "_browse_with_firecrawl", _fake_firecrawl)
+
+    payload = page_browsing.browse_page(
+        "https://example.com/investors",
+        require_main_content=True,
+        min_text_chars=120,
+    )
+
+    assert payload["mode"] == "firecrawl"
+    assert "Playwright quality issue" in payload["warning"]
+    assert "HTTP blocked" in payload["warning"]
+    assert "Scrapling blocked" in payload["warning"]
+
+
+def test_firecrawl_browse_requests_clean_markdown_main_content(monkeypatch):
+    captured: dict[str, object] = {}
+
+    class _FakeFirecrawlResponse:
+        status_code = 200
+        text = ""
+
+        def json(self):
+            return {
+                "data": {
+                    "markdown": "Company sells data-center infrastructure services. " * 12,
+                    "metadata": {
+                        "title": "Investor overview",
+                        "sourceURL": "https://example.com/investors",
+                        "description": "Investor relations overview",
+                    },
+                }
+            }
+
+    def _fake_post(endpoint, *, headers, json, timeout):
+        captured["endpoint"] = endpoint
+        captured["headers"] = headers
+        captured["json"] = json
+        captured["timeout"] = timeout
+        return _FakeFirecrawlResponse()
+
+    monkeypatch.setattr(page_browsing, "_firecrawl_api_key", lambda: "firecrawl-test-key")
+    monkeypatch.setattr(page_browsing.requests, "post", _fake_post)
+
+    payload = page_browsing._browse_with_firecrawl(
+        "https://example.com/investors",
+        timeout_seconds=9,
+        max_text_chars=900,
+    )
+
+    assert payload["mode"] == "firecrawl"
+    assert captured["endpoint"] == "https://api.firecrawl.dev/v2/scrape"
+    assert captured["headers"]["Authorization"] == "Bearer firecrawl-test-key"
+    assert captured["json"]["formats"] == ["markdown"]
+    assert captured["json"]["onlyMainContent"] is True
+    assert captured["json"]["onlyCleanContent"] is True
+    assert captured["json"]["timeout"] == 9000
+    assert "data-center infrastructure" in payload["text"]
+
+
 def test_load_seeking_alpha_credentials_uses_default_key_vault_secret_names(monkeypatch):
     calls: list[tuple[str, str, str]] = []
 

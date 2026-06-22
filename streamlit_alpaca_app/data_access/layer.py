@@ -38,8 +38,10 @@ from services.attention_home_1d import (
     build_attention_home_1d,
     shortlist_attention_symbols_1d,
 )
-from services.company import build_company_description, load_asset_metadata, load_recent_news
+from services.company import load_asset_metadata, load_recent_news
+from services.common.company_identity import clean_company_display_name
 from services.config import AppConfig, load_config
+from services.common.news_freshness import coerce_article_published_at, is_recent_for_attention
 from services.data_cache import (
     cached_frame,
     cached_frame_dict,
@@ -138,17 +140,6 @@ def _provider_display_label(value: object) -> str:
     return text
 
 
-def _coerce_bool_or_none(value: object) -> bool | None:
-    if isinstance(value, bool):
-        return value
-    lowered = _coerce_text(value).lower()
-    if lowered in {"true", "1", "yes"}:
-        return True
-    if lowered in {"false", "0", "no"}:
-        return False
-    return None
-
-
 def _query_tokens(value: object) -> list[str]:
     tokens = [token for token in re.split(r"[^a-z0-9]+", _coerce_text(value).lower()) if len(token) >= 2]
     return _dedupe_text_items(tokens)
@@ -195,28 +186,68 @@ def _dates_match_filters(
 def _is_relevant_bundle_news_item(item: dict[str, Any] | None) -> bool:
     payload = item if isinstance(item, dict) else {}
     source_kind = _coerce_text(payload.get("source_kind")).lower()
-    if source_kind not in {"news", "search"} and not _coerce_text(payload.get("search_provider")):
+    if source_kind not in {"news", "search"} and not _coerce_text(
+        payload.get("search_provider") or payload.get("source_provider") or payload.get("origin_provider")
+    ):
         return False
-    is_important = _coerce_bool_or_none(payload.get("is_important"))
-    if is_important is None:
-        return True
-    return bool(is_important)
+    return True
 
 
 def _headline_source_label(item: dict[str, Any] | None) -> str:
     payload = item if isinstance(item, dict) else {}
-    base_source = _coerce_text(payload.get("source")) or "News"
-    provider = _provider_display_label(payload.get("search_provider") or payload.get("origin_provider"))
+    base_source = _coerce_text(payload.get("source") or payload.get("source_provider")) or "News"
+    provider = _provider_display_label(payload.get("search_provider") or payload.get("source_provider") or payload.get("origin_provider"))
     if provider and provider.lower() not in base_source.lower():
         return f"{base_source} (via {provider})"
     return base_source
 
 
-def _relevant_news_message(symbol: str, *, has_tavily: bool) -> str:
-    target = _coerce_text(symbol).upper()
-    if has_tavily:
-        return f"No relevant catalyst found in Tavily coverage for {target} in the latest agentic run."
-    return f"No relevant catalyst found in web coverage for {target} in the latest agentic run."
+def _recent_news_asof(details: dict[str, Any] | None = None) -> pd.Timestamp:
+    details = details if isinstance(details, dict) else {}
+    candidates = [
+        pd.to_datetime(details.get("asof_time_utc"), utc=True, errors="coerce"),
+        pd.to_datetime(details.get("ingested_at_utc"), utc=True, errors="coerce"),
+    ]
+    valid = [item for item in candidates if pd.notna(item)]
+    return max(valid) if valid else pd.Timestamp.now(tz="UTC")
+
+
+def _filter_recent_news_articles(
+    articles: pd.DataFrame,
+    *,
+    days: int,
+    details: dict[str, Any] | None = None,
+    include_undated: bool = False,
+) -> pd.DataFrame:
+    if not isinstance(articles, pd.DataFrame) or articles.empty:
+        return pd.DataFrame()
+    out = articles.copy()
+    asof_ts = _recent_news_asof(details)
+    if "published_at" in out.columns:
+        out["published_at"] = out.apply(
+            lambda row: coerce_article_published_at(
+                row.get("published_at"),
+                url=row.get("url"),
+                asof_time_utc=asof_ts,
+            ),
+            axis=1,
+        )
+    else:
+        out["published_at"] = pd.NaT
+    out = out[
+        out["published_at"].apply(
+            lambda value: is_recent_for_attention(
+                value,
+                asof_time_utc=asof_ts,
+                max_age_days=max(int(days or 0), 1),
+                include_undated=include_undated,
+            )
+        )
+    ].copy()
+    if out.empty:
+        return pd.DataFrame(columns=articles.columns)
+    out = out.sort_values("published_at", ascending=False, na_position="last")
+    return out.reset_index(drop=True)
 
 
 def _bundle_recent_headlines(bundle: dict[str, Any], *, limit: int = 6) -> list[dict[str, Any]]:
@@ -265,7 +296,7 @@ def _bundle_news_summary_lines(bundle: dict[str, Any], recent_headlines: list[di
         ],
         limit=3,
     )
-    intro = f"{same_day_count} same-day important item(s) and {background_count} background item(s) from agentic research"
+    intro = f"{same_day_count} same-day web item(s) and {background_count} background item(s) from agentic research"
     if provider_labels:
         intro = f"{intro} via {', '.join(provider_labels)}"
     lines = [intro + "."]
@@ -281,6 +312,11 @@ def _bundle_description_text(bundle: dict[str, Any], *, fallback: str = "") -> s
         _coerce_text(bundle.get("headline")),
         _coerce_text(bundle.get("what_changed_text")),
         _coerce_text(bundle.get("why_now_text")),
+        _coerce_text(bundle.get("business_resolution_text")),
+        _coerce_text(bundle.get("business_stack_text")),
+        _coerce_text(bundle.get("surface_business_context_text")),
+        _coerce_text(bundle.get("business_context_text")),
+        _coerce_text(bundle.get("background_context_text")),
     ]
     merged = _dedupe_text_items(fields, limit=3)
     if merged:
@@ -315,27 +351,7 @@ def _ensure_company_background_text(
     existing = _coerce_text(current_text)
     if existing and not _is_template_company_background(existing):
         return existing
-    target = _coerce_text(symbol).upper()
-    name = _coerce_text(company_name)
-    generated = ""
-    try:
-        generated = build_company_description(
-            target,
-            {"name": name or target},
-            {},
-            {},
-            news_payload={"articles": pd.DataFrame()},
-        )
-    except Exception:
-        generated = ""
-    generated = _coerce_text(generated)
-    if generated and not _is_template_company_background(generated):
-        return generated
-    if name:
-        return f"{name} ({target}) is a publicly traded company."
-    if target:
-        return f"{target} is a publicly traded company."
-    return "Company background is unavailable in the latest snapshot."
+    return ""
 
 
 def _bundle_web_signal_score(bundle: dict[str, Any] | None) -> int:
@@ -407,8 +423,6 @@ def _overlay_background_payload_from_bundle(
     )
     if not provider_labels:
         provider_labels = _dedupe_text_items([_provider_display_label(item) for item in list(source_trace.get("news_provider_mix") or [])], limit=3)
-    has_tavily = any(label.lower() == "tavily" for label in provider_labels)
-
     base_description_text = _coerce_text(payload.get("description_text"))
     company_background_text = _ensure_company_background_text(
         normalized_symbol,
@@ -417,6 +431,12 @@ def _overlay_background_payload_from_bundle(
     )
     bundle_description_text = _bundle_description_text(bundle, fallback="")
     base_summary_lines = _dedupe_text_items([_coerce_text(item) for item in list(payload.get("news_summary_lines") or [])], limit=5)
+    if _coerce_text(bundle_description_text).lower() in {
+        normalized_symbol.lower(),
+        f"{normalized_symbol.lower()} is outperforming expectation",
+        f"{normalized_symbol.lower()} is underperforming expectation",
+    }:
+        bundle_description_text = ""
     bundle_summary_lines = _bundle_news_summary_lines(bundle, bundle_recent_headlines)
 
     if bundle_recent_headlines:
@@ -429,9 +449,9 @@ def _overlay_background_payload_from_bundle(
         description_text = ""
         summary_lines = []
 
-    if not description_text:
-        description_text = _relevant_news_message(normalized_symbol, has_tavily=has_tavily)
-    if not summary_lines:
+    if not description_text and _coerce_text(bundle_description_text):
+        description_text = bundle_description_text
+    if description_text and not summary_lines:
         summary_lines = [description_text]
 
     payload.update(
@@ -467,7 +487,11 @@ def _overlay_background_payload_from_bundle(
             "important_news_count": max(bundle_important_count, existing_important_count),
             "relevant_news_count": int(len(recent_headlines)),
             "news_provider_mix": provider_labels,
-            "source": "attention_research_bundle" if bundle_recent_headlines else (existing_source or "attention_ticker_background_snapshots"),
+            "source": (
+                "attention_research_bundle"
+                if bundle_recent_headlines
+                else (existing_source or ("attention_research_bundle" if bundle_description_text else "attention_ticker_background_snapshots"))
+            ),
         }
     )
     payload["source_trace"] = source_trace
@@ -525,6 +549,22 @@ _ATTENTION_STAT_FIELDS = (
     "surface_summary_text",
     "surface_what_changed_text",
     "surface_why_text",
+    "surface_what_else_moved_text",
+)
+
+_ATTENTION_PRIMARY_NARRATIVE_FIELDS = (
+    "what_happened_text",
+    "why_happened_text",
+    "what_changed_text",
+    "why_now_text",
+    "surface_summary_text",
+    "surface_what_changed_text",
+    "surface_why_text",
+)
+
+_ATTENTION_SECONDARY_CONTEXT_FIELDS = (
+    "affected_assets_summary_text",
+    "what_else_moved_text",
     "surface_what_else_moved_text",
 )
 
@@ -628,6 +668,48 @@ class DataAccessLayer:
         if frame.empty and not details:
             return None
         return frame, details
+
+    def _try_pipeline_identity_frame(self, dataset_name: str) -> tuple[pd.DataFrame, dict[str, Any]] | None:
+        if not pipeline_store_configured():
+            return None
+        frame, details = self._pipeline_frame(dataset_name)
+        if frame.empty and not details:
+            return None
+        return frame, details
+
+    def _company_identity_from_materialized(self, ticker: str) -> dict[str, str]:
+        target = str(ticker or "").upper().strip()
+        if not target:
+            return {}
+
+        for dataset_name in ("company_baselines", "us_equity_listings", "universe_snapshot"):
+            materialized = self._try_pipeline_identity_frame(dataset_name)
+            if materialized is None:
+                continue
+            frame, _ = materialized
+            if not isinstance(frame, pd.DataFrame) or frame.empty:
+                continue
+            symbol_column = ""
+            for candidate in ("symbol", "ticker", "entity_id"):
+                if candidate in frame.columns:
+                    symbol_column = candidate
+                    break
+            if not symbol_column:
+                continue
+            name_columns = [column for column in ("company_name", "security_name", "name", "display_name") if column in frame.columns]
+            if not name_columns:
+                continue
+            rows = frame.copy()
+            rows[symbol_column] = rows[symbol_column].astype(str).str.upper().str.strip()
+            match = rows[rows[symbol_column] == target].head(1)
+            if match.empty:
+                continue
+            row = match.iloc[0]
+            for column in name_columns:
+                name = clean_company_display_name(row.get(column)) or _coerce_text(row.get(column))
+                if name:
+                    return {"symbol": target, "name": name, "source_dataset": dataset_name}
+        return {}
 
     def _try_pipeline_frames(
         self,
@@ -781,6 +863,21 @@ class DataAccessLayer:
             return True
         return False
 
+    def _looks_like_raw_attention_tool_dump(self, value: Any) -> bool:
+        text = str(value or "").strip().lower()
+        if not text:
+            return False
+        raw_markers = (
+            "evidence collected:",
+            "dataset with",
+            "research object keys=",
+            "columns=",
+            "sample=[",
+            "llm_context_text",
+            "i collected tool output",
+        )
+        return any(marker in text for marker in raw_markers)
+
     def _payload_uses_stat_dump_text(self, payload: dict[str, Any]) -> bool:
         if not isinstance(payload, dict) or not payload:
             return False
@@ -788,8 +885,11 @@ class DataAccessLayer:
             for item in list(payload.get(section) or []):
                 if not isinstance(item, dict):
                     continue
-                for key in _ATTENTION_STAT_FIELDS:
+                for key in _ATTENTION_PRIMARY_NARRATIVE_FIELDS:
                     if self._looks_like_attention_stat_dump(item.get(key)):
+                        return True
+                for key in _ATTENTION_SECONDARY_CONTEXT_FIELDS:
+                    if self._looks_like_raw_attention_tool_dump(item.get(key)):
                         return True
         return False
 
@@ -817,7 +917,9 @@ class DataAccessLayer:
     def _bundle_uses_stat_dump_text(self, payload: dict[str, Any]) -> bool:
         if not isinstance(payload, dict) or not payload:
             return False
-        return any(self._looks_like_attention_stat_dump(payload.get(key)) for key in _ATTENTION_STAT_FIELDS)
+        if any(self._looks_like_attention_stat_dump(payload.get(key)) for key in _ATTENTION_PRIMARY_NARRATIVE_FIELDS):
+            return True
+        return any(self._looks_like_raw_attention_tool_dump(payload.get(key)) for key in _ATTENTION_SECONDARY_CONTEXT_FIELDS)
 
     def _user_share_fraction(self, user_context: Any | None) -> float:
         if isinstance(user_context, dict):
@@ -934,6 +1036,7 @@ class DataAccessLayer:
         self,
         ticker: str,
         *,
+        days: int,
         limit: int,
         force_refresh: bool = False,
     ) -> ResolvedPayload | None:
@@ -968,6 +1071,7 @@ class DataAccessLayer:
 
         keep = [col for col in ["headline", "summary", "description", "published_at", "source", "url", "sentiment", "symbols"] if col in article_rows.columns]
         articles = article_rows[keep].head(limit).reset_index(drop=True) if keep else pd.DataFrame()
+        articles = _filter_recent_news_articles(articles, days=days, details=details, include_undated=False).head(limit).reset_index(drop=True)
         if not articles.empty and "symbols" not in articles.columns:
             articles["symbols"] = [[target]] * len(articles)
 
@@ -978,7 +1082,7 @@ class DataAccessLayer:
             if _coerce_text(value)
         ]
         source = "+".join(dict.fromkeys(source_values)) if source_values else "attention_web_search_news"
-        if articles.empty and not fallback_summary:
+        if articles.empty:
             return None
         return self._resolved(
             {
@@ -988,13 +1092,14 @@ class DataAccessLayer:
             },
             mode="materialized",
             datasets=("attention_web_search_news",),
-            details={**details, "ticker": target, "limit": limit},
+            details={**details, "ticker": target, "days": days, "limit": limit},
         )
 
     def _resolve_materialized_recent_news_from_background(
         self,
         ticker: str,
         *,
+        days: int,
         limit: int,
         force_refresh: bool = False,
     ) -> ResolvedPayload | None:
@@ -1035,8 +1140,14 @@ class DataAccessLayer:
         if isinstance(articles, pd.DataFrame) and not articles.empty and "published_at" in articles.columns:
             articles["published_at"] = pd.to_datetime(articles["published_at"], utc=True, errors="coerce")
             articles = articles.sort_values("published_at", ascending=False, na_position="last").reset_index(drop=True)
+        articles = _filter_recent_news_articles(
+            articles,
+            days=days,
+            details=background.provenance.details,
+            include_undated=False,
+        ).head(limit).reset_index(drop=True)
 
-        if articles.empty and not fallback_summary:
+        if articles.empty:
             return None
         return self._resolved(
             {
@@ -1046,7 +1157,7 @@ class DataAccessLayer:
             },
             mode=background.provenance.mode,
             datasets=background.provenance.datasets,
-            details={**background.provenance.details, "ticker": target, "limit": limit},
+            details={**background.provenance.details, "ticker": target, "days": days, "limit": limit},
         )
 
     def _resolve_attention_edgar_filings(
@@ -2405,11 +2516,18 @@ class DataAccessLayer:
                     if "published_at" in rows.columns:
                         rows["published_at"] = pd.to_datetime(rows["published_at"], utc=True, errors="coerce")
                         rows = rows.sort_values("published_at", ascending=False, na_position="last")
-                    rows = rows.head(limit).reset_index(drop=True)
-                    return self._resolved({"articles": rows, "fallback_summary": None, "source": "pipeline"}, mode="materialized", datasets=("news_articles",), details=details)
+                    rows = _filter_recent_news_articles(
+                        rows,
+                        days=days,
+                        details=details,
+                        include_undated=False,
+                    ).head(limit).reset_index(drop=True)
+                    if not rows.empty:
+                        return self._resolved({"articles": rows, "fallback_summary": None, "source": "pipeline"}, mode="materialized", datasets=("news_articles",), details=details)
 
         search_materialized = self._resolve_materialized_recent_news_from_search(
             ticker,
+            days=days,
             limit=limit,
             force_refresh=force_refresh,
         )
@@ -2418,11 +2536,42 @@ class DataAccessLayer:
 
         background_materialized = self._resolve_materialized_recent_news_from_background(
             ticker,
+            days=days,
             limit=limit,
             force_refresh=force_refresh,
         )
         if background_materialized is not None:
             return background_materialized
+
+        if not self.materialized_only:
+            identity = self._company_identity_from_materialized(ticker)
+            company_name = _coerce_text(identity.get("name"))
+            if not company_name:
+                try:
+                    metadata = self.resolve_asset_metadata(ticker, force_refresh=force_refresh)
+                    payload = metadata.payload if metadata is not None else {}
+                    if isinstance(payload, dict):
+                        company_name = _coerce_text(payload.get("name") or payload.get("company_name") or payload.get("security_name"))
+                except Exception:
+                    company_name = ""
+            web_payload = self._resolve_web_search_news(ticker, company_name=company_name, force_refresh=force_refresh)
+            web_articles = web_payload.get("articles") if isinstance(web_payload, dict) else None
+            if isinstance(web_articles, pd.DataFrame):
+                web_articles = _filter_recent_news_articles(
+                    web_articles,
+                    days=days,
+                    details={"dataset_name": "web_search_news"},
+                    include_undated=False,
+                ).head(limit).reset_index(drop=True)
+                if not web_articles.empty:
+                    resolved_payload = dict(web_payload)
+                    resolved_payload["articles"] = web_articles
+                    return self._resolved(
+                        resolved_payload,
+                        mode="on_demand",
+                        datasets=("web_search_news",),
+                        details={"ticker": ticker.upper(), "days": days, "limit": limit, "source": "web_search_news"},
+                    )
 
         materialized_only = self._materialized_only_result(
             {"articles": pd.DataFrame(), "fallback_summary": None, "source": "pipeline"},
@@ -2431,6 +2580,13 @@ class DataAccessLayer:
         )
         if materialized_only is not None:
             return materialized_only
+        if self.cfg is None:
+            return self._resolved(
+                {"articles": pd.DataFrame(), "fallback_summary": None, "source": None},
+                mode="on_demand",
+                datasets=("recent_news", "web_search_news"),
+                details={"ticker": ticker.upper(), "days": days, "limit": limit, "empty_reason": "no_recent_news_and_no_alpaca_config"},
+            )
         payload = cached_news_payload(
             "recent_news",
             f"{_alpaca_cache_scope(self.cfg)}__{ticker.upper()}__{days}d__{limit}" if self.cfg is not None else f"missing-config__{ticker.upper()}__{days}d__{limit}",
@@ -2475,6 +2631,44 @@ class DataAccessLayer:
                 "ticker": normalized,
                 "limit": limit,
                 "warning": "news business resolution dataset not available",
+            },
+        )
+
+    def resolve_ticker_business_model_stack(self, ticker: str = "", *, force_refresh: bool = False) -> ResolvedPayload:
+        materialized = self._try_pipeline_frame("zopedia_ticker_business_model_stacks", force_refresh=force_refresh)
+        normalized = str(ticker or "").upper().strip()
+        if materialized is not None:
+            frame, details = materialized
+            rows = frame.copy() if isinstance(frame, pd.DataFrame) else pd.DataFrame()
+            if not rows.empty and normalized and "symbol" in rows.columns:
+                rows = rows[rows["symbol"].astype(str).str.upper().str.strip() == normalized].copy()
+            if not rows.empty:
+                for column in ("asof_time_utc", "created_at_utc"):
+                    if column in rows.columns:
+                        rows[column] = pd.to_datetime(rows[column], utc=True, errors="coerce")
+                sort_columns = [column for column in ("asof_time_utc", "created_at_utc") if column in rows.columns]
+                if sort_columns:
+                    rows = rows.sort_values(sort_columns, ascending=[False] * len(sort_columns), na_position="last")
+                rows = rows.head(1).reset_index(drop=True)
+            resolved_details = dict(details)
+            resolved_details.update({"ticker": normalized})
+            if rows.empty:
+                resolved_details.setdefault("empty_reason", "no_ticker_business_model_stack_rows")
+            return self._resolved(rows, mode="materialized", datasets=("zopedia_ticker_business_model_stacks",), details=resolved_details)
+        materialized_only = self._materialized_only_result(
+            pd.DataFrame(),
+            datasets=("zopedia_ticker_business_model_stacks",),
+            details={"ticker": normalized},
+        )
+        if materialized_only is not None:
+            return materialized_only
+        return self._resolved(
+            pd.DataFrame(),
+            mode="on_demand",
+            datasets=("zopedia_ticker_business_model_stacks",),
+            details={
+                "ticker": normalized,
+                "warning": "ticker business model stack dataset not available",
             },
         )
 
@@ -2693,16 +2887,26 @@ class DataAccessLayer:
     def resolve_attention_home_1d(self, *, force_refresh: bool = False) -> ResolvedPayload:
         materialized = self._first_materialized_frame(
             ATTENTION_HOME_SNAPSHOT_DATASETS,
-            force_refresh=force_refresh,
+            force_refresh=False,
         )
         if materialized is not None:
             dataset_name, frame, details = materialized
             payload = deserialize_attention_home_payload(frame)
-            if (
-                payload
-                and not self._payload_uses_legacy_attention_titles(payload)
-                and not self._payload_uses_stat_dump_text(payload)
-            ):
+            if payload:
+                quality_warning = ""
+                if self._payload_uses_legacy_attention_titles(payload):
+                    quality_warning = "attention_home_materialized_legacy_titles"
+                elif self._payload_uses_stat_dump_text(payload):
+                    quality_warning = "attention_home_materialized_stat_dump_text"
+                if quality_warning:
+                    details = dict(details or {})
+                    details["warning"] = quality_warning
+                    return self._resolved(
+                        {},
+                        mode="materialized",
+                        datasets=(dataset_name,),
+                        details=details,
+                    )
                 return self._resolved(
                     payload,
                     mode="materialized",
@@ -2710,24 +2914,26 @@ class DataAccessLayer:
                     details=details,
                 )
 
-        materialized_only = self._materialized_only_result({}, datasets=ATTENTION_HOME_SNAPSHOT_DATASETS, details={"today_only": True})
+        details = {
+            "today_only": True,
+            "warning": (
+                "attention_home_force_refresh_requires_materialized_snapshot"
+                if force_refresh
+                else "attention_home_materialized_snapshot_unavailable"
+            ),
+        }
+        materialized_only = self._materialized_only_result(
+            {},
+            datasets=ATTENTION_HOME_SNAPSHOT_DATASETS,
+            details=details,
+        )
         if materialized_only is not None:
             return materialized_only
-        payload = self._resolve_live_attention_artifacts(force_refresh=force_refresh).get("home_payload") or {}
         return self._resolved(
-            payload,
-            mode="on_demand",
-            datasets=(
-                "daily_movers",
-                "attention_feed",
-                "commodity_attention_feed",
-                "attention_candidates_1d",
-                "attention_research_plans",
-                "attention_source_documents",
-                "attention_claims",
-                "attention_event_clusters_1d",
-            ),
-            details={"today_only": True, "run_id": _coerce_text((payload or {}).get("run_id"))},
+            {},
+            mode="materialized",
+            datasets=ATTENTION_HOME_SNAPSHOT_DATASETS,
+            details=details,
         )
 
     def resolve_market_opportunity_feed(
@@ -2893,7 +3099,7 @@ class DataAccessLayer:
 
         if normalized_bundle_id.lower().startswith("symbol::"):
             symbol = normalized_bundle_id.split("::", 1)[1].upper().strip()
-            if _precomputed_symbol_bundles_only() and not force_refresh:
+            if _precomputed_symbol_bundles_only():
                 if materialized_payload:
                     return self._resolved(
                         materialized_payload,
@@ -2943,22 +3149,13 @@ class DataAccessLayer:
                 datasets=(materialized_dataset_name or ATTENTION_BUNDLE_SNAPSHOT_DATASETS[0],),
                 details=materialized_details,
             )
-        live = self._resolve_live_attention_artifacts(force_refresh=force_refresh)
-        bundle_map = dict(live.get("bundle_map") or {})
-        payload = dict(bundle_map.get(normalized_bundle_id) or {})
         return self._resolved(
-            payload,
-            mode="on_demand",
-            datasets=(
-                "attention_home_snapshots_1d",
-                "attention_bundle_snapshots",
-                "attention_source_documents",
-                "attention_evidence_chunks",
-                "attention_claims",
-            ),
+            {},
+            mode="materialized",
+            datasets=ATTENTION_BUNDLE_SNAPSHOT_DATASETS,
             details={
                 "bundle_id": normalized_bundle_id,
-                "run_id": _coerce_text(payload.get("run_id") or live.get("run_id")),
+                "warning": "attention_research_bundle_materialized_snapshot_unavailable",
             },
         )
 

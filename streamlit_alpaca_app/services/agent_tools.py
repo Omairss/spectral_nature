@@ -88,7 +88,9 @@ def _research_tools() -> list[dict[str, Any]]:
             "name": "research.retained_context",
             "description": (
                 "Look up retained narrative context already in Spectral Nature for the query. "
-                "Best first tool for live analysis prompts."
+                "Best first tool for live analysis prompts. Pass focus_symbols when the task is about "
+                "a named company, ticker, person, or other scoped subject so retained lookup stays anchored. "
+                "Adjacent peer, sector, macro, and spillover context is useful; organize it around the primary subject."
             ),
             "inputSchema": {
                 "type": "object",
@@ -162,13 +164,22 @@ def _research_tools() -> list[dict[str, Any]]:
         {
             "name": "research.open_page",
             "description": (
-                "Open one selected web page with Playwright when available, with a simple HTTP fallback."
+                "Open one selected web page. When main content is required, the shared browser escalates "
+                "from Playwright/HTTP to crawler-backed acquisition for blocked or shallow pages."
             ),
             "inputSchema": {
                 "type": "object",
                 "properties": {
                     "url": {"type": "string"},
                     "max_chars": {"type": "integer"},
+                    "require_main_content": {
+                        "type": "boolean",
+                        "description": "Use true when snippets/previews are too shallow and page body evidence is required.",
+                    },
+                    "min_text_chars": {
+                        "type": "integer",
+                        "description": "Minimum visible text before escalating to crawler-backed acquisition.",
+                    },
                 },
                 "required": ["url"],
                 "additionalProperties": False,
@@ -476,7 +487,8 @@ def _investigator_tools() -> list[dict[str, Any]]:
             "name": "investigator.recent_news",
             "description": (
                 "Get recent news headlines for a ticker. Returns the most recent articles "
-                "with headline, source, date, and summary."
+                "with headline, source, date, summary, and URL. If summaries are headline-only, "
+                "open the URL with research.open_page before treating the article as verified evidence."
             ),
             "inputSchema": {
                 "type": "object",
@@ -782,6 +794,8 @@ def _invoke_research_tool(
         payload = omnibar_research.open_page(
             url=str(args.get("url") or ""),
             max_chars=int(args.get("max_chars") or 5000),
+            require_main_content=bool(args.get("require_main_content")),
+            min_text_chars=int(args.get("min_text_chars") or 500),
         )
         datasets = ("page_browsing",)
     else:
@@ -1417,6 +1431,104 @@ def _anomaly_context_text(events: list[dict[str, Any]], missing: list[str]) -> s
     return "\n".join(lines)
 
 
+_INVESTIGATOR_FUNDAMENTAL_METRICS: tuple[str, ...] = (
+    "Total Revenue",
+    "Revenue",
+    "Operating Income",
+    "Net Income",
+    "Gross Profit",
+    "Cash from Operating Activities",
+    "Operating Cash Flow",
+    "Capital Expenditure",
+    "Capex",
+    "Free Cash Flow",
+    "Cash and Cash Equivalents",
+    "Cash",
+    "Total Assets",
+    "Total Liabilities",
+    "Total Equity",
+    "Total Debt",
+    "Long Term Debt",
+    "NAV",
+    "Net Asset Value",
+    "Investment Income",
+    "Net Investment Income",
+    "Distributable Earnings",
+)
+
+
+def _compact_investigator_fundamentals(payload: dict[str, Any], ticker: str) -> dict[str, Any]:
+    import pandas as pd
+
+    quarter_records: dict[str, dict[str, Any]] = {}
+    for statement_type in ["income", "balance", "cashflow"]:
+        frame = payload.get(statement_type)
+        if not isinstance(frame, pd.DataFrame) or frame.empty:
+            continue
+        rows = frame.copy()
+        if "report_date" in rows.columns:
+            rows["_report_date"] = pd.to_datetime(rows["report_date"], errors="coerce")
+            rows = rows.sort_values("_report_date", na_position="first")
+        rows["_quarter_key"] = rows.get("year_quarter", pd.Series(index=rows.index, dtype=object)).astype(str)
+        if "report_date" in rows.columns:
+            date_key = rows["report_date"].astype(str)
+            rows.loc[rows["_quarter_key"].isin({"", "nan", "None", "NaT"}), "_quarter_key"] = date_key
+        metric_series = rows["metric"].astype(str) if "metric" in rows.columns else pd.Series("", index=rows.index, dtype=str)
+        metric_rows = rows[metric_series.isin(_INVESTIGATOR_FUNDAMENTAL_METRICS)].copy()
+        if metric_rows.empty:
+            metric_rows = rows.copy()
+        quarter_keys = [key for key in metric_rows["_quarter_key"].dropna().astype(str).drop_duplicates().tolist() if key and key.lower() != "nan"]
+        for quarter_key in quarter_keys[-4:]:
+            qrows = metric_rows[metric_rows["_quarter_key"].astype(str) == quarter_key]
+            if qrows.empty:
+                continue
+            record = quarter_records.setdefault(
+                quarter_key,
+                {
+                    "quarter": quarter_key,
+                    "report_date": str(qrows.get("report_date", pd.Series(dtype=object)).dropna().iloc[-1])
+                    if "report_date" in qrows.columns and not qrows.get("report_date", pd.Series(dtype=object)).dropna().empty
+                    else "",
+                },
+            )
+            for _, row in qrows.iterrows():
+                metric = str(row.get("metric") or "").strip()
+                if not metric:
+                    continue
+                value = row.get("value")
+                try:
+                    if pd.isna(value):
+                        value = ""
+                except Exception:
+                    pass
+                if value == "":
+                    continue
+                record[metric] = value
+    ordered = [quarter_records[key] for key in sorted(quarter_records.keys())][-4:]
+    for record in ordered:
+        revenue = record.get("Total Revenue", record.get("Revenue"))
+        operating_income = record.get("Operating Income")
+        try:
+            if revenue not in (None, "", 0) and operating_income not in (None, ""):
+                record["Operating Margin"] = float(operating_income) / float(revenue)
+        except Exception:
+            pass
+    lines = [f"Quarterly fundamentals for {ticker}:"]
+    for record in ordered:
+        pieces: list[str] = []
+        for metric in _INVESTIGATOR_FUNDAMENTAL_METRICS:
+            if metric in record:
+                pieces.append(f"{metric}={record[metric]}")
+        if "Operating Margin" in record:
+            pieces.append(f"Operating Margin={record['Operating Margin']:.2%}")
+        if pieces:
+            lines.append(f"  {record.get('quarter')}: " + "; ".join(pieces[:10]))
+    return {
+        "compact_quarters": ordered,
+        "llm_context_text": "\n".join(lines) if len(lines) > 1 else f"No fundamentals data for {ticker}.",
+    }
+
+
 def _invoke_investigator_tool(
     *,
     service: QueryService,
@@ -1526,17 +1638,13 @@ def _invoke_investigator_tool(
             resolved = data_access.resolve_quarterly_fundamentals(ticker)
             payload = resolved.payload if hasattr(resolved, "payload") else resolved
             if isinstance(payload, dict):
-                result: dict[str, Any] = {}
-                text_lines = [f"Quarterly fundamentals for {ticker}:"]
+                result: dict[str, Any] = _compact_investigator_fundamentals(payload, ticker)
                 for statement_type in ["income", "balance", "cashflow"]:
                     frame = payload.get(statement_type)
                     if isinstance(frame, pd.DataFrame) and not frame.empty:
-                        # Take last 4 quarters
-                        recent = frame.tail(4)
+                        recent = frame.tail(24)
                         records = recent.to_dict(orient="records")
                         result[statement_type] = records
-                        text_lines.append(f"  {statement_type.title()}: {len(records)} quarter(s)")
-                result["llm_context_text"] = "\n".join(text_lines) if len(text_lines) > 1 else f"No fundamentals data for {ticker}."
                 return _investigator_result(tool_name, args, result, ("quarterly_fundamentals",))
             return _investigator_result(tool_name, args, {"llm_context_text": f"No fundamentals data for {ticker}."}, ("quarterly_fundamentals",))
 
@@ -1545,24 +1653,39 @@ def _invoke_investigator_tool(
             limit = int(args.get("limit") or 8)
             resolved = data_access.resolve_recent_news(ticker, days=days, limit=limit)
             payload = resolved.payload if hasattr(resolved, "payload") else resolved
-            if isinstance(payload, pd.DataFrame) and not payload.empty:
+            articles_frame = payload
+            if isinstance(payload, dict):
+                articles_frame = payload.get("articles")
+            if isinstance(articles_frame, pd.DataFrame) and not articles_frame.empty:
                 articles = []
-                for _, row in payload.head(limit).iterrows():
+                for _, row in articles_frame.head(limit).iterrows():
                     articles.append({
                         "headline": str(row.get("headline") or row.get("title") or ""),
                         "source": str(row.get("source") or ""),
                         "published_at": str(row.get("published_at") or ""),
                         "summary": str(row.get("summary") or ""),
+                        "url": str(row.get("url") or ""),
                     })
                 text_lines = [f"Recent news for {ticker} ({len(articles)} articles):"]
                 for a in articles:
                     text_lines.append(f"  - {a['headline']} ({a['source']}, {a['published_at']})")
+                    if a.get("url"):
+                        text_lines.append(f"    URL: {a['url']}")
+                    if a["headline"].strip() and a["summary"].strip() == a["headline"].strip():
+                        text_lines.append("    Note: headline-only summary; open the URL before using this as verified evidence.")
                 result = {
                     "articles": articles,
                     "llm_context_text": "\n".join(text_lines),
                 }
-                return _investigator_result(tool_name, args, result, ("news_articles",))
-            return _investigator_result(tool_name, args, {"articles": [], "llm_context_text": f"No recent news for {ticker}."}, ("news_articles",))
+                if isinstance(payload, dict):
+                    for key in ("fallback_summary", "source"):
+                        value = payload.get(key)
+                        if value:
+                            result[key] = value
+                datasets = tuple(getattr(getattr(resolved, "provenance", None), "datasets", None) or ("news_articles",))
+                return _investigator_result(tool_name, args, result, datasets)
+            datasets = tuple(getattr(getattr(resolved, "provenance", None), "datasets", None) or ("news_articles",))
+            return _investigator_result(tool_name, args, {"articles": [], "llm_context_text": f"No recent news for {ticker}."}, datasets)
 
     except Exception as exc:
         return {

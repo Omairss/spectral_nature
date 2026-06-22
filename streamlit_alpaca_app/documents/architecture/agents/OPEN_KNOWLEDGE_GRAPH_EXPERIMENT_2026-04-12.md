@@ -63,10 +63,10 @@ Do not couple the PoC to the homepage graph contract.
 
 ## Best injection point
 
-Use the current admin-only `Experiment` workspace.
+Historical note: this originally targeted the admin-only `Experiment` workspace. That Home experiment route has since been removed from the app. Do not recreate `_render_homepage_exp`; attach future knowledge-graph lab work through a current admin route or the shared Zopedia/AQL surface.
 
-- page entry: `streamlit_alpaca_app/app.py::_render_homepage_exp(...)`
-- current state: placeholder page
+- old page entry: removed
+- current state: no active Home experiment route
 - reason: clean surface, admin-only, low risk to existing user workflows
 
 This is the right place for a PoC because it avoids mixing an unfinished editing workflow into `Home`.

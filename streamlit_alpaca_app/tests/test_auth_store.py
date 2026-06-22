@@ -326,7 +326,7 @@ def test_get_access_admin_dashboard_filters_selected_user_and_hydrates_activity(
                         "Ivy Investor",
                         "1.2.3.4",
                         "Agent",
-                        '{"surface":"home_v2","target_label":"AAPL","target_type":"ticker"}',
+                        '{"surface":"home","target_label":"AAPL","target_type":"ticker"}',
                         "AAPL",
                         "ticker",
                     )
@@ -369,7 +369,7 @@ def test_get_access_admin_dashboard_filters_selected_user_and_hydrates_activity(
     assert dashboard["selected_user_targets"][0]["target_label"] == "AAPL"
     assert dashboard["selected_user_targets"][0]["event_count"] == 3
     assert dashboard["selected_user_activity"][0]["target_label"] == "AAPL"
-    assert dashboard["selected_user_activity"][0]["detail"]["surface"] == "home_v2"
+    assert dashboard["selected_user_activity"][0]["detail"]["surface"] == "home"
     assert dashboard["admin_usage"][0]["label"] == "Admin User"
     assert dashboard["admin_usage"][0]["total_event_count"] == 15
     assert dashboard["access_ips"][0]["ip_address"] == "1.2.3.4"

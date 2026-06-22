@@ -1,0 +1,50 @@
+{
+  "facets": [
+    "business_model"
+  ],
+  "max_tool_calls": 10,
+  "results": [
+    {
+      "agent_status": "completed",
+      "answer_markdown": "**VERDICT** CoreWeave (CRWV) is an AI infrastructure company, not a financial firm. It sells specialized GPU cloud computing services for AI workloads. Its customers are large AI companies and hyperscalers paying via multi-year contracts. No fee, spread, or carried-interest economics apply. **FACTS** - CoreWeave sells GPU-optimized cloud infrastructure for training and inference of large language models. - Primary customers: **OpenAI** ($22.4B contract), **Microsoft**, **Meta**. - Revenue model: long-term contracts with upfront commitments and usage-based components. Total contracted backlog exceeds **$30B**. - Revenue trajectory: guided **$5.0\u20135.15B** for 2025, analysts project **~$12B** for 2026. - The company went public in March 2025 and is **not** a financial firm \u2014 no lending, fund management, or carried interest. - Financing model: uses **GPU-backed loans** (e.g., $8.5B loan secured in May 2026) to fund data center expansion, repaid from contract cash flows. **GAPS** - No detailed breakdown of revenue by customer or contract type (fixed vs. variable). - No public disclosure on specific GPU procurement costs or margin structure. - Limited operating history as a public company; financial firm analogies are not applicable. **SOURCE REFS** - intellectia.ai article: covers OpenAI contract, backlog, revenue projections. - Yahoo Finance: reports $8.5B GPU-backed loan. - company_baseline_prefetch: confirms AI cloud computing description. - analyst reports (Seeking Alpha) flag use risks but confirm GPU cloud model.",
+      "aql_evidence_pack_id": "aqlpack::dd4985467a121b04ad0f8523",
+      "confidence": "low",
+      "elapsed_seconds": 96.681,
+      "evidence_refs": {
+        "source_links": 0,
+        "trace_count": 8,
+        "zopedia_pages": 0
+      },
+      "facet": "business_model",
+      "id": "crwv_business_model",
+      "limitations": [
+        "research.open_page failed: PageBrowsingError.",
+        "Revenue and backlog figures sourced from a single third-party analyst article (intellectia.ai), not official company filings.",
+        "Some intended sources (e.g., FinancialContent article) could not be accessed due to page browse errors.",
+        "Company has limited public operating history since IPO in March 2025, making forward projections uncertain.",
+        "No detailed customer revenue breakdown or contract duration specifics beyond the OpenAI contract.",
+        "No official margin or cost structure data available.",
+        "No independent confirmation of backlog size beyond the intellectia article."
+      ],
+      "question": "CRWV ticker-specific business-memory facet. What does CoreWeave (CRWV) sell, who pays it, and what is the operating business model? For financial firms, explain the fund/lending/investment model, fee income, spread income, or carried-interest economics if relevant.\n\nLocal pipeline compact facts JSON:\n{\"ticker\": \"CRWV\", \"company_baseline\": [{\"symbol\": \"CRWV\", \"company_name\": \"CoreWeave, Inc. - Class A Common Stock\", \"business_lens\": \"\", \"company_background_text\": \"CoreWeave, Inc. is an American artificial intelligence (AI) cloud-computing company based in Livingston, New Jersey.\", \"description_text\": \"CoreWeave, Inc. is an American artificial intelligence (AI) cloud-computing company based in Livingston, New Jersey.\", \"baseline_source\": \"company_baseline_prefetch\", \"run_id\": \"d98fd961-d051-466a-ae0b-ea71f6a59547\", \"asof_time_utc\": \"2026-05-01T10:15:28.910613+00:00\"}], \"listing\": [{\"symbol\": \"CRWV\", \"exchange\": \"NASDAQ\", \"security_name\": \"CoreWeave, Inc. - Class A Common Stock\", \"is_etf\": false, \"is_test_issue\": false, \"source_file\": \"nasdaqlisted\"}], \"compact_fundamentals\": [], \"recent_news\": []}\n\nThe local JSON is typed pipeline state, not a user guess. Use it to identify the company and available local metrics. If Zopedia or retained evidence is empty, call live AQL research tools before concluding that no business evidence exists.  Return concise output with exactly these headings: VERDICT, FACTS, GAPS, SOURCE REFS. Evidence labels are not analysis; say what the evidence means. No stock-chart or price-technical commentary.",
+      "status": "completed",
+      "ticker": "CRWV",
+      "tool_count": 8,
+      "tool_names": [
+        "zopedia.search_pages",
+        "dataset.ticker_business_model_stack",
+        "investigator.company_context",
+        "research.live_event_evidence",
+        "research.market_impact_map",
+        "research.open_page",
+        "research.open_page",
+        "research.open_page"
+      ]
+    }
+  ],
+  "run_id": "company-business-probe-20260525-crwv-timeout-budget",
+  "started_at_utc": "2026-05-25T18:45:15.542455+00:00",
+  "tickers": [
+    "CRWV"
+  ]
+}

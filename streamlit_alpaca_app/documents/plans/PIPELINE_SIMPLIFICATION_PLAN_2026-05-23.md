@@ -491,7 +491,7 @@ Actions:
 4. Both route labels call the same renderer with route metadata only.
 5. Delete `_render_homepage_v2`.
 6. Delete `_render_homepage_v3`.
-7. Delete `services/homepage_v2.py` after helper names become route-neutral.
+7. Delete `services/homepage_v2.py` after helper names become route-neutral. Completed 2026-05-27; shared helpers moved to `services/homepage_support.py`.
 8. Delete Home v2-specific session-state keys after state migration.
 
 Acceptance:

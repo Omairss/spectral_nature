@@ -31,7 +31,7 @@ except Exception:
 
 APP_ROOT = Path(__file__).resolve().parents[1]
 PIPELINE_CACHE_ROOT = APP_ROOT / "cache" / "pipeline_store"
-PIPELINE_METADATA_CACHE_SECONDS = max(int((os.getenv("PIPELINE_METADATA_CACHE_SECONDS") or "30").strip() or "30"), 0)
+PIPELINE_METADATA_CACHE_SECONDS = max(int((os.getenv("PIPELINE_METADATA_CACHE_SECONDS") or "300").strip() or "300"), 0)
 PIPELINE_CACHE_MAX_BYTES_DEFAULT = 256 * 1024 * 1024
 ARM_BASE_URL = "https://management.azure.com"
 ARM_SCOPE = "https://management.azure.com/.default"
@@ -100,6 +100,10 @@ SOURCE_DATASETS: dict[str, list[str]] = {
         "edgar_evidence",
         "attention_context_llm",
         "attention_context_bundle",
+        "zopedia_business_model_research_plans",
+        "zopedia_business_model_search_requests",
+        "zopedia_business_model_search_results",
+        "zopedia_ticker_business_model_stacks",
         "zopedia_news_business_resolutions",
         "zopedia_company_business_memory_pages",
     ],
@@ -122,6 +126,7 @@ SOURCE_DATASETS: dict[str, list[str]] = {
         "knowledge_graph_update_proposals",
         "attention_ticker_snapshots_1d",
         "attention_ticker_background_snapshots",
+        "attention_ticker_zopedia_enrichments",
         "market_opportunity_feed",
         "page_agentic_summaries",
         "attention_home_snapshots_1d",
@@ -381,10 +386,17 @@ def _clean_text(value: object) -> str:
 
 
 def _postgres_connection_string() -> str:
+    deployment = _load_deployment_env()
+    secret_name = (
+        _get_env("POSTGRES_CONNECTION_STRING_SECRET")
+        or _get_env("POSTGRES_CONNECTION_STRING_SECRET_NAME")
+        or str(deployment.get("POSTGRES_CONNECTION_STRING_SECRET") or "").strip()
+        or str(deployment.get("POSTGRES_CONNECTION_STRING_SECRET_NAME") or "").strip()
+        or "postgres-connection-string"
+    )
     return resolve_secret_value(
         ["POSTGRES_CONNECTION_STRING"],
-        secret_name_env="POSTGRES_CONNECTION_STRING_SECRET",
-        default_secret_name="postgres-connection-string",
+        default_secret_name=secret_name,
     )
 
 
@@ -635,7 +647,48 @@ def _coerce_manifest_dataset(manifest: dict[str, Any], *, fallback_path: str | N
     )
 
 
+def _dataset_time_epoch(value: object) -> float:
+    text = str(value or "").strip()
+    if not text:
+        return 0.0
+    try:
+        parsed = pd.to_datetime(text, utc=True, errors="coerce")
+    except Exception:
+        return 0.0
+    if pd.isna(parsed):
+        return 0.0
+    try:
+        return float(parsed.timestamp())
+    except Exception:
+        return 0.0
+
+
+def _newer_dataset(left: PipelineDataset | None, right: PipelineDataset | None) -> PipelineDataset | None:
+    if left is None:
+        return right
+    if right is None:
+        return left
+
+    left_key = (
+        _dataset_time_epoch(left.ingested_at_utc),
+        _dataset_time_epoch(left.asof_time_utc),
+        left.dataset_version_id,
+    )
+    right_key = (
+        _dataset_time_epoch(right.ingested_at_utc),
+        _dataset_time_epoch(right.asof_time_utc),
+        right.dataset_version_id,
+    )
+    return right if right_key > left_key else left
+
+
 def _latest_manifest_metadata(dataset_name: str) -> PipelineDataset | None:
+    latest_manifest = _read_blob_json(f"manifests/{dataset_name}/latest.json")
+    if latest_manifest:
+        dataset = _coerce_manifest_dataset(latest_manifest)
+        if dataset is not None:
+            return dataset
+
     client = _blob_service_client()
     if client is None:
         return None
@@ -674,47 +727,43 @@ def latest_dataset_metadata(dataset_name: str) -> PipelineDataset | None:
         return cached
 
     conn = _db_connect()
-    if conn is None:
-        dataset = _latest_manifest_metadata(dataset_name)
-        _write_cached_metadata(dataset_name, dataset)
-        return dataset
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT dataset_name, dataset_version_id, blob_path, asof_time_utc,
-                       ingested_at_utc, row_count
-                FROM dataset_versions
-                WHERE dataset_name = %s AND status = 'ready'
-                ORDER BY ingested_at_utc DESC
-                LIMIT 1
-                """,
-                (dataset_name,),
-            )
-            row = cur.fetchone()
-            if not row:
-                dataset = _latest_manifest_metadata(dataset_name)
+    if conn is not None:
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT dataset_name, dataset_version_id, blob_path, asof_time_utc,
+                           ingested_at_utc, row_count
+                    FROM dataset_versions
+                    WHERE dataset_name = %s AND status = 'ready'
+                    ORDER BY ingested_at_utc DESC
+                    LIMIT 1
+                    """,
+                    (dataset_name,),
+                )
+                row = cur.fetchone()
+            if row:
+                dataset = PipelineDataset(
+                    dataset_name=str(row[0]),
+                    dataset_version_id=str(row[1]),
+                    blob_path=str(row[2]),
+                    asof_time_utc=str(row[3]),
+                    ingested_at_utc=str(row[4]),
+                    row_count=int(row[5] or 0),
+                )
                 _write_cached_metadata(dataset_name, dataset)
                 return dataset
-            dataset = PipelineDataset(
-                dataset_name=str(row[0]),
-                dataset_version_id=str(row[1]),
-                blob_path=str(row[2]),
-                asof_time_utc=str(row[3]),
-                ingested_at_utc=str(row[4]),
-                row_count=int(row[5] or 0),
-            )
-            _write_cached_metadata(dataset_name, dataset)
-            return dataset
-    except Exception:
-        dataset = _latest_manifest_metadata(dataset_name)
-        _write_cached_metadata(dataset_name, dataset)
-        return dataset
-    finally:
-        try:
-            conn.close()
         except Exception:
             pass
+        finally:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+    manifest_dataset = _latest_manifest_metadata(dataset_name)
+    _write_cached_metadata(dataset_name, manifest_dataset)
+    return manifest_dataset
 
 
 def dataset_metadata_asof(dataset_name: str, target_date: str) -> PipelineDataset | None:
@@ -773,9 +822,11 @@ def load_dataset_frame_asof(dataset_name: str, target_date: str) -> tuple[pd.Dat
         return pd.DataFrame(), None
     cached = _read_local_frame_cache(metadata)
     if cached is not None:
-        return cached, metadata
+        if not (cached.empty and int(metadata.row_count or 0) > 0):
+            return cached, metadata
+        _delete_cache_path(_local_frame_cache_path(metadata))
     frame = _read_blob_parquet(metadata.blob_path)
-    if isinstance(frame, pd.DataFrame):
+    if isinstance(frame, pd.DataFrame) and (not frame.empty or int(metadata.row_count or 0) <= 0):
         try:
             _write_local_frame_cache(metadata, frame)
         except Exception:
@@ -789,9 +840,11 @@ def load_latest_dataset_frame(dataset_name: str) -> tuple[pd.DataFrame, Pipeline
         return pd.DataFrame(), None
     cached = _read_local_frame_cache(metadata)
     if cached is not None:
-        return cached, metadata
+        if not (cached.empty and int(metadata.row_count or 0) > 0):
+            return cached, metadata
+        _delete_cache_path(_local_frame_cache_path(metadata))
     frame = _read_blob_parquet(metadata.blob_path)
-    if isinstance(frame, pd.DataFrame):
+    if isinstance(frame, pd.DataFrame) and (not frame.empty or int(metadata.row_count or 0) <= 0):
         try:
             _write_local_frame_cache(metadata, frame)
         except Exception:

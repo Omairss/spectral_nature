@@ -18,26 +18,59 @@ def _looks_like_numeric_market_activity_sentence(sentence: object) -> bool:
     return _looks_like_stat_dump(sentence) and not _has_causal_language(sentence)
 
 
+def _looks_like_absence_sentence(sentence: object) -> bool:
+    clean = " ".join(str(sentence or "").split()).lower()
+    if not clean:
+        return False
+    return bool(
+        re.search(
+            r"\b(?:no|not|without|lacks?|missing|unclear|unresolved|unconfirmed|unidentified|unknown)\b"
+            r"(?:(?![.!?]).){0,80}"
+            r"\b(?:catalyst|driver|trigger|reason|evidence|news|company-specific news|source support)\b",
+            clean,
+        )
+        or re.search(
+            r"\b(?:catalyst|driver|trigger|reason|evidence|news|company-specific news|source support)\b"
+            r"(?:(?![.!?]).){0,80}"
+            r"\b(?:not|without|missing|unclear|unresolved|unconfirmed|unidentified|unknown)\b",
+            clean,
+        )
+    )
+
+
 def clean_attention_text(text: object) -> str:
     clean = " ".join(str(text or "").split())
     if not clean:
         return ""
     sentences = re.split(r"(?<=[.!?])\s+", clean)
-    kept = [
-        sentence.strip()
-        for sentence in sentences
-        if sentence.strip()
-        and not re.search(
+    kept: list[str] = []
+    dropped_low_signal = False
+    for sentence in sentences:
+        sentence = sentence.strip()
+        if not sentence:
+            continue
+        if re.search(
             r"\b(observed|expected|residual|zscore|z-score|attention score|20-day baseline)\b|"
             r"\bz away from expectation\b|"
             r"\bversus an expected\b|"
             r"\bleaving a residual\b",
             sentence.lower(),
-        )
-        and not _looks_like_numeric_market_activity_sentence(sentence)
-    ]
+        ):
+            dropped_low_signal = True
+            continue
+        if _looks_like_numeric_market_activity_sentence(sentence):
+            dropped_low_signal = True
+            continue
+        if _looks_like_absence_sentence(sentence):
+            dropped_low_signal = True
+            continue
+        kept.append(sentence)
     trimmed = " ".join(kept[:2]).strip()
-    return trimmed or clean
+    if trimmed:
+        return trimmed
+    if dropped_low_signal:
+        return ""
+    return clean
 
 
 def has_causal_language(text: object) -> bool:
@@ -138,10 +171,14 @@ def attention_home_bundle_preview(
     stored_freshness_quality = _coerce_text(item.get("surface_freshness_quality"))
     stored_source_summary = _coerce_text(item.get("surface_source_summary") or item.get("top_source"))
     stored_confidence = _coerce_text(item.get("surface_confidence_label") or item.get("confidence_label"))
+    stored_business_resolution = _coerce_text(item.get("business_resolution_text"))
+    stored_business_context = _coerce_text(item.get("business_context_text") or item.get("surface_business_context_text"))
 
     if not research_bundle and (stored_summary or stored_what_changed or stored_why or stored_what_else):
         what_changed_text = _surface_what_changed_text(stored_what_changed or item.get("what_changed_text"))
         why_text = clean_attention_text(stored_why or item.get("why_now_text") or item.get("why_happened_text"))
+        if stored_cause_status == "unresolved":
+            why_text = ""
         what_else_moved_text = clean_attention_text(stored_what_else or item.get("what_else_moved_text") or item.get("affected_assets_summary_text"))
         if _text_overlap(what_changed_text, what_else_moved_text) >= 0.62 and looks_like_stat_dump_text(what_else_moved_text):
             what_else_moved_text = ""
@@ -155,6 +192,8 @@ def attention_home_bundle_preview(
             "source_summary": stored_source_summary,
             "confidence_label": stored_confidence,
             "surface_summary_text": stored_summary,
+            "business_resolution_text": stored_business_resolution,
+            "business_context_text": stored_business_context,
         }
 
     bundle_type = _coerce_text(research_bundle.get("bundle_type")).lower()
@@ -164,8 +203,6 @@ def attention_home_bundle_preview(
     if is_event:
         what_changed_text = clean_attention_text(research_bundle.get("what_happened_text") or item.get("what_happened_text"))
         why_text = clean_attention_text(research_bundle.get("why_happened_text") or item.get("why_happened_text"))
-        if not why_text:
-            why_text = "Cause remains unresolved; the move is real but the retained evidence is still thin or conflicting."
         what_else_moved_text = clean_attention_text(research_bundle.get("affected_assets_summary_text") or item.get("affected_assets_summary_text"))
     else:
         what_changed_text = _surface_what_changed_text(research_bundle.get("what_changed_text") or item.get("what_changed_text"))
@@ -176,14 +213,9 @@ def attention_home_bundle_preview(
             if candidate and not looks_like_model_math_explanation(candidate):
                 why_text = candidate
                 break
-        if not why_text:
-            if cause_status == "continuation":
-                why_text = "No clear new company-specific catalyst was confirmed today. The move appears to be extending an earlier narrative."
-            elif cause_status == "conflicting":
-                why_text = "Coverage remains conflicting, and no single cause is clearly dominant yet."
-            else:
-                why_text = "Cause remains unresolved; the move is large enough to flag, but the retained evidence is not strong enough yet."
         what_else_moved_text = clean_attention_text(research_bundle.get("what_else_moved_text") or item.get("what_else_moved_text"))
+    if cause_status == "unresolved":
+        why_text = ""
     if _text_overlap(what_changed_text, what_else_moved_text) >= 0.62 and looks_like_stat_dump_text(what_else_moved_text):
         what_else_moved_text = ""
 
@@ -197,6 +229,14 @@ def attention_home_bundle_preview(
         "source_summary": _coerce_text(research_bundle.get("source_summary") or stored_source_summary),
         "confidence_label": _coerce_text(research_bundle.get("confidence_label") or stored_confidence),
         "surface_summary_text": stored_summary,
+        "business_resolution_text": _coerce_text(
+            research_bundle.get("business_resolution_text") or stored_business_resolution
+        ),
+        "business_context_text": _coerce_text(
+            research_bundle.get("business_context_text")
+            or research_bundle.get("surface_business_context_text")
+            or stored_business_context
+        ),
     }
 
 
@@ -205,23 +245,34 @@ def attention_home_surface_summary(
     *,
     is_event: bool,
 ) -> str:
-    if _coerce_text(preview.get("surface_summary_text")) and not looks_like_low_quality_surface_summary(preview.get("surface_summary_text")):
+    cause_status = _coerce_text(preview.get("cause_status")).lower()
+    if (
+        cause_status != "unresolved"
+        and _coerce_text(preview.get("surface_summary_text"))
+        and not looks_like_low_quality_surface_summary(preview.get("surface_summary_text"))
+    ):
         return _coerce_text(preview.get("surface_summary_text"))
 
     parts: list[str] = []
     what_changed_text = clean_attention_text(preview.get("what_changed_text"))
     why_text = clean_attention_text(preview.get("why_text"))
     what_else_moved_text = clean_attention_text(preview.get("what_else_moved_text"))
-    cause_status = _coerce_text(preview.get("cause_status")).lower()
+    business_resolution_text = clean_attention_text(preview.get("business_resolution_text"))
 
     if looks_like_stat_dump_text(why_text) and not has_causal_language(why_text):
+        why_text = ""
+    if cause_status == "unresolved":
         why_text = ""
 
     if what_changed_text:
         parts.append(what_changed_text)
     if why_text:
         parts.append(why_text)
-    if is_event and what_else_moved_text:
+    elif business_resolution_text:
+        candidate = " ".join(parts + [business_resolution_text]).strip()
+        if len(candidate) <= 420:
+            parts.append(business_resolution_text)
+    if is_event and cause_status != "unresolved" and what_else_moved_text:
         candidate = " ".join(parts + [what_else_moved_text]).strip()
         if len(candidate) <= 360 and _text_overlap(" ".join(parts), what_else_moved_text) < 0.62:
             parts.append(what_else_moved_text)
@@ -245,6 +296,7 @@ def hydrate_home_item_with_bundle(
     hydrated["surface_freshness_quality"] = preview.get("freshness_quality") or ""
     hydrated["surface_source_summary"] = preview.get("source_summary") or ""
     hydrated["surface_confidence_label"] = preview.get("confidence_label") or ""
+    hydrated["surface_business_context_text"] = preview.get("business_context_text") or ""
     hydrated["surface_summary_text"] = attention_home_surface_summary(preview, is_event=is_event)
     return hydrated
 

@@ -10,7 +10,7 @@ Covers the full research → synthesis → summarization stack:
   - Bundle writing (symbol + event narratives)
   - Event clustering + macro analysis
   - Home payload assembly
-  - Deterministic and agentic homepage summarization + ElevenLabs audio
+  - Zopedia-backed homepage summarization + ElevenLabs audio
 
 Public API
 ----------
@@ -29,7 +29,7 @@ Summarization:
   verify_hypothesis                    — grade a hypothesis against its claims (support/weak/conflicting/unsupported)
   critique_home_summary                — agentic fact-check loop over a freshly built summary
   judge_revise_summary                 — apply critique findings to produce a revised summary
-  build_attention_home_narrative_beats — deterministic beats from home_payload
+  build_attention_home_narrative_beats — evidence-backed beats from home_payload
   build_attention_home_summary         — structured summary dict
   build_attention_home_summary_payload — sanitized summary payload
   attach_attention_home_summary_audio  — attach ElevenLabs audio through the AQL/Zopedia engine boundary
@@ -55,10 +55,11 @@ from .pipeline import (
 )
 from .clusterer import recompute_attention_candidate_graph
 from .collector import search_symbol_news_payload
+from .business_model_stack import build_ticker_business_model_stack_frames
 from .collector import _candidate_context_documents, _search_query_results
 from .config import _load_search_clients
-from .extractor import _chunk_source_documents, _documents_from_search_results, _fallback_claims_from_chunks
-from .writer import _fallback_event_writer, _write_event_bundle
+from .extractor import _chunk_source_documents, _documents_from_search_results
+from .writer import _write_event_bundle
 from ._shared import _augment_candidate_frame
 from compute.signal_extraction import _history_correlation_map
 from ..attention_signal_graph import _graph_edges
@@ -106,6 +107,7 @@ __all__ = [
     "build_attention_home_summary_payload",
     "build_bottom_up_attention_artifacts",
     "bootstrap_chat_log",
+    "build_ticker_business_model_stack_frames",
     "build_bottom_up_attention_bundle",
     "build_bottom_up_attention_home",
     "build_market_stories",
@@ -122,8 +124,6 @@ __all__ = [
     "_candidate_context_documents",
     "_chunk_source_documents",
     "_documents_from_search_results",
-    "_fallback_claims_from_chunks",
-    "_fallback_event_writer",
     "_graph_edges",
     "_history_correlation_map",
     "_load_search_clients",

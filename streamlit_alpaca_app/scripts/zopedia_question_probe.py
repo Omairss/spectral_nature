@@ -83,12 +83,18 @@ def _status_for_run(result: dict[str, Any], *, timeout: bool = False) -> str:
     return "completed"
 
 
-def _single_question(index: int, *, max_tool_calls: int, env_file: Path) -> dict[str, Any]:
+def _single_question(
+    index: int,
+    *,
+    max_tool_calls: int,
+    env_file: Path,
+    question_item: dict[str, str] | None = None,
+) -> dict[str, Any]:
     from services.aql_zopedia_engine import run_aql_zopedia_agent
 
     _load_env_file(env_file)
     os.environ.setdefault("LLM_TIMEOUT_SECONDS", "90")
-    item = QUESTIONS[index]
+    item = question_item or QUESTIONS[index]
     started = time.monotonic()
     result = run_aql_zopedia_agent(
         query=item["question"],
@@ -275,6 +281,8 @@ def main() -> int:
     )
     parser.add_argument("--tag", default="", help="Optional run id.")
     parser.add_argument("--single-index", type=int, default=None, help="Run one question and print JSON only.")
+    parser.add_argument("--question-id", default="", help="Optional custom question id for a one-off probe.")
+    parser.add_argument("--question", default="", help="Optional custom question for a one-off probe.")
     parser.add_argument("--max-tool-calls", type=int, default=10)
     parser.add_argument("--question-timeout-seconds", type=int, default=240)
     parser.add_argument(
@@ -282,6 +290,20 @@ def main() -> int:
         default=str(APP_ROOT / "documents" / "architecture" / "new_features" / "zopedia" / "question_probes"),
     )
     args = parser.parse_args()
+
+    custom_question = _clean(args.question)
+    if custom_question:
+        result = _single_question(
+            0,
+            max_tool_calls=args.max_tool_calls,
+            env_file=Path(args.env_file),
+            question_item={
+                "id": _clean(args.question_id) or "custom_question",
+                "question": custom_question,
+            },
+        )
+        print(json.dumps(result, sort_keys=True, default=str))
+        return 0 if result.get("status") == "completed" else 1
 
     if args.single_index is not None:
         result = _single_question(args.single_index, max_tool_calls=args.max_tool_calls, env_file=Path(args.env_file))

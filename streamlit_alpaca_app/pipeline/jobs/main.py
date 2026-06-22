@@ -57,6 +57,8 @@ from services.market_data import (
     scan_momentum_profiles,
 )
 from services.aql_zopedia_engine import load_aql_zopedia_llm_client
+from services.aql.business_model_stack import build_ticker_business_model_stack_frames
+from services.aql.config import _load_search_clients
 from services.aql.news_business_resolution import build_news_business_resolution_frames
 from services.options import build_option_snapshot_surface, load_option_chain
 from services.page_agentic_summary import (
@@ -154,18 +156,60 @@ def _code_version() -> str:
     )
 
 
-def _db_connection() -> Any | None:
-    conn_str = resolve_secret_value(
-        ["POSTGRES_CONNECTION_STRING"],
-        secret_name_env="POSTGRES_CONNECTION_STRING_SECRET",
-        default_secret_name="postgres-connection-string",
+def _postgres_startup_timeout_seconds(default: int = 20) -> int:
+    raw = (
+        (os.getenv("POSTGRES_STARTUP_TIMEOUT_SECONDS") or "").strip()
+        or (os.getenv("POSTGRES_CONNECTION_TOTAL_TIMEOUT_SECONDS") or "").strip()
+        or str(default)
     )
-    if not conn_str or psycopg is None:
-        return None
     try:
+        parsed = int(raw)
+    except Exception:
+        parsed = default
+    minimum = postgres_connect_timeout_seconds() + 2
+    return min(max(parsed, minimum), 120)
+
+
+def _postgres_bootstrap_timeout_seconds(default: int = 30) -> int:
+    raw = (
+        (os.getenv("POSTGRES_BOOTSTRAP_TIMEOUT_SECONDS") or "").strip()
+        or (os.getenv("POSTGRES_TRACKING_BOOTSTRAP_TIMEOUT_SECONDS") or "").strip()
+        or str(default)
+    )
+    try:
+        parsed = int(raw)
+    except Exception:
+        parsed = default
+    return min(max(parsed, 5), 180)
+
+
+def _db_connection() -> Any | None:
+    def _connect() -> Any | None:
+        conn_str = resolve_secret_value(
+            ["POSTGRES_CONNECTION_STRING"],
+            secret_name_env="POSTGRES_CONNECTION_STRING_SECRET",
+            default_secret_name="postgres-connection-string",
+        )
+        if not conn_str:
+            print("[warn] postgres connection string unavailable; continuing without db sink")
+            return None
+        if psycopg is None:
+            print("[warn] psycopg unavailable; continuing without db sink")
+            return None
         return psycopg.connect(conn_str, connect_timeout=postgres_connect_timeout_seconds())
+
+    timeout = _postgres_startup_timeout_seconds()
+    print(f"[info] postgres tracking startup timeout={timeout}s", flush=True)
+    try:
+        conn = _call_with_timeout("postgres startup", timeout, _connect)
+        if conn is not None:
+            print("[info] postgres tracking connected", flush=True)
+        return conn
+    except _PipelineStepTimeout as exc:
+        print(f"[warn] postgres startup timed out; continuing without db sink: {exc}", flush=True)
+        return None
     except Exception as exc:
-        print(f"[warn] postgres connection unavailable; continuing without db sink: {exc}")
+        print(f"[warn] postgres connection unavailable; continuing without db sink: {exc}", flush=True)
         return None
 
 
@@ -381,6 +425,67 @@ def _job_progress(
         print(f"[warn] failed to record job progress stage={stage}: {exc}")
 
 
+def _progress_text(value: Any, *, limit: int = 500) -> str:
+    if value is None:
+        return ""
+    text = str(value).strip()
+    if len(text) <= limit:
+        return text
+    return text[: limit - 3].rstrip() + "..."
+
+
+def _make_stdout_zopedia_progress_callback(*, scope: str):
+    high_signal_stages = {
+        "business_profile_start",
+        "business_research_plan_ready",
+        "business_research_search_start",
+        "business_research_search_complete",
+        "business_research_dossier_start",
+        "business_research_dossier_complete",
+        "business_fact_resolution_start",
+        "business_fact_resolution_complete",
+        "business_story_synthesis_start",
+        "business_profile_complete",
+        "tool_catalog_ready",
+        "planner_start",
+        "planner_reasoning",
+        "planner_direct_structured_payload",
+        "tool_start",
+        "tool_complete",
+        "tool_failed",
+        "trajectory_monitor_restart",
+        "trajectory_monitor_continue",
+        "trajectory_monitor_kill",
+        "trajectory_monitor_timeout",
+        "answer_judge_complete",
+        "memory_update_complete",
+        "complete",
+    }
+    lock = threading.Lock()
+
+    def _callback(payload: dict[str, Any]) -> None:
+        if not isinstance(payload, dict):
+            return
+        stage = _progress_text(payload.get("stage"), limit=120)
+        if stage not in high_signal_stages:
+            return
+        row = {
+            "scope": scope,
+            "stage": stage,
+            "symbol": _progress_text(payload.get("symbol"), limit=32),
+            "company_name": _progress_text(payload.get("company_name"), limit=120),
+            "tool": _progress_text(payload.get("tool_name"), limit=80),
+            "message": _progress_text(payload.get("message") or payload.get("reasoning"), limit=700),
+            "result_preview": _progress_text(payload.get("result_preview"), limit=500),
+            "progress": payload.get("progress") if isinstance(payload.get("progress"), (int, float)) else None,
+        }
+        row = {key: value for key, value in row.items() if value not in {"", None}}
+        with lock:
+            print(f"[info] zopedia_progress {json.dumps(row, sort_keys=True, default=str)}", flush=True)
+
+    return _callback
+
+
 def _db_upsert_dataset_version(conn: Any, manifest: dict, ctx: JobContext) -> None:
     checksum = hashlib.sha256(
         f"{manifest.get('blob_path','')}|{manifest.get('row_count',0)}|{manifest.get('asof_time_utc','')}".encode("utf-8")
@@ -473,6 +578,49 @@ def _upload_bytes(path: str, payload: bytes, content_type: str) -> None:
     print(f"[info] uploaded blob://{container}/{path} bytes={len(payload)}")
 
 
+def _is_missing_scalar(value: Any) -> bool:
+    if isinstance(value, (dict, list, tuple, set)):
+        return False
+    try:
+        return bool(pd.isna(value))
+    except Exception:
+        return False
+
+
+def _parquet_safe_scalar(value: Any) -> Any:
+    if _is_missing_scalar(value):
+        return None
+    if isinstance(value, pd.Timestamp):
+        return value.isoformat()
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, (dict, list, tuple, set)):
+        try:
+            return json.dumps(value, ensure_ascii=False, default=str, sort_keys=True)
+        except Exception:
+            return str(value)
+    return str(value)
+
+
+def _prepare_frame_for_parquet(frame: pd.DataFrame) -> pd.DataFrame:
+    """Normalize mixed object columns before Arrow infers the wrong type."""
+    if not isinstance(frame, pd.DataFrame) or frame.empty:
+        return frame.copy() if isinstance(frame, pd.DataFrame) else pd.DataFrame()
+    prepared = frame.copy()
+    for column in prepared.columns:
+        series = prepared[column]
+        if not pd.api.types.is_object_dtype(series.dtype):
+            continue
+        values = [value for value in series.tolist() if not _is_missing_scalar(value)]
+        if not values:
+            continue
+        value_types = {type(value) for value in values[:200]}
+        contains_structured = any(isinstance(value, (dict, list, tuple, set)) for value in values[:200])
+        if contains_structured or len(value_types) > 1:
+            prepared[column] = series.map(_parquet_safe_scalar)
+    return prepared
+
+
 def _upload_frame(dataset_name: str, frame: pd.DataFrame, ctx: JobContext) -> str:
     asof_slug = ctx.asof.strftime("%Y-%m-%dT%H-%M-%SZ")
     dt_slug = ctx.asof.strftime("%Y-%m-%d")
@@ -481,7 +629,8 @@ def _upload_frame(dataset_name: str, frame: pd.DataFrame, ctx: JobContext) -> st
         f"universe={ctx.universe_version}/part-{ctx.run_id[:8]}.parquet"
     )
     buffer = BytesIO()
-    frame.to_parquet(buffer, index=False)
+    parquet_frame = _prepare_frame_for_parquet(frame)
+    parquet_frame.to_parquet(buffer, index=False)
     _upload_bytes(path, buffer.getvalue(), "application/octet-stream")
     return path
 
@@ -502,7 +651,9 @@ def _upload_manifest(dataset_name: str, path: str, frame: pd.DataFrame, ctx: Job
         "schema_columns": list(frame.columns),
     }
     manifest_path = f"manifests/{dataset_name}/{dataset_version_id}.json"
-    _upload_bytes(manifest_path, _to_json(manifest).encode("utf-8"), "application/json")
+    payload = _to_json(manifest).encode("utf-8")
+    _upload_bytes(manifest_path, payload, "application/json")
+    _upload_bytes(f"manifests/{dataset_name}/latest.json", payload, "application/json")
     return manifest
 
 
@@ -592,6 +743,57 @@ def _parse_int_env(name: str, default: int, *, minimum: int = 1) -> int:
     except Exception:
         value = int(default)
     return max(value, minimum)
+
+
+def _setdefault_int_env(name: str, value: int) -> None:
+    if os.getenv(name) is None:
+        os.environ[name] = str(int(value))
+
+
+def _configure_news_business_research_budget_env() -> None:
+    budget = _parse_int_env("ZOPEDIA_TICKER_BUSINESS_RESEARCH_BUDGET_SECONDS", 3600, minimum=60)
+    tool_timeout = _parse_int_env(
+        "ZOPEDIA_TICKER_BUSINESS_AGENT_TOOL_TIMEOUT_SECONDS",
+        min(max(budget // 2, 300), budget),
+        minimum=60,
+    )
+    llm_timeout = _parse_int_env(
+        "ZOPEDIA_TICKER_BUSINESS_AGENT_LLM_STEP_TIMEOUT_SECONDS",
+        min(max(budget // 6, 180), budget),
+        minimum=60,
+    )
+    prefetch_timeout = _parse_int_env(
+        "ZOPEDIA_TICKER_BUSINESS_AGENT_PREFETCH_TIMEOUT_SECONDS",
+        min(max(budget // 20, 60), budget),
+        minimum=30,
+    )
+    _setdefault_int_env("AQL_ZOPEDIA_AGENT_TOOL_TIMEOUT_SECONDS", tool_timeout)
+    _setdefault_int_env("AQL_ZOPEDIA_AGENT_LLM_STEP_TIMEOUT_SECONDS", llm_timeout)
+    _setdefault_int_env("AQL_ZOPEDIA_AGENT_PREFETCH_TIMEOUT_SECONDS", prefetch_timeout)
+    _setdefault_int_env(
+        "AQL_CANDIDATE_RESEARCH_TIMEOUT_SECONDS",
+        _parse_int_env(
+            "ZOPEDIA_TICKER_BUSINESS_AQL_CANDIDATE_TIMEOUT_SECONDS",
+            min(max(budget // 2, 300), budget),
+            minimum=60,
+        ),
+    )
+    _setdefault_int_env(
+        "AQL_EVENT_BUNDLE_TIMEOUT_SECONDS",
+        _parse_int_env(
+            "ZOPEDIA_TICKER_BUSINESS_AQL_EVENT_BUNDLE_TIMEOUT_SECONDS",
+            min(max(budget // 4, 180), budget),
+            minimum=60,
+        ),
+    )
+    _setdefault_int_env(
+        "AQL_MACRO_VERIFICATION_TIMEOUT_SECONDS",
+        _parse_int_env(
+            "ZOPEDIA_TICKER_BUSINESS_AQL_MACRO_TIMEOUT_SECONDS",
+            min(max(budget // 3, 240), budget),
+            minimum=60,
+        ),
+    )
 
 
 def _parse_float_env(name: str, default: float, *, minimum: float = 0.0) -> float:
@@ -1723,6 +1925,49 @@ def _zopedia_pages_for_news_resolution(conn: Any | None = None) -> pd.DataFrame:
     return merged.reset_index(drop=True)
 
 
+def _company_baselines_with_listing_fallback(
+    company_baselines: pd.DataFrame | None,
+    listings: pd.DataFrame | None,
+) -> pd.DataFrame:
+    def _has_value(value: object) -> bool:
+        if value is None:
+            return False
+        try:
+            if pd.isna(value):
+                return False
+        except Exception:
+            pass
+        return str(value).strip() != ""
+
+    parts: list[pd.DataFrame] = []
+    if isinstance(company_baselines, pd.DataFrame) and not company_baselines.empty:
+        parts.append(company_baselines.copy())
+    if isinstance(listings, pd.DataFrame) and not listings.empty and "symbol" in listings.columns:
+        listing_rows = listings.copy()
+        if "security_name" in listing_rows.columns:
+            listing_rows["company_name"] = listing_rows["security_name"]
+        elif "name" in listing_rows.columns:
+            listing_rows["company_name"] = listing_rows["name"]
+        listing_rows["baseline_source"] = "us_equity_listings"
+        parts.append(listing_rows)
+    if not parts:
+        return pd.DataFrame()
+    merged = pd.concat(parts, ignore_index=True, sort=False)
+    if "symbol" in merged.columns:
+        merged["symbol"] = merged["symbol"].astype(str).str.upper().str.strip()
+        merged = merged[merged["symbol"].ne("")]
+        rows: list[dict[str, object]] = []
+        for _, group in merged.groupby("symbol", sort=False):
+            row = group.iloc[0].to_dict()
+            for _, candidate in group.iloc[1:].iterrows():
+                for column, value in candidate.to_dict().items():
+                    if not _has_value(row.get(column)) and _has_value(value):
+                        row[column] = value
+            rows.append(row)
+        merged = pd.DataFrame(rows)
+    return merged.reset_index(drop=True)
+
+
 def _build_news_business_resolution_output_frames(
     *,
     news: pd.DataFrame,
@@ -1734,6 +1979,10 @@ def _build_news_business_resolution_output_frames(
 ) -> dict[str, pd.DataFrame]:
     if not isinstance(news, pd.DataFrame) or news.empty:
         return {
+            "zopedia_business_model_research_plans": pd.DataFrame(),
+            "zopedia_business_model_search_requests": pd.DataFrame(),
+            "zopedia_business_model_search_results": pd.DataFrame(),
+            "zopedia_ticker_business_model_stacks": pd.DataFrame(),
             "zopedia_news_business_resolutions": pd.DataFrame(),
             "zopedia_company_business_memory_pages": pd.DataFrame(),
         }
@@ -1742,23 +1991,76 @@ def _build_news_business_resolution_output_frames(
     except Exception:
         company_baselines = pd.DataFrame()
     try:
+        listings = _load_latest_materialized_frame("us_equity_listings")
+    except Exception:
+        listings = pd.DataFrame()
+    company_baselines = _company_baselines_with_listing_fallback(company_baselines, listings)
+    try:
         fundamentals = _load_latest_materialized_frame("quarterly_fundamentals")
     except Exception:
         fundamentals = pd.DataFrame()
     zopedia_pages = _zopedia_pages_for_news_resolution(conn)
-    return build_news_business_resolution_frames(
+    write_policy = os.getenv("ZOPEDIA_NEWS_BUSINESS_WRITE_POLICY", "propose")
+    execute_business_research = _parse_bool_env("ZOPEDIA_TICKER_BUSINESS_RESEARCH_ENABLED", True)
+    _configure_news_business_research_budget_env()
+    serp_client = None
+    tavily_client = None
+    if execute_business_research:
+        try:
+            serp_client, tavily_client = _load_search_clients()
+        except Exception as exc:
+            print(f"[warn] ticker business research clients unavailable: {type(exc).__name__}: {exc}")
+            execute_business_research = False
+    business_stack_frames = build_ticker_business_model_stack_frames(
+        symbols=symbols,
+        company_baselines_frame=company_baselines,
+        fundamentals_frame=fundamentals,
+        zopedia_pages_frame=zopedia_pages,
+        edgar_evidence_frame=edgar_evidence,
+        news_frame=news,
+        serp_client=serp_client,
+        tavily_client=tavily_client,
+        execute_research=execute_business_research,
+        max_research_queries=_parse_int_env("ZOPEDIA_TICKER_BUSINESS_RESEARCH_QUERY_LIMIT", 24, minimum=1),
+        max_search_results_per_query=_parse_int_env("ZOPEDIA_TICKER_BUSINESS_RESEARCH_RESULTS_PER_QUERY", 4, minimum=1),
+        llm_client=llm_client,
+        run_id=ctx.run_id,
+        asof_time_utc=ctx.asof,
+        write_policy=write_policy,
+        limit=_parse_int_env("ZOPEDIA_TICKER_BUSINESS_STACK_LIMIT", 25, minimum=1),
+        progress_callback=_make_stdout_zopedia_progress_callback(scope="ticker_business_model_stack"),
+    )
+    stack_frame = business_stack_frames.get("zopedia_ticker_business_model_stacks", pd.DataFrame())
+    resolution_frames = build_news_business_resolution_frames(
         news_frame=news,
         company_baselines_frame=company_baselines,
         fundamentals_frame=fundamentals,
         zopedia_pages_frame=zopedia_pages,
+        business_model_stack_frame=stack_frame,
         edgar_evidence_frame=edgar_evidence,
         symbols=symbols,
         llm_client=llm_client,
         run_id=ctx.run_id,
         asof_time_utc=ctx.asof,
-        write_policy=os.getenv("ZOPEDIA_NEWS_BUSINESS_WRITE_POLICY", "propose"),
+        write_policy=write_policy,
         limit=_parse_int_env("ZOPEDIA_NEWS_BUSINESS_LIMIT", 12, minimum=1),
     )
+    memory_parts = [
+        business_stack_frames.get("zopedia_company_business_memory_pages", pd.DataFrame()),
+        resolution_frames.get("zopedia_company_business_memory_pages", pd.DataFrame()),
+    ]
+    non_empty_memory_parts = [part for part in memory_parts if isinstance(part, pd.DataFrame) and not part.empty]
+    memory_pages = pd.concat(non_empty_memory_parts, ignore_index=True, sort=False) if non_empty_memory_parts else pd.DataFrame()
+    if not memory_pages.empty and "page_id" in memory_pages.columns:
+        memory_pages = memory_pages.drop_duplicates(subset=["page_id"], keep="last").reset_index(drop=True)
+    return {
+        "zopedia_business_model_research_plans": business_stack_frames.get("zopedia_business_model_research_plans", pd.DataFrame()),
+        "zopedia_business_model_search_requests": business_stack_frames.get("zopedia_business_model_search_requests", pd.DataFrame()),
+        "zopedia_business_model_search_results": business_stack_frames.get("zopedia_business_model_search_results", pd.DataFrame()),
+        "zopedia_ticker_business_model_stacks": stack_frame,
+        "zopedia_news_business_resolutions": resolution_frames.get("zopedia_news_business_resolutions", pd.DataFrame()),
+        "zopedia_company_business_memory_pages": memory_pages,
+    }
 
 
 def run_news(ctx: JobContext, conn: Any | None = None) -> None:
@@ -1863,7 +2165,7 @@ def run_news(ctx: JobContext, conn: Any | None = None) -> None:
                 ctx,
                 conn,
                 stage="news_business_resolution",
-                message="Resolving company news against cold-start business memory.",
+                message="Building ticker business stacks and resolving company news against memory.",
                 progress_pct=84.0,
             )
             business_resolution_frames = _build_news_business_resolution_output_frames(
@@ -2359,8 +2661,10 @@ def main() -> None:
     db_conn = _db_connection()
     if db_conn is not None:
         try:
-            _db_bootstrap(db_conn)
-            _db_mark_job_start(db_conn, ctx)
+            bootstrap_timeout = _postgres_bootstrap_timeout_seconds()
+            print(f"[info] postgres tracking bootstrap timeout={bootstrap_timeout}s", flush=True)
+            _call_with_timeout("postgres tracking bootstrap", bootstrap_timeout, lambda: _db_bootstrap(db_conn))
+            _call_with_timeout("postgres tracking job start", bootstrap_timeout, lambda: _db_mark_job_start(db_conn, ctx))
         except Exception as exc:
             print(f"[warn] failed to initialize postgres tracking: {exc}")
             try:

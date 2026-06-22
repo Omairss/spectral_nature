@@ -394,24 +394,21 @@ def _build_home_payload(
         if bundle_id:
             existing_bundle_ids.add(bundle_id)
         forced_macro_added += 1
-    absorbed_symbols = {
-        _normalize_symbol(symbol)
-        for event in top_event_items
-        for symbol in _safe_list(event.get("supporting_symbols"))
-        if _normalize_symbol(symbol)
-    }
     candidate_rows = candidates.to_dict(orient="records")
     must_read: list[dict[str, Any]] = []
     unresolved: list[dict[str, Any]] = []
     for candidate in candidate_rows:
         symbol = _normalize_symbol(candidate.get("symbol"))
         bundle = bundle_map.get(f"symbol::{symbol}", {})
-        if not bundle or symbol in absorbed_symbols:
+        if not bundle:
             continue
         item = _candidate_bundle_item(bundle, candidate)
         same_day = int(bundle.get("same_day_evidence_count") or 0)
+        source_count = int(bundle.get("source_count") or 0)
+        evidence_count = len(_safe_list(bundle.get("claims"))) + len(_safe_list(bundle.get("evidence")))
         cause_status = _coerce_text(bundle.get("cause_status"))
-        if cause_status == "supported" and same_day > 0:
+        has_source_context = same_day > 0 or source_count > 0 or evidence_count > 0
+        if cause_status in {"supported", "continuation", "partial"} and has_source_context:
             must_read.append(item)
         elif abs(_coerce_float(candidate.get("change_pct"), 0.0)) >= 4.0:
             unresolved.append(item)

@@ -244,7 +244,7 @@ def _render_market_explorer_section(
             template="plotly_dark",
             title=f"Daily Movers - {business_filter} (Volume / Change %)",
         )
-        st.plotly_chart(tree, use_container_width=True)
+        st.plotly_chart(tree, use_container_width=True, key=f"market_explorer_daily_movers_{business_filter}_treemap")
     else:
         st.info("Daily mover volume was not available, so the treemap is hidden.")
 

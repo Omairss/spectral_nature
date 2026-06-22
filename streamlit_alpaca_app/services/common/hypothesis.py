@@ -63,7 +63,7 @@ def verify_hypothesis(
         if _coerce_text(item.get("claim_text"))
     ]
     if not claim_rows:
-        return _heuristic_verification(hypothesis, claims)
+        return _unverified_result("No evidence claims were available for LLM verification.")
 
     story_rows = [
         {
@@ -89,7 +89,7 @@ def verify_hypothesis(
             schema=HYPOTHESIS_VERIFICATION_SCHEMA,
         )
     except (LLMAPIError, Exception):
-        return _heuristic_verification(hypothesis, claims)
+        return _unverified_result("LLM verification failed; no verdict was generated.")
 
     verdict = _coerce_text(data.get("verdict")).lower()
     if verdict not in {"supported", "weak", "conflicting", "unsupported"}:
@@ -116,44 +116,15 @@ def verify_hypothesis(
     }
 
 
-def _heuristic_verification(hypothesis: str, claims: list[dict[str, Any]]) -> dict[str, Any]:
-    """Score-based fallback when LLM verification is unavailable."""
-    if not claims:
-        return {
-            "verdict": "unsupported",
-            "confidence": "low",
-            "supporting_claims": [],
-            "contradicting_claims": [],
-            "gap_queries": [],
-            "reasoning": "No evidence was collected to verify this hypothesis.",
-        }
-    confidence_scores = [float(item.get("confidence_score") or 0.0) for item in claims]
-    same_day_count = sum(1 for item in claims if bool(item.get("is_same_day")))
-    avg_confidence = sum(confidence_scores) / max(len(confidence_scores), 1)
-    high_confidence_count = sum(1 for score in confidence_scores if score >= 0.6)
-
-    if high_confidence_count >= 3 and avg_confidence >= 0.55:
-        verdict = "supported"
-        confidence = "medium"
-    elif high_confidence_count >= 1 or avg_confidence >= 0.4:
-        verdict = "weak"
-        confidence = "low"
-    else:
-        verdict = "unsupported"
-        confidence = "low"
-
+def _unverified_result(reason: str) -> dict[str, Any]:
     return {
-        "verdict": verdict,
-        "confidence": confidence,
-        "supporting_claims": [
-            _coerce_text(item.get("claim_text"))
-            for item in sorted(claims, key=lambda c: -float(c.get("confidence_score") or 0.0))[:3]
-            if _coerce_text(item.get("claim_text"))
-        ],
+        "verdict": "unsupported",
+        "confidence": "low",
+        "supporting_claims": [],
         "contradicting_claims": [],
         "gap_queries": [],
-        "reasoning": f"Heuristic: {len(claims)} claims, avg confidence {avg_confidence:.2f}, {same_day_count} same-day.",
+        "reasoning": reason,
     }
 
 
-__all__ = ["verify_hypothesis", "_heuristic_verification"]
+__all__ = ["verify_hypothesis"]

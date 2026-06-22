@@ -171,6 +171,45 @@ def test_page_and_trading_default_runners_call_engine(monkeypatch):
     assert calls[1]["surface"] == "trading_agent"
 
 
+def test_structured_agent_repairs_completed_markdown_answer_at_engine_boundary(monkeypatch):
+    from services import aql_zopedia_engine
+
+    class _FakeLLM:
+        def generate_json(self, *, system_prompt, user_prompt, schema_name, schema):
+            assert schema_name == "news_business_resolution_structured_repair"
+            assert "Use only facts and claims present in the agent answer" in system_prompt
+            assert "MAIN is a principal investment firm" in user_prompt
+            assert schema["required"] == ["coherent_story_markdown"]
+            return {"coherent_story_markdown": "MAIN is a principal investment firm."}
+
+    def _fake_agent(**kwargs):
+        return {
+            "status": "completed",
+            "answer_markdown": "VERDICT: MAIN is a principal investment firm.",
+            "engine": {"name": "aql_zopedia"},
+        }
+
+    monkeypatch.setattr(aql_zopedia_engine, "run_aql_zopedia_agent", _fake_agent)
+
+    result = aql_zopedia_engine.run_aql_zopedia_structured_agent(
+        query="Resolve MAIN news.",
+        schema_name="news_business_resolution",
+        schema={
+            "type": "object",
+            "properties": {"coherent_story_markdown": {"type": "string"}},
+            "required": ["coherent_story_markdown"],
+            "additionalProperties": False,
+        },
+        task="news_business_resolution",
+        surface="test",
+        llm_client=_FakeLLM(),
+    )
+
+    assert result["status"] == "completed"
+    assert result["payload"]["coherent_story_markdown"] == "MAIN is a principal investment firm."
+    assert result["agent_result"]["engine"]["structured_repair_used"] is True
+
+
 def test_generate_json_call_sites_are_reviewed_zopedia_native_surfaces():
     offenders: list[str] = []
     for path in _source_files():
@@ -183,5 +222,16 @@ def test_generate_json_call_sites_are_reviewed_zopedia_native_surfaces():
         )
         if not allowed:
             offenders.append(rel)
+
+    assert offenders == []
+
+
+def test_business_memory_synthesis_modules_do_not_call_llm_directly():
+    forbidden = [
+        APP_ROOT / "services/aql/business_model_stack.py",
+        APP_ROOT / "services/aql/news_business_resolution.py",
+    ]
+
+    offenders = [_rel(path) for path in forbidden if ".generate_json(" in path.read_text(encoding="utf-8")]
 
     assert offenders == []

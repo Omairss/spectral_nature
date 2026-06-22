@@ -1,19 +1,37 @@
 from __future__ import annotations
 
+import re
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 
 from presentation import dashboard_loaders
 from services import attention_surface as attention_surface_module
-from services.company import build_attention_news_narrative
 from services.config import AppConfig
 
+_DISPLAY_SECTION_LABELS = {
+    "affected assets": "Affected Assets",
+    "background": "Background",
+    "background context": "Background Context",
+    "business context": "Business Context",
+    "likely driver": "Likely Driver",
+    "most likely driver": "Most Likely Driver",
+    "what changed": "What Changed",
+    "what changed vs expectation": "What Changed Vs Expectation",
+    "what else moved": "What Else Moved",
+    "what happened": "What Happened",
+    "what to watch": "What To Watch",
+    "why it happened": "Why It Happened",
+    "why today": "Why Today",
+}
 
-def _attention_event_key(row: pd.Series) -> str:
-    symbol = str(row.get("entity_id") or "").upper().strip()
-    horizon = str(row.get("horizon") or "").strip() or "item"
-    return str(row.get("_homepage_v2_event_id") or row.get("event_id") or f"{symbol}-{horizon}").strip()
+_DISPLAY_SECTION_PATTERN = re.compile(
+    r"(^|\s)#{1,6}\s*("
+    + "|".join(re.escape(label) for label in sorted(_DISPLAY_SECTION_LABELS, key=len, reverse=True))
+    + r")\b\s*",
+    re.IGNORECASE,
+)
 
 
 def _clean_attention_text(text: object) -> str:
@@ -23,6 +41,45 @@ def _clean_attention_text(text: object) -> str:
 def _raw_attention_text(text: object) -> str:
     clean = " ".join(str(text or "").split())
     return "" if clean.lower() == "nan" else clean
+
+
+def streamlit_safe_markdown_text(text: object) -> str:
+    clean = " ".join(str(text or "").split()).strip()
+    if not clean or clean.lower() == "nan":
+        return ""
+    clean = re.sub(r"`([^`]*)`", r"\1", clean)
+    clean = re.sub(r"\s+#{1,6}\s+", " ", clean)
+    clean = re.sub(r"(?m)^\s*#{1,6}\s+", "", clean)
+    clean = re.sub(r"(?<!\\)\$", r"\\$", clean)
+    return clean.strip()
+
+
+def display_markdown_sections(text: object) -> list[tuple[str, str]]:
+    raw = " ".join(str(text or "").split()).strip()
+    if not raw or raw.lower() == "nan":
+        return []
+
+    matches = list(_DISPLAY_SECTION_PATTERN.finditer(raw))
+    if not matches:
+        body = streamlit_safe_markdown_text(raw)
+        return [("", body)] if body else []
+
+    sections: list[tuple[str, str]] = []
+    preamble = raw[: matches[0].start()].strip()
+    if preamble:
+        body = streamlit_safe_markdown_text(preamble)
+        if body:
+            sections.append(("", body))
+
+    for index, match in enumerate(matches):
+        label = _DISPLAY_SECTION_LABELS.get(match.group(2).lower(), match.group(2).strip().title())
+        start = match.end()
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(raw)
+        body = re.sub(r"^\s*[:\-–—]\s*", "", raw[start:end]).strip()
+        body = streamlit_safe_markdown_text(body)
+        if body:
+            sections.append((label, body))
+    return sections
 
 
 def _attention_evidence_display_text(item: dict[str, object]) -> str:
@@ -211,81 +268,3 @@ def _json_ready(value: object) -> object:
     except Exception:
         pass
     return value
-
-
-def _build_homepage_v2_event_record(
-    row: pd.Series,
-    *,
-    news_payload: dict[str, object] | None = None,
-    context_payload: dict[str, object] | None = None,
-    brief_payload: dict[str, object] | None = None,
-) -> dict[str, object]:
-    symbol = str(row.get("entity_id") or "").upper().strip()
-    news_context = build_attention_news_narrative(
-        symbol,
-        news_payload,
-        peer_group_name=str(row.get("peer_group_name") or "").strip(),
-    )
-    articles = news_payload.get("articles") if isinstance(news_payload, dict) else pd.DataFrame()
-    headline_values: list[str] = []
-    if isinstance(articles, pd.DataFrame) and not articles.empty and "headline" in articles.columns:
-        headline_values = [
-            str(headline).strip()
-            for headline in articles["headline"].dropna().astype(str).tolist()
-            if str(headline).strip()
-        ][:3]
-    context = context_payload or {}
-    return {
-        "event_id": str(_attention_event_key(row)).strip(),
-        "symbol": symbol,
-        "entity_id": symbol,
-        "title": str(row.get("title") or symbol or "Untitled anomaly").strip(),
-        "subtitle": str(row.get("subtitle") or "").strip(),
-        "source_label": str(row.get("source_label") or "").strip(),
-        "horizon": str(row.get("horizon") or "").strip(),
-        "anomaly_type": str(row.get("anomaly_type") or "").strip(),
-        "attention_score": _json_ready(row.get("attention_score")),
-        "story_text": str((brief_payload or {}).get("lead_text") or _attention_story_text(row)).strip(),
-        "cluster_text": str((brief_payload or {}).get("cluster_text") or news_context.get("narrative_text") or "").strip(),
-        "headline_text": str((brief_payload or {}).get("headline_text") or "").strip(),
-        "company_text": str((brief_payload or {}).get("company_text") or "").strip(),
-        "explainer_text": str((brief_payload or {}).get("explainer_text") or "").strip(),
-        "why_now_text": str(row.get("why_now_text") or "").strip(),
-        "expected_vs_observed_text": "",
-        "next_best_action": str(row.get("next_best_action") or "").strip(),
-        "news_summary_text": str(news_context.get("narrative_text") or "").strip(),
-        "news_headlines": headline_values,
-        "context_headline": str(context.get("llm_headline") or "").strip(),
-        "context_summary_text": str(context.get("llm_summary_text") or context.get("context_story_text") or "").strip(),
-        "context_why_now": str(context.get("llm_why_now") or "").strip(),
-        "management_signal": str(context.get("llm_management_signal") or "").strip(),
-    }
-
-
-def _homepage_v2_item_summary(
-    row: pd.Series,
-    *,
-    news_payload: dict[str, object] | None = None,
-    context_payload: dict[str, object] | None = None,
-    brief_payload: dict[str, object] | None = None,
-) -> str:
-    del news_payload
-
-    pieces: list[str] = []
-    llm_summary = str((context_payload or {}).get("llm_summary_text") or "").strip()
-    context_story = str((context_payload or {}).get("context_story_text") or "").strip()
-    next_action = str((brief_payload or {}).get("watchpoint_text") or row.get("next_best_action") or "").strip()
-
-    for candidate in [
-        str((brief_payload or {}).get("lead_text") or "").strip(),
-        str((brief_payload or {}).get("headline_text") or "").strip(),
-        str((brief_payload or {}).get("company_text") or "").strip(),
-        str((brief_payload or {}).get("explainer_text") or "").strip(),
-        llm_summary or context_story,
-    ]:
-        text = str(candidate or "").strip()
-        if text and text not in pieces:
-            pieces.append(text)
-    if next_action:
-        pieces.append(f"Next watchpoint: {next_action}.")
-    return " ".join(pieces[:3]).strip()

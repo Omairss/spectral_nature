@@ -504,7 +504,7 @@ def _compose_attention_news_story(
         return f"{source_prefix} is clustering around {theme_text}, which lines up with the {matched_lenses[0].lower()} narrative."
     if themes:
         theme_text = _join_phrases([theme.lower() for theme in themes[:2]])
-        return f"{source_prefix} is clustering around {theme_text}, though no single catalyst has been confirmed."
+        return f"{source_prefix} is focused on {theme_text}."
     if source_text:
         return f"{source_prefix} is providing the clearest narrative context behind the current move."
     return ""
@@ -552,6 +552,9 @@ def build_company_description(
     *,
     news_payload: dict[str, object] | None = None,
     active_lens: str | None = None,
+    allow_wikipedia: bool = True,
+    allow_taxonomy_lookup: bool = True,
+    allow_news_theme_extraction: bool = True,
 ) -> str:
     symbol = str(ticker or "").upper().strip()
     asset = asset or {}
@@ -561,21 +564,21 @@ def build_company_description(
     name = _clean_company_display_name(raw_name) or raw_name or symbol
     if active_lens and active_lens not in {"", "All Market"}:
         ordered_lenses = [active_lens]
+    elif not allow_taxonomy_lookup:
+        ordered_lenses = []
     else:
         ordered_lenses = _matched_business_lenses(symbol)
 
     role_hint = COMPANY_ROLE_HINTS.get(symbol)
     if not role_hint and ordered_lenses:
         role_hint = BUSINESS_ROLE_HINTS.get(ordered_lenses[0])
-    details: list[str]
+    details: list[str] = []
     if role_hint:
-        details = [f"{name} ({symbol}) {role_hint}."]
+        details.append(f"{name} ({symbol}) {role_hint}.")
     else:
-        wikipedia_background = _wikipedia_company_background(name)
+        wikipedia_background = _wikipedia_company_background(name) if allow_wikipedia else ""
         if wikipedia_background:
-            details = [wikipedia_background]
-        else:
-            details = [f"{name} ({symbol}) is a publicly traded company."]
+            details.append(wikipedia_background)
 
     if ordered_lenses:
         lens_text = _join_phrases(ordered_lenses[:2])
@@ -592,16 +595,13 @@ def build_company_description(
         else:
             details.append(f"In this dashboard it maps most naturally to the {lens_text} narrative.")
 
-    theme_hits = _extract_news_themes(news_payload)
+    theme_hits = _extract_news_themes(news_payload) if allow_news_theme_extraction else []
     if theme_hits:
         details.append(f"Recent coverage is reinforcing a story around {_join_phrases(theme_hits)}.")
 
     regime = str(signal_summary.get("regime") or "").strip()
     if regime:
         details.append(REGIME_TEXT.get(regime, f"From a price-action standpoint, market activity still fits a {regime.lower()} story."))
-
-    if len(details) == 1:
-        details.append("The current narrative is still thin, so the best read comes from the linked price action and recent headlines.")
 
     return " ".join(details)
 

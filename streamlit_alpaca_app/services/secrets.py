@@ -88,6 +88,16 @@ def _runtime_env_value(name: str) -> str:
     return _clean(os.getenv(name)) or _clean(_local_deployment_env().get(name))
 
 
+def runtime_env_value(name: str) -> str:
+    """Read process env, then generated local deployment env.
+
+    Local commands should see the same non-secret deployment settings that
+    secret resolution already uses; otherwise provider/model defaults can be
+    paired with a Key Vault secret from a different provider.
+    """
+    return _runtime_env_value(name)
+
+
 def _runtime_env_value_with_source(
     name: str,
     *,

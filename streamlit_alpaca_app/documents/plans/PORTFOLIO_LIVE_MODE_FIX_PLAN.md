@@ -30,6 +30,6 @@ Two source issues caused that behavior:
 - Account status and buying power remain live.
 - Portfolio and performance pages avoid repeated live positions/history calls in normal operation.
 - Snapshot-first pages also avoid repeated remote blob fetches in normal operation after the container warms its local pipeline cache.
-- Home v2 remains snapshot-driven even when supporting ticker cards are missing from the precomputed ticker snapshot map.
+- Home remains snapshot-driven even when supporting ticker cards are missing from the precomputed ticker snapshot map.
 - Snapshot-capable market pages still work from materialized datasets when requested.
 - Snapshot-only environments fail clearly for live-only account surfaces instead of showing fabricated zero balances.

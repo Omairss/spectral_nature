@@ -1,0 +1,82 @@
+{
+  "facets": [
+    "business_model",
+    "fundamentals"
+  ],
+  "max_tool_calls": 4,
+  "results": [
+    {
+      "agent_status": "completed",
+      "answer_markdown": "**Main Street Capital (MAIN) is a business development company (BDC) that lends to middle-market companies and earns interest income, fee income, and potential capital gains\u2014but the available evidence lacks specific financial details.** ### VERDICT MAIN operates as a BDC, providing debt and equity financing to lower-middle-market businesses. Its revenue model relies on interest from loans, dividend income from equity investments, and fee income from origination, management, and advisory services. However, no concrete numbers or breakdowns are present in the retrieved data. ### FACTS - **MAIN** is publicly traded on the NYSE as a BDC (common stock). - Multiple articles describe it as a \u201cblue chip BDC\u201d and a \u201cmonthly dividend stock.\u201d - One source notes it trades at **1.8x book value**, implying a premium over net asset value. - BDCs typically generate returns through the spread between borrowing costs and lending rates, plus fee income. ### GAPS - No evidence of exact fee structure, spread income, or carried-interest mechanics. - No recent financial statements or fund-level data were retrieved. - Tool calls timed out or returned empty datasets for business model details. ### SOURCE REFS - Retained Zopedia context matched one item (title/content not shown). - Live evidence includes a Seeking Alpha article: \u201cWhat Makes Main Street Capital's Business Model Unique\u201d (Kavout) and a 24/7 Wall St. piece on its dividend. - Key gaps remain: the underlying business-model stack and company-context tools returned no data.",
+      "aql_evidence_pack_id": "aqlpack::510b462ad980ce89e5443dd4",
+      "confidence": "low",
+      "elapsed_seconds": 86.211,
+      "evidence_refs": {
+        "source_links": 0,
+        "trace_count": 4,
+        "zopedia_pages": 0
+      },
+      "facet": "business_model",
+      "id": "main_business_model",
+      "limitations": [
+        "No financial fundamentals or operating model specifics retrieved.",
+        "Company context and business model stack queries returned empty.",
+        "Live event evidence only includes article metadata; no data extraction from articles.",
+        "Missing fee structure, spread income, and carried-interest details.",
+        "No recent financial statements or fund-level data.",
+        "Business-model stack and company-context tools returned no data."
+      ],
+      "question": "MAIN ticker-specific business-memory facet. What does Main Street Capital (MAIN) sell, who pays it, and what is the operating business model? For financial firms, explain the fund/lending/investment model, fee income, spread income, or carried-interest economics if relevant.\n\nLocal pipeline compact facts JSON:\n{\"ticker\": \"MAIN\", \"company_baseline\": [], \"listing\": [{\"symbol\": \"MAIN\", \"exchange\": \"NYSE\", \"security_name\": \"Main Street Capital Corporation Common Stock\", \"is_etf\": false, \"is_test_issue\": false, \"source_file\": \"otherlisted\"}], \"compact_fundamentals\": [], \"recent_news\": []}\n\nThe local JSON is typed pipeline state, not a user guess. Use it to identify the company and available local metrics. If Zopedia or retained evidence is empty, call live AQL research tools before concluding that no business evidence exists.  Return concise output with exactly these headings: VERDICT, FACTS, GAPS, SOURCE REFS. Evidence labels are not analysis; say what the evidence means. No stock-chart or price-technical commentary.",
+      "status": "completed",
+      "ticker": "MAIN",
+      "tool_count": 4,
+      "tool_names": [
+        "investigator.company_context",
+        "dataset.ticker_business_model_stack",
+        "research.retained_context",
+        "research.live_event_evidence"
+      ]
+    },
+    {
+      "agent_status": "completed",
+      "answer_markdown": "## VERDICT Insufficient data for a full assessment. Only 2025Q1 fundamentals are available, showing strong revenue and net income but negative operating cash flow. Key metrics like dividend coverage, credit quality, NAV, AUM, and historical trends are missing. ## FACTS - Revenue: $137.0M - Operating Income: $82.0M - Net Income: $116.1M - Operating Margin: 59.8% - Operating Cash Flow: -$20.4M - Total Assets: $5.27B - Total Liabilities: $1.59B - Liabilities/Assets ratio: ~30% ## GAPS - No data on credit quality, NAV, AUM, dividend coverage, capital expenditure burden, or historical trends. - Only one quarter of data; no context for trend. ## SOURCE REFS - investigator.fundamentals for MAIN 2025Q1 - retained_context confirmed ticker MAIN - Zopedia page on inflation context (not directly related) - ticker_business_model_stack returned no data",
+      "aql_evidence_pack_id": "aqlpack::ec0ce17238700b4b05cdfdd0",
+      "confidence": "low",
+      "elapsed_seconds": 90.606,
+      "evidence_refs": {
+        "source_links": 0,
+        "trace_count": 4,
+        "zopedia_pages": 1
+      },
+      "facet": "fundamentals",
+      "id": "main_fundamentals",
+      "limitations": [
+        "Missing credit quality, NAV, AUM, dividend coverage, capex, and historical trends",
+        "Operating cash flow negative without explanation",
+        "Only one quarter of fundamentals available",
+        "No credit quality, NAV, AUM, dividend coverage, or capex data",
+        "'low use' is not a standard metric and not supported by evidence",
+        "Missing credit quality metrics",
+        "Missing NAV and AUM",
+        "Missing dividend coverage ratio",
+        "Missing historical trends for comparison",
+        "Missing capital expenditure information"
+      ],
+      "question": "MAIN ticker-specific business-memory facet. Are Main Street Capital (MAIN) fundamentals good, mixed, or weak? Cover revenue or investment income, operating margin or distributable earnings, balance sheet, cash flow or dividend coverage, credit quality, capex burden, AUM, NAV, leverage, and recent quarterly direction where relevant.\n\nLocal pipeline compact facts JSON:\n{\"ticker\": \"MAIN\", \"company_baseline\": [], \"listing\": [{\"symbol\": \"MAIN\", \"exchange\": \"NYSE\", \"security_name\": \"Main Street Capital Corporation Common Stock\", \"is_etf\": false, \"is_test_issue\": false, \"source_file\": \"otherlisted\"}], \"compact_fundamentals\": [], \"recent_news\": []}\n\nThe local JSON is typed pipeline state, not a user guess. Use it to identify the company and available local metrics. If Zopedia or retained evidence is empty, call live AQL research tools before concluding that no business evidence exists.  Return concise output with exactly these headings: VERDICT, FACTS, GAPS, SOURCE REFS. Evidence labels are not analysis; say what the evidence means. No stock-chart or price-technical commentary.",
+      "status": "completed",
+      "ticker": "MAIN",
+      "tool_count": 4,
+      "tool_names": [
+        "research.retained_context",
+        "investigator.fundamentals",
+        "zopedia.search_pages",
+        "dataset.ticker_business_model_stack"
+      ]
+    }
+  ],
+  "run_id": "company-business-probe-20260525-main-after-crawler",
+  "started_at_utc": "2026-05-25T08:52:51.843020+00:00",
+  "tickers": [
+    "MAIN"
+  ]
+}

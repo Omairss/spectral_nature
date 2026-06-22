@@ -173,39 +173,13 @@ def _looks_like_stat_dump_text(text: object) -> bool:
     return False
 
 
-def _narrative_or_fallback(text: object, *, fallback: str, limit: int = 280) -> str:
+def _usable_narrative(text: object, *, limit: int = 280) -> str:
     clean = _trim(text, limit)
     if not clean:
-        return _trim(fallback, limit)
-    if _looks_like_stat_dump_text(clean) and not _has_causal_language(clean):
-        return _trim(fallback, limit)
-    return clean
-
-
-def _join_symbols(symbols: list[str], *, limit: int = 5) -> str:
-    unique = list(dict.fromkeys([_coerce_text(item).upper() for item in symbols if _coerce_text(item)]))
-    scoped = unique[: max(int(limit), 1)]
-    if not scoped:
         return ""
-    if len(scoped) == 1:
-        return scoped[0]
-    if len(scoped) == 2:
-        return f"{scoped[0]} and {scoped[1]}"
-    return ", ".join(scoped[:-1]) + f", and {scoped[-1]}"
-
-
-def _theme_market_activity_why(theme: str, direction: str) -> str:
-    theme = _coerce_text(theme).lower()
-    direction = _coerce_text(direction).lower() or "down"
-    if theme == "oil" and direction == "down":
-        return "Oil-linked assets are lower, pointing to less supply-risk pressure across market activity."
-    if theme == "oil" and direction == "up":
-        return "Oil-linked assets are higher, pointing to more supply-risk pressure across market activity."
-    if theme == "rates" and direction == "up":
-        return "Treasury proxies are higher, pointing to lower-yield relief in rate-sensitive assets."
-    if theme == "rates" and direction == "down":
-        return "Treasury proxies are lower, pointing to higher-yield pressure on risk assets."
-    return "Cross-asset spillover is still developing and the causal picture is not yet clear."
+    if _looks_like_stat_dump_text(clean) and not _has_causal_language(clean):
+        return ""
+    return clean
 
 
 def _observed_direction(row: pd.Series) -> str:
@@ -410,46 +384,9 @@ def _event_confidence_label(theme: str, breadth_count: int, headline_text: str) 
     return "Developing"
 
 
-def _direction_label(direction: str) -> str:
-    token = str(direction or "").strip().lower()
-    return "rose" if token == "up" else "fell"
-
-
-def _move_snippet(row: pd.Series) -> str:
-    symbol = _coerce_text(row.get("entity_id")).upper()
-    return symbol
-
-
 def _what_happened_text(anchor: pd.Series, members: pd.DataFrame, theme: str) -> str:
-    if theme == "oil":
-        driver_buckets = {"oil", "energy_equities"}
-    elif theme == "rates":
-        driver_buckets = {"rates"}
-    elif theme == "defensives":
-        driver_buckets = {"defensives"}
-    elif theme == "risk":
-        driver_buckets = {"broad_equities", "travel"}
-    else:
-        driver_buckets = {"oil", "energy_equities", "rates", "defensives", "broad_equities", "travel"}
-    drivers = members[members["_market_event_bucket"].isin(driver_buckets)].copy()
-    if drivers.empty:
-        drivers = members.copy()
-    drivers = drivers.sort_values(["attention_score", "severity_score"], ascending=[False, False], na_position="last")
-    examples = ", ".join(_move_snippet(row) for _, row in drivers.head(3).iterrows())
-    anchor_direction = _observed_direction(anchor)
-    if theme == "oil":
-        return _trim(f"Oil proxies {_direction_label(anchor_direction)} sharply today, led by {examples}.", 280)
-    if theme == "rates":
-        if anchor_direction == "up":
-            return _trim(f"Treasury proxies rose today, led by {examples}.", 280)
-        return _trim(f"Treasury proxies fell today, led by {examples}.", 280)
-    if theme == "defensives":
-        return _trim(f"Defensive proxies {_direction_label(anchor_direction)} today, led by {examples}.", 280)
-    if theme == "risk":
-        return _trim(f"Risk proxies {_direction_label(anchor_direction)} together today, with {examples} leading the move.", 280)
-    return _narrative_or_fallback(
-        _coerce_text(anchor.get("story_text")) or _coerce_text(anchor.get("title")) or examples,
-        fallback=f"{_coerce_text(anchor.get('entity_id')).upper()} is driving a broader peer move today.",
+    return _usable_narrative(
+        _coerce_text(anchor.get("story_text")) or _coerce_text(anchor.get("title")),
         limit=280,
     )
 
@@ -493,48 +430,6 @@ def _why_happened_text(
         if context_why_now:
             return context_why_now, headline_text, source_line
 
-    if headline_text:
-        if theme == "oil":
-            return _trim(
-                "Fresh coverage points to less supply-risk and less inflation pressure in oil.",
-                280,
-            ), headline_text, source_line
-        if theme == "rates":
-            return _trim(
-                "Fresh coverage points to lower yields, and cross-asset activity is confirming that read.",
-                280,
-            ), headline_text, source_line
-
-    direction = _observed_direction(anchor)
-    if theme == "oil":
-        if direction == "down":
-            text = (
-                "Oil is lower, which points to less supply-risk and less inflation pressure across market activity."
-            )
-        else:
-            text = (
-                "Oil is higher, which points to more supply-risk and more inflation pressure across market activity."
-            )
-        return _trim(text, 280), headline_text, source_line
-    if theme == "rates":
-        if direction == "up":
-            text = "Treasuries are rallying, which points to lower yields and relief in rate-sensitive assets."
-        else:
-            text = "Treasuries are falling, which points to higher yields and more pressure on risk assets."
-        return _trim(text, 280), headline_text, source_line
-    if theme == "defensives":
-        if direction == "up":
-            text = "Defensive assets are rising, which points to a more cautious tone."
-        else:
-            text = "Defensive demand is fading, which lines up with a broader relief move."
-        return _trim(text, 280), headline_text, source_line
-    if theme == "risk":
-        if direction == "up":
-            text = "Risk assets are rising together, which points to a broader risk-on move."
-        else:
-            text = "Risk assets are weakening together, which points to a broader risk-off move."
-        return _trim(text, 280), headline_text, source_line
-
     return _trim(_coerce_text(anchor.get("why_now_text")) or _coerce_text(anchor.get("story_text")), 280), headline_text, source_line
 
 
@@ -560,21 +455,10 @@ def _affected_assets_summary(theme: str, anchor: pd.Series, members: pd.DataFram
                 losers.append(symbol) if anchor_direction == "down" else winners.append(symbol)
         winners = list(dict.fromkeys(symbol for symbol in winners if symbol))
         losers = list(dict.fromkeys(symbol for symbol in losers if symbol))
-        loser_text = _join_symbols(losers, limit=5)
-        winner_text = _join_symbols(winners, limit=5)
-        if loser_text and winner_text:
-            return f"Pressure showed up in {loser_text}, while relative strength showed up in {winner_text}.", winners, losers
-        if loser_text:
-            return f"Pressure showed up in {loser_text}.", winners, losers
-        if winner_text:
-            return f"Relative strength showed up in {winner_text}.", winners, losers
-        return "Cross-asset spillover is still developing.", winners, losers
+        return "", winners, losers
 
     symbols = list(dict.fromkeys(_coerce_text(symbol).upper() for symbol in members.get("entity_id", pd.Series(dtype=str)).tolist() if _coerce_text(symbol)))
-    symbol_text = _join_symbols(symbols, limit=6)
-    if symbol_text:
-        return f"Spillover was concentrated in {symbol_text}.", [], symbols[:6]
-    return "Cross-asset spillover is still developing.", [], symbols[:6]
+    return "", [], symbols[:6]
 
 
 def _event_title(theme: str, anchor: pd.Series) -> str:
@@ -628,18 +512,15 @@ def _build_theme_event(
     anchor_direction = _observed_direction(anchor)
     peer_group = _trim(_coerce_text(anchor.get("peer_group_name")) or _coerce_text(anchor.get("source_label")), 80)
 
-    what_happened_text = _narrative_or_fallback(
+    what_happened_text = _usable_narrative(
         _what_happened_text(anchor, members, theme),
-        fallback=f"{peer_group or anchor_symbol} moved together today.",
     )
-    why_happened_text = _narrative_or_fallback(
+    why_happened_text = _usable_narrative(
         why_text,
-        fallback=_theme_market_activity_why(theme, anchor_direction),
     )
     event_title = _event_title(theme, anchor)
-    affected_assets_summary_text = _narrative_or_fallback(
+    affected_assets_summary_text = _usable_narrative(
         affected_text,
-        fallback="Cross-asset spillover is still developing.",
     )
     score = _event_score(anchor, members, headline_text)
     confidence = _event_confidence_label(theme, breadth_count, headline_text)
@@ -677,7 +558,7 @@ def _build_theme_event(
     }
 
 
-def _build_fallback_event(rows: pd.DataFrame) -> dict[str, object] | None:
+def _build_minimal_event(rows: pd.DataFrame) -> dict[str, object] | None:
     if rows.empty:
         return None
     anchor = rows.iloc[0]
@@ -685,7 +566,7 @@ def _build_fallback_event(rows: pd.DataFrame) -> dict[str, object] | None:
     return {
         "market_event_id": f"generic:{symbol}",
         "event_type": "generic",
-        "event_title": _trim(_coerce_text(anchor.get("title")) or f"{symbol} leads the attention feed", 120),
+        "event_title": _trim(_coerce_text(anchor.get("title")) or symbol, 120),
         "event_score": round(_coerce_float(anchor.get("attention_score")), 1) if np.isfinite(_coerce_float(anchor.get("attention_score"))) else 0.0,
         "confidence_label": "Developing",
         "asof_time_utc": pd.to_datetime(anchor.get("asof_time_utc"), utc=True, errors="coerce"),
@@ -693,15 +574,13 @@ def _build_fallback_event(rows: pd.DataFrame) -> dict[str, object] | None:
         "anchor_direction": _observed_direction(anchor),
         "anchor_move_pct": _coerce_float(anchor.get("observed_value")),
         "anchor_attention_score": _coerce_float(anchor.get("attention_score")),
-        "what_happened_text": _narrative_or_fallback(
+        "what_happened_text": _usable_narrative(
             _coerce_text(anchor.get("story_text")) or _coerce_text(anchor.get("title")),
-            fallback=f"{symbol} is driving the latest attention move.",
         ),
-        "why_happened_text": _narrative_or_fallback(
+        "why_happened_text": _usable_narrative(
             _coerce_text(anchor.get("why_now_text")) or _coerce_text(anchor.get("story_text")),
-            fallback="Cause remains unresolved; retained evidence is still thin.",
         ),
-        "affected_assets_summary_text": f"Spillover is currently concentrated in {symbol}.",
+        "affected_assets_summary_text": "",
         "headline_text": "",
         "source_line": "",
         "driver_symbols": [symbol],
@@ -745,9 +624,9 @@ def build_attention_market_events(
         used_symbols.update(symbols)
 
     if not built:
-        fallback = _build_fallback_event(rows)
-        if fallback is not None:
-            built.append(fallback)
+        minimal_event = _build_minimal_event(rows)
+        if minimal_event is not None:
+            built.append(minimal_event)
 
     out = pd.DataFrame(built)
     if out.empty:

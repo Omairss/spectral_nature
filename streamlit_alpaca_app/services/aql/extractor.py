@@ -33,6 +33,38 @@ DEFAULT_MAX_CHUNKS_PER_DOCUMENT = 18
 DEFAULT_MAX_CHUNK_CHARS = 1000
 DEFAULT_MAX_CLAIM_CHUNKS = 12
 
+_CLAIM_GROUNDING_STOPWORDS = {
+    "about",
+    "after",
+    "also",
+    "amid",
+    "been",
+    "being",
+    "because",
+    "before",
+    "between",
+    "company",
+    "could",
+    "from",
+    "have",
+    "into",
+    "market",
+    "more",
+    "over",
+    "said",
+    "says",
+    "shares",
+    "stock",
+    "that",
+    "their",
+    "there",
+    "this",
+    "through",
+    "today",
+    "with",
+    "would",
+}
+
 
 def _normalize_chunk_pieces(raw_text: str) -> list[str]:
     paragraphs = [piece.strip() for piece in re.split(r"\n\s*\n+", raw_text) if piece.strip()]
@@ -107,6 +139,139 @@ def _token_overlap_score(text: object, query: object) -> float:
     if not overlap:
         return 0.0
     return min(len(overlap) / max(len(query_tokens), 1), 1.0)
+
+
+def _grounding_tokens(text: object) -> set[str]:
+    return {
+        token
+        for token in re.split(r"[^a-z0-9]+", _coerce_text(text).lower())
+        if len(token) >= 4 and token not in _CLAIM_GROUNDING_STOPWORDS
+    }
+
+
+def _normalized_grounding_text(text: object) -> str:
+    return " ".join(re.split(r"[^a-z0-9]+", _coerce_text(text).lower())).strip()
+
+
+def _numeric_markers(text: object) -> set[str]:
+    markers: set[str] = set()
+    for raw in re.findall(r"\b\d+(?:\.\d+)?\s*(?:%|bps|million|billion|trillion|m|b|t)?\b", _coerce_text(text), flags=re.IGNORECASE):
+        marker = re.sub(r"\s+", "", raw.lower())
+        if marker:
+            markers.add(marker)
+    return markers
+
+
+def _candidate_entity_tokens(candidate: dict[str, Any]) -> set[str]:
+    tokens: set[str] = set()
+    for entity in _candidate_claim_entities(candidate):
+        tokens.update(_grounding_tokens(entity))
+    return tokens
+
+
+def _claim_evidence_grounded(
+    *,
+    claim_text: str,
+    claim_entities: list[str],
+    cited_chunks: list[pd.Series],
+    candidate: dict[str, Any],
+) -> bool:
+    if not claim_text or not cited_chunks:
+        return False
+    evidence_blob = "\n\n".join(
+        " ".join(
+            [
+                _coerce_text(chunk.get("title")),
+                _coerce_text(chunk.get("chunk_text")),
+                _coerce_text(chunk.get("query_text")),
+            ]
+        )
+        for chunk in cited_chunks
+    )
+    evidence_tokens = _grounding_tokens(evidence_blob)
+    claim_tokens = _grounding_tokens(claim_text)
+    if not claim_tokens or not evidence_tokens:
+        return False
+
+    overlap = claim_tokens & evidence_tokens
+    overlap_ratio = len(overlap) / max(len(claim_tokens), 1)
+    if len(claim_tokens) >= 8 and overlap_ratio < 0.35:
+        return False
+    if len(claim_tokens) < 8 and overlap_ratio < 0.25:
+        return False
+
+    missing_numbers = _numeric_markers(claim_text) - _numeric_markers(evidence_blob)
+    if missing_numbers:
+        return False
+
+    evidence_norm = _normalized_grounding_text(evidence_blob)
+    candidate_tokens = _candidate_entity_tokens(candidate)
+    for entity in claim_entities:
+        entity_text = _coerce_text(entity)
+        entity_tokens = _grounding_tokens(entity_text)
+        if not entity_tokens or entity_tokens <= candidate_tokens:
+            continue
+        entity_norm = _normalized_grounding_text(entity_text)
+        if entity_norm and entity_norm in evidence_norm:
+            continue
+        if entity_tokens & evidence_tokens:
+            continue
+        return False
+    return True
+
+
+def _claim_has_recent_dated_evidence(cited_chunks: list[pd.Series], *, asof_time_utc: pd.Timestamp) -> bool:
+    asof = pd.to_datetime(asof_time_utc, utc=True, errors="coerce")
+    if pd.isna(asof):
+        return False
+    for chunk in cited_chunks:
+        published_at = pd.to_datetime(chunk.get("published_at"), utc=True, errors="coerce")
+        if pd.isna(published_at):
+            continue
+        age_hours = (asof - published_at).total_seconds() / 3600.0
+        if -6.0 <= age_hours <= 72.0:
+            return True
+    return False
+
+
+def _claim_reads_like_current_move_cause(claim_text: object, claim_type: object) -> bool:
+    text = _coerce_text(claim_text).lower()
+    claim_kind = _coerce_text(claim_type).lower()
+    if not text:
+        return False
+    causal_markers = (
+        "caused",
+        "causing",
+        "driving",
+        "driven by",
+        "due to",
+        "triggered",
+        "lifted",
+        "pressured",
+        "weighed on",
+        "sent",
+    )
+    move_markers = (
+        "higher",
+        "lower",
+        "rally",
+        "sell-off",
+        "sold off",
+        "surged",
+        "spiked",
+        "plunged",
+        "rose",
+        "fell",
+        "declined",
+        "dropped",
+        "gained",
+        "slid",
+    )
+    cause_types = {"cause", "supply_shock", "macro", "event_driven", "sector_weakness", "company-specific"}
+    return (
+        any(marker in text for marker in causal_markers)
+        and any(marker in text for marker in move_markers)
+    ) or claim_kind in cause_types
 
 
 def _rank_chunk_score(
@@ -340,79 +505,6 @@ def _chunk_source_documents(
     return pd.DataFrame(rows)
 
 
-def _fallback_claims_from_chunks(
-    candidate: dict[str, Any],
-    chunks: pd.DataFrame,
-    *,
-    run_id: str,
-    asof_time_utc: pd.Timestamp,
-    hypotheses: list[dict[str, Any]],
-) -> list[dict[str, Any]]:
-    symbol = _normalize_symbol(candidate.get("symbol"))
-    company_name = _candidate_company_name(candidate).upper()
-    out: list[dict[str, Any]] = []
-    hypothesis_names = [_coerce_text(item.get("kind")) for item in hypotheses if _coerce_text(item.get("kind"))]
-    ranked_chunks = _rank_evidence_chunks(
-        chunks,
-        candidate=candidate,
-        asof_time_utc=asof_time_utc,
-    )
-    for _, row in ranked_chunks.head(DEFAULT_MAX_CLAIM_CHUNKS).iterrows():
-        text = _coerce_text(row.get("display_excerpt") or row.get("chunk_text"))
-        if not text:
-            continue
-        title = _coerce_text(row.get("title"))
-        if (
-            _is_provider_error_text(text)
-            or _is_provider_error_text(title)
-            or _is_low_signal_claim_text(text)
-            or _is_low_signal_claim_text(title)
-        ):
-            continue
-        title_blob = f"{title} {text}".upper()
-        published_at = pd.to_datetime(row.get("published_at"), utc=True, errors="coerce")
-        freshness = _freshness_score(published_at, asof_time_utc)
-        authority_rank = int(row.get("authority_rank") or 3)
-        relevance = 0.4
-        if symbol and symbol in title_blob:
-            relevance += 0.2
-        if company_name and company_name in title_blob:
-            relevance += 0.2
-        if authority_rank <= 1:
-            relevance += 0.12
-        elif authority_rank == 2:
-            relevance += 0.08
-        from ._shared import _normalized_text
-        if any(token in _normalized_text(title_blob) for token in ("earnings", "guidance", "deal", "approval", "trial", "margin", "checkout", "commentary", "de escalation", "de-escalation", "supply", "yield", "treasury")):
-            relevance += 0.1
-        if _is_low_signal(row.get("title"), text):
-            relevance -= 0.15
-        causal = min(0.35 + freshness * 0.35 + max(0.0, 0.2 - authority_rank * 0.05), 0.92)
-        claim_type = "cause" if freshness >= 0.75 else "background"
-        chunk_id = _coerce_text(row.get("chunk_id"))
-        claim_hash = hashlib.sha1(f"{chunk_id}|{text}".encode("utf-8")).hexdigest()[:16]
-        out.append(
-            {
-                "claim_id": f"claim::{claim_hash}",
-                "run_id": run_id,
-                "bundle_subject": symbol,
-                "claim_text": text,
-                "claim_type": claim_type,
-                "claim_entities": _candidate_claim_entities(candidate),
-                "supports_hypothesis": hypothesis_names[0] if hypothesis_names else "unresolved",
-                "freshness_class": "same_day" if freshness >= 0.95 else "background",
-                "relevance_score": round(min(max(relevance, 0.0), 1.0), 3),
-                "causal_score": round(min(max(causal, 0.0), 1.0), 3),
-                "confidence_score": round(min(max((relevance + causal) / 2.0, 0.0), 1.0), 3),
-                "evidence_chunk_ids": [_coerce_text(row.get("chunk_id"))],
-                "is_same_day": bool(freshness >= 0.95),
-                "source_authority_bucket": _coerce_text(row.get("source_authority_bucket")) or "web",
-                "source": _coerce_text(row.get("source_provider")),
-            }
-        )
-    return out
-
-
 def _extract_claims(
     candidate: dict[str, Any],
     chunks: pd.DataFrame,
@@ -422,20 +514,16 @@ def _extract_claims(
     hypotheses: list[dict[str, Any]],
     llm_client: LLMClient | None,
 ) -> list[dict[str, Any]]:
+    if llm_client is None:
+        return []
     if chunks.empty:
         return []
-    fallback = _fallback_claims_from_chunks(
-        candidate,
-        chunks,
-        run_id=run_id,
-        asof_time_utc=asof_time_utc,
-        hypotheses=hypotheses,
-    )
-    if llm_client is None:
-        return fallback
     system_prompt = (
         "You extract structured market claims from evidence chunks. "
-        "Only retain high-signal claims. Prefer same-day explanations over stale context. "
+        "Only retain high-signal claims that are directly supported by the supplied chunks. "
+        "Every claim must cite the evidence_chunk_ids whose title or text supports the claim. "
+        "Do not infer event details, dates, counterparties, or causality that are absent from the cited chunks. "
+        "Prefer same-day explanations over stale context only when the cited chunk is dated as current. "
         "Do not emit generic filing labels as claims."
     )
     ranked_chunks = _rank_evidence_chunks(
@@ -471,7 +559,7 @@ def _extract_claims(
             schema=CLAIM_SCHEMA,
         )
     except Exception:
-        return fallback
+        return []
     claims: list[dict[str, Any]] = []
     chunk_lookup = {
         _coerce_text(row.get("chunk_id")): row
@@ -482,14 +570,39 @@ def _extract_claims(
         if not isinstance(item, dict):
             continue
         claim_text = _trim(item.get("claim_text"), 260)
+        evidence_chunk_ids = [
+            _coerce_text(chunk_id)
+            for chunk_id in _safe_list(item.get("evidence_chunk_ids"))
+            if _coerce_text(chunk_id) in chunk_lookup
+        ]
+        evidence_chunk_ids = list(dict.fromkeys(evidence_chunk_ids))[:3]
+        cited_chunks = [chunk_lookup[chunk_id] for chunk_id in evidence_chunk_ids]
+        claim_entities = _merge_text_values(item.get("claim_entities"))
         if (
             not claim_text
             or _is_provider_error_text(claim_text)
             or _is_low_signal_claim_text(claim_text)
             or re.match(r"^(?:form\s+)?(?:8-k|10-k|10-q|20-f|6-k)\b", claim_text, flags=re.IGNORECASE)
+            or not cited_chunks
+            or not _claim_evidence_grounded(
+                claim_text=claim_text,
+                claim_entities=claim_entities,
+                cited_chunks=cited_chunks,
+                candidate=candidate,
+            )
         ):
             continue
-        linked_chunk_id = next(iter(chunk_lookup.keys()), "")
+        freshness_class = _coerce_text(item.get("freshness_class")) or ("same_day" if item.get("is_same_day") else "background")
+        is_same_day = bool(item.get("is_same_day"))
+        is_current_claim = is_same_day or freshness_class.lower() in {"same_day", "current"}
+        if is_current_claim and not _claim_has_recent_dated_evidence(
+            cited_chunks,
+            asof_time_utc=asof_time_utc,
+        ):
+            continue
+        if _claim_reads_like_current_move_cause(claim_text, item.get("claim_type")) and not is_current_claim:
+            continue
+        linked_chunk_id = evidence_chunk_ids[0]
         linked_chunk = chunk_lookup.get(linked_chunk_id, {})
         claims.append(
             {
@@ -498,19 +611,19 @@ def _extract_claims(
                 "bundle_subject": _normalize_symbol(candidate.get("symbol")),
                 "claim_text": claim_text,
                 "claim_type": _coerce_text(item.get("claim_type")) or "cause",
-                "claim_entities": _merge_text_values(item.get("claim_entities"), _candidate_claim_entities(candidate)),
+                "claim_entities": _merge_text_values(claim_entities, _candidate_claim_entities(candidate)),
                 "supports_hypothesis": _coerce_text(item.get("supports_hypothesis")) or "unresolved",
-                "freshness_class": _coerce_text(item.get("freshness_class")) or ("same_day" if item.get("is_same_day") else "background"),
+                "freshness_class": freshness_class,
                 "relevance_score": round(min(max(float(item.get("relevance_score") or 0.0), 0.0), 1.0), 3),
                 "causal_score": round(min(max(float(item.get("causal_score") or 0.0), 0.0), 1.0), 3),
                 "confidence_score": round(min(max(float(item.get("confidence_score") or 0.0), 0.0), 1.0), 3),
-                "evidence_chunk_ids": [linked_chunk_id] if linked_chunk_id else [],
-                "is_same_day": bool(item.get("is_same_day")),
+                "evidence_chunk_ids": evidence_chunk_ids,
+                "is_same_day": is_same_day,
                 "source_authority_bucket": _coerce_text(linked_chunk.get("source_authority_bucket")) or "web",
                 "source": _coerce_text(linked_chunk.get("source_provider")),
             }
         )
-    return claims or fallback
+    return claims
 
 
 def _serialize_claims_frame(claims: list[dict[str, Any]], *, asof_time_utc: pd.Timestamp) -> pd.DataFrame:

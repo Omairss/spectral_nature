@@ -427,6 +427,7 @@ def test_agentic_summary_applies_critique_to_summary_text(monkeypatch):
                       "supporting_claims": ["BNO moved on Hormuz news"],
                       "contradicting_claims": [], "gap_queries": [], "reasoning": "ok"},
     )
+    monkeypatch.setattr(aql_summarizer, "_llm_home_summary", lambda *args, **kwargs: None)
 
     class _NoopLLM:
         def generate_json(self, **kw):

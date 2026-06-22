@@ -149,7 +149,11 @@ def _render_stock_investigator_workspace(
             visible_price = price[price["timestamp"] >= recent_cutoff].copy()
             if visible_price.empty:
                 visible_price = price.tail(min(len(price), 220)).copy()
-            st.plotly_chart(build_technical_figure(visible_price, f"Technical View - {ticker}"), use_container_width=True)
+            st.plotly_chart(
+                build_technical_figure(visible_price, f"Technical View - {ticker}"),
+                use_container_width=True,
+                key=f"stock_investigator_{ticker}_technical_chart",
+            )
         except Exception as exc:
             _log_event("stock_investigator_technical_overview_failed", ticker=ticker, error=str(exc)[:200])
             st.caption("Technical overview chart unavailable for this ticker.")
@@ -218,9 +222,17 @@ def _render_stock_investigator_workspace(
 
             channel_left, channel_right = _responsive_two_panel()
             with channel_left:
-                st.plotly_chart(build_price_channel_figure(visible_signal_frame, ticker), use_container_width=True)
+                st.plotly_chart(
+                    build_price_channel_figure(visible_signal_frame, ticker),
+                    use_container_width=True,
+                    key=f"stock_investigator_{ticker}_price_channel_chart",
+                )
             with channel_right:
-                st.plotly_chart(build_pullback_figure(visible_signal_frame, ticker), use_container_width=True)
+                st.plotly_chart(
+                    build_pullback_figure(visible_signal_frame, ticker),
+                    use_container_width=True,
+                    key=f"stock_investigator_{ticker}_pullback_chart",
+                )
 
             forecast_left, forecast_right = _responsive_two_panel()
             with forecast_left:
@@ -228,6 +240,7 @@ def _render_stock_investigator_workspace(
                     st.plotly_chart(
                         build_forecast_cone_figure(visible_signal_frame, forecast, ticker),
                         use_container_width=True,
+                        key=f"stock_investigator_{ticker}_forecast_cone_chart",
                     )
                 else:
                     st.info("Not enough history to build the next-week probability model.")
@@ -236,6 +249,7 @@ def _render_stock_investigator_workspace(
                     st.plotly_chart(
                         build_terminal_distribution_figure(forecast, ticker),
                         use_container_width=True,
+                        key=f"stock_investigator_{ticker}_terminal_distribution_chart",
                     )
                     st.caption(
                         f"Analog model: {forecast.get('analog_count', 0)} similar historical setups, "
@@ -330,6 +344,7 @@ def _render_stock_investigator_workspace(
         background_summary=background_summary,
         what_happened_summary=what_happened_summary,
         evidence_links=evidence_links,
+        key_prefix=f"stock_investigator_{ticker}_background",
     )
 
     st.subheader(f"{ticker} Fundamentals")
@@ -338,4 +353,5 @@ def _render_stock_investigator_workspace(
         ticker,
         force_data_refresh=force_data_refresh,
         asof_time_utc=background_payload.get("asof_time_utc"),
+        key_prefix=f"stock_investigator_{ticker}_fundamentals",
     )

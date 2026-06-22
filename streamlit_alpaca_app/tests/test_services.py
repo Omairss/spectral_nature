@@ -51,14 +51,7 @@ from services.fundamentals import load_quarterly_fundamentals
 from services.web_research import WebSearchResult
 from services.simfin_refresh import build_quarterly_fundamentals_frame, load_simfin_api_key
 from services import treasury_yields as treasury_module
-from services.homepage_v2 import (
-    HOMEPAGE_V2_COMPANY_PANEL,
-    HOMEPAGE_V2_RESEARCH_PANEL,
-    build_homepage_v2_market_digest,
-    homepage_v2_editorial_links,
-    homepage_v2_bundle_symbol_lookup,
-    normalize_homepage_v2_detail_state,
-)
+from services.homepage_support import homepage_bundle_symbol_lookup, homepage_editorial_links
 from services.elevenlabs_tts import (
     ElevenLabsTTSClient,
     ElevenLabsTTSConfig,
@@ -3798,31 +3791,10 @@ def test_azure_openai_v1_config_does_not_default_api_version(monkeypatch):
 
 
 
-def test_build_homepage_v2_market_digest_uses_market_event_titles_and_underlying_anomalies():
-    digest = build_homepage_v2_market_digest(
-        [
-            {
-                "event_title": "Energy & Oil move lower together today",
-                "what_happened_text": "Oil-linked instruments fell sharply, led by BNO and USO.",
-                "why_happened_text": "Market activity reads this as easing supply-risk and lower inflation pressure.",
-                "affected_assets_summary_text": "Down: BNO, USO | Up: UAL, DAL, IWM, TLT",
-                "headline_text": "Oil prices eased as hopes rose for a de-escalation path.",
-                "anchor_symbol": "BNO",
-                "supporting_event_ids": ["bno", "uso", "ual", "tlt"],
-                "supporting_symbols": ["BNO", "USO", "UAL", "TLT"],
-            }
-        ],
-        asof_time_utc=pd.Timestamp("2026-03-23T18:00:00Z"),
-    )
+def test_build_market_stories_and_summary_cover_all_daily_market_sections(monkeypatch):
+    from services.aql import summarizer as aql_summarizer
 
-    assert digest["mode"] == "market_events"
-    assert digest["headline"] == "Energy & Oil move lower together today"
-    assert digest["stories"][0]["sentence"] == "Energy & Oil move lower together today"
-    assert digest["stories"][0]["event_ids"] == ["bno", "uso", "ual", "tlt"]
-    assert "easing supply-risk" in digest["stories"][0]["summary"].lower()
-
-
-def test_build_market_stories_and_summary_cover_all_daily_market_sections():
+    monkeypatch.setattr(aql_summarizer, "_llm_home_summary", lambda *args, **kwargs: None)
     payload = {
         "top_events": [
             {
@@ -3886,7 +3858,10 @@ def test_load_elevenlabs_tts_config_uses_env_settings(monkeypatch):
     assert config.timeout_seconds == 45
 
 
-def test_build_attention_home_summary_drops_fragmentary_ellipsis_text():
+def test_build_attention_home_summary_drops_fragmentary_ellipsis_text(monkeypatch):
+    from services.aql import summarizer as aql_summarizer
+
+    monkeypatch.setattr(aql_summarizer, "_llm_home_summary", lambda *args, **kwargs: None)
     payload = {
         "top_events": [],
         "must_read_movers": [
@@ -4409,7 +4384,10 @@ def test_supporting_claims_from_results_enrich_seeking_alpha_pages(monkeypatch):
     assert any("AI infrastructure demand is lifting copper" in item["claim_text"] for item in claims)
 
 
-def test_attach_attention_home_summary_audio_embeds_base64_metadata():
+def test_attach_attention_home_summary_audio_embeds_base64_metadata(monkeypatch):
+    from services.aql import summarizer as aql_summarizer
+
+    monkeypatch.setattr(aql_summarizer, "_llm_home_summary", lambda *args, **kwargs: None)
     summary_payload = build_attention_home_summary(
         {
             "must_read_movers": [
@@ -4537,8 +4515,8 @@ def test_elevenlabs_tts_client_posts_expected_request():
     assert audio_file_extension("wav_44100") == "wav"
 
 
-def test_homepage_v2_bundle_symbol_lookup_deduplicates_symbols_per_bundle():
-    lookup = homepage_v2_bundle_symbol_lookup(
+def test_homepage_bundle_symbol_lookup_deduplicates_symbols_per_bundle():
+    lookup = homepage_bundle_symbol_lookup(
         [
             {"bundle_id": "bundle-1", "symbols": ["msft", "AAPL", "MSFT"]},
             {"bundle_id": "bundle-1", "symbols": ["NVDA", "aapl"]},
@@ -4552,8 +4530,8 @@ def test_homepage_v2_bundle_symbol_lookup_deduplicates_symbols_per_bundle():
     }
 
 
-def test_homepage_v2_editorial_links_exposes_top_level_torres_capital_substack_cta():
-    links = homepage_v2_editorial_links(placement="sidebar_brand")
+def test_homepage_editorial_links_exposes_top_level_torres_capital_substack_cta():
+    links = homepage_editorial_links(placement="sidebar_brand")
 
     assert links == [
         {
@@ -4565,55 +4543,6 @@ def test_homepage_v2_editorial_links_exposes_top_level_torres_capital_substack_c
             "url": "https://substack.com/@torrescap",
         }
     ]
-
-
-def test_normalize_homepage_v2_detail_state_defaults_to_first_bundle_and_symbol():
-    state = normalize_homepage_v2_detail_state(
-        [
-            {"bundle_id": "bundle-1", "symbols": ["msft", "aapl"]},
-            {"bundle_id": "bundle-2", "symbols": ["nvda"]},
-        ],
-        selected_bundle_id="missing",
-        selected_ticker="",
-        active_panel="",
-    )
-
-    assert state == {
-        "selected_bundle_id": "bundle-1",
-        "selected_ticker": "MSFT",
-        "active_panel": HOMEPAGE_V2_RESEARCH_PANEL,
-    }
-
-
-def test_normalize_homepage_v2_detail_state_preserves_explicit_company_selection():
-    state = normalize_homepage_v2_detail_state(
-        [{"bundle_id": "bundle-1", "symbols": ["msft", "aapl"]}],
-        selected_bundle_id="bundle-1",
-        selected_ticker="tsla",
-        active_panel=HOMEPAGE_V2_COMPANY_PANEL,
-    )
-
-    assert state == {
-        "selected_bundle_id": "bundle-1",
-        "selected_ticker": "TSLA",
-        "active_panel": HOMEPAGE_V2_COMPANY_PANEL,
-    }
-
-
-def test_normalize_homepage_v2_detail_state_falls_back_to_research_without_ticker():
-    state = normalize_homepage_v2_detail_state(
-        [{"bundle_id": "bundle-1", "symbols": []}],
-        selected_bundle_id="bundle-1",
-        selected_ticker="",
-        active_panel=HOMEPAGE_V2_COMPANY_PANEL,
-    )
-
-    assert state == {
-        "selected_bundle_id": "bundle-1",
-        "selected_ticker": "",
-        "active_panel": HOMEPAGE_V2_RESEARCH_PANEL,
-    }
-
 
 def test_fred_client_parses_observations_and_builds_summary():
     client = FakeFREDClient()
@@ -5164,12 +5093,11 @@ def test_build_attention_ticker_snapshot_frame_includes_backtest_metadata(monkey
 
 def test_build_attention_ticker_background_snapshot_frame_serializes_replay_fields(monkeypatch):
     monkeypatch.setattr(
-        "services.attention_ticker_snapshots.share_count_asof",
-        lambda ticker, asof_time_utc=None: (2000.0, pd.Timestamp("2025-12-31"), "Shares Diluted"),
-    )
-    monkeypatch.setattr(
-        "services.attention_ticker_snapshots.load_quarterly_fundamentals",
-        lambda ticker: {"income": pd.DataFrame(), "balance": pd.DataFrame(), "cashflow": pd.DataFrame()},
+        "services.attention_ticker_snapshots.share_counts_asof",
+        lambda tickers, asof_time_utc=None: {
+            str(ticker).upper(): (2000.0, pd.Timestamp("2025-12-31"), "Shares Diluted")
+            for ticker in tickers
+        },
     )
 
     price_history = pd.DataFrame(
@@ -5216,7 +5144,8 @@ def test_build_attention_ticker_background_snapshot_frame_serializes_replay_fiel
     assert row["symbol"] == "AAA"
     assert row["company_name"] == "Acme Holdings"
     assert row["run_id"] == "run-123"
-    assert "Acme" in row["description_text"]
+    assert row["description_text"] == ""
+    assert row["context_story_text"] == "This follows earlier execution improvements."
     assert json.loads(row["news_summary_lines_json"])
     assert json.loads(row["recent_headlines_json"])[0]["headline"] == "Acme launches new product"
     assert len(json.loads(row["price_points_json"])) == 2
@@ -5947,6 +5876,12 @@ def test_serialize_attention_home_payload_preserves_homepage_graph():
             "figure": {"data": [], "layout": {"height": 320, "showlegend": False}},
             "summary": {"connected_components": 1},
         },
+        "homepage_summary": {
+            "headline": "Market Summary",
+            "summary_text": "A precomputed market summary.",
+            "audio_text": "A precomputed market summary.",
+            "audio_base64": "YWJj",
+        },
     }
 
     frame = serialize_attention_home_payload(payload)
@@ -5955,6 +5890,8 @@ def test_serialize_attention_home_payload_preserves_homepage_graph():
     assert restored["run_id"] == "run-123"
     assert restored["homepage_graph"]["figure"]["layout"]["height"] == 320
     assert restored["homepage_graph"]["summary"]["connected_components"] == 1
+    assert restored["homepage_summary"]["summary_text"] == "A precomputed market summary."
+    assert restored["homepage_summary"]["audio_base64"] == "YWJj"
 
 
 def test_build_homepage_attention_graph_payload_returns_compact_banner_figure():

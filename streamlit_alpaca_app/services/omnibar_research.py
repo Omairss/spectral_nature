@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 import json
+import os
 import re
 import threading
 import time
@@ -15,6 +16,7 @@ from services.attention_live_research import search_market_event_news_payload
 from services.llm import get_config_param, register_config_param
 from services.omnibar import resolve_omnibar
 from services.aql_zopedia_engine import load_aql_zopedia_llm_client
+from services.common.news_freshness import is_recent_for_attention
 from .page_browsing import browse_page
 from .saa import (
     apply_zopedia_typed_mutation,
@@ -177,6 +179,26 @@ def _safe_int(value: object, default: int, *, minimum: int = 1, maximum: int = 2
     return min(max(parsed, minimum), maximum)
 
 
+def _env_or_config_int(name: str, key: str, default: int, *, minimum: int, maximum: int) -> int:
+    raw = _clean(os.getenv(name))
+    if raw:
+        try:
+            return min(max(int(raw), minimum), maximum)
+        except Exception:
+            pass
+    return _safe_int(get_config_param(key), default, minimum=minimum, maximum=maximum)
+
+
+def _symbol_news_max_age_days_for_live_event() -> int:
+    raw = _clean(os.getenv("ATTENTION_SYMBOL_NEWS_MAX_AGE_DAYS"))
+    if raw:
+        try:
+            return max(int(raw), 1)
+        except Exception:
+            pass
+    return 7
+
+
 def _run_with_timeout(label: str, timeout_seconds: int, func: Any, fallback: Any) -> tuple[Any, str]:
     """Run a helper in a daemon thread and return a fallback if it exceeds its budget."""
     timeout = max(int(timeout_seconds), 1)
@@ -202,19 +224,6 @@ def _run_with_timeout(label: str, timeout_seconds: int, func: Any, fallback: Any
 
 def _remaining_budget(deadline: float) -> int:
     return max(int(deadline - time.monotonic()), 0)
-
-
-def _fallback_event_search_query(event: dict[str, Any]) -> str:
-    event_title = _coerce_text(event.get("event_title"))
-    anchor_symbol = _normalize_symbol(event.get("anchor_symbol"))
-    supporting_symbols = [
-        _normalize_symbol(symbol)
-        for symbol in list(event.get("supporting_symbols") or [])
-        if _normalize_symbol(symbol)
-    ]
-    parts = [event_title] if event_title else []
-    parts.extend(([anchor_symbol] if anchor_symbol else []) + supporting_symbols[:3])
-    return f"{' '.join(part for part in parts if part)} today".strip() or "market news today"
 
 
 def _fast_search_clients(timeout_seconds: int) -> tuple[SerpAPISearchClient | None, TavilySearchClient | None]:
@@ -404,13 +413,36 @@ def retained_context(
     resolved_layer = _layer(layer)
     default_items = int(get_config_param(_P_RETAINED_CONTEXT_MAX_ITEMS))
     safe_limit = _safe_int(max_items if max_items != 5 else default_items, default_items, minimum=1, maximum=12)
-    resolution = resolve_omnibar(
-        query=query,
-        preferred_mode="search",
-        force_refresh=force_refresh,
-        layer=resolved_layer,
-    )
-    impact = market_impact_map(query=query, max_symbols=6)
+    scoped_symbols = _symbol_list(focus_symbols)
+    if scoped_symbols:
+        resolution = {
+            "intent": "scoped_symbol_context",
+            "search_results": [
+                {
+                    "kind": "symbol",
+                    "ref": symbol,
+                    "label": symbol,
+                    "score": 1.0,
+                    "symbol": symbol,
+                }
+                for symbol in scoped_symbols
+            ],
+        }
+        try:
+            impact = market_impact_map(query=query, max_symbols=max(4, min(safe_limit + 2, 6)))
+        except Exception:
+            impact = {}
+        if not isinstance(impact, dict):
+            impact = {}
+        impact["focus_symbols"] = list(dict.fromkeys(scoped_symbols + list(impact.get("focus_symbols") or [])))[:6]
+    else:
+        resolution = resolve_omnibar(
+            query=query,
+            preferred_mode="search",
+            force_refresh=force_refresh,
+            layer=resolved_layer,
+        )
+        impact = market_impact_map(query=query, max_symbols=6)
     rows: list[dict[str, Any]] = []
     seen_refs: set[tuple[str, str]] = set()
     search_results = list(resolution.get("search_results") or [])
@@ -420,6 +452,10 @@ def retained_context(
         if kind == "bundle":
             bundle_id = _clean(result.get("bundle_id") or result.get("ref"))
             if not bundle_id or (kind, bundle_id) in seen_refs:
+                continue
+            result_symbols = set(_symbol_list(result.get("symbols")))
+            ref_symbol = _normalize_symbol(bundle_id.split("::", 1)[1]) if bundle_id.lower().startswith("symbol::") else ""
+            if scoped_symbols and not (result_symbols.intersection(scoped_symbols) or ref_symbol in scoped_symbols):
                 continue
             seen_refs.add((kind, bundle_id))
             payload = resolved_layer.resolve_attention_research_bundle(bundle_id, force_refresh=force_refresh).payload
@@ -437,6 +473,8 @@ def retained_context(
         elif kind == "symbol":
             symbol = _normalize_symbol(result.get("symbol") or result.get("ref"))
             if not symbol or (kind, symbol) in seen_refs:
+                continue
+            if scoped_symbols and symbol not in scoped_symbols:
                 continue
             seen_refs.add((kind, symbol))
             payload = resolved_layer.resolve_attention_ticker_background(symbol, force_refresh=force_refresh).payload
@@ -467,7 +505,13 @@ def retained_context(
                 }
             )
 
-    for symbol in _symbol_list(focus_symbols) or list(impact.get("focus_symbols") or []):
+    adjacent_symbols = [
+        symbol
+        for symbol in list(impact.get("focus_symbols") or [])
+        if _normalize_symbol(symbol) and _normalize_symbol(symbol) not in scoped_symbols
+    ][:4]
+
+    for symbol in list(dict.fromkeys(scoped_symbols + adjacent_symbols)):
         if len(rows) >= safe_limit:
             break
         if ("symbol", symbol) in seen_refs:
@@ -476,9 +520,10 @@ def retained_context(
         payload = payload if isinstance(payload, dict) else {}
         rows.append(
             {
-                "kind": "symbol",
+                "kind": "symbol" if symbol in scoped_symbols else "adjacent_symbol",
                 "ref": symbol,
                 "label": symbol,
+                "relationship_to_query": "primary" if symbol in scoped_symbols else "adjacent_context",
                 "summary_text": _background_summary(payload),
                 "company_name": _clean(payload.get("company_name")) or _asset_name(resolved_layer, symbol, force_refresh=force_refresh),
                 "source_line": _clean(payload.get("llm_source_line") or payload.get("source_line") or payload.get("source_summary")),
@@ -487,7 +532,15 @@ def retained_context(
         seen_refs.add(("symbol", symbol))
 
     llm_lines = [f"Retained context matched {len(rows)} item(s)."]
-    if impact.get("focus_symbols"):
+    if scoped_symbols:
+        llm_lines.append("Primary company symbols: " + ", ".join(scoped_symbols) + ".")
+    if adjacent_symbols:
+        llm_lines.append(
+            "Adjacent recall to organize around the primary company: "
+            + ", ".join(adjacent_symbols)
+            + "."
+        )
+    elif impact.get("focus_symbols"):
         llm_lines.append("Possible follow-up symbols: " + ", ".join(list(impact.get("focus_symbols") or [])[:6]) + ".")
     for row in rows[:safe_limit]:
         label = _clean(row.get("label") or row.get("ref"))
@@ -507,7 +560,15 @@ def retained_context(
         "query": _clean(query),
         "intent": _clean(resolution.get("intent")),
         "matched_count": len(rows),
-        "focus_symbols": list(dict.fromkeys(_symbol_list(focus_symbols) + list(impact.get("focus_symbols") or [])))[:6],
+        "focus_symbols": list(dict.fromkeys(scoped_symbols + list(impact.get("focus_symbols") or [])))[:6],
+        "primary_symbols": scoped_symbols,
+        "adjacent_context": {
+            "symbols": adjacent_symbols,
+            "theme": _clean(impact.get("theme")),
+            "expected_direction": _clean(impact.get("expected_direction")),
+            "search_keywords": list(impact.get("search_keywords") or [])[:8],
+            "note": "Adjacent context is useful recall; organize it around the primary company before using it in synthesis.",
+        },
         "summary": rows[:safe_limit],
         "llm_context_text": " ".join(item for item in llm_lines if item),
     }
@@ -557,53 +618,57 @@ def live_event_evidence(
 ) -> dict[str, Any]:
     resolved_layer = _layer(layer)
     normalized_query = _clean(query)
+    asof_ts = pd.Timestamp.utcnow()
     default_results = int(get_config_param(_P_LIVE_EVENT_MAX_RESULTS))
     safe_limit = _safe_int(max_results if max_results != 6 else default_results, default_results, minimum=1, maximum=15)
     max_sym = int(get_config_param(_P_LIVE_EVENT_MAX_SYMBOLS))
-    total_budget_seconds = _safe_int(
-        get_config_param(_P_LIVE_EVENT_TOTAL_BUDGET_SECONDS),
+    total_budget_seconds = _env_or_config_int(
+        "ZOPEDIA_LIVE_EVENT_TOTAL_BUDGET_SECONDS",
+        _P_LIVE_EVENT_TOTAL_BUDGET_SECONDS,
         18,
         minimum=6,
-        maximum=60,
+        maximum=900,
     )
-    helper_timeout_seconds = _safe_int(
-        get_config_param(_P_LIVE_EVENT_LLM_HELPER_TIMEOUT_SECONDS),
+    helper_timeout_seconds = _env_or_config_int(
+        "ZOPEDIA_LIVE_EVENT_LLM_HELPER_TIMEOUT_SECONDS",
+        _P_LIVE_EVENT_LLM_HELPER_TIMEOUT_SECONDS,
         4,
         minimum=1,
-        maximum=20,
+        maximum=120,
     )
-    provider_timeout_seconds = _safe_int(
-        get_config_param(_P_LIVE_EVENT_PROVIDER_TIMEOUT_SECONDS),
+    provider_timeout_seconds = _env_or_config_int(
+        "ZOPEDIA_LIVE_EVENT_PROVIDER_TIMEOUT_SECONDS",
+        _P_LIVE_EVENT_PROVIDER_TIMEOUT_SECONDS,
         6,
         minimum=3,
-        maximum=20,
+        maximum=180,
     )
     deadline = time.monotonic() + total_budget_seconds
     messages: list[str] = []
 
     selected_symbols = _symbol_list(focus_symbols)
-    impact_fallback = {
+    direct_query_intent = {
         "query": normalized_query,
-        "theme": "generic",
-        "expected_direction": "down",
+        "theme": "",
+        "expected_direction": "",
         "evidence_needed": True,
         "search_keywords": [normalized_query] if normalized_query else [],
         "focus_symbols": selected_symbols,
         "summary": [],
-        "llm_context_text": "Live evidence used the user's query directly because the helper classifier was unavailable.",
+        "llm_context_text": "",
     }
     impact, impact_warning = _run_with_timeout(
         "live_event_impact_map",
         min(helper_timeout_seconds, max(_remaining_budget(deadline), 1)),
         lambda: market_impact_map(query=normalized_query, max_symbols=max_sym),
-        impact_fallback,
+        direct_query_intent,
     )
     if impact_warning:
         messages.append(impact_warning)
     if not isinstance(impact, dict):
-        impact = impact_fallback
-    theme = _clean(impact.get("theme")) or "generic"
-    direction = _clean(impact.get("expected_direction")) or "down"
+        impact = direct_query_intent
+    theme = _clean(impact.get("theme"))
+    direction = _clean(impact.get("expected_direction"))
 
     explicitly_resolved = bool(selected_symbols)
     if not selected_symbols:
@@ -704,6 +769,13 @@ def live_event_evidence(
     deduped: list[dict[str, Any]] = []
     seen: set[tuple[str, str, str]] = set()
     for row in rows:
+        if not is_recent_for_attention(
+            row.get("published_at"),
+            asof_time_utc=asof_ts,
+            max_age_days=_symbol_news_max_age_days_for_live_event(),
+            include_undated=False,
+        ):
+            continue
         key = (
             _clean(row.get("url")).lower(),
             _clean(row.get("headline")).lower(),
@@ -828,15 +900,24 @@ def open_page(
     *,
     url: str,
     max_chars: int = 5000,
+    require_main_content: bool = False,
+    min_text_chars: int = 500,
 ) -> dict[str, Any]:
     safe_max_chars = _safe_int(max_chars, 5000, minimum=800, maximum=12000)
-    page = browse_page(url, max_text_chars=safe_max_chars)
+    safe_min_text_chars = _safe_int(min_text_chars, 500, minimum=1, maximum=5000)
+    page = browse_page(
+        url,
+        max_text_chars=safe_max_chars,
+        require_main_content=bool(require_main_content),
+        min_text_chars=safe_min_text_chars,
+    )
     summary_row = {
         "url": _clean(page.get("final_url") or page.get("url")),
         "title": _clean(page.get("title")),
         "mode": _clean(page.get("mode")),
         "excerpt": _trim(page.get("excerpt"), limit=260),
         "warning": _clean(page.get("warning")),
+        "quality_issue": _clean(page.get("quality_issue")),
     }
     llm_lines = [
         f"Opened page via {summary_row['mode'] or 'unknown'}.",
@@ -844,6 +925,8 @@ def open_page(
     ]
     if summary_row["warning"]:
         llm_lines.append(f"Warning: {summary_row['warning']}.")
+    if summary_row["quality_issue"]:
+        llm_lines.append(f"Quality issue: {summary_row['quality_issue']}.")
     if summary_row["excerpt"]:
         llm_lines.append(f"Excerpt: {summary_row['excerpt']}.")
     text = _trim(page.get("text"), limit=safe_max_chars)
@@ -892,10 +975,13 @@ def zopedia_search_pages(
     rows = _zopedia_rows_from_frame(frame, limit=safe_limit)
     lines = [f"Zopedia page search for '{normalized_query}': {len(rows)} result(s)."]
     for row in rows[:safe_limit]:
+        page_id = _clean(row.get("page_id"))
         page_type = _clean(row.get("page_type"))
         title = _clean(row.get("title"))
         summary = _clean(row.get("summary_text"))
         line = f"{title}"
+        if page_id:
+            line += f" (page_id={page_id})"
         if page_type:
             line += f" [{page_type}]"
         if summary:

@@ -1,0 +1,307 @@
+{
+  "facets": [
+    "business_model",
+    "fundamentals",
+    "policy_risk"
+  ],
+  "max_tool_calls": 4,
+  "results": [
+    {
+      "agent_status": "completed",
+      "answer_markdown": "**VERDICT:** No business model evidence for BX was found in the available tool outputs. ### FACTS - Tool `investigator.company_context` returned no company context for BX. - Tool `dataset.ticker_business_model_stack` returned an empty dataset. - Tool `zopedia.search_pages` for 'Blackstone business model' returned zero pages. - Tool `research.search_evidence` for 'Blackstone business model fee income carried interest' with ticker BX returned zero results. ### GAPS - No description of what Blackstone sells or who pays. - No information on fee income, spread income, carried-interest economics, or fund/lending model. - The compact fundamentals provided in the user query are not from a tool and cannot be verified. ### SOURCE REFS - Tool call IDs: `agtc_1`, `agtc_2`, `agtc_3`, `agtc_4`.",
+      "aql_evidence_pack_id": "aqlpack::1f50cf7f7cdae957076f8b2e",
+      "confidence": "low",
+      "elapsed_seconds": 76.926,
+      "evidence_refs": {
+        "source_links": 0,
+        "trace_count": 4,
+        "zopedia_pages": 0
+      },
+      "facet": "business_model",
+      "id": "bx_business_model",
+      "limitations": [
+        "No business model details found",
+        "No description of what Blackstone sells or who pays.",
+        "No information on fee income, spread income, carried-interest economics, or fund/lending model.",
+        "The compact fundamentals provided in the user query are not from a tool and cannot be verified."
+      ],
+      "question": "BX ticker-specific business-memory facet. What does Blackstone (BX) sell, who pays it, and what is the operating business model? For financial firms, explain the fund/lending/investment model, fee income, spread income, or carried-interest economics if relevant.\n\nLocal pipeline compact facts JSON:\n{\"ticker\": \"BX\", \"company_baseline\": [], \"listing\": [{\"symbol\": \"BX\", \"exchange\": \"NYSE\", \"security_name\": \"Blackstone Inc. Common Stock\", \"is_etf\": false, \"is_test_issue\": false, \"source_file\": \"otherlisted\"}], \"compact_fundamentals\": [{\"quarter\": \"2025Q1\", \"report_date\": \"2025-03-31 00:00:00\", \"Capital Expenditure\": -29278000.0, \"Free Cash Flow\": -494196000.0, \"Total Assets\": 45255629000.0, \"Total Liabilities\": 25390726000.0, \"Net Income\": 614852000.0, \"Operating Income\": 1616700000.0, \"Total Revenue\": 3289458000.0, \"Operating Margin\": 0.4914791433725556}, {\"quarter\": \"2025Q2\", \"report_date\": \"2025-06-30 00:00:00\", \"Free Cash Flow\": -1018185000.0, \"Net Income\": 764244000.0, \"Operating Income\": 2067737000.0, \"Total Revenue\": 3711900000.0, \"Total Liabilities\": 24294214000.0, \"Total Assets\": 45373094000.0, \"Capital Expenditure\": -40146000.0, \"Operating Margin\": 0.5570562245750155}, {\"quarter\": \"2025Q3\", \"report_date\": \"2025-09-30 00:00:00\", \"Capital Expenditure\": -23929000.0, \"Total Liabilities\": 25192849000.0, \"Total Revenue\": 3088635000.0, \"Operating Income\": 1432689000.0, \"Net Income\": 624917000.0, \"Total Assets\": 46554290000.0, \"Free Cash Flow\": 217918000.0, \"Operating Margin\": 0.4638583063392081}, {\"quarter\": \"2025Q4\", \"report_date\": \"2025-12-31 00:00:00\", \"Capital Expenditure\": -22350000.0, \"Operating Income\": 2515808000.0, \"Total Liabilities\": 25827803000.0, \"Total Assets\": 47708975000.0, \"Free Cash Flow\": 2969884000.0, \"Net Income\": 1015201000.0, \"Total Revenue\": 4360272000.0, \"Operating Margin\": 0.5769841881423912}], \"recent_news\": [{\"headline\": \"3 Under-the-Radar Space Stocks to Buy Before the SpaceX IPO\", \"summary\": \"Wall Street buzzing over SpaceX IPO potential with expected debut in June 2026, potentially making it largest IPO in history. 3 space stocks to watch: ORBX, UFO, MNTS.\", \"source\": \"benzinga\", \"published_at\": \"2026-05-22 18:38:02+00:00\", \"url\": \"https://www.benzinga.com/opinion/26/05/52754510/3-under-the-radar-space-stocks-to-buy-before-the-spacex-ipo\"}]}\n\n Return concise output with exactly these headings: VERDICT, FACTS, GAPS, SOURCE REFS. Evidence labels are not analysis; say what the evidence means. No stock-chart or price-technical commentary.",
+      "status": "completed",
+      "ticker": "BX",
+      "tool_count": 4,
+      "tool_names": [
+        "investigator.company_context",
+        "dataset.ticker_business_model_stack",
+        "zopedia.search_pages",
+        "research.search_evidence"
+      ]
+    },
+    {
+      "agent_status": "completed",
+      "answer_markdown": "### VERDICT **Insufficient evidence for full assessment.** The available data covers revenue, operating margin, net income, free cash flow, capex, assets, liabilities, equity, and use ratio for 2025 Q1\u2013Q4. Key metrics requested \u2014 AUM, NAV, dividend coverage, credit quality \u2014 are missing from the evidence. ### FACTS (from compact fundamentals) - **Total Revenue** grew from $3.29B (Q1) to $4.36B (Q4), a 32.5% sequential increase. - **Operating Margin** rose from 49.1% (Q1) to 57.7% (Q4). - **Net Income** increased from $615M (Q1) to $1.015B (Q4). - **Free Cash Flow** turned positive in Q3 ($218M) and surged to $2.97B in Q4. - **Capex** is minimal (~$22\u201340M per quarter). - **Total Assets** grew to $47.7B, **Total Equity** to $21.9B (Q4). - **use Ratio (Liabilities/Equity)** stable at 1.15\u20131.28. - **Quarterly Direction:** All metrics improved sequentially from Q3 to Q4. ### GAPS - AUM, NAV, fee-related earnings, dividend coverage, and credit ratings are not provided in the evidence. - Only four quarters of data; longer-term trend not visible. ### SOURCE REFS - Local pipeline compact facts JSON: `{\"ticker\": \"BX\", \"compact_fundamentals\": [2025Q1\u2013Q4 data as shown]}`",
+      "aql_evidence_pack_id": "aqlpack::0a21c82f55cdcae1fc80147f",
+      "confidence": "low",
+      "elapsed_seconds": 57.886,
+      "evidence_refs": {
+        "source_links": 0,
+        "trace_count": 0,
+        "zopedia_pages": 0
+      },
+      "facet": "fundamentals",
+      "id": "bx_fundamentals",
+      "limitations": [
+        "AUM, NAV, and fee-related earnings not in pipeline data.",
+        "Dividend coverage and credit quality not provided.",
+        "Only four quarters of data; longer-term trend not visible.",
+        "AUM data",
+        "NAV data",
+        "Fee-related or distributable earnings",
+        "Dividend coverage information",
+        "Credit quality ratings",
+        "Confidence capped because no evidence tool returned usable data."
+      ],
+      "question": "BX ticker-specific business-memory facet. Are Blackstone (BX) fundamentals good, mixed, or weak? Cover revenue or investment income, operating margin or distributable earnings, balance sheet, cash flow or dividend coverage, credit quality, capex burden, AUM, NAV, leverage, and recent quarterly direction where relevant.\n\nLocal pipeline compact facts JSON:\n{\"ticker\": \"BX\", \"company_baseline\": [], \"listing\": [{\"symbol\": \"BX\", \"exchange\": \"NYSE\", \"security_name\": \"Blackstone Inc. Common Stock\", \"is_etf\": false, \"is_test_issue\": false, \"source_file\": \"otherlisted\"}], \"compact_fundamentals\": [{\"quarter\": \"2025Q1\", \"report_date\": \"2025-03-31 00:00:00\", \"Capital Expenditure\": -29278000.0, \"Free Cash Flow\": -494196000.0, \"Total Assets\": 45255629000.0, \"Total Liabilities\": 25390726000.0, \"Net Income\": 614852000.0, \"Operating Income\": 1616700000.0, \"Total Revenue\": 3289458000.0, \"Operating Margin\": 0.4914791433725556}, {\"quarter\": \"2025Q2\", \"report_date\": \"2025-06-30 00:00:00\", \"Free Cash Flow\": -1018185000.0, \"Net Income\": 764244000.0, \"Operating Income\": 2067737000.0, \"Total Revenue\": 3711900000.0, \"Total Liabilities\": 24294214000.0, \"Total Assets\": 45373094000.0, \"Capital Expenditure\": -40146000.0, \"Operating Margin\": 0.5570562245750155}, {\"quarter\": \"2025Q3\", \"report_date\": \"2025-09-30 00:00:00\", \"Capital Expenditure\": -23929000.0, \"Total Liabilities\": 25192849000.0, \"Total Revenue\": 3088635000.0, \"Operating Income\": 1432689000.0, \"Net Income\": 624917000.0, \"Total Assets\": 46554290000.0, \"Free Cash Flow\": 217918000.0, \"Operating Margin\": 0.4638583063392081}, {\"quarter\": \"2025Q4\", \"report_date\": \"2025-12-31 00:00:00\", \"Capital Expenditure\": -22350000.0, \"Operating Income\": 2515808000.0, \"Total Liabilities\": 25827803000.0, \"Total Assets\": 47708975000.0, \"Free Cash Flow\": 2969884000.0, \"Net Income\": 1015201000.0, \"Total Revenue\": 4360272000.0, \"Operating Margin\": 0.5769841881423912}], \"recent_news\": [{\"headline\": \"3 Under-the-Radar Space Stocks to Buy Before the SpaceX IPO\", \"summary\": \"Wall Street buzzing over SpaceX IPO potential with expected debut in June 2026, potentially making it largest IPO in history. 3 space stocks to watch: ORBX, UFO, MNTS.\", \"source\": \"benzinga\", \"published_at\": \"2026-05-22 18:38:02+00:00\", \"url\": \"https://www.benzinga.com/opinion/26/05/52754510/3-under-the-radar-space-stocks-to-buy-before-the-spacex-ipo\"}]}\n\n Return concise output with exactly these headings: VERDICT, FACTS, GAPS, SOURCE REFS. Evidence labels are not analysis; say what the evidence means. No stock-chart or price-technical commentary.",
+      "status": "completed",
+      "ticker": "BX",
+      "tool_count": 0,
+      "tool_names": []
+    },
+    {
+      "agent_status": "completed",
+      "answer_markdown": "**Evidence is insufficient to determine whether the macro environment is supportive or hostile for Blackstone (BX).** ### FACTS - Zopedia pages identify several macro themes relevant to alternative asset managers: **AI Data Center Power Demand**, **Duration**, **Inflation-Driven Bond Market Stress**, and **Energy Bottlenecks and Equity Market Disconnect**. - No retained context, company context, or live event evidence directly links these themes to BX. - The only recent news for BX (from compact_fundamentals) is an article about space stocks, not about BX's macro environment. ### GAPS - No live event evidence was retrieved (timeout and search failure). - No company context found for BX. - No direct evidence on Blackstone's exposure to policy, regulation, financing conditions, supply constraints, or execution risks. - The user's premise that the macro environment can be assessed for BX is unverified. ### SOURCE REFS - Tool call `zopedia.search_pages` returned themes: AI Data Center Power Demand, Duration, Inflation-Driven Bond Market Stress, Energy Bottlenecks (pages not quoted in detail). - Tool calls `research.retained_context` and `research.live_event_evidence` produced no BX-specific macro data. - No Zopedia memory pages or live web sources confirmed BX-specific macro conditions.",
+      "aql_evidence_pack_id": "aqlpack::fe25efad3f9e1712d79852aa",
+      "confidence": "low",
+      "elapsed_seconds": 102.354,
+      "evidence_refs": {
+        "source_links": 0,
+        "trace_count": 4,
+        "zopedia_pages": 5
+      },
+      "facet": "policy_risk",
+      "id": "bx_policy_risk",
+      "limitations": [
+        "Live event evidence timed out or failed to retrieve data.",
+        "No company context or retained context for BX.",
+        "No direct news or analysis linking macro themes to BX.",
+        "Compact fundamentals data is financial, not macro-environmental.",
+        "No direct evidence linking macro themes to BX.",
+        "No live event evidence due to timeout and search failure.",
+        "No company context from investigator."
+      ],
+      "question": "BX ticker-specific business-memory facet. Is the global, political, regulatory, rate-cycle, credit-cycle, AI infrastructure, and macro environment supportive or hostile for Blackstone (BX)? Cover policy, regulation, financing conditions, supply constraints, and execution risks.\n\nLocal pipeline compact facts JSON:\n{\"ticker\": \"BX\", \"company_baseline\": [], \"listing\": [{\"symbol\": \"BX\", \"exchange\": \"NYSE\", \"security_name\": \"Blackstone Inc. Common Stock\", \"is_etf\": false, \"is_test_issue\": false, \"source_file\": \"otherlisted\"}], \"compact_fundamentals\": [{\"quarter\": \"2025Q1\", \"report_date\": \"2025-03-31 00:00:00\", \"Capital Expenditure\": -29278000.0, \"Free Cash Flow\": -494196000.0, \"Total Assets\": 45255629000.0, \"Total Liabilities\": 25390726000.0, \"Net Income\": 614852000.0, \"Operating Income\": 1616700000.0, \"Total Revenue\": 3289458000.0, \"Operating Margin\": 0.4914791433725556}, {\"quarter\": \"2025Q2\", \"report_date\": \"2025-06-30 00:00:00\", \"Free Cash Flow\": -1018185000.0, \"Net Income\": 764244000.0, \"Operating Income\": 2067737000.0, \"Total Revenue\": 3711900000.0, \"Total Liabilities\": 24294214000.0, \"Total Assets\": 45373094000.0, \"Capital Expenditure\": -40146000.0, \"Operating Margin\": 0.5570562245750155}, {\"quarter\": \"2025Q3\", \"report_date\": \"2025-09-30 00:00:00\", \"Capital Expenditure\": -23929000.0, \"Total Liabilities\": 25192849000.0, \"Total Revenue\": 3088635000.0, \"Operating Income\": 1432689000.0, \"Net Income\": 624917000.0, \"Total Assets\": 46554290000.0, \"Free Cash Flow\": 217918000.0, \"Operating Margin\": 0.4638583063392081}, {\"quarter\": \"2025Q4\", \"report_date\": \"2025-12-31 00:00:00\", \"Capital Expenditure\": -22350000.0, \"Operating Income\": 2515808000.0, \"Total Liabilities\": 25827803000.0, \"Total Assets\": 47708975000.0, \"Free Cash Flow\": 2969884000.0, \"Net Income\": 1015201000.0, \"Total Revenue\": 4360272000.0, \"Operating Margin\": 0.5769841881423912}], \"recent_news\": [{\"headline\": \"3 Under-the-Radar Space Stocks to Buy Before the SpaceX IPO\", \"summary\": \"Wall Street buzzing over SpaceX IPO potential with expected debut in June 2026, potentially making it largest IPO in history. 3 space stocks to watch: ORBX, UFO, MNTS.\", \"source\": \"benzinga\", \"published_at\": \"2026-05-22 18:38:02+00:00\", \"url\": \"https://www.benzinga.com/opinion/26/05/52754510/3-under-the-radar-space-stocks-to-buy-before-the-spacex-ipo\"}]}\n\n Return concise output with exactly these headings: VERDICT, FACTS, GAPS, SOURCE REFS. Evidence labels are not analysis; say what the evidence means. No stock-chart or price-technical commentary.",
+      "status": "completed",
+      "ticker": "BX",
+      "tool_count": 4,
+      "tool_names": [
+        "research.retained_context",
+        "investigator.company_context",
+        "zopedia.search_pages",
+        "research.live_event_evidence"
+      ]
+    },
+    {
+      "agent_status": "completed",
+      "answer_markdown": "**VERDICT** No business-model evidence was found for **OBDC** in the current data sources. **FACTS** - None: all tool calls returned no relevant data. **GAPS** - No Zopedia memory pages matched the query. - Company context and business model stack were empty. - No external search results were retrieved. **SOURCE REFS** - `zopedia.search_pages` returned an unrelated concept. - `investigator.company_context`, `dataset.ticker_business_model_stack`, and `research.search_evidence` all returned zero results for OBDC.",
+      "aql_evidence_pack_id": "aqlpack::36f77fa71c5d893b5ca27536",
+      "confidence": "low",
+      "elapsed_seconds": 50.009,
+      "evidence_refs": {
+        "source_links": 0,
+        "trace_count": 4,
+        "zopedia_pages": 1
+      },
+      "facet": "business_model",
+      "id": "obdc_business_model",
+      "limitations": [
+        "No business-model data available from any evidence source.",
+        "No Zopedia memory pages for OBDC business model",
+        "Company context missing",
+        "Business model stack empty",
+        "No relevant external search results"
+      ],
+      "question": "OBDC ticker-specific business-memory facet. What does Blue Owl Capital Corporation (OBDC) sell, who pays it, and what is the operating business model? For financial firms, explain the fund/lending/investment model, fee income, spread income, or carried-interest economics if relevant.\n\nLocal pipeline compact facts JSON:\n{\"ticker\": \"OBDC\", \"company_baseline\": [], \"listing\": [{\"symbol\": \"OBDC\", \"exchange\": \"NYSE\", \"security_name\": \"Blue Owl Capital Corporation Common Stock\", \"is_etf\": false, \"is_test_issue\": false, \"source_file\": \"otherlisted\"}], \"compact_fundamentals\": [], \"recent_news\": []}\n\n Return concise output with exactly these headings: VERDICT, FACTS, GAPS, SOURCE REFS. Evidence labels are not analysis; say what the evidence means. No stock-chart or price-technical commentary.",
+      "status": "completed",
+      "ticker": "OBDC",
+      "tool_count": 4,
+      "tool_names": [
+        "zopedia.search_pages",
+        "investigator.company_context",
+        "dataset.ticker_business_model_stack",
+        "research.search_evidence"
+      ]
+    },
+    {
+      "agent_status": "completed",
+      "answer_markdown": "**No fundamental data available for OBDC from the collected evidence.** ### VERDICT The evidence does not provide any financial metrics to assess OBDC's fundamentals. No revenue, investment income, operating margin, distributable earnings, balance sheet items, cash flow, dividend coverage, credit quality, capex, AUM, NAV, use, or quarterly direction data were returned. The premise cannot be verified. ### FACTS - **Investigator.fundamentals** returned \"No fundamentals data for OBDC.\" - **Dataset.quarterly_fundamentals** returned a dataset object with income, balance, and cashflow keys but no scalar values. - **Investigator.company_context** returned \"No company context for OBDC.\" - **Zopedia search** for OBDC fundamentals returned an unrelated concept page: \"Market Breadth vs Index Strength Divergence.\" ### GAPS - Tool evidence lacks any concrete financial figures for OBDC. - Key metrics such as revenue, earnings, balance sheet health, cash flow, and dividend coverage are absent. - No recent quarterly data or company context is available. ### SOURCE REFS - The only tool outputs are from the Zopedia and investigator modules, all of which indicate missing data. No external web sources were accessed.",
+      "aql_evidence_pack_id": "aqlpack::9028edc84ca2ba091f22419e",
+      "confidence": "low",
+      "elapsed_seconds": 62.2,
+      "evidence_refs": {
+        "source_links": 0,
+        "trace_count": 4,
+        "zopedia_pages": 1
+      },
+      "facet": "fundamentals",
+      "id": "obdc_fundamentals",
+      "limitations": [
+        "No fundamentals data retrieved for OBDC from any tool.",
+        "Quarterly fundamentals dataset returned empty scalars.",
+        "Company context and Zopedia search failed to provide relevant information.",
+        "No financial figures for OBDC from fundamentals tools.",
+        "No scalar values from quarterly fundamentals dataset.",
+        "No company context available.",
+        "Zopedia search returned unrelated concept."
+      ],
+      "question": "OBDC ticker-specific business-memory facet. Are Blue Owl Capital Corporation (OBDC) fundamentals good, mixed, or weak? Cover revenue or investment income, operating margin or distributable earnings, balance sheet, cash flow or dividend coverage, credit quality, capex burden, AUM, NAV, leverage, and recent quarterly direction where relevant.\n\nLocal pipeline compact facts JSON:\n{\"ticker\": \"OBDC\", \"company_baseline\": [], \"listing\": [{\"symbol\": \"OBDC\", \"exchange\": \"NYSE\", \"security_name\": \"Blue Owl Capital Corporation Common Stock\", \"is_etf\": false, \"is_test_issue\": false, \"source_file\": \"otherlisted\"}], \"compact_fundamentals\": [], \"recent_news\": []}\n\n Return concise output with exactly these headings: VERDICT, FACTS, GAPS, SOURCE REFS. Evidence labels are not analysis; say what the evidence means. No stock-chart or price-technical commentary.",
+      "status": "completed",
+      "ticker": "OBDC",
+      "tool_count": 4,
+      "tool_names": [
+        "investigator.fundamentals",
+        "dataset.quarterly_fundamentals",
+        "investigator.company_context",
+        "zopedia.search_pages"
+      ]
+    },
+    {
+      "agent_status": "completed",
+      "answer_markdown": "**No evidence confirms whether the macro environment is supportive or hostile for OBDC.** The available data lacks policy, regulatory, rate-cycle, or credit-cycle details specific to OBDC. ### FACTS - Zopedia search for OBDC returned zero business-memory or macro-environment pages. (Source: agtc_1) - Retained context did not include OBDC-specific macro data; only general sector movement notes. (Source: agtc_2) - Business model stack for OBDC returned empty dataset. (Source: agtc_3) - Live event evidence shows recent news: Q4 2025 earnings call, \"Navigating Uncertainty With Double-Digit Yield\", \"Caution Is Warranted\", and a redemption halt that sparked jitters in private credit. (Source: agtc_4, links to AOL, Seeking Alpha, Business Times, CryptoRank) ### GAPS - No Zopedia business memory or macro analysis for OBDC. - No data on regulatory, policy, AI infrastructure, supply constraints, or execution risks. - Live event timeouts and failures prevent deeper analysis. - No observed market data (price movers, price history) for OBDC. ### SOURCE REFS - Blue Owl Capital Corporation Q4 2025 Earnings Call Transcript (AOL.com) - Blue Owl Capital Corporation: Navigating Uncertainty With Double-Digit Yield (Seeking Alpha) - Blue Owl Capital Stock: Caution Is Warranted (Seeking Alpha) - Blue Owl redemption halt sparks jitters (The Business Times) - CryptoRank article on stock price recovery.",
+      "aql_evidence_pack_id": "aqlpack::d4b8a555bb8bc3b19d4ac08a",
+      "confidence": "low",
+      "elapsed_seconds": 107.62,
+      "evidence_refs": {
+        "source_links": 0,
+        "trace_count": 4,
+        "zopedia_pages": 0
+      },
+      "facet": "policy_risk",
+      "id": "obdc_policy_risk",
+      "limitations": [
+        "No Zopedia business memory or macro analysis for OBDC.",
+        "No data on regulatory, policy, AI infrastructure, supply constraints, or execution risks.",
+        "Live event timeouts and failures prevent deeper analysis.",
+        "No observed market data (price movers, price history) for OBDC."
+      ],
+      "question": "OBDC ticker-specific business-memory facet. Is the global, political, regulatory, rate-cycle, credit-cycle, AI infrastructure, and macro environment supportive or hostile for Blue Owl Capital Corporation (OBDC)? Cover policy, regulation, financing conditions, supply constraints, and execution risks.\n\nLocal pipeline compact facts JSON:\n{\"ticker\": \"OBDC\", \"company_baseline\": [], \"listing\": [{\"symbol\": \"OBDC\", \"exchange\": \"NYSE\", \"security_name\": \"Blue Owl Capital Corporation Common Stock\", \"is_etf\": false, \"is_test_issue\": false, \"source_file\": \"otherlisted\"}], \"compact_fundamentals\": [], \"recent_news\": []}\n\n Return concise output with exactly these headings: VERDICT, FACTS, GAPS, SOURCE REFS. Evidence labels are not analysis; say what the evidence means. No stock-chart or price-technical commentary.",
+      "status": "completed",
+      "ticker": "OBDC",
+      "tool_count": 4,
+      "tool_names": [
+        "zopedia.search_pages",
+        "research.retained_context",
+        "dataset.ticker_business_model_stack",
+        "research.live_event_evidence"
+      ]
+    },
+    {
+      "agent_status": "completed",
+      "answer_markdown": "**No evidence available to describe Main Street Capital (MAIN) business model.** ### Facts - None of the provided tools returned specific information about MAIN's products, revenue sources, or operating structure. ### Gaps - No data on MAIN's lending, investment, or fee model. - No evidence on spread income, carried interest, or fund structure. - Even the Zopedia search and retained context did not yield relevant details. ### Source Refs - Zopedia search pages returned generic macro concepts unrelated to MAIN (e.g., duration, inflation). - `dataset.ticker_business_model_stack` returned empty. - `investigator.company_context` returned no context.",
+      "aql_evidence_pack_id": "aqlpack::7f32d10764eff6801decea50",
+      "confidence": "low",
+      "elapsed_seconds": 68.72,
+      "evidence_refs": {
+        "source_links": 0,
+        "trace_count": 4,
+        "zopedia_pages": 6
+      },
+      "facet": "business_model",
+      "id": "main_business_model",
+      "limitations": [
+        "No tool returned any factual data about MAIN's business model.",
+        "The Zopedia search pages did not contain company-specific results for MAIN.",
+        "All structured data sources (business model stack, company context, retained context) were empty or irrelevant.",
+        "Missing information on MAIN's products/services, revenue sources, and operating model.",
+        "No details on lending, investment, fee income, or carried-interest economics.",
+        "No supporting evidence from any source to describe the business model."
+      ],
+      "question": "MAIN ticker-specific business-memory facet. What does Main Street Capital (MAIN) sell, who pays it, and what is the operating business model? For financial firms, explain the fund/lending/investment model, fee income, spread income, or carried-interest economics if relevant.\n\nLocal pipeline compact facts JSON:\n{\"ticker\": \"MAIN\", \"company_baseline\": [], \"listing\": [{\"symbol\": \"MAIN\", \"exchange\": \"NYSE\", \"security_name\": \"Main Street Capital Corporation Common Stock\", \"is_etf\": false, \"is_test_issue\": false, \"source_file\": \"otherlisted\"}], \"compact_fundamentals\": [], \"recent_news\": []}\n\n Return concise output with exactly these headings: VERDICT, FACTS, GAPS, SOURCE REFS. Evidence labels are not analysis; say what the evidence means. No stock-chart or price-technical commentary.",
+      "status": "completed",
+      "ticker": "MAIN",
+      "tool_count": 4,
+      "tool_names": [
+        "zopedia.search_pages",
+        "dataset.ticker_business_model_stack",
+        "investigator.company_context",
+        "research.retained_context"
+      ]
+    },
+    {
+      "agent_status": "completed",
+      "answer_markdown": "**VERDICT: MAIN fundamentals are mixed.** Revenue and operating margin are strong for Q1 2025, but operating cash flow is negative, and key metrics like dividend coverage, credit quality, and NAV are missing from the evidence. Only one quarter of data is available, limiting trend analysis. ### FACTS - **Total Revenue** for Q1 2025: **$137.0 million**. - **Operating Income**: **$81.97 million**, giving an **Operating Margin of 59.81%** \u2014 a high figure. - **Net Income**: **$116.1 million** (note: significantly above operating income; no breakdown provided in evidence). - **Balance Sheet**: Total assets of **$5.27 billion**, total liabilities of **$1.59 billion**. - **Operating Cash Flow**: **Negative $20.4 million** for Q1 2025, a potential concern but insufficient to assess sustainability without more quarters. - No evidence on **distributable earnings, credit quality, AUM, NAV, use ratio, or capex burden**. ### GAPS - Only Q1 2025 data; no year-over-year or sequential trends. - **Dividend coverage** cannot be evaluated as no dividend data or payout ratio is available. - **Credit quality** indicators (non-accruals, portfolio yield) are absent. - **AUM/NAV** figures are not provided. - **use** (debt-to-equity or regulatory use) not directly calculable from total liabilities alone. - **Capex burden** is not reported; typical for BDCs, capital expenditures are often low, but no evidence here. - No Zopedia knowledge base entry for MAIN was found; only generic macro concepts appeared in search. ### SOURCE REFS - Quarterly fundamentals from `investigator.fundamentals` (tool call `agtc_2`) provide the numbers above. - Zopedia page search (`agtc_1`) and retained context (`agtc_4`) offered no additional business-specific data.",
+      "aql_evidence_pack_id": "aqlpack::850197d352533840bd0038c4",
+      "confidence": "medium",
+      "elapsed_seconds": 94.068,
+      "evidence_refs": {
+        "source_links": 0,
+        "trace_count": 4,
+        "zopedia_pages": 5
+      },
+      "facet": "fundamentals",
+      "id": "main_fundamentals",
+      "limitations": [
+        "Only one quarter of fundamental data (Q1 2025).",
+        "Missing dividend coverage, credit quality, AUM, NAV, use ratio, and cash flow details.",
+        "No trend analysis possible.",
+        "No Zopedia memory page for MAIN available.",
+        "Draft claimed net income gains are 'likely due to non-operating gains' \u2014 not supported by evidence; removed.",
+        "Draft calculated debt-to-equity ratio from total liabilities \u2014 imprecise; removed.",
+        "No dividend or payout ratio data.",
+        "No credit quality metrics (non-accruals, yield).",
+        "No AUM or NAV figures.",
+        "No distributable earnings or NII data.",
+        "Only one quarter of cash flow data."
+      ],
+      "question": "MAIN ticker-specific business-memory facet. Are Main Street Capital (MAIN) fundamentals good, mixed, or weak? Cover revenue or investment income, operating margin or distributable earnings, balance sheet, cash flow or dividend coverage, credit quality, capex burden, AUM, NAV, leverage, and recent quarterly direction where relevant.\n\nLocal pipeline compact facts JSON:\n{\"ticker\": \"MAIN\", \"company_baseline\": [], \"listing\": [{\"symbol\": \"MAIN\", \"exchange\": \"NYSE\", \"security_name\": \"Main Street Capital Corporation Common Stock\", \"is_etf\": false, \"is_test_issue\": false, \"source_file\": \"otherlisted\"}], \"compact_fundamentals\": [], \"recent_news\": []}\n\n Return concise output with exactly these headings: VERDICT, FACTS, GAPS, SOURCE REFS. Evidence labels are not analysis; say what the evidence means. No stock-chart or price-technical commentary.",
+      "status": "completed",
+      "ticker": "MAIN",
+      "tool_count": 4,
+      "tool_names": [
+        "zopedia.search_pages",
+        "investigator.fundamentals",
+        "dataset.quarterly_fundamentals",
+        "research.retained_context"
+      ]
+    },
+    {
+      "agent_status": "completed",
+      "answer_markdown": "**Insufficient evidence to assess the macro environment for Main Street Capital (MAIN).** No specific data on regulatory changes, rate-cycle conditions, credit quality, or AI infrastructure exposure was available. General Zopedia themes (e.g., Inflation-Driven Bond Market Stress) were noted but cannot be confirmed as directly applicable to MAIN without portfolio-level or fundamental data. All observed tool results returned empty or non-specific information. A meaningful verdict on macro support or hostility cannot be rendered at this time.",
+      "aql_evidence_pack_id": "aqlpack::21e71d33544ff3abc3fff963",
+      "confidence": "low",
+      "elapsed_seconds": 101.931,
+      "evidence_refs": {
+        "source_links": 0,
+        "trace_count": 4,
+        "zopedia_pages": 5
+      },
+      "facet": "policy_risk",
+      "id": "main_policy_risk",
+      "limitations": [
+        "Macro context dataset (1-day) returned zero rows, so no real-time macro data was available.",
+        "Business model stack for MAIN was empty, preventing assessment of specific regulatory, financing, or supply constraints.",
+        "Only general Zopedia themes and retained context symbols are used, not MAIN-specific fundamental or news data.",
+        "Only general Zopedia themes and retained context symbols were available, not MAIN-specific fundamental or news data.",
+        "The draft states the environment 'leans hostile' \u2013 this inference is not directly supported by observed evidence; it is based on generic themes.",
+        "No observed data on regulatory changes, fiscal policy, or AI infrastructure impact on MAIN.",
+        "No evidence on MAIN\u2019s portfolio composition, use, or credit quality trends.",
+        "No recent news or filings related to MAIN's macro exposure."
+      ],
+      "question": "MAIN ticker-specific business-memory facet. Is the global, political, regulatory, rate-cycle, credit-cycle, AI infrastructure, and macro environment supportive or hostile for Main Street Capital (MAIN)? Cover policy, regulation, financing conditions, supply constraints, and execution risks.\n\nLocal pipeline compact facts JSON:\n{\"ticker\": \"MAIN\", \"company_baseline\": [], \"listing\": [{\"symbol\": \"MAIN\", \"exchange\": \"NYSE\", \"security_name\": \"Main Street Capital Corporation Common Stock\", \"is_etf\": false, \"is_test_issue\": false, \"source_file\": \"otherlisted\"}], \"compact_fundamentals\": [], \"recent_news\": []}\n\n Return concise output with exactly these headings: VERDICT, FACTS, GAPS, SOURCE REFS. Evidence labels are not analysis; say what the evidence means. No stock-chart or price-technical commentary.",
+      "status": "completed",
+      "ticker": "MAIN",
+      "tool_count": 4,
+      "tool_names": [
+        "dataset.attention_macro_context_1d",
+        "research.retained_context",
+        "zopedia.search_pages",
+        "dataset.ticker_business_model_stack"
+      ]
+    }
+  ],
+  "run_id": "company-business-probe-20260525-financial-cold-start-v2",
+  "started_at_utc": "2026-05-25T07:38:49.754730+00:00",
+  "tickers": [
+    "BX",
+    "OBDC",
+    "MAIN"
+  ]
+}

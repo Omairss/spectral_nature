@@ -333,6 +333,82 @@ def test_latest_dataset_metadata_falls_back_to_manifest_when_db_unavailable(monk
     assert metadata.row_count == 3
 
 
+def test_latest_dataset_metadata_prefers_db_without_blob_listing(monkeypatch, tmp_path):
+    row = (
+        "attention_feed",
+        "attention_feed__20260320T012554Z__db",
+        "datasets/attention_feed/part-db.parquet",
+        "2026-03-20T01:25:54Z",
+        "2026-03-20T01:26:02Z",
+        3,
+    )
+
+    class _Cursor:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def execute(self, query, params=None):
+            assert params == ("attention_feed",)
+
+        def fetchone(self):
+            return row
+
+    class _Conn:
+        def cursor(self):
+            return _Cursor()
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(pipeline_store, "PIPELINE_CACHE_ROOT", tmp_path)
+    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: _Conn())
+    monkeypatch.setattr(
+        pipeline_store,
+        "_blob_service_client",
+        lambda: (_ for _ in ()).throw(AssertionError("db metadata should avoid blob manifest listing")),
+    )
+
+    metadata = pipeline_store.latest_dataset_metadata("attention_feed")
+
+    assert metadata is not None
+    assert metadata.dataset_version_id == row[1]
+    assert metadata.blob_path == row[2]
+    assert metadata.row_count == row[5]
+
+
+def test_latest_dataset_metadata_uses_stable_latest_manifest_before_listing(monkeypatch, tmp_path):
+    manifest = {
+        "dataset_name": "attention_feed",
+        "dataset_version_id": "attention_feed__20260320T012554Z__latest",
+        "blob_path": "datasets/attention_feed/part-latest.parquet",
+        "asof_time_utc": "2026-03-20T01:25:54Z",
+        "ingested_at_utc": "2026-03-20T01:26:02Z",
+        "row_count": 3,
+    }
+
+    monkeypatch.setattr(pipeline_store, "PIPELINE_CACHE_ROOT", tmp_path)
+    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: None)
+    monkeypatch.setattr(
+        pipeline_store,
+        "_read_blob_json",
+        lambda path: manifest if path == "manifests/attention_feed/latest.json" else None,
+    )
+    monkeypatch.setattr(
+        pipeline_store,
+        "_blob_service_client",
+        lambda: (_ for _ in ()).throw(AssertionError("latest manifest should avoid blob list")),
+    )
+
+    metadata = pipeline_store.latest_dataset_metadata("attention_feed")
+
+    assert metadata is not None
+    assert metadata.dataset_version_id == manifest["dataset_version_id"]
+    assert metadata.blob_path == manifest["blob_path"]
+
+
 def test_load_latest_dataset_frame_reads_parquet_via_manifest_fallback(monkeypatch):
     manifest = {
         "dataset_name": "attention_feed",

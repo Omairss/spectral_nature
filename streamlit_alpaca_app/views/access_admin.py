@@ -13,7 +13,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from services import auth_service
+from services import api_auth, auth_service
 from services.config import AppConfig, load_config
 from services.data_cache import dataset_scope
 from services.elevenlabs_tts import load_elevenlabs_tts_config
@@ -546,7 +546,7 @@ def _render_access_usage_admin_dashboard(
     if usage_sankey_figure is None:
         st.info("Not enough page or item activity has been recorded to build the usage flow chart yet.")
     else:
-        st.plotly_chart(usage_sankey_figure, use_container_width=True)
+        st.plotly_chart(usage_sankey_figure, use_container_width=True, key="access_admin_usage_sankey")
 
     st.subheader("Section Usage" if not selected_user_id else "Section Usage For Selected User")
     if section_usage.empty:
@@ -569,7 +569,7 @@ def _render_access_usage_admin_dashboard(
             xaxis_title="",
             yaxis_title="Views",
         )
-        st.plotly_chart(section_chart, use_container_width=True)
+        st.plotly_chart(section_chart, use_container_width=True, key="access_admin_section_usage_chart")
         st.dataframe(
             section_usage[["section_name", "view_count", "unique_user_count", "last_view_at"]],
             use_container_width=True,
@@ -640,7 +640,7 @@ def _render_access_usage_admin_dashboard(
             yaxis_title="Events",
             legend_title="Target Type",
         )
-        st.plotly_chart(target_chart, use_container_width=True)
+        st.plotly_chart(target_chart, use_container_width=True, key="access_admin_selected_user_target_chart")
         st.dataframe(
             selected_user_targets[
                 [
@@ -770,7 +770,7 @@ def _render_access_security_admin_dashboard(
             yaxis_title="Events",
             showlegend=False,
         )
-        st.plotly_chart(admin_chart, use_container_width=True)
+        st.plotly_chart(admin_chart, use_container_width=True, key="access_admin_admin_usage_chart")
 
     access_ips = pd.DataFrame(dashboard.get("access_ips") or [])
     st.subheader("Access IPs")
@@ -2120,7 +2120,7 @@ def _render_system_health_admin(*, source_refresh_flags: dict[str, bool]) -> Non
             labels={"label": "Connector", "calls": "Calls", "status": "Status"},
         )
         fig_connectors.update_layout(height=300, xaxis_title="", yaxis_title="Calls", margin=dict(l=0, r=0, t=10, b=0))
-        st.plotly_chart(fig_connectors, use_container_width=True)
+        st.plotly_chart(fig_connectors, use_container_width=True, key="access_admin_connector_health_chart")
         connector_display = connector_rollup.copy()
         connector_display["last_call_at_utc"] = connector_display["last_call_at_utc"].apply(_format_system_health_timestamp)
         connector_display = connector_display.rename(
@@ -2216,7 +2216,7 @@ def _render_system_health_admin(*, source_refresh_flags: dict[str, bool]) -> Non
             legend_title_text="Status",
             margin=dict(l=0, r=0, t=10, b=0),
         )
-        st.plotly_chart(fig_timeline, use_container_width=True)
+        st.plotly_chart(fig_timeline, use_container_width=True, key="access_admin_pipeline_timeline_chart")
 
     # ── Failures ────────────────────────────────────────────────────────
     st.subheader("Failures")
@@ -2243,7 +2243,7 @@ def _render_system_health_admin(*, source_refresh_flags: dict[str, bool]) -> Non
             legend_title_text="Job",
             margin=dict(l=0, r=0, t=10, b=0),
         )
-        st.plotly_chart(fig_fail, use_container_width=True)
+        st.plotly_chart(fig_fail, use_container_width=True, key="access_admin_pipeline_failures_chart")
 
     # ── Dataset Row Counts ──────────────────────────────────────────────
     st.subheader("Dataset Row Counts")
@@ -2269,7 +2269,7 @@ def _render_system_health_admin(*, source_refresh_flags: dict[str, bool]) -> Non
             legend_title_text="Dataset",
             margin=dict(l=0, r=0, t=10, b=0),
         )
-        st.plotly_chart(fig_rows, use_container_width=True)
+        st.plotly_chart(fig_rows, use_container_width=True, key="access_admin_dataset_rows_chart")
 
     # ── Latest Status Metrics ───────────────────────────────────────────
     st.subheader("Latest Status")

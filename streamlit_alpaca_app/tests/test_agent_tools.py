@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pandas as pd
+
 from data_access.query_service import QueryService
 from services import agent_tools
 
@@ -26,11 +28,14 @@ def test_build_tool_catalog_uses_typed_param_schemas():
     fred_tool = tools_by_name["dataset.fred_dashboard"]
     price_tool = tools_by_name["dataset.price_history"]
     analysis_tool = tools_by_name["analysis.run_python"]
+    open_page_tool = tools_by_name["research.open_page"]
 
     assert fred_tool["inputSchema"]["additionalProperties"] is False
     assert fred_tool["inputSchema"]["properties"]["years"]["type"] == "integer"
     assert price_tool["inputSchema"]["required"] == ["ticker"]
     assert price_tool["inputSchema"]["properties"]["ticker"]["type"] == "string"
+    assert open_page_tool["inputSchema"]["properties"]["require_main_content"]["type"] == "boolean"
+    assert open_page_tool["inputSchema"]["properties"]["min_text_chars"]["type"] == "integer"
     assert analysis_tool["inputSchema"]["required"] == ["objective", "code"]
     assert tools_by_name["analysis.read_raw_output"]["inputSchema"]["required"] == ["analysis_run_id"]
 
@@ -55,6 +60,92 @@ def test_invoke_research_tool_dispatches_to_research_module(monkeypatch):
     assert captured["max_items"] == 3
     assert result["result_type"] == "research"
     assert result["payload"]["summary"][0]["label"] == "Oil lower today"
+
+
+def test_investigator_fundamentals_returns_compact_quarter_context():
+    class _DataAccess:
+        def resolve_quarterly_fundamentals(self, ticker):
+            assert ticker == "BX"
+            return {
+                "income": pd.DataFrame(
+                    [
+                        {
+                            "ticker": "BX",
+                            "statement": "income",
+                            "metric": "Total Revenue",
+                            "year_quarter": "2026Q1",
+                            "report_date": "2026-03-31",
+                            "value": 3_700_000_000,
+                        },
+                        {
+                            "ticker": "BX",
+                            "statement": "income",
+                            "metric": "Operating Income",
+                            "year_quarter": "2026Q1",
+                            "report_date": "2026-03-31",
+                            "value": 1_480_000_000,
+                        },
+                    ]
+                ),
+                "balance": pd.DataFrame(
+                    [
+                        {
+                            "ticker": "BX",
+                            "statement": "balance",
+                            "metric": "Total Debt",
+                            "year_quarter": "2026Q1",
+                            "report_date": "2026-03-31",
+                            "value": 12_000_000_000,
+                        }
+                    ]
+                ),
+                "cashflow": pd.DataFrame(),
+            }
+
+    result = agent_tools.invoke_tool(
+        service=QueryService(data_access=_DataAccess()),
+        tool_name="investigator.fundamentals",
+        arguments={"ticker": "BX"},
+    )
+
+    payload = result["payload"]
+    assert payload["compact_quarters"][0]["Operating Margin"] == 0.4
+    assert payload["compact_quarters"][0]["Total Debt"] == 12_000_000_000
+    assert "Operating Margin=40.00%" in payload["llm_context_text"]
+    assert len(payload["income"]) == 2
+
+
+def test_investigator_recent_news_reads_wrapped_article_frame():
+    class _DataAccess:
+        def resolve_recent_news(self, ticker, days=14, limit=8):
+            assert ticker == "UMC"
+            assert days == 14
+            assert limit == 8
+            return {
+                "articles": pd.DataFrame(
+                    [
+                        {
+                            "headline": "UMC, Chipbond tout share swap",
+                            "source": "Taipei Times",
+                            "published_at": "2026-05-27",
+                            "summary": "UMC and Chipbond announced a share swap.",
+                            "url": "https://example.com/umc-chipbond",
+                        }
+                    ]
+                ),
+                "source": "materialized_attention_news",
+            }
+
+    result = agent_tools.invoke_tool(
+        service=QueryService(data_access=_DataAccess()),
+        tool_name="investigator.recent_news",
+        arguments={"ticker": "UMC", "days": 14, "limit": 8},
+    )
+
+    payload = result["payload"]
+    assert payload["articles"][0]["headline"] == "UMC, Chipbond tout share swap"
+    assert payload["articles"][0]["url"] == "https://example.com/umc-chipbond"
+    assert "Recent news for UMC" in payload["llm_context_text"]
 
 
 def test_invoke_zopedia_tool_dispatches_to_research_module(monkeypatch):

@@ -17,7 +17,6 @@ Use the docs as follows:
 - `BRANDING_REFRESH_PLAN.md`: app-shell branding cleanup and presentation notes
 - `BRANDING_ASSET_INTEGRATION_2026-04-03.md`: branding asset rollout notes
 - `UI_SHELL_REFINEMENT_2026-04-02.md`: shell-level UI cleanup plan
-- `HOMEPAGE_V2_RAIL_REFACTOR_PLAN.md`: homepage rail refactor work
 - `HOMEPAGE_IMPLIED_OPEN_EXPERIMENT_2026-04-02.md`: homepage implied-open experiment notes
 - `EXPERIMENT_PAGE_RENAME_2026-04-11.md`: Daily Market Overview removal, admin-only Experiment page, and workspace renames
 - `EXPERIMENT_SUMMARY_CLARITY_ELEVENLABS_KEYVAULT_2026-04-11.md`: cleaner experiment summary text plus Key Vault-backed ElevenLabs setup notes
@@ -56,6 +55,7 @@ Use the docs as follows:
 ## Reliability and Mistake Prevention
 
 - `MISTAKE_PREVENTION_HARDENING_2026-04-21.md`: deploy guards, secret scanning, mandatory dataset validation, LLM readiness checks, and attention service package reorganization
+- `V0_5_ROADMAP_2026-06-22.md`: v0.5 priority consolidation across pipeline simplification, Zopedia retrieval, company memory, hardcode cleanup, attention scoring, and module boundaries
 
 ## Infra and Operations
 

@@ -8,20 +8,17 @@ from urllib.parse import urlparse
 
 import pandas as pd
 
-from ..attention_surface import attention_home_bundle_preview, attention_home_surface_summary
+from ..attention_surface import attention_home_bundle_preview, attention_home_surface_summary, has_causal_language
 from ..elevenlabs_tts import (
     ElevenLabsTTSClient,
     ElevenLabsTTSConfig,
 )
 from ..page_browsing import browse_page
 from ..saa import prepare_retained_evidence_chunks, search_prepared_evidence_chunks
-from ..common.hypothesis import (
-    _heuristic_verification as _common_heuristic_verification,
-    verify_hypothesis as _common_verify_hypothesis,
-)
+from ..common.hypothesis import verify_hypothesis as _common_verify_hypothesis
 from .collector import _plan_summary_research, _search_query_results
 from .config import _load_search_clients
-from .constants import EmbeddingClient, HYPOTHESIS_VERIFICATION_SCHEMA, LLMClient
+from .constants import EmbeddingClient, LLMClient
 from .critique import critique_home_summary, judge_revise_summary
 from ..llm import NARRATIVE_STYLE_RULE, LLMAPIError, get_config_param, get_prompt, register_config_param, register_narrative_prompt
 from ..aql_zopedia_engine import (
@@ -32,7 +29,6 @@ from .extractor import (
     _chunk_source_documents,
     _documents_from_search_results,
     _extract_claims,
-    _fallback_claims_from_chunks,
     _rank_evidence_chunks,
     _serialize_claims_frame,
 )
@@ -121,10 +117,10 @@ def _narration_ready_text(text: object, *, max_sentences: int | None = None) -> 
     if sentences:
         return " ".join(sentences)
 
-    fallback = _normalize_text(text)
-    if not fallback or _looks_fragmentary_text(fallback):
+    normalized_text = _normalize_text(text)
+    if not normalized_text or _looks_fragmentary_text(normalized_text):
         return ""
-    return _ensure_sentence(fallback.rstrip(".!?"))
+    return _ensure_sentence(normalized_text.rstrip(".!?"))
 
 
 def _trim_text(text: object, *, limit: int = 1400) -> str:
@@ -199,6 +195,23 @@ def attention_mover_card_title(mover: dict[str, object]) -> str:
     return "Mover"
 
 
+def _observed_beat_sentence(preview: Any, fallback: object) -> str:
+    def _preview_get(key: str) -> object:
+        if isinstance(preview, dict):
+            return preview.get(key)
+        return getattr(preview, key, "")
+
+    for value in (
+        _preview_get("what_changed_text"),
+        _preview_get("summary_text"),
+        fallback,
+    ):
+        sentence = _narration_ready_text(value, max_sentences=1)
+        if sentence:
+            return sentence
+    return ""
+
+
 def build_attention_home_narrative_beats(home_payload: dict[str, object]) -> list[dict[str, object]]:
     top_events = list(home_payload.get("top_events") or [])
     must_read = list(home_payload.get("must_read_movers") or [])
@@ -208,11 +221,20 @@ def build_attention_home_narrative_beats(home_payload: dict[str, object]) -> lis
     for event in top_events:
         preview = attention_home_bundle_preview(event, bundle={})
         summary_text = attention_home_surface_summary(preview, is_event=True)
+        cause_status = _coerce_text(preview.get("cause_status") if isinstance(preview, dict) else getattr(preview, "cause_status", "")).lower()
+        sentence = _coerce_text(event.get("event_title"))
+        if cause_status == "unresolved":
+            sentence = _observed_beat_sentence(preview, sentence)
         beats.append(
             {
                 "bundle_id": _coerce_text(event.get("bundle_id")),
-                "sentence": _coerce_text(event.get("event_title")),
+                "sentence": sentence,
                 "summary": summary_text,
+                "business_context": _coerce_text(
+                    event.get("business_resolution_text")
+                    or event.get("business_context_text")
+                    or event.get("surface_business_context_text")
+                ),
                 "symbols": [
                     str(item).upper().strip()
                     for item in list(event.get("supporting_symbols") or [])
@@ -229,6 +251,11 @@ def build_attention_home_narrative_beats(home_payload: dict[str, object]) -> lis
                 "bundle_id": _coerce_text(mover.get("bundle_id")),
                 "sentence": attention_mover_card_title(mover),
                 "summary": summary_text,
+                "business_context": _coerce_text(
+                    mover.get("business_resolution_text")
+                    or mover.get("business_context_text")
+                    or mover.get("surface_business_context_text")
+                ),
                 "symbols": [str(mover.get("symbol") or "").upper().strip()],
                 "kind": "mover",
             }
@@ -236,41 +263,44 @@ def build_attention_home_narrative_beats(home_payload: dict[str, object]) -> lis
     for mover in unresolved:
         preview = attention_home_bundle_preview(mover, bundle={})
         summary_text = attention_home_surface_summary(preview, is_event=False)
-        beats.append(
-            {
-                "bundle_id": _coerce_text(mover.get("bundle_id")),
-                "sentence": attention_mover_card_title(mover),
-                "summary": summary_text or "Large move with insufficient retained evidence so far.",
-                "symbols": [str(mover.get("symbol") or "").upper().strip()],
-                "kind": "unresolved",
-            }
-        )
+        beat = {
+            "bundle_id": _coerce_text(mover.get("bundle_id")),
+            "sentence": _observed_beat_sentence(preview, attention_mover_card_title(mover)),
+            "summary": summary_text,
+            "business_context": _coerce_text(
+                mover.get("business_resolution_text")
+                or mover.get("business_context_text")
+                or mover.get("surface_business_context_text")
+            ),
+            "symbols": [str(mover.get("symbol") or "").upper().strip()],
+            "kind": "unresolved",
+        }
+        if not _is_low_information_unresolved_beat(beat):
+            beats.append(beat)
     return beats
 
 
-def _beat_highlight(beat: dict[str, object]) -> str:
-    summary = _narration_ready_text(beat.get("summary"), max_sentences=6)
-    if summary:
-        return _ensure_sentence(summary)
-    sentence = _sentence_fragment(beat.get("sentence"))
-    if sentence and sentence.upper() == sentence and len(sentence) <= 8:
-        return ""
-    return _ensure_sentence(sentence)
+def _is_low_information_unresolved_beat(beat: dict[str, object]) -> bool:
+    if _coerce_text(beat.get("kind")) != "unresolved":
+        return False
+    business_context = _coerce_text(beat.get("business_context"))
+    summary = _coerce_text(beat.get("summary"))
+    if business_context:
+        return False
+    if not summary:
+        return True
+    if not has_causal_language(summary):
+        return True
+    lowered = summary.lower()
+    if re.fullmatch(r"[a-z0-9.\-]+ moved (higher|lower|up|down) today\.?", lowered):
+        return True
+    if lowered.endswith(" moved higher today.") or lowered.endswith(" moved lower today."):
+        return True
+    return False
 
 
-def _count_phrase(count: int, singular: str, plural: str | None = None) -> str:
-    if count == 1:
-        return f"1 {singular}"
-    return f"{count} {plural or f'{singular}s'}"
-
-
-def _build_section_lines(title: str, items: list[str]) -> list[str]:
-    clean_items = [_trim_text(_ensure_sentence(item), limit=2000) for item in items if _coerce_text(item)]
-    if not clean_items:
-        return []
-    lines = [f"**{title}**"]
-    lines.extend(f"- {item}" for item in clean_items)
-    return lines
+def _summary_prompt_beats(beats: list[dict[str, object]]) -> list[dict[str, object]]:
+    return [beat for beat in list(beats or []) if not _is_low_information_unresolved_beat(beat)]
 
 
 def build_attention_home_summary(
@@ -287,7 +317,8 @@ def build_attention_home_summary(
     unresolved_beats = [beat for beat in beats if str(beat.get("kind")) == "unresolved"]
 
     signal_context = _build_signal_context_text(home_payload)
-    llm_result = _llm_home_summary(beats, signal_context=signal_context)
+    prompt_beats = _summary_prompt_beats(beats)
+    llm_result = _llm_home_summary(prompt_beats, signal_context=signal_context)
 
     if llm_result:
         overview_text = _coerce_text(llm_result.get("overview"))
@@ -304,24 +335,14 @@ def build_attention_home_summary(
             summary_lines.append(f"**{title}**")
             summary_lines.extend(f"- {b}" for b in bullets)
         audio_text = _trim_text(_coerce_text(llm_result.get("audio_text")) or overview_text, limit=4000)
+        summary_status = "ok"
+        data_gaps: list[str] = []
     else:
-        # Fallback — used only when LLM is unavailable
-        event_highlights = [_beat_highlight(b) for b in event_beats[:max(int(max_event_highlights), 0)]]
-        mover_highlights = [_beat_highlight(b) for b in mover_beats[:max(int(max_mover_highlights), 0)]]
-        unresolved_highlights = [_beat_highlight(b) for b in unresolved_beats[:max(int(max_unresolved_highlights), 0)]]
         overview_text = ""
         summary_lines = []
-        for section_title, items in [
-            ("Events", event_highlights),
-            ("Movers", mover_highlights),
-            ("Unresolved", unresolved_highlights),
-        ]:
-            section_lines = _build_section_lines(section_title, items)
-            if section_lines:
-                if summary_lines:
-                    summary_lines.append("")
-                summary_lines.extend(section_lines)
-        audio_text = _trim_text(" ".join(h for h in event_highlights + mover_highlights + unresolved_highlights if h), limit=4000)
+        audio_text = ""
+        summary_status = "unavailable"
+        data_gaps = ["Homepage summary LLM unavailable; deterministic code did not synthesize a narrative."]
 
     summary_text = "\n".join(line for line in summary_lines if line is not None).strip()
     return {
@@ -331,8 +352,10 @@ def build_attention_home_summary(
         "event_count": len(event_beats),
         "must_read_count": len(mover_beats),
         "unresolved_count": len(unresolved_beats),
-        "featured_symbols": _unique_symbols(beats),
+        "featured_symbols": _unique_symbols(prompt_beats or beats),
         "beats": beats,
+        "summary_status": summary_status,
+        "data_gaps": data_gaps,
     }
 
 
@@ -350,6 +373,8 @@ _HOME_SUMMARY_SYSTEM_PROMPT = register_narrative_prompt(
         "(e.g. 'Healthcare splits by industry' not 'Top Events'). Each bullet is one specific sentence. "
         "When market structure or macro signals reinforce or contradict market activity, weave that context in "
         "(e.g. 'rising despite decelerating CPI', 'decoupling from SPY with r2=0.9'). "
+        "Do not spend words on absent spillover, missing explanations, or missing confirmation; if the evidence is thin, "
+        "keep the sentence to the observed move and move on. "
         "Do not create a separate 'signals' section — integrate them into the narrative.\n"
         "3. audio_text: 8-12 concise sentences, roughly 150-230 words, spoken aloud as a markets desk anchor would say them. "
         "It should cover the main hypothesis, the largest clusters, and what to watch next without reading every bullet."
@@ -432,6 +457,9 @@ def _llm_home_summary(
             line += f" ({symbols})"
         if summary:
             line += f" — {summary}"
+        business_context = _coerce_text(beat.get("business_context"))
+        if business_context:
+            line += f" Business context: {business_context}"
         beat_lines.append(line)
     context = "\n".join(beat_lines)
     user_prompt = f"Today's market activity:\n{context}"
@@ -801,14 +829,6 @@ def _collect_summary_research_trace(
         hypotheses=[{"kind": "cross_market", "text": "A shared cross-market explanation may connect market activity."}],
         llm_client=llm_client,
     )
-    if not claims:
-        claims = _fallback_claims_from_chunks(
-            candidate,
-            chunks,
-            run_id=run_id,
-            asof_time_utc=asof_time_utc,
-            hypotheses=[{"kind": "cross_market", "text": "A shared cross-market explanation may connect market activity."}],
-        )
     claims = sorted(
         claims,
         key=lambda item: (
@@ -857,9 +877,10 @@ def _synthesize_attention_home_hypothesis(
                 "kind": _coerce_text(beat.get("kind")),
                 "sentence": _coerce_text(beat.get("sentence")),
                 "summary": _coerce_text(beat.get("summary")),
+                "business_context": _coerce_text(beat.get("business_context")),
                 "symbols": [str(symbol).upper().strip() for symbol in list(beat.get("symbols") or []) if str(symbol).strip()],
             }
-            for beat in beats[:int(get_config_param(_P_HYPOTHESIS_BEATS))]
+            for beat in _summary_prompt_beats(beats)[:int(get_config_param(_P_HYPOTHESIS_BEATS))]
         ],
         "supporting_claims": evidence_rows[:int(get_config_param(_P_HYPOTHESIS_CLAIMS))],
         "research_queries": queries[:int(get_config_param(_P_HYPOTHESIS_QUERIES))],
@@ -876,9 +897,9 @@ def _synthesize_attention_home_hypothesis(
             "Name the concrete themes behind market activity, not vague rotations. "
             "When market structure signals (trend acceleration, regime shifts, correlation breaks, z-score extremes) "
             "reinforce or contradict market activity, reference them concretely. "
-            "When useful, mention the strongest source families or catalysts behind the call. "
+            "When useful, mention the strongest source families or business triggers behind the call. "
             "Do not repeat each beat. Do not speculate beyond the evidence. "
-            "Avoid generic phrases like 'with no clear catalyst' or 'rotation toward risk' unless the evidence truly supports them."
+            "If a trigger is unsupported, omit trigger language and use the supplied business context or exact missing evidence slot."
         ),
         user_prompt=user_prompt,
         schema_name="attention_home_hypothesis",
@@ -888,64 +909,6 @@ def _synthesize_attention_home_hypothesis(
     if not hypothesis:
         raise RuntimeError("Homepage hypothesis synthesis returned empty text")
     return hypothesis
-
-
-_HYPOTHESIS_VERIFICATION_SYSTEM_PROMPT = register_narrative_prompt(
-    name="Hypothesis Verification (grade + gap queries)",
-    file="services/aql/summarizer.py",
-    group="AQL / Research",
-    prompt=(
-        "You are a senior market analyst verifying a hypothesis against evidence. "
-        "Be rigorous: a hypothesis is only 'supported' when multiple independent claims confirm it. "
-        "Mark it 'weak' when evidence is thin but directionally consistent. "
-        "Mark it 'conflicting' when claims contradict each other. "
-        "Mark it 'unsupported' when the evidence does not back the hypothesis at all. "
-        "List specific claims that support or contradict, not paraphrases. "
-        "gap_queries must be concrete web search queries that would fill the holes in the evidence. "
-        "Write them as you would type into a news search engine. "
-        "Only include gap_queries when the verdict is NOT 'supported'. "
-        "Keep reasoning to 2-3 sentences."
-    ),
-)
-
-def _heuristic_verification(hypothesis: str, claims: list[dict[str, Any]]) -> dict[str, Any]:
-    """Score-based fallback when LLM verification is unavailable."""
-    if not claims:
-        return {
-            "verdict": "unsupported",
-            "confidence": "low",
-            "supporting_claims": [],
-            "contradicting_claims": [],
-            "gap_queries": [],
-            "reasoning": "No evidence was collected to verify this hypothesis.",
-        }
-    confidence_scores = [float(item.get("confidence_score") or 0.0) for item in claims]
-    same_day_count = sum(1 for item in claims if bool(item.get("is_same_day")))
-    avg_confidence = sum(confidence_scores) / max(len(confidence_scores), 1)
-    high_confidence_count = sum(1 for score in confidence_scores if score >= 0.6)
-
-    if high_confidence_count >= 3 and avg_confidence >= 0.55:
-        verdict = "supported"
-        confidence = "medium"
-    elif high_confidence_count >= 1 or avg_confidence >= 0.4:
-        verdict = "weak"
-        confidence = "low"
-    else:
-        verdict = "unsupported"
-        confidence = "low"
-
-    return {
-        "verdict": verdict,
-        "confidence": confidence,
-        "supporting_claims": [
-            _coerce_text(item.get("claim_text"))
-            for item in sorted(claims, key=lambda c: -float(c.get("confidence_score") or 0.0))[:3]
-            if _coerce_text(item.get("claim_text"))
-        ],
-        "contradicting_claims": [],
-        "gap_queries": [],
-        "reasoning": f"Heuristic: {len(claims)} claims, avg confidence {avg_confidence:.2f}, {same_day_count} same-day.",
-    }
 
 
 def _prepend_hypothesis_section(summary_text: object, hypothesis: object) -> str:
@@ -1139,6 +1102,8 @@ def build_attention_home_summary_payload(
             for symbol in list(summary.get("featured_symbols") or [])
             if str(symbol).strip()
         ],
+        "summary_status": _coerce_text(summary.get("summary_status")),
+        "data_gaps": [str(item).strip() for item in list(summary.get("data_gaps") or []) if str(item).strip()],
     }
 
 
@@ -1227,7 +1192,6 @@ def attach_attention_home_summary_audio(
 
 # Backward-compatible export: hypothesis verification is owned by services.common.
 verify_hypothesis = _common_verify_hypothesis
-_heuristic_verification = _common_heuristic_verification
 
 build_market_stories = build_attention_home_narrative_beats
 

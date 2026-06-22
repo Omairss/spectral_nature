@@ -8,11 +8,17 @@ from typing import Any
 
 import requests
 
-from .secrets import resolve_secret_value
+from .secrets import resolve_secret_value, runtime_env_value
 
 
 class LLMAPIError(RuntimeError):
     pass
+
+
+class LLMJSONParseError(LLMAPIError):
+    def __init__(self, message: str, *, raw_content: str = "") -> None:
+        super().__init__(message)
+        self.raw_content = raw_content
 
 
 # Words/phrases the LLM must never use in user-facing narrative.
@@ -45,7 +51,7 @@ NARRATIVE_STYLE_RULE = (
     "Never use: idiosyncratic, nuanced, multifaceted, robust, granular, leverage (as a verb), "
     "synergy, paradigm, actionable, holistic, bespoke, cutting-edge, game-changer, deep-dive, "
     "unpack, or surface (as a verb meaning 'explain'). "
-    "If cause is unclear, say 'no clear catalyst confirmed' — do not invent a reason."
+    "If cause is unclear, state the exact missing evidence succinctly — do not invent a reason."
 )
 
 
@@ -298,6 +304,23 @@ def _env_value(prefix: str, name: str, *fallback_names: str) -> str:
         value = _clean(os.getenv(candidate))
         if value:
             return value
+    for candidate in candidates:
+        value = _clean(runtime_env_value(candidate))
+        if value:
+            return value
+    return ""
+
+
+def _process_env_value(prefix: str, name: str, *fallback_names: str) -> str:
+    candidates = [_prefixed_env(prefix, name)]
+    candidates.extend(_prefixed_env(prefix, item) for item in fallback_names)
+    if prefix:
+        candidates.append(name)
+        candidates.extend(fallback_names)
+    for candidate in candidates:
+        value = _clean(os.getenv(candidate))
+        if value:
+            return value
     return ""
 
 
@@ -385,14 +408,56 @@ def _extract_first_json_object(raw: str) -> dict[str, Any]:
         try:
             parsed, _ = decoder.raw_decode(stripped)
         except Exception as exc:
-            raise LLMAPIError(f"LLM returned non-JSON content: {text[:400]}") from exc
+            raise LLMJSONParseError(f"LLM returned non-JSON content: {text[:400]}", raw_content=text) from exc
     if not isinstance(parsed, dict):
-        raise LLMAPIError("LLM JSON payload must be an object.")
+        raise LLMJSONParseError("LLM JSON payload must be an object.", raw_content=text)
     return parsed
 
 
+def _chat_message_text(message: dict[str, Any]) -> str:
+    content = message.get("content")
+    if isinstance(content, list):
+        text_parts: list[str] = []
+        for item in content:
+            if isinstance(item, dict) and item.get("type") == "text":
+                text_parts.append(_clean(item.get("text")))
+        return "\n".join(part for part in text_parts if part).strip()
+    return _clean(content)
+
+
+def _json_repair_messages(
+    *,
+    schema_name: str,
+    schema: dict[str, Any],
+    raw_content: str,
+) -> list[dict[str, str]]:
+    schema_text = json.dumps(schema, sort_keys=True)
+    raw_text = str(raw_content or "").strip()
+    return [
+        {
+            "role": "system",
+            "content": (
+                "Repair the model output into exactly one valid JSON object. "
+                "Use only information already present in the model output. "
+                f"The repaired object must match schema `{schema_name}`. "
+                "Do not add explanations, markdown, or fallback prose."
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                f"JSON Schema:\n{schema_text}\n\n"
+                "Model output to repair:\n"
+                f"{raw_text[:12000]}"
+            ),
+        },
+    ]
+
+
 def load_llm_config(env_prefix: str = "") -> LLMConfig | None:
-    provider = (_env_value(env_prefix, "LLM_PROVIDER") or "openai").lower()
+    process_provider = _process_env_value(env_prefix, "LLM_PROVIDER")
+    config_value = _process_env_value if process_provider else _env_value
+    provider = (process_provider or _env_value(env_prefix, "LLM_PROVIDER") or "openai").lower()
     if provider in {"", "none", "disabled", "off"}:
         return None
 
@@ -400,34 +465,34 @@ def load_llm_config(env_prefix: str = "") -> LLMConfig | None:
     if not api_key:
         return None
 
-    model = _env_value(env_prefix, "LLM_MODEL", "OPENAI_MODEL") or "gpt-4.1-mini"
-    deployment = _env_value(env_prefix, "LLM_DEPLOYMENT", "AZURE_OPENAI_DEPLOYMENT") or model
+    model = config_value(env_prefix, "LLM_MODEL", "OPENAI_MODEL") or "gpt-4.1-mini"
+    deployment = config_value(env_prefix, "LLM_DEPLOYMENT", "AZURE_OPENAI_DEPLOYMENT") or model
     if provider == "azure_openai":
         base_url = _normalize_azure_base_url(
-            _env_value(env_prefix, "LLM_BASE_URL", "AZURE_OPENAI_ENDPOINT")
+            config_value(env_prefix, "LLM_BASE_URL", "AZURE_OPENAI_ENDPOINT")
         )
         if not base_url:
             return None
-        api_version = _env_value(env_prefix, "AZURE_OPENAI_API_VERSION")
+        api_version = config_value(env_prefix, "AZURE_OPENAI_API_VERSION")
     elif provider == "deepseek":
-        base_url = _env_value(env_prefix, "LLM_BASE_URL", "OPENAI_BASE_URL") or "https://api.deepseek.com"
+        base_url = config_value(env_prefix, "LLM_BASE_URL", "OPENAI_BASE_URL") or "https://api.deepseek.com"
         api_version = ""
     else:
-        base_url = _env_value(env_prefix, "LLM_BASE_URL", "OPENAI_BASE_URL") or "https://api.openai.com/v1"
+        base_url = config_value(env_prefix, "LLM_BASE_URL", "OPENAI_BASE_URL") or "https://api.openai.com/v1"
         api_version = ""
-    timeout_seconds = max(int(_env_value(env_prefix, "LLM_TIMEOUT_SECONDS") or "480"), 10)
+    timeout_seconds = max(int(config_value(env_prefix, "LLM_TIMEOUT_SECONDS") or "480"), 10)
     default_temperature = "1" if provider == "azure_openai" else "0.2"
-    temperature = float(_env_value(env_prefix, "LLM_TEMPERATURE") or default_temperature)
+    temperature = float(config_value(env_prefix, "LLM_TEMPERATURE") or default_temperature)
     reasoning_effort = _normalized_reasoning_effort(
-        _env_value(env_prefix, "LLM_REASONING_EFFORT", "OPENAI_REASONING_EFFORT")
+        config_value(env_prefix, "LLM_REASONING_EFFORT", "OPENAI_REASONING_EFFORT")
     )
     if provider == "deepseek":
         # DeepSeek reasoning traces come from the reasoning model response
         # itself. Do not forward OpenAI-style reasoning_effort settings; a
         # global provider swap should not inherit Azure/OpenAI-only knobs.
         reasoning_effort = ""
-    embedding_model = _env_value(env_prefix, "EMBEDDING_MODEL") or "text-embedding-3-small"
-    embedding_deployment = _env_value(env_prefix, "EMBEDDING_DEPLOYMENT", "AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
+    embedding_model = config_value(env_prefix, "EMBEDDING_MODEL") or "text-embedding-3-small"
+    embedding_deployment = config_value(env_prefix, "EMBEDDING_DEPLOYMENT", "AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
 
     return LLMConfig(
         provider=provider,
@@ -519,19 +584,44 @@ class OpenAIChatJSONClient:
         if refusal:
             raise LLMAPIError(f"LLM refused request: {refusal}")
 
-        content = message.get("content")
-        if isinstance(content, list):
-            text_parts: list[str] = []
-            for item in content:
-                if isinstance(item, dict) and item.get("type") == "text":
-                    text_parts.append(_clean(item.get("text")))
-            raw = "\n".join(part for part in text_parts if part).strip()
-        else:
-            raw = _clean(content)
-
+        raw = _chat_message_text(message)
         if not raw:
             raise LLMAPIError("LLM returned empty content.")
-        return _strip_jargon_from_dict(_extract_first_json_object(raw))
+        try:
+            parsed_object = _extract_first_json_object(raw)
+        except LLMJSONParseError as exc:
+            repair_payload = dict(payload)
+            repair_payload["messages"] = _json_repair_messages(
+                schema_name=schema_name,
+                schema=schema,
+                raw_content=exc.raw_content,
+            )
+            repair_response = self.session.post(
+                request_url,
+                headers=request_headers,
+                json=repair_payload,
+                timeout=self.config.timeout_seconds,
+            )
+            if repair_response.status_code != 200:
+                raise LLMAPIError(
+                    f"LLM JSON repair failed status={repair_response.status_code}: {repair_response.text[:400]}"
+                ) from exc
+            try:
+                repair_parsed = repair_response.json()
+            except Exception as repair_exc:
+                raise LLMAPIError(f"LLM JSON repair returned invalid JSON: {repair_exc}") from exc
+            repair_choices = repair_parsed.get("choices") or []
+            if not repair_choices:
+                raise LLMAPIError("LLM JSON repair returned no choices.") from exc
+            repair_message = repair_choices[0].get("message") or {}
+            repair_refusal = _clean(repair_message.get("refusal"))
+            if repair_refusal:
+                raise LLMAPIError(f"LLM JSON repair refused request: {repair_refusal}") from exc
+            repair_raw = _chat_message_text(repair_message)
+            if not repair_raw:
+                raise LLMAPIError("LLM JSON repair returned empty content.") from exc
+            parsed_object = _extract_first_json_object(repair_raw)
+        return _strip_jargon_from_dict(parsed_object)
 
 
 class AzureOpenAIChatJSONClient:
@@ -618,10 +708,45 @@ class AzureOpenAIChatJSONClient:
         refusal = _clean(message.get("refusal"))
         if refusal:
             raise LLMAPIError(f"LLM refused request: {refusal}")
-        raw = _clean(message.get("content"))
+        raw = _chat_message_text(message)
         if not raw:
             raise LLMAPIError("LLM returned empty content.")
-        return _strip_jargon_from_dict(_extract_first_json_object(raw))
+        try:
+            parsed_object = _extract_first_json_object(raw)
+        except LLMJSONParseError as exc:
+            repair_payload = dict(payload)
+            repair_payload["messages"] = _json_repair_messages(
+                schema_name=schema_name,
+                schema=schema,
+                raw_content=exc.raw_content,
+            )
+            repair_response = self.session.post(
+                request_url,
+                headers=request_headers,
+                params=request_params,
+                json=repair_payload,
+                timeout=self.config.timeout_seconds,
+            )
+            if repair_response.status_code != 200:
+                raise LLMAPIError(
+                    f"LLM JSON repair failed status={repair_response.status_code}: {repair_response.text[:400]}"
+                ) from exc
+            try:
+                repair_parsed = repair_response.json()
+            except Exception as repair_exc:
+                raise LLMAPIError(f"LLM JSON repair returned invalid JSON: {repair_exc}") from exc
+            repair_choices = repair_parsed.get("choices") or []
+            if not repair_choices:
+                raise LLMAPIError("LLM JSON repair returned no choices.") from exc
+            repair_message = repair_choices[0].get("message") or {}
+            repair_refusal = _clean(repair_message.get("refusal"))
+            if repair_refusal:
+                raise LLMAPIError(f"LLM JSON repair refused request: {repair_refusal}") from exc
+            repair_raw = _chat_message_text(repair_message)
+            if not repair_raw:
+                raise LLMAPIError("LLM JSON repair returned empty content.") from exc
+            parsed_object = _extract_first_json_object(repair_raw)
+        return _strip_jargon_from_dict(parsed_object)
 
 
 class DeepSeekChatJSONClient:
@@ -687,10 +812,41 @@ class DeepSeekChatJSONClient:
         if not choices:
             raise LLMAPIError("DeepSeek returned no choices.")
         message = choices[0].get("message") or {}
-        raw = _clean(message.get("content"))
+        raw = _chat_message_text(message)
         if not raw:
             raise LLMAPIError("DeepSeek returned empty content.")
-        result = _strip_jargon_from_dict(_extract_first_json_object(raw))
+        try:
+            parsed_object = _extract_first_json_object(raw)
+        except LLMJSONParseError as exc:
+            repair_payload = dict(payload)
+            repair_payload["messages"] = _json_repair_messages(
+                schema_name=schema_name,
+                schema=schema,
+                raw_content=exc.raw_content,
+            )
+            repair_response = self.session.post(
+                request_url,
+                headers=headers,
+                json=repair_payload,
+                timeout=self.config.timeout_seconds,
+            )
+            if repair_response.status_code != 200:
+                raise LLMAPIError(
+                    f"DeepSeek JSON repair failed status={repair_response.status_code}: {repair_response.text[:400]}"
+                ) from exc
+            try:
+                repair_parsed = repair_response.json()
+            except Exception as repair_exc:
+                raise LLMAPIError(f"DeepSeek JSON repair returned invalid JSON: {repair_exc}") from exc
+            repair_choices = repair_parsed.get("choices") or []
+            if not repair_choices:
+                raise LLMAPIError("DeepSeek JSON repair returned no choices.") from exc
+            repair_message = repair_choices[0].get("message") or {}
+            repair_raw = _chat_message_text(repair_message)
+            if not repair_raw:
+                raise LLMAPIError("DeepSeek JSON repair returned empty content.") from exc
+            parsed_object = _extract_first_json_object(repair_raw)
+        result = _strip_jargon_from_dict(parsed_object)
         reasoning_content = _clean(message.get("reasoning_content"))
         if reasoning_content:
             result["__reasoning_content"] = reasoning_content
@@ -867,6 +1023,7 @@ __all__ = [
     "DeepSeekChatJSONClient",
     "OpenAIEmbeddingClient",
     "LLMAPIError",
+    "LLMJSONParseError",
     "LLMConfig",
     "OpenAIChatJSONClient",
     "check_llm_readiness",

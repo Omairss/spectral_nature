@@ -99,6 +99,19 @@ def _looks_like_stat_dump(text: object) -> bool:
     ticker_pct_pairs = len(re.findall(r"\b[A-Z]{2,5}\s*[+\-]\d+(?:\.\d+)?%", clean))
     if re.search(r"\bup:\b|\bdown:\b", lowered):
         return True
+    if re.search(
+        r"\b(shares?|stock)\s+(rose|fell|gained|dropped|surged|slid|jumped|plunged)\s+[+\-]?\d+(?:\.\d+)?%\s+(?:on\s+)?(today|monday|tuesday|wednesday|thursday|friday)\b",
+        lowered,
+    ):
+        return True
+    if (
+        re.search(
+            r"\b(shares?|stock)\s+(rose|fell|gained|dropped|surged|slid|jumped|plunged)\s+[+\-]?\d+(?:\.\d+)?%\b",
+            lowered,
+        )
+        and not _has_causal_language(clean)
+    ):
+        return True
     if stat_count >= 6:
         return True
     if ticker_pct_pairs >= 3:
@@ -121,6 +134,7 @@ def _looks_like_generic_market_activity_title(text: object) -> bool:
     patterns = (
         r"\bmoves? sharply today\b",
         r"\bmoved sharply today\b",
+        r"\bshares?\s+(rose|fell|gained|dropped|surged|slid|jumped|plunged)\s+[+\-]?\d+(?:\.\d+)?%\b",
         r"\brises on today'?s market activity\b",
         r"\bfalls on today'?s market activity\b",
         r"\bon today'?s market activity\b",

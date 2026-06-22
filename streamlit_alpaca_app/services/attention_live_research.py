@@ -9,6 +9,10 @@ import pandas as pd
 
 from .common.market_activity import _judge_cause_status as _shared_judge_cause_status
 from .common.market_activity import _quality_label as _shared_quality_label
+from .common.news_freshness import (
+    coerce_article_published_at,
+    is_recent_for_attention,
+)
 from .aql import search_symbol_news_payload
 from .attention_agentic import build_bottom_up_attention_bundle
 from .attention_home_1d import build_attention_research_bundle
@@ -329,22 +333,99 @@ def _event_relevance_score(text: str, theme: str, symbols: list[str]) -> float:
     return min(theme_score + symbol_score, 1.0)
 
 
+_EVENT_QUERY_STOPWORDS = {
+    "and",
+    "are",
+    "the",
+    "for",
+    "from",
+    "with",
+    "this",
+    "that",
+    "into",
+    "today",
+    "market",
+    "markets",
+    "stock",
+    "stocks",
+    "share",
+    "shares",
+    "rally",
+    "rallies",
+    "rallied",
+    "surge",
+    "surges",
+    "surged",
+    "jump",
+    "jumps",
+    "higher",
+    "lower",
+    "slide",
+    "slides",
+    "slid",
+    "fall",
+    "falls",
+    "fell",
+    "move",
+    "moves",
+    "moving",
+    "clear",
+    "driver",
+    "event",
+    "theme",
+    "sector",
+    "related",
+}
+
+
+def _distinctive_event_query_terms(query_text: object) -> list[str]:
+    terms: list[str] = []
+    seen: set[str] = set()
+    for token in re.findall(r"[a-zA-Z][a-zA-Z0-9&+-]{2,}", _coerce_text(query_text).lower()):
+        normalized = token.strip("-+&")
+        if len(normalized) < 4 or normalized in _EVENT_QUERY_STOPWORDS or normalized in seen:
+            continue
+        seen.add(normalized)
+        terms.append(normalized)
+    return terms
+
+
+def _event_query_term_match_count(text: str, query_text: object) -> int:
+    blob = f" {_normalized_text(text)} "
+    hits = 0
+    for term in _distinctive_event_query_terms(query_text):
+        normalized = _normalized_text(term)
+        if normalized and re.search(rf"(?<![a-z0-9]){re.escape(normalized)}(?![a-z0-9])", blob):
+            hits += 1
+    return hits
+
+
+def _event_query_terms_in_text(text: str, query_text: object) -> list[str]:
+    blob = f" {_normalized_text(text)} "
+    hits: list[str] = []
+    for term in _distinctive_event_query_terms(query_text):
+        normalized = _normalized_text(term)
+        if normalized and re.search(rf"(?<![a-z0-9]){re.escape(normalized)}(?![a-z0-9])", blob):
+            hits.append(term)
+    return hits
+
+
 def _passes_event_relevance_gate(
     headline: str, snippet: str, theme: str, symbols: list[str],
     query_text: str = "",
 ) -> bool:
     text = f"{headline} {snippet}"
     relevance = _event_relevance_score(text, theme, symbols)
-    # Check if the article matches the user's original query terms
+    if _is_low_signal_article(headline, snippet) and relevance < 0.62:
+        return False
     if query_text:
-        query_words = [w.lower() for w in query_text.split() if len(w) > 2]
-        blob = text.lower()
-        query_hits = sum(1 for w in query_words if w in blob)
-        if query_hits >= 2:
+        query_terms = _event_query_terms_in_text(text, query_text)
+        if len(query_terms) >= 2:
+            return True
+        headline_terms = _event_query_terms_in_text(headline, query_text)
+        if query_terms and (relevance >= 0.18 or any(len(term) >= 5 for term in headline_terms)):
             return True
     if relevance < 0.32:
-        return False
-    if _is_low_signal_article(headline, snippet) and relevance < 0.62:
         return False
     return True
 
@@ -673,7 +754,10 @@ def _to_article_frame(rows: list[dict[str, Any]]) -> pd.DataFrame:
     for column in ["headline", "summary", "description", "source", "url"]:
         if column not in frame.columns:
             frame[column] = ""
-    frame["published_at"] = pd.to_datetime(frame.get("published_at"), utc=True, errors="coerce")
+    frame["published_at"] = frame.apply(
+        lambda row: coerce_article_published_at(row.get("published_at"), url=row.get("url")),
+        axis=1,
+    )
     frame = frame.dropna(subset=["headline"]).copy()
     if frame.empty:
         return pd.DataFrame(columns=["headline", "summary", "description", "source", "published_at", "url"])
@@ -691,7 +775,10 @@ def merge_news_payloads(*payloads: dict[str, Any] | None) -> dict[str, Any]:
         articles = payload.get("articles")
         if isinstance(articles, pd.DataFrame) and not articles.empty:
             frame = articles.copy()
-            frame["published_at"] = pd.to_datetime(frame.get("published_at"), utc=True, errors="coerce")
+            frame["published_at"] = frame.apply(
+                lambda row: coerce_article_published_at(row.get("published_at"), url=row.get("url")),
+                axis=1,
+            )
             for _, row in frame.iterrows():
                 rows.append(
                     {
@@ -699,7 +786,7 @@ def merge_news_payloads(*payloads: dict[str, Any] | None) -> dict[str, Any]:
                         "summary": _coerce_text(row.get("summary") or row.get("description")),
                         "description": _coerce_text(row.get("description") or row.get("summary")),
                         "source": _coerce_text(row.get("source")),
-                        "published_at": pd.to_datetime(row.get("published_at"), utc=True, errors="coerce"),
+                        "published_at": coerce_article_published_at(row.get("published_at"), url=row.get("url")),
                         "url": _coerce_text(row.get("url")),
                     }
                 )
@@ -733,7 +820,10 @@ def _event_search_query(event: dict[str, Any]) -> str:
             result = llm_client.generate_json(
                 system_prompt=(
                     "You generate concise financial news search queries. "
-                    "Return a single search query string that would find relevant market news articles today."
+                    "Return one search query that can explain a market move. "
+                    "Use wider-circle market reasoning: exact companies first, then close peers, "
+                    "customers, suppliers, private leaders, IPO rumors, policy, rates, commodities, "
+                    "or sector themes when those are likely to explain the move."
                 ),
                 user_prompt=(
                     f"User's original question: {event_title}\n"
@@ -741,7 +831,8 @@ def _event_search_query(event: dict[str, Any]) -> str:
                     f"Theme: {theme}, Direction: {direction}\n"
                     f"Key symbols: {symbol_context}\n"
                     "Generate a targeted search query to find relevant financial news. "
-                    "Preserve the user's key terms (e.g. 'short squeeze') in the query."
+                    "Preserve the important event terms, but do not require every result to name the listed tickers "
+                    "if a private-company, macro, policy, or sector event plausibly explains the move."
                 ),
                 schema_name="event_search_query",
                 schema=_EVENT_SEARCH_QUERY_SCHEMA,
@@ -758,7 +849,7 @@ def _event_search_query(event: dict[str, Any]) -> str:
     return " ".join(part for part in parts if part) + " market move today"
 
 
-def _fallback_event_search_query(event: dict[str, Any]) -> str:
+def _minimal_event_search_query(event: dict[str, Any]) -> str:
     event_title = _coerce_text(event.get("event_title"))
     anchor_symbol = _normalize_symbol(event.get("anchor_symbol"))
     supporting_symbols = [
@@ -799,7 +890,7 @@ def search_market_event_news_payload(
     ]
     query_base = _coerce_text(search_query)
     if not query_base:
-        query_base = _event_search_query(event) if allow_llm_query else _fallback_event_search_query(event)
+        query_base = _event_search_query(event) if allow_llm_query else _minimal_event_search_query(event)
     article_rows: list[dict[str, Any]] = []
     sources: list[str] = []
     errors: list[str] = []
@@ -811,7 +902,7 @@ def search_market_event_news_payload(
                 snippet = _coerce_text(item.snippet)
                 if not title:
                     continue
-                if not _passes_event_relevance_gate(title, snippet, theme, symbols, query_text=event_title):
+                if not _passes_event_relevance_gate(title, snippet, theme, symbols, query_text=f"{event_title} {query_base}"):
                     continue
                 article_rows.append(
                     {
@@ -819,7 +910,7 @@ def search_market_event_news_payload(
                         "summary": snippet,
                         "description": snippet,
                         "source": _coerce_text(item.source) or "SerpApi",
-                        "published_at": pd.to_datetime(item.published_at, utc=True, errors="coerce"),
+                        "published_at": coerce_article_published_at(item.published_at, url=item.url),
                         "url": _coerce_text(item.url),
                     }
                 )
@@ -834,7 +925,7 @@ def search_market_event_news_payload(
                 snippet = _coerce_text(item.snippet)
                 if not title and not snippet:
                     continue
-                if not _passes_event_relevance_gate(title, snippet, theme, symbols, query_text=event_title):
+                if not _passes_event_relevance_gate(title, snippet, theme, symbols, query_text=f"{event_title} {query_base}"):
                     continue
                 article_rows.append(
                     {
@@ -842,7 +933,7 @@ def search_market_event_news_payload(
                         "summary": snippet,
                         "description": snippet,
                         "source": _coerce_text(item.source) or "Tavily",
-                        "published_at": pd.to_datetime(item.published_at, utc=True, errors="coerce"),
+                        "published_at": coerce_article_published_at(item.published_at, url=item.url),
                         "url": _coerce_text(item.url),
                     }
                 )
@@ -880,7 +971,13 @@ def _normalize_news_evidence(
         headline = _coerce_text(article.get("headline"))
         summary = _coerce_text(article.get("summary") or article.get("description"))
         excerpt = _display_excerpt_from_article(headline, summary)
-        published_at = pd.to_datetime(article.get("published_at"), utc=True, errors="coerce")
+        published_at = coerce_article_published_at(
+            article.get("published_at"),
+            url=article.get("url"),
+            asof_time_utc=asof_time_utc,
+        )
+        if not is_recent_for_attention(published_at, asof_time_utc=asof_time_utc, include_undated=True):
+            continue
         source = _coerce_text(article.get("source"))
         authority_bucket, authority_rank = _source_authority_bucket(source)
         blob = f"{headline} {summary}"
@@ -933,7 +1030,13 @@ def _normalize_event_news_evidence(
         summary = _coerce_text(article.get("summary") or article.get("description"))
         excerpt = _display_excerpt_from_article(headline, summary)
         source = _coerce_text(article.get("source"))
-        published_at = pd.to_datetime(article.get("published_at"), utc=True, errors="coerce")
+        published_at = coerce_article_published_at(
+            article.get("published_at"),
+            url=article.get("url"),
+            asof_time_utc=asof_time_utc,
+        )
+        if not is_recent_for_attention(published_at, asof_time_utc=asof_time_utc, include_undated=True):
+            continue
         authority_bucket, authority_rank = _source_authority_bucket(source)
         blob = f"{headline} {summary}"
         relevance_score = _event_relevance_score(blob, theme, supporting_symbols)
@@ -1141,7 +1244,7 @@ def _event_market_activity_why_text(theme: str, direction: str) -> str:
             narrative = ""
     else:
         narrative = ""
-    text = narrative or "The move is real, but the retained evidence is still too thin to support a stronger event-level explanation."
+    text = narrative
     _event_market_activity_why_cache[cache_key] = text
     return text
 
@@ -1197,32 +1300,23 @@ def _judge_event_cause_status(evidence_rows: list[dict[str, Any]]) -> tuple[str,
     return "unresolved", "unresolved"
 
 
-def _fallback_event_why_text(
+def _evidence_event_why_text(
     event: dict[str, Any],
     cause_status: str,
     retained: list[dict[str, Any]],
     home_payload: dict[str, Any],
 ) -> str:
-    theme = _coerce_text(event.get("event_type")).lower()
-    direction = _coerce_text(event.get("anchor_direction")).lower()
-    market_context = _event_market_context_text(event, home_payload)
     if cause_status == "supported" and retained:
         top = retained[0]
         summary = _best_evidence_excerpt(top, limit=220)
-        if market_context and summary:
-            combined = f"{market_context} {summary}".strip()
-            if _normalized_text(market_context) not in _normalized_text(summary):
-                return _trim(combined, 280)
-            return _trim(summary, 280)
-        if market_context:
-            return market_context
         if summary:
             return _trim(summary, 280)
-    if cause_status == "conflicting":
-        return "Coverage points to multiple competing macro explanations today, and no single event narrative is clearly dominant yet."
     if cause_status == "continuation":
-        return market_context or _event_market_activity_why_text(theme, direction)
-    return market_context or _event_market_activity_why_text(theme, direction)
+        for item in retained:
+            summary = _best_evidence_excerpt(item, limit=220)
+            if summary:
+                return _trim(summary, 280)
+    return ""
 
 
 def _best_background_item(background: list[dict[str, Any]]) -> dict[str, Any]:
@@ -1251,7 +1345,7 @@ def _best_background_text(item: dict[str, Any]) -> str:
     return ""
 
 
-def _fallback_why_text(symbol: str, cause_status: str, retained: list[dict[str, Any]], background: list[dict[str, Any]]) -> str:
+def _evidence_why_text(symbol: str, cause_status: str, retained: list[dict[str, Any]], background: list[dict[str, Any]]) -> str:
     if cause_status == "supported" and retained:
         top = retained[0]
         summary = _best_evidence_excerpt(top, limit=220)
@@ -1261,14 +1355,8 @@ def _fallback_why_text(symbol: str, cause_status: str, retained: list[dict[str, 
         top = _best_background_item(background)
         summary = _best_background_text(top)
         if summary:
-            return (
-                "No clear new company-specific catalyst was confirmed today. "
-                f"The move appears to extend an earlier narrative. Recent background context includes {summary}."
-            )
-        return "No clear new company-specific catalyst was confirmed today. The move appears to be continuing an earlier narrative."
-    if cause_status == "conflicting":
-        return "Coverage points to multiple competing explanations today, and no single cause is clearly dominant yet."
-    return f"No clear new company-specific catalyst was identified for {symbol} today."
+            return summary
+    return ""
 
 
 def _find_peer_moves(candidate: dict[str, Any], home_payload: dict[str, Any]) -> list[dict[str, Any]]:
@@ -1312,15 +1400,12 @@ def _find_event_context(symbol: str, home_payload: dict[str, Any]) -> dict[str, 
     return {}
 
 
-def _fallback_what_else_moved(symbol: str, candidate: dict[str, Any], home_payload: dict[str, Any], peer_moves: list[dict[str, Any]]) -> str:
+def _evidence_what_else_moved(symbol: str, candidate: dict[str, Any], home_payload: dict[str, Any], peer_moves: list[dict[str, Any]]) -> str:
     event = _find_event_context(symbol, home_payload)
     affected_summary = _coerce_text(event.get("affected_assets_summary_text"))
     if affected_summary:
         return affected_summary
-    if peer_moves:
-        preview = ", ".join(_normalize_symbol(item.get("symbol")) for item in peer_moves[:3] if _normalize_symbol(item.get("symbol")))
-        return f"Related names also moved today, including {preview}."
-    return "No clear same-day peer or cross-asset spillover was confirmed."
+    return ""
 
 
 def _background_context_text(background: list[dict[str, Any]]) -> str:
@@ -1340,13 +1425,13 @@ def _synthesize_with_llm(
     retained: list[dict[str, Any]],
     background: list[dict[str, Any]],
     peer_moves: list[dict[str, Any]],
-    fallback_why_text: str,
-    fallback_what_else_moved_text: str,
+    evidence_why_text: str,
+    evidence_what_else_moved_text: str,
 ) -> dict[str, str]:
     if llm_client is None:
         return {
-            "why_now_text": fallback_why_text,
-            "what_else_moved_text": fallback_what_else_moved_text,
+            "why_now_text": evidence_why_text,
+            "what_else_moved_text": evidence_what_else_moved_text,
             "background_context_text": _background_context_text(background),
         }
 
@@ -1354,7 +1439,7 @@ def _synthesize_with_llm(
         "You write concise market drilldown text. Use only the supplied evidence. "
         "Do not invent catalysts. Distinguish same-day evidence from older background context. "
         "Avoid ticker/percent market recaps in all text fields. "
-        "If there is no clear same-day catalyst, say so plainly."
+        "If the supplied evidence is insufficient for a causal explanation, leave the causal field empty."
     )
     user_prompt = json.dumps(
         {
@@ -1386,8 +1471,8 @@ def _synthesize_with_llm(
                 for item in background[:3]
             ],
             "peer_moves": peer_moves[:3],
-            "fallback_why_text": fallback_why_text,
-            "fallback_what_else_moved_text": fallback_what_else_moved_text,
+            "evidence_why_text": evidence_why_text,
+            "evidence_what_else_moved_text": evidence_what_else_moved_text,
         },
         ensure_ascii=False,
         default=str,
@@ -1402,16 +1487,16 @@ def _synthesize_with_llm(
         )
     except Exception:
         return {
-            "why_now_text": fallback_why_text,
-            "what_else_moved_text": fallback_what_else_moved_text,
+            "why_now_text": evidence_why_text,
+            "what_else_moved_text": evidence_what_else_moved_text,
             "background_context_text": _background_context_text(background),
         }
-    why_now_text = _coerce_text(data.get("why_now_text")) or fallback_why_text
-    what_else_moved_text = _coerce_text(data.get("what_else_moved_text")) or fallback_what_else_moved_text
+    why_now_text = _coerce_text(data.get("why_now_text")) or evidence_why_text
+    what_else_moved_text = _coerce_text(data.get("what_else_moved_text")) or evidence_what_else_moved_text
     if _looks_like_numeric_market_activity_recap(why_now_text):
-        why_now_text = fallback_why_text
+        why_now_text = evidence_why_text
     if _looks_like_numeric_market_activity_recap(what_else_moved_text):
-        what_else_moved_text = fallback_what_else_moved_text
+        what_else_moved_text = evidence_what_else_moved_text
     return {
         "why_now_text": why_now_text,
         "what_else_moved_text": what_else_moved_text,
@@ -1494,7 +1579,7 @@ def build_live_attention_research_bundle(
             for item in evidence_rows
             if not item.get("is_same_day") and float(item.get("relevance_score") or 0.0) >= 0.55
         ][:3]
-        why_text = _fallback_event_why_text(event, cause_status, retained or evidence_rows[:3], home_payload)
+        why_text = _evidence_event_why_text(event, cause_status, retained or evidence_rows[:3], home_payload)
         evidence_quality, freshness_quality = _quality_label(retained, background, cause_status)
         base_bundle["why_happened_text"] = why_text
         base_bundle["cause_status"] = cause_status
@@ -1564,8 +1649,8 @@ def build_live_attention_research_bundle(
     if cause_status == "continuation" and not background:
         background = evidence_rows[:2]
     peer_moves = _find_peer_moves(candidate, home_payload)
-    fallback_why_text = _fallback_why_text(symbol, cause_status, retained, background)
-    fallback_what_else = _fallback_what_else_moved(symbol, candidate, home_payload, peer_moves)
+    evidence_why_text = _evidence_why_text(symbol, cause_status, retained, background)
+    evidence_what_else = _evidence_what_else_moved(symbol, candidate, home_payload, peer_moves)
     synthesized = _synthesize_with_llm(
         llm_client,
         symbol=symbol,
@@ -1575,8 +1660,8 @@ def build_live_attention_research_bundle(
         retained=retained,
         background=background,
         peer_moves=peer_moves,
-        fallback_why_text=fallback_why_text,
-        fallback_what_else_moved_text=fallback_what_else,
+        evidence_why_text=evidence_why_text,
+        evidence_what_else_moved_text=evidence_what_else,
     )
     evidence_quality, freshness_quality = _quality_label(retained, background, cause_status)
 

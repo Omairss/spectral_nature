@@ -4,7 +4,7 @@ Two personas that run after `_llm_home_summary` to catch and fix
 hallucinations in the rendered summary text:
 
 - ``critique_home_summary`` — agentic loop with a focused tool subset.
-  Plans tool calls to fact-check numeric claims, named catalysts, and
+  Plans tool calls to fact-check numeric claims, named triggers, and
   internal contradictions. Returns a structured list of issues.
 - ``judge_revise_summary`` — single LLM call. Reads the original
   summary plus the critique issues and emits a revised summary in the
@@ -191,25 +191,25 @@ _CRITIQUE_SYSTEM_PROMPT = register_narrative_prompt(
         "(`change_pct`, `surprise_z`), the cause_status, the top retained source, and the retained "
         "narrative (`why`) for every symbol. Treat ground truth as authoritative for *numbers* and "
         "*direction* (e.g. UP vs DOWN). Treat the `cause_status` as a starting point only — "
-        "`unresolved` / `continuation` / `developing` mean retention has not pinned the catalyst, "
-        "NOT that no catalyst exists. Your job is to FIND IT via tools when the summary says so. "
+        "`unresolved` / `continuation` / `developing` mean retention has not pinned the trigger, "
+        "NOT that the trigger is absent. Your job is to resolve it with tools when the summary depends on it. "
         "\n\nFlag these issue types: "
         "1. numeric — a percent move, price, or count that disagrees with ground truth or is invented. "
-        "2. contradiction — the overview and a section disagree, or one sentence names a catalyst "
-        "and the next sentence says no catalyst was confirmed. "
-        "3. unsupported — a named catalyst, narrative, or causal claim that contradicts both the "
+        "2. contradiction — the overview and a section disagree, or one sentence names a trigger "
+        "and the next sentence says the trigger is absent. "
+        "3. unsupported — a named trigger, narrative, or causal claim that contradicts both the "
         "retained `why` AND your tool searches. Do NOT flag a sentence as unsupported just because "
         "cause_status is unresolved/continuation — first check the retained `why` and search the web. "
         "4. stale — wrong direction, wrong sign, or a price that no longer matches current data. "
-        "5. gap — the summary uses vague filler like 'no clear catalyst confirmed', 'no single driver "
-        "confirmed', 'broad sector de-risking', 'thematic risk bid', 'rallied without confirmed news', "
-        "etc. For EVERY such phrase you MUST attempt at least one targeted web search "
-        "(research.live_event_evidence) before finalizing. Examples of good gap searches: "
-        "'BNO Brent crude rally Strait of Hormuz news today', 'utilities EIX PCG SRE selloff catalyst "
-        "today', 'space infrastructure stocks RDW YSS rally short squeeze'. If a credible catalyst "
+        "5. gap — the summary uses absence-language or generic market wallpaper where a specific "
+        "business event, macro force, filing detail, or missing evidence slot should be named. "
+        "For every such claim you MUST attempt at least one targeted web search "
+        "(research.live_event_evidence) before finalizing. Build the query from the ticker/company, "
+        "direction, sector, and suspected business or macro driver. If a credible trigger "
         "surfaces in the search results, flag as 'gap' and put a one-line summary of what you found "
         "(headline + source) in the `evidence` field — the judge will use that to rewrite. If you "
-        "searched and the news genuinely turned up nothing, do not flag — the filler is honest. "
+        "searched and evidence genuinely remains thin, flag the exact missing slot instead of "
+        "leaving absence-language in the summary. "
         "6. orphan_symbol — a ticker is in featured_symbols but never appears in the body text, or "
         "vice versa. Severity low. "
         "7. other — any other clear factual or logical flaw. "
@@ -219,8 +219,7 @@ _CRITIQUE_SYSTEM_PROMPT = register_narrative_prompt(
         "- investigator.recent_news → recent headlines for a single ticker. "
         "- investigator.technical_signals → confirm actual price / direction for a ticker. "
         "\n\nDo NOT call a tool with identical arguments twice. Group queries — one search per cluster "
-        "of vague phrases (e.g. one search covering 'utilities EIX PCG SRE selloff catalyst', not one "
-        "per ticker). When you have enough evidence — or the summary is clean — return action='final' "
+        "of vague phrases. When you have enough evidence — or the summary is clean — return action='final' "
         "with the full issues list. Keep evidence strings concrete: actual headlines, source names, "
         "publish dates. Severity: high = numeric or contradiction; medium = unsupported or a gap "
         "filled with credible new evidence; low = orphan_symbol or phrasing nit."
@@ -244,8 +243,8 @@ _JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
         "4. If you drop a sentence, do not pad with filler — shorter is fine. "
         "5. If a numeric claim was flagged but you have no replacement number from the evidence, "
         "remove the number rather than guess. "
-        "6. For type='gap' issues, the critique already supplied a credible catalyst in the evidence "
-        "field. Replace the vague 'no clear catalyst' phrasing with that catalyst, kept tight. "
+        "6. For type='gap' issues, replace the weak absence-language with the critique evidence "
+        "or cut the sentence if the critique only identifies a missing slot. "
         "7. For type='orphan_symbol' issues, edit the featured_symbols list — drop tickers that don't "
         "appear in the body, or add tickers that the body discusses but the list omits. "
         "8. The `audio_text` must reflect the revised content and remain a real spoken briefing "
@@ -286,7 +285,7 @@ def _ground_truth_text(home_payload: dict[str, Any]) -> str:
 
     Lists per-symbol numeric moves and cause_status from movers/unresolved, and
     the cause_status of top events. The critique uses this to spot numeric and
-    catalyst inconsistencies without needing to look at upstream payloads.
+    trigger inconsistencies without needing to look at upstream payloads.
     """
 
     def _fmt_pct(value: object) -> str:
@@ -331,7 +330,7 @@ def _ground_truth_text(home_payload: dict[str, Any]) -> str:
         lines.append("")
         lines.append(
             "Unresolved large moves (cause is OPEN in retained evidence — search the web "
-            "to look for a catalyst before accepting filler phrasing):"
+            "to resolve the trigger before accepting filler phrasing):"
         )
         for item in unresolved[:8]:
             symbol = str(item.get("symbol") or "?").upper()

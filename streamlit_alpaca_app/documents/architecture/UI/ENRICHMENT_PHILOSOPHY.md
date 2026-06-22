@@ -14,7 +14,9 @@ Any data enrichment that a user might see on a page should be pre-computed as a 
 
 ### Zopedia ticker enrichment (`attention_ticker_zopedia_enrichments`)
 
-When the homepage pipeline builds the daily narrative, it already knows which tickers will appear in the beats. After the homepage summary is assembled, the pipeline runs Zopedia analysis for each beat ticker (parallelized, capped at `ATTENTION_HOME_ZOPEDIA_ENRICHMENT_LIMIT` symbols, default 15). Results are stored as a dataset.
+When the homepage pipeline builds the daily narrative, it already knows which tickers can appear on the page. After the homepage summary is assembled, the pipeline runs Zopedia analysis for the same visible ticker universe used by the homepage ticker/background materialization (parallelized, capped at `ATTENTION_HOME_ZOPEDIA_ENRICHMENT_LIMIT` symbols, default 80). Results are stored as a dataset.
+
+LLM harness failures are retried inside the same Zopedia/AQL contract up to `ATTENTION_HOME_ZOPEDIA_ENRICHMENT_LLM_RETRIES` times, default 2. If the agent still fails, discard that enrichment. Do not replace it with hardcoded prose or deterministic fallback copy.
 
 The UI loads the dataset once per session and displays results inline — no spinner, no button, no waiting.
 

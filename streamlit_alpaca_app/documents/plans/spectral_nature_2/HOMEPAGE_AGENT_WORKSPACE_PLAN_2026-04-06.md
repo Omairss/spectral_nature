@@ -1,5 +1,7 @@
 # Homepage Agent Workspace Plan (2026-04-06)
 
+Deprecated status: historical planning note only. Do not use Home v2 names from this document as implementation targets; active Home helpers now live under route-neutral modules and stale paths are tracked in `documents/depricated.md`.
+
 ## Goal
 
 Add a homepage agent workspace that feels like a Claude Code-style interface, but is grounded in Spectral Nature's existing data/query stack.
@@ -42,7 +44,7 @@ The existing app already has useful seams we should extend:
 - existing run-trace datasets exposed through `resolve_attention_run_trace(...)`
 
 3. Homepage bundle/detail model
-- `services/homepage_v2.py`
+- `services/homepage_support.py` for small shared Home helpers
 - materialized homepage and research bundle reads already exist
 
 4. Thin API surface

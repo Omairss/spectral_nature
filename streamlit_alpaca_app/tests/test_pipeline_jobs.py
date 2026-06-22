@@ -21,10 +21,12 @@ from pipeline.jobs.main import (
     _build_treasury_yield_snapshots,
     _build_equity_price_history_snapshot,
     _build_portfolio_timeseries_snapshot,
+    _company_baselines_with_listing_fallback,
     _db_mark_job_start,
     _persist_dataset,
     _resolve_equity_symbols,
     _upload_frame,
+    _upload_manifest,
     run_attention_home,
     run_commodities,
     run_company_baselines,
@@ -60,6 +62,35 @@ def test_upload_frame_persists_empty_frames(monkeypatch):
     assert uploaded[0][0] == path
     assert uploaded[0][1] > 0
     assert uploaded[0][2] == "application/octet-stream"
+
+
+def test_upload_manifest_writes_stable_latest_pointer(monkeypatch):
+    uploaded: dict[str, dict[str, object]] = {}
+
+    def _capture(path: str, payload: bytes, content_type: str) -> None:
+        uploaded[path] = {
+            "payload": json.loads(payload.decode("utf-8")),
+            "content_type": content_type,
+        }
+
+    monkeypatch.setattr("pipeline.jobs.main._upload_bytes", _capture)
+
+    ctx = JobContext(
+        name="attention-home-build",
+        run_id="abcdef12-test-run",
+        asof=datetime(2026, 5, 27, 19, 55, tzinfo=timezone.utc),
+        universe_version="20260527",
+    )
+
+    manifest = _upload_manifest("attention_home_snapshots_1d", "datasets/home.parquet", pd.DataFrame([{"x": 1}]), ctx)
+
+    assert manifest is not None
+    version_path = f"manifests/attention_home_snapshots_1d/{manifest['dataset_version_id']}.json"
+    latest_path = "manifests/attention_home_snapshots_1d/latest.json"
+    assert version_path in uploaded
+    assert latest_path in uploaded
+    assert uploaded[latest_path]["payload"]["blob_path"] == "datasets/home.parquet"
+    assert uploaded[latest_path]["content_type"] == "application/json"
 
 
 def test_attention_step_timeout_returns_before_slow_step_finishes():
@@ -473,9 +504,43 @@ def test_pipeline_store_lists_attention_context_datasets_under_news():
         "edgar_evidence",
         "attention_context_llm",
         "attention_context_bundle",
+        "zopedia_business_model_research_plans",
+        "zopedia_business_model_search_requests",
+        "zopedia_business_model_search_results",
+        "zopedia_ticker_business_model_stacks",
         "zopedia_news_business_resolutions",
         "zopedia_company_business_memory_pages",
     }.issubset(news_datasets)
+
+
+def test_company_baselines_use_listing_names_without_inventing_business_text():
+    baselines = pd.DataFrame(
+        [
+            {
+                "symbol": "BX",
+                "company_background_text": "",
+            }
+        ]
+    )
+    listings = pd.DataFrame(
+        [
+            {
+                "symbol": "BX",
+                "security_name": "Blackstone Inc. Common Stock",
+            },
+            {
+                "symbol": "OBDC",
+                "security_name": "Blue Owl Capital Corporation Common Stock",
+            },
+        ]
+    )
+
+    frame = _company_baselines_with_listing_fallback(baselines, listings)
+    rows = {row["symbol"]: row for row in frame.to_dict("records")}
+
+    assert rows["BX"]["company_name"] == "Blackstone Inc. Common Stock"
+    assert rows["BX"].get("company_background_text") == ""
+    assert rows["OBDC"]["company_name"] == "Blue Owl Capital Corporation Common Stock"
 
 
 def test_pipeline_store_lists_attention_job_and_datasets():
@@ -639,7 +704,7 @@ def test_build_attention_home_output_frames_backfills_missing_news_with_search(m
             frames={"attention_search_results": pd.DataFrame()},
         ),
     )
-    monkeypatch.setattr(attention_home_build_module, "build_attention_entity_master", lambda symbols: [])
+    monkeypatch.setattr(attention_home_build_module, "build_attention_entity_master", lambda *args, **kwargs: [])
     monkeypatch.setattr(attention_home_build_module, "resolve_macro_anchor_symbols", lambda symbols: [])
     monkeypatch.setattr(attention_home_build_module, "collect_attention_ticker_symbols", lambda *args, **kwargs: ["VRDN"])
     monkeypatch.setattr(
@@ -647,7 +712,7 @@ def test_build_attention_home_output_frames_backfills_missing_news_with_search(m
         "build_attention_ticker_snapshot_frame",
         lambda *args, **kwargs: pd.DataFrame([{"symbol": "VRDN", "run_id": ctx.run_id}]),
     )
-    monkeypatch.setattr(attention_home_build_module, "_market_opportunity_focus_symbol_map", lambda: {"All Market": []})
+    monkeypatch.setattr(attention_home_build_module, "_market_opportunity_focus_symbol_map", lambda *args, **kwargs: {"All Market": []})
     monkeypatch.setattr(attention_home_build_module, "build_attention_knowledge_graph_proposals", lambda *args, **kwargs: pd.DataFrame())
 
     def _background_snapshot(*args, news_frame: pd.DataFrame, **kwargs) -> pd.DataFrame:
@@ -1300,8 +1365,12 @@ def test_run_news_persists_attention_context(monkeypatch):
     assert ("edgar_evidence", 0) in persisted
     assert ("attention_context_llm", 0) in persisted
     assert ("attention_context_bundle", 1) in persisted
+    assert ("zopedia_business_model_research_plans", 1) in persisted
+    assert ("zopedia_business_model_search_requests", 0) in persisted
+    assert ("zopedia_business_model_search_results", 0) in persisted
+    assert ("zopedia_ticker_business_model_stacks", 1) in persisted
     assert ("zopedia_news_business_resolutions", 1) in persisted
-    assert ("zopedia_company_business_memory_pages", 1) in persisted
+    assert ("zopedia_company_business_memory_pages", 0) in persisted
 
 
 def test_run_attention_home_materializes_attention_home_and_research_outputs(monkeypatch):
@@ -1371,12 +1440,16 @@ def test_run_attention_home_materializes_attention_home_and_research_outputs(mon
         lambda *args, **kwargs: pd.DataFrame(),
     )
     monkeypatch.setattr(
+        "pipeline.jobs.attention_home_build._review_home_public_surface",
+        lambda payload, bundle_map, **kwargs: (payload, bundle_map, {"status": "accepted"}),
+    )
+    monkeypatch.setattr(
         "pipeline.jobs.attention_home_build._market_opportunity_focus_symbol_map",
-        lambda: {"All Market": []},
+        lambda *args, **kwargs: {"All Market": []},
     )
     monkeypatch.setattr(
         "pipeline.jobs.attention_home_build.build_attention_entity_master",
-        lambda symbols: [],
+        lambda *args, **kwargs: [],
     )
     monkeypatch.setattr(
         "pipeline.jobs.attention_home_build.search_symbol_news_payload",
@@ -1569,6 +1642,31 @@ def test_zopedia_market_summary_enrichment_carries_its_own_audio(monkeypatch):
         }
 
     monkeypatch.setattr("pipeline.jobs.attention_home_build.run_aql_zopedia_agent", _fake_agent)
+
+    def _fake_structured_agent(**kwargs):
+        agent_calls.append(kwargs)
+        schema_name = str(kwargs.get("schema_name") or "")
+        if schema_name.endswith("_review"):
+            return {
+                "status": "completed",
+                "payload": {
+                    "accepted": True,
+                    "issues": [],
+                    "revision_instruction": "",
+                    "confidence": "medium",
+                },
+            }
+        return {
+            "status": "completed",
+            "payload": {
+                "answer_markdown": "### Theme\nRates are the dominant cross-asset signal today.",
+                "confidence": "medium",
+                "limitations": [],
+            },
+            "agent_result": {"status": "completed"},
+        }
+
+    monkeypatch.setattr("pipeline.jobs.attention_home_build.run_aql_zopedia_structured_agent", _fake_structured_agent)
     monkeypatch.setattr(
         "pipeline.jobs.attention_home_build.attach_attention_home_summary_audio",
         lambda summary_payload: {
