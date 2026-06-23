@@ -365,6 +365,7 @@ def test_latest_dataset_metadata_prefers_db_without_blob_listing(monkeypatch, tm
 
     monkeypatch.setattr(pipeline_store, "PIPELINE_CACHE_ROOT", tmp_path)
     monkeypatch.setattr(pipeline_store, "_db_connect", lambda: _Conn())
+    monkeypatch.setattr(pipeline_store, "_read_blob_json", lambda path: None)
     monkeypatch.setattr(
         pipeline_store,
         "_blob_service_client",
@@ -377,6 +378,65 @@ def test_latest_dataset_metadata_prefers_db_without_blob_listing(monkeypatch, tm
     assert metadata.dataset_version_id == row[1]
     assert metadata.blob_path == row[2]
     assert metadata.row_count == row[5]
+
+
+def test_latest_dataset_metadata_uses_newer_latest_manifest_when_db_is_stale(monkeypatch, tmp_path):
+    stale_db_row = (
+        "attention_home_1d",
+        "attention_home_1d__20260528T163459Z__db",
+        "datasets/attention_home_1d/part-db.parquet",
+        "2026-05-28T16:34:59Z",
+        "2026-05-28T17:26:18Z",
+        1,
+    )
+    latest_manifest = {
+        "dataset_name": "attention_home_1d",
+        "dataset_version_id": "attention_home_1d__20260622T202029Z__manifest",
+        "blob_path": "datasets/attention_home_1d/part-manifest.parquet",
+        "asof_time_utc": "2026-06-22T20:20:29Z",
+        "ingested_at_utc": "2026-06-22T20:55:07Z",
+        "row_count": 1,
+    }
+
+    class _Cursor:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def execute(self, query, params=None):
+            assert params == ("attention_home_1d",)
+
+        def fetchone(self):
+            return stale_db_row
+
+    class _Conn:
+        def cursor(self):
+            return _Cursor()
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(pipeline_store, "PIPELINE_CACHE_ROOT", tmp_path)
+    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: _Conn())
+    monkeypatch.setattr(
+        pipeline_store,
+        "_read_blob_json",
+        lambda path: latest_manifest if path == "manifests/attention_home_1d/latest.json" else None,
+    )
+    monkeypatch.setattr(
+        pipeline_store,
+        "_blob_service_client",
+        lambda: (_ for _ in ()).throw(AssertionError("stable latest manifest should avoid blob listing")),
+    )
+
+    metadata = pipeline_store.latest_dataset_metadata("attention_home_1d")
+
+    assert metadata is not None
+    assert metadata.dataset_version_id == latest_manifest["dataset_version_id"]
+    assert metadata.blob_path == latest_manifest["blob_path"]
+    assert metadata.asof_time_utc == latest_manifest["asof_time_utc"]
 
 
 def test_latest_dataset_metadata_uses_stable_latest_manifest_before_listing(monkeypatch, tmp_path):

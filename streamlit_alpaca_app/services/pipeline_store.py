@@ -682,12 +682,19 @@ def _newer_dataset(left: PipelineDataset | None, right: PipelineDataset | None) 
     return right if right_key > left_key else left
 
 
-def _latest_manifest_metadata(dataset_name: str) -> PipelineDataset | None:
+def _stable_latest_manifest_metadata(dataset_name: str) -> PipelineDataset | None:
     latest_manifest = _read_blob_json(f"manifests/{dataset_name}/latest.json")
     if latest_manifest:
         dataset = _coerce_manifest_dataset(latest_manifest)
         if dataset is not None:
             return dataset
+    return None
+
+
+def _latest_manifest_metadata(dataset_name: str) -> PipelineDataset | None:
+    stable_latest = _stable_latest_manifest_metadata(dataset_name)
+    if stable_latest is not None:
+        return stable_latest
 
     client = _blob_service_client()
     if client is None:
@@ -726,6 +733,8 @@ def latest_dataset_metadata(dataset_name: str) -> PipelineDataset | None:
     if cached is not None:
         return cached
 
+    manifest_dataset = _stable_latest_manifest_metadata(dataset_name)
+    db_dataset: PipelineDataset | None = None
     conn = _db_connect()
     if conn is not None:
         try:
@@ -743,7 +752,7 @@ def latest_dataset_metadata(dataset_name: str) -> PipelineDataset | None:
                 )
                 row = cur.fetchone()
             if row:
-                dataset = PipelineDataset(
+                db_dataset = PipelineDataset(
                     dataset_name=str(row[0]),
                     dataset_version_id=str(row[1]),
                     blob_path=str(row[2]),
@@ -751,8 +760,6 @@ def latest_dataset_metadata(dataset_name: str) -> PipelineDataset | None:
                     ingested_at_utc=str(row[4]),
                     row_count=int(row[5] or 0),
                 )
-                _write_cached_metadata(dataset_name, dataset)
-                return dataset
         except Exception:
             pass
         finally:
@@ -761,9 +768,12 @@ def latest_dataset_metadata(dataset_name: str) -> PipelineDataset | None:
             except Exception:
                 pass
 
-    manifest_dataset = _latest_manifest_metadata(dataset_name)
-    _write_cached_metadata(dataset_name, manifest_dataset)
-    return manifest_dataset
+    if db_dataset is None and manifest_dataset is None:
+        manifest_dataset = _latest_manifest_metadata(dataset_name)
+
+    dataset = _newer_dataset(db_dataset, manifest_dataset)
+    _write_cached_metadata(dataset_name, dataset)
+    return dataset
 
 
 def dataset_metadata_asof(dataset_name: str, target_date: str) -> PipelineDataset | None:
