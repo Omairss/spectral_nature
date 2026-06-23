@@ -836,17 +836,30 @@ def _render_page_agentic_summary_panel(
     ticker = str(safe_context.get("ticker") or "").upper().strip()
     summary_key = f"{key_prefix}_agentic_summary"
     signature_key = f"{key_prefix}_agentic_summary_signature"
-    summary = dashboard_loaders._load_page_agentic_summary_cached(str(surface or ""), context_signature, ticker)
+    summary = dashboard_loaders._load_page_agentic_summary_cached(
+        str(surface or ""),
+        context_signature,
+        ticker,
+        dataset_version_token=dashboard_loaders._latest_page_agentic_summary_cache_token(),
+    )
     st.session_state[summary_key] = summary
     st.session_state[signature_key] = context_signature
+    status = str(summary.get("status") or "").strip()
+    headline = str(summary.get("headline") or "").strip()
+    summary_markdown = str(summary.get("summary_markdown") or "").strip()
+    data_gaps = [
+        str(item).strip()
+        for item in to_list(summary.get("data_gaps"))
+        if str(item).strip()
+    ]
+    if status != "ok" and not data_gaps:
+        return summary
     with st.container(border=True):
         st.subheader("Zopedia Summary")
-        status = str(summary.get("status") or "").strip()
-        headline = str(summary.get("headline") or "").strip()
-        if status == "ok" and str(summary.get("summary_markdown") or "").strip():
+        if status == "ok" and summary_markdown:
             if headline:
                 st.markdown(f"**{headline}**")
-            st.markdown(str(summary.get("summary_markdown") or "").strip())
+            st.markdown(summary_markdown)
             watch_items = [
                 str(item).strip()
                 for item in to_list(summary.get("watch_items"))
@@ -855,11 +868,6 @@ def _render_page_agentic_summary_panel(
             if watch_items:
                 st.markdown("**Worth Looking Into**")
                 st.markdown("\n".join(f"- {item}" for item in watch_items[:5]))
-            data_gaps = [
-                str(item).strip()
-                for item in to_list(summary.get("data_gaps"))
-                if str(item).strip()
-            ]
             if data_gaps:
                 with st.expander("Data gaps", expanded=False):
                     st.markdown("\n".join(f"- {item}" for item in data_gaps[:5]))
@@ -867,5 +875,6 @@ def _render_page_agentic_summary_panel(
             if confidence:
                 st.caption(f"Confidence: {confidence}")
         else:
-            st.info("Zopedia Summary is refreshing from the latest data.")
+            st.markdown("**Worth Looking Into**")
+            st.markdown("\n".join(f"- {item}" for item in data_gaps[:5]))
     return summary

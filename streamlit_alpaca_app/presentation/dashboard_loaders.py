@@ -9,7 +9,7 @@ import streamlit as st
 
 from compute.fundamentals import latest_share_count
 from services.config import AppConfig
-from services.pipeline_store import load_latest_dataset_frame
+from services.pipeline_store import latest_dataset_metadata, load_latest_dataset_frame
 
 _CurrentUserContextProvider = Callable[[], Any]
 _DataAccessLayerFactory = Callable[..., Any]
@@ -416,7 +416,9 @@ def _load_page_agentic_summary_cached(
     context_signature: str,
     ticker: str = "",
     force_refresh: bool = False,
+    dataset_version_token: str = "",
 ) -> dict[str, object]:
+    del dataset_version_token
     return _resolve_data_access_payload(
         "resolve_page_agentic_summary",
         source="attention",
@@ -425,6 +427,16 @@ def _load_page_agentic_summary_cached(
         ticker=str(ticker or ""),
         force_refresh=force_refresh,
     )
+
+
+def _latest_page_agentic_summary_cache_token() -> str:
+    try:
+        metadata = latest_dataset_metadata("page_agentic_summaries")
+    except Exception:
+        return ""
+    if metadata is None:
+        return ""
+    return str(metadata.dataset_version_id or metadata.asof_time_utc or "").strip()
 
 
 def _latest_close_from_price_history(frame: pd.DataFrame) -> float | None:

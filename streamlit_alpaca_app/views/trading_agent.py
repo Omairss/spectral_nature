@@ -12,6 +12,7 @@ from services.config import AppConfig
 from services.json_utils import to_list
 from services.pipeline_store import (
     load_latest_dataset_frame,
+    load_recent_dataset_frames,
     record_trading_agent_action,
     trading_agent_actions_table,
 )
@@ -573,6 +574,42 @@ def _trading_agent_json_value(value: object, fallback: object) -> object:
     return parsed if parsed is not None else fallback
 
 def _load_latest_trading_agent_output() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, object | None]:
+    actions = trading_agent_actions_table(limit=500)
+    try:
+        run_versions = load_recent_dataset_frames("trading_agent_runs", limit=8)
+    except Exception:
+        run_versions = []
+    try:
+        candidate_versions = load_recent_dataset_frames("trading_agent_candidates", limit=8)
+    except Exception:
+        candidate_versions = []
+
+    for runs, metadata in run_versions:
+        if not isinstance(runs, pd.DataFrame) or runs.empty or "run_id" not in runs.columns:
+            continue
+        run_ids = [
+            _trading_agent_text(value)
+            for value in runs["run_id"].dropna().astype(str).tolist()
+            if _trading_agent_text(value)
+        ]
+        if not run_ids:
+            continue
+        run_id_set = set(run_ids)
+        for candidates, _candidate_metadata in candidate_versions:
+            if not isinstance(candidates, pd.DataFrame) or candidates.empty or "run_id" not in candidates.columns:
+                continue
+            scoped_candidates = candidates[
+                candidates["run_id"].astype(str).map(_trading_agent_text).isin(run_id_set)
+            ].copy()
+            if scoped_candidates.empty:
+                continue
+            return (
+                runs.copy(),
+                scoped_candidates,
+                actions.copy() if isinstance(actions, pd.DataFrame) else pd.DataFrame(),
+                metadata,
+            )
+
     try:
         runs, metadata = load_latest_dataset_frame("trading_agent_runs")
     except Exception:
@@ -581,7 +618,6 @@ def _load_latest_trading_agent_output() -> tuple[pd.DataFrame, pd.DataFrame, pd.
         candidates, _ = load_latest_dataset_frame("trading_agent_candidates")
     except Exception:
         candidates = pd.DataFrame()
-    actions = trading_agent_actions_table(limit=500)
     return (
         runs.copy() if isinstance(runs, pd.DataFrame) else pd.DataFrame(),
         candidates.copy() if isinstance(candidates, pd.DataFrame) else pd.DataFrame(),

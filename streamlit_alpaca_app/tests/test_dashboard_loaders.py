@@ -11,6 +11,20 @@ if str(APP_ROOT) not in sys.path:
 from presentation import dashboard_loaders
 
 
+def test_latest_page_agentic_summary_cache_token_uses_dataset_version(monkeypatch):
+    class Metadata:
+        dataset_version_id = "page_agentic_summaries__run_2"
+        asof_time_utc = "2026-06-22T20:20:00Z"
+
+    monkeypatch.setattr(
+        dashboard_loaders,
+        "latest_dataset_metadata",
+        lambda dataset_name: Metadata() if dataset_name == "page_agentic_summaries" else None,
+    )
+
+    assert dashboard_loaders._latest_page_agentic_summary_cache_token() == "page_agentic_summaries__run_2"
+
+
 def test_load_ticker_snapshot_profile_can_skip_live_fallback(monkeypatch):
     monkeypatch.setattr(dashboard_loaders, "_load_attention_ticker_snapshot_map_cached", lambda force_refresh=False: {})
     monkeypatch.setattr(
