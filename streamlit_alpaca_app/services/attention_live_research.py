@@ -19,9 +19,11 @@ from .attention_home_1d import build_attention_research_bundle
 from .llm import NARRATIVE_STYLE_RULE, AzureOpenAIChatJSONClient, LLMAPIError, OpenAIChatJSONClient, get_prompt, register_narrative_prompt
 from .runtime_policy import source_authority_policy
 from .web_research import (
+    SerperSearchClient,
     SerpAPISearchClient,
     TavilySearchClient,
     WebResearchError,
+    load_serper_config,
     load_serpapi_config,
     load_tavily_config,
 )
@@ -867,6 +869,7 @@ def search_market_event_news_payload(
     *,
     max_results: int = 8,
     serp_client: SerpAPISearchClient | None = None,
+    serper_client: SerperSearchClient | None = None,
     tavily_client: TavilySearchClient | None = None,
     search_query: str = "",
     allow_llm_query: bool = True,
@@ -877,6 +880,9 @@ def search_market_event_news_payload(
     if serp_client is None:
         cfg = load_serpapi_config()
         serp_client = SerpAPISearchClient(cfg) if cfg is not None else None
+    if serper_client is None:
+        cfg = load_serper_config()
+        serper_client = SerperSearchClient(cfg) if cfg is not None else None
     if tavily_client is None:
         cfg = load_tavily_config()
         tavily_client = TavilySearchClient(cfg) if cfg is not None else None
@@ -917,6 +923,29 @@ def search_market_event_news_payload(
             sources.append("serpapi")
         except Exception as exc:
             errors.append(f"SerpApi failed: {type(exc).__name__}")
+
+    if serper_client is not None:
+        try:
+            for item in serper_client.search(query_base, news=True, num=max(max_results, 3)):
+                title = _coerce_text(item.title)
+                snippet = _coerce_text(item.snippet)
+                if not title:
+                    continue
+                if not _passes_event_relevance_gate(title, snippet, theme, symbols, query_text=f"{event_title} {query_base}"):
+                    continue
+                article_rows.append(
+                    {
+                        "headline": title,
+                        "summary": snippet,
+                        "description": snippet,
+                        "source": _coerce_text(item.source) or "Serper",
+                        "published_at": coerce_article_published_at(item.published_at, url=item.url),
+                        "url": _coerce_text(item.url),
+                    }
+                )
+            sources.append("serper")
+        except Exception as exc:
+            errors.append(f"Serper failed: {type(exc).__name__}")
 
     if tavily_client is not None:
         try:

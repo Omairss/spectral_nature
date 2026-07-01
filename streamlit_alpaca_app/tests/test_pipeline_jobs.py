@@ -10,6 +10,8 @@ import pandas as pd
 
 from pipeline.jobs.attention_home_build import (
     AttentionHomeBuildError,
+    _apply_home_surface_quality_items,
+    _build_market_summary_query,
     _build_page_agentic_summary_frame,
     _build_zopedia_enrichment_frame,
     _news_payloads_from_articles_frame,
@@ -22,11 +24,13 @@ from pipeline.jobs.main import (
     _build_equity_price_history_snapshot,
     _build_portfolio_timeseries_snapshot,
     _company_baselines_with_listing_fallback,
+    _commit_zopedia_memory_pages,
     _db_mark_job_start,
     _persist_dataset,
     _resolve_equity_symbols,
     _upload_frame,
     _upload_manifest,
+    _zopedia_memory_commit_report_frame,
     run_attention_home,
     run_commodities,
     run_company_baselines,
@@ -91,6 +95,178 @@ def test_upload_manifest_writes_stable_latest_pointer(monkeypatch):
     assert latest_path in uploaded
     assert uploaded[latest_path]["payload"]["blob_path"] == "datasets/home.parquet"
     assert uploaded[latest_path]["content_type"] == "application/json"
+
+
+def test_commit_zopedia_memory_pages_uses_audited_typed_mutation(monkeypatch):
+    captured: dict[str, object] = {}
+
+    def _fake_apply(**kwargs):
+        captured.update(kwargs)
+        return {
+            "status": "committed",
+            "mutation_type": kwargs["mutation_type"],
+            "page_count": len(kwargs["pages"]),
+            "mutation_audit": {"mutation_id": "zmut_test"},
+        }
+
+    monkeypatch.setattr("pipeline.jobs.main.apply_zopedia_typed_mutation", _fake_apply)
+
+    ctx = JobContext(
+        name="attention-home-build",
+        run_id="attention-memory-run",
+        asof=datetime(2026, 6, 24, 12, 0, tzinfo=timezone.utc),
+        universe_version="20260624",
+    )
+    pages = pd.DataFrame(
+        [
+            {
+                "page_id": "zpage::spacex",
+                "title": "SpaceX",
+                "summary": "SpaceX is a private launch and satellite company.",
+                "body_markdown": "Source-backed SpaceX memory.",
+                "page_type": "entity",
+                "source_urls": ["https://example.com/spacex"],
+            }
+        ]
+    )
+
+    result = _commit_zopedia_memory_pages(
+        pages_frame=pages,
+        write_policy="safe_auto",
+        ctx=ctx,
+        conn=None,
+        source="pipeline.news_business_resolution",
+        rationale="Commit source-backed pages.",
+    )
+
+    assert result["status"] == "committed"
+    assert captured["mutation_type"] == "upsert_pages"
+    assert captured["actor"] == "attention-pipeline"
+    assert captured["source"] == "pipeline.news_business_resolution"
+    assert captured["pages"][0]["page_id"] == "zpage::spacex"
+    assert captured["evidence_refs"][0]["run_id"] == "attention-memory-run"
+    assert captured["payload"]["page_count"] == 1
+    assert result["requested_page_count"] == 1
+    assert result["eligible_page_count"] == 1
+    assert result["rejected_page_count"] == 0
+
+
+def test_commit_zopedia_memory_pages_respects_non_commit_policy(monkeypatch):
+    called = {"value": False}
+
+    def _fake_apply(**kwargs):
+        del kwargs
+        called["value"] = True
+        return {"status": "committed"}
+
+    monkeypatch.setattr("pipeline.jobs.main.apply_zopedia_typed_mutation", _fake_apply)
+
+    ctx = JobContext(
+        name="attention-home-build",
+        run_id="attention-memory-run",
+        asof=datetime(2026, 6, 24, 12, 0, tzinfo=timezone.utc),
+        universe_version="20260624",
+    )
+
+    result = _commit_zopedia_memory_pages(
+        pages_frame=pd.DataFrame([{"page_id": "zpage::spacex"}]),
+        write_policy="propose",
+        ctx=ctx,
+        conn=None,
+        source="pipeline.news_business_resolution",
+        rationale="Commit source-backed pages.",
+    )
+
+    assert result == {
+        "status": "skipped",
+        "reason": "write_policy_propose",
+        "page_count": 0,
+        "requested_page_count": 1,
+        "eligible_page_count": 0,
+        "rejected_page_count": 0,
+        "rejected_pages": [],
+    }
+    assert called["value"] is False
+
+
+def test_commit_zopedia_memory_pages_rejects_unsourced_pages(monkeypatch):
+    called = {"value": False}
+
+    def _fake_apply(**kwargs):
+        del kwargs
+        called["value"] = True
+        return {"status": "committed"}
+
+    monkeypatch.setattr("pipeline.jobs.main.apply_zopedia_typed_mutation", _fake_apply)
+
+    ctx = JobContext(
+        name="attention-home-build",
+        run_id="attention-memory-run",
+        asof=datetime(2026, 6, 24, 12, 0, tzinfo=timezone.utc),
+        universe_version="20260624",
+    )
+    pages = pd.DataFrame(
+        [
+            {
+                "page_id": "zpage::spacex",
+                "title": "SpaceX",
+                "summary": "SpaceX is a private launch and satellite company.",
+                "body_markdown": "Source-backed SpaceX memory.",
+                "page_type": "entity",
+            }
+        ]
+    )
+
+    result = _commit_zopedia_memory_pages(
+        pages_frame=pages,
+        write_policy="safe_auto",
+        ctx=ctx,
+        conn=None,
+        source="pipeline.news_business_resolution",
+        rationale="Commit source-backed pages.",
+    )
+
+    assert result["status"] == "skipped"
+    assert result["reason"] == "no_valid_pages"
+    assert result["requested_page_count"] == 1
+    assert result["eligible_page_count"] == 0
+    assert result["rejected_page_count"] == 1
+    assert result["rejected_pages"][0]["issues"] == ["missing_source_refs"]
+    assert called["value"] is False
+
+
+def test_zopedia_memory_commit_report_frame_summarizes_commit_state():
+    ctx = JobContext(
+        name="attention-home-build",
+        run_id="attention-memory-run",
+        asof=datetime(2026, 6, 24, 12, 0, tzinfo=timezone.utc),
+        universe_version="20260624",
+    )
+
+    report = _zopedia_memory_commit_report_frame(
+        ctx=ctx,
+        source="pipeline.news_business_resolution",
+        write_policy="safe-auto",
+        result={
+            "status": "committed",
+            "mutation_type": "upsert_pages",
+            "page_count": 2,
+            "mutation_audit": {"mutation_id": "zmut_1"},
+        },
+        requested_page_count=3,
+        eligible_page_count=2,
+        rejected_pages=[{"row_index": 2, "issues": ["missing_source_refs"]}],
+    )
+
+    row = report.iloc[0].to_dict()
+    assert row["write_policy"] == "safe_auto"
+    assert row["status"] == "committed"
+    assert row["mutation_type"] == "upsert_pages"
+    assert row["requested_page_count"] == 3
+    assert row["eligible_page_count"] == 2
+    assert row["rejected_page_count"] == 1
+    assert row["committed_page_count"] == 2
+    assert row["mutation_id"] == "zmut_1"
 
 
 def test_attention_step_timeout_returns_before_slow_step_finishes():
@@ -510,6 +686,7 @@ def test_pipeline_store_lists_attention_context_datasets_under_news():
         "zopedia_ticker_business_model_stacks",
         "zopedia_news_business_resolutions",
         "zopedia_company_business_memory_pages",
+        "zopedia_memory_commit_report",
     }.issubset(news_datasets)
 
 
@@ -557,7 +734,12 @@ def test_pipeline_store_lists_attention_job_and_datasets():
 
 def test_pipeline_store_lists_trading_agent_job_and_datasets():
     assert SOURCE_JOB_MAP["trading_agent"] == "trading-agent-build"
-    assert set(SOURCE_DATASETS["trading_agent"]) == {"trading_agent_runs", "trading_agent_candidates"}
+    assert set(SOURCE_DATASETS["trading_agent"]) == {
+        "trading_agent_runs",
+        "trading_agent_candidates",
+        "trading_agent_outcomes",
+        "trading_agent_research_reviews",
+    }
 
 
 def test_run_trading_agent_persists_runs_and_candidates(monkeypatch):
@@ -634,15 +816,23 @@ def test_run_trading_agent_persists_runs_and_candidates(monkeypatch):
 
     monkeypatch.setattr("pipeline.jobs.main._load_latest_materialized_frame", _fake_load)
     monkeypatch.setattr("pipeline.jobs.main._persist_dataset", _fake_persist)
+    monkeypatch.setattr("pipeline.jobs.main.load_recent_dataset_frames", lambda dataset_name, *, limit=8: [])
     monkeypatch.setattr("pipeline.jobs.main.load_aql_zopedia_llm_client", lambda **kwargs: object())
     monkeypatch.setattr("pipeline.jobs.main.build_trading_agent_suggestions", _fake_suggestions)
     monkeypatch.setenv("TRADING_AGENT_HORIZON_TIMEOUT_SECONDS", "30")
 
     run_trading_agent(ctx, conn=None)
 
-    assert set(persisted) == {"trading_agent_runs", "trading_agent_candidates"}
+    assert set(persisted) == {
+        "trading_agent_runs",
+        "trading_agent_candidates",
+        "trading_agent_outcomes",
+        "trading_agent_research_reviews",
+    }
     assert persisted["trading_agent_runs"]["horizon_key"].tolist() == ["1w", "1m", "3m", "1y", "5y"]
     assert persisted["trading_agent_candidates"]["horizon_key"].tolist() == ["1w", "1m", "3m", "1y", "5y"]
+    assert persisted["trading_agent_outcomes"]["outcome_status"].tolist() == ["missing_price"] * 5
+    assert persisted["trading_agent_research_reviews"].empty
 
 
 def test_attention_home_news_payloads_accept_array_symbols():
@@ -721,6 +911,11 @@ def test_build_attention_home_output_frames_backfills_missing_news_with_search(m
 
     monkeypatch.setattr(attention_home_build_module, "build_attention_ticker_background_snapshot_frame", _background_snapshot)
     monkeypatch.setattr(attention_home_build_module, "_build_zopedia_enrichment_frame", lambda *args, **kwargs: pd.DataFrame())
+    monkeypatch.setattr(
+        attention_home_build_module,
+        "_review_home_public_surface",
+        lambda payload, bundle_map, **kwargs: (payload, bundle_map, {"status": "accepted"}),
+    )
 
     outputs = build_attention_home_output_frames(
         ctx=ctx,
@@ -757,8 +952,148 @@ def test_build_attention_home_output_frames_backfills_missing_news_with_search(m
     assert not outputs["attention_web_search_news"].empty
     assert outputs["attention_web_search_news"]["symbol"].tolist() == ["VRDN"]
     assert outputs["attention_web_search_news"]["headline"].tolist() == ["Viridian posts trial update"]
+    coverage = json.loads(outputs["attention_home_snapshots_1d"].iloc[0]["coverage_summary_json"])
+    market_coverage = coverage["market_coverage"]
+    assert market_coverage["status"] == "partial"
+    assert market_coverage["broad_market"]["market_breadth"]["total_symbols"] == 1
+    assert coverage["market_breadth_symbol_count"] == 1
     assert "news_frame" in captured
     assert captured["news_frame"]["headline"].tolist() == ["Viridian posts trial update"]
+
+
+def test_market_summary_query_carries_market_coverage_contract(monkeypatch):
+    monkeypatch.setattr(
+        "pipeline.jobs.attention_home_build.build_market_stories",
+        lambda payload: [{"sentence": "AI infrastructure suppliers led attention while the broad market was mixed.", "symbols": ["AAPL"]}],
+    )
+    query = _build_market_summary_query(
+        {
+            "coverage_summary": {
+                "market_coverage": {
+                    "status": "partial",
+                    "broad_market": {
+                        "market_breadth": {
+                            "total_symbols": 4,
+                            "advancers": 2,
+                            "decliners": 2,
+                            "median_change_pct": 0.1,
+                        },
+                        "macro_anchor_moves": [{"symbol": "SPY", "change_pct": -0.4}],
+                    },
+                    "coverage_gaps": ["yield curve facts"],
+                }
+            }
+        },
+        enrichment_rows=[],
+        asof_time_utc=pd.Timestamp("2026-06-24T20:00:00Z"),
+    )
+
+    assert "Market coverage contract:" in query
+    assert "macro_anchor_moves" in query
+    assert "SPY" in query
+    assert "broad market" in query
+    assert "AI infrastructure suppliers led attention" in query
+
+
+def test_public_surface_preserves_observed_cohort_top_event_when_review_demotes():
+    bundle_id = "event::observed-cohort-ai"
+    item = {
+        "bundle_id": bundle_id,
+        "bundle_type": "event",
+        "event_title": "AI-linked names fell together",
+        "what_happened_text": "AI-linked names fell together today.",
+        "business_context_text": "The group shares AI Infrastructure exposure.",
+        "watch_next_text": "Watch for sector research or company news that explains the driver.",
+        "cause_status": "partial",
+        "observed_cohort": True,
+        "event_type": "observed_cohort",
+        "supporting_symbols": ["CBRS", "NBIS", "APLD"],
+        "direction": "down",
+        "change_pct": -6.5,
+        "evidence_count": 0,
+        "same_day_evidence_count": 0,
+    }
+    payload = {"top_events": [dict(item)], "must_read_movers": [], "unresolved_large_moves": []}
+    bundle_map = {bundle_id: dict(item)}
+    review_items = [
+        {
+            "section": "top_events",
+            "index": 0,
+            "bundle_id": bundle_id,
+            "publish": False,
+            "cause_status": "unresolved",
+            "event_title": "",
+            "what_happened_text": "",
+            "business_context_text": "",
+            "watch_next_text": "",
+        }
+    ]
+
+    updated_payload, updated_bundle_map, counts = _apply_home_surface_quality_items(
+        payload,
+        bundle_map,
+        review_items,
+    )
+
+    assert counts["dropped"] == 0
+    assert len(updated_payload["top_events"]) == 1
+    assert updated_payload["unresolved_large_moves"] == []
+    preserved = updated_payload["top_events"][0]
+    assert preserved["publish"] is True
+    assert preserved["cause_status"] == "partial"
+    assert preserved["surface_cause_status"] == "partial"
+    assert preserved["surface_why_text"] == ""
+    assert "AI-linked names fell together" in preserved["event_title"]
+    assert "AI Infrastructure" in preserved["business_context_text"]
+    assert updated_bundle_map[bundle_id]["publish"] is True
+
+
+def test_public_surface_uses_specific_observed_cohort_headline_over_sector_title():
+    bundle_id = "event::observed-cohort-sector"
+    item = {
+        "bundle_id": bundle_id,
+        "bundle_type": "event",
+        "event_title": "Information Technology names fell together",
+        "headline": "Information Technology names fell together",
+        "what_happened_text": "Information Technology names fell together today.",
+        "business_context_text": "The group includes advanced computing, quantum, data center, and crypto-exposed names.",
+        "watch_next_text": "Watch for sector research or company news that explains the driver.",
+        "cause_status": "partial",
+        "observed_cohort": True,
+        "event_type": "observed_cohort",
+        "cohort_label": "Information Technology",
+        "cohort_kind": "sector",
+        "supporting_symbols": ["CBRS", "NVTS", "INFQ", "HIVE"],
+        "direction": "down",
+        "change_pct": -19.8,
+    }
+    payload = {"top_events": [dict(item)], "must_read_movers": [], "unresolved_large_moves": []}
+    bundle_map = {bundle_id: dict(item)}
+    review_items = [
+        {
+            "section": "top_events",
+            "index": 0,
+            "bundle_id": bundle_id,
+            "publish": True,
+            "cause_status": "partial",
+            "event_title": "Information Technology names fell together",
+            "headline": "Tech stocks slide across advanced computing, quantum, and crypto-exposed names",
+            "what_happened_text": "Tech stocks fell together today.",
+            "business_context_text": "The group includes advanced computing, quantum, data center, and crypto-exposed names.",
+            "watch_next_text": "Watch for sector research or company news that explains the driver.",
+        }
+    ]
+
+    updated_payload, updated_bundle_map, counts = _apply_home_surface_quality_items(
+        payload,
+        bundle_map,
+        review_items,
+    )
+
+    assert counts["dropped"] == 0
+    event = updated_payload["top_events"][0]
+    assert event["event_title"] == "Tech stocks slide across advanced computing, quantum, and crypto-exposed names"
+    assert updated_bundle_map[bundle_id]["event_title"] == event["event_title"]
 
 
 def test_build_page_agentic_summary_frame_materializes_page_summaries(monkeypatch):
@@ -850,6 +1185,65 @@ def test_build_page_agentic_summary_frame_fails_closed_on_timeout(monkeypatch):
     summaries = [json.loads(value) for value in frame["summary_json"].astype(str)]
     assert all(not summary["summary_markdown"] for summary in summaries)
     assert all("Page summary failed" in summary["data_gaps"][0] for summary in summaries)
+
+
+def test_run_attention_home_persists_core_outputs_before_optional_page_summaries(monkeypatch):
+    import pipeline.jobs.attention_home_build as attention_home_build_module
+
+    persisted: list[str] = []
+    build_kwargs: dict[str, object] = {}
+
+    def _load_frame(dataset_name: str) -> pd.DataFrame:
+        if dataset_name == "daily_movers":
+            return pd.DataFrame([{"symbol": "AAPL", "change_pct": 4.0}])
+        if dataset_name == "macro_anchor_daily_movers":
+            return pd.DataFrame()
+        if dataset_name == "price_history":
+            return pd.DataFrame([{"symbol": "AAPL", "close": 100.0}])
+        if dataset_name == "universe_snapshot":
+            return pd.DataFrame([{"symbol": "AAPL", "security_name": "Apple Inc."}])
+        if dataset_name == "momentum_profiles":
+            return pd.DataFrame([{"symbol": "AAPL", "return_1m_pct": 3.0}])
+        return pd.DataFrame()
+
+    def _build_core(**kwargs):
+        build_kwargs.update(kwargs)
+        return {
+            "attention_home_1d": pd.DataFrame([{"top_events_json": "[]"}]),
+            "attention_ticker_background_snapshots": pd.DataFrame([{"symbol": "AAPL"}]),
+        }
+
+    def _build_page(**kwargs):
+        del kwargs
+        assert "attention_home_1d" in persisted
+        assert "attention_ticker_background_snapshots" in persisted
+        return pd.DataFrame([{"surface": "Market Explorer", "status": "ok"}])
+
+    def _persist(dataset_name, frame, ctx, conn):
+        del frame, ctx, conn
+        persisted.append(dataset_name)
+
+    monkeypatch.setattr(attention_home_build_module, "load_aql_zopedia_llm_client", lambda surface: object())
+    monkeypatch.setattr(
+        attention_home_build_module,
+        "_validate_mandatory_datasets",
+        lambda load_fn, names: {"price_history": _load_frame("price_history")},
+    )
+    monkeypatch.setattr(attention_home_build_module, "build_attention_home_output_frames", _build_core)
+    monkeypatch.setattr(attention_home_build_module, "_build_page_agentic_summary_frame", _build_page)
+
+    result = attention_home_build_module.run_attention_home_build(
+        SimpleNamespace(asof=pd.Timestamp("2026-06-24T20:00:00Z"), run_id="run-order"),
+        None,
+        persist_dataset_fn=_persist,
+        job_progress_fn=lambda *args, **kwargs: None,
+        load_materialized_frame_fn=_load_frame,
+    )
+
+    assert build_kwargs["include_page_agentic"] is False
+    assert persisted[:2] == ["attention_home_1d", "attention_ticker_background_snapshots"]
+    assert persisted[-1] == "page_agentic_summaries"
+    assert "page_agentic_summaries" in result
 
 
 def test_db_mark_job_start_uses_matching_parameter_count():
@@ -1621,7 +2015,8 @@ def test_run_attention_home_materializes_attention_home_and_research_outputs(mon
 
 
 def test_zopedia_market_summary_enrichment_carries_its_own_audio(monkeypatch):
-    payload = {"top_events": [{"event_title": "Rates connect equities", "supporting_symbols": []}]}
+    monkeypatch.delenv("ATTENTION_ZOPEDIA_WRITE_POLICY", raising=False)
+    payload = {"top_events": [{"event_title": "Rates connect equities", "supporting_symbols": ["AAPL"]}]}
     agent_calls: list[dict[str, object]] = []
 
     monkeypatch.setattr(
@@ -1689,7 +2084,15 @@ def test_zopedia_market_summary_enrichment_carries_its_own_audio(monkeypatch):
     assert summary_row["audio_base64"] == "YXVkaW8="
     assert summary_row["audio_mime_type"] == "audio/mpeg"
     assert "###" not in summary_row["audio_text"]
-    assert agent_calls[0]["surface"] == "attention_home.zopedia_market_summary"
+    assert any(
+        call.get("surface") == "attention_home.zopedia_market_summary"
+        for call in agent_calls
+    )
+    assert any(
+        call.get("surface") == "attention_home.zopedia_ticker_enrichment"
+        and call.get("write_policy") == "safe_auto"
+        for call in agent_calls
+    )
 
 
 def test_run_attention_home_fails_when_required_mover_inputs_are_missing(monkeypatch):

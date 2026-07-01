@@ -22,6 +22,8 @@ from .zopedia_runtime import ZopediaLLMClient, load_zopedia_llm_client
 
 ProgressCallback = Callable[[dict[str, object]], None]
 
+_WRITE_POLICIES = {"none", "propose", "safe_auto"}
+
 
 _P_AGENT_MAX_TOOL_CALLS = register_config_param(
     "Engine agent max tool calls",
@@ -47,11 +49,32 @@ _P_ATTENTION_SUMMARY_MAX_TOOL_CALLS = register_config_param(
     default=6,
     description="Tool budget for the scheduled attention homepage Zopedia evidence pass.",
 )
+_P_ATTENTION_SUMMARY_WRITE_POLICY = register_config_param(
+    "Engine attention summary write policy",
+    group="AQL / Zopedia Engine",
+    default="safe_auto",
+    description="Memory write policy for scheduled Attention summary AQL/Zopedia runs: none, propose, or safe_auto.",
+)
 
 
 def _clean(value: object) -> str:
     text = str(value if value is not None else "").strip()
     return "" if text.lower() == "nan" else text
+
+
+def _normalize_write_policy(value: object, *, persist_findings: bool = True) -> str:
+    policy = _clean(value).lower()
+    if not policy:
+        return "safe_auto" if persist_findings else "none"
+    if policy in {"off", "disabled", "read_only", "readonly"}:
+        return "none"
+    if policy in {"proposal", "review"}:
+        return "propose"
+    if policy in {"auto", "commit", "safe", "safe-auto"}:
+        return "safe_auto"
+    if policy in _WRITE_POLICIES:
+        return policy
+    return "safe_auto" if persist_findings else "none"
 
 
 def _compact_json(value: Any, *, limit: int = 12000) -> str:
@@ -117,6 +140,7 @@ def run_aql_zopedia_agent(
     progress_callback: ProgressCallback | None = None,
     conversation_history: list[dict[str, Any]] | None = None,
     persist_findings: bool = True,
+    write_policy: str | None = None,
     tool_call_timeout_seconds: int | None = None,
     llm_step_timeout_seconds: int | None = None,
     prefetch_timeout_seconds: int | None = None,
@@ -137,6 +161,7 @@ def run_aql_zopedia_agent(
         llm_step_timeout_seconds = _env_int_or_none("AQL_ZOPEDIA_AGENT_LLM_STEP_TIMEOUT_SECONDS", minimum=1)
     if prefetch_timeout_seconds is None:
         prefetch_timeout_seconds = _env_int_or_none("AQL_ZOPEDIA_AGENT_PREFETCH_TIMEOUT_SECONDS", minimum=1)
+    resolved_write_policy = _normalize_write_policy(write_policy, persist_findings=persist_findings)
 
     result = _run_zopedia_agent_loop(
         query=query,
@@ -149,6 +174,7 @@ def run_aql_zopedia_agent(
         progress_callback=progress_callback,
         conversation_history=conversation_history,
         persist_findings=persist_findings,
+        write_policy=resolved_write_policy,
         tool_call_timeout_seconds=tool_call_timeout_seconds,
         llm_step_timeout_seconds=llm_step_timeout_seconds,
         prefetch_timeout_seconds=prefetch_timeout_seconds,
@@ -161,6 +187,7 @@ def run_aql_zopedia_agent(
             "name": "aql_zopedia",
             "task": _clean(task) or "agent_answer",
             "surface": _clean(surface) or "zopedia.chat",
+            "write_policy": resolved_write_policy,
             "max_tool_calls": int(resolved_budget),
             "tool_call_timeout_seconds": int(tool_call_timeout_seconds) if tool_call_timeout_seconds is not None else None,
             "llm_step_timeout_seconds": int(llm_step_timeout_seconds) if llm_step_timeout_seconds is not None else None,
@@ -246,6 +273,7 @@ def run_aql_zopedia_structured_agent(
     progress_callback: ProgressCallback | None = None,
     conversation_history: list[dict[str, Any]] | None = None,
     persist_findings: bool = False,
+    write_policy: str | None = None,
     tool_call_timeout_seconds: int | None = None,
     llm_step_timeout_seconds: int | None = None,
     prefetch_timeout_seconds: int | None = None,
@@ -362,6 +390,7 @@ def run_aql_zopedia_structured_agent(
         progress_callback=progress_callback,
         conversation_history=conversation_history,
         persist_findings=persist_findings,
+        write_policy=write_policy,
         tool_call_timeout_seconds=tool_call_timeout_seconds,
         llm_step_timeout_seconds=llm_step_timeout_seconds,
         prefetch_timeout_seconds=prefetch_timeout_seconds,
@@ -514,6 +543,7 @@ def run_aql_zopedia_page_summary_agent(
     llm_client: ZopediaLLMClient | None = None,
     progress_callback: ProgressCallback | None = None,
     persist_findings: bool = False,
+    write_policy: str | None = None,
 ) -> dict[str, Any]:
     return run_aql_zopedia_agent(
         query=query,
@@ -524,6 +554,7 @@ def run_aql_zopedia_page_summary_agent(
         llm_client=llm_client,
         progress_callback=progress_callback,
         persist_findings=persist_findings,
+        write_policy=write_policy,
     )
 
 
@@ -621,6 +652,7 @@ def build_aql_zopedia_attention_home_summary_with_trace(
             service=query_service,
             llm_client=llm_client,
             persist_findings=False,
+            write_policy=_normalize_write_policy(get_config_param(_P_ATTENTION_SUMMARY_WRITE_POLICY), persist_findings=False),
         )
     except Exception as exc:
         summary_payload["aql_zopedia_engine"] = {

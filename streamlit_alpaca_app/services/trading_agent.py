@@ -129,10 +129,190 @@ TRADING_AGENT_CANDIDATE_COLUMNS = [
     "generated_at_utc",
 ]
 
+TRADING_AGENT_OUTCOME_COLUMNS = [
+    "outcome_id",
+    "candidate_id",
+    "trading_agent_run_id",
+    "run_id",
+    "horizon_key",
+    "horizon_label",
+    "selected_horizon_col",
+    "business_filter",
+    "rank",
+    "ticker",
+    "direction",
+    "scoring_direction",
+    "setup",
+    "hypothesis",
+    "confidence",
+    "suggested_horizon",
+    "evidence_json",
+    "invalidation",
+    "tail_risks_json",
+    "candidate_generated_at_utc",
+    "candidate_asof_time_utc",
+    "entry_ts",
+    "entry_close",
+    "target_exit_ts",
+    "actual_exit_ts",
+    "exit_close",
+    "raw_return_pct",
+    "signed_return_pct",
+    "benchmark_return_pct",
+    "excess_signed_return_pct",
+    "outcome_status",
+    "is_win",
+    "is_matured",
+    "price_bar_count",
+    "source_price_min_ts",
+    "source_price_max_ts",
+    "candidate_json",
+    "context_json",
+    "evaluation_generated_at_utc",
+]
+
+TRADING_AGENT_RESEARCH_REVIEW_COLUMNS = [
+    "review_id",
+    "outcome_id",
+    "candidate_id",
+    "trading_agent_run_id",
+    "run_id",
+    "horizon_key",
+    "ticker",
+    "direction",
+    "review_status",
+    "outcome_status",
+    "is_win",
+    "is_matured",
+    "signed_return_pct",
+    "raw_return_pct",
+    "review_generated_at_utc",
+    "outcome_summary",
+    "thesis_verdict",
+    "direction_verdict",
+    "horizon_verdict",
+    "evidence_verdict",
+    "primary_failure_mode",
+    "primary_success_factor",
+    "missing_evidence_slots_json",
+    "recommended_contract_change",
+    "recommended_prompt_change",
+    "recommended_retrieval_change",
+    "recommended_candidate_selection_change",
+    "source_refs_json",
+    "review_input_json",
+    "review_json",
+    "error",
+]
+
+_TRADING_AGENT_HORIZON_DAYS = {
+    "1w": 7,
+    "1m": 30,
+    "3m": 91,
+    "1y": 365,
+    "5y": 1825,
+}
+
+_TRADING_AGENT_DIRECTION_MULTIPLIER = {
+    "long": 1.0,
+    "watch": 1.0,
+    "short": -1.0,
+    "avoid": -1.0,
+}
+
+_TRADING_AGENT_REVIEW_SYSTEM_PROMPT = register_narrative_prompt(
+    name="Trading Agent Research Review",
+    file="services/trading_agent.py",
+    group="Trading Agent",
+    prompt=(
+        f"You are reviewing a completed or interim Spectral Nature Trading Agent research call. {NARRATIVE_STYLE_RULE} "
+        "Use only the supplied candidate, evidence, and measured outcome. Do not make a new trading recommendation. "
+        "Judge whether the stated thesis, evidence, direction, and horizon were supported. "
+        "Name concrete research contract, prompt, retrieval, or candidate-selection improvements without mutating memory, prompts, rankings, or broker behavior."
+    ),
+)
+
+_TRADING_AGENT_REVIEW_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "review_status": {
+            "type": "string",
+            "enum": ["completed", "insufficient_context"],
+        },
+        "outcome_summary": {"type": "string"},
+        "thesis_verdict": {
+            "type": "string",
+            "enum": [
+                "validated",
+                "contradicted",
+                "unrelated_move",
+                "too_early",
+                "insufficient_evidence",
+            ],
+        },
+        "direction_verdict": {
+            "type": "string",
+            "enum": ["right_direction", "wrong_direction", "direction_unproven"],
+        },
+        "horizon_verdict": {
+            "type": "string",
+            "enum": ["too_short", "too_long", "appropriate", "unproven"],
+        },
+        "evidence_verdict": {
+            "type": "string",
+            "enum": ["strong", "mixed", "weak", "stale", "missing_key_slot"],
+        },
+        "primary_failure_mode": {"type": "string"},
+        "primary_success_factor": {"type": "string"},
+        "missing_evidence_slots": {"type": "array", "items": {"type": "string"}},
+        "recommended_contract_change": {"type": "string"},
+        "recommended_prompt_change": {"type": "string"},
+        "recommended_retrieval_change": {"type": "string"},
+        "recommended_candidate_selection_change": {"type": "string"},
+        "source_refs": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": [
+        "review_status",
+        "outcome_summary",
+        "thesis_verdict",
+        "direction_verdict",
+        "horizon_verdict",
+        "evidence_verdict",
+        "primary_failure_mode",
+        "primary_success_factor",
+        "missing_evidence_slots",
+        "recommended_contract_change",
+        "recommended_prompt_change",
+        "recommended_retrieval_change",
+        "recommended_candidate_selection_change",
+        "source_refs",
+    ],
+}
+
+
+def _trading_agent_write_policy(default: str = "safe_auto") -> str:
+    fallback = str(default or "safe_auto").strip().lower()
+    policy = str(os.getenv("TRADING_AGENT_ZOPEDIA_WRITE_POLICY") or fallback).strip().lower()
+    if policy in {"off", "disabled", "read_only", "readonly"}:
+        return "none"
+    if policy in {"proposal", "review"}:
+        return "propose"
+    if policy in {"auto", "commit", "safe", "safe-auto"}:
+        return "safe_auto"
+    if policy in {"none", "propose", "safe_auto"}:
+        return policy
+    return fallback if fallback in {"none", "propose", "safe_auto"} else "safe_auto"
+
 
 def _clean(text: object) -> str:
     if text is None:
         return ""
+    try:
+        if pd.isna(text):
+            return ""
+    except Exception:
+        pass
     out = " ".join(str(text).split()).strip()
     return "" if out.lower() == "nan" else out
 
@@ -180,6 +360,50 @@ def _utc_iso(value: object | None = None) -> str:
     if pd.isna(parsed):
         return datetime.now(timezone.utc).isoformat()
     return parsed.isoformat()
+
+
+def _stable_digest(value: Any, *, length: int = 20) -> str:
+    return hashlib.sha256(_json_text(value).encode("utf-8")).hexdigest()[: max(int(length), 8)]
+
+
+def _utc_timestamp(value: object) -> pd.Timestamp | None:
+    parsed = pd.to_datetime(value, utc=True, errors="coerce")
+    if pd.isna(parsed):
+        return None
+    return parsed
+
+
+def _maybe_iso(value: object) -> str:
+    parsed = _utc_timestamp(value)
+    return "" if parsed is None else parsed.isoformat()
+
+
+def _json_array_from_text(value: object) -> list[Any]:
+    if isinstance(value, list):
+        return value
+    if isinstance(value, (tuple, set)):
+        return list(value)
+    text = _clean(value)
+    if not text:
+        return []
+    try:
+        parsed = json.loads(text)
+    except Exception:
+        return []
+    return parsed if isinstance(parsed, list) else []
+
+
+def _json_object_from_text(value: object) -> dict[str, Any]:
+    if isinstance(value, dict):
+        return value
+    text = _clean(value)
+    if not text:
+        return {}
+    try:
+        parsed = json.loads(text)
+    except Exception:
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
 
 
 def _records(frame: pd.DataFrame, *, columns: list[str], limit: int) -> list[dict[str, Any]]:
@@ -449,6 +673,14 @@ def empty_trading_agent_candidate_frame() -> pd.DataFrame:
     return pd.DataFrame(columns=TRADING_AGENT_CANDIDATE_COLUMNS)
 
 
+def empty_trading_agent_outcome_frame() -> pd.DataFrame:
+    return pd.DataFrame(columns=TRADING_AGENT_OUTCOME_COLUMNS)
+
+
+def empty_trading_agent_research_review_frame() -> pd.DataFrame:
+    return pd.DataFrame(columns=TRADING_AGENT_RESEARCH_REVIEW_COLUMNS)
+
+
 def build_trading_agent_context(
     *,
     opportunity_feed: pd.DataFrame,
@@ -682,6 +914,472 @@ def build_trading_agent_materialized_frames(
     return runs, candidates
 
 
+def _prepare_trading_agent_price_history(frame: pd.DataFrame) -> pd.DataFrame:
+    columns = ["symbol", "timestamp", "close"]
+    if not isinstance(frame, pd.DataFrame) or frame.empty:
+        return pd.DataFrame(columns=columns)
+    out = frame.copy()
+    if "symbol" not in out.columns and "ticker" in out.columns:
+        out["symbol"] = out["ticker"]
+    if "symbol" not in out.columns:
+        out["symbol"] = ""
+    if "timestamp" not in out.columns:
+        out["timestamp"] = pd.NaT
+    if "close" not in out.columns:
+        out["close"] = pd.NA
+    out["symbol"] = out["symbol"].astype(str).str.upper().str.strip()
+    out["timestamp"] = pd.to_datetime(out["timestamp"], utc=True, errors="coerce")
+    out["close"] = pd.to_numeric(out["close"], errors="coerce")
+    out = out[columns].dropna(subset=["symbol", "timestamp", "close"])
+    if out.empty:
+        return pd.DataFrame(columns=columns)
+    return (
+        out.sort_values(["symbol", "timestamp"])
+        .drop_duplicates(subset=["symbol", "timestamp"], keep="last")
+        .reset_index(drop=True)
+    )
+
+
+def _candidate_anchor_ts(row: pd.Series) -> pd.Timestamp | None:
+    candidate_time = _clean(row.get("asof_time_utc")) or _clean(row.get("generated_at_utc"))
+    return _utc_timestamp(candidate_time)
+
+
+def _scoring_direction(direction: object) -> str:
+    clean = _clean(direction).lower()
+    if clean in _TRADING_AGENT_DIRECTION_MULTIPLIER:
+        return clean
+    return _fallback_direction(clean)
+
+
+def _horizon_days(row: pd.Series) -> int:
+    key = _clean(row.get("horizon_key")).lower()
+    if key in _TRADING_AGENT_HORIZON_DAYS:
+        return _TRADING_AGENT_HORIZON_DAYS[key]
+    label = _clean(row.get("horizon_label") or row.get("suggested_horizon")).lower()
+    for horizon_key, days in _TRADING_AGENT_HORIZON_DAYS.items():
+        if horizon_key in label:
+            return days
+    if "week" in label:
+        return 7
+    if "month" in label:
+        return 30
+    if "quarter" in label:
+        return 91
+    if "year" in label:
+        return 365
+    return 30
+
+
+def _numeric_or_na(value: object) -> float | Any:
+    parsed = pd.to_numeric(pd.Series([value]), errors="coerce").iloc[0]
+    return pd.NA if pd.isna(parsed) else float(parsed)
+
+
+def _int_or_na(value: object) -> int | Any:
+    parsed = pd.to_numeric(pd.Series([value]), errors="coerce").iloc[0]
+    return pd.NA if pd.isna(parsed) else int(parsed)
+
+
+def _stable_outcome_id(row: pd.Series, target_exit_ts: str) -> str:
+    candidate_id = _clean(row.get("candidate_id"))
+    payload = {
+        "candidate_id": candidate_id,
+        "run_id": _clean(row.get("run_id")),
+        "trading_agent_run_id": _clean(row.get("trading_agent_run_id")),
+        "horizon_key": _clean(row.get("horizon_key")),
+        "ticker": _clean(row.get("ticker")).upper(),
+        "target_exit_ts": target_exit_ts,
+    }
+    return f"tao_{_stable_digest(payload)}"
+
+
+def build_trading_agent_outcomes(
+    *,
+    candidates: pd.DataFrame,
+    price_history: pd.DataFrame,
+    runs: pd.DataFrame | None = None,
+    evaluation_time_utc: object | None = None,
+) -> pd.DataFrame:
+    """Score Trading Agent candidates against post-candidate price bars."""
+    if not isinstance(candidates, pd.DataFrame) or candidates.empty:
+        return empty_trading_agent_outcome_frame()
+
+    candidate_frame = candidates.copy()
+    for column in TRADING_AGENT_CANDIDATE_COLUMNS:
+        if column not in candidate_frame.columns:
+            candidate_frame[column] = ""
+    if "candidate_id" in candidate_frame.columns:
+        candidate_frame["candidate_id"] = candidate_frame["candidate_id"].apply(_clean)
+        candidate_frame = candidate_frame[candidate_frame["candidate_id"].astype(bool)].copy()
+        candidate_frame = candidate_frame.drop_duplicates(subset=["candidate_id"], keep="last")
+    if candidate_frame.empty:
+        return empty_trading_agent_outcome_frame()
+
+    prepared_prices = _prepare_trading_agent_price_history(price_history)
+    prices_by_symbol = {
+        str(symbol): symbol_prices.drop(columns=["symbol"]).reset_index(drop=True)
+        for symbol, symbol_prices in prepared_prices.groupby("symbol", sort=False)
+    }
+    evaluation_iso = _utc_iso(evaluation_time_utc)
+    row_items: list[dict[str, Any]] = []
+
+    for _, row in candidate_frame.iterrows():
+        ticker = _clean(row.get("ticker")).upper()
+        anchor_ts = _candidate_anchor_ts(row)
+        anchor_day = anchor_ts.normalize() if anchor_ts is not None else None
+        target_ts = ""
+        if anchor_day is not None:
+            target_ts = (anchor_day + pd.Timedelta(days=_horizon_days(row))).isoformat()
+
+        direction = _clean(row.get("direction")).lower()
+        scoring_direction = _scoring_direction(direction)
+        direction_multiplier = _TRADING_AGENT_DIRECTION_MULTIPLIER.get(scoring_direction, 1.0)
+        ticker_prices = prices_by_symbol.get(ticker, pd.DataFrame(columns=["timestamp", "close"])).copy()
+        source_min_ts = _maybe_iso(ticker_prices["timestamp"].min()) if not ticker_prices.empty else ""
+        source_max_ts = _maybe_iso(ticker_prices["timestamp"].max()) if not ticker_prices.empty else ""
+
+        entry_ts = ""
+        entry_close: float | Any = pd.NA
+        actual_exit_ts = ""
+        exit_close: float | Any = pd.NA
+        raw_return_pct: float | Any = pd.NA
+        signed_return_pct: float | Any = pd.NA
+        outcome_status = "missing_price"
+        is_win: bool | Any = pd.NA
+        is_matured = False
+
+        if anchor_day is None:
+            outcome_status = "missing_entry"
+        elif not ticker_prices.empty:
+            ticker_prices["_bar_day"] = ticker_prices["timestamp"].dt.normalize()
+            entry_candidates = ticker_prices[ticker_prices["_bar_day"] >= anchor_day].copy()
+            if entry_candidates.empty:
+                outcome_status = "missing_entry"
+            else:
+                entry = entry_candidates.iloc[0]
+                entry_ts = _maybe_iso(entry.get("timestamp"))
+                entry_close = _numeric_or_na(entry.get("close"))
+                future = ticker_prices[ticker_prices["timestamp"] > entry.get("timestamp")].copy()
+                if future.empty:
+                    outcome_status = "no_future_bar"
+                else:
+                    target_day = pd.to_datetime(target_ts, utc=True, errors="coerce").normalize()
+                    target_candidates = future[future["_bar_day"] >= target_day].copy()
+                    if not target_candidates.empty:
+                        exit_row = target_candidates.iloc[0]
+                        outcome_status = "matured"
+                        is_matured = True
+                    else:
+                        exit_row = future.iloc[-1]
+                        outcome_status = "mark_to_market"
+                    actual_exit_ts = _maybe_iso(exit_row.get("timestamp"))
+                    exit_close = _numeric_or_na(exit_row.get("close"))
+                    if (
+                        not pd.isna(entry_close)
+                        and not pd.isna(exit_close)
+                        and float(entry_close) != 0.0
+                    ):
+                        raw_return_pct = ((float(exit_close) / float(entry_close)) - 1.0) * 100.0
+                        signed_return_pct = raw_return_pct * direction_multiplier
+                        is_win = bool(signed_return_pct > 0.0)
+
+        outcome_id = _stable_outcome_id(row, target_ts)
+        row_items.append(
+            {
+                "outcome_id": outcome_id,
+                "candidate_id": _clean(row.get("candidate_id")),
+                "trading_agent_run_id": _clean(row.get("trading_agent_run_id")),
+                "run_id": _clean(row.get("run_id")),
+                "horizon_key": _clean(row.get("horizon_key")),
+                "horizon_label": _clean(row.get("horizon_label")),
+                "selected_horizon_col": _clean(row.get("selected_horizon_col")),
+                "business_filter": _clean(row.get("business_filter")),
+                "rank": _int_or_na(row.get("rank")),
+                "ticker": ticker,
+                "direction": direction,
+                "scoring_direction": scoring_direction,
+                "setup": _clean(row.get("setup")),
+                "hypothesis": _clean(row.get("hypothesis")),
+                "confidence": _clean(row.get("confidence")),
+                "suggested_horizon": _clean(row.get("suggested_horizon")),
+                "evidence_json": _clean(row.get("evidence_json")),
+                "invalidation": _clean(row.get("invalidation")),
+                "tail_risks_json": _clean(row.get("tail_risks_json")),
+                "candidate_generated_at_utc": _maybe_iso(row.get("generated_at_utc")),
+                "candidate_asof_time_utc": _maybe_iso(row.get("asof_time_utc")),
+                "entry_ts": entry_ts,
+                "entry_close": entry_close,
+                "target_exit_ts": target_ts,
+                "actual_exit_ts": actual_exit_ts,
+                "exit_close": exit_close,
+                "raw_return_pct": raw_return_pct,
+                "signed_return_pct": signed_return_pct,
+                "benchmark_return_pct": pd.NA,
+                "excess_signed_return_pct": pd.NA,
+                "outcome_status": outcome_status,
+                "is_win": is_win,
+                "is_matured": bool(is_matured),
+                "price_bar_count": int(len(ticker_prices)),
+                "source_price_min_ts": source_min_ts,
+                "source_price_max_ts": source_max_ts,
+                "candidate_json": _clean(row.get("candidate_json")),
+                "context_json": _clean(row.get("context_json")),
+                "evaluation_generated_at_utc": evaluation_iso,
+            }
+        )
+
+    outcomes = pd.DataFrame(row_items, columns=TRADING_AGENT_OUTCOME_COLUMNS)
+    return outcomes if not outcomes.empty else empty_trading_agent_outcome_frame()
+
+
+def _lookup_records(frame: pd.DataFrame | None, key: str) -> dict[str, dict[str, Any]]:
+    if not isinstance(frame, pd.DataFrame) or frame.empty or key not in frame.columns:
+        return {}
+    out: dict[str, dict[str, Any]] = {}
+    for record in to_jsonable(frame.to_dict("records")):
+        if not isinstance(record, dict):
+            continue
+        record_key = _clean(record.get(key))
+        if record_key:
+            out[record_key] = record
+    return out
+
+
+def _boolish(value: object) -> bool:
+    if isinstance(value, bool):
+        return value
+    text = _clean(value).lower()
+    return text in {"true", "1", "yes", "y"}
+
+
+def _review_input_payload(
+    *,
+    outcome: dict[str, Any],
+    candidate: dict[str, Any],
+    run: dict[str, Any],
+) -> dict[str, Any]:
+    evidence_items = _json_array_from_text(candidate.get("evidence_json") or outcome.get("evidence_json"))
+    tail_risks = _json_array_from_text(candidate.get("tail_risks_json") or outcome.get("tail_risks_json"))
+    candidate_payload = _json_object_from_text(candidate.get("candidate_json") or outcome.get("candidate_json"))
+    return {
+        "review_contract": {
+            "scope": "post-call research review only",
+            "may_mutate_prompt_or_memory": False,
+            "may_change_ranking_or_execution": False,
+            "broker_execution_mode": "unchanged_log_only",
+        },
+        "outcome": {
+            key: outcome.get(key)
+            for key in [
+                "candidate_id",
+                "ticker",
+                "direction",
+                "scoring_direction",
+                "horizon_key",
+                "horizon_label",
+                "outcome_status",
+                "is_win",
+                "is_matured",
+                "entry_ts",
+                "entry_close",
+                "target_exit_ts",
+                "actual_exit_ts",
+                "exit_close",
+                "raw_return_pct",
+                "signed_return_pct",
+                "benchmark_return_pct",
+                "excess_signed_return_pct",
+            ]
+        },
+        "candidate": {
+            "setup": _clean(candidate.get("setup") or outcome.get("setup")),
+            "hypothesis": _clean(candidate.get("hypothesis") or outcome.get("hypothesis")),
+            "confidence": _clean(candidate.get("confidence") or outcome.get("confidence")),
+            "suggested_horizon": _clean(candidate.get("suggested_horizon") or outcome.get("suggested_horizon")),
+            "evidence": [_clean(item) for item in evidence_items if _clean(item)],
+            "invalidation": _clean(candidate.get("invalidation") or outcome.get("invalidation")),
+            "tail_risks": [_clean(item) for item in tail_risks if _clean(item)],
+            "raw_candidate": candidate_payload,
+        },
+        "run": {
+            "regime_read": _clean(run.get("regime_read")),
+            "portfolio_posture": _clean(run.get("portfolio_posture")),
+            "data_gaps": _json_array_from_text(run.get("data_gaps_json")),
+            "status": _clean(run.get("status")),
+            "aql_agent": _json_object_from_text(run.get("aql_agent_json")),
+        },
+    }
+
+
+def _eligible_review_outcomes(
+    outcomes: pd.DataFrame,
+    *,
+    max_reviews: int,
+    include_mark_to_market: bool,
+) -> pd.DataFrame:
+    if not isinstance(outcomes, pd.DataFrame) or outcomes.empty or max_reviews <= 0:
+        return empty_trading_agent_outcome_frame()
+    out = outcomes.copy()
+    if "outcome_status" not in out.columns:
+        return empty_trading_agent_outcome_frame()
+    allowed_statuses = {"matured"}
+    if include_mark_to_market:
+        allowed_statuses.add("mark_to_market")
+    out = out[out["outcome_status"].astype(str).str.lower().isin(allowed_statuses)].copy()
+    if out.empty:
+        return empty_trading_agent_outcome_frame()
+    out["_is_matured_sort"] = out.get("is_matured", False).apply(_boolish) if "is_matured" in out.columns else False
+    if "signed_return_pct" in out.columns:
+        out["_abs_signed_return"] = pd.to_numeric(out["signed_return_pct"], errors="coerce").abs()
+    else:
+        out["_abs_signed_return"] = 0.0
+    if "candidate_asof_time_utc" in out.columns:
+        out["_candidate_time"] = pd.to_datetime(out["candidate_asof_time_utc"], utc=True, errors="coerce")
+    else:
+        out["_candidate_time"] = pd.NaT
+    out = out.sort_values(
+        ["_is_matured_sort", "_candidate_time", "_abs_signed_return"],
+        ascending=[False, False, False],
+        na_position="last",
+    )
+    return out.drop(columns=[col for col in out.columns if col.startswith("_")]).head(max_reviews).reset_index(drop=True)
+
+
+def _review_unavailable_payload(reason: str) -> dict[str, Any]:
+    return {
+        "review_status": "unavailable",
+        "outcome_summary": "",
+        "thesis_verdict": "",
+        "direction_verdict": "",
+        "horizon_verdict": "",
+        "evidence_verdict": "",
+        "primary_failure_mode": "",
+        "primary_success_factor": "",
+        "missing_evidence_slots": [],
+        "recommended_contract_change": "",
+        "recommended_prompt_change": "",
+        "recommended_retrieval_change": "",
+        "recommended_candidate_selection_change": "",
+        "source_refs": [],
+        "error": reason,
+    }
+
+
+def _call_trading_agent_research_review(
+    *,
+    llm_client: Any | None,
+    review_input: dict[str, Any],
+) -> dict[str, Any]:
+    if llm_client is None or not hasattr(llm_client, "generate_json"):
+        return _review_unavailable_payload("Trading Agent research review requires an LLM runtime.")
+    try:
+        payload = llm_client.generate_json(
+            system_prompt=_TRADING_AGENT_REVIEW_SYSTEM_PROMPT,
+            user_prompt=(
+                "Review this Trading Agent call as a research-quality post-mortem. "
+                "Return only the schema fields. Do not recommend an immediate trade.\n\n"
+                f"Review input JSON:\n{_compact_json(review_input, limit=12000)}"
+            ),
+            schema_name="trading_agent_research_review",
+            schema=_TRADING_AGENT_REVIEW_SCHEMA,
+        )
+    except Exception as exc:
+        unavailable = _review_unavailable_payload(_safe_error_text(f"{type(exc).__name__}: {exc}"))
+        unavailable["review_status"] = "error"
+        return unavailable
+    return payload if isinstance(payload, dict) else _review_unavailable_payload("Invalid research review payload.")
+
+
+def build_trading_agent_research_reviews(
+    *,
+    outcomes: pd.DataFrame,
+    candidates: pd.DataFrame | None = None,
+    runs: pd.DataFrame | None = None,
+    llm_client: Any | None = None,
+    max_reviews: int = 8,
+    include_mark_to_market: bool = False,
+    review_time_utc: object | None = None,
+) -> pd.DataFrame:
+    """Build bounded qualitative reviews for mature Trading Agent outcomes."""
+    eligible = _eligible_review_outcomes(
+        outcomes,
+        max_reviews=max(int(max_reviews), 0),
+        include_mark_to_market=include_mark_to_market,
+    )
+    if eligible.empty:
+        return empty_trading_agent_research_review_frame()
+
+    candidate_lookup = _lookup_records(candidates, "candidate_id")
+    run_lookup = _lookup_records(runs, "trading_agent_run_id")
+    review_iso = _utc_iso(review_time_utc)
+    review_rows: list[dict[str, Any]] = []
+
+    for outcome_record in to_jsonable(eligible.to_dict("records")):
+        if not isinstance(outcome_record, dict):
+            continue
+        candidate_id = _clean(outcome_record.get("candidate_id"))
+        trading_agent_run_id = _clean(outcome_record.get("trading_agent_run_id"))
+        candidate_record = candidate_lookup.get(candidate_id, {})
+        run_record = run_lookup.get(trading_agent_run_id, {})
+        review_input = _review_input_payload(
+            outcome=outcome_record,
+            candidate=candidate_record,
+            run=run_record,
+        )
+        review_payload = _call_trading_agent_research_review(
+            llm_client=llm_client,
+            review_input=review_input,
+        )
+        if not isinstance(review_payload, dict):
+            review_payload = _review_unavailable_payload("Invalid research review payload.")
+        review_id = f"tarr_{_stable_digest({'outcome_id': outcome_record.get('outcome_id'), 'candidate_id': candidate_id})}"
+        review_rows.append(
+            {
+                "review_id": review_id,
+                "outcome_id": _clean(outcome_record.get("outcome_id")),
+                "candidate_id": candidate_id,
+                "trading_agent_run_id": trading_agent_run_id,
+                "run_id": _clean(outcome_record.get("run_id")),
+                "horizon_key": _clean(outcome_record.get("horizon_key")),
+                "ticker": _clean(outcome_record.get("ticker")).upper(),
+                "direction": _clean(outcome_record.get("direction")),
+                "review_status": _clean(review_payload.get("review_status")) or "unknown",
+                "outcome_status": _clean(outcome_record.get("outcome_status")),
+                "is_win": outcome_record.get("is_win"),
+                "is_matured": outcome_record.get("is_matured"),
+                "signed_return_pct": _numeric_or_na(outcome_record.get("signed_return_pct")),
+                "raw_return_pct": _numeric_or_na(outcome_record.get("raw_return_pct")),
+                "review_generated_at_utc": review_iso,
+                "outcome_summary": _clean(review_payload.get("outcome_summary")),
+                "thesis_verdict": _clean(review_payload.get("thesis_verdict")),
+                "direction_verdict": _clean(review_payload.get("direction_verdict")),
+                "horizon_verdict": _clean(review_payload.get("horizon_verdict")),
+                "evidence_verdict": _clean(review_payload.get("evidence_verdict")),
+                "primary_failure_mode": _clean(review_payload.get("primary_failure_mode")),
+                "primary_success_factor": _clean(review_payload.get("primary_success_factor")),
+                "missing_evidence_slots_json": _json_text(
+                    [_clean(item) for item in to_list(review_payload.get("missing_evidence_slots")) if _clean(item)]
+                ),
+                "recommended_contract_change": _clean(review_payload.get("recommended_contract_change")),
+                "recommended_prompt_change": _clean(review_payload.get("recommended_prompt_change")),
+                "recommended_retrieval_change": _clean(review_payload.get("recommended_retrieval_change")),
+                "recommended_candidate_selection_change": _clean(
+                    review_payload.get("recommended_candidate_selection_change")
+                ),
+                "source_refs_json": _json_text(
+                    [_clean(item) for item in to_list(review_payload.get("source_refs")) if _clean(item)]
+                ),
+                "review_input_json": _json_text(review_input),
+                "review_json": _json_text(review_payload),
+                "error": _clean(review_payload.get("error")),
+            }
+        )
+
+    reviews = pd.DataFrame(review_rows, columns=TRADING_AGENT_RESEARCH_REVIEW_COLUMNS)
+    return reviews if not reviews.empty else empty_trading_agent_research_review_frame()
+
+
 def _looks_like_provider_policy_error(text: object) -> bool:
     lowered = _clean(text).lower()
     return "invalid_prompt" in lowered or "usage policy" in lowered or "potentially violating" in lowered
@@ -808,6 +1506,7 @@ def _run_aql_with_retry(
                 max_tool_calls=max(int(max_tool_calls), 0),
                 llm_client=llm_client,
                 persist_findings=False,
+                write_policy=_trading_agent_write_policy(),
             )
         except Exception as exc:
             last_exc = exc

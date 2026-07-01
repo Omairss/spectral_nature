@@ -32,6 +32,7 @@ from services.aql import (
     build_market_stories,
     build_attention_home_summary,
 )
+from services.aql.assembler import build_observed_cohort_event_bundles
 from services.attention_live_research import build_live_attention_research_bundle, merge_news_payloads
 from services.attention_market_events import build_attention_market_events
 from services.attention_surface import attention_home_bundle_preview, attention_home_surface_summary
@@ -6084,6 +6085,81 @@ def test_plot_attention_candidate_network_auto_labels_reduce_dense_path_clutter(
 
     assert 0 < len(path_labels) < 3
     assert len(set(all_label_positions)) >= 2
+
+
+def test_observed_cohort_titles_prefer_specific_shared_labels_over_sector_label():
+    candidates = pd.DataFrame(
+        [
+            {
+                "symbol": "CBRS",
+                "sector": "Information Technology",
+                "industry": "Specialty Semiconductors",
+                "peer_group_name": "Advanced Hardware",
+                "change_pct": -16.3,
+                "candidate_score": 96.0,
+                "macro_exposure_tags": ["Advanced Computing", "Quantum Computing Developer"],
+                "business_tags": [],
+            },
+            {
+                "symbol": "NVTS",
+                "sector": "Information Technology",
+                "industry": "Power Semiconductors",
+                "peer_group_name": "Power Chips",
+                "change_pct": -13.6,
+                "candidate_score": 90.0,
+                "macro_exposure_tags": ["Advanced Computing", "Semiconductor Power Electronics"],
+                "business_tags": [],
+            },
+            {
+                "symbol": "INFQ",
+                "sector": "Information Technology",
+                "industry": "Quantum Hardware",
+                "peer_group_name": "Quantum Hardware",
+                "change_pct": -10.8,
+                "candidate_score": 87.0,
+                "macro_exposure_tags": ["Quantum Computing Developer", "Emerging Technology"],
+                "business_tags": [],
+            },
+            {
+                "symbol": "HIVE",
+                "sector": "Information Technology",
+                "industry": "Data Centers",
+                "peer_group_name": "Digital Infrastructure",
+                "change_pct": -8.2,
+                "candidate_score": 82.0,
+                "macro_exposure_tags": ["Data Center Operator", "Bitcoin Mining"],
+                "business_tags": [],
+            },
+            {
+                "symbol": "MSTR",
+                "sector": "Information Technology",
+                "industry": "Software",
+                "peer_group_name": "Enterprise Software",
+                "change_pct": -7.9,
+                "candidate_score": 80.0,
+                "macro_exposure_tags": ["Bitcoin Mining", "Digital Assets"],
+                "business_tags": [],
+            },
+        ]
+    )
+
+    bundles = build_observed_cohort_event_bundles(
+        candidates,
+        run_id="test-run",
+        prompt_version="test",
+        model_name="test-model",
+        max_bundles=1,
+    )
+
+    assert len(bundles) == 1
+    event = bundles[0]
+    assert event["event_type"] == "observed_cohort"
+    assert event["cohort_label"] == "Information Technology"
+    assert "Information Technology names" not in event["event_title"]
+    assert any(
+        phrase in event["event_title"]
+        for phrase in ["Advanced Computing", "Quantum Computing", "Bitcoin Mining", "Data Center"]
+    )
 
 
 def test_plot_attention_candidate_network_fades_bridge_concepts():

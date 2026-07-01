@@ -2,11 +2,14 @@ from __future__ import annotations
 
 from services import web_research
 from services.web_research import (
+    SerperConfig,
+    SerperSearchClient,
     SerpAPIConfig,
     SerpAPISearchClient,
     TavilyConfig,
     TavilySearchClient,
     WebResearchError,
+    load_serper_config,
     load_serpapi_config,
     load_tavily_config,
 )
@@ -56,6 +59,16 @@ def test_load_tavily_config_from_env(monkeypatch):
     assert cfg.api_key == "tavily-test-key"
     assert cfg.topic == "news"
     assert cfg.include_answer is True
+
+
+def test_load_serper_config_from_env(monkeypatch):
+    monkeypatch.setenv("SERPER_API_KEY", "serper-test-key")
+    monkeypatch.delenv("SERPER_API_KEY_SECRET_NAME", raising=False)
+    cfg = load_serper_config()
+    assert cfg is not None
+    assert cfg.api_key == "serper-test-key"
+    assert cfg.gl == "us"
+    assert cfg.hl == "en"
 
 
 def test_search_ai_overview_parses_serp_payload():
@@ -125,6 +138,44 @@ def test_serpapi_search_records_success_telemetry(monkeypatch):
     assert calls[0]["result_count"] == 1
     assert calls[0]["metadata"]["query_sha256"]
     assert "BMY stock today" not in str(calls[0]["metadata"])
+
+
+def test_serper_news_search_records_success_telemetry(monkeypatch):
+    calls: list[dict[str, object]] = []
+    monkeypatch.setenv("CONNECTOR_TELEMETRY_ENABLED", "true")
+    monkeypatch.setattr(web_research, "_record_connector_call", lambda **kwargs: calls.append(kwargs))
+    client = SerperSearchClient(
+        SerperConfig(api_key="serper-test-key"),
+        session=_FakeSession(
+            [
+                _FakeResponse(
+                    {
+                        "news": [
+                            {
+                                "title": "SpaceX slides after IPO surge",
+                                "link": "https://example.com/spacex",
+                                "snippet": "SpaceX shares fell after a large IPO.",
+                                "source": "Example News",
+                                "date": "12 hours ago",
+                            }
+                        ]
+                    }
+                )
+            ]
+        ),
+    )
+
+    rows = client.search("What's going on with SpaceX?", news=True, num=3)
+
+    assert len(rows) == 1
+    assert rows[0].provider == "serper"
+    assert rows[0].published_at == "12 hours ago"
+    assert calls[0]["provider"] == "serper"
+    assert calls[0]["operation"] == "search_news"
+    assert calls[0]["status"] == "success"
+    assert calls[0]["http_status"] == 200
+    assert calls[0]["result_count"] == 1
+    assert "SpaceX" not in str(calls[0]["metadata"])
 
 
 def test_tavily_search_records_failure_telemetry(monkeypatch):

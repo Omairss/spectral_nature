@@ -77,6 +77,20 @@ def _load_latest_materialized_frame(dataset_name: str) -> pd.DataFrame:
     return frame.copy() if isinstance(frame, pd.DataFrame) else pd.DataFrame()
 
 
+def _zopedia_write_policy(default: str = "safe_auto") -> str:
+    fallback = str(default or "safe_auto").strip().lower()
+    policy = str(os.getenv("ATTENTION_ZOPEDIA_WRITE_POLICY") or fallback).strip().lower()
+    if policy in {"off", "disabled", "read_only", "readonly"}:
+        return "none"
+    if policy in {"proposal", "review"}:
+        return "propose"
+    if policy in {"auto", "commit", "safe", "safe-auto"}:
+        return "safe_auto"
+    if policy in {"none", "propose", "safe_auto"}:
+        return policy
+    return fallback if fallback in {"none", "propose", "safe_auto"} else "safe_auto"
+
+
 def _attention_home_research_limit() -> int:
     raw = (os.getenv("ATTENTION_HOME_RESEARCH_LIMIT") or "40").strip()
     try:
@@ -929,6 +943,7 @@ def _run_single_zopedia_enrichment(
                     llm_step_timeout_seconds=_zopedia_agent_llm_timeout_seconds(timeout_seconds),
                     prefetch_timeout_seconds=min(_zopedia_agent_tool_timeout_seconds(timeout_seconds), 60),
                     persist_findings=False,
+                    write_policy=_zopedia_write_policy(),
                 ),
             )
             if not _is_retryable_zopedia_llm_failure(result):
@@ -1194,6 +1209,285 @@ def _zopedia_enrichment_context(rows: list[dict[str, Any]], *, limit: int = 12) 
     return "\n".join(lines)
 
 
+def _compact_market_value(value: object, *, limit: int = 220) -> Any:
+    if value is None:
+        return ""
+    if isinstance(value, (int, float, bool)):
+        return value
+    try:
+        if pd.isna(value):
+            return ""
+    except Exception:
+        pass
+    if isinstance(value, pd.Timestamp):
+        return value.isoformat()
+    text = str(value).strip()
+    if not text or text.lower() == "nan":
+        return ""
+    return text[:limit].rstrip()
+
+
+def _numeric_market_value(value: object) -> float | None:
+    parsed = pd.to_numeric(value, errors="coerce")
+    try:
+        if pd.isna(parsed):
+            return None
+    except Exception:
+        return None
+    return float(parsed)
+
+
+def _compact_frame_records(
+    frame: pd.DataFrame,
+    *,
+    preferred_columns: tuple[str, ...],
+    limit: int = 6,
+) -> list[dict[str, Any]]:
+    if not isinstance(frame, pd.DataFrame) or frame.empty:
+        return []
+    records: list[dict[str, Any]] = []
+    for _, row in frame.head(max(int(limit), 1)).iterrows():
+        record: dict[str, Any] = {}
+        for column in preferred_columns:
+            if column not in frame.columns:
+                continue
+            value = _compact_market_value(row.get(column))
+            if value != "":
+                record[column] = value
+        if not record:
+            for column in list(frame.columns)[:8]:
+                value = _compact_market_value(row.get(column))
+                if value != "":
+                    record[str(column)] = value
+        if record:
+            records.append(record)
+    return records
+
+
+def _market_move_records(frame: pd.DataFrame, *, limit: int = 8) -> list[dict[str, Any]]:
+    if not isinstance(frame, pd.DataFrame) or frame.empty or "change_pct" not in frame.columns:
+        return []
+    working = frame.copy()
+    working["_abs_change"] = pd.to_numeric(working["change_pct"], errors="coerce").abs()
+    working = working.sort_values("_abs_change", ascending=False, na_position="last")
+    columns = (
+        "symbol",
+        "security_name",
+        "company_name",
+        "name",
+        "sector",
+        "industry",
+        "source_label",
+        "change_pct",
+        "close",
+        "prev_close",
+        "dollar_volume",
+        "volume",
+    )
+    rows: list[dict[str, Any]] = []
+    for _, row in working.head(max(int(limit), 1)).iterrows():
+        record: dict[str, Any] = {}
+        for column in columns:
+            if column not in working.columns:
+                continue
+            value = _compact_market_value(row.get(column))
+            if value != "":
+                record[column] = value
+        if record:
+            rows.append(record)
+    return rows
+
+
+def _market_breadth_contract(movers: pd.DataFrame) -> dict[str, Any]:
+    if not isinstance(movers, pd.DataFrame) or movers.empty or "change_pct" not in movers.columns:
+        return {}
+    changes = pd.to_numeric(movers["change_pct"], errors="coerce").dropna()
+    if changes.empty:
+        return {}
+    positive = int((changes > 0).sum())
+    negative = int((changes < 0).sum())
+    flat = int((changes == 0).sum())
+    return {
+        "total_symbols": int(len(changes)),
+        "advancers": positive,
+        "decliners": negative,
+        "unchanged": flat,
+        "advance_decline_ratio": round(float(positive) / max(float(negative), 1.0), 2),
+        "median_change_pct": round(float(changes.median()), 2),
+        "average_change_pct": round(float(changes.mean()), 2),
+        "strongest_count": int((changes >= 2.0).sum()),
+        "weakest_count": int((changes <= -2.0).sum()),
+    }
+
+
+def _sector_rotation_contract(movers: pd.DataFrame, *, limit: int = 8) -> list[dict[str, Any]]:
+    if not isinstance(movers, pd.DataFrame) or movers.empty or "change_pct" not in movers.columns:
+        return []
+    sector_column = next(
+        (
+            column
+            for column in ("sector", "gics_sector", "taxonomy_sector", "business_sector")
+            if column in movers.columns
+        ),
+        "",
+    )
+    if not sector_column:
+        return []
+    working = movers[[sector_column, "change_pct"]].copy()
+    working[sector_column] = working[sector_column].astype(str).str.strip()
+    working["change_pct"] = pd.to_numeric(working["change_pct"], errors="coerce")
+    working = working[working[sector_column].ne("") & working["change_pct"].notna()]
+    if working.empty:
+        return []
+    grouped = (
+        working.groupby(sector_column)["change_pct"]
+        .agg(["count", "mean", "median"])
+        .reset_index()
+        .sort_values("mean", ascending=False)
+    )
+    rows: list[dict[str, Any]] = []
+    for _, row in grouped.head(max(int(limit), 1)).iterrows():
+        rows.append(
+            {
+                "sector": str(row.get(sector_column) or "").strip(),
+                "symbol_count": int(row.get("count") or 0),
+                "average_change_pct": round(float(row.get("mean") or 0.0), 2),
+                "median_change_pct": round(float(row.get("median") or 0.0), 2),
+            }
+        )
+    return rows
+
+
+def _compact_signal_records(signals: object, *, cross_series: bool = False, limit: int = 6) -> list[dict[str, Any]]:
+    if not isinstance(signals, list) or not signals:
+        return []
+    scoped = list(signals)
+    try:
+        from compute.signal_extraction import filter_notable_cross_signals, filter_notable_signals
+
+        scoped = filter_notable_cross_signals(scoped) if cross_series else filter_notable_signals(scoped)
+    except Exception:
+        pass
+    preferred = (
+        "symbol",
+        "name",
+        "series",
+        "metric",
+        "signal",
+        "regime",
+        "direction",
+        "value",
+        "zscore",
+        "roc",
+        "change",
+        "description",
+        "summary",
+    )
+    rows: list[dict[str, Any]] = []
+    for item in scoped[: max(int(limit), 1)]:
+        if not isinstance(item, dict):
+            continue
+        record: dict[str, Any] = {}
+        for key in preferred:
+            if key not in item:
+                continue
+            value = _compact_market_value(item.get(key))
+            if value != "":
+                record[key] = value
+        if not record:
+            for key, value in list(item.items())[:8]:
+                clean_value = _compact_market_value(value)
+                if clean_value != "":
+                    record[str(key)] = clean_value
+        if record:
+            rows.append(record)
+    return rows
+
+
+def _build_home_market_coverage_contract(
+    *,
+    movers: pd.DataFrame,
+    macro_movers: pd.DataFrame,
+    fred_summary_frame: pd.DataFrame,
+    yield_curve_facts_frame: pd.DataFrame,
+    payload: dict[str, Any],
+    asof_time_utc: object,
+) -> dict[str, Any]:
+    breadth = _market_breadth_contract(movers)
+    macro_anchor_moves = _market_move_records(macro_movers, limit=10)
+    sector_rotation = _sector_rotation_contract(movers, limit=8)
+    yield_curve_facts = _compact_frame_records(
+        yield_curve_facts_frame,
+        preferred_columns=(
+            "asof_date",
+            "tenor",
+            "yield_pct",
+            "change_bp_1d",
+            "change_bp_5d",
+            "spread_name",
+            "spread_bp",
+            "fact",
+            "description",
+        ),
+        limit=8,
+    )
+    fred_context = _compact_frame_records(
+        fred_summary_frame,
+        preferred_columns=(
+            "series_id",
+            "title",
+            "latest_value",
+            "latest_date",
+            "change",
+            "change_pct",
+            "signal",
+            "summary",
+        ),
+        limit=6,
+    )
+    market_signals = _compact_signal_records(payload.get("market_signals"), limit=8)
+    macro_signals = _compact_signal_records(payload.get("fred_signals"), limit=6)
+    cross_series_signals = _compact_signal_records(payload.get("cross_series_signals"), cross_series=True, limit=6)
+
+    gaps: list[str] = []
+    if not breadth:
+        gaps.append("market breadth")
+    if not macro_anchor_moves:
+        gaps.append("macro anchor moves")
+    if not sector_rotation:
+        gaps.append("sector labels")
+    if not yield_curve_facts:
+        gaps.append("yield curve facts")
+    if not (market_signals or macro_signals or cross_series_signals):
+        gaps.append("structural signal extraction")
+
+    status = "ok"
+    if not breadth and not macro_anchor_moves:
+        status = "unavailable"
+    elif gaps:
+        status = "partial"
+
+    return {
+        "status": status,
+        "asof_time_utc": _compact_market_value(asof_time_utc),
+        "broad_market": {
+            "market_breadth": breadth,
+            "macro_anchor_moves": macro_anchor_moves,
+            "sector_rotation": sector_rotation,
+        },
+        "rates_and_macro": {
+            "yield_curve_facts": yield_curve_facts,
+            "fred_context": fred_context,
+        },
+        "structural_signals": {
+            "market": market_signals,
+            "macro": macro_signals,
+            "cross_series": cross_series_signals,
+        },
+        "coverage_gaps": gaps,
+    }
+
+
 def _build_market_summary_query(
     payload: dict[str, Any],
     *,
@@ -1216,9 +1510,20 @@ def _build_market_summary_query(
         if enrichment_text
         else ""
     )
+    coverage_contract = payload.get("market_coverage")
+    if not isinstance(coverage_contract, dict):
+        coverage_contract = (payload.get("coverage_summary") or {}).get("market_coverage") if isinstance(payload.get("coverage_summary"), dict) else {}
+    if not isinstance(coverage_contract, dict):
+        coverage_contract = {}
+    coverage_text = json.dumps(coverage_contract, ensure_ascii=True, sort_keys=True, default=str)
+    if len(coverage_text) > 10000:
+        coverage_text = coverage_text[:9997].rstrip() + "..."
     return (
         "Write a daily market summary for an informed investor. "
         f"As-of timestamp: {asof_text}. Compare source dates to this timestamp. "
+        "Start from the market coverage contract before single-name anomalies: broad market action, breadth, macro-anchor moves, "
+        "rates, commodities, and structural signals define whether this was a market day, a sector day, or mostly a stock-picking day. "
+        "If the contract is partial, use only the supported coverage fields and put missing broad-market inputs in limitations. "
         "Use the already-collected Zopedia ticker/event research below as primary evidence. "
         "This is the composition pass after bounded Zopedia/AQL research, so synthesize the supplied evidence instead of "
         "starting a new broad research thread. "
@@ -1235,10 +1540,11 @@ def _build_market_summary_query(
         "Structure with short paragraphs, no bullet lists:\n"
         "1. **Dominant theme** — what defined today's session and why\n"
         "2. **Key movers** — the 3-5 most important equity moves with grounded explanations\n"
-        "3. **Macro backdrop** — rates, dollar, commodities, anything driving the broader tape\n"
+        "3. **Macro backdrop** — rates, dollar, commodities, anything driving the broader market\n"
         "4. **What to watch** — upcoming evidence, company events, or risks for the next session\n\n"
         "Write 300-500 words. Every sentence must add information the investor cannot get from a ticker screen. "
         "Do not hedge or pad — if you lack evidence for a claim, drop the claim.\n\n"
+        f"Market coverage contract:\n{coverage_text}\n\n"
         f"{enrichment_block}"
         f"Today's market stories:\n{stories_text}"
     )
@@ -1255,7 +1561,8 @@ def _review_zopedia_market_summary_payload(
         "Decide whether the draft can be shown to an investor. Use only the supplied original evidence prompt and draft. "
         "Accept only if answer_markdown: explains supported drivers from the evidence, keeps uncertainty and evidence gaps "
         "inside limitations rather than body prose, distinguishes proxy evidence from direct data, avoids unsupported "
-        "company-name expansion, and does not overstate stale or inferred drivers. If it fails, list concrete issues and "
+        "company-name expansion, uses the market coverage contract before single-name anomalies when broad-market fields "
+        "are present, and does not overstate stale or inferred drivers. If it fails, list concrete issues and "
         "write one revision instruction that would make it publishable.\n\n"
         "Original evidence prompt:\n"
         f"{original_query}\n\n"
@@ -1303,7 +1610,8 @@ def _revise_zopedia_market_summary_payload(
         "Use only the supplied original evidence prompt and draft JSON. Preserve grounded facts, remove unsupported "
         "claims, and tighten wording. A valid final answer names supported drivers, treats ETF/proxy evidence as "
         "proxy evidence, does not expand tickers into company names unless the evidence supplied that name, and never "
-        "uses body prose about missing drivers, catalysts, company news, macro data, or evidence. Answer markdown should "
+        "uses body prose about missing drivers, catalysts, company news, macro data, or evidence. Start with the supplied "
+        "market coverage contract when it contains broad-market fields; do not let ticker anomalies substitute for a market recap. Answer markdown should "
         "contain positive supported claims only; evidence gaps belong in limitations. If a claim cannot be written "
         "positively from evidence, omit the claim rather than explaining the absence.\n\n"
         "Quality monitor review JSON:\n"
@@ -2044,6 +2352,8 @@ def _attach_business_context_to_payload(
         "surface_why_text",
         "surface_what_else_moved_text",
         "background_context_text",
+        "business_context_text",
+        "watch_next_text",
     ]
 
     def _clean_narrative_fields(item: dict[str, Any]) -> dict[str, Any]:
@@ -2274,6 +2584,13 @@ def _home_surface_quality_items(
                     ),
                     "zopedia_enrichment_text": zopedia_context[:1200],
                     "source_summary": _plain_business_text(item.get("source_summary") or bundle.get("source_summary"), limit=700),
+                    "watch_next_text": _plain_business_text(item.get("watch_next_text") or bundle.get("watch_next_text"), limit=500),
+                    "observed_cohort": bool(item.get("observed_cohort") or bundle.get("observed_cohort")),
+                    "event_type": _plain_business_text(item.get("event_type") or bundle.get("event_type"), limit=120),
+                    "direction": _plain_business_text(item.get("direction") or bundle.get("direction"), limit=80),
+                    "change_pct": item.get("change_pct") if item.get("change_pct") is not None else bundle.get("change_pct"),
+                    "cohort_label": _plain_business_text(item.get("cohort_label") or bundle.get("cohort_label"), limit=160),
+                    "cohort_kind": _plain_business_text(item.get("cohort_kind") or bundle.get("cohort_kind"), limit=120),
                     "evidence_count": int(float(item.get("evidence_count") or bundle.get("evidence_count") or 0)),
                     "same_day_evidence_count": int(
                         float(item.get("same_day_evidence_count") or bundle.get("same_day_evidence_count") or 0)
@@ -2458,6 +2775,127 @@ def _apply_home_surface_quality_items(
             return True
         return False
 
+    def _is_observed_cohort(item: dict[str, Any], bundle: dict[str, Any] | None) -> bool:
+        return bool(
+            item.get("observed_cohort")
+            or (bundle or {}).get("observed_cohort")
+            or str(item.get("event_type") or (bundle or {}).get("event_type") or "").strip().lower() == "observed_cohort"
+        )
+
+    def _has_structured_observed_context(item: dict[str, Any], bundle: dict[str, Any] | None) -> bool:
+        if not _is_observed_cohort(item, bundle):
+            return False
+        return bool(
+            clean_attention_text(
+                item.get("business_context_text")
+                or item.get("surface_business_context_text")
+                or item.get("watch_next_text")
+                or (bundle or {}).get("business_context_text")
+                or (bundle or {}).get("surface_business_context_text")
+                or (bundle or {}).get("watch_next_text")
+            )
+        )
+
+    def _preserve_observed_top_event(section: str, item: dict[str, Any], bundle: dict[str, Any] | None) -> bool:
+        if section != "top_events" or not _has_structured_observed_context(item, bundle):
+            return False
+        title = clean_attention_text(item.get("event_title") or item.get("headline") or (bundle or {}).get("event_title"))
+        what_happened = clean_attention_text(item.get("what_happened_text") or (bundle or {}).get("what_happened_text"))
+        business_context = clean_attention_text(
+            item.get("business_context_text")
+            or item.get("surface_business_context_text")
+            or (bundle or {}).get("business_context_text")
+            or (bundle or {}).get("surface_business_context_text")
+        )
+        watch_next = clean_attention_text(item.get("watch_next_text") or (bundle or {}).get("watch_next_text"))
+        if not title and not what_happened:
+            return False
+        item["publish"] = True
+        item["cause_status"] = "partial"
+        item["surface_cause_status"] = "partial"
+        item["why_happened_text"] = ""
+        item["why_now_text"] = ""
+        item["surface_why_text"] = ""
+        if title:
+            item["event_title"] = title
+            item["headline"] = title
+        if what_happened:
+            item["what_happened_text"] = what_happened
+            item["surface_what_changed_text"] = what_happened
+        if business_context:
+            item["business_context_text"] = business_context
+            item["surface_business_context_text"] = business_context
+        if watch_next:
+            item["watch_next_text"] = watch_next
+        summary = " ".join(part for part in [what_happened, business_context] if part).strip()
+        item["surface_summary_text"] = summary or what_happened or title
+        item["public_surface_reviewed"] = True
+        item["public_surface_review_note"] = ""
+        if bundle is not None:
+            bundle.update(
+                {
+                    "publish": True,
+                    "cause_status": "partial",
+                    "surface_cause_status": "partial",
+                    "why_happened_text": "",
+                    "why_now_text": "",
+                    "surface_why_text": "",
+                    "public_surface_reviewed": True,
+                    "public_surface_review_note": "",
+                }
+            )
+            for field in [
+                "event_title",
+                "headline",
+                "what_happened_text",
+                "surface_what_changed_text",
+                "business_context_text",
+                "surface_business_context_text",
+                "watch_next_text",
+                "surface_summary_text",
+            ]:
+                if item.get(field):
+                    bundle[field] = item[field]
+        return True
+
+    def _observed_title_is_broad_group_label(
+        title: object,
+        item: dict[str, Any],
+        bundle: dict[str, Any] | None,
+    ) -> bool:
+        clean_title = clean_attention_text(title)
+        if not clean_title:
+            return True
+        lowered = clean_title.lower()
+        cohort_label = clean_attention_text(item.get("cohort_label") or (bundle or {}).get("cohort_label")).lower()
+        cohort_kind = clean_attention_text(item.get("cohort_kind") or (bundle or {}).get("cohort_kind")).lower()
+        if cohort_label and lowered in {
+            f"{cohort_label} names fell together",
+            f"{cohort_label} names rose together",
+            f"{cohort_label} names moved together",
+        }:
+            return True
+        if cohort_kind == "sector" and re.search(r"\bnames (fell|rose|moved) together\b", lowered):
+            return True
+        return False
+
+    def _prefer_specific_observed_headline(item: dict[str, Any], bundle: dict[str, Any] | None) -> None:
+        if not _is_observed_cohort(item, bundle):
+            return
+        headline = clean_attention_text(item.get("headline") or (bundle or {}).get("headline"))
+        if not headline:
+            return
+        title = clean_attention_text(item.get("event_title") or (bundle or {}).get("event_title"))
+        if title and not _observed_title_is_broad_group_label(title, item, bundle):
+            return
+        if len(headline) < 16:
+            return
+        item["event_title"] = headline
+        item["headline"] = headline
+        if bundle is not None:
+            bundle["event_title"] = headline
+            bundle["headline"] = headline
+
     def _suppress_stale_driver(item: dict[str, Any], bundle: dict[str, Any] | None) -> bool:
         if _has_current_public_driver(item, bundle):
             return False
@@ -2501,6 +2939,18 @@ def _apply_home_surface_quality_items(
     def _neutralize_stale_unresolved_title(item: dict[str, Any], bundle: dict[str, Any] | None) -> None:
         cause_status = str(item.get("surface_cause_status") or item.get("cause_status") or "").strip().lower()
         if cause_status != "unresolved" or _has_current_public_driver(item, bundle):
+            return
+        if _has_structured_observed_context(item, bundle):
+            observed_text = clean_attention_text(
+                item.get("what_happened_text")
+                or item.get("surface_what_changed_text")
+                or (bundle or {}).get("what_happened_text")
+                or (bundle or {}).get("surface_what_changed_text")
+            )
+            if observed_text:
+                item["surface_summary_text"] = observed_text
+                if bundle is not None:
+                    bundle["surface_summary_text"] = observed_text
             return
         title = _neutral_observed_title(item, bundle)
         if title:
@@ -2584,7 +3034,11 @@ def _apply_home_surface_quality_items(
         current_items: list[dict[str, Any]],
         routed_unresolved_items: list[dict[str, Any]],
     ) -> bool:
-        if not _has_current_public_driver(item, bundle) and not _has_zopedia_business_context(item, bundle):
+        if (
+            not _has_current_public_driver(item, bundle)
+            and not _has_zopedia_business_context(item, bundle)
+            and not _has_structured_observed_context(item, bundle)
+        ):
             _mark_unpublished(item, bundle)
             return False
         if not _has_public_value(item, bundle):
@@ -2615,6 +3069,10 @@ def _apply_home_surface_quality_items(
             if not revision:
                 cause_status = str(item.get("surface_cause_status") or item.get("cause_status") or "").strip().lower()
                 if section != "unresolved_large_moves" and cause_status == "unresolved":
+                    if _preserve_observed_top_event(section, item, bundle):
+                        changed += 1
+                        items.append(item)
+                        continue
                     if _route_as_unresolved_or_drop(
                         item,
                         bundle,
@@ -2626,7 +3084,11 @@ def _apply_home_surface_quality_items(
                     else:
                         dropped += 1
                     continue
-                if not _has_current_public_driver(item, bundle) and not _has_zopedia_business_context(item, bundle):
+                if (
+                    not _has_current_public_driver(item, bundle)
+                    and not _has_zopedia_business_context(item, bundle)
+                    and not _has_structured_observed_context(item, bundle)
+                ):
                     if _route_as_unresolved_or_drop(
                         item,
                         bundle,
@@ -2639,6 +3101,10 @@ def _apply_home_surface_quality_items(
                         dropped += 1
                     continue
                 if _drop_public_top_event(section, item, bundle):
+                    if _preserve_observed_top_event(section, item, bundle):
+                        changed += 1
+                        items.append(item)
+                        continue
                     if _route_as_unresolved_or_drop(
                         item,
                         bundle,
@@ -2651,6 +3117,10 @@ def _apply_home_surface_quality_items(
                         dropped += 1
                     continue
                 if _suppress_stale_driver(item, bundle):
+                    if _preserve_observed_top_event(section, item, bundle):
+                        changed += 1
+                        items.append(item)
+                        continue
                     if _route_as_unresolved_or_drop(
                         item,
                         bundle,
@@ -2665,6 +3135,10 @@ def _apply_home_surface_quality_items(
                 items.append(item)
                 continue
             if not bool(revision.get("publish")):
+                if _preserve_observed_top_event(section, item, bundle):
+                    changed += 1
+                    items.append(item)
+                    continue
                 if _route_as_unresolved_or_drop(
                     item,
                     bundle,
@@ -2704,8 +3178,13 @@ def _apply_home_surface_quality_items(
                 if bundle is not None:
                     bundle[field] = value
             _neutralize_stale_unresolved_title(item, bundle)
+            _prefer_specific_observed_headline(item, bundle)
             public_title = clean_attention_text(item.get("event_title") or item.get("headline"))
             if _suppress_stale_driver(item, bundle):
+                if _preserve_observed_top_event(section, item, bundle):
+                    changed += 1
+                    items.append(item)
+                    continue
                 if _route_as_unresolved_or_drop(
                     item,
                     bundle,
@@ -2718,6 +3197,10 @@ def _apply_home_surface_quality_items(
                     dropped += 1
                 continue
             if _drop_public_top_event(section, item, bundle):
+                if _preserve_observed_top_event(section, item, bundle):
+                    changed += 1
+                    items.append(item)
+                    continue
                 if _route_as_unresolved_or_drop(
                     item,
                     bundle,
@@ -2798,6 +3281,9 @@ def _review_home_public_surface(
         "driver is partial, unresolved, or thin; a useful observed move with business, sector, macro, peer, source, "
         "or watch-next value should remain publish=true and be written as partial or unresolved. If an item has only "
         "a price move with no substantive business, sector, macro, peer, source, or watch-next value, set publish=false. "
+        "Items marked observed_cohort=true are intentionally allowed as top_events when they describe a same-day "
+        "group move, include business_context_text or watch_next_text, and avoid claiming a driver. Keep those items "
+        "publish=true with cause_status=partial; do not demote them only because evidence_count is zero. "
         "Use the supplied freshness_quality, same_day_evidence_count, and evidence_trace as hard evidence boundaries. "
         "Evidence is current enough for a public driver when same_day_evidence_count is positive, an evidence_trace "
         "claim has freshness_class=current or same_day, or a source is dated within roughly the current market window "
@@ -2819,8 +3305,9 @@ def _review_home_public_surface(
         "and no specific business or macro transmission mechanism in the supplied context, do not leave it as a "
         "supported top event; keep it only as partial/unresolved if it still has a useful observed move or context, "
         "otherwise publish=false. "
-        "Do not keep an unresolved item in top_events; unresolved items belong off the public Home top-event rail "
-        "unless there is a concrete evidence target and the item is moved by the pipeline to an unresolved section. "
+        "Do not keep an unresolved item in top_events; unresolved items belong off the public Home top-event rail. "
+        "The exception is an observed_cohort top event, which should stay as cause_status=partial rather than unresolved "
+        "when it has group context or a watch-next evidence target. "
         "A public card is invalid if it sounds like a statistical recap, raw tool report, or an explanation of what "
         "was not found. Every published item should help an investor understand what changed, why it may matter, "
         "or what specific evidence would resolve it next. Set cause_status=supported only when the driver is "
@@ -2883,6 +3370,7 @@ def build_attention_home_output_frames(
     llm_client: Any | None,
     load_materialized_frame_fn: LoadFrameFn = _load_latest_materialized_frame,
     research_progress_fn: ResearchProgressFn | None = None,
+    include_page_agentic: bool = True,
 ) -> dict[str, pd.DataFrame]:
     movers = (
         pd.concat(
@@ -3081,6 +3569,31 @@ def build_attention_home_output_frames(
         payload.setdefault("cross_series_signals", [])
         payload.setdefault("fred_signals", [])
 
+    market_coverage = _build_home_market_coverage_contract(
+        movers=movers,
+        macro_movers=macro_movers,
+        fred_summary_frame=fred_summary_frame,
+        yield_curve_facts_frame=yield_curve_facts_frame,
+        payload=payload,
+        asof_time_utc=ctx.asof,
+    )
+    coverage = dict(payload.get("coverage_summary") or {})
+    coverage["market_coverage"] = market_coverage
+    coverage["market_coverage_status"] = str(market_coverage.get("status") or "")
+    coverage["market_coverage_gaps"] = list(market_coverage.get("coverage_gaps") or [])
+    legacy_broad_market_key = "broad_" + "ta" + "pe"
+    coverage["market_breadth_symbol_count"] = int(
+        ((market_coverage.get("broad_market") or market_coverage.get(legacy_broad_market_key) or {}).get("market_breadth") or {}).get("total_symbols") or 0
+    )
+    payload["market_coverage"] = market_coverage
+    payload["coverage_summary"] = coverage
+    print(
+        "[info] attention-home-build market coverage: "
+        f"status={market_coverage.get('status')} "
+        f"gaps={len(market_coverage.get('coverage_gaps') or [])} "
+        f"breadth_symbols={coverage['market_breadth_symbol_count']}"
+    )
+
     artifacts.frames["knowledge_graph_update_proposals"] = build_attention_knowledge_graph_proposals(
         run_id=ctx.run_id,
         asof_time_utc=ctx.asof,
@@ -3229,24 +3742,25 @@ def build_attention_home_output_frames(
             artifacts.frames[name] = frame
             print(f"[info] attention-home-build materialized {name} rows={len(frame)}")
 
-    try:
-        print("[info] attention-home-build materializing page_agentic_summaries")
-        artifacts.frames["page_agentic_summaries"] = _build_page_agentic_summary_frame(
-            ctx=ctx,
-            llm_client=llm_client,
-            daily_movers=daily_movers,
-            momentum_profiles=momentum_profiles_frame,
-            ticker_background_frame=artifacts.frames["attention_ticker_background_snapshots"],
-            technical_signals_latest_frame=load_materialized_frame_fn("technical_signals_latest"),
-            universe_snapshot_frame=universe_snapshot_frame,
-        )
-        print(
-            "[info] attention-home-build materialized page_agentic_summaries "
-            f"rows={len(artifacts.frames['page_agentic_summaries'])}"
-        )
-    except Exception as exc:
-        print(f"[warn] attention-home-build page agentic summaries failed (non-fatal): {type(exc).__name__}: {exc}")
-        artifacts.frames["page_agentic_summaries"] = pd.DataFrame()
+    if include_page_agentic:
+        try:
+            print("[info] attention-home-build materializing page_agentic_summaries")
+            artifacts.frames["page_agentic_summaries"] = _build_page_agentic_summary_frame(
+                ctx=ctx,
+                llm_client=llm_client,
+                daily_movers=daily_movers,
+                momentum_profiles=momentum_profiles_frame,
+                ticker_background_frame=artifacts.frames["attention_ticker_background_snapshots"],
+                technical_signals_latest_frame=load_materialized_frame_fn("technical_signals_latest"),
+                universe_snapshot_frame=universe_snapshot_frame,
+            )
+            print(
+                "[info] attention-home-build materialized page_agentic_summaries "
+                f"rows={len(artifacts.frames['page_agentic_summaries'])}"
+            )
+        except Exception as exc:
+            print(f"[warn] attention-home-build page agentic summaries failed (non-fatal): {type(exc).__name__}: {exc}")
+            artifacts.frames["page_agentic_summaries"] = pd.DataFrame()
 
     search_results = artifacts.frames.get("attention_search_results", pd.DataFrame()).copy()
     if not search_results.empty:
@@ -3408,6 +3922,7 @@ def run_attention_home_build(
         llm_client=llm_client,
         load_materialized_frame_fn=load_materialized_frame_fn,
         research_progress_fn=_research_progress,
+        include_page_agentic=False,
     )
 
     if not persist_frames:
@@ -3431,6 +3946,22 @@ def run_attention_home_build(
     )
     for dataset_name, frame in persist_frames.items():
         persist_dataset_fn(dataset_name, frame.copy() if isinstance(frame, pd.DataFrame) else pd.DataFrame(), ctx, conn)
+    try:
+        print("[info] attention-home-build materializing optional page_agentic_summaries after core persist")
+        page_summaries = _build_page_agentic_summary_frame(
+            ctx=ctx,
+            llm_client=llm_client,
+            daily_movers=daily_movers,
+            momentum_profiles=load_materialized_frame_fn("momentum_profiles"),
+            ticker_background_frame=persist_frames.get("attention_ticker_background_snapshots", pd.DataFrame()),
+            technical_signals_latest_frame=load_materialized_frame_fn("technical_signals_latest"),
+            universe_snapshot_frame=load_materialized_frame_fn("universe_snapshot"),
+        )
+        persist_dataset_fn("page_agentic_summaries", page_summaries, ctx, conn)
+        persist_frames["page_agentic_summaries"] = page_summaries
+        print(f"[info] attention-home-build materialized optional page_agentic_summaries rows={len(page_summaries)}")
+    except Exception as exc:
+        print(f"[warn] attention-home-build optional page_agentic_summaries failed after core persist: {type(exc).__name__}: {exc}")
     return persist_frames
 
 

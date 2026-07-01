@@ -11,6 +11,13 @@ class FakeLLM:
 
     def generate_json(self, **kwargs):
         self.user_prompt = kwargs["user_prompt"]
+        if kwargs.get("schema_name") == "page_agentic_summary_review":
+            return {
+                "accepted": True,
+                "issues": [],
+                "revision_instruction": "",
+                "confidence": "medium",
+            }
         return {
             "headline": "Momentum is concentrated in AAPL.",
             "summary_markdown": "**AAPL** has the cleaner setup in the supplied feed.",
@@ -71,7 +78,8 @@ def test_market_summary_context_limits_records_and_keeps_horizon():
     assert context["opportunities"][0]["symbol"] == "AAPL"
 
 
-def test_build_page_agentic_summary_returns_llm_payload():
+def test_build_page_agentic_summary_returns_llm_payload(monkeypatch):
+    monkeypatch.delenv("PAGE_AGENTIC_SUMMARY_WRITE_POLICY", raising=False)
     fake = FakeLLM()
     agent = FakeAQLAgent()
 
@@ -89,6 +97,7 @@ def test_build_page_agentic_summary_returns_llm_payload():
     assert "AQL agent result JSON" in fake.user_prompt
     assert "AQL / Zopedia" in agent.kwargs["query"]
     assert agent.kwargs["persist_findings"] is False
+    assert agent.kwargs["write_policy"] == "safe_auto"
     assert result["aql_agent"]["tool_calls"][0]["tool_name"] == "research.search_evidence"
 
 
@@ -122,7 +131,7 @@ def test_build_page_agentic_summary_fails_closed_when_aql_fails():
 
     assert result["status"] == "unavailable"
     assert result["summary_markdown"] == ""
-    assert "AQL agent did not produce" in result["data_gaps"][0]
+    assert result["data_gaps"][0] == "AQL did not return enough grounded evidence for a page summary."
 
 
 def test_build_page_agentic_summary_fails_closed_when_aql_raises():
@@ -147,7 +156,7 @@ def test_build_page_agentic_summary_fails_closed_when_aql_raises():
 
     assert result["status"] == "unavailable"
     assert result["summary_markdown"] == ""
-    assert "AQL summary failed" in result["data_gaps"][0]
+    assert result["data_gaps"][0] == "AQL page summary failed."
 
 
 def test_materialized_page_agentic_summary_round_trips_exact_context():

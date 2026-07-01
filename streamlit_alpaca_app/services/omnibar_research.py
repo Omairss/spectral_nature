@@ -17,6 +17,7 @@ from services.llm import get_config_param, register_config_param
 from services.omnibar import resolve_omnibar
 from services.aql_zopedia_engine import load_aql_zopedia_llm_client
 from services.common.news_freshness import is_recent_for_attention
+from services.web_research import SerperSearchClient, SerpAPISearchClient, TavilySearchClient, load_serper_config, load_serpapi_config, load_tavily_config
 from .page_browsing import browse_page
 from .saa import (
     apply_zopedia_typed_mutation,
@@ -243,6 +244,17 @@ def _fast_search_clients(timeout_seconds: int) -> tuple[SerpAPISearchClient | No
     except Exception:
         tavily_client = None
     return serp_client, tavily_client
+
+
+def _fast_serper_client(timeout_seconds: int) -> SerperSearchClient | None:
+    safe_timeout = max(int(timeout_seconds), 3)
+    try:
+        serper_cfg = load_serper_config()
+        if serper_cfg is not None:
+            return SerperSearchClient(replace(serper_cfg, timeout_seconds=safe_timeout))
+    except Exception:
+        return None
+    return None
 
 
 def _layer(layer: DataAccessLayer | None = None) -> DataAccessLayer:
@@ -698,6 +710,7 @@ def live_event_evidence(
     rows: list[dict[str, Any]] = []
     if impact.get("evidence_needed", True):
         serp_client, tavily_client = _fast_search_clients(provider_timeout_seconds)
+        serper_client = _fast_serper_client(provider_timeout_seconds)
         event_payload, event_warning = _run_with_timeout(
             "live_event_news_search",
             max(min(_remaining_budget(deadline), provider_timeout_seconds * 2 + 3), 1),
@@ -712,6 +725,7 @@ def live_event_evidence(
                 },
                 max_results=max(min(safe_limit, 6), 3),
                 serp_client=serp_client,
+                serper_client=serper_client,
                 tavily_client=tavily_client,
                 search_query=normalized_query,
                 allow_llm_query=False,
@@ -793,6 +807,7 @@ def live_event_evidence(
 
     ordered = sorted(deduped, key=_sort_key)[:safe_limit]
     llm_lines = [
+        "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies.",
         f"Live evidence theme={theme} direction={direction}.",
     ]
     if selected_symbols:
@@ -804,8 +819,11 @@ def live_event_evidence(
         source = _clean(row.get("source"))
         published_at = _clean(row.get("published_at"))
         headline = _clean(row.get("headline"))
+        summary_text = _clean(row.get("summary_text"))
         url = _clean(row.get("url"))
         line = f"{label}: {headline}"
+        if summary_text:
+            line += f" | snippet={summary_text}"
         if source:
             line += f" | source={source}"
         if published_at:

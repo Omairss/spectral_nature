@@ -1,13 +1,13 @@
 # UI Deployment Status Tracker
 
-Last updated (UTC): 2026-06-23 01:29
+Last updated (UTC): 2026-06-24 19:31
 
 ## Environment Mapping
 
 | Role | Resource Group | Container App | URL | Latest Revision | Image | Auth Persistence | Health |
 |---|---|---|---|---|---|---|---|
 | **Production (stable)** | `sn-pipeline-rg-03130136` | `sn-streamlit-ui` | https://sn-streamlit-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io | `sn-streamlit-ui--0000083` | `snpipelineacr03130136.azurecr.io/streamlit-ui@sha256:fc6e492d00ce3022049e853400a45ae0a5f82a520206dc2a945b8cfc6242d7f5` | browser cookie (default) | HTTP 200 |
-| **Development** | `sn-pipeline-rg-03130136` | `sn-streamlit-ui-dev` | https://sn-streamlit-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io | `sn-streamlit-ui-dev--0000417` | `snpipelineacr03130136.azurecr.io/streamlit-ui@sha256:67f5e05593d1129f100ea795621e76aaa8feef1702513b8ffe63de57ce392f91` | browser cookie (default) | HTTP 200 |
+| **Development** | `sn-pipeline-rg-03130136` | `sn-streamlit-ui-dev` | https://sn-streamlit-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io | `sn-streamlit-ui-dev--0000429` | `snpipelineacr03130136.azurecr.io/streamlit-ui@sha256:b218f2d06de33c9135f461f9cd30b265bf88faba306b568a4e6246841cd08dbf` | browser cookie (default) | HTTP 200 |
 
 ## Promotion Workflow
 

@@ -105,6 +105,7 @@ def test_live_event_evidence_uses_impact_symbols_when_no_focus_symbols(monkeypat
     monkeypatch.setattr(omnibar_research, "search_market_event_news_payload", _fake_search_market_event_news_payload)
     monkeypatch.setattr(omnibar_research, "search_symbol_news_payload", _fake_search_symbol_news_payload)
     monkeypatch.setattr(omnibar_research, "load_aql_zopedia_llm_client", lambda **kwargs: None)
+    monkeypatch.setattr(omnibar_research, "_fast_serper_client", lambda timeout_seconds: None)
     monkeypatch.setattr(
         omnibar_research,
         "_llm_query_intent",
@@ -133,6 +134,7 @@ def test_live_event_evidence_uses_impact_symbols_when_no_focus_symbols(monkeypat
     assert payload["theme"] == "oil"
     assert "USO" in payload["focus_symbols"]
     assert payload["summary"][0]["headline"]
+    assert "Supply risk rose after talks stalled." in payload["llm_context_text"]
 
 
 def test_live_event_evidence_returns_partial_when_internal_impact_map_times_out(monkeypatch):
@@ -168,6 +170,7 @@ def test_live_event_evidence_returns_partial_when_internal_impact_map_times_out(
     monkeypatch.setattr(omnibar_research, "market_impact_map", _slow_market_impact_map)
     monkeypatch.setattr(omnibar_research, "search_market_event_news_payload", _fake_search_market_event_news_payload)
     monkeypatch.setattr(omnibar_research, "_fast_search_clients", lambda timeout_seconds: (None, None))
+    monkeypatch.setattr(omnibar_research, "_fast_serper_client", lambda timeout_seconds: None)
     monkeypatch.setattr(omnibar_research, "get_config_param", lambda key: 1 if "timeout" in str(key).lower() else 6)
 
     payload = omnibar_research.live_event_evidence(

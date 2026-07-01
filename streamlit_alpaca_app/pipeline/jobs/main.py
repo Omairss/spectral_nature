@@ -68,8 +68,9 @@ from services.page_agentic_summary import (
     build_page_agentic_summary,
     build_unavailable_page_agentic_summary,
 )
-from services.pipeline_store import load_latest_dataset_frame
+from services.pipeline_store import load_latest_dataset_frame, load_recent_dataset_frames
 from services.saa import (
+    apply_zopedia_typed_mutation,
     bootstrap_saa_storage,
     list_zopedia_pages,
     persist_retained_evidence_chunks,
@@ -79,7 +80,12 @@ from services.saa import (
 from services.secrets import postgres_connect_timeout_seconds, resolve_secret_value
 from services.simfin_refresh import build_quarterly_fundamentals_frame, simfin_refresh_configured
 from services.treasury_yields import TreasuryYieldError, load_treasury_yield_datasets
-from services.trading_agent import build_trading_agent_materialized_frames, build_trading_agent_suggestions
+from services.trading_agent import (
+    build_trading_agent_materialized_frames,
+    build_trading_agent_outcomes,
+    build_trading_agent_research_reviews,
+    build_trading_agent_suggestions,
+)
 from services.universe import build_liquidity_ranked_equity_universe, load_us_equity_listings
 from services.zopedia_learning import run_zopedia_learning_job as run_zopedia_learning_service
 
@@ -695,6 +701,252 @@ def _persist_dataset(dataset_name: str, frame: pd.DataFrame, ctx: JobContext, co
         stage="persist_dataset",
         message=f"Persisted dataset `{dataset_name}` rows={len(prepared_frame)}.",
     )
+
+
+def _normalize_zopedia_write_policy(value: object, default: str = "safe_auto") -> str:
+    fallback = str(default or "safe_auto").strip().lower()
+    policy = str(value or fallback).strip().lower()
+    if policy in {"off", "disabled", "read_only", "readonly"}:
+        return "none"
+    if policy in {"proposal", "review"}:
+        return "propose"
+    if policy in {"auto", "commit", "safe", "safe-auto"}:
+        return "safe_auto"
+    if policy in {"none", "propose", "safe_auto"}:
+        return policy
+    return fallback if fallback in {"none", "propose", "safe_auto"} else "safe_auto"
+
+
+_ZOPEDIA_PIPELINE_PAGE_TYPES = {"source", "concept", "entity", "theme", "market_event", "ticker", "macro", "question", "index"}
+
+
+def _pipeline_clean_text(value: object) -> str:
+    if value is None:
+        return ""
+    try:
+        if pd.isna(value):
+            return ""
+    except Exception:
+        pass
+    text = str(value).strip()
+    return "" if text.lower() in {"nan", "nat", "none", "null"} else text
+
+
+def _pipeline_json_list(value: object) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return []
+        try:
+            parsed = json.loads(text)
+        except Exception:
+            parsed = [text]
+    else:
+        parsed = value
+    if not isinstance(parsed, (list, tuple, set)):
+        parsed = [parsed]
+    out: list[str] = []
+    for item in parsed:
+        clean = _pipeline_clean_text(item)
+        if clean and clean not in out:
+            out.append(clean)
+    return out
+
+
+def _pipeline_json_dict(value: object) -> dict[str, Any]:
+    if isinstance(value, dict):
+        return dict(value)
+    text = _pipeline_clean_text(value)
+    if not text:
+        return {}
+    try:
+        parsed = json.loads(text)
+    except Exception:
+        return {}
+    return dict(parsed) if isinstance(parsed, dict) else {}
+
+
+def _zopedia_pipeline_page_metadata(page: dict[str, Any]) -> dict[str, Any]:
+    return _pipeline_json_dict(page.get("metadata") or page.get("metadata_json"))
+
+
+def _zopedia_pipeline_page_source_refs(page: dict[str, Any]) -> list[str]:
+    refs: list[str] = []
+    for key in ("source_urls", "source_urls_json", "source_document_ids", "source_document_ids_json"):
+        refs.extend(_pipeline_json_list(page.get(key)))
+    metadata = _zopedia_pipeline_page_metadata(page)
+    refs.extend(_pipeline_json_list(metadata.get("source_event_ids")))
+    refs.extend(_pipeline_json_list(metadata.get("source_urls")))
+    for key in ("source_url", "source_document_id", "source_event_id"):
+        clean = _pipeline_clean_text(metadata.get(key))
+        if clean:
+            refs.append(clean)
+    return list(dict.fromkeys(refs))
+
+
+def _zopedia_pipeline_memory_page_issues(page: dict[str, Any]) -> list[str]:
+    issues: list[str] = []
+    page_type = _pipeline_clean_text(page.get("page_type") or page.get("type")).lower()
+    if page_type not in _ZOPEDIA_PIPELINE_PAGE_TYPES:
+        issues.append("invalid_page_type")
+    if not _pipeline_clean_text(page.get("title")):
+        issues.append("missing_title")
+    if not _pipeline_clean_text(page.get("summary") or page.get("summary_text")):
+        issues.append("missing_summary")
+    if not _pipeline_clean_text(page.get("body_markdown") or page.get("body") or page.get("text")):
+        issues.append("missing_body")
+    if not _zopedia_pipeline_page_source_refs(page):
+        issues.append("missing_source_refs")
+    return issues
+
+
+def _prepare_zopedia_pipeline_memory_pages(pages_frame: pd.DataFrame) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    pages: list[dict[str, Any]] = []
+    rejected: list[dict[str, Any]] = []
+    if not isinstance(pages_frame, pd.DataFrame) or pages_frame.empty:
+        return pages, rejected
+    for idx, row in pages_frame.reset_index(drop=True).iterrows():
+        page = dict(row.to_dict())
+        issues = _zopedia_pipeline_memory_page_issues(page)
+        if issues:
+            rejected.append(
+                {
+                    "row_index": int(idx),
+                    "page_id": _pipeline_clean_text(page.get("page_id")),
+                    "title": _pipeline_clean_text(page.get("title")),
+                    "issues": issues,
+                }
+            )
+            continue
+        pages.append(page)
+    return pages, rejected
+
+
+def _zopedia_memory_commit_report_frame(
+    *,
+    ctx: JobContext,
+    source: str,
+    write_policy: str,
+    result: dict[str, Any],
+    requested_page_count: int,
+    eligible_page_count: int,
+    rejected_pages: list[dict[str, Any]],
+) -> pd.DataFrame:
+    audit = result.get("mutation_audit") if isinstance(result.get("mutation_audit"), dict) else {}
+    proposal = result.get("proposal") if isinstance(result.get("proposal"), dict) else {}
+    row = {
+        "run_id": ctx.run_id,
+        "asof_time_utc": ctx.asof.isoformat(),
+        "source": source,
+        "write_policy": _normalize_zopedia_write_policy(write_policy),
+        "status": _pipeline_clean_text(result.get("status")) or "unknown",
+        "reason": _pipeline_clean_text(result.get("reason")),
+        "mutation_type": _pipeline_clean_text(result.get("mutation_type")),
+        "requested_page_count": int(requested_page_count),
+        "eligible_page_count": int(eligible_page_count),
+        "rejected_page_count": len(rejected_pages),
+        "committed_page_count": int(result.get("page_count") or 0),
+        "mutation_id": _pipeline_clean_text(audit.get("mutation_id")),
+        "proposal_id": _pipeline_clean_text(proposal.get("proposal_id")),
+        "rejected_pages_json": json.dumps(rejected_pages[:50], ensure_ascii=False, sort_keys=True, default=str),
+        "created_at_utc": _utc_now().isoformat(),
+    }
+    return pd.DataFrame([row])
+
+
+def _commit_zopedia_memory_pages(
+    *,
+    pages_frame: pd.DataFrame,
+    write_policy: str,
+    ctx: JobContext,
+    conn: Any | None,
+    source: str,
+    rationale: str,
+) -> dict[str, Any]:
+    normalized_policy = _normalize_zopedia_write_policy(write_policy)
+    requested_page_count = int(len(pages_frame)) if isinstance(pages_frame, pd.DataFrame) else 0
+    if normalized_policy != "safe_auto":
+        return {
+            "status": "skipped",
+            "reason": f"write_policy_{normalized_policy}",
+            "page_count": 0,
+            "requested_page_count": requested_page_count,
+            "eligible_page_count": 0,
+            "rejected_page_count": 0,
+            "rejected_pages": [],
+        }
+    if not isinstance(pages_frame, pd.DataFrame) or pages_frame.empty:
+        return {
+            "status": "skipped",
+            "reason": "no_pages",
+            "page_count": 0,
+            "requested_page_count": requested_page_count,
+            "eligible_page_count": 0,
+            "rejected_page_count": 0,
+            "rejected_pages": [],
+        }
+    pages, rejected_pages = _prepare_zopedia_pipeline_memory_pages(pages_frame)
+    if not pages:
+        return {
+            "status": "skipped",
+            "reason": "no_valid_pages",
+            "page_count": 0,
+            "requested_page_count": requested_page_count,
+            "eligible_page_count": 0,
+            "rejected_page_count": len(rejected_pages),
+            "rejected_pages": rejected_pages,
+        }
+    result = apply_zopedia_typed_mutation(
+        mutation_type="upsert_pages",
+        pages=pages,
+        evidence_refs=[
+            {
+                "kind": "pipeline_run",
+                "run_id": ctx.run_id,
+                "asof_time_utc": ctx.asof.isoformat(),
+                "source": source,
+            }
+        ],
+        rationale=rationale,
+        payload={
+            "run_id": ctx.run_id,
+            "asof_time_utc": ctx.asof.isoformat(),
+            "source": source,
+            "page_count": len(pages),
+            "rejected_page_count": len(rejected_pages),
+        },
+        actor="attention-pipeline",
+        source=source,
+        conn=conn,
+    )
+    result["requested_page_count"] = requested_page_count
+    result["eligible_page_count"] = len(pages)
+    result["rejected_page_count"] = len(rejected_pages)
+    result["rejected_pages"] = rejected_pages
+    print(
+        "[info] zopedia_memory_commit "
+        + _to_json(
+            {
+                "status": result.get("status"),
+                "mutation_type": result.get("mutation_type"),
+                "page_count": result.get("page_count"),
+                "requested_page_count": len(pages_frame),
+                "eligible_page_count": len(pages),
+                "rejected_page_count": len(rejected_pages),
+                "mutation_id": (result.get("mutation_audit") or {}).get("mutation_id")
+                if isinstance(result.get("mutation_audit"), dict)
+                else "",
+                "proposal_id": (result.get("proposal") or {}).get("proposal_id")
+                if isinstance(result.get("proposal"), dict)
+                else "",
+                "source": source,
+            }
+        ),
+        flush=True,
+    )
+    return result
 
 
 def _alpaca_config() -> AppConfig | None:
@@ -1978,6 +2230,16 @@ def _build_news_business_resolution_output_frames(
     conn: Any | None,
 ) -> dict[str, pd.DataFrame]:
     if not isinstance(news, pd.DataFrame) or news.empty:
+        write_policy = _normalize_zopedia_write_policy(os.getenv("ZOPEDIA_NEWS_BUSINESS_WRITE_POLICY", "safe_auto"))
+        commit_report = _zopedia_memory_commit_report_frame(
+            ctx=ctx,
+            source="pipeline.news_business_resolution",
+            write_policy=write_policy,
+            result={"status": "skipped", "reason": "no_news", "page_count": 0},
+            requested_page_count=0,
+            eligible_page_count=0,
+            rejected_pages=[],
+        )
         return {
             "zopedia_business_model_research_plans": pd.DataFrame(),
             "zopedia_business_model_search_requests": pd.DataFrame(),
@@ -1985,6 +2247,7 @@ def _build_news_business_resolution_output_frames(
             "zopedia_ticker_business_model_stacks": pd.DataFrame(),
             "zopedia_news_business_resolutions": pd.DataFrame(),
             "zopedia_company_business_memory_pages": pd.DataFrame(),
+            "zopedia_memory_commit_report": commit_report,
         }
     try:
         company_baselines = _load_latest_materialized_frame("company_baselines")
@@ -2000,7 +2263,7 @@ def _build_news_business_resolution_output_frames(
     except Exception:
         fundamentals = pd.DataFrame()
     zopedia_pages = _zopedia_pages_for_news_resolution(conn)
-    write_policy = os.getenv("ZOPEDIA_NEWS_BUSINESS_WRITE_POLICY", "propose")
+    write_policy = _normalize_zopedia_write_policy(os.getenv("ZOPEDIA_NEWS_BUSINESS_WRITE_POLICY", "safe_auto"))
     execute_business_research = _parse_bool_env("ZOPEDIA_TICKER_BUSINESS_RESEARCH_ENABLED", True)
     _configure_news_business_research_budget_env()
     serp_client = None
@@ -2053,6 +2316,38 @@ def _build_news_business_resolution_output_frames(
     memory_pages = pd.concat(non_empty_memory_parts, ignore_index=True, sort=False) if non_empty_memory_parts else pd.DataFrame()
     if not memory_pages.empty and "page_id" in memory_pages.columns:
         memory_pages = memory_pages.drop_duplicates(subset=["page_id"], keep="last").reset_index(drop=True)
+    requested_page_count = int(len(memory_pages)) if isinstance(memory_pages, pd.DataFrame) else 0
+    try:
+        commit_result = _commit_zopedia_memory_pages(
+            pages_frame=memory_pages,
+            write_policy=write_policy,
+            ctx=ctx,
+            conn=conn,
+            source="pipeline.news_business_resolution",
+            rationale="Commit source-backed company business memory produced by the scheduled news and attention research pipeline.",
+        )
+    except Exception as exc:
+        print(f"[warn] zopedia memory commit skipped: {type(exc).__name__}: {exc}", flush=True)
+        commit_result = {
+            "status": "failed",
+            "reason": f"{type(exc).__name__}: {exc}",
+            "mutation_type": "upsert_pages",
+            "page_count": 0,
+            "requested_page_count": requested_page_count,
+            "eligible_page_count": 0,
+            "rejected_page_count": 0,
+            "rejected_pages": [],
+        }
+    rejected_pages = commit_result.get("rejected_pages") if isinstance(commit_result.get("rejected_pages"), list) else []
+    commit_report = _zopedia_memory_commit_report_frame(
+        ctx=ctx,
+        source="pipeline.news_business_resolution",
+        write_policy=write_policy,
+        result=commit_result,
+        requested_page_count=int(commit_result.get("requested_page_count") or requested_page_count),
+        eligible_page_count=int(commit_result.get("eligible_page_count") or 0),
+        rejected_pages=rejected_pages,
+    )
     return {
         "zopedia_business_model_research_plans": business_stack_frames.get("zopedia_business_model_research_plans", pd.DataFrame()),
         "zopedia_business_model_search_requests": business_stack_frames.get("zopedia_business_model_search_requests", pd.DataFrame()),
@@ -2060,6 +2355,7 @@ def _build_news_business_resolution_output_frames(
         "zopedia_ticker_business_model_stacks": stack_frame,
         "zopedia_news_business_resolutions": resolution_frames.get("zopedia_news_business_resolutions", pd.DataFrame()),
         "zopedia_company_business_memory_pages": memory_pages,
+        "zopedia_memory_commit_report": commit_report,
     }
 
 
@@ -2258,11 +2554,74 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
     )
     _persist_dataset("trading_agent_runs", runs, ctx, conn)
     _persist_dataset("trading_agent_candidates", candidates, ctx, conn)
+
+    history_versions = _parse_int_env("TRADING_AGENT_OUTCOME_HISTORY_VERSIONS", 12, minimum=1)
+    candidate_parts: list[pd.DataFrame] = []
+    run_parts: list[pd.DataFrame] = []
+    try:
+        candidate_parts.extend(
+            frame.copy()
+            for frame, _metadata in load_recent_dataset_frames("trading_agent_candidates", limit=history_versions)
+            if isinstance(frame, pd.DataFrame) and not frame.empty
+        )
+    except Exception as exc:
+        print(f"[warn] trading-agent recent candidates unavailable: {type(exc).__name__}: {exc}")
+    try:
+        run_parts.extend(
+            frame.copy()
+            for frame, _metadata in load_recent_dataset_frames("trading_agent_runs", limit=history_versions)
+            if isinstance(frame, pd.DataFrame) and not frame.empty
+        )
+    except Exception as exc:
+        print(f"[warn] trading-agent recent runs unavailable: {type(exc).__name__}: {exc}")
+    candidate_parts.append(candidates)
+    run_parts.append(runs)
+
+    all_candidates = (
+        pd.concat(candidate_parts, ignore_index=True, sort=False)
+        if candidate_parts
+        else pd.DataFrame()
+    )
+    if not all_candidates.empty and "candidate_id" in all_candidates.columns:
+        all_candidates = all_candidates.drop_duplicates(subset=["candidate_id"], keep="last").reset_index(drop=True)
+    all_runs = pd.concat(run_parts, ignore_index=True, sort=False) if run_parts else pd.DataFrame()
+    if not all_runs.empty and "trading_agent_run_id" in all_runs.columns:
+        all_runs = all_runs.drop_duplicates(subset=["trading_agent_run_id"], keep="last").reset_index(drop=True)
+
+    _job_progress(
+        ctx,
+        conn,
+        stage="build_research_loop",
+        message=f"Building Trading Agent outcomes for {len(all_candidates)} candidate experiment(s).",
+        progress_pct=92.0,
+    )
+    price_history = _load_latest_materialized_frame("price_history")
+    outcomes = build_trading_agent_outcomes(
+        candidates=all_candidates,
+        price_history=price_history,
+        runs=all_runs,
+        evaluation_time_utc=ctx.asof,
+    )
+    review_limit = _parse_int_env("TRADING_AGENT_REVIEW_LIMIT", 8, minimum=0)
+    reviews = build_trading_agent_research_reviews(
+        outcomes=outcomes,
+        candidates=all_candidates,
+        runs=all_runs,
+        llm_client=llm_client,
+        max_reviews=review_limit,
+        include_mark_to_market=_parse_bool_env("TRADING_AGENT_REVIEW_INCLUDE_MARK_TO_MARKET", False),
+        review_time_utc=ctx.asof,
+    )
+    _persist_dataset("trading_agent_outcomes", outcomes, ctx, conn)
+    _persist_dataset("trading_agent_research_reviews", reviews, ctx, conn)
     _job_progress(
         ctx,
         conn,
         stage="done",
-        message=f"Trading Agent materialization complete: runs={len(runs)} candidates={len(candidates)}.",
+        message=(
+            "Trading Agent materialization complete: "
+            f"runs={len(runs)} candidates={len(candidates)} outcomes={len(outcomes)} reviews={len(reviews)}."
+        ),
         progress_pct=100.0,
     )
 

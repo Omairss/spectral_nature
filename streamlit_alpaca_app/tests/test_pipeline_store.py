@@ -439,6 +439,140 @@ def test_latest_dataset_metadata_uses_newer_latest_manifest_when_db_is_stale(mon
     assert metadata.asof_time_utc == latest_manifest["asof_time_utc"]
 
 
+def test_latest_dataset_pointer_drift_reports_db_manifest_mismatch(monkeypatch):
+    stale_db_row = (
+        "attention_home_1d",
+        "attention_home_1d__20260528T163459Z__db",
+        "datasets/attention_home_1d/part-db.parquet",
+        "2026-05-28T16:34:59Z",
+        "2026-05-28T17:26:18Z",
+        1,
+    )
+    latest_manifest = {
+        "dataset_name": "attention_home_1d",
+        "dataset_version_id": "attention_home_1d__20260622T202029Z__manifest",
+        "blob_path": "datasets/attention_home_1d/part-manifest.parquet",
+        "asof_time_utc": "2026-06-22T20:20:29Z",
+        "ingested_at_utc": "2026-06-22T20:55:07Z",
+        "row_count": 3,
+    }
+
+    class _Cursor:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def execute(self, query, params=None):
+            assert params == (["attention_home_1d"],)
+
+        def fetchall(self):
+            return [stale_db_row]
+
+    class _Conn:
+        def cursor(self):
+            return _Cursor()
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: _Conn())
+    monkeypatch.setattr(
+        pipeline_store,
+        "_read_blob_json",
+        lambda path: latest_manifest if path == "manifests/attention_home_1d/latest.json" else None,
+    )
+
+    drift = pipeline_store.latest_dataset_pointer_drift(["attention_home_1d"])
+
+    row = drift.iloc[0].to_dict()
+    assert row["dataset_name"] == "attention_home_1d"
+    assert row["health"] == "drift"
+    assert row["reader_source"] == "manifest"
+    assert row["reader_dataset_version_id"] == latest_manifest["dataset_version_id"]
+    assert row["db_dataset_version_id"] == stale_db_row[1]
+    assert row["manifest_row_count"] == 3
+
+
+def test_latest_home_market_coverage_health_reports_ok(monkeypatch):
+    metadata = pipeline_store.PipelineDataset(
+        dataset_name="attention_home_1d",
+        dataset_version_id="attention_home_1d__20260624T200000Z__ok",
+        blob_path="datasets/attention_home_1d/part-ok.parquet",
+        asof_time_utc="2026-06-24T20:00:00Z",
+        ingested_at_utc="2026-06-24T20:05:00Z",
+        row_count=1,
+    )
+    frame = pd.DataFrame(
+        [
+            {
+                "generated_at_utc": "2026-06-24T20:00:00Z",
+                "coverage_summary_json": json.dumps(
+                    {
+                        "market_coverage": {
+                            "status": "ok",
+                            "broad_market": {
+                                "market_breadth": {"total_symbols": 3},
+                                "macro_anchor_moves": [{"symbol": "SPY"}],
+                                "sector_rotation": [{"sector": "Technology"}],
+                            },
+                            "rates_and_macro": {"yield_curve_facts": [{"tenor": "10Y"}]},
+                            "structural_signals": {
+                                "market": [{"symbol": "SPY"}],
+                                "macro": [],
+                                "cross_series": [],
+                            },
+                            "coverage_gaps": [],
+                        }
+                    }
+                ),
+                "homepage_summary_json": json.dumps({"summary_status": "completed"}),
+            }
+        ]
+    )
+    monkeypatch.setattr(pipeline_store, "load_latest_dataset_frame", lambda dataset_name: (frame, metadata))
+
+    health = pipeline_store.latest_home_market_coverage_health()
+
+    row = health.iloc[0].to_dict()
+    assert row["health"] == "ok"
+    assert row["market_breadth_symbol_count"] == 3
+    assert row["macro_anchor_move_count"] == 1
+    assert row["sector_rotation_count"] == 1
+    assert row["yield_curve_fact_count"] == 1
+    assert row["structural_signal_count"] == 1
+    assert row["issue"] == ""
+
+
+def test_latest_home_market_coverage_health_reports_missing_contract(monkeypatch):
+    metadata = pipeline_store.PipelineDataset(
+        dataset_name="attention_home_1d",
+        dataset_version_id="attention_home_1d__20260528T200000Z__legacy",
+        blob_path="datasets/attention_home_1d/part-legacy.parquet",
+        asof_time_utc="2026-05-28T20:00:00Z",
+        ingested_at_utc="2026-05-28T20:05:00Z",
+        row_count=1,
+    )
+    frame = pd.DataFrame(
+        [
+            {
+                "generated_at_utc": "2026-05-28T20:00:00Z",
+                "coverage_summary_json": json.dumps({"candidate_count": 4}),
+                "homepage_summary_json": json.dumps({"summary_status": "completed"}),
+            }
+        ]
+    )
+    monkeypatch.setattr(pipeline_store, "load_latest_dataset_frame", lambda dataset_name: (frame, metadata))
+
+    health = pipeline_store.latest_home_market_coverage_health()
+
+    row = health.iloc[0].to_dict()
+    assert row["health"] == "missing"
+    assert row["coverage_status"] == "missing"
+    assert "market coverage contract" in row["issue"]
+
+
 def test_latest_dataset_metadata_uses_stable_latest_manifest_before_listing(monkeypatch, tmp_path):
     manifest = {
         "dataset_name": "attention_feed",

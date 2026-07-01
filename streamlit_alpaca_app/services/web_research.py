@@ -114,6 +114,14 @@ class TavilyConfig:
     include_raw_content: bool = False
 
 
+@dataclass(frozen=True)
+class SerperConfig:
+    api_key: str
+    timeout_seconds: int = 20
+    gl: str = "us"
+    hl: str = "en"
+
+
 def _resolve_serpapi_api_key() -> str:
     return resolve_secret_value(
         ["SERPAPI_API_KEY", "SERP_API_KEY"],
@@ -127,6 +135,14 @@ def _resolve_tavily_api_key() -> str:
         ["TAVILY_API_KEY", "TAVILY_KEY"],
         secret_name_env="TAVILY_API_KEY_SECRET_NAME",
         default_secret_name="tavily-api-key",
+    )
+
+
+def _resolve_serper_api_key() -> str:
+    return resolve_secret_value(
+        ["SERPER_API_KEY", "SERPER_KEY"],
+        secret_name_env="SERPER_API_KEY_SECRET_NAME",
+        default_secret_name="serper-api-key",
     )
 
 
@@ -156,6 +172,18 @@ def load_tavily_config() -> TavilyConfig | None:
         search_depth=_clean(os.getenv("TAVILY_SEARCH_DEPTH")) or "advanced",
         include_answer=(_clean(os.getenv("TAVILY_INCLUDE_ANSWER")) or "").lower() in {"1", "true", "yes", "on"},
         include_raw_content=True if not include_raw_content_raw else include_raw_content_raw.lower() in {"1", "true", "yes", "on"},
+    )
+
+
+def load_serper_config() -> SerperConfig | None:
+    api_key = _resolve_serper_api_key()
+    if not api_key:
+        return None
+    return SerperConfig(
+        api_key=api_key,
+        timeout_seconds=_timeout_seconds(),
+        gl=_clean(os.getenv("SERPER_GL")) or "us",
+        hl=_clean(os.getenv("SERPER_HL")) or "en",
     )
 
 
@@ -369,6 +397,99 @@ class SerpAPISearchClient:
             raise
 
 
+class SerperSearchClient:
+    def __init__(self, config: SerperConfig, *, session: requests.Session | None = None) -> None:
+        if not config.api_key:
+            raise WebResearchError("Missing Serper key.")
+        self.config = config
+        self.session = session or requests.Session()
+
+    def search(self, query: str, *, news: bool = False, num: int = 10) -> list[WebSearchResult]:
+        started_at = datetime.now(timezone.utc)
+        started_monotonic = time.monotonic()
+        operation = "search_news" if news else "search"
+        metadata = {
+            "query_sha256": _query_digest(query),
+            "query_chars": len(_clean(query)),
+            "engine": "news" if news else "search",
+            "num": max(int(num), 1),
+        }
+        recorded = False
+        endpoint = "news" if news else "search"
+        try:
+            response = self.session.post(
+                f"https://google.serper.dev/{endpoint}",
+                headers={
+                    "X-API-KEY": self.config.api_key,
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "q": query,
+                    "num": max(int(num), 1),
+                    "gl": self.config.gl,
+                    "hl": self.config.hl,
+                },
+                timeout=self.config.timeout_seconds,
+            )
+            if response.status_code != 200:
+                message = f"Serper request failed status={response.status_code}: {response.text[:400]}"
+                _record_connector_call(
+                    provider="serper",
+                    operation=operation,
+                    started_at_utc=started_at,
+                    started_monotonic=started_monotonic,
+                    status="failure",
+                    http_status=response.status_code,
+                    error=message,
+                    metadata=metadata,
+                )
+                recorded = True
+                raise WebResearchError(message)
+            payload = response.json()
+            raw_items = payload.get("news") if news else payload.get("organic")
+            if not isinstance(raw_items, list):
+                raw_items = []
+            rows: list[WebSearchResult] = []
+            for item in raw_items:
+                if not isinstance(item, dict):
+                    continue
+                rows.append(
+                    WebSearchResult(
+                        provider="serper",
+                        title=_clean(item.get("title")),
+                        url=_clean(item.get("link")),
+                        snippet=_clean(item.get("snippet")),
+                        raw_text=_clean(item.get("snippet")),
+                        source=_source_label(item.get("source")),
+                        published_at=_clean(item.get("date")),
+                        raw=item,
+                    )
+                )
+            _record_connector_call(
+                provider="serper",
+                operation=operation,
+                started_at_utc=started_at,
+                started_monotonic=started_monotonic,
+                status="success",
+                http_status=response.status_code,
+                result_count=len(rows),
+                metadata=metadata,
+            )
+            return rows
+        except Exception as exc:
+            if not recorded:
+                _record_connector_call(
+                    provider="serper",
+                    operation=operation,
+                    started_at_utc=started_at,
+                    started_monotonic=started_monotonic,
+                    status="failure",
+                    error=exc,
+                    metadata=metadata,
+                )
+            raise
+
+
 class TavilySearchClient:
     def __init__(self, config: TavilyConfig, *, session: requests.Session | None = None) -> None:
         if not config.api_key:
@@ -461,12 +582,15 @@ class TavilySearchClient:
 
 
 __all__ = [
+    "SerperConfig",
+    "SerperSearchClient",
     "SerpAPIConfig",
     "SerpAPISearchClient",
     "TavilyConfig",
     "TavilySearchClient",
     "WebResearchError",
     "WebSearchResult",
+    "load_serper_config",
     "load_serpapi_config",
     "load_tavily_config",
 ]

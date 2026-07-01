@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import base64
-from concurrent.futures import Future, ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 from contextlib import contextmanager
 from datetime import datetime, timezone
 import hashlib
@@ -101,16 +101,14 @@ from services.agents import (
 )
 from services.page_browsing import browse_page
 from services.saa import (
-    build_zopedia_change_proposal,
     fetch_youtube_transcript,
     ingest_zopedia_source,
     list_zopedia_change_proposals,
     list_zopedia_maintenance_reports,
-    list_zopedia_mutation_audits,
-    persist_zopedia_change_proposals,
+    load_zopedia_page,
     prepare_zopedia_uploaded_source,
-    rollback_zopedia_mutation,
     search_zopedia_pages,
+    zopedia_page_neighborhood,
     zopedia_read_source,
     zopedia_sources_for_page,
 )
@@ -192,6 +190,7 @@ _SIGNALS_IMPORT_ERROR: str | None = None
 _ATTENTION_SUMMARY_AUDIO_EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="summary_audio")
 _ATTENTION_SUMMARY_AUDIO_FUTURES: dict[str, Future[bytes]] = {}
 _ATTENTION_SUMMARY_AUDIO_LOCK = threading.Lock()
+_ZOPEDIA_UI_READ_EXECUTOR = ThreadPoolExecutor(max_workers=3, thread_name_prefix="zopedia_ui_read")
 try:
     importlib.invalidate_caches()
     _signals = importlib.import_module("services.signals")
@@ -3146,8 +3145,7 @@ def _source_domain(url: str) -> str:
     return (parsed.hostname or "").replace("www.", "")[:30]
 
 
-def _render_source_evidence_strip(sources: list[dict[str, str]]) -> None:
-    """Render public web source cards. Internal/debug refs stay out of citations."""
+def _public_source_links(sources: list[dict[str, str]]) -> list[dict[str, str]]:
     unique: list[dict[str, str]] = []
     seen_urls: set[str] = set()
     for src in sources:
@@ -3158,6 +3156,12 @@ def _render_source_evidence_strip(sources: list[dict[str, str]]) -> None:
             continue
         seen_urls.add(url)
         unique.append(src)
+    return unique
+
+
+def _render_source_evidence_strip(sources: list[dict[str, str]]) -> None:
+    """Render public web source cards. Internal/debug refs stay out of citations."""
+    unique = _public_source_links(sources)
     if not unique:
         return
     display = unique[:5]
@@ -3171,6 +3175,84 @@ def _render_source_evidence_strip(sources: list[dict[str, str]]) -> None:
             with st.container(border=True):
                 st.markdown(f"**{i + 1}**&ensp;[{short_label}]({url})")
                 st.caption(domain)
+
+
+def _research_detail_count(
+    *,
+    trace: list[dict[str, object]],
+    sources: list[dict[str, str]],
+    tool_count: object = None,
+    agent_result: dict[str, object] | None = None,
+) -> int:
+    try:
+        parsed_tool_count = int(tool_count or 0)
+    except Exception:
+        parsed_tool_count = 0
+    if parsed_tool_count > 0:
+        return parsed_tool_count
+    tool_starts = [
+        step
+        for step in trace
+        if isinstance(step, dict) and str(step.get("type") or "").strip() == "tool_start"
+    ]
+    if tool_starts:
+        return len(tool_starts)
+    tool_calls = list((agent_result or {}).get("tool_calls") or [])
+    if tool_calls:
+        return len(tool_calls)
+    return len(_public_source_links(sources))
+
+
+def _research_details_label(
+    *,
+    source_count: int,
+    duration_seconds: object = None,
+    failed: bool = False,
+) -> str:
+    if failed:
+        prefix = f"Checked {source_count} source{'s' if source_count != 1 else ''}" if source_count else "Research attempted"
+    else:
+        prefix = f"Researched {source_count} source{'s' if source_count != 1 else ''}" if source_count else "Research details"
+    try:
+        duration = float(duration_seconds or 0)
+    except Exception:
+        duration = 0.0
+    if duration > 0:
+        return f"{prefix} · {duration:.0f}s"
+    return prefix
+
+
+def _render_research_details_panel(
+    *,
+    trace: list[dict[str, object]],
+    agent_result: dict[str, object] | None,
+    sources: list[dict[str, str]],
+    source_count: object = None,
+    duration_seconds: object = None,
+    panel_id: str,
+    key_prefix: str,
+    failed: bool = False,
+) -> None:
+    has_trace = bool(trace) or bool(list((agent_result or {}).get("tool_calls") or []))
+    has_sources = bool(_public_source_links(sources))
+    if not has_trace and not has_sources and not source_count:
+        return
+    count = _research_detail_count(
+        trace=trace,
+        sources=sources,
+        tool_count=source_count,
+        agent_result=agent_result,
+    )
+    label = _research_details_label(
+        source_count=count,
+        duration_seconds=duration_seconds,
+        failed=failed,
+    )
+    with st.expander(label, expanded=False):
+        if has_sources:
+            _render_source_evidence_strip(sources)
+        if has_trace:
+            _render_thinking_trace_content(trace, agent_result, key_prefix=key_prefix)
 
 
 def _render_thinking_trace_content(
@@ -3339,36 +3421,6 @@ def _render_thinking_trace_content(
                     st.caption("Sources: " + " · ".join(link_parts))
         elif step_type == "message":
             continue
-
-
-def _thinking_trace_stable_id(panel_id: object) -> str:
-    return re.sub(r"[^A-Za-z0-9_]+", "_", str(panel_id or "trace")).strip("_") or "trace"
-
-
-def _thinking_trace_open_key(panel_id: object) -> str:
-    return f"zopedia_thinking_trace_open_{_thinking_trace_stable_id(panel_id)}"
-
-
-def _render_thinking_trace_panel(
-    trace: list[dict[str, object]],
-    agent_result: dict[str, object] | None = None,
-    *,
-    panel_id: str,
-    key_prefix: str,
-    default_open: bool = False,
-) -> None:
-    if not trace:
-        return
-    open_key = _thinking_trace_open_key(panel_id)
-    if open_key not in st.session_state:
-        st.session_state[open_key] = bool(default_open)
-    is_open = st.toggle(
-        f"Thinking Trace ({len(trace)} steps)",
-        key=open_key,
-    )
-    if is_open:
-        with st.container(border=True):
-            _render_thinking_trace_content(trace, agent_result, key_prefix=key_prefix)
 
 
 def _render_inline_search_results(
@@ -3566,15 +3618,23 @@ def _render_agent_response_message(msg: dict[str, object]) -> None:
     trace = list(msg.get("thinking_trace") or [])
     agent_result = dict(msg.get("agent_result") or {})
     error = str(msg.get("error") or "").strip()
+    msg_id = str(msg.get("msg_id") or "hist")
+    sources = list(msg.get("source_links") or [])
 
     # Error message
     if error:
         st.error(f"Zopedia encountered an error: {error}")
 
-    # Source evidence strip
-    sources = list(msg.get("source_links") or [])
-    if sources:
-        _render_source_evidence_strip(sources)
+    _render_research_details_panel(
+        trace=trace,
+        agent_result=agent_result,
+        sources=sources,
+        source_count=msg.get("tool_count"),
+        duration_seconds=msg.get("duration_seconds"),
+        panel_id=msg_id,
+        key_prefix=f"hist_{msg_id}",
+        failed=bool(error),
+    )
 
     # Key metrics
     answer = str(msg.get("content") or "").strip()
@@ -3601,16 +3661,6 @@ def _render_agent_response_message(msg: dict[str, object]) -> None:
         if limitations:
             footer_parts.append(" · ".join(limitations[:2]))
         st.caption(" | ".join(footer_parts))
-
-    # Thinking trace — persistent toggle so reruns do not collapse it.
-    msg_id = str(msg.get("msg_id") or "hist")
-    if trace:
-        _render_thinking_trace_panel(
-            trace,
-            agent_result,
-            panel_id=msg_id,
-            key_prefix=f"hist_{msg_id}",
-        )
 
     # Search results
     search_results = list(msg.get("search_results") or [])
@@ -3902,20 +3952,6 @@ def _render_agentic_omnibar_debug_panel(resolution: dict[str, object], *, embedd
                         st.markdown(str(message.get("content") or "").strip())
 
 
-def _zopedia_query_from_page(row: pd.Series) -> dict[str, str]:
-    page_id = str(row.get("page_id") or "").strip()
-    title = str(row.get("title") or page_id).strip()
-    return {
-        "display_query": f"Read Zopedia page: {title}",
-        "agent_query": (
-            "Read this Zopedia page and explain the useful implications for Spectral Nature. "
-            f"Use zopedia.read_page with page_id={page_id}. "
-            "If the page is stale, wrong, or missing linked context, use zopedia.apply_mutation for safe reversible updates "
-            "or zopedia.propose_change for risky changes."
-        ),
-    }
-
-
 def _zopedia_source_open_args(ref: dict[str, object]) -> dict[str, str]:
     return {
         "page_id": str(ref.get("page_id") or "").strip(),
@@ -3925,6 +3961,387 @@ def _zopedia_source_open_args(ref: dict[str, object]) -> dict[str, str]:
         "canonical_document_id": str(ref.get("canonical_document_id") or "").strip(),
         "url": str(ref.get("url") or ref.get("source_url") or "").strip(),
     }
+
+
+def _zopedia_ui_read_timeout_seconds() -> float:
+    try:
+        configured = float(os.getenv("ZOPEDIA_UI_READ_TIMEOUT_SECONDS") or "7")
+    except Exception:
+        configured = 7.0
+    return max(2.0, min(configured, 20.0))
+
+
+def _zopedia_ui_read(label: str, fn, fallback: object) -> tuple[object, str]:
+    future = _ZOPEDIA_UI_READ_EXECUTOR.submit(fn)
+    try:
+        return future.result(timeout=_zopedia_ui_read_timeout_seconds()), ""
+    except FutureTimeoutError:
+        future.cancel()
+        return fallback, f"{label} is taking too long to load."
+    except Exception as exc:
+        return fallback, f"{label} is unavailable: {exc}"
+
+
+def _zopedia_list_values(value: object, *, limit: int = 12) -> list[str]:
+    raw_items: list[object]
+    if isinstance(value, str):
+        stripped = value.strip()
+        if stripped.startswith("[") or stripped.startswith("{"):
+            try:
+                parsed = json.loads(stripped)
+            except Exception:
+                parsed = stripped
+            raw_items = parsed if isinstance(parsed, list) else [parsed]
+        elif stripped:
+            raw_items = [stripped]
+        else:
+            raw_items = []
+    elif isinstance(value, list):
+        raw_items = value
+    elif value:
+        raw_items = [value]
+    else:
+        raw_items = []
+
+    out: list[str] = []
+    for item in raw_items:
+        if isinstance(item, dict):
+            text = str(
+                item.get("title")
+                or item.get("label")
+                or item.get("page_id")
+                or item.get("ref")
+                or item.get("url")
+                or ""
+            ).strip()
+        else:
+            text = str(item or "").strip()
+        if text and text not in out:
+            out.append(text)
+        if len(out) >= limit:
+            break
+    return out
+
+
+def _zopedia_metadata_dict(value: object) -> dict[str, object]:
+    if isinstance(value, pd.Series):
+        value = value.to_dict()
+    if isinstance(value, dict):
+        raw = value.get("metadata") if "metadata" in value else value.get("metadata_json")
+    else:
+        raw = value
+    if isinstance(raw, dict):
+        return dict(raw)
+    if isinstance(raw, str):
+        try:
+            parsed = json.loads(raw)
+        except Exception:
+            return {}
+        return dict(parsed) if isinstance(parsed, dict) else {}
+    return {}
+
+
+def _zopedia_is_internal_memory_page(row: object) -> bool:
+    metadata = _zopedia_metadata_dict(row)
+    source = str(metadata.get("source") or metadata.get("source_type") or "").strip().lower()
+    if source in {"zopedia_learning", "product_eval"}:
+        return True
+    if str(metadata.get("eval_tag") or "").strip():
+        return True
+    source_url = str(metadata.get("source_url") or "").strip().casefold()
+    if "://eval.local/" in source_url:
+        return True
+    source_title = str(metadata.get("source_title") or "").strip().casefold()
+    if "manual graph fixture" in source_title or ("zopedia" in source_title and "eval" in source_title):
+        return True
+    return bool(str(metadata.get("learning_event_id") or "").strip())
+
+
+def _zopedia_filter_browser_pages(
+    frame: pd.DataFrame,
+    *,
+    section: str,
+    include_internal: bool,
+) -> pd.DataFrame:
+    if not isinstance(frame, pd.DataFrame) or frame.empty:
+        return pd.DataFrame()
+    internal_mask = frame.apply(_zopedia_is_internal_memory_page, axis=1)
+    if str(section or "").strip() == "Internal":
+        return frame.loc[internal_mask].reset_index(drop=True)
+    if include_internal:
+        return frame.reset_index(drop=True)
+    return frame.loc[~internal_mask].reset_index(drop=True)
+
+
+def _zopedia_time_label(value: object) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    try:
+        ts = pd.Timestamp(text)
+        if ts.tzinfo is None:
+            ts = ts.tz_localize("UTC")
+        else:
+            ts = ts.tz_convert("UTC")
+        return ts.strftime("%Y-%m-%d %H:%M UTC")
+    except Exception:
+        return text[:19]
+
+
+def _zopedia_page_type_label(value: object) -> str:
+    page_type = str(value or "").strip()
+    labels = {
+        "entity": "Company",
+        "ticker": "Company",
+        "theme": "Theme",
+        "market_event": "Event",
+        "source": "Source",
+        "concept": "Concept",
+        "macro": "Macro",
+    }
+    return labels.get(page_type, page_type or "Page")
+
+
+def _zopedia_short_text(value: object, *, max_chars: int = 180) -> str:
+    text = " ".join(str(value or "").split()).strip()
+    if len(text) <= max_chars:
+        return text
+    return text[: max(max_chars - 1, 1)].rstrip() + "..."
+
+
+def _zopedia_markdown_reader_body(body: object, *, title: str) -> str:
+    text = str(body or "").strip()
+    if not text:
+        return ""
+    title_key = re.sub(r"\s+", " ", str(title or "").strip()).casefold()
+    lines: list[str] = []
+    skipped_duplicate_heading = False
+    for raw_line in text.splitlines():
+        line = raw_line.rstrip()
+        heading = re.match(r"^(#{1,6})\s+(.+?)\s*$", line)
+        if heading:
+            heading_text = re.sub(r"\s+", " ", heading.group(2).strip()).casefold()
+            if not skipped_duplicate_heading and title_key and heading_text == title_key:
+                skipped_duplicate_heading = True
+                continue
+            level = min(max(len(heading.group(1)) + 2, 3), 6)
+            line = f"{'#' * level} {heading.group(2).strip()}"
+        lines.append(line)
+    return "\n".join(lines).strip()
+
+
+def _zopedia_row_button_label(
+    *,
+    title: str,
+    meta: str,
+    summary: str = "",
+    selected: bool = False,
+) -> str:
+    prefix = "● " if selected else ""
+    parts = [f"**{prefix}{title}**"]
+    if meta:
+        parts.append(meta)
+    if summary:
+        parts.append(summary)
+    return "\n".join(parts)
+
+
+def _open_zopedia_memory_page(page_id: object) -> None:
+    normalized = str(page_id or "").strip()
+    if not normalized:
+        return
+    st.session_state["_zopedia_open_page_id"] = normalized
+    st.session_state.pop("_zopedia_open_proposal", None)
+    st.session_state.pop("_zopedia_inspected_sources", None)
+    st.session_state.pop("_zopedia_open_source", None)
+    st.session_state.pop("_zopedia_open_neighborhood", None)
+
+
+def _open_zopedia_memory_proposal(proposal: dict[str, object]) -> None:
+    if not isinstance(proposal, dict):
+        return
+    proposal_id = str(proposal.get("proposal_id") or "").strip()
+    if not proposal_id:
+        return
+    st.session_state["_zopedia_open_proposal"] = proposal
+    st.session_state.pop("_zopedia_open_page_id", None)
+    st.session_state.pop("_zopedia_inspected_sources", None)
+    st.session_state.pop("_zopedia_open_source", None)
+    st.session_state.pop("_zopedia_open_neighborhood", None)
+
+
+def _zopedia_parse_json_value(value: object, fallback: object) -> object:
+    if isinstance(value, (dict, list)):
+        return value
+    text = str(value or "").strip()
+    if not text:
+        return fallback
+    try:
+        return json.loads(text)
+    except Exception:
+        return fallback
+
+
+def _zopedia_workspace_mode() -> str:
+    mode = str(st.session_state.get("zopedia_workspace_mode") or "Chat").strip()
+    return mode if mode in {"Chat", "Memory"} else "Chat"
+
+
+def _render_zopedia_segmented_choice(
+    *,
+    label: str,
+    options: list[str],
+    key: str,
+    default: str,
+    width: str = "content",
+) -> str:
+    if not options:
+        return ""
+    if default not in options:
+        default = options[0]
+    current = str(st.session_state.get(key) or default).strip()
+    if key not in st.session_state or current not in options:
+        st.session_state[key] = default
+    selected = st.segmented_control(
+        label,
+        options,
+        selection_mode="single",
+        required=True,
+        key=key,
+        label_visibility="collapsed",
+        width=width,
+    )
+    resolved = str(selected or st.session_state.get(key) or default).strip()
+    if resolved not in options:
+        resolved = default
+    return resolved
+
+
+def _render_zopedia_workspace_mode_switch() -> str:
+    return _render_zopedia_segmented_choice(
+        label="Workspace",
+        options=["Chat", "Memory"],
+        key="zopedia_workspace_mode",
+        default="Chat",
+    )
+
+
+def _render_zopedia_page_reader(*, key_prefix: str = "zopedia_memory") -> None:
+    page_id = str(st.session_state.get("_zopedia_open_page_id") or "").strip()
+    if not page_id:
+        return
+    try:
+        page = load_zopedia_page(page_id=page_id)
+    except Exception as exc:
+        st.warning(f"Zopedia page could not be opened: {exc}")
+        return
+    if not page:
+        st.warning("Zopedia page not found.")
+        return
+
+    title = str(page.get("title") or page_id).strip()
+    page_type = _zopedia_page_type_label(page.get("page_type"))
+    version = f"v{page.get('version')}" if page.get("version") not in (None, "") else ""
+    updated = _zopedia_time_label(page.get("updated_at_utc"))
+    entity_refs = _zopedia_list_values(page.get("entity_refs"), limit=10)
+    outgoing_links = _zopedia_list_values(page.get("outgoing_links"), limit=10)
+    meta_parts = [part for part in (page_type, version, updated) if part]
+    if entity_refs:
+        meta_parts.append("Entities: " + ", ".join(entity_refs[:6]))
+    if outgoing_links:
+        meta_parts.append(f"{len(outgoing_links)} linked page(s)")
+    summary = str(page.get("summary") or "").strip()
+    summary_html = (
+        f"<div class='sn-zopedia-reader-summary'>{html.escape(summary)}</div>"
+        if summary
+        else ""
+    )
+    st.markdown(
+        (
+            "<div class='sn-zopedia-reader-header'>"
+            f"<div class='sn-zopedia-reader-title'>{html.escape(title)}</div>"
+            f"<div class='sn-zopedia-reader-meta'>{html.escape(' | '.join(meta_parts))}</div>"
+            f"{summary_html}"
+            "</div>"
+        ),
+        unsafe_allow_html=True,
+    )
+
+    action_cols = _responsive_columns([0.9, 0.9, 0.9, 4.0])
+    with action_cols[0]:
+        if st.button("Sources", key=f"{key_prefix}_page_sources", use_container_width=True):
+            try:
+                st.session_state["_zopedia_inspected_sources"] = zopedia_sources_for_page(page_id=page_id)
+                st.session_state.pop("_zopedia_open_source", None)
+            except Exception as exc:
+                st.session_state["_zopedia_inspected_sources"] = {
+                    "status": "error",
+                    "page_id": page_id,
+                    "sources": [],
+                    "message": str(exc),
+                }
+            st.rerun()
+    with action_cols[1]:
+        if st.button("Links", key=f"{key_prefix}_page_links", use_container_width=True):
+            try:
+                st.session_state["_zopedia_open_neighborhood"] = zopedia_page_neighborhood(page_id=page_id, depth=1)
+            except Exception as exc:
+                st.session_state["_zopedia_open_neighborhood"] = {
+                    "page_id": page_id,
+                    "nodes": [],
+                    "edges": [],
+                    "error": str(exc),
+                }
+            st.rerun()
+    with action_cols[2]:
+        if st.button("Ask", key=f"{key_prefix}_page_ask", use_container_width=True):
+            st.session_state["zopedia_workspace_mode"] = "Chat"
+            st.session_state["_omnibar_pending_query"] = {
+                "display_query": f"Explain {title}",
+                "agent_query": f"Read Zopedia page {page_id} and explain the current state, sources, and open questions.",
+            }
+            st.rerun()
+
+    body = _zopedia_markdown_reader_body(page.get("body_markdown"), title=title)
+    if body:
+        st.markdown("<div class='sn-zopedia-section-label'>Page body</div>", unsafe_allow_html=True)
+        st.markdown(body)
+
+    neighborhood = st.session_state.get("_zopedia_open_neighborhood")
+    if isinstance(neighborhood, dict) and str(neighborhood.get("page_id") or "").strip() == page_id:
+        nodes = [node for node in list(neighborhood.get("nodes") or []) if isinstance(node, dict)]
+        edges = [edge for edge in list(neighborhood.get("edges") or []) if isinstance(edge, dict)]
+        if nodes or edges:
+            st.markdown("<div class='sn-zopedia-section-label'>Linked pages</div>", unsafe_allow_html=True)
+            for idx, node in enumerate(nodes[:12]):
+                linked_page_id = str(node.get("page_id") or "").strip()
+                linked_title = _zopedia_clean_title(
+                    node.get("title") or linked_page_id,
+                    fallback="Linked page",
+                    max_chars=96,
+                )
+                linked_type = _zopedia_page_type_label(node.get("page_type"))
+                linked_cols = _responsive_columns([5.0, 1.0], gap="small")
+                with linked_cols[0]:
+                    st.markdown(
+                        (
+                            "<div class='sn-zopedia-memory-row'>"
+                            f"<div class='sn-zopedia-memory-row-title'>{html.escape(linked_title)}</div>"
+                            f"<div class='sn-zopedia-memory-row-meta'>{html.escape(linked_type)}</div>"
+                            "</div>"
+                        ),
+                        unsafe_allow_html=True,
+                    )
+                with linked_cols[1]:
+                    stable_key = hashlib.sha256(f"{page_id}:{linked_page_id}".encode("utf-8")).hexdigest()[:12]
+                    if linked_page_id and st.button(
+                        "Open",
+                        key=f"{key_prefix}_linked_page_open_{stable_key}_{idx}",
+                        use_container_width=True,
+                    ):
+                        _open_zopedia_memory_page(linked_page_id)
+                        st.rerun()
+            st.caption(f"{len(edges)} link(s)")
 
 
 def _render_zopedia_source_inspection() -> None:
@@ -3997,8 +4414,8 @@ def _render_zopedia_page_results(frame: pd.DataFrame, *, key_prefix: str) -> Non
             if summary:
                 st.write(summary)
         with cols[1]:
-            if st.button("Read", key=f"{key_prefix}_read_{idx}", use_container_width=True):
-                st.session_state["_omnibar_pending_query"] = _zopedia_query_from_page(row)
+            if st.button("Open", key=f"{key_prefix}_read_{idx}", use_container_width=True):
+                _open_zopedia_memory_page(row.get("page_id"))
                 st.rerun()
         with cols[2]:
             if st.button("Sources", key=f"{key_prefix}_sources_{idx}", use_container_width=True):
@@ -4012,8 +4429,522 @@ def _render_zopedia_page_results(frame: pd.DataFrame, *, key_prefix: str) -> Non
                         "page_id": page_id,
                         "sources": [],
                         "message": str(exc),
-                    }
+                }
                 st.rerun()
+
+
+def _render_zopedia_page_browser(frame: pd.DataFrame, *, key: str) -> None:
+    if not isinstance(frame, pd.DataFrame) or frame.empty:
+        st.caption("No Zopedia pages found.")
+        return
+    current_id = str(st.session_state.get("_zopedia_open_page_id") or "").strip()
+    st.markdown(
+        f"<div class='sn-zopedia-browser-count'>{len(frame)} page(s)</div>",
+        unsafe_allow_html=True,
+    )
+    for idx, row in frame.head(50).iterrows():
+        page_id = str(row.get("page_id") or "").strip()
+        if not page_id:
+            continue
+        selected = page_id == current_id
+        title = _zopedia_clean_title(row.get("title"), fallback="Untitled page", max_chars=110)
+        page_type = _zopedia_page_type_label(row.get("page_type"))
+        updated = _zopedia_time_label(row.get("updated_at_utc"))
+        summary = _zopedia_short_text(row.get("summary") or row.get("body_markdown"), max_chars=165)
+        source_count = len(_zopedia_list_values(row.get("source_urls"), limit=30))
+        link_count = len(_zopedia_list_values(row.get("outgoing_links"), limit=30))
+        ref_parts = [part for part in (page_type, updated) if part]
+        if source_count:
+            ref_parts.append(f"{source_count} source(s)")
+        if link_count:
+            ref_parts.append(f"{link_count} link(s)")
+        stable_key = hashlib.sha256(f"{key}:{page_id}".encode("utf-8")).hexdigest()[:12]
+        state_key = "selected" if selected else "item"
+        if st.button(
+            _zopedia_row_button_label(
+                title=title,
+                meta=" | ".join(ref_parts),
+                summary=summary,
+                selected=selected,
+            ),
+            key=f"zopedia_memory_page_row_{state_key}_{stable_key}_{idx}",
+            use_container_width=True,
+        ):
+            if not selected:
+                _open_zopedia_memory_page(page_id)
+                st.rerun()
+
+
+_ZOPEDIA_PAGE_TYPE_FILTERS: dict[str, list[str]] = {
+    "Research": [],
+    "Companies": ["entity", "ticker"],
+    "Themes": ["theme"],
+    "Events": ["market_event"],
+    "Sources": ["source"],
+    "Concepts": ["concept"],
+    "Macro": ["macro"],
+    "Internal": [],
+}
+
+
+def _zopedia_page_type_filter(label: str) -> list[str]:
+    return list(_ZOPEDIA_PAGE_TYPE_FILTERS.get(str(label or "Research").strip(), []))
+
+
+def _zopedia_proposal_browser_frame(frame: pd.DataFrame) -> pd.DataFrame:
+    columns = ["Title", "Type", "Status", "Updated", "Rationale"]
+    if not isinstance(frame, pd.DataFrame) or frame.empty:
+        return pd.DataFrame(columns=columns)
+    rows: list[dict[str, object]] = []
+    for _, row in frame.iterrows():
+        rows.append(
+            {
+                "Title": _zopedia_clean_title(row.get("title"), fallback="Untitled proposal", max_chars=96),
+                "Type": str(row.get("proposal_type") or "").strip(),
+                "Status": str(row.get("status") or "").strip(),
+                "Updated": str(row.get("updated_at_utc") or row.get("created_at_utc") or "").strip()[:19],
+                "Rationale": _zopedia_clean_title(row.get("rationale"), fallback="", max_chars=150),
+                "_proposal": dict(row.to_dict()),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _filter_zopedia_proposals(frame: pd.DataFrame, *, query: str, limit: int) -> pd.DataFrame:
+    if not isinstance(frame, pd.DataFrame) or frame.empty:
+        return pd.DataFrame()
+    filtered = frame
+    normalized_query = str(query or "").strip().casefold()
+    if normalized_query:
+        searchable_columns = [
+            "proposal_id",
+            "proposal_type",
+            "page_id",
+            "title",
+            "rationale",
+            "proposal_payload_json",
+            "status",
+        ]
+        mask = pd.Series(False, index=filtered.index)
+        for column in searchable_columns:
+            if column in filtered.columns:
+                mask = mask | filtered[column].fillna("").astype(str).str.casefold().str.contains(
+                    normalized_query,
+                    regex=False,
+                )
+        filtered = filtered.loc[mask]
+    return filtered.head(max(int(limit), 1)).reset_index(drop=True)
+
+
+def _render_zopedia_proposal_browser(frame: pd.DataFrame, *, key: str) -> None:
+    table = _zopedia_proposal_browser_frame(frame)
+    if table.empty:
+        st.caption("No memory proposals found.")
+        return
+    current_id = str((st.session_state.get("_zopedia_open_proposal") or {}).get("proposal_id") or "").strip()
+    st.markdown(
+        f"<div class='sn-zopedia-browser-count'>{len(table)} proposal(s)</div>",
+        unsafe_allow_html=True,
+    )
+    for idx, row in table.head(50).iterrows():
+        proposal = row.get("_proposal")
+        if not isinstance(proposal, dict):
+            continue
+        proposal_id = str(proposal.get("proposal_id") or "").strip()
+        if not proposal_id:
+            continue
+        selected = proposal_id == current_id
+        title = str(row.get("Title") or "Untitled proposal").strip()
+        meta = " | ".join(
+            part
+            for part in (
+                str(row.get("Type") or "").strip(),
+                str(row.get("Status") or "").strip(),
+                _zopedia_time_label(row.get("Updated")),
+            )
+            if part
+        )
+        rationale = _zopedia_short_text(row.get("Rationale"), max_chars=165)
+        stable_key = hashlib.sha256(f"{key}:{proposal_id}".encode("utf-8")).hexdigest()[:12]
+        state_key = "selected" if selected else "item"
+        if st.button(
+            _zopedia_row_button_label(
+                title=title,
+                meta=meta,
+                summary=rationale,
+                selected=selected,
+            ),
+            key=f"zopedia_memory_proposal_row_{state_key}_{stable_key}_{idx}",
+            use_container_width=True,
+        ):
+            if not selected:
+                _open_zopedia_memory_proposal(proposal)
+                st.rerun()
+
+
+def _proposal_payload_preview(payload: dict[str, object]) -> tuple[str, list[dict[str, object]], list[dict[str, object]]]:
+    pages = [item for item in list(payload.get("pages") or []) if isinstance(item, dict)]
+    evidence_refs = [item for item in list(payload.get("evidence_refs") or []) if isinstance(item, dict)]
+    nested_payload = payload.get("payload") if isinstance(payload.get("payload"), dict) else {}
+    content = str(
+        payload.get("content")
+        or dict(nested_payload or {}).get("content")
+        or payload.get("summary")
+        or dict(nested_payload or {}).get("summary")
+        or ""
+    ).strip()
+    if not content and pages:
+        content = str(pages[0].get("summary") or pages[0].get("body_markdown") or "").strip()
+    return content, pages, evidence_refs
+
+
+def _render_zopedia_proposal_reader(*, key_prefix: str = "zopedia_memory") -> None:
+    proposal = st.session_state.get("_zopedia_open_proposal")
+    if not isinstance(proposal, dict):
+        st.caption("Select a proposal to inspect pending memory.")
+        return
+    proposal_id = str(proposal.get("proposal_id") or "").strip()
+    page_id = str(proposal.get("page_id") or "").strip()
+    title = _zopedia_clean_title(proposal.get("title"), fallback="Untitled proposal", max_chars=120)
+    status = str(proposal.get("status") or "").strip()
+    proposal_type = str(proposal.get("proposal_type") or "").strip()
+    updated = str(proposal.get("updated_at_utc") or proposal.get("created_at_utc") or "").strip()
+    payload = _zopedia_parse_json_value(proposal.get("proposal_payload_json"), {})
+    if not isinstance(payload, dict):
+        payload = {}
+    content, pages, evidence_refs = _proposal_payload_preview(payload)
+
+    st.markdown(f"**{title}**")
+    st.caption(" | ".join(part for part in (proposal_type, status, page_id, updated, proposal_id) if part))
+    rationale = str(proposal.get("rationale") or "").strip()
+    if rationale:
+        st.write(rationale)
+
+    if content:
+        with st.container(border=True):
+            st.markdown(content)
+
+    if pages:
+        st.markdown("**Proposed Pages**")
+        page_rows = [
+            {
+                "Title": _zopedia_clean_title(page.get("title"), fallback="Untitled page", max_chars=96),
+                "Type": str(page.get("page_type") or "").strip(),
+                "Page ID": str(page.get("page_id") or "").strip(),
+            }
+            for page in pages[:12]
+        ]
+        st.dataframe(pd.DataFrame(page_rows), hide_index=True, use_container_width=True)
+
+    if evidence_refs:
+        st.markdown("**Evidence**")
+        ref_rows = [
+            {
+                "Title": _zopedia_clean_title(ref.get("title") or ref.get("label") or ref.get("url"), fallback="Evidence", max_chars=96),
+                "Source": str(ref.get("source") or ref.get("kind") or "").strip(),
+                "URL": str(ref.get("url") or "").strip(),
+            }
+            for ref in evidence_refs[:12]
+        ]
+        st.dataframe(pd.DataFrame(ref_rows), hide_index=True, use_container_width=True)
+
+    action_cols = _responsive_columns([1, 1, 3])
+    with action_cols[0]:
+        if st.button("Ask", key=f"{key_prefix}_proposal_ask", use_container_width=True):
+            st.session_state["zopedia_workspace_mode"] = "Chat"
+            st.session_state["_omnibar_pending_query"] = {
+                "display_query": f"Review proposal: {title}",
+                "agent_query": (
+                    f"Review Zopedia proposal {proposal_id}. Explain what it would add, "
+                    "whether the evidence is sufficient, and what source text should be opened before committing it."
+                ),
+            }
+            st.rerun()
+    with action_cols[1]:
+        if st.button("Find", key=f"{key_prefix}_proposal_find", use_container_width=True):
+            st.session_state["zopedia_memory_workspace_query"] = page_id or title
+            st.session_state["zopedia_memory_browser_section"] = "Pages"
+            st.rerun()
+
+    with st.expander("Raw proposal", expanded=False):
+        st.json(payload)
+
+
+def _latest_zopedia_maintenance_payload() -> tuple[dict[str, object], dict[str, object], list[dict[str, object]]]:
+    try:
+        reports = list_zopedia_maintenance_reports(limit=1)
+    except Exception:
+        return {}, {}, []
+    if not isinstance(reports, pd.DataFrame) or reports.empty:
+        return {}, {}, []
+    latest = dict(reports.iloc[0].to_dict())
+    try:
+        summary = json.loads(str(latest.get("summary_json") or "{}"))
+    except Exception:
+        summary = {}
+    try:
+        issues = json.loads(str(latest.get("issue_rows_json") or "[]"))
+    except Exception:
+        issues = []
+    return latest, summary if isinstance(summary, dict) else {}, [item for item in list(issues or []) if isinstance(item, dict)]
+
+
+def _render_zopedia_community_browser(*, key: str) -> None:
+    payload, error = _zopedia_ui_read("Zopedia communities", _latest_zopedia_maintenance_payload, ({}, {}, []))
+    latest, summary, _issues = payload if isinstance(payload, tuple) and len(payload) == 3 else ({}, {}, [])
+    if error:
+        st.warning(error)
+        return
+    communities = [item for item in list(summary.get("top_communities") or []) if isinstance(item, dict)]
+    if not communities:
+        st.caption("No Zopedia communities have been indexed yet.")
+        return
+    table = pd.DataFrame(
+        [
+            {
+                "Community": str(item.get("label") or item.get("community_id") or "Community").strip(),
+                "Pages": int(item.get("page_count") or 0),
+                "Links": int(item.get("edge_count") or 0),
+                "Score": round(float(item.get("score") or 0.0), 3),
+                "_central_page_ids": [str(pid) for pid in list(item.get("central_page_ids") or []) if str(pid).strip()],
+            }
+            for item in communities[:30]
+        ]
+    )
+    event = st.dataframe(
+        table[["Community", "Pages", "Links", "Score"]],
+        hide_index=True,
+        use_container_width=True,
+        height=360,
+        on_select="rerun",
+        selection_mode="single-row",
+        key=key,
+    )
+    rows = _dataframe_selected_rows(event)
+    if rows:
+        row_idx = int(rows[0])
+        if 0 <= row_idx < len(table):
+            central_ids = list(table.iloc[row_idx].get("_central_page_ids") or [])
+            if central_ids:
+                _open_zopedia_memory_page(central_ids[0])
+                st.rerun()
+    st.caption(
+        " | ".join(
+            str(part)
+            for part in (
+                latest.get("run_id"),
+                latest.get("status"),
+                latest.get("created_at_utc"),
+            )
+            if part
+        )
+    )
+
+
+def _render_zopedia_health_browser(*, key: str) -> None:
+    payload, error = _zopedia_ui_read("Zopedia health", _latest_zopedia_maintenance_payload, ({}, {}, []))
+    latest, summary, issues = payload if isinstance(payload, tuple) and len(payload) == 3 else ({}, {}, [])
+    if error:
+        st.warning(error)
+        return
+    if not latest:
+        st.caption("No Zopedia maintenance report has been written yet.")
+        return
+    metric_cols = _responsive_columns(4)
+    metric_cols[0].metric("Pages", int(latest.get("page_count") or 0))
+    metric_cols[1].metric("Edges", int(latest.get("edge_count") or 0))
+    metric_cols[2].metric("Communities", int(summary.get("community_count") or 0))
+    metric_cols[3].metric("Issues", int(latest.get("issue_count") or 0))
+    if not issues:
+        st.caption("No maintenance issues in the latest report.")
+        return
+    table = pd.DataFrame(
+        [
+            {
+                "Severity": str(item.get("severity") or "").strip(),
+                "Issue": str(item.get("issue_type") or "").strip(),
+                "Title": _zopedia_clean_title(item.get("title"), fallback="", max_chars=96),
+                "Action": str(item.get("suggested_action") or "").strip(),
+                "_page_id": str(item.get("page_id") or "").strip(),
+            }
+            for item in issues[:100]
+        ]
+    )
+    event = st.dataframe(
+        table[["Severity", "Issue", "Title", "Action"]],
+        hide_index=True,
+        use_container_width=True,
+        height=420,
+        on_select="rerun",
+        selection_mode="single-row",
+        key=key,
+    )
+    rows = _dataframe_selected_rows(event)
+    if rows:
+        row_idx = int(rows[0])
+        if 0 <= row_idx < len(table):
+            page_id = str(table.iloc[row_idx].get("_page_id") or "").strip()
+            if page_id:
+                _open_zopedia_memory_page(page_id)
+                st.rerun()
+
+
+def _render_zopedia_memory_workspace() -> None:
+    admin_debug = _current_user_is_admin()
+    browser_section = _render_zopedia_segmented_choice(
+        label="Browse memory",
+        options=["Pages", "Proposals", "Communities", "Health"],
+        key="zopedia_memory_browser_section",
+        default="Pages",
+    )
+    query = ""
+    limit = 30
+    include_debug_sources = False
+    page_type_label = "Research"
+    pages = pd.DataFrame()
+    proposals = pd.DataFrame()
+    read_error = ""
+
+    if browser_section == "Pages":
+        top_cols = _responsive_columns([4.6, 1.6, 1.1, 1.1] if admin_debug else [4.6, 1.6, 1.1], gap="medium")
+        page_filter_options = list(_ZOPEDIA_PAGE_TYPE_FILTERS.keys())
+        if not admin_debug:
+            page_filter_options = [option for option in page_filter_options if option != "Internal"]
+        current_page_filter = str(st.session_state.get("zopedia_memory_workspace_page_type") or "Research").strip()
+        if current_page_filter not in page_filter_options:
+            current_page_filter = "Research"
+            st.session_state["zopedia_memory_workspace_page_type"] = current_page_filter
+        with top_cols[0]:
+            query = st.text_input(
+                "Search memory",
+                key="zopedia_memory_workspace_query",
+                placeholder="Search pages, companies, themes, sources...",
+                label_visibility="collapsed",
+            )
+        with top_cols[1]:
+            page_type_label = st.selectbox(
+                "Type",
+                page_filter_options,
+                index=page_filter_options.index(current_page_filter),
+                key="zopedia_memory_workspace_page_type",
+            )
+        with top_cols[2]:
+            limit = st.number_input(
+                "Rows",
+                min_value=10,
+                max_value=100,
+                value=30,
+                step=10,
+                key="zopedia_memory_workspace_limit",
+            )
+        if admin_debug:
+            with top_cols[3]:
+                include_debug_sources = st.checkbox(
+                    "Internal",
+                    value=False,
+                    key="zopedia_memory_workspace_include_debug",
+                )
+        else:
+            st.session_state.pop("zopedia_memory_workspace_include_debug", None)
+
+        if admin_debug:
+            include_debug_sources = (
+                bool(st.session_state.get("zopedia_memory_workspace_include_debug"))
+                or str(page_type_label or "").strip() == "Internal"
+            )
+
+        with st.spinner("Loading memory..."):
+            pages_result, read_error = _zopedia_ui_read(
+                "Zopedia memory",
+                lambda: search_zopedia_pages(
+                    query=str(query or "").strip(),
+                    page_types=_zopedia_page_type_filter(str(page_type_label or "Research")),
+                    limit=int(limit),
+                    include_debug_sources=include_debug_sources,
+                ),
+                pd.DataFrame(),
+            )
+        pages = pages_result if isinstance(pages_result, pd.DataFrame) else pd.DataFrame()
+        pages = _zopedia_filter_browser_pages(
+            pages,
+            section=str(page_type_label or "Research"),
+            include_internal=bool(include_debug_sources),
+        )
+    elif browser_section == "Proposals":
+        top_cols = _responsive_columns([5.0, 1.5, 1.1], gap="medium")
+        with top_cols[0]:
+            query = st.text_input(
+                "Search proposals",
+                key="zopedia_memory_proposal_query",
+                placeholder="Search pending memory, rationale, evidence...",
+                label_visibility="collapsed",
+            )
+        with top_cols[1]:
+            proposal_scope = _render_zopedia_segmented_choice(
+                label="Proposal status",
+                options=["Open", "All"],
+                key="zopedia_memory_proposal_scope",
+                default="Open",
+                width="stretch",
+            )
+        with top_cols[2]:
+            limit = st.number_input(
+                "Rows",
+                min_value=10,
+                max_value=100,
+                value=30,
+                step=10,
+                key="zopedia_memory_proposal_limit",
+            )
+
+        status = "open" if str(proposal_scope or "Open") == "Open" else ""
+        raw_limit = max(int(limit) * 6, int(limit), 150)
+        with st.spinner("Loading proposed memory..."):
+            proposal_result, read_error = _zopedia_ui_read(
+                "Zopedia proposals",
+                lambda: list_zopedia_change_proposals(status=status, limit=raw_limit),
+                pd.DataFrame(),
+            )
+        raw_proposals = proposal_result if isinstance(proposal_result, pd.DataFrame) else pd.DataFrame()
+        proposals = _filter_zopedia_proposals(raw_proposals, query=str(query or ""), limit=int(limit))
+    else:
+        st.session_state.pop("zopedia_memory_workspace_include_debug", None)
+
+    if read_error:
+        st.warning(read_error)
+
+    if browser_section == "Pages" and isinstance(pages, pd.DataFrame):
+        current_page_id = str(st.session_state.get("_zopedia_open_page_id") or "").strip()
+        visible_page_ids = {
+            str(page_id or "").strip()
+            for page_id in list(pages.get("page_id", pd.Series(dtype=object)))
+            if str(page_id or "").strip()
+        }
+        if not pages.empty and (not current_page_id or current_page_id not in visible_page_ids):
+            _open_zopedia_memory_page(pages.iloc[0].get("page_id"))
+        elif pages.empty and current_page_id:
+            st.session_state.pop("_zopedia_open_page_id", None)
+            st.session_state.pop("_zopedia_inspected_sources", None)
+            st.session_state.pop("_zopedia_open_source", None)
+            st.session_state.pop("_zopedia_open_neighborhood", None)
+
+    browse_col, detail_col = _responsive_columns([1.55, 2.45], gap="large")
+    with browse_col:
+        if browser_section == "Pages":
+            _render_zopedia_page_browser(pages, key="zopedia_memory_workspace_pages")
+        elif browser_section == "Proposals":
+            _render_zopedia_proposal_browser(proposals, key="zopedia_memory_workspace_proposals")
+        elif browser_section == "Communities":
+            _render_zopedia_community_browser(key="zopedia_memory_workspace_communities")
+        else:
+            _render_zopedia_health_browser(key="zopedia_memory_workspace_health")
+
+    with detail_col:
+        if browser_section == "Proposals":
+            _render_zopedia_proposal_reader(key_prefix="zopedia_memory_workspace")
+        else:
+            _render_zopedia_page_reader(key_prefix="zopedia_memory_workspace")
+            _render_zopedia_source_inspection()
 
 
 def _zopedia_chat_user_key() -> str:
@@ -4153,6 +5084,7 @@ def _zopedia_recent_threads(*, user_key: str, limit: int = 30) -> list[dict[str,
 
 def _render_zopedia_new_chat_action(*, key: str, label: str = "New") -> None:
     if st.button(label, key=key, type="tertiary", icon=":material/add:", width="stretch"):
+        st.session_state["zopedia_workspace_mode"] = "Chat"
         _reset_zopedia_chat_session()
         st.session_state.pop("zopedia_workspace_active_panel", None)
         st.rerun()
@@ -4338,28 +5270,52 @@ def _ensure_zopedia_shell_styles() -> None:
     st.markdown(
         """
         <style>
-        [class*="st-key-zopedia_thread_rail_row_"] button,
         [class*="st-key-zopedia_history_panel_row_"] button,
+        [class*="st-key-zopedia_history_drawer_thread_row_"] button,
         [class*="st-key-zopedia_mobile_thread_row_"] button {
             justify-content: flex-start !important;
             text-align: left !important;
-            min-height: 3.1rem !important;
+            min-height: 2.75rem !important;
             border-radius: 0.45rem !important;
-            padding: 0.62rem 0.72rem !important;
+            padding: 0.52rem 0.66rem !important;
             white-space: pre-line !important;
         }
-        [class*="st-key-zopedia_thread_rail_row_"] button p,
         [class*="st-key-zopedia_history_panel_row_"] button p,
+        [class*="st-key-zopedia_history_drawer_thread_row_"] button p,
         [class*="st-key-zopedia_mobile_thread_row_"] button p {
             text-align: left !important;
             white-space: pre-line !important;
             line-height: 1.22 !important;
         }
-        [class*="st-key-zopedia_rail_new"] button,
+        [class*="st-key-zopedia_drawer_new"] button,
         [class*="st-key-zopedia_mobile_new"] button,
         [class*="st-key-zopedia_attach"] button,
         [class*="st-key-zopedia_admin_drawer"] button {
             border-radius: 0.42rem !important;
+        }
+        div[data-baseweb="button-group"]:has(button[kind^="segmented_control"]) {
+            margin: 0.2rem 0 0.85rem 0;
+            gap: 0.25rem !important;
+        }
+        button[kind^="segmented_control"] {
+            min-height: 2.05rem !important;
+            border-radius: 0.42rem !important;
+            padding: 0.25rem 0.76rem !important;
+            border: 1px solid rgba(148, 163, 184, 0.20) !important;
+            color: var(--sn-muted-strong) !important;
+            background: rgba(255, 255, 255, 0.025) !important;
+            font-weight: 650 !important;
+            letter-spacing: 0 !important;
+        }
+        button[kind="segmented_controlActive"] {
+            color: var(--sn-ink) !important;
+            border-color: rgba(203, 213, 225, 0.36) !important;
+            background: rgba(148, 163, 184, 0.16) !important;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.045) !important;
+        }
+        button[kind^="segmented_control"]:hover {
+            border-color: rgba(203, 213, 225, 0.32) !important;
+            background: rgba(148, 163, 184, 0.11) !important;
         }
         .sn-zopedia-title {
             margin: 0 0 0.18rem 0;
@@ -4408,26 +5364,151 @@ def _ensure_zopedia_shell_styles() -> None:
             letter-spacing: 0;
         }
         .sn-zopedia-trace-step {
-            margin: 0.48rem 0 0.62rem 0;
-            padding: 0.76rem 0.88rem;
-            border: 1px solid rgba(148, 163, 184, 0.22);
-            border-radius: 0.45rem;
-            background: rgba(15, 23, 42, 0.18);
+            margin: 0.38rem 0 0.48rem 0;
+            padding: 0.52rem 0;
+            border-top: 1px solid rgba(148, 163, 184, 0.18);
         }
         .sn-zopedia-trace-title {
             color: var(--sn-ink);
-            font-size: 0.9rem;
+            font-size: 0.84rem;
             font-weight: 760;
             line-height: 1.25;
-            margin-bottom: 0.36rem;
+            margin-bottom: 0.28rem;
         }
         .sn-zopedia-trace-body {
             color: var(--sn-muted-strong);
-            font-size: 0.86rem;
+            font-size: 0.82rem;
             line-height: 1.48;
         }
         .sn-zopedia-trace-body p {
             margin: 0 0 0.42rem 0;
+        }
+        .sn-zopedia-browser-count {
+            color: var(--sn-muted);
+            font-size: 0.78rem;
+            font-weight: 680;
+            margin: 0.15rem 0 0.55rem 0;
+        }
+        .sn-zopedia-memory-row {
+            min-height: 4.25rem;
+            padding: 0.62rem 0.72rem;
+            margin: 0 0 0.42rem 0;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 0.45rem;
+            background: rgba(255, 255, 255, 0.018);
+        }
+        .sn-zopedia-memory-row.is-selected {
+            border-color: rgba(203, 213, 225, 0.34);
+            background: rgba(148, 163, 184, 0.11);
+            box-shadow: inset 2px 0 0 rgba(226, 232, 240, 0.55);
+        }
+        .sn-zopedia-memory-row-title {
+            color: var(--sn-ink);
+            font-size: 0.92rem;
+            font-weight: 750;
+            line-height: 1.24;
+            letter-spacing: 0;
+            overflow-wrap: anywhere;
+        }
+        .sn-zopedia-memory-row-meta {
+            margin-top: 0.22rem;
+            color: var(--sn-muted);
+            font-size: 0.74rem;
+            font-weight: 610;
+            line-height: 1.25;
+            overflow-wrap: anywhere;
+        }
+        .sn-zopedia-memory-row-summary {
+            margin-top: 0.38rem;
+            color: var(--sn-muted-strong);
+            font-size: 0.8rem;
+            line-height: 1.38;
+            overflow-wrap: anywhere;
+        }
+        [class*="st-key-zopedia_memory_page_row_"] button,
+        [class*="st-key-zopedia_memory_proposal_row_"] button {
+            justify-content: flex-start !important;
+            text-align: left !important;
+            width: 100% !important;
+            min-height: 4.25rem !important;
+            height: auto !important;
+            margin: 0 0 0.42rem 0 !important;
+            padding: 0.62rem 0.72rem !important;
+            border: 1px solid rgba(148, 163, 184, 0.18) !important;
+            border-radius: 0.45rem !important;
+            background: rgba(255, 255, 255, 0.018) !important;
+            box-shadow: none !important;
+        }
+        [class*="st-key-zopedia_memory_page_row_"] button p,
+        [class*="st-key-zopedia_memory_proposal_row_"] button p {
+            text-align: left !important;
+            white-space: pre-line !important;
+            color: var(--sn-muted-strong) !important;
+            font-size: 0.8rem !important;
+            line-height: 1.36 !important;
+            margin: 0 !important;
+            overflow-wrap: anywhere !important;
+        }
+        [class*="st-key-zopedia_memory_page_row_"] button p strong,
+        [class*="st-key-zopedia_memory_proposal_row_"] button p strong {
+            color: var(--sn-ink) !important;
+            font-size: 0.92rem !important;
+            font-weight: 750 !important;
+            line-height: 1.24 !important;
+        }
+        [class*="st-key-zopedia_memory_page_row_selected_"] button,
+        [class*="st-key-zopedia_memory_proposal_row_selected_"] button {
+            border-color: rgba(203, 213, 225, 0.34) !important;
+            background: rgba(148, 163, 184, 0.11) !important;
+            box-shadow: inset 2px 0 0 rgba(226, 232, 240, 0.55) !important;
+        }
+        [class*="st-key-zopedia_memory_page_row_"] button:hover,
+        [class*="st-key-zopedia_memory_proposal_row_"] button:hover {
+            border-color: rgba(203, 213, 225, 0.32) !important;
+            background: rgba(148, 163, 184, 0.09) !important;
+        }
+        [class*="_linked_page_open_"] button {
+            min-height: 2.2rem !important;
+            margin-top: 0.42rem !important;
+            border-radius: 0.42rem !important;
+            font-size: 0.78rem !important;
+            font-weight: 720 !important;
+        }
+        .sn-zopedia-reader-header {
+            padding: 0 0 0.85rem 0;
+            margin: 0 0 0.75rem 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+        }
+        .sn-zopedia-reader-title {
+            color: var(--sn-ink);
+            font-size: 1.32rem;
+            font-weight: 790;
+            line-height: 1.18;
+            letter-spacing: 0;
+            overflow-wrap: anywhere;
+        }
+        .sn-zopedia-reader-meta {
+            margin-top: 0.42rem;
+            color: var(--sn-muted);
+            font-size: 0.79rem;
+            font-weight: 620;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+        .sn-zopedia-reader-summary {
+            margin-top: 0.7rem;
+            color: var(--sn-muted-strong);
+            font-size: 0.94rem;
+            line-height: 1.48;
+            max-width: 56rem;
+        }
+        .sn-zopedia-section-label {
+            margin: 1rem 0 0.35rem 0;
+            color: var(--sn-muted);
+            font-size: 0.72rem;
+            font-weight: 760;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
         }
         [data-testid="stChatMessageAvatarUser"],
         [data-testid="stChatMessageAvatarAssistant"] {
@@ -4461,7 +5542,6 @@ def _render_zopedia_source_status() -> None:
 
 def _render_zopedia_attach_popover(*, key_prefix: str = "zopedia_attach") -> None:
     with st.popover("Attach source", icon=":material/attach_file:", use_container_width=True):
-        st.caption("Add source material to Zopedia memory before or during a chat.")
         url_tab, text_tab = st.tabs(["URL", "Text"])
         with url_tab:
             with st.form(f"{key_prefix}_url_form"):
@@ -4523,231 +5603,40 @@ def _ingest_zopedia_chat_uploads(files: object) -> list[dict[str, object]]:
     return ingested
 
 
-def _zopedia_chat_input_parts(value: object) -> tuple[str, list[object]]:
-    if value is None:
-        return "", []
-    if isinstance(value, str):
-        return value.strip(), []
-    text = ""
-    files: list[object] = []
-    if isinstance(value, dict):
-        text = str(value.get("text") or value.get("message") or "").strip()
-        raw_files = value.get("files") or []
-    else:
-        text = str(getattr(value, "text", "") or getattr(value, "message", "") or "").strip()
-        raw_files = getattr(value, "files", []) or []
-    if isinstance(raw_files, list):
-        files = raw_files
-    elif raw_files:
-        files = [raw_files]
-    return text, files
-
-
-def _render_zopedia_memory_panel() -> None:
-    search_tab, proposals_tab, mutations_tab, health_tab = st.tabs(["Search", "Proposals", "Mutations", "Health"])
-
-    with search_tab:
-        include_debug_sources = st.checkbox(
-            "Include eval/debug memory",
-            value=False,
-            key="zopedia_include_debug_memory",
-            help="Admin-only view for product eval pages and other non-user memory.",
-        )
-        search_cols = _responsive_columns([4.6, 1.2])
-        with search_cols[0]:
-            query = st.text_input(
-                "Search pages",
-                key="zopedia_page_search_query",
-                placeholder="Search concepts, events, tickers, transcripts...",
+def _render_zopedia_chat_composer(container: object) -> tuple[str, list[object]]:
+    with container:
+        with st.form("zopedia_chat_composer_form", clear_on_submit=True):
+            query = st.text_area(
+                "Ask Zopedia",
+                key="zopedia_chat_text_input",
+                placeholder="Ask about any market, ticker, source, or event...",
+                height=84,
+                label_visibility="collapsed",
             )
-        with search_cols[1]:
-            limit = st.number_input("Limit", min_value=4, max_value=20, value=8, step=1, key="zopedia_page_search_limit")
-        try:
-            pages = search_zopedia_pages(query=query, limit=int(limit), include_debug_sources=include_debug_sources)
-        except Exception as exc:
-            pages = pd.DataFrame()
-            st.warning(f"Zopedia memory is unavailable: {exc}")
-        _render_zopedia_page_results(pages, key_prefix="zopedia_search")
-        _render_zopedia_source_inspection()
-
-    with proposals_tab:
-        with st.form("zopedia_proposal_form"):
-            proposal_type = st.selectbox(
-                "Change",
-                ["update", "delete", "add_page", "split", "merge"],
-                key="zopedia_proposal_type",
-            )
-            page_id = st.text_input("Page ID", key="zopedia_proposal_page_id")
-            title = st.text_input("Proposal title", key="zopedia_proposal_title")
-            rationale = st.text_area("Rationale", key="zopedia_proposal_rationale", height=110)
-            proposal_submitted = st.form_submit_button("Propose Change")
-        if proposal_submitted:
-            proposal = build_zopedia_change_proposal(
-                proposal_type=proposal_type,
-                page_id=page_id,
-                title=title,
-                rationale=rationale,
-                payload={"source": "zopedia_ui"},
-            )
-            persist_zopedia_change_proposals([proposal])
-            st.session_state["_zopedia_last_proposal"] = proposal
-            st.rerun()
-        last_proposal = st.session_state.get("_zopedia_last_proposal")
-        if isinstance(last_proposal, dict):
-            st.success(f"Proposed: {last_proposal.get('title')}")
-        proposals = list_zopedia_change_proposals(status="open", limit=12)
-        if isinstance(proposals, pd.DataFrame) and not proposals.empty:
-            for _, row in proposals.iterrows():
-                st.markdown(f"**{row.get('title') or row.get('proposal_id')}**")
-                st.caption(f"{row.get('proposal_type')} | {row.get('page_id') or 'new page'}")
-                rationale = str(row.get("rationale") or "").strip()
-                if rationale:
-                    st.write(rationale)
-        else:
-            st.caption("No open Zopedia proposals.")
-
-    with mutations_tab:
-        last_rollback = st.session_state.get("_zopedia_last_rollback")
-        if isinstance(last_rollback, dict):
-            st.info(
-                f"Last rollback: {last_rollback.get('status') or 'unknown'} "
-                f"for {last_rollback.get('mutation_id') or 'unknown mutation'}."
-            )
-        try:
-            mutations = list_zopedia_mutation_audits(limit=12)
-        except Exception as exc:
-            mutations = pd.DataFrame()
-            st.warning(f"Zopedia mutation audit is unavailable: {exc}")
-        if isinstance(mutations, pd.DataFrame) and not mutations.empty:
-            for idx, row in mutations.iterrows():
-                mutation_id = str(row.get("mutation_id") or "").strip()
-                mutation_type = str(row.get("mutation_type") or "mutation").strip()
-                status = str(row.get("status") or "unknown").strip()
-                risk = str(row.get("risk_level") or "unknown").strip()
-                source = str(row.get("source") or "").strip()
-                try:
-                    page_ids = json.loads(str(row.get("page_ids_json") or "[]"))
-                except Exception:
-                    page_ids = []
-                cols = _responsive_columns([4.5, 1.2])
-                with cols[0]:
-                    st.markdown(f"**{mutation_type}**")
-                    st.caption(" | ".join(part for part in (status, risk, source, mutation_id) if part))
-                    st.write(f"{len(page_ids) if isinstance(page_ids, list) else 0} page(s) affected.")
-                with cols[1]:
-                    rollback_disabled = status != "committed" or mutation_type == "rollback"
-                    if st.button(
-                        "Rollback",
-                        key=f"zopedia_rollback_{idx}",
-                        use_container_width=True,
-                        disabled=rollback_disabled,
-                    ):
-                        try:
-                            st.session_state["_zopedia_last_rollback"] = rollback_zopedia_mutation(
-                                mutation_id=mutation_id,
-                                source="zopedia.ui.rollback",
-                            )
-                        except Exception as exc:
-                            st.session_state["_zopedia_last_rollback"] = {
-                                "status": "error",
-                                "mutation_id": mutation_id,
-                                "message": str(exc),
-                            }
-                        st.rerun()
-        else:
-            st.caption("No Zopedia mutation audit rows yet.")
-
-    with health_tab:
-        try:
-            reports = list_zopedia_maintenance_reports(limit=3)
-        except Exception as exc:
-            reports = pd.DataFrame()
-            st.warning(f"Zopedia maintenance reports are unavailable: {exc}")
-        if isinstance(reports, pd.DataFrame) and not reports.empty:
-            latest = dict(reports.iloc[0].to_dict())
-            try:
-                summary = json.loads(str(latest.get("summary_json") or "{}"))
-            except Exception:
-                summary = {}
-            metric_cols = _responsive_columns(4)
-            metric_cols[0].metric("Pages", int(latest.get("page_count") or 0))
-            metric_cols[1].metric("Edges", int(latest.get("edge_count") or 0))
-            metric_cols[2].metric("Communities", int(summary.get("community_count") or 0))
-            metric_cols[3].metric("Issues", int(latest.get("issue_count") or 0))
-            st.caption(
-                "Latest maintenance run: "
-                + " | ".join(
-                    str(part)
-                    for part in (
-                        latest.get("run_id"),
-                        latest.get("status"),
-                        latest.get("created_at_utc"),
-                    )
-                    if part
-                )
-            )
-            communities = list(summary.get("top_communities") or []) if isinstance(summary, dict) else []
-            if communities:
-                st.markdown("**Important communities**")
-                community_rows = [
-                    {
-                        "label": str(item.get("label") or "").strip(),
-                        "page_count": int(item.get("page_count") or 0),
-                        "score": float(item.get("score") or 0.0),
-                        "central_page_ids": ", ".join(str(pid) for pid in list(item.get("central_page_ids") or [])[:3]),
-                    }
-                    for item in communities[:8]
-                    if isinstance(item, dict)
-                ]
-                st.dataframe(pd.DataFrame(community_rows), hide_index=True, use_container_width=True)
-            try:
-                issues = json.loads(str(latest.get("issue_rows_json") or "[]"))
-            except Exception:
-                issues = []
-            if issues:
-                st.markdown("**Review queue**")
-                issue_rows = [
-                    {
-                        "severity": str(item.get("severity") or "").strip(),
-                        "issue_type": str(item.get("issue_type") or "").strip(),
-                        "title": str(item.get("title") or "").strip(),
-                        "suggested_action": str(item.get("suggested_action") or "").strip(),
-                    }
-                    for item in issues[:12]
-                    if isinstance(item, dict)
-                ]
-                st.dataframe(pd.DataFrame(issue_rows), hide_index=True, use_container_width=True)
-        else:
-            st.caption("No Zopedia maintenance report has been written yet.")
+            submitted = st.form_submit_button("Send", type="primary", use_container_width=True)
+    return (str(query or "").strip(), []) if submitted else ("", [])
 
 
-def _render_zopedia_left_rail(*, user_key: str) -> None:
-    st.markdown("<div class='sn-zopedia-rail-title'>Threads</div>", unsafe_allow_html=True)
-    _render_zopedia_new_chat_action(key="zopedia_rail_new", label="New chat")
-    _render_zopedia_thread_list(
-        user_key=user_key,
-        key_prefix="zopedia_thread_rail",
-        limit=14,
-        show_filter=True,
-    )
-
-
-def _render_zopedia_right_drawer(*, last_resolution: dict[str, object] | None) -> None:
+def _render_zopedia_right_drawer(*, user_key: str, last_resolution: dict[str, object] | None) -> None:
     st.markdown("<div class='sn-zopedia-rail-title'>Context</div>", unsafe_allow_html=True)
+    with st.popover("History", icon=":material/history:", use_container_width=True, key="zopedia_history_drawer"):
+        _render_zopedia_new_chat_action(key="zopedia_drawer_new", label="New chat")
+        _render_zopedia_thread_list(
+            user_key=user_key,
+            key_prefix="zopedia_history_drawer_thread",
+            limit=12,
+            show_filter=True,
+        )
     with st.popover("Sources", icon=":material/source_notes:", use_container_width=True, key="zopedia_sources_drawer"):
         _render_zopedia_source_status()
         st.divider()
         _render_zopedia_source_upload_compact()
     if _current_user_is_admin():
         with st.popover("Admin", icon=":material/admin_panel_settings:", use_container_width=True, key="zopedia_admin_drawer"):
-            debug_tab, memory_tab = st.tabs(["Debug", "Memory"])
-            with debug_tab:
-                if last_resolution:
-                    _render_agentic_omnibar_debug_panel(last_resolution, embedded=True)
-                else:
-                    st.caption("No agent run selected yet.")
-            with memory_tab:
-                _render_zopedia_memory_panel()
+            if last_resolution:
+                _render_agentic_omnibar_debug_panel(last_resolution, embedded=True)
+            else:
+                st.caption("No agent run selected yet.")
 
 
 def _render_zopedia_mobile_context(*, user_key: str, last_resolution: dict[str, object] | None) -> None:
@@ -4775,12 +5664,15 @@ def _render_zopedia_mobile_context(*, user_key: str, last_resolution: dict[str, 
                 st.caption("No agent run selected yet.")
 
 
-def _render_zopedia_header() -> None:
-    current_title = _zopedia_clean_title(
-        st.session_state.get("agentic_omnibar_thread_title"),
-        fallback="Ask about a market, company, source, or theme",
-        max_chars=96,
-    )
+def _render_zopedia_header(*, mode: str = "Chat") -> None:
+    if mode == "Memory":
+        current_title = "Memory browser"
+    else:
+        current_title = _zopedia_clean_title(
+            st.session_state.get("agentic_omnibar_thread_title"),
+            fallback="Ask about a market, company, source, or theme",
+            max_chars=96,
+        )
     st.markdown("<div class='sn-zopedia-title'>Zopedia</div>", unsafe_allow_html=True)
     st.markdown(
         f"<div class='sn-zopedia-thread-title'>{html.escape(current_title)}</div>",
@@ -4821,6 +5713,9 @@ def _render_agentic_omnibar_section(
         st.session_state["agentic_omnibar_chat"] = []
     chat: list[dict[str, object]] = st.session_state["agentic_omnibar_chat"]
     zopedia_user_key = _zopedia_chat_user_key()
+    if "_omnibar_pending_query" in st.session_state:
+        st.session_state["zopedia_workspace_mode"] = "Chat"
+    workspace_mode = _zopedia_workspace_mode()
     last_admin_resolution = None
     if _current_user_is_admin() and chat:
         last_assistant = next(
@@ -4831,31 +5726,16 @@ def _render_agentic_omnibar_section(
             last_admin_resolution = dict(last_assistant["resolution"])
 
     conversation_area = st.container()
+    chat_input_area = st.container()
     if _mobile_layout_active():
-        _render_zopedia_header()
+        _render_zopedia_header(mode=workspace_mode)
+        workspace_mode = _render_zopedia_workspace_mode_switch()
         st.markdown("<div class='sn-zopedia-main-spacer'></div>", unsafe_allow_html=True)
 
         conversation_area = st.container()
-        with conversation_area:
-            if not chat:
-                _render_omnibar_welcome(beats)
-            for msg in chat:
-                with st.chat_message(str(msg.get("role") or "assistant")):
-                    if msg.get("role") == "assistant":
-                        _render_agent_response_message(msg)
-                    else:
-                        st.markdown(str(msg.get("content") or ""))
-
-        _render_zopedia_source_status()
-        _render_zopedia_attach_popover(key_prefix="zopedia_attach_mobile")
-        _render_zopedia_mobile_context(user_key=zopedia_user_key, last_resolution=last_admin_resolution)
-    else:
-        rail_col, main_col, context_col = _responsive_columns([1.05, 3.15, 0.95], gap="large")
-        with rail_col:
-            _render_zopedia_left_rail(user_key=zopedia_user_key)
-        with main_col:
-            _render_zopedia_header()
-            conversation_area = st.container()
+        if workspace_mode == "Memory":
+            _render_zopedia_memory_workspace()
+        else:
             with conversation_area:
                 if not chat:
                     _render_omnibar_welcome(beats)
@@ -4865,20 +5745,47 @@ def _render_agentic_omnibar_section(
                             _render_agent_response_message(msg)
                         else:
                             st.markdown(str(msg.get("content") or ""))
+
             _render_zopedia_source_status()
-            _render_zopedia_attach_popover(key_prefix="zopedia_attach_desktop")
-        with context_col:
-            _render_zopedia_right_drawer(last_resolution=last_admin_resolution)
+            _render_zopedia_attach_popover(key_prefix="zopedia_attach_mobile")
+            _render_zopedia_mobile_context(user_key=zopedia_user_key, last_resolution=last_admin_resolution)
+            chat_input_area = st.container()
+    else:
+        if workspace_mode == "Memory":
+            _render_zopedia_header(mode=workspace_mode)
+            workspace_mode = _render_zopedia_workspace_mode_switch()
+            if workspace_mode != "Memory":
+                st.rerun()
+            _render_zopedia_memory_workspace()
+        else:
+            main_col, context_col = _responsive_columns([4.4, 0.95], gap="large")
+            with main_col:
+                _render_zopedia_header(mode=workspace_mode)
+                workspace_mode = _render_zopedia_workspace_mode_switch()
+                if workspace_mode != "Chat":
+                    st.rerun()
+                conversation_area = st.container()
+                with conversation_area:
+                    if not chat:
+                        _render_omnibar_welcome(beats)
+                    for msg in chat:
+                        with st.chat_message(str(msg.get("role") or "assistant")):
+                            if msg.get("role") == "assistant":
+                                _render_agent_response_message(msg)
+                            else:
+                                st.markdown(str(msg.get("content") or ""))
+                _render_zopedia_source_status()
+                _render_zopedia_attach_popover(key_prefix="zopedia_attach_desktop")
+                chat_input_area = st.container()
+            with context_col:
+                _render_zopedia_right_drawer(user_key=zopedia_user_key, last_resolution=last_admin_resolution)
+
+    if workspace_mode != "Chat":
+        return
 
     # ── Input handling ──
     pending_query = st.session_state.pop("_omnibar_pending_query", None)
-    typed_value = st.chat_input(
-        "Ask about any market, ticker, source, or event...",
-        accept_file="multiple",
-        file_type=["txt", "md", "csv", "json", "pdf"],
-        key="zopedia_chat_input",
-    )
-    typed_query, uploaded_files = _zopedia_chat_input_parts(typed_value)
+    typed_query, uploaded_files = _render_zopedia_chat_composer(chat_input_area)
     ingested_uploads = _ingest_zopedia_chat_uploads(uploaded_files)
     if ingested_uploads and not typed_query and pending_query is None:
         st.rerun()
@@ -4982,8 +5889,8 @@ def _run_and_render_agent_live(
 
     status_widget = st.status("Researching...", expanded=True)
 
-    def _update_live_status(label: str, *, state: str | None = None) -> None:
-        kwargs: dict[str, object] = {"label": label, "expanded": True}
+    def _update_live_status(label: str, *, state: str | None = None, expanded: bool = True) -> None:
+        kwargs: dict[str, object] = {"label": label, "expanded": expanded}
         if state:
             kwargs["state"] = state
         status_widget.update(**kwargs)
@@ -5114,11 +6021,13 @@ def _run_and_render_agent_live(
         _update_live_status(
             f"Error after {duration:.0f}s ({tool_count} source{'s' if tool_count != 1 else ''} checked)",
             state="error",
+            expanded=False,
         )
     else:
         _update_live_status(
             f"Researched {tool_count} source{'s' if tool_count != 1 else ''} · {duration:.0f}s",
             state="complete",
+            expanded=False,
         )
 
     # ── Render structured response ──
@@ -5128,16 +6037,14 @@ def _run_and_render_agent_live(
     limitations = [str(item).strip() for item in list(agent_result.get("limitations") or []) if str(item).strip()]
     search_results = list(resolution.get("search_results") or [])
     request_id = str(resolution.get("request_id") or "live")
-    if thinking_trace:
-        st.session_state[_thinking_trace_open_key(request_id)] = True
 
     # Error message
     if run_error:
         st.error(f"Zopedia encountered an error: {run_error}")
 
-    # Source evidence strip
     if source_links_all:
-        _render_source_evidence_strip(source_links_all)
+        with status_widget:
+            _render_source_evidence_strip(source_links_all)
 
     # Key metrics
     if answer:
@@ -5163,16 +6070,6 @@ def _run_and_render_agent_live(
         if limitations:
             footer_parts.append(" · ".join(limitations[:2]))
         st.caption(" | ".join(footer_parts))
-
-    # Thinking trace — persistent toggle so reruns do not collapse it.
-    if thinking_trace:
-        _render_thinking_trace_panel(
-            thinking_trace,
-            agent_result,
-            panel_id=request_id,
-            key_prefix=f"live_{request_id}",
-            default_open=True,
-        )
 
     # Search results (simplified)
     if search_results and not answer:
@@ -6269,7 +7166,7 @@ def _render_homepage_replay_banner(target_date: object, *, key: str) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Homepage — narrative beats with selected retained research
+# Homepage — daily market stories with selected retained research
 # ---------------------------------------------------------------------------
 
 def _looks_like_failed_zopedia_synthesis_answer(answer: object) -> bool:
@@ -6776,7 +7673,7 @@ def _render_homepage_v3(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_ref
 
     beats = _build_homepage_narrative_beats(home_payload)
     if not beats:
-        st.info("No daily narrative beats were produced from the latest market tape.")
+        st.info("No daily market stories were produced from the latest market data.")
         return
 
     generated_at = pd.to_datetime(home_payload.get("generated_at_utc"), utc=True, errors="coerce")

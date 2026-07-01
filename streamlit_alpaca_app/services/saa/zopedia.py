@@ -798,6 +798,22 @@ def _select_page_rows_sql(*, where_sql: str, order_sql: str, limit: int | None =
     """
 
 
+_PUBLIC_PAGE_VISIBILITY_SQL = """
+AND COALESCE(metadata_json->>'source_type', '') <> 'product_eval'
+AND COALESCE(metadata_json->>'source', '') <> 'product_eval'
+AND COALESCE(metadata_json->>'source', '') <> 'zopedia_learning'
+AND COALESCE(metadata_json->>'eval_tag', '') = ''
+AND COALESCE(metadata_json->>'learning_event_id', '') = ''
+AND COALESCE(metadata_json->>'source_url', '') NOT ILIKE '%%://eval.local/%%'
+AND COALESCE(metadata_json->>'source_title', '') NOT ILIKE '%%zopedia%%eval%%'
+AND COALESCE(metadata_json->>'source_title', '') NOT ILIKE '%%manual graph fixture%%'
+"""
+
+
+def _zopedia_public_visibility_sql(*, include_debug_sources: bool) -> str:
+    return "" if include_debug_sources else _PUBLIC_PAGE_VISIBILITY_SQL
+
+
 def search_zopedia_pages(
     *,
     query: str = "",
@@ -817,7 +833,7 @@ def search_zopedia_pages(
         normalized_query = _coerce_text(query)
         normalized_types = [_normalize_page_type(item) for item in list(page_types or []) if _coerce_text(item)]
         rows: list[tuple[Any, ...]]
-        visibility_clause = "" if include_debug_sources else "AND COALESCE(metadata_json->>'source_type', '') <> 'product_eval'"
+        visibility_clause = _zopedia_public_visibility_sql(include_debug_sources=include_debug_sources)
         with conn.cursor() as cur:
             if normalized_query:
                 type_clause = ""
@@ -850,8 +866,7 @@ def search_zopedia_pages(
                 if not rows:
                     params: list[Any] = []
                     where = "status != 'deleted'"
-                    if not include_debug_sources:
-                        where += " AND COALESCE(metadata_json->>'source_type', '') <> 'product_eval'"
+                    where += f" {visibility_clause}"
                     if normalized_types:
                         where += " AND page_type = ANY(%s)"
                         params.append(normalized_types)
@@ -868,8 +883,7 @@ def search_zopedia_pages(
             else:
                 params = []
                 where = "status != 'deleted'"
-                if not include_debug_sources:
-                    where += " AND COALESCE(metadata_json->>'source_type', '') <> 'product_eval'"
+                where += f" {visibility_clause}"
                 if normalized_types:
                     where += " AND page_type = ANY(%s)"
                     params.append(normalized_types)

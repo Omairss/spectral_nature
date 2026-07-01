@@ -50,7 +50,7 @@ from .extractor import (
     _serialize_claims_frame,
 )
 from .evidence_index import annotate_source_documents
-from .assembler import _build_candidate_bundle, _build_event_bundle
+from .assembler import _build_candidate_bundle, _build_event_bundle, build_observed_cohort_event_bundles
 from .clusterer import _cluster_candidates
 from .macro import (
     _apply_macro_diagnostics_to_release_bundles,
@@ -587,6 +587,58 @@ def build_bottom_up_attention_artifacts(
                     }
                 ),
                 "supporting_claim_ids_json": _json_dumps(bundle.get("supporting_claim_ids") or []),
+                "event_score": _coerce_float(bundle.get("event_score"), 0.0),
+                "cause_status": _coerce_text(bundle.get("cause_status")),
+                "event_type": _coerce_text(bundle.get("event_type")),
+            }
+        )
+
+    observed_cohort_bundles = build_observed_cohort_event_bundles(
+        candidates,
+        run_id=run_id,
+        prompt_version=prompt_version,
+        model_name=model_name,
+    )
+    if observed_cohort_bundles:
+        print(f"[info] AQL observed cohort events promoted: {len(observed_cohort_bundles)}")
+    for bundle in observed_cohort_bundles:
+        bundle_id = _coerce_text(bundle.get("bundle_id"))
+        if bundle_id:
+            bundle_map[bundle_id] = bundle
+        event_bundles.append(bundle)
+        supporting_symbols = [
+            _normalize_symbol(symbol)
+            for symbol in list(bundle.get("supporting_symbols") or [])
+            if _normalize_symbol(symbol)
+        ]
+        cluster_rows = candidates[candidates["symbol"].astype(str).str.upper().isin(set(supporting_symbols))].copy()
+        event_cluster_rows.append(
+            {
+                "run_id": run_id,
+                "asof_time_utc": asof_time_utc,
+                "event_id": _coerce_text(bundle.get("event_id")),
+                "member_candidate_ids_json": _json_dumps(cluster_rows["candidate_id"].tolist() if "candidate_id" in cluster_rows.columns else []),
+                "anchor_candidate_ids_json": _json_dumps(cluster_rows.sort_values("candidate_score", ascending=False).head(2)["candidate_id"].tolist() if "candidate_id" in cluster_rows.columns else []),
+                "driver_symbols_json": _json_dumps(bundle.get("driver_symbols") or []),
+                "beneficiary_symbols_json": _json_dumps(bundle.get("beneficiary_symbols") or []),
+                "loser_symbols_json": _json_dumps(bundle.get("loser_symbols") or []),
+                "event_facts_json": _json_dumps(
+                    {
+                        "members": [
+                            {
+                                "symbol": _normalize_symbol(row.get("symbol")),
+                                "change_pct": _coerce_float(row.get("change_pct")),
+                                "sector": _coerce_text(row.get("sector")),
+                                "industry": _coerce_text(row.get("industry")),
+                            }
+                            for _, row in cluster_rows.iterrows()
+                        ],
+                        "cohort_label": _coerce_text(bundle.get("cohort_label")),
+                        "cohort_kind": _coerce_text(bundle.get("cohort_kind")),
+                        "observed_cohort": True,
+                    }
+                ),
+                "supporting_claim_ids_json": _json_dumps([]),
                 "event_score": _coerce_float(bundle.get("event_score"), 0.0),
                 "cause_status": _coerce_text(bundle.get("cause_status")),
                 "event_type": _coerce_text(bundle.get("event_type")),

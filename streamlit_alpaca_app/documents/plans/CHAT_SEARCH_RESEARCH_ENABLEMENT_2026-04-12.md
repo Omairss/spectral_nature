@@ -109,7 +109,7 @@ Do not dump dozens of low-level tools on the model and hope it self-assembles a 
 Expose a few composed tools instead:
 
 - `research.retained_context`
-  - reads retained narrative beats, bundles, ticker background, and recent news
+  - reads retained market stories, bundles, ticker background, and recent news
 - `research.live_event_evidence`
   - wraps the existing `attention_agentic` search stack
 - `research.market_impact_map`
@@ -142,7 +142,7 @@ Important:
 
 Before external search, the agent should check:
 
-- current homepage narrative beats
+- current homepage market stories
 - matching research bundles
 - ticker background and recent news for any impacted symbols
 - recent event traces when debugging

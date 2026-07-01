@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from http.client import RemoteDisconnected
 
 import numpy as np
@@ -11,6 +12,8 @@ from services.trading_agent import (
     TRADING_AGENT_HORIZON_SPECS,
     build_trading_agent_context,
     build_trading_agent_materialized_frames,
+    build_trading_agent_outcomes,
+    build_trading_agent_research_reviews,
     build_trading_agent_suggestions,
 )
 
@@ -111,7 +114,173 @@ def test_trading_agent_stock_summary_lookup_does_not_cross_tickers():
     assert context["source_summaries"]["stock_investigator"] == []
 
 
-def test_trading_agent_runs_single_ticker_aql_packages():
+def test_trading_agent_outcomes_score_matured_and_mark_to_market_calls():
+    candidates = pd.DataFrame(
+        [
+            {
+                "candidate_id": "cand_aapl_1w",
+                "trading_agent_run_id": "run:1w",
+                "run_id": "run",
+                "horizon_key": "1w",
+                "horizon_label": "1 Week",
+                "rank": 1,
+                "ticker": "AAPL",
+                "direction": "long",
+                "setup": "Breakout continuation",
+                "hypothesis": "Momentum can persist.",
+                "evidence_json": '["Opportunity score is high."]',
+                "tail_risks_json": '["Macro reversal"]',
+                "confidence": "medium",
+                "asof_time_utc": "2026-06-01T13:00:00Z",
+                "generated_at_utc": "2026-06-01T13:00:00Z",
+            },
+            {
+                "candidate_id": "cand_msft_1m",
+                "trading_agent_run_id": "run:1m",
+                "run_id": "run",
+                "horizon_key": "1m",
+                "horizon_label": "1 Month",
+                "rank": 1,
+                "ticker": "MSFT",
+                "direction": "avoid",
+                "setup": "Risk control",
+                "hypothesis": "Weak momentum can continue.",
+                "evidence_json": '["Momentum is fading."]',
+                "tail_risks_json": '["Relief rally"]',
+                "confidence": "low",
+                "asof_time_utc": "2026-06-20T13:00:00Z",
+                "generated_at_utc": "2026-06-20T13:00:00Z",
+            },
+        ]
+    )
+    price_history = pd.DataFrame(
+        [
+            {"symbol": "AAPL", "timestamp": "2026-06-01T00:00:00Z", "close": 100.0},
+            {"symbol": "AAPL", "timestamp": "2026-06-08T00:00:00Z", "close": 112.0},
+            {"symbol": "MSFT", "timestamp": "2026-06-22T00:00:00Z", "close": 200.0},
+            {"symbol": "MSFT", "timestamp": "2026-06-24T00:00:00Z", "close": 190.0},
+        ]
+    )
+
+    outcomes = build_trading_agent_outcomes(
+        candidates=candidates,
+        price_history=price_history,
+        evaluation_time_utc="2026-06-24T15:00:00Z",
+    )
+    rows = {row["candidate_id"]: row for row in outcomes.to_dict("records")}
+
+    assert rows["cand_aapl_1w"]["outcome_status"] == "matured"
+    assert rows["cand_aapl_1w"]["is_matured"] is True
+    assert rows["cand_aapl_1w"]["is_win"] is True
+    assert np.isclose(rows["cand_aapl_1w"]["signed_return_pct"], 12.0)
+
+    assert rows["cand_msft_1m"]["outcome_status"] == "mark_to_market"
+    assert rows["cand_msft_1m"]["is_matured"] is False
+    assert rows["cand_msft_1m"]["is_win"] is True
+    assert np.isclose(rows["cand_msft_1m"]["raw_return_pct"], -5.0)
+    assert np.isclose(rows["cand_msft_1m"]["signed_return_pct"], 5.0)
+
+
+def test_trading_agent_research_reviews_use_bounded_llm_payload():
+    class ReviewLLM:
+        def __init__(self) -> None:
+            self.user_prompt = ""
+
+        def generate_json(self, **kwargs):
+            self.user_prompt = kwargs["user_prompt"]
+            return {
+                "review_status": "completed",
+                "outcome_summary": "The long thesis worked over the measured horizon.",
+                "thesis_verdict": "validated",
+                "direction_verdict": "right_direction",
+                "horizon_verdict": "appropriate",
+                "evidence_verdict": "mixed",
+                "primary_failure_mode": "",
+                "primary_success_factor": "Momentum evidence matched the price path.",
+                "missing_evidence_slots": ["Demand quality"],
+                "recommended_contract_change": "Require demand quality when available.",
+                "recommended_prompt_change": "Ask for the expected mechanism explicitly.",
+                "recommended_retrieval_change": "Retrieve recent company evidence before synthesis.",
+                "recommended_candidate_selection_change": "Keep watchlist selection unchanged until more outcomes mature.",
+                "source_refs": ["candidate:evidence_json"],
+            }
+
+    candidates = pd.DataFrame(
+        [
+            {
+                "candidate_id": "cand_aapl_1w",
+                "trading_agent_run_id": "run:1w",
+                "ticker": "AAPL",
+                "setup": "Breakout continuation",
+                "hypothesis": "Momentum can persist.",
+                "evidence_json": '["Opportunity score is high."]',
+                "tail_risks_json": '["Macro reversal"]',
+                "confidence": "medium",
+            }
+        ]
+    )
+    runs = pd.DataFrame(
+        [
+            {
+                "trading_agent_run_id": "run:1w",
+                "status": "ok",
+                "regime_read": "Momentum regime.",
+                "portfolio_posture": "Selective.",
+                "data_gaps_json": '["No options evidence."]',
+                "aql_agent_json": '{"status":"completed"}',
+            }
+        ]
+    )
+    outcomes = pd.DataFrame(
+        [
+            {
+                "outcome_id": "tao_aapl",
+                "candidate_id": "cand_aapl_1w",
+                "trading_agent_run_id": "run:1w",
+                "run_id": "run",
+                "horizon_key": "1w",
+                "ticker": "AAPL",
+                "direction": "long",
+                "scoring_direction": "long",
+                "outcome_status": "matured",
+                "is_win": True,
+                "is_matured": True,
+                "raw_return_pct": 12.0,
+                "signed_return_pct": 12.0,
+                "entry_ts": "2026-06-01T00:00:00Z",
+                "entry_close": 100.0,
+                "target_exit_ts": "2026-06-08T00:00:00Z",
+                "actual_exit_ts": "2026-06-08T00:00:00Z",
+                "exit_close": 112.0,
+            }
+        ]
+    )
+    llm = ReviewLLM()
+
+    reviews = build_trading_agent_research_reviews(
+        outcomes=outcomes,
+        candidates=candidates,
+        runs=runs,
+        llm_client=llm,
+        max_reviews=1,
+        review_time_utc="2026-06-24T15:00:00Z",
+    )
+
+    assert len(reviews) == 1
+    row = reviews.iloc[0]
+    assert row["review_status"] == "completed"
+    assert row["thesis_verdict"] == "validated"
+    assert json.loads(row["missing_evidence_slots_json"]) == ["Demand quality"]
+    review_input = json.loads(row["review_input_json"])
+    assert review_input["review_contract"]["may_mutate_prompt_or_memory"] is False
+    assert review_input["candidate"]["hypothesis"] == "Momentum can persist."
+    assert review_input["outcome"]["signed_return_pct"] == 12.0
+    assert "Review input JSON" in llm.user_prompt
+
+
+def test_trading_agent_runs_single_ticker_aql_packages(monkeypatch):
+    monkeypatch.delenv("TRADING_AGENT_ZOPEDIA_WRITE_POLICY", raising=False)
+
     class PackageLLM(FakeTradingLLM):
         def generate_json(self, **kwargs):
             self.user_prompt = kwargs["user_prompt"]
@@ -193,6 +362,7 @@ def test_trading_agent_runs_single_ticker_aql_packages():
     assert len(calls) == 2
     assert all(call["max_tool_calls"] == 8 for call in calls)
     assert all(call["persist_findings"] is False for call in calls)
+    assert all(call["write_policy"] == "safe_auto" for call in calls)
     assert any("Focus ticker: MXL = MaxLinear, Inc." in query and "POET" not in query for query in queries)
     assert any("Focus ticker: POET = POET Technologies Inc." in query and "MXL" not in query for query in queries)
     assert "ticker_packages" in llm.user_prompt
@@ -253,7 +423,8 @@ def test_trading_agent_deduplicates_similar_gap_wording():
     ]
 
 
-def test_trading_agent_suggestions_normalize_llm_output():
+def test_trading_agent_suggestions_normalize_llm_output(monkeypatch):
+    monkeypatch.delenv("TRADING_AGENT_ZOPEDIA_WRITE_POLICY", raising=False)
     fake = FakeTradingLLM()
     agent = FakeAQLTradingAgent()
 
@@ -273,6 +444,7 @@ def test_trading_agent_suggestions_normalize_llm_output():
     assert "trade candidates" not in agent.kwargs["query"].lower()
     assert "automated execution" not in agent.kwargs["query"].lower()
     assert agent.kwargs["persist_findings"] is False
+    assert agent.kwargs["write_policy"] == "safe_auto"
     assert result["aql_agent"]["tool_calls"][0]["tool_name"] == "hypothesis.verify"
 
 

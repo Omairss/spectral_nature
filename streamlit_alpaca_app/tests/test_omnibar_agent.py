@@ -140,6 +140,27 @@ def test_coerce_tool_arguments_accepts_object_kind_with_json_list():
     assert args == {"focus_symbols": ["UMC", "REMX"]}
 
 
+def test_coerce_tool_arguments_accepts_string_list_from_object_value():
+    args, error = omnibar_agent._coerce_tool_arguments(
+        [
+            {
+                "name": "focus_symbols",
+                "value_kind": "string_list",
+                "string_value": None,
+                "number_value": None,
+                "boolean_value": None,
+                "string_list_value": None,
+                "json_value": None,
+                "object_value": ["SPACEX", "ASTS"],
+                "object_list_value": None,
+            }
+        ]
+    )
+
+    assert error == ""
+    assert args == {"focus_symbols": ["SPACEX", "ASTS"]}
+
+
 def _judge_accept(answer: str, confidence: str = "medium") -> dict[str, object]:
     return {
         "verdict": "accept",
@@ -415,6 +436,56 @@ class _SingleEvidenceHighConfidenceLLM:
         raise AssertionError(f"Unexpected schema_name: {schema_name}")
 
 
+class _LiveSearchSnippetHighConfidenceLLM:
+    def __init__(self) -> None:
+        self.config = SimpleNamespace(model="gpt-test")
+        self.step_calls = 0
+
+    def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict[str, object]) -> dict[str, object]:
+        del system_prompt, user_prompt, schema
+        if schema_name == "zopedia_agent_step":
+            self.step_calls += 1
+            if self.step_calls == 1:
+                return {
+                    "action": "tool_call",
+                    "reasoning": "Need current web evidence.",
+                    "tool_name": "research.live_event_evidence",
+                    "tool_arguments": [_arg("query", "What is happening with SpaceX?"), _arg("max_results", 5)],
+                    "answer_markdown": "",
+                    "confidence": "low",
+                    "needs_more_tools": True,
+                }
+            if self.step_calls == 2:
+                return {
+                    "action": "tool_call",
+                    "reasoning": "Need a second evidence source.",
+                    "tool_name": "dataset.fred_dashboard",
+                    "tool_arguments": [_arg("years", 1)],
+                    "answer_markdown": "",
+                    "confidence": "low",
+                    "needs_more_tools": True,
+                }
+            return {
+                "action": "final",
+                "reasoning": "Enough for a draft.",
+                "tool_name": "",
+                "tool_arguments": [],
+                "answer_markdown": "SpaceX has current market-moving news.",
+                "confidence": "high",
+                "needs_more_tools": False,
+            }
+        if schema_name == "zopedia_agent_final":
+            return {
+                "answer_markdown": "SpaceX has current market-moving news.",
+                "confidence": "high",
+                "limitations": [],
+                "used_tool_call_ids": [],
+            }
+        if schema_name == "zopedia_agent_judge":
+            return _judge_accept("SpaceX has current market-moving news.", "high")
+        raise AssertionError(f"Unexpected schema_name: {schema_name}")
+
+
 class _JudgeRevisionLLM:
     def __init__(self) -> None:
         self.config = SimpleNamespace(model="deepseek-test")
@@ -515,6 +586,42 @@ def test__run_zopedia_agent_loop_caps_high_confidence_with_single_evidence_sourc
     assert result["status"] == "completed"
     assert result["confidence"] == "medium"
     assert "only one evidence source" in " ".join(result["limitations"]).lower()
+
+
+def test__run_zopedia_agent_loop_caps_live_search_snippets_without_opened_source(monkeypatch):
+    import services.omnibar_research as omnibar_research
+
+    monkeypatch.setattr(
+        omnibar_research,
+        "live_event_evidence",
+        lambda **kwargs: {
+            "summary": [
+                {
+                    "scope": "market_event",
+                    "headline": "SpaceX shares move after IPO update",
+                    "summary_text": "Shares moved after a current SpaceX market update.",
+                    "source": "Reuters",
+                    "published_at": "2026-06-23T20:00:00Z",
+                    "url": "https://example.com/spacex",
+                }
+            ],
+            "llm_context_text": "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies.",
+            "messages": [],
+        },
+    )
+
+    result = omnibar_agent._run_zopedia_agent_loop(
+        query="What is happening with SpaceX?",
+        service=_StubQueryService(),
+        llm_client=_LiveSearchSnippetHighConfidenceLLM(),
+        max_tool_calls=2,
+        persist_findings=False,
+    )
+
+    assert result["status"] == "completed"
+    assert result["confidence"] == "medium"
+    assert "live web evidence was not opened into source text" in " ".join(result["limitations"]).lower()
+    assert "research.open_page" not in [call.get("tool_name") for call in result["tool_calls"]]
 
 
 def test__run_zopedia_agent_loop_answer_judge_can_revise_unsupported_draft():
@@ -637,6 +744,7 @@ def test_post_answer_memory_agent_applies_safe_mutation(monkeypatch):
 
     assert result["status"] == "completed"
     assert result["action"] == "apply_mutation"
+    assert result["write_policy"] == "safe_auto"
     assert result["tool_call"]["tool_name"] == "zopedia.apply_mutation"
     assert calls == [
         (
@@ -656,6 +764,62 @@ def test_post_answer_memory_agent_applies_safe_mutation(monkeypatch):
     ]
     assert any(event.get("stage") == "memory_reflection_start" for event in events)
     assert any(event.get("stage") == "memory_mutation_complete" for event in events)
+
+
+def test_post_answer_memory_agent_propose_policy_converts_safe_mutation(monkeypatch):
+    calls: list[tuple[str, dict[str, object]]] = []
+
+    def _fake_invoke_tool(*, service, tool_name, arguments=None, run_id=""):
+        del service, run_id
+        args = dict(arguments or {})
+        calls.append((tool_name, args))
+        return {
+            "result_type": "research",
+            "payload": {
+                "status": "proposed",
+                "summary": [{"kind": "zopedia_proposal", "summary_text": "memory proposal created."}],
+                "llm_context_text": "Zopedia proposal created.",
+            },
+            "provenance": None,
+        }
+
+    monkeypatch.setattr(omnibar_agent, "invoke_tool", _fake_invoke_tool)
+
+    result = omnibar_agent._run_post_answer_memory_agent(
+        llm=_MemoryApplyLLM(),
+        service=_StubQueryService(),
+        run_id="agrun_test",
+        query="How does NVDA connect to AI capex?",
+        answer_markdown="NVDA is tied to AI capex through accelerator demand.",
+        confidence="high",
+        limitations=[],
+        quality_review={"status": "completed", "verdict": "accept"},
+        tool_calls=[
+            {
+                "tool_call_id": "agtc_1",
+                "tool_name": "research.live_event_evidence",
+                "arguments": {"query": "NVDA AI capex"},
+                "status": "completed",
+                "result_summary": {
+                    "llm_context_text": "Source-backed NVDA AI capex evidence.",
+                    "source_links": [{"url": "https://example.com/nvda", "label": "NVDA evidence"}],
+                },
+            }
+        ],
+        conversation_history=None,
+        prefetched_context="",
+        timeout_seconds=5,
+        progress_callback=None,
+        write_policy="propose",
+    )
+
+    assert result["status"] == "completed"
+    assert result["action"] == "propose_change"
+    assert result["write_policy"] == "propose"
+    assert result["tool_call"]["tool_name"] == "zopedia.propose_change"
+    assert calls[0][0] == "zopedia.propose_change"
+    assert calls[0][1]["proposal_type"] == "link_pages"
+    assert calls[0][1]["payload"]["memory_decision"]["mutation_type"] == "link_pages"
 
 
 def test_resolve_conversation_followup_query_turns_yes_into_actionable_context():

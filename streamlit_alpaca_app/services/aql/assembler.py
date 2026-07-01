@@ -3,7 +3,10 @@ AQL assembler — payload assembly (candidate/event bundles, home payload).
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import math
+import re
 from typing import Any
 
 import numpy as np
@@ -36,6 +39,417 @@ from ._shared import (
 from .extractor import _claim_entities, _serialize_claims_frame
 from .collector import _latest_yield_facts
 from .constants import LLMClient
+
+
+_COHORT_GENERIC_LABELS = {
+    "advanced",
+    "asset",
+    "assets",
+    "center",
+    "chain",
+    "class",
+    "common",
+    "company",
+    "companies",
+    "computing",
+    "consumer",
+    "cycle",
+    "data",
+    "developer",
+    "developers",
+    "digital",
+    "equipment",
+    "equities",
+    "equity",
+    "fund",
+    "funds",
+    "industrial",
+    "manufacturer",
+    "manufacturers",
+    "manufacturing",
+    "market",
+    "materials",
+    "names",
+    "operator",
+    "operators",
+    "platform",
+    "producer",
+    "producers",
+    "products",
+    "provider",
+    "providers",
+    "services",
+    "shares",
+    "spending",
+    "stock",
+    "stocks",
+    "supplier",
+    "suppliers",
+    "systems",
+    "technology",
+    "unknown",
+}
+
+
+def _cohort_values(value: object) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        clean = value.strip()
+        if not clean:
+            return []
+        if clean.startswith("[") and clean.endswith("]"):
+            try:
+                parsed = json.loads(clean)
+            except Exception:
+                parsed = None
+            if isinstance(parsed, list):
+                return [_coerce_text(item) for item in parsed if _coerce_text(item)]
+        return [clean]
+    return [_coerce_text(item) for item in _safe_list(value) if _coerce_text(item)]
+
+
+def _cohort_label(value: object) -> str:
+    text = _coerce_text(value).strip()
+    if not text:
+        return ""
+    text = re.sub(r"[_/]+", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    lowered = text.lower()
+    if not lowered or lowered in _COHORT_GENERIC_LABELS:
+        return ""
+    if lowered == "ai":
+        return "AI"
+    if len(lowered) <= 2:
+        return ""
+    titled = text.title()
+    return re.sub(r"\bAi\b", "AI", titled)
+
+
+def _cohort_group_keys(row: pd.Series) -> list[tuple[str, str]]:
+    keys: list[tuple[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+
+    def add(kind: str, label: object) -> None:
+        clean = _cohort_label(label)
+        if not clean:
+            return
+        key = (kind, clean)
+        if key in seen:
+            return
+        seen.add(key)
+        keys.append(key)
+
+    raw_tags: list[str] = []
+    for column in ("macro_exposure_tags", "macro_role_tags", "business_tags", "business_role_tags"):
+        raw_tags.extend(_cohort_values(row.get(column)))
+    for tag in raw_tags:
+        add("tag", tag)
+        for token in re.split(r"[^A-Za-z0-9]+", tag):
+            add("tag_token", token)
+
+    for column in ("peer_group_name", "industry", "sector"):
+        add(column, row.get(column))
+    return keys
+
+
+def _cohort_direction_word(direction: str) -> str:
+    if direction == "down":
+        return "fell"
+    if direction == "up":
+        return "rose"
+    return "moved"
+
+
+def _cohort_subject(label: str) -> str:
+    clean = _coerce_text(label)
+    if not clean:
+        return "Related stocks"
+    if clean.isupper() and len(clean) <= 4:
+        return f"{clean}-linked stocks"
+    return f"{clean} stocks"
+
+
+def _cohort_member_move_text(rows: pd.DataFrame, *, limit: int = 5) -> str:
+    parts: list[str] = []
+    ranked = rows.sort_values(["candidate_score", "abs_change_pct"], ascending=[False, False], na_position="last")
+    for _, row in ranked.head(max(int(limit), 1)).iterrows():
+        symbol = _normalize_symbol(row.get("symbol"))
+        move = _coerce_float(row.get("change_pct"))
+        if not symbol or not np.isfinite(move):
+            continue
+        parts.append(f"{symbol} {move:+.1f}%")
+    if not parts:
+        return ""
+    if len(parts) == 1:
+        return parts[0]
+    if len(parts) == 2:
+        return f"{parts[0]} and {parts[1]}"
+    return f"{', '.join(parts[:-1])}, and {parts[-1]}"
+
+
+def _cohort_shared_label_text(rows: pd.DataFrame, *, limit: int = 6) -> str:
+    counts: dict[str, int] = {}
+    for _, row in rows.iterrows():
+        labels: set[str] = set()
+        for column in ("macro_exposure_tags", "macro_role_tags", "business_tags", "business_role_tags", "industry", "peer_group_name"):
+            for value in _cohort_values(row.get(column)):
+                label = _cohort_label(value)
+                if label:
+                    labels.add(label)
+        for label in labels:
+            counts[label] = counts.get(label, 0) + 1
+    ranked = [
+        label
+        for label, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+        if count >= 2
+    ][: max(int(limit), 1)]
+    if not ranked:
+        return ""
+    if len(ranked) == 1:
+        return ranked[0]
+    if len(ranked) == 2:
+        return f"{ranked[0]} and {ranked[1]}"
+    return f"{', '.join(ranked[:-1])}, and {ranked[-1]}"
+
+
+def _cohort_shared_title_labels(
+    rows: pd.DataFrame,
+    *,
+    fallback_label: str,
+    fallback_kind: str,
+    limit: int = 3,
+) -> list[str]:
+    fallback = _cohort_label(fallback_label)
+    counts: dict[str, int] = {}
+    for _, row in rows.iterrows():
+        labels: set[str] = set()
+        for column in (
+            "macro_exposure_tags",
+            "macro_role_tags",
+            "business_tags",
+            "business_role_tags",
+            "industry",
+            "peer_group_name",
+        ):
+            for value in _cohort_values(row.get(column)):
+                label = _cohort_label(value)
+                if label:
+                    labels.add(label)
+        for label in labels:
+            counts[label] = counts.get(label, 0) + 1
+
+    ranked = [
+        label
+        for label, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+        if count >= 2 and label != fallback
+    ]
+    if ranked:
+        return ranked[: max(int(limit), 1)]
+    if fallback:
+        return [fallback]
+    return []
+
+
+def _cohort_title_subject(rows: pd.DataFrame, *, fallback_label: str, fallback_kind: str) -> str:
+    labels = _cohort_shared_title_labels(
+        rows,
+        fallback_label=fallback_label,
+        fallback_kind=fallback_kind,
+    )
+    if not labels:
+        return _cohort_subject(fallback_label)
+    if fallback_kind != "sector" and len(labels) == 1 and labels[0] == _cohort_label(fallback_label):
+        return _cohort_subject(fallback_label)
+    if len(labels) == 1:
+        phrase = labels[0]
+    elif len(labels) == 2:
+        phrase = f"{labels[0]} and {labels[1]}"
+    else:
+        phrase = f"{', '.join(labels[:-1])}, and {labels[-1]}"
+    return f"{phrase} stocks"
+
+
+def build_observed_cohort_event_bundles(
+    candidates: pd.DataFrame,
+    *,
+    run_id: str,
+    prompt_version: str,
+    model_name: str,
+    max_bundles: int = 4,
+) -> list[dict[str, Any]]:
+    frame = candidates.copy() if isinstance(candidates, pd.DataFrame) else pd.DataFrame()
+    if frame.empty or "symbol" not in frame.columns:
+        return []
+    frame["symbol"] = frame["symbol"].map(_normalize_symbol)
+    frame["change_pct"] = pd.to_numeric(frame.get("change_pct"), errors="coerce")
+    frame["abs_change_pct"] = pd.to_numeric(frame.get("abs_change_pct"), errors="coerce")
+    if "abs_change_pct" not in frame.columns or frame["abs_change_pct"].isna().all():
+        frame["abs_change_pct"] = frame["change_pct"].abs()
+    frame["candidate_score"] = pd.to_numeric(frame.get("candidate_score"), errors="coerce").fillna(0.0)
+    frame = frame[
+        frame["symbol"].ne("")
+        & frame["change_pct"].notna()
+        & frame["abs_change_pct"].ge(4.0)
+        & frame["candidate_score"].ge(30.0)
+    ].copy()
+    if frame.empty:
+        return []
+    frame["direction"] = frame["change_pct"].map(_move_direction)
+    frame = frame[frame["direction"].isin(["up", "down"])].copy()
+    if frame.empty:
+        return []
+
+    groups: dict[tuple[str, str, str], list[int]] = {}
+    for idx, row in frame.iterrows():
+        for kind, label in _cohort_group_keys(row):
+            groups.setdefault((kind, label, _coerce_text(row.get("direction"))), []).append(idx)
+
+    specificity_bonus = {
+        "tag": 150.0,
+        "tag_token": 135.0,
+        "peer_group_name": 90.0,
+        "industry": 80.0,
+        "sector": 10.0,
+    }
+    rows: list[dict[str, Any]] = []
+    for (kind, label, direction), indices in groups.items():
+        scoped = frame.loc[list(dict.fromkeys(indices))].copy()
+        scoped = scoped.drop_duplicates(subset=["symbol"], keep="first")
+        if len(scoped) < 3:
+            continue
+        median_abs_move = float(scoped["abs_change_pct"].median(skipna=True))
+        if not np.isfinite(median_abs_move) or median_abs_move < 4.0:
+            continue
+        mean_score = float(scoped["candidate_score"].mean(skipna=True))
+        acronym_bonus = 180.0 if label.isupper() and len(label) <= 4 else 0.0
+        score = (
+            mean_score * math.sqrt(len(scoped))
+            + median_abs_move * 10.0
+            + specificity_bonus.get(kind, 0.0)
+            + acronym_bonus
+            + math.log1p(len(scoped)) * 18.0
+        )
+        rows.append(
+            {
+                "kind": kind,
+                "label": label,
+                "direction": direction,
+                "score": score,
+                "rows": scoped,
+            }
+        )
+    if not rows:
+        return []
+
+    selected: list[dict[str, Any]] = []
+    selected_symbol_sets: list[set[str]] = []
+    for item in sorted(rows, key=lambda value: (-float(value["score"]), value["kind"], value["label"])):
+        scoped = item["rows"].sort_values(["candidate_score", "abs_change_pct"], ascending=[False, False], na_position="last")
+        symbols = {
+            _normalize_symbol(value)
+            for value in scoped.get("symbol", pd.Series(dtype=str)).tolist()
+            if _normalize_symbol(value)
+        }
+        if not symbols:
+            continue
+        if any(len(symbols & existing) / max(min(len(symbols), len(existing)), 1) >= 0.75 for existing in selected_symbol_sets):
+            continue
+        selected.append({**item, "rows": scoped})
+        selected_symbol_sets.append(symbols)
+        if len(selected) >= max(int(max_bundles), 1):
+            break
+
+    bundles: list[dict[str, Any]] = []
+    for item in selected:
+        scoped = item["rows"]
+        label = _coerce_text(item["label"])
+        direction = _coerce_text(item["direction"])
+        subject = _cohort_title_subject(scoped, fallback_label=label, fallback_kind=_coerce_text(item["kind"]))
+        verb = _cohort_direction_word(direction)
+        supporting_symbols = [
+            _normalize_symbol(value)
+            for value in scoped.get("symbol", pd.Series(dtype=str)).tolist()
+            if _normalize_symbol(value)
+        ][:8]
+        if not supporting_symbols:
+            continue
+        anchor_row = scoped.iloc[0]
+        anchor_symbol = _normalize_symbol(anchor_row.get("symbol"))
+        member_text = _cohort_member_move_text(scoped)
+        shared_labels = _cohort_shared_label_text(scoped)
+        what_happened = f"{subject} {verb} together today."
+        if member_text:
+            what_happened = f"{what_happened} The largest moves included {member_text}."
+        business_context = ""
+        if shared_labels:
+            business_context = (
+                f"The group shares taxonomy labels such as {shared_labels}, so this is a connected cohort move rather than an isolated single-name move."
+            )
+        else:
+            business_context = "The affected names share sector or peer-group exposure, so this is a connected cohort move rather than an isolated single-name move."
+        watch_next = (
+            "Watch for company news, sector research, macro data, or fund-flow commentary that explains the driver."
+        )
+        symbol_hash = hashlib.sha1("|".join(supporting_symbols).encode("utf-8")).hexdigest()[:10]
+        event_id = f"observed-cohort-{item['kind']}-{symbol_hash}"
+        event_score = float(item["score"]) + float(scoped["candidate_score"].sum(skipna=True)) * 0.25
+        bundle = {
+            "bundle_id": f"event::{event_id}",
+            "bundle_type": "event",
+            "run_id": run_id,
+            "prompt_version": prompt_version,
+            "model_name": model_name,
+            "event_id": event_id,
+            "event_title": f"{subject} {verb} together",
+            "surface_summary_text": " ".join(part for part in [what_happened, business_context] if part).strip(),
+            "what_happened_text": what_happened,
+            "why_happened_text": "",
+            "affected_assets_summary_text": business_context,
+            "business_context_text": business_context,
+            "surface_business_context_text": business_context,
+            "watch_next_text": watch_next,
+            "background_context_text": "",
+            "cause_status": "partial",
+            "why_today_mode": "observed_cohort",
+            "evidence_quality": "Low",
+            "freshness_quality": "High",
+            "confidence_label": "Developing",
+            "source_summary": "Market data",
+            "source_count": 0,
+            "evidence_count": 0,
+            "same_day_evidence_count": 0,
+            "supporting_symbols": supporting_symbols,
+            "driver_symbols": supporting_symbols if direction == "down" else [],
+            "beneficiary_symbols": supporting_symbols if direction == "up" else [],
+            "loser_symbols": supporting_symbols if direction == "down" else [],
+            "claims": [],
+            "supporting_claim_ids": [],
+            "yield_facts": {},
+            "peer_moves": [],
+            "related_symbols": [
+                {
+                    "symbol": _normalize_symbol(row.get("symbol")),
+                    "headline": _coerce_text(row.get("headline")),
+                    "change_pct": _coerce_float(row.get("change_pct")),
+                    "sector": _coerce_text(row.get("sector")),
+                    "industry": _coerce_text(row.get("industry")),
+                }
+                for _, row in scoped.iterrows()
+            ],
+            "event_type": "observed_cohort",
+            "event_score": round(event_score, 1),
+            "anchor_symbol": anchor_symbol,
+            "anchor_direction": direction,
+            "direction": direction,
+            "change_pct": round(_coerce_float(anchor_row.get("change_pct")), 2),
+            "observed_cohort": True,
+            "cohort_label": label,
+            "cohort_kind": _coerce_text(item["kind"]),
+            "source_dataset": "attention_candidates_1d",
+        }
+        bundles.append(bundle)
+    return bundles
 
 
 def _candidate_bundle_item(bundle: dict[str, Any], candidate: dict[str, Any]) -> dict[str, Any]:
@@ -116,9 +530,14 @@ def _event_item(bundle: dict[str, Any], cluster_rows: pd.DataFrame, event_type: 
         "event_score": round(event_score, 1),
         "anchor_symbol": anchor_symbol,
         "anchor_direction": anchor_direction,
+        "direction": _coerce_text(bundle.get("direction") or anchor_direction),
+        "change_pct": round(_coerce_float(bundle.get("change_pct")), 2) if np.isfinite(_coerce_float(bundle.get("change_pct"))) else None,
         "what_happened_text": _coerce_text(bundle.get("what_happened_text")),
         "why_happened_text": _coerce_text(bundle.get("why_happened_text")),
         "affected_assets_summary_text": _coerce_text(bundle.get("affected_assets_summary_text")),
+        "business_context_text": _coerce_text(bundle.get("business_context_text")),
+        "surface_business_context_text": _coerce_text(bundle.get("surface_business_context_text")),
+        "watch_next_text": _coerce_text(bundle.get("watch_next_text")),
         "driver_symbols": drivers,
         "beneficiary_symbols": up[:6],
         "loser_symbols": down[:6],
@@ -127,6 +546,7 @@ def _event_item(bundle: dict[str, Any], cluster_rows: pd.DataFrame, event_type: 
         "confidence_label": _coerce_text(bundle.get("confidence_label")) or "Developing",
         "source_count": int(bundle.get("source_count") or 0),
         "evidence_count": int(bundle.get("evidence_count") or 0),
+        "same_day_evidence_count": int(bundle.get("same_day_evidence_count") or 0),
         "surface_summary_text": _coerce_text(bundle.get("surface_summary_text")),
         "surface_what_changed_text": _coerce_text(bundle.get("what_happened_text")),
         "surface_why_text": _coerce_text(bundle.get("why_happened_text")),
@@ -155,6 +575,9 @@ def _event_item(bundle: dict[str, Any], cluster_rows: pd.DataFrame, event_type: 
         "relationship_unresolved_count": int(bundle.get("relationship_unresolved_count") or 0),
         "primary_nodes": list(_safe_list(bundle.get("primary_nodes"))),
         "source_dataset": _coerce_text(bundle.get("source_dataset")),
+        "observed_cohort": bool(bundle.get("observed_cohort")),
+        "cohort_label": _coerce_text(bundle.get("cohort_label")),
+        "cohort_kind": _coerce_text(bundle.get("cohort_kind")),
     }
 
 
@@ -332,6 +755,8 @@ def _build_event_bundle(
         ],
         "event_type": event_type,
         "event_score": round(event_score, 1),
+        "direction": _move_direction(anchor_row.get("change_pct")),
+        "change_pct": round(_coerce_float(anchor_row.get("change_pct")), 2),
     }
     return bundle
 

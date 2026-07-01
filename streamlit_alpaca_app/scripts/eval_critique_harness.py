@@ -74,14 +74,14 @@ SCENARIOS: dict[str, dict] = {
         "summary": {
             "headline": "Market Summary",
             "summary_text": (
-                "Oil-linked instruments led the tape higher while equities chopped.\n\n"
+                "Oil-linked instruments led the market higher while equities were mixed.\n\n"
                 "**Energy bid extends**\n"
                 "- BNO surged sharply with no clear catalyst confirmed.\n"
                 "- USO traded firmer alongside BNO with no single driver identified.\n"
                 "- Oil majors XOM and CVX moved up modestly."
             ),
             "audio_text": (
-                "Oil-linked names led the tape today, with BNO surging sharply on no "
+                "Oil-linked names led the market today, with BNO surging sharply on no "
                 "clear catalyst. USO traded firmer alongside it."
             ),
             "event_count": 0,

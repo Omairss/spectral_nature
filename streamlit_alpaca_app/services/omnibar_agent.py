@@ -332,7 +332,9 @@ _TRAJECTORY_MONITOR_SYSTEM_PROMPT = register_narrative_prompt(
         "Corrective instructions must name only tools that appear in Available tool names. "
         "Do not kill a company-research thread solely because internal memory is empty while source-reading, live evidence, or web/page tools remain available within budget. "
         "For Zopedia/wiki tasks, treat search without page read, page read without source trace for dependent claims, and generated memory without source refs as incomplete. "
-        "For current/live questions, treat stale memory-only answers as incomplete unless the task explicitly asks for durable memory. "
+        "For current/live questions, retained/internal evidence alone is incomplete unless the task explicitly asks for durable memory. "
+        "If a current thread has only prefetched, retained, or wiki search evidence and research.live_event_evidence remains available within budget, return restart with a corrective instruction to gather live/current evidence before final synthesis. "
+        "Do not let the thread claim live search failed, returned nothing, or was unavailable unless the tool trace actually shows that live/current tool attempt. "
         "Do not use keyword blacklists; judge semantic fit to the task and evidence coverage."
     ),
 )
@@ -345,12 +347,37 @@ _AGENT_MEMORY_SYSTEM_PROMPT = register_narrative_prompt(
         f"You are the Spectral Nature Zopedia memory maintainer. {NARRATIVE_STYLE_RULE} "
         "Review the answered question, the final answer, the judge review, and collected evidence. "
         "Decide whether the underlying Zopedia wiki should be updated. "
-        "Use no_action when the evidence is too thin, purely conversational, duplicative, or not durable. "
-        "Use apply_mutation only for safe, source-backed, reversible changes such as page upserts, metadata patches, or page links. "
-        "Use propose_change for destructive, ambiguous, low-confidence, merge, delete, rewrite, or stale-fact changes. "
-        "Do not invent facts. Do not write memory from the user's premise unless collected evidence supports it."
+        "The active write policy in the user prompt is binding. "
+        "Use no_action only when the evidence is too thin, purely conversational, duplicative, or not durable. "
+        "When write_policy=safe_auto, prefer apply_mutation for durable source-backed company, source, theme, market-event, or macro pages that can be written as safe reversible page upserts, metadata patches, or page links. "
+        "The only safe mutation_type values are upsert_pages, link_pages, and metadata_patch. Use upsert_pages exactly; never use upsert or upsert_page. "
+        "For upsert_pages, put complete page objects in pages, not loose article text in payload. "
+        "When write_policy=propose, create a proposal for durable memory instead of applying a mutation. "
+        "Use propose_change for destructive, ambiguous, low-confidence, merge, delete, rewrite, stale-fact, or maintenance-style changes. "
+        "Do not invent facts. Do not write memory from the user's premise unless collected evidence supports it. "
+        "Automatic memory updates must keep allow_risky false."
     ),
 )
+
+_SAFE_MEMORY_MUTATION_TYPES = {"upsert_pages", "link_pages", "metadata_patch"}
+_MEMORY_PAGE_TYPES = ["source", "concept", "entity", "theme", "market_event", "ticker", "macro", "question", "index"]
+_MEMORY_PAGE_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": True,
+    "properties": {
+        "page_id": {"type": "string"},
+        "page_type": {"type": "string", "enum": _MEMORY_PAGE_TYPES},
+        "title": {"type": "string"},
+        "summary": {"type": "string"},
+        "body_markdown": {"type": "string"},
+        "source_urls": {"type": "array", "items": {"type": "string"}},
+        "source_document_ids": {"type": "array", "items": {"type": "string"}},
+        "entity_refs": {"type": "array", "items": {"type": "string"}},
+        "outgoing_links": {"type": "array", "items": {"type": "string"}},
+        "metadata": {"type": "object"},
+    },
+    "required": ["page_type", "title", "summary", "body_markdown", "source_urls", "entity_refs", "metadata"],
+}
 
 _MEMORY_SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -358,12 +385,12 @@ _MEMORY_SCHEMA: dict[str, Any] = {
     "properties": {
         "action": {"type": "string", "enum": ["no_action", "apply_mutation", "propose_change"]},
         "rationale": {"type": "string"},
-        "mutation_type": {"type": "string"},
+        "mutation_type": {"type": "string", "enum": ["", *sorted(_SAFE_MEMORY_MUTATION_TYPES)]},
         "proposal_type": {"type": "string"},
         "page_id": {"type": "string"},
         "target_page_id": {"type": "string"},
         "title": {"type": "string"},
-        "pages": {"type": "array", "items": {"type": "object"}},
+        "pages": {"type": "array", "items": _MEMORY_PAGE_SCHEMA},
         "metadata_patch": {"type": "object"},
         "evidence_refs": {"type": "array", "items": {"type": "object"}},
         "payload": {"type": "object"},
@@ -384,6 +411,24 @@ _MEMORY_SCHEMA: dict[str, Any] = {
         "allow_risky",
     ],
 }
+
+
+_ZOPEDIA_WRITE_POLICIES = {"none", "propose", "safe_auto"}
+
+
+def _normalize_zopedia_write_policy(value: object, *, persist_findings: bool = True) -> str:
+    policy = _clean(value).lower()
+    if not policy:
+        return "safe_auto" if persist_findings else "none"
+    if policy in {"off", "disabled", "read_only", "readonly"}:
+        return "none"
+    if policy in {"proposal", "review"}:
+        return "propose"
+    if policy in {"auto", "commit", "safe", "safe-auto"}:
+        return "safe_auto"
+    if policy in _ZOPEDIA_WRITE_POLICIES:
+        return policy
+    return "safe_auto" if persist_findings else "none"
 
 
 def _clean(value: object) -> str:
@@ -1161,9 +1206,13 @@ def _coerce_tool_arguments(raw_arguments: Any) -> tuple[dict[str, Any], str]:
                 out[name] = boolean_value
             elif value_kind == "string_list":
                 values = item.get("string_list_value")
-                if values is None and isinstance(item.get("json_value"), list):
-                    values = item.get("json_value")
-                if not isinstance(values, list) or any(not isinstance(value, str) for value in values):
+                if not isinstance(values, list):
+                    for fallback_key in ("json_value", "object_value"):
+                        fallback_value = item.get(fallback_key)
+                        if isinstance(fallback_value, list):
+                            values = fallback_value
+                            break
+                if not isinstance(values, list) or any(isinstance(value, dict | list | tuple | set) for value in values):
                     return {}, f"Tool argument `{name}` requires string_list_value."
                 out[name] = [str(value) for value in values]
             elif value_kind == "json":
@@ -1297,13 +1346,14 @@ _PLANNER_SYSTEM_PROMPT = register_narrative_prompt(
         "Keep the output organized around the requested ticker/company instead of suppressing adjacent evidence. "
         "When zopedia.search_pages returns a relevant page_id, read the page before treating the wiki as evidence. "
         "When a Zopedia page has source refs and a claim depends on them, use sources_for_page, trace_to_evidence, read_source, or open_page as needed. "
-        "When snippets or SERP previews are too shallow, open the page through research.open_page before making the verdict. "
+        "Treat live search rows as leads unless they include opened source text. When snippets or SERP previews are too shallow, open the page through research.open_page before making the verdict. "
+        "If tool budget or page access prevents source-body verification, answer only to the strength of the headline/snippet evidence and do not mark confidence high. "
         "Evidence labels are not analysis: never answer that evidence exists; say what the evidence means or name the exact missing slot. "
         "\n\nEvidence priority: "
         "1. Check the pre-fetched internal evidence already in this prompt first. "
         "2. Search Zopedia memory with zopedia.search_pages; read relevant pages with zopedia.read_page. "
-        "3. If more detail is needed, call research.search_evidence or research.retained_context. "
-        "4. For live web news, use research.live_event_evidence. "
+        "3. Use research.search_evidence and research.retained_context for already-retained Spectral Nature evidence; these are not live web search. "
+        "4. For current or stale-memory questions, use research.live_event_evidence before failing closed or final-answering. "
         "5. For specific tickers, use investigator.* tools (technical_signals, forecast, company_context, fundamentals, recent_news). "
         "6. For broad spillover or second-order effects, use research.market_impact_map. "
         "7. For deeper reads on a URL, use research.open_page. "
@@ -1376,44 +1426,8 @@ def _search_conversation_history(
     }
 
 
-def _completed_tool_names(tool_calls: list[dict[str, Any]]) -> set[str]:
-    return {
-        _clean(call.get("tool_name"))
-        for call in tool_calls
-        if str(call.get("status") or "") == "completed" and _clean(call.get("tool_name"))
-    }
-
-
 def _attempted_tool_names(tool_calls: list[dict[str, Any]]) -> set[str]:
     return {_clean(call.get("tool_name")) for call in tool_calls if isinstance(call, dict) and _clean(call.get("tool_name"))}
-
-
-def _needs_live_evidence_recovery(tool_calls: list[dict[str, Any]]) -> bool:
-    completed = _completed_tool_names(tool_calls)
-    if "research.live_event_evidence" in completed:
-        return False
-    if "research.search_evidence" in completed:
-        low_signal_markers = (
-            "0 results",
-            "no results",
-            "no matching",
-            "no retained",
-            "no company context",
-            "returned empty",
-        )
-        completed_calls = [
-            call for call in tool_calls if str(call.get("status") or "") == "completed"
-        ]
-        if completed_calls and all(
-            any(
-                marker in _json_dumps(dict(call.get("result_summary") or {}), limit=1200).lower()
-                for marker in low_signal_markers
-            )
-            for call in completed_calls
-        ):
-            return True
-        return False
-    return bool(completed)
 
 
 def _compact_conversation_history(
@@ -1574,6 +1588,16 @@ def _tool_available(tool_catalog: list[dict[str, Any]], tool_name: str) -> bool:
     return any(_clean(tool.get("name")) == tool_name for tool in tool_catalog)
 
 
+def _tool_catalog_for_write_policy(tool_catalog: list[dict[str, Any]], write_policy: str) -> list[dict[str, Any]]:
+    normalized = _normalize_zopedia_write_policy(write_policy)
+    blocked = {"zopedia.rollback_mutation"}
+    if normalized == "none":
+        blocked.update({"zopedia.apply_mutation", "zopedia.propose_change"})
+    elif normalized == "propose":
+        blocked.add("zopedia.apply_mutation")
+    return [tool for tool in tool_catalog if _clean(tool.get("name")) not in blocked]
+
+
 def _cap_confidence(value: str, maximum: str) -> str:
     order = {"low": 0, "medium": 1, "high": 2}
     normalized_value = _clean(value).lower() or "low"
@@ -1616,6 +1640,19 @@ def _successful_evidence_tool_count(tool_calls: list[dict[str, Any]]) -> int:
             continue
         count += 1
     return count
+
+
+_SOURCE_BODY_TOOLS = {
+    "research.open_page",
+    "zopedia.read_source",
+}
+
+
+def _live_search_without_source_body(tool_calls: list[dict[str, Any]]) -> bool:
+    completed = _completed_tool_names(tool_calls)
+    if "research.live_event_evidence" not in completed:
+        return False
+    return not any(tool_name in completed for tool_name in _SOURCE_BODY_TOOLS)
 
 
 _OBSERVED_MARKET_DATA_TOOLS = {
@@ -2140,6 +2177,8 @@ def _final_user_prompt(
         "Treat the user's premise as unverified unless the evidence supports it; if evidence contradicts the premise, say so plainly. "
         "If you use Zopedia memory, cite the relevant Zopedia page title or page_id in the answer. "
         "If the evidence includes fresh web research, lightly mention one or two supporting sources or links. "
+        "Do not claim that live search, recent search, or a source-reading tool failed or returned no results unless the tool history shows that exact attempt. "
+        "For current questions, if the tool history contains only retained/internal evidence and no completed live/current source tool, say the run has not collected enough current evidence instead of presenting a market update. "
         "Do not turn the answer into a citation list. "
         "If the evidence is incomplete, say what is missing."
     )
@@ -2180,6 +2219,8 @@ def _judge_user_prompt(
         "Use verdict='accept' only when the draft is supported by the evidence and the confidence is appropriate. "
         "Use verdict='revise' when the answer should be corrected or made more precise. "
         "Use verdict='insufficient' when the evidence does not support a substantive answer. "
+        "Mark the draft insufficient if it claims live search, recent search, or source-reading failed or found nothing but the tool history does not show that attempt. "
+        "For current questions, retained/internal evidence alone should not become a confident market update unless the answer clearly says current evidence was not collected. "
         "Return the answer_markdown that should be shown to the user. "
         "Repair malformed Markdown tables before returning the final answer."
     )
@@ -2511,6 +2552,7 @@ def _memory_reflection_user_prompt(
     tool_calls: list[dict[str, Any]],
     conversation_history: list[dict[str, Any]] | None,
     prefetched_context: str,
+    write_policy: str,
 ) -> str:
     history_block = _compact_conversation_history(
         conversation_history,
@@ -2529,6 +2571,7 @@ def _memory_reflection_user_prompt(
     return (
         f"{history_block}"
         f"User question:\n{query}\n\n"
+        f"Active write_policy: {write_policy}\n\n"
         f"Final answer:\n{answer_markdown}\n\n"
         f"Final confidence: {confidence or 'low'}\n\n"
         "Answer judge review:\n"
@@ -2542,10 +2585,147 @@ def _memory_reflection_user_prompt(
         "Evidence references available for memory writes:\n"
         f"{_json_dumps(evidence_refs[:12], limit=3000)}\n\n"
         "Return the single best memory action. "
+        "For write_policy=safe_auto, use apply_mutation for durable source-backed safe page upserts, metadata patches, or page links. "
+        "Supported safe mutation_type values are exactly: upsert_pages, link_pages, metadata_patch. "
+        "For upsert_pages, pages must be a non-empty array of complete page objects with page_type, title, summary, body_markdown, source_urls, entity_refs, and metadata. "
+        "Put article URLs in source_urls and evidence handles in evidence_refs; payload is only auxiliary metadata. "
+        "For write_policy=propose, do not use apply_mutation; create a proposal instead. "
         "For apply_mutation, fill mutation_type and the mutation fields. "
         "For propose_change, fill proposal_type, page_id if known, title, rationale, and payload. "
         "For no_action, leave mutation/proposal fields empty and explain why."
     )
+
+
+def _memory_value_list(value: object) -> list[str]:
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return []
+        try:
+            parsed = json.loads(text)
+        except Exception:
+            parsed = [text]
+    else:
+        parsed = value
+    if not isinstance(parsed, (list, tuple, set)):
+        parsed = [parsed]
+    out: list[str] = []
+    for item in parsed:
+        clean = _clean(item)
+        if clean and clean not in out:
+            out.append(clean)
+    return out
+
+
+def _memory_dict_list(value: object) -> list[dict[str, Any]]:
+    if not isinstance(value, (list, tuple)):
+        return []
+    return [dict(item) for item in value if isinstance(item, dict)]
+
+
+def _memory_decision_action(decision: dict[str, Any]) -> str:
+    action = _clean(decision.get("action")).lower()
+    return action if action in {"no_action", "apply_mutation", "propose_change"} else "no_action"
+
+
+def _memory_apply_contract_issues(decision: dict[str, Any]) -> list[str]:
+    if _memory_decision_action(decision) != "apply_mutation":
+        return []
+    issues: list[str] = []
+    mutation_type = _clean(decision.get("mutation_type")).lower()
+    pages = _memory_dict_list(decision.get("pages"))
+    evidence_refs = _memory_dict_list(decision.get("evidence_refs"))
+    if mutation_type not in _SAFE_MEMORY_MUTATION_TYPES:
+        issues.append(
+            "apply_mutation requires mutation_type to be exactly one of: "
+            + ", ".join(sorted(_SAFE_MEMORY_MUTATION_TYPES))
+        )
+    if mutation_type == "upsert_pages":
+        if not pages:
+            issues.append("upsert_pages requires a non-empty pages array")
+        for index, page in enumerate(pages[:5], start=1):
+            page_type = _clean(page.get("page_type") or page.get("type"))
+            title = _clean(page.get("title"))
+            summary = _clean(page.get("summary") or page.get("summary_text"))
+            body = _clean(page.get("body_markdown") or page.get("body") or page.get("text"))
+            source_urls = _memory_value_list(page.get("source_urls") or page.get("source_urls_json"))
+            source_document_ids = _memory_value_list(
+                page.get("source_document_ids") or page.get("source_document_ids_json")
+            )
+            if page_type not in _MEMORY_PAGE_TYPES:
+                issues.append(f"page {index} needs a valid page_type")
+            if not title:
+                issues.append(f"page {index} needs a title")
+            if not summary:
+                issues.append(f"page {index} needs a summary")
+            if not body:
+                issues.append(f"page {index} needs body_markdown")
+            if not source_urls and not source_document_ids and not evidence_refs:
+                issues.append(f"page {index} needs source_urls, source_document_ids, or evidence_refs")
+    elif mutation_type == "link_pages":
+        if not _clean(decision.get("page_id")):
+            issues.append("link_pages requires page_id")
+        if not _clean(decision.get("target_page_id")):
+            issues.append("link_pages requires target_page_id")
+    elif mutation_type == "metadata_patch":
+        if not _clean(decision.get("page_id")):
+            issues.append("metadata_patch requires page_id")
+        if not isinstance(decision.get("metadata_patch"), dict) or not decision.get("metadata_patch"):
+            issues.append("metadata_patch requires a non-empty metadata_patch object")
+    return list(dict.fromkeys(issues))[:8]
+
+
+def _memory_reflection_repair_user_prompt(
+    *,
+    base_prompt: str,
+    invalid_decision: dict[str, Any],
+    contract_issues: list[str],
+) -> str:
+    issue_block = "\n".join(f"- {item}" for item in contract_issues if _clean(item)) or "- Unknown contract issue"
+    return (
+        f"{base_prompt}\n\n"
+        "Your previous memory action did not satisfy the safe Zopedia write contract.\n\n"
+        "Contract issues:\n"
+        f"{issue_block}\n\n"
+        "Previous JSON:\n"
+        f"{_json_dumps(invalid_decision, limit=3000)}\n\n"
+        "Re-emit the full JSON object. If the evidence supports a safe commit, use action=apply_mutation with "
+        "mutation_type=upsert_pages, link_pages, or metadata_patch and complete fields. If you cannot express the "
+        "change under that exact contract, use propose_change or no_action."
+    )
+
+
+def _memory_contract_proposal_decision(
+    *,
+    decision: dict[str, Any],
+    issues: list[str],
+    rationale: str,
+    run_id: str,
+) -> dict[str, Any]:
+    original_decision = dict(decision)
+    issue_text = "; ".join(item for item in issues if _clean(item))
+    return {
+        "action": "propose_change",
+        "rationale": (
+            "The memory update looked durable, but it did not satisfy the safe commit contract"
+            + (f": {issue_text}." if issue_text else ".")
+        ),
+        "mutation_type": "",
+        "proposal_type": "memory_contract_repair",
+        "page_id": _clean(original_decision.get("page_id")),
+        "target_page_id": _clean(original_decision.get("target_page_id")),
+        "title": _clean(original_decision.get("title")) or "Review Zopedia memory update",
+        "pages": [],
+        "metadata_patch": {},
+        "evidence_refs": _memory_dict_list(original_decision.get("evidence_refs")),
+        "payload": {
+            "run_id": run_id,
+            "original_rationale": rationale,
+            "contract_issues": issues,
+            "memory_decision": original_decision,
+        },
+        "allow_risky": False,
+    }
 
 
 def _run_post_answer_memory_agent(
@@ -2563,14 +2743,18 @@ def _run_post_answer_memory_agent(
     prefetched_context: str,
     timeout_seconds: int,
     progress_callback: ProgressCallback | None,
+    write_policy: str = "safe_auto",
 ) -> dict[str, Any]:
     """Let Zopedia update or propose memory changes after a grounded answer."""
+    normalized_write_policy = _normalize_zopedia_write_policy(write_policy)
+    if normalized_write_policy == "none":
+        return {"status": "skipped", "reason": "write_policy_none", "write_policy": normalized_write_policy}
     if int(get_config_param(_P_POST_ANSWER_MEMORY_ENABLED)) == 0:
-        return {"status": "skipped", "reason": "disabled"}
+        return {"status": "skipped", "reason": "disabled", "write_policy": normalized_write_policy}
     if not _clean(answer_markdown):
-        return {"status": "skipped", "reason": "empty_answer"}
+        return {"status": "skipped", "reason": "empty_answer", "write_policy": normalized_write_policy}
     if not _has_memory_candidate(tool_calls=tool_calls, prefetched_context=prefetched_context):
-        return {"status": "skipped", "reason": "no_collected_evidence"}
+        return {"status": "skipped", "reason": "no_collected_evidence", "write_policy": normalized_write_policy}
 
     _emit_progress(
         progress_callback,
@@ -2578,6 +2762,17 @@ def _run_post_answer_memory_agent(
         message="Checking whether Zopedia memory should change.",
         progress=0.992,
         tool_call_count=len(tool_calls),
+    )
+    memory_prompt = _memory_reflection_user_prompt(
+        query=query,
+        answer_markdown=answer_markdown,
+        confidence=confidence,
+        limitations=limitations,
+        quality_review=quality_review,
+        tool_calls=tool_calls,
+        conversation_history=conversation_history,
+        prefetched_context=prefetched_context,
+        write_policy=normalized_write_policy,
     )
     try:
         payload = _run_hidden_step_with_timeout(
@@ -2587,16 +2782,7 @@ def _run_post_answer_memory_agent(
             progress=0.992,
             func=lambda: llm.generate_json(
                 system_prompt=get_prompt(_AGENT_MEMORY_SYSTEM_PROMPT),
-                user_prompt=_memory_reflection_user_prompt(
-                    query=query,
-                    answer_markdown=answer_markdown,
-                    confidence=confidence,
-                    limitations=limitations,
-                    quality_review=quality_review,
-                    tool_calls=tool_calls,
-                    conversation_history=conversation_history,
-                    prefetched_context=prefetched_context,
-                ),
+                user_prompt=memory_prompt,
                 schema_name="zopedia_memory_reflection",
                 schema=_MEMORY_SCHEMA,
             ),
@@ -2609,7 +2795,7 @@ def _run_post_answer_memory_agent(
             progress=0.996,
             error=_safe_agent_error_text(exc),
         )
-        return {"status": "timeout", "reason": _safe_agent_error_text(exc)}
+        return {"status": "timeout", "reason": _safe_agent_error_text(exc), "write_policy": normalized_write_policy}
     except Exception as exc:
         _emit_progress(
             progress_callback,
@@ -2618,7 +2804,7 @@ def _run_post_answer_memory_agent(
             progress=0.996,
             error=_safe_agent_error_text(exc),
         )
-        return {"status": "failed", "reason": _safe_agent_error_text(exc)}
+        return {"status": "failed", "reason": _safe_agent_error_text(exc), "write_policy": normalized_write_policy}
 
     decision = dict(payload or {})
     reasoning_trace = _clean(decision.get("__reasoning_content"))
@@ -2631,8 +2817,54 @@ def _run_post_answer_memory_agent(
             reasoning_trace=reasoning_trace,
             source="memory_reflection",
         )
-    action = _clean(decision.get("action")).lower() or "no_action"
+    action = _memory_decision_action(decision)
     rationale = _clean(decision.get("rationale"))
+    repair_issues = _memory_apply_contract_issues(decision) if normalized_write_policy == "safe_auto" else []
+    if action == "apply_mutation" and repair_issues:
+        _emit_progress(
+            progress_callback,
+            stage="memory_reflection_repair_start",
+            message="Repairing Zopedia memory action shape.",
+            progress=0.995,
+            memory_action=action,
+            contract_issues=repair_issues,
+        )
+        try:
+            repaired_payload = _run_hidden_step_with_timeout(
+                label="post-answer memory reflection repair",
+                timeout_seconds=max(int(timeout_seconds), 1),
+                progress_callback=progress_callback,
+                progress=0.995,
+                func=lambda: llm.generate_json(
+                    system_prompt=get_prompt(_AGENT_MEMORY_SYSTEM_PROMPT),
+                    user_prompt=_memory_reflection_repair_user_prompt(
+                        base_prompt=memory_prompt,
+                        invalid_decision=decision,
+                        contract_issues=repair_issues,
+                    ),
+                    schema_name="zopedia_memory_reflection_repair",
+                    schema=_MEMORY_SCHEMA,
+                ),
+            )
+            if isinstance(repaired_payload, dict) and repaired_payload:
+                decision = dict(repaired_payload)
+                action = _memory_decision_action(decision)
+                rationale = _clean(decision.get("rationale"))
+                repair_issues = _memory_apply_contract_issues(decision)
+        except Exception as exc:
+            repair_issues = [
+                *repair_issues,
+                f"memory reflection repair failed: {_safe_agent_error_text(exc)}",
+            ][:8]
+        if action == "apply_mutation" and repair_issues:
+            decision = _memory_contract_proposal_decision(
+                decision=decision,
+                issues=repair_issues,
+                rationale=rationale,
+                run_id=run_id,
+            )
+            action = "propose_change"
+            rationale = _clean(decision.get("rationale"))
     if action == "no_action":
         _emit_progress(
             progress_callback,
@@ -2646,7 +2878,14 @@ def _run_post_answer_memory_agent(
             "action": "no_action",
             "rationale": rationale,
             "decision": decision,
+            "write_policy": normalized_write_policy,
         }
+
+    if normalized_write_policy == "propose" and action == "apply_mutation":
+        action = "propose_change"
+        decision["proposal_type"] = _clean(decision.get("proposal_type")) or _clean(decision.get("mutation_type")) or "update"
+        decision["title"] = _clean(decision.get("title")) or "Review Zopedia memory update"
+        decision["rationale"] = rationale or "The active write policy requires review before committing this memory update."
 
     if action == "apply_mutation" and not _clean(decision.get("mutation_type")):
         action = "propose_change"
@@ -2665,7 +2904,7 @@ def _run_post_answer_memory_agent(
             "evidence_refs": list(decision.get("evidence_refs") or []),
             "rationale": rationale,
             "payload": dict(decision.get("payload") or {}),
-            "allow_risky": bool(decision.get("allow_risky")),
+            "allow_risky": False,
         }
     else:
         tool_name = "zopedia.propose_change"
@@ -2724,6 +2963,7 @@ def _run_post_answer_memory_agent(
             "decision": decision,
             "tool_call": tool_call,
             "tool_result": tool_result,
+            "write_policy": normalized_write_policy,
         }
     except Exception as exc:
         safe_error = _safe_agent_error_text(exc)
@@ -2743,6 +2983,7 @@ def _run_post_answer_memory_agent(
             "tool_name": tool_name,
             "arguments": arguments,
             "reason": safe_error,
+            "write_policy": normalized_write_policy,
         }
 
 
@@ -2758,6 +2999,7 @@ def _run_zopedia_agent_loop(
     progress_callback: ProgressCallback | None = None,
     conversation_history: list[dict[str, Any]] | None = None,
     persist_findings: bool = True,
+    write_policy: str | None = None,
     tool_call_timeout_seconds: int | None = None,
     llm_step_timeout_seconds: int | None = None,
     prefetch_timeout_seconds: int | None = None,
@@ -2779,6 +3021,7 @@ def _run_zopedia_agent_loop(
     if prefetch_timeout_seconds is None:
         prefetch_timeout_seconds = min(tool_call_timeout_seconds, 15)
     prefetch_timeout_seconds = max(int(prefetch_timeout_seconds), 1)
+    resolved_write_policy = _normalize_zopedia_write_policy(write_policy, persist_findings=persist_findings)
     run_id = f"agrun_{uuid.uuid4().hex[:10]}"
     if not agent_query:
         return _with_aql_evidence_pack({
@@ -2831,7 +3074,7 @@ def _run_zopedia_agent_loop(
             original_query=normalized_query,
             resolved_query=agent_query,
         )
-    tool_catalog = build_tool_catalog(resolved_service)
+    tool_catalog = _tool_catalog_for_write_policy(build_tool_catalog(resolved_service), resolved_write_policy)
     # Inject conversation.prior_answers tool when chat history is available
     if conversation_history:
         tool_catalog.append({
@@ -3241,77 +3484,6 @@ def _run_zopedia_agent_loop(
                     str(call.get("status") or "") == "completed" for call in tool_calls
                 ):
                     limitations.append("Stopped planning after a timed-out model step; synthesizing from collected evidence.")
-                    if _needs_live_evidence_recovery(tool_calls):
-                        recovery_tool_name = "research.live_event_evidence"
-                        recovery_call_id = f"agtc_{len(tool_calls) + 1}"
-                        recovery_arguments = {
-                            "query": agent_query,
-                            "max_results": 6,
-                            "force_refresh": bool(force_refresh),
-                        }
-                        _emit_progress(
-                            progress_callback,
-                            stage="tool_start",
-                            message="Recovering with live evidence after the planner timed out.",
-                            progress=min(step_progress + 0.05, 0.88),
-                            tool_name=recovery_tool_name,
-                            tool_call_id=recovery_call_id,
-                            tool_call_count=len(tool_calls),
-                            tool_arguments=recovery_arguments,
-                        )
-                        try:
-                            recovery_result = _invoke_tool_with_heartbeat(
-                                service=resolved_service,
-                                tool_name=recovery_tool_name,
-                                arguments=recovery_arguments,
-                                run_id=run_id,
-                                progress_callback=progress_callback,
-                                progress=min(step_progress + 0.05, 0.88),
-                                tool_call_id=recovery_call_id,
-                                tool_call_count=len(tool_calls),
-                                timeout_seconds=tool_call_timeout_seconds,
-                            )
-                            recovery_summary = _summarize_tool_result(recovery_result)
-                            tool_calls.append(
-                                {
-                                    "tool_call_id": recovery_call_id,
-                                    "tool_name": recovery_tool_name,
-                                    "arguments": recovery_arguments,
-                                    "status": "completed",
-                                    "error": None,
-                                    "result_summary": recovery_summary,
-                                }
-                            )
-                            _emit_progress(
-                                progress_callback,
-                                stage="tool_complete",
-                                message="Collected recovery evidence from live search.",
-                                progress=min(step_progress + 0.14, 0.92),
-                                tool_name=recovery_tool_name,
-                                tool_call_id=recovery_call_id,
-                                tool_call_count=len(tool_calls),
-                                tool_arguments=recovery_arguments,
-                                result_preview=_truncate(recovery_summary.get("user_preview") or recovery_summary.get("preview_text") or "", limit=300),
-                                render_payload=recovery_summary.get("render_payload"),
-                                source_links=recovery_summary.get("source_links"),
-                            )
-                        except Exception as exc:
-                            tool_calls.append(
-                                {
-                                    "tool_call_id": recovery_call_id,
-                                    "tool_name": recovery_tool_name,
-                                    "arguments": recovery_arguments,
-                                    "status": "failed",
-                                    "error": f"{type(exc).__name__}: {exc}",
-                                    "result_summary": {
-                                        "preview_text": f"{recovery_tool_name} failed: {exc}",
-                                        "result_type": "error",
-                                        "provenance": None,
-                                        "preview": {"kind": "error"},
-                                    },
-                                }
-                            )
-                            limitations.append(f"{recovery_tool_name} recovery failed: {type(exc).__name__}.")
                     break
                 raise _llm_error[0]
             decision = _llm_result[0]
@@ -3865,7 +4037,14 @@ def _run_zopedia_agent_loop(
             gap = "Confidence capped because only one evidence source returned usable data."
             if gap not in limitations:
                 limitations.append(gap)
-    if persist_findings and answer_markdown:
+    if _live_search_without_source_body(tool_calls):
+        capped_confidence = _cap_confidence(final_confidence, "medium")
+        if capped_confidence != final_confidence:
+            final_confidence = capped_confidence
+            gap = "Confidence capped because live web evidence was not opened into source text."
+            if gap not in limitations:
+                limitations.append(gap)
+    if resolved_write_policy != "none" and answer_markdown:
         memory_update = _run_post_answer_memory_agent(
             llm=_synthesis_llm_client(resolved_llm),
             service=resolved_service,
@@ -3880,6 +4059,7 @@ def _run_zopedia_agent_loop(
             prefetched_context=prefetched_context,
             timeout_seconds=llm_step_timeout_seconds,
             progress_callback=progress_callback,
+            write_policy=resolved_write_policy,
         )
         memory_tool_call = memory_update.get("tool_call") if isinstance(memory_update, dict) else None
         if isinstance(memory_tool_call, dict):
@@ -3922,6 +4102,7 @@ def _run_zopedia_agent_loop(
         "query": agent_query,
         "original_query": normalized_query,
         "followup_resolved": followup_resolved,
+        "write_policy": resolved_write_policy,
     }
     if persist_findings:
         _persist_agent_findings(

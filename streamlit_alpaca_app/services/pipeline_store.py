@@ -31,7 +31,7 @@ except Exception:
 
 APP_ROOT = Path(__file__).resolve().parents[1]
 PIPELINE_CACHE_ROOT = APP_ROOT / "cache" / "pipeline_store"
-PIPELINE_METADATA_CACHE_SECONDS = max(int((os.getenv("PIPELINE_METADATA_CACHE_SECONDS") or "300").strip() or "300"), 0)
+PIPELINE_METADATA_CACHE_SECONDS = max(int((os.getenv("PIPELINE_METADATA_CACHE_SECONDS") or "30").strip() or "30"), 0)
 PIPELINE_CACHE_MAX_BYTES_DEFAULT = 256 * 1024 * 1024
 ARM_BASE_URL = "https://management.azure.com"
 ARM_SCOPE = "https://management.azure.com/.default"
@@ -106,6 +106,7 @@ SOURCE_DATASETS: dict[str, list[str]] = {
         "zopedia_ticker_business_model_stacks",
         "zopedia_news_business_resolutions",
         "zopedia_company_business_memory_pages",
+        "zopedia_memory_commit_report",
     ],
     "attention": [
         "attention_web_search_news",
@@ -154,6 +155,8 @@ SOURCE_DATASETS: dict[str, list[str]] = {
     "trading_agent": [
         "trading_agent_runs",
         "trading_agent_candidates",
+        "trading_agent_outcomes",
+        "trading_agent_research_reviews",
     ],
 }
 
@@ -1437,6 +1440,253 @@ def latest_dataset_status_table() -> pd.DataFrame:
             conn.close()
         except Exception:
             pass
+
+
+_CURRENT_FEED_POINTER_HEALTH_DATASETS: tuple[str, ...] = (
+    "attention_home_1d",
+    "attention_home_snapshots_1d",
+    "page_agentic_summaries",
+    "market_opportunity_feed",
+    "trading_agent_runs",
+    "trading_agent_candidates",
+    "trading_agent_outcomes",
+    "trading_agent_research_reviews",
+)
+
+
+def _latest_db_dataset_metadata_map(dataset_names: list[str]) -> dict[str, PipelineDataset]:
+    names = [str(name).strip() for name in dataset_names if str(name).strip()]
+    if not names:
+        return {}
+    conn = _db_connect()
+    if conn is None:
+        return {}
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT DISTINCT ON (dataset_name)
+                    dataset_name, dataset_version_id, blob_path, asof_time_utc,
+                    ingested_at_utc, row_count
+                FROM dataset_versions
+                WHERE dataset_name = ANY(%s) AND status = 'ready'
+                ORDER BY dataset_name, ingested_at_utc DESC NULLS LAST
+                """,
+                (names,),
+            )
+            rows = cur.fetchall()
+        out: dict[str, PipelineDataset] = {}
+        for row in rows or []:
+            dataset = PipelineDataset(
+                dataset_name=str(row[0]),
+                dataset_version_id=str(row[1]),
+                blob_path=str(row[2]),
+                asof_time_utc=str(row[3]),
+                ingested_at_utc=str(row[4]),
+                row_count=int(row[5] or 0),
+            )
+            out[dataset.dataset_name] = dataset
+        return out
+    except Exception:
+        return {}
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
+def _same_dataset_pointer(left: PipelineDataset | None, right: PipelineDataset | None) -> bool:
+    if left is None or right is None:
+        return left is None and right is None
+    return (
+        str(left.dataset_version_id or "") == str(right.dataset_version_id or "")
+        and str(left.blob_path or "") == str(right.blob_path or "")
+    )
+
+
+def _dataset_pointer_source(dataset: PipelineDataset | None, db_dataset: PipelineDataset | None, manifest_dataset: PipelineDataset | None) -> str:
+    if dataset is None:
+        return ""
+    if _same_dataset_pointer(dataset, manifest_dataset):
+        return "manifest"
+    if _same_dataset_pointer(dataset, db_dataset):
+        return "db"
+    return "unknown"
+
+
+def latest_dataset_pointer_drift(dataset_names: list[str] | tuple[str, ...] | None = None) -> pd.DataFrame:
+    """Compare DB and stable blob-manifest latest pointers for current-feed datasets."""
+    columns = [
+        "dataset_name",
+        "health",
+        "reader_source",
+        "reader_dataset_version_id",
+        "db_dataset_version_id",
+        "manifest_dataset_version_id",
+        "db_ingested_at_utc",
+        "manifest_ingested_at_utc",
+        "db_row_count",
+        "manifest_row_count",
+        "db_blob_path",
+        "manifest_blob_path",
+    ]
+    names = [str(name).strip() for name in list(dataset_names or _CURRENT_FEED_POINTER_HEALTH_DATASETS) if str(name).strip()]
+    if not names:
+        return pd.DataFrame(columns=columns)
+
+    db_by_name = _latest_db_dataset_metadata_map(names)
+    rows: list[dict[str, Any]] = []
+    for dataset_name in names:
+        db_dataset = db_by_name.get(dataset_name)
+        manifest_dataset = _stable_latest_manifest_metadata(dataset_name)
+        reader_dataset = _newer_dataset(db_dataset, manifest_dataset)
+        if db_dataset is not None and manifest_dataset is not None:
+            health = "drift" if not _same_dataset_pointer(db_dataset, manifest_dataset) else "in_sync"
+        elif db_dataset is not None:
+            health = "db_only"
+        elif manifest_dataset is not None:
+            health = "manifest_only"
+        else:
+            health = "missing"
+        rows.append(
+            {
+                "dataset_name": dataset_name,
+                "health": health,
+                "reader_source": _dataset_pointer_source(reader_dataset, db_dataset, manifest_dataset),
+                "reader_dataset_version_id": str(reader_dataset.dataset_version_id) if reader_dataset else "",
+                "db_dataset_version_id": str(db_dataset.dataset_version_id) if db_dataset else "",
+                "manifest_dataset_version_id": str(manifest_dataset.dataset_version_id) if manifest_dataset else "",
+                "db_ingested_at_utc": str(db_dataset.ingested_at_utc) if db_dataset else "",
+                "manifest_ingested_at_utc": str(manifest_dataset.ingested_at_utc) if manifest_dataset else "",
+                "db_row_count": int(db_dataset.row_count) if db_dataset else pd.NA,
+                "manifest_row_count": int(manifest_dataset.row_count) if manifest_dataset else pd.NA,
+                "db_blob_path": str(db_dataset.blob_path) if db_dataset else "",
+                "manifest_blob_path": str(manifest_dataset.blob_path) if manifest_dataset else "",
+            }
+        )
+    return pd.DataFrame(rows, columns=columns)
+
+
+def _json_object_from_cell(value: object) -> dict[str, Any]:
+    if isinstance(value, dict):
+        return value
+    text = str(value or "").strip()
+    if not text or text.lower() == "nan":
+        return {}
+    try:
+        parsed = json.loads(text)
+    except Exception:
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
+
+
+def latest_home_market_coverage_health(dataset_name: str = "attention_home_1d") -> pd.DataFrame:
+    """Inspect the latest materialized Home coverage contract for Admin health."""
+    columns = [
+        "dataset_name",
+        "health",
+        "dataset_version_id",
+        "asof_time_utc",
+        "generated_at_utc",
+        "coverage_status",
+        "market_breadth_symbol_count",
+        "macro_anchor_move_count",
+        "sector_rotation_count",
+        "yield_curve_fact_count",
+        "structural_signal_count",
+        "coverage_gaps",
+        "summary_status",
+        "issue",
+    ]
+    dataset_key = str(dataset_name or "attention_home_1d").strip() or "attention_home_1d"
+    try:
+        frame, metadata = load_latest_dataset_frame(dataset_key)
+    except Exception as exc:
+        return pd.DataFrame(
+            [
+                {
+                    "dataset_name": dataset_key,
+                    "health": "error",
+                    "issue": f"{type(exc).__name__}: {exc}",
+                }
+            ],
+            columns=columns,
+        )
+    if metadata is None or not isinstance(frame, pd.DataFrame) or frame.empty:
+        return pd.DataFrame(
+            [
+                {
+                    "dataset_name": dataset_key,
+                    "health": "missing",
+                    "issue": "Latest Home dataset is unavailable.",
+                }
+            ],
+            columns=columns,
+        )
+
+    row = frame.iloc[0]
+    coverage_summary = _json_object_from_cell(row.get("coverage_summary_json"))
+    market_coverage = coverage_summary.get("market_coverage")
+    if not isinstance(market_coverage, dict):
+        market_coverage = {}
+    homepage_summary = _json_object_from_cell(row.get("homepage_summary_json"))
+    legacy_broad_market_key = "broad_" + "ta" + "pe"
+    broad_market = market_coverage.get("broad_market")
+    if not isinstance(broad_market, dict):
+        broad_market = market_coverage.get(legacy_broad_market_key) if isinstance(market_coverage.get(legacy_broad_market_key), dict) else {}
+    rates_macro = market_coverage.get("rates_and_macro") if isinstance(market_coverage.get("rates_and_macro"), dict) else {}
+    structural = market_coverage.get("structural_signals") if isinstance(market_coverage.get("structural_signals"), dict) else {}
+    breadth = broad_market.get("market_breadth") if isinstance(broad_market.get("market_breadth"), dict) else {}
+    macro_anchor_moves = broad_market.get("macro_anchor_moves") if isinstance(broad_market.get("macro_anchor_moves"), list) else []
+    sector_rotation = broad_market.get("sector_rotation") if isinstance(broad_market.get("sector_rotation"), list) else []
+    yield_curve_facts = rates_macro.get("yield_curve_facts") if isinstance(rates_macro.get("yield_curve_facts"), list) else []
+    structural_signal_count = sum(
+        len(values)
+        for values in (
+            structural.get("market") if isinstance(structural.get("market"), list) else [],
+            structural.get("macro") if isinstance(structural.get("macro"), list) else [],
+            structural.get("cross_series") if isinstance(structural.get("cross_series"), list) else [],
+        )
+    )
+    gaps = [
+        str(item).strip()
+        for item in list(market_coverage.get("coverage_gaps") or coverage_summary.get("market_coverage_gaps") or [])
+        if str(item).strip()
+    ]
+    coverage_status = str(market_coverage.get("status") or coverage_summary.get("market_coverage_status") or "").strip().lower()
+    if not market_coverage:
+        health = "missing"
+        issue = "Latest Home snapshot does not include the market coverage contract."
+    elif coverage_status in {"ok", "complete"} and not gaps:
+        health = "ok"
+        issue = ""
+    elif coverage_status in {"unavailable", "failed", "missing"}:
+        health = "unavailable"
+        issue = "Home market coverage is unavailable."
+    else:
+        health = "partial"
+        issue = "Home market coverage is incomplete."
+    if gaps and not issue:
+        issue = "Home market coverage has gaps."
+
+    result = {
+        "dataset_name": dataset_key,
+        "health": health,
+        "dataset_version_id": str(getattr(metadata, "dataset_version_id", "") or ""),
+        "asof_time_utc": str(getattr(metadata, "asof_time_utc", "") or ""),
+        "generated_at_utc": str(row.get("generated_at_utc") or ""),
+        "coverage_status": coverage_status or ("missing" if not market_coverage else ""),
+        "market_breadth_symbol_count": int(breadth.get("total_symbols") or coverage_summary.get("market_breadth_symbol_count") or 0),
+        "macro_anchor_move_count": len(macro_anchor_moves),
+        "sector_rotation_count": len(sector_rotation),
+        "yield_curve_fact_count": len(yield_curve_facts),
+        "structural_signal_count": int(structural_signal_count),
+        "coverage_gaps": ", ".join(gaps),
+        "summary_status": str(homepage_summary.get("summary_status") or homepage_summary.get("status") or "").strip(),
+        "issue": issue,
+    }
+    return pd.DataFrame([result], columns=columns)
 
 
 def _connector_telemetry_enabled() -> bool:

@@ -34,6 +34,8 @@ from services.pipeline_store import (
     connector_call_rollup,
     dataset_version_history,
     job_run_history,
+    latest_dataset_pointer_drift,
+    latest_home_market_coverage_health,
     latest_job_status_table,
     latest_dataset_status_table,
     load_latest_dataset_frame,
@@ -2064,6 +2066,10 @@ def _render_system_health_admin(*, source_refresh_flags: dict[str, bool]) -> Non
             status_table = latest_job_status_table()
         with _timed("load_latest_dataset_status_table"):
             dataset_status = latest_dataset_status_table()
+        with _timed("load_latest_dataset_pointer_drift"):
+            dataset_pointer_drift = latest_dataset_pointer_drift()
+        with _timed("load_latest_home_market_coverage_health"):
+            home_market_coverage_health = latest_home_market_coverage_health()
         with _timed("load_connector_call_rollup"):
             connector_rollup = connector_call_rollup(days=history_days)
         with _timed("load_retained_connector_evidence_health"):
@@ -2097,6 +2103,103 @@ def _render_system_health_admin(*, source_refresh_flags: dict[str, bool]) -> Non
         st.warning("One or more health signals need attention.")
     else:
         st.success("No failed jobs or connector failures in the selected window.")
+
+    drift_rows = pd.DataFrame()
+    if not dataset_pointer_drift.empty and "health" in dataset_pointer_drift.columns:
+        drift_rows = dataset_pointer_drift[dataset_pointer_drift["health"].astype(str).str.lower() == "drift"].copy()
+    if not drift_rows.empty:
+        st.warning(
+            f"{len(drift_rows)} current-feed dataset pointer"
+            f"{'s' if len(drift_rows) != 1 else ''} differ between Postgres metadata and the blob latest manifest. "
+            "Readers use the fresher durable pointer."
+        )
+        with st.expander("Dataset Pointer Drift", expanded=True):
+            pointer_display = drift_rows.copy()
+            for column in ("db_ingested_at_utc", "manifest_ingested_at_utc"):
+                if column in pointer_display.columns:
+                    pointer_display[column] = pointer_display[column].apply(_format_system_health_timestamp)
+            pointer_display = pointer_display.rename(
+                columns={
+                    "dataset_name": "Dataset",
+                    "reader_source": "Reader Source",
+                    "reader_dataset_version_id": "Reader Version",
+                    "db_dataset_version_id": "DB Version",
+                    "manifest_dataset_version_id": "Manifest Version",
+                    "db_ingested_at_utc": "DB Ingested",
+                    "manifest_ingested_at_utc": "Manifest Ingested",
+                    "db_row_count": "DB Rows",
+                    "manifest_row_count": "Manifest Rows",
+                }
+            )
+            st.dataframe(
+                pointer_display[
+                    [
+                        "Dataset",
+                        "Reader Source",
+                        "DB Rows",
+                        "Manifest Rows",
+                        "DB Ingested",
+                        "Manifest Ingested",
+                        "Reader Version",
+                        "DB Version",
+                        "Manifest Version",
+                    ]
+                ],
+                use_container_width=True,
+                hide_index=True,
+            )
+
+    home_coverage_rows = pd.DataFrame()
+    if not home_market_coverage_health.empty and "health" in home_market_coverage_health.columns:
+        home_coverage_rows = home_market_coverage_health[
+            ~home_market_coverage_health["health"].astype(str).str.lower().isin({"ok", "complete"})
+        ].copy()
+    if not home_coverage_rows.empty:
+        st.warning("Latest Home market coverage is incomplete. Home summaries should not be treated as a complete broad-market recap until the next healthy Attention build.")
+        with st.expander("Home Market Coverage", expanded=True):
+            coverage_display = home_coverage_rows.copy()
+            for column in ("asof_time_utc", "generated_at_utc"):
+                if column in coverage_display.columns:
+                    coverage_display[column] = coverage_display[column].apply(_format_system_health_timestamp)
+            coverage_display = coverage_display.rename(
+                columns={
+                    "dataset_name": "Dataset",
+                    "health": "Health",
+                    "dataset_version_id": "Version",
+                    "asof_time_utc": "As Of",
+                    "generated_at_utc": "Generated",
+                    "coverage_status": "Coverage Status",
+                    "market_breadth_symbol_count": "Breadth Symbols",
+                    "macro_anchor_move_count": "Macro Moves",
+                    "sector_rotation_count": "Sector Rows",
+                    "yield_curve_fact_count": "Rate Facts",
+                    "structural_signal_count": "Signals",
+                    "coverage_gaps": "Coverage Gaps",
+                    "summary_status": "Summary Status",
+                    "issue": "Issue",
+                }
+            )
+            st.dataframe(
+                coverage_display[
+                    [
+                        "Dataset",
+                        "Health",
+                        "Coverage Status",
+                        "Breadth Symbols",
+                        "Macro Moves",
+                        "Sector Rows",
+                        "Rate Facts",
+                        "Signals",
+                        "Coverage Gaps",
+                        "Summary Status",
+                        "Generated",
+                        "Version",
+                        "Issue",
+                    ]
+                ],
+                use_container_width=True,
+                hide_index=True,
+            )
 
     # ── Connector Health ────────────────────────────────────────────────
     st.subheader("Connector Calls")

@@ -66,6 +66,20 @@ _PAGE_SUMMARY_REVIEW_SCHEMA: dict[str, Any] = {
 AgentRunner = Callable[..., dict[str, Any]]
 
 
+def _page_summary_write_policy(default: str = "safe_auto") -> str:
+    fallback = str(default or "safe_auto").strip().lower()
+    policy = str(os.getenv("PAGE_AGENTIC_SUMMARY_WRITE_POLICY") or fallback).strip().lower()
+    if policy in {"off", "disabled", "read_only", "readonly"}:
+        return "none"
+    if policy in {"proposal", "review"}:
+        return "propose"
+    if policy in {"auto", "commit", "safe", "safe-auto"}:
+        return "safe_auto"
+    if policy in {"none", "propose", "safe_auto"}:
+        return policy
+    return fallback if fallback in {"none", "propose", "safe_auto"} else "safe_auto"
+
+
 def _clean(text: object) -> str:
     if text is None:
         return ""
@@ -702,6 +716,7 @@ def build_page_agentic_summary(
             force_refresh=False,
             llm_client=llm_client,
             persist_findings=False,
+            write_policy=_page_summary_write_policy(),
         )
     except Exception as exc:
         return _unavailable_page_summary(

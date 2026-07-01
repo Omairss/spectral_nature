@@ -26,6 +26,39 @@ def _as_utc_timestamp(value: Any) -> pd.Timestamp:
     return ts
 
 
+def _relative_published_at(value: Any, *, asof_time_utc: Any = None) -> pd.Timestamp:
+    text = _coerce_text(value).lower()
+    if not text:
+        return pd.NaT
+    asof_ts = _as_utc_timestamp(asof_time_utc)
+    if pd.isna(asof_ts):
+        asof_ts = pd.Timestamp.utcnow()
+    if text in {"just now", "now"}:
+        return asof_ts
+    if text in {"yesterday", "1 day ago", "a day ago"}:
+        return asof_ts - pd.Timedelta(days=1)
+    match = re.search(
+        r"\b(?P<count>\d+|a|an)\s+(?P<unit>minute|minutes|hour|hours|day|days|week|weeks|month|months|year|years)\s+ago\b",
+        text,
+    )
+    if not match:
+        return pd.NaT
+    raw_count = match.group("count")
+    count = 1 if raw_count in {"a", "an"} else int(raw_count)
+    unit = match.group("unit")
+    if unit.startswith("minute"):
+        return asof_ts - pd.Timedelta(minutes=count)
+    if unit.startswith("hour"):
+        return asof_ts - pd.Timedelta(hours=count)
+    if unit.startswith("day"):
+        return asof_ts - pd.Timedelta(days=count)
+    if unit.startswith("week"):
+        return asof_ts - pd.Timedelta(weeks=count)
+    if unit.startswith("month"):
+        return asof_ts - pd.Timedelta(days=30 * count)
+    return asof_ts - pd.Timedelta(days=365 * count)
+
+
 def infer_published_at_from_url(url: Any) -> pd.Timestamp:
     text = _coerce_text(url)
     if not text:
@@ -48,6 +81,8 @@ def coerce_article_published_at(
     asof_time_utc: Any = None,
 ) -> pd.Timestamp:
     published_at = _as_utc_timestamp(value)
+    if pd.isna(published_at):
+        published_at = _relative_published_at(value, asof_time_utc=asof_time_utc)
     if pd.isna(published_at):
         published_at = infer_published_at_from_url(url)
     if pd.isna(published_at):

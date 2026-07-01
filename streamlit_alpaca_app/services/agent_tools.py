@@ -36,6 +36,27 @@ def _schema_from_capability(spec: dict[str, Any]) -> dict[str, Any]:
     )
 
 
+_ZOPEDIA_SAFE_MUTATION_TYPES = ["metadata_patch", "link_pages", "upsert_pages"]
+_ZOPEDIA_PAGE_TYPES = ["source", "concept", "entity", "theme", "market_event", "ticker", "macro", "question", "index"]
+_ZOPEDIA_MEMORY_PAGE_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": True,
+    "properties": {
+        "page_id": {"type": "string"},
+        "page_type": {"type": "string", "enum": _ZOPEDIA_PAGE_TYPES},
+        "title": {"type": "string"},
+        "summary": {"type": "string"},
+        "body_markdown": {"type": "string"},
+        "source_urls": {"type": "array", "items": {"type": "string"}},
+        "source_document_ids": {"type": "array", "items": {"type": "string"}},
+        "entity_refs": {"type": "array", "items": {"type": "string"}},
+        "outgoing_links": {"type": "array", "items": {"type": "string"}},
+        "metadata": {"type": "object"},
+    },
+    "required": ["page_type", "title", "summary", "body_markdown", "source_urls", "entity_refs", "metadata"],
+}
+
+
 def _hypothesis_tools() -> list[dict[str, Any]]:
     return [
         {
@@ -88,8 +109,10 @@ def _research_tools() -> list[dict[str, Any]]:
             "name": "research.retained_context",
             "description": (
                 "Look up retained narrative context already in Spectral Nature for the query. "
-                "Best first tool for live analysis prompts. Pass focus_symbols when the task is about "
+                "This is internal memory, not live web search. Use it for background, prior findings, "
+                "and source-backed context that Spectral Nature has already retained. Pass focus_symbols when the task is about "
                 "a named company, ticker, person, or other scoped subject so retained lookup stays anchored. "
+                "For current or stale-memory questions, pair this with research.live_event_evidence before final synthesis. "
                 "Adjacent peer, sector, macro, and spillover context is useful; organize it around the primary subject."
             ),
             "inputSchema": {
@@ -122,7 +145,9 @@ def _research_tools() -> list[dict[str, Any]]:
         {
             "name": "research.live_event_evidence",
             "description": (
-                "Fetch fresh web evidence for the query, using event-level search and symbol-level search when relevant."
+                "Fetch fresh web evidence for a current query, using event-level search and symbol-level search when relevant. "
+                "Returns recent search/article rows with headlines, snippets, sources, timestamps, and URLs. "
+                "Use research.open_page on the highest-value URL when article-body support is needed for a strong claim."
             ),
             "inputSchema": {
                 "type": "object",
@@ -143,8 +168,8 @@ def _research_tools() -> list[dict[str, Any]]:
                 "chunks matching a query. This searches all previously collected research — "
                 "news articles, event summaries, ticker backgrounds, and analysis — that "
                 "have been retained from past pipeline runs and agent sessions. "
-                "Use this FIRST for any question about recent market events, squeezes, "
-                "earnings surprises, or themes that Spectral Nature may have already captured."
+                "This is not live web search. Use it for prior captured context and memory recall. "
+                "For today's news, current market events, or stale-memory questions, use research.live_event_evidence before final synthesis."
             ),
             "inputSchema": {
                 "type": "object",
@@ -381,15 +406,17 @@ def _zopedia_tools() -> list[dict[str, Any]]:
             "name": "zopedia.apply_mutation",
             "description": (
                 "Apply a safe, audited Zopedia memory mutation. Safe writes commit with rollback metadata; "
-                "destructive or unsupported changes are converted into review proposals."
+                "destructive or unsupported changes are converted into review proposals. "
+                "Use mutation_type=upsert_pages exactly for page creation or updates; never use upsert or upsert_page. "
+                "For upsert_pages, pass complete page objects in pages."
             ),
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "mutation_type": {"type": "string"},
+                    "mutation_type": {"type": "string", "enum": _ZOPEDIA_SAFE_MUTATION_TYPES},
                     "page_id": {"type": "string"},
                     "target_page_id": {"type": "string"},
-                    "pages": {"type": "array", "items": {"type": "object"}},
+                    "pages": {"type": "array", "items": _ZOPEDIA_MEMORY_PAGE_SCHEMA},
                     "metadata_patch": {"type": "object"},
                     "evidence_refs": {"type": "array", "items": {"type": "object"}},
                     "rationale": {"type": "string"},
