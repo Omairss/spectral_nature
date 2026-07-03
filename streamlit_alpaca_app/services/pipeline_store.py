@@ -1873,6 +1873,224 @@ def connector_call_rollup(*, days: int = 7) -> pd.DataFrame:
             pass
 
 
+def _model_call_telemetry_enabled() -> bool:
+    raw = _get_env("AQL_ZOPEDIA_MODEL_TELEMETRY_ENABLED") or _get_env("MODEL_CALL_TELEMETRY_ENABLED")
+    if raw:
+        return raw.lower() not in {"0", "false", "no", "off", "disabled"}
+    return bool(_get_env("PIPELINE_JOB_NAME") or _get_env("APP_TRACK"))
+
+
+def _ensure_model_call_events_table(conn: Any) -> None:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS aql_zopedia_model_call_events (
+                id BIGSERIAL PRIMARY KEY,
+                model_call_id TEXT NOT NULL,
+                surface TEXT NOT NULL,
+                purpose TEXT NOT NULL,
+                call_type TEXT NOT NULL,
+                provider TEXT,
+                requested_model TEXT,
+                resolved_model TEXT,
+                provider_reported_model TEXT,
+                status TEXT NOT NULL,
+                started_at_utc TIMESTAMPTZ NOT NULL,
+                duration_ms DOUBLE PRECISION,
+                error_type TEXT,
+                error_summary TEXT,
+                schema_name TEXT,
+                prompt_hash TEXT,
+                schema_hash TEXT,
+                job_name TEXT,
+                run_id TEXT,
+                metadata_json JSONB,
+                created_at_utc TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+            """
+        )
+        cur.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_aql_zopedia_model_call_events_started
+            ON aql_zopedia_model_call_events (started_at_utc DESC)
+            """
+        )
+        cur.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_aql_zopedia_model_call_events_surface_status
+            ON aql_zopedia_model_call_events (surface, purpose, status, started_at_utc DESC)
+            """
+        )
+        cur.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_aql_zopedia_model_call_events_provider_model
+            ON aql_zopedia_model_call_events (provider, resolved_model, started_at_utc DESC)
+            """
+        )
+
+
+def record_model_call(
+    *,
+    model_call_id: str,
+    surface: str,
+    purpose: str,
+    call_type: str,
+    provider: str = "",
+    requested_model: str = "",
+    resolved_model: str = "",
+    provider_reported_model: str = "",
+    status: str,
+    started_at_utc: datetime | None = None,
+    duration_ms: float | None = None,
+    error_type: str = "",
+    error_summary: str = "",
+    schema_name: str = "",
+    prompt_hash: str = "",
+    schema_hash: str = "",
+    metadata: dict[str, Any] | None = None,
+) -> bool:
+    """Best-effort AQL/Zopedia model telemetry for Admin > System Health."""
+    if not _model_call_telemetry_enabled():
+        return False
+    timestamp = started_at_utc or datetime.now(timezone.utc)
+    safe_metadata = json.dumps(dict(metadata or {}), ensure_ascii=False, sort_keys=True, default=str)
+    conn = _db_connect()
+    if conn is None:
+        return False
+    try:
+        _ensure_model_call_events_table(conn)
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO aql_zopedia_model_call_events (
+                    model_call_id, surface, purpose, call_type, provider, requested_model,
+                    resolved_model, provider_reported_model, status, started_at_utc, duration_ms,
+                    error_type, error_summary, schema_name, prompt_hash, schema_hash, job_name,
+                    run_id, metadata_json
+                )
+                VALUES (
+                    %s, %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s, %s,
+                    %s, %s::jsonb
+                )
+                """,
+                (
+                    _clean_text(model_call_id)[:120],
+                    _clean_text(surface)[:180],
+                    _clean_text(purpose)[:180],
+                    _clean_text(call_type)[:80],
+                    _clean_text(provider).lower()[:80],
+                    _clean_text(requested_model)[:180],
+                    _clean_text(resolved_model)[:180],
+                    _clean_text(provider_reported_model)[:180],
+                    _clean_text(status).lower()[:80],
+                    timestamp,
+                    float(duration_ms) if duration_ms is not None else None,
+                    _clean_text(error_type)[:120],
+                    _clean_text(error_summary)[:800],
+                    _clean_text(schema_name)[:180],
+                    _clean_text(prompt_hash)[:96],
+                    _clean_text(schema_hash)[:96],
+                    _get_env("PIPELINE_JOB_NAME") or _get_env("APP_TRACK"),
+                    _get_env("PIPELINE_RUN_ID"),
+                    safe_metadata,
+                ),
+            )
+        conn.commit()
+        return True
+    except Exception:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        return False
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
+def model_call_rollup(*, days: int = 7) -> pd.DataFrame:
+    """Return AQL/Zopedia model call success/failure counts from telemetry."""
+    columns = [
+        "surface",
+        "purpose",
+        "call_type",
+        "provider",
+        "resolved_model",
+        "call_count",
+        "success_count",
+        "failure_count",
+        "avg_duration_ms",
+        "last_call_at_utc",
+        "last_error_summary",
+    ]
+    conn = _db_connect()
+    if conn is None:
+        return pd.DataFrame(columns=columns)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT to_regclass('public.aql_zopedia_model_call_events')")
+            if not cur.fetchone()[0]:
+                return pd.DataFrame(columns=columns)
+            cur.execute(
+                """
+                WITH recent AS (
+                    SELECT *
+                    FROM aql_zopedia_model_call_events
+                    WHERE started_at_utc >= NOW() - (%s::text || ' days')::interval
+                ),
+                latest_errors AS (
+                    SELECT DISTINCT ON (surface, purpose, call_type, provider, resolved_model)
+                        surface, purpose, call_type, provider, resolved_model, error_summary
+                    FROM recent
+                    WHERE status <> 'success' AND COALESCE(error_summary, '') <> ''
+                    ORDER BY surface, purpose, call_type, provider, resolved_model, started_at_utc DESC
+                )
+                SELECT
+                    r.surface,
+                    r.purpose,
+                    r.call_type,
+                    COALESCE(r.provider, '') AS provider,
+                    COALESCE(r.resolved_model, '') AS resolved_model,
+                    COUNT(*)::int AS call_count,
+                    SUM(CASE WHEN r.status = 'success' THEN 1 ELSE 0 END)::int AS success_count,
+                    SUM(CASE WHEN r.status <> 'success' THEN 1 ELSE 0 END)::int AS failure_count,
+                    ROUND(AVG(r.duration_ms)::numeric, 1)::float AS avg_duration_ms,
+                    MAX(r.started_at_utc) AS last_call_at_utc,
+                    COALESCE(MAX(le.error_summary), '') AS last_error_summary
+                FROM recent r
+                LEFT JOIN latest_errors le
+                  ON le.surface = r.surface
+                 AND le.purpose = r.purpose
+                 AND le.call_type = r.call_type
+                 AND COALESCE(le.provider, '') = COALESCE(r.provider, '')
+                 AND COALESCE(le.resolved_model, '') = COALESCE(r.resolved_model, '')
+                GROUP BY r.surface, r.purpose, r.call_type, r.provider, r.resolved_model
+                ORDER BY failure_count DESC, call_count DESC, surface, purpose
+                """,
+                (max(int(days), 1),),
+            )
+            rows = cur.fetchall()
+        if not rows:
+            return pd.DataFrame(columns=columns)
+        df = pd.DataFrame(rows, columns=columns)
+        for column in ("call_count", "success_count", "failure_count"):
+            df[column] = pd.to_numeric(df[column], errors="coerce").fillna(0).astype(int)
+        df["avg_duration_ms"] = pd.to_numeric(df["avg_duration_ms"], errors="coerce")
+        df["last_call_at_utc"] = pd.to_datetime(df["last_call_at_utc"], errors="coerce", utc=True)
+        return df
+    except Exception:
+        return pd.DataFrame(columns=columns)
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
 def retained_connector_evidence_health(*, days: int = 7) -> pd.DataFrame:
     """Summarize retained evidence rows by connector/provider as a fallback signal."""
     columns = [

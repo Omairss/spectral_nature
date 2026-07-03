@@ -1,5 +1,5 @@
 """
-Agent Chat Log — durable persistence for omnibar agent sessions.
+Agent Chat Log — durable persistence for Zopedia chat sessions.
 
 Stores every agent run (query, tool calls, answer, metadata) in Postgres with
 full payloads in Azure Blob Storage.  The Postgres row holds searchable metadata;

@@ -2,9 +2,28 @@
 
 Read this before changing Zopedia, AQL, Attention summaries, SAA research, live research, evidence packs, or any feature that calls an LLM for product analysis.
 
+Current roadmap: [v0.6 AQL/Zopedia Gateway Roadmap](../plans/V0_6_AQL_ZOPEDIA_GATEWAY_ROADMAP_2026-07-01.md).
+
 ## Non-Negotiable Architecture
 
 All research-grade LLM work enters through one AQL/Zopedia engine contract.
+
+As of the v0.6 gateway implementation, "enters through the engine" has a
+concrete meaning:
+
+- the call is made through the AQL/Zopedia gateway, not a raw model client;
+- the call declares `surface`, `purpose`, and `call_type`;
+- the gateway records provider, requested model, resolved/provider-reported
+  model when available, status, timing, sanitized error, usage when available,
+  and durable artifact links;
+- formatter calls must link to an AQL evidence pack or explicit unavailable
+  state;
+- utility calls are still allowed only when labeled and observable.
+
+Calling `load_aql_zopedia_llm_client(surface=...)` by itself is not enough. It
+labels a client, but it does not enforce budgets, evidence ownership, request
+telemetry, cost attribution, or direct-call bans. Product JSON calls that have
+been migrated should use `generate_json_via_aql_zopedia_gateway(...)`.
 
 Thin wrappers are allowed:
 
@@ -42,6 +61,19 @@ Every engine run should have one result contract with:
 - confidence and explicit gaps;
 - optional safe memory updates or proposals through typed mutation APIs.
 
+Every model call inside or below the engine should also have one gateway event
+contract with:
+
+- surface and purpose;
+- call type: `research_grade`, `formatter_over_aql`, `utility`,
+  `schema_repair`, or `admin_probe`;
+- provider and model metadata;
+- budget and retry metadata;
+- status and sanitized failure metadata;
+- usage/cost metadata when available;
+- durable links to run ids, dataset versions, evidence packs, pages, candidates,
+  or proposals.
+
 ## Write Policy
 
 Reads are default for research-grade surfaces.
@@ -59,8 +91,9 @@ Do not let render paths patch memory directly.
 1. Identify whether the change is a new engine capability or a wrapper around the engine.
 2. If it gathers evidence, calls tools, uses memory, critiques an answer, or writes wiki state, it belongs in the engine.
 3. If an existing feature path bypasses the engine, migrate the entrypoint instead of adding another helper.
-4. Update or add tests that prove the affected surface receives the shared evidence pack and can access Zopedia memory/tools.
-5. Do not call the work complete until the actual product path is verified.
+4. If an existing feature path calls `llm_client.generate_json(...)` directly, classify it as gateway internals, provider adapter internals, tests/fakes, or a temporary migration allowlist entry with owner and expiry.
+5. Update or add tests that prove the affected surface receives the shared evidence pack and records gateway telemetry.
+6. Do not call the work complete until the actual product path is verified and the model-call ledger shows the expected surface/purpose/model rows.
 
 ## Source Of The Lesson
 

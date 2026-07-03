@@ -32,13 +32,13 @@ if TYPE_CHECKING:
     from data_access.query_service import QueryService
 
 
-# The agent_tools and omnibar_agent modules pull in the wider services
-# package (omnibar.py → attention_home_summary.py → services.aql), so importing
+# The agent_tools and zopedia_agent modules pull in the wider services
+# package (zopedia_resolver.py → attention_home_summary.py → services.aql), so importing
 # them eagerly at module load time creates a circular import for the AQL
 # package. Resolve them lazily inside the functions that actually need them.
 def _load_runtime_helpers():
     from ..agent_tools import build_tool_catalog, invoke_tool
-    from ..omnibar_agent import (
+    from ..zopedia_agent import (
         _coerce_tool_arguments,
         _summarize_tool_result,
         _tool_entry_by_name,

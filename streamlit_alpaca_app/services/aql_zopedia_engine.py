@@ -8,6 +8,7 @@ from typing import Any, Callable
 
 import pandas as pd
 
+from .aql_zopedia_gateway import generate_json_via_aql_zopedia_gateway
 from .elevenlabs_tts import (
     ElevenLabsTTSClient,
     ElevenLabsTTSConfig,
@@ -147,10 +148,9 @@ def run_aql_zopedia_agent(
 ) -> dict[str, Any]:
     """Shared AQL/Zopedia orchestration entrypoint for tool-using research.
 
-    The legacy implementation module still owns the planner/tool loop, but the
-    only public product entrypoint is this AQL/Zopedia engine boundary.
+    The Zopedia agent implementation owns the planner/tool loop behind this AQL/Zopedia engine boundary.
     """
-    from .omnibar_agent import _run_zopedia_agent_loop
+    from .zopedia_agent import _run_zopedia_agent_loop
 
     resolved_budget = max_tool_calls
     if resolved_budget is None:
@@ -234,12 +234,18 @@ def _repair_structured_payload_from_agent_answer(
     schema_name: str,
     schema: dict[str, Any],
     llm_client: ZopediaLLMClient | None,
+    surface: str,
+    task: str,
 ) -> dict[str, Any] | None:
     answer = _clean(answer_markdown)
     if not answer or llm_client is None:
         return None
     try:
-        repaired = llm_client.generate_json(
+        repaired = generate_json_via_aql_zopedia_gateway(
+            llm_client=llm_client,
+            surface=surface,
+            purpose=f"{_clean(task) or 'structured_answer'}.repair",
+            call_type="schema_repair",
             system_prompt=(
                 "You repair AQL/Zopedia agent output into the requested JSON schema. "
                 "Use only facts and claims present in the agent answer. Do not add new evidence, "
@@ -253,6 +259,11 @@ def _repair_structured_payload_from_agent_answer(
             ),
             schema_name=f"{schema_name}_structured_repair",
             schema=schema,
+            metadata={
+                "engine": "aql_zopedia",
+                "task": _clean(task) or "structured_answer",
+                "source": "agent_answer_repair",
+            },
         )
     except Exception:
         return None
@@ -322,7 +333,11 @@ def run_aql_zopedia_structured_agent(
                 }
             )
         try:
-            payload = resolved_llm.generate_json(
+            payload = generate_json_via_aql_zopedia_gateway(
+                llm_client=resolved_llm,
+                surface=surface,
+                purpose=f"{_clean(task) or 'structured_answer'}.direct",
+                call_type="formatter_over_aql",
                 system_prompt=(
                     "You are the Spectral Nature AQL/Zopedia structured synthesis engine. "
                     "Use the supplied prompt context as evidence. Do not call tools. "
@@ -331,6 +346,12 @@ def run_aql_zopedia_structured_agent(
                 user_prompt=structured_query,
                 schema_name=schema_name,
                 schema=schema,
+                metadata={
+                    "engine": "aql_zopedia",
+                    "task": _clean(task) or "structured_answer",
+                    "max_tool_calls": 0,
+                    "source": "structured_direct",
+                },
             )
         except Exception as exc:
             return {
@@ -404,6 +425,8 @@ def run_aql_zopedia_structured_agent(
             schema_name=schema_name,
             schema=schema,
             llm_client=llm_client,
+            surface=surface,
+            task=task,
         )
         repair_used = payload is not None
     if status == "completed" and payload is not None:
@@ -432,7 +455,7 @@ def resolve_aql_zopedia_followup_query(
     query: str,
     conversation_history: list[dict[str, Any]] | None,
 ) -> tuple[str, bool]:
-    from .omnibar_agent import resolve_conversation_followup_query
+    from .zopedia_agent import resolve_conversation_followup_query
 
     return resolve_conversation_followup_query(query, conversation_history)
 
@@ -524,11 +547,20 @@ def repair_aql_zopedia_analysis_arguments(
         default=str,
     )
     try:
-        result = resolved_llm.generate_json(
+        result = generate_json_via_aql_zopedia_gateway(
+            llm_client=resolved_llm,
+            surface="analysis.run_python.repair",
+            purpose="analysis_argument_repair",
+            call_type="schema_repair",
             system_prompt=system_prompt,
             user_prompt=user_prompt,
             schema_name="zopedia_analysis_repair",
             schema=schema,
+            metadata={
+                "engine": "aql_zopedia",
+                "tool": "analysis.run_python",
+                "repair_attempt": repair_attempt,
+            },
         )
     except Exception:
         return None

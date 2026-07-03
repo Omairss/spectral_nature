@@ -2,6 +2,8 @@
 
 Date: 2026-06-24
 
+Last updated: 2026-07-01
+
 ## Purpose
 
 Improve the Trading Agent's calls by turning each generated candidate into a
@@ -72,6 +74,9 @@ Must wait for v0.5 P0 spine/retrieval work:
 - Candidate Package V2 should wait until AQL/Zopedia retrieval/tool discovery
   and company-memory runtime proof are stable enough to supply the evidence
   slots reliably.
+- Candidate Package V2 also waits for the v0.6 AQL/Zopedia gateway. The current
+  Trading Agent can call AQL for ticker research and still make direct final
+  synthesis/review model calls. That is not acceptable for V2.
 - Shadow V2 should wait until the V2 package schema is backed by the shared
   AQL/Zopedia contracts, not by a Trading-Agent-specific side path.
 - Replacing V1 should wait until fallback/failure contracts are resolved in
@@ -94,12 +99,14 @@ Mapping to v0.5:
   analysis artifact, but it must not require company-memory writes to be
   complete.
 - Phase 2 belongs after **P0.2 Retrieval / Tool Discovery** and **P0.3 Company
-  Memory Runtime Proof**.
+  Memory Runtime Proof**, and after the v0.6 AQL/Zopedia gateway can record
+  Trading Agent research, final synthesis, and review calls by surface and
+  purpose.
 - Phase 3 and Phase 4 are post-P0 product evolution work.
 
 ## Implementation Status
 
-Updated: 2026-06-24
+Updated: 2026-07-01
 
 Phase 0 and Phase 1 first slice are implemented behind the existing
 `trading-agent-build` materialization job.
@@ -128,9 +135,23 @@ Intentionally deferred:
   populated.
 - Post-call news/event attribution is not yet part of the review package.
 - Candidate Package V2 remains blocked on the v0.5 AQL/Zopedia retrieval and
-  company-memory runtime proof work.
+  company-memory runtime proof work, plus the v0.6 AQL/Zopedia gateway.
+- Trading Agent final synthesis and research review still need gateway
+  migration. Direct `llm_client.generate_json(...)` calls in the product module
+  are not acceptable for V2 because they bypass centralized request telemetry,
+  budget policy, model attribution, and evidence-pack linkage.
 - No performance tuning, direction filtering, prompt mutation, or Zopedia
   memory promotion was added.
+
+Operational note on 2026-07-01:
+
+- The live `trading-agent-build` job is configured for DeepSeek
+  `deepseek-reasoner`.
+- Latest runs produced five horizon run rows but zero candidates because the
+  provider returned `402 Insufficient Balance`.
+- That failure reinforces the v0.6 requirement: provider/model failures need to
+  be reported by gateway telemetry and Admin/System Health, not inferred from
+  raw job output or account dashboards.
 
 ## Target Architecture
 
@@ -224,6 +245,18 @@ Review principles:
 
 The current candidate schema is too thin for learning. Add a richer research
 package object before final candidate synthesis.
+
+V2 gateway requirement:
+
+- Per-ticker research packages, final cross-candidate synthesis, and post-call
+  reviews must all enter through the v0.6 AQL/Zopedia gateway.
+- Final synthesis is `formatter_over_aql`, not free research. It may compare
+  completed AQL packages, but it must not introduce unsupported claims.
+- Reviews are `research_grade` or `review` calls over the exact candidate,
+  evidence pack, outcome, and post-call evidence, with model-call IDs retained
+  in the review artifact.
+- If provider/budget/evidence failures block synthesis, persist a horizon run
+  state with explicit gaps instead of inventing candidates from price-only rows.
 
 Required package sections:
 
@@ -451,11 +484,15 @@ Exit criteria:
 - Convert per-ticker AQL packages into the V2 package schema.
 - Require counter-evidence and horizon rationale.
 - Keep current final candidate schema as an adapter until UI changes are ready.
+- Migrate Trading Agent model calls through the v0.6 AQL/Zopedia gateway before
+  using V2 output as a product surface.
 
 Exit criteria:
 
 - Candidate packages are readable and decisive.
 - Weak evidence produces no candidate or an explicit watch-only candidate.
+- Every candidate package, final synthesis, and review can be traced to gateway
+  model-call events by surface and purpose.
 
 ### Phase 3: Shadow V2
 

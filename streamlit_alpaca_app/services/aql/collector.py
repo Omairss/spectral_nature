@@ -13,13 +13,15 @@ import pandas as pd
 from ..common.news_freshness import coerce_article_published_at, is_recent_for_attention
 from ..common.company_identity import clean_company_display_name
 from ..web_research import (
+    SerperSearchClient,
     SerpAPISearchClient,
     TavilySearchClient,
     WebResearchError,
     WebSearchResult,
-    load_serpapi_config,
-    load_tavily_config,
+    load_serper_config,
+    search_client_provider,
 )
+from ..aql_zopedia_gateway import generate_json_via_aql_zopedia_gateway
 from .constants import (
     LLMClient,
     PLANNER_SCHEMA,
@@ -175,7 +177,11 @@ def _llm_search_relevance_flags(
     if llm_client is None:
         return baseline_flags
     try:
-        data = llm_client.generate_json(
+        data = generate_json_via_aql_zopedia_gateway(
+            llm_client=llm_client,
+            surface="aql.search_relevance",
+            purpose="attention_search_relevance",
+            call_type="utility",
             system_prompt=(
                 "You are a relevance gate for company news research. "
                 "Select only indices that are materially relevant to the target company and likely business triggers, "
@@ -205,6 +211,11 @@ def _llm_search_relevance_flags(
             ),
             schema_name="attention_search_relevance",
             schema=SEARCH_RELEVANCE_SCHEMA,
+            metadata={
+                "symbol": symbol,
+                "company_name": company_name,
+                "item_count": len(items),
+            },
         )
         selected = {
             int(value)
@@ -228,15 +239,19 @@ def _llm_tavily_route_decision(
     default_tavily_query = _default_tavily_general_query(query, symbol, company_name)
     if llm_client is None:
         if serp_has_identity_match:
-            return False, "news", query, "serp_results_relevant"
-        return True, "general", default_tavily_query, "serp_results_not_relevant"
+            return False, "news", query, "primary_search_results_relevant"
+        return True, "general", default_tavily_query, "primary_search_results_not_relevant"
     try:
-        data = llm_client.generate_json(
+        data = generate_json_via_aql_zopedia_gateway(
+            llm_client=llm_client,
+            surface="aql.search_router",
+            purpose="attention_search_router",
+            call_type="utility",
             system_prompt=(
                 "You are a research-router for market analysis. "
-                "Decide if SerpApi results are relevant enough to explain the move. "
+                "Decide if the primary news-search results are relevant enough to explain the move. "
                 "If not relevant, call Tavily using topic='general' for broader RAG retrieval. "
-                "Prefer Tavily when Serp results are sparse or mostly low-signal (insider/form-4, ex-dividend, "
+                "Prefer Tavily when primary search results are sparse or mostly low-signal (insider/form-4, ex-dividend, "
                 "analyst target-only notes, or generic price-action recaps without concrete company developments). "
                 "When using Tavily, output a high-recall query that includes company identity and likely business triggers."
             ),
@@ -247,7 +262,7 @@ def _llm_tavily_route_decision(
                     "company_name": company_name,
                     "serp_preview": serp_preview[:4],
                     "serp_has_identity_match": bool(serp_has_identity_match),
-                    "policy": "Use Tavily when SerpApi evidence is sparse, generic, or off-topic.",
+                    "policy": "Use Tavily when primary search evidence is sparse, generic, or off-topic.",
                     "default_tavily_query": default_tavily_query,
                 },
                 ensure_ascii=False,
@@ -255,6 +270,12 @@ def _llm_tavily_route_decision(
             ),
             schema_name="attention_search_router",
             schema=SEARCH_ROUTER_SCHEMA,
+            metadata={
+                "symbol": symbol,
+                "company_name": company_name,
+                "preview_count": len(serp_preview),
+                "primary_has_identity_match": bool(serp_has_identity_match),
+            },
         )
         use_tavily = bool(data.get("use_tavily"))
         topic = _coerce_text(data.get("tavily_topic")).lower() or "general"
@@ -267,8 +288,8 @@ def _llm_tavily_route_decision(
         return use_tavily, topic, tavily_query, reason
     except Exception:
         if serp_has_identity_match:
-            return False, "news", query, "serp_results_relevant"
-        return True, "general", default_tavily_query, "serp_results_not_relevant"
+            return False, "news", query, "primary_search_results_relevant"
+        return True, "general", default_tavily_query, "primary_search_results_not_relevant"
 
 
 def _to_article_frame(rows: list[dict[str, Any]]) -> pd.DataFrame:
@@ -294,7 +315,7 @@ def search_symbol_news_payload(
     *,
     company_name: str = "",
     max_results: int = 8,
-    serp_client: SerpAPISearchClient | None = None,
+    serp_client: SerperSearchClient | SerpAPISearchClient | None = None,
     tavily_client: TavilySearchClient | None = None,
     llm_client: LLMClient | None = None,
     asof_time_utc: object | None = None,
@@ -308,11 +329,9 @@ def search_symbol_news_payload(
         asof_ts = pd.Timestamp.utcnow()
 
     if serp_client is None:
-        cfg = load_serpapi_config()
-        serp_client = SerpAPISearchClient(cfg) if cfg is not None else None
-    if tavily_client is None:
-        cfg = load_tavily_config()
-        tavily_client = TavilySearchClient(cfg) if cfg is not None else None
+        serper_cfg = load_serper_config()
+        if serper_cfg is not None:
+            serp_client = SerperSearchClient(serper_cfg)
 
     query_base = f"{normalized_symbol} stock today"
     if company_name:
@@ -325,6 +344,7 @@ def search_symbol_news_payload(
     serp_relevant_count = 0
     serp_candidates: list[dict[str, str]] = []
     serp_failed = False
+    primary_provider = search_client_provider(serp_client) or "primary_search"
 
     def _append_current_candidates(*, provider: str, query: str, candidates: list[dict[str, str]]) -> int:
         nonlocal serp_relevant_count
@@ -347,7 +367,7 @@ def search_symbol_news_payload(
             if _is_irrelevant_news_text(row.get("title"), row.get("snippet")):
                 continue
             kept += 1
-            if provider == "serpapi":
+            if provider == primary_provider:
                 serp_relevant_count += 1
             article_rows.append(
                 {
@@ -375,7 +395,7 @@ def search_symbol_news_payload(
                         "title": title,
                         "snippet": snippet,
                         "provider_text": _provider_result_text(item),
-                        "source": _coerce_text(item.source) or "SerpApi",
+                        "source": _coerce_text(item.source) or primary_provider,
                         "url": _coerce_text(item.url),
                         "published_at": _current_symbol_news_timestamp(
                             item.published_at,
@@ -406,7 +426,7 @@ def search_symbol_news_payload(
                             "provider_payload_json": _provider_payload_json(ai_overview.raw),
                         }
                     )
-            _append_current_candidates(provider="serpapi", query=query_base, candidates=serp_candidates)
+            _append_current_candidates(provider=primary_provider, query=query_base, candidates=serp_candidates)
             if serp_relevant_count <= 0:
                 general_query = _symbol_news_general_query(normalized_symbol, company_name)
                 general_candidates: list[dict[str, str]] = []
@@ -420,7 +440,7 @@ def search_symbol_news_payload(
                             "title": title,
                             "snippet": snippet,
                             "provider_text": _provider_result_text(item),
-                            "source": _coerce_text(item.source) or "SerpApi",
+                            "source": _coerce_text(item.source) or primary_provider,
                             "url": _coerce_text(item.url),
                             "published_at": _current_symbol_news_timestamp(
                                 item.published_at,
@@ -430,8 +450,8 @@ def search_symbol_news_payload(
                             "provider_payload_json": _provider_payload_json(item.raw),
                         }
                     )
-                _append_current_candidates(provider="serpapi", query=general_query, candidates=general_candidates)
-            sources.append("serpapi")
+                _append_current_candidates(provider=primary_provider, query=general_query, candidates=general_candidates)
+            sources.append(primary_provider)
         except WebResearchError as exc:
             errors.append(str(exc))
             serp_failed = True
@@ -493,7 +513,7 @@ def _search_query_results(
     company_name: str,
     run_id: str,
     asof_time_utc: pd.Timestamp,
-    serp_client: SerpAPISearchClient | None,
+    serp_client: SerperSearchClient | SerpAPISearchClient | None,
     tavily_client: TavilySearchClient | None,
     llm_client: LLMClient | None,
     budget: int,
@@ -508,6 +528,7 @@ def _search_query_results(
     serp_preview: list[dict[str, str]] = []
     serp_relevant_count = 0
     serp_failed = False
+    primary_provider = search_client_provider(serp_client) or "primary_search"
 
     if serp_client is not None:
         request_rows.append(
@@ -516,7 +537,7 @@ def _search_query_results(
                 "asof_time_utc": asof_time_utc,
                 "candidate_id": candidate_id,
                 "query_id": query_id,
-                "provider": "serpapi",
+                "provider": primary_provider,
                 "query": query,
                 "route_mode": "primary",
             }
@@ -534,14 +555,14 @@ def _search_query_results(
                     "asof_time_utc": asof_time_utc,
                     "candidate_id": candidate_id,
                     "query_id": query_id,
-                    "provider": "serpapi",
-                    "result_id": f"{query_id}::serpapi::error",
+                    "provider": primary_provider,
+                    "result_id": f"{query_id}::{primary_provider}::error",
                     "title": "",
                     "url": "",
                     "snippet": "",
                     "error_text": error_text,
                     "result_kind": "error",
-                    "source": "serpapi",
+                    "source": primary_provider,
                     "published_at": "",
                     "authority_bucket": "web",
                     "authority_rank": 3,
@@ -589,15 +610,15 @@ def _search_query_results(
                     "asof_time_utc": asof_time_utc,
                     "candidate_id": candidate_id,
                     "query_id": query_id,
-                    "provider": "serpapi",
-                    "result_id": f"{query_id}::serpapi::{hashlib.sha1((_coerce_text(row.get('url')) or title).encode('utf-8')).hexdigest()[:12]}",
+                    "provider": primary_provider,
+                    "result_id": f"{query_id}::{primary_provider}::{hashlib.sha1((_coerce_text(row.get('url')) or title).encode('utf-8')).hexdigest()[:12]}",
                     "title": title,
                     "url": _coerce_text(row.get("url")),
                     "snippet": snippet,
                     "provider_text": _coerce_text(row.get("provider_text")) if include_provider_text else "",
                     "error_text": "",
                     "result_kind": "result",
-                    "source": _coerce_text(row.get("source")) or "serpapi",
+                    "source": _coerce_text(row.get("source")) or primary_provider,
                     "published_at": coerce_article_published_at(row.get("published_at"), url=row.get("url")),
                     "authority_bucket": authority_bucket,
                     "authority_rank": authority_rank,
@@ -609,7 +630,7 @@ def _search_query_results(
     use_tavily = bool(tavily_client is not None and (serp_client is None or serp_failed))
     tavily_topic = "news"
     tavily_query = query
-    route_reason = "serp_unavailable" if use_tavily else "serp_results_relevant"
+    route_reason = "primary_search_unavailable" if use_tavily else "primary_search_results_relevant"
     if tavily_client is not None and serp_client is not None and not serp_failed:
         use_tavily, tavily_topic, tavily_query, route_reason = _llm_tavily_route_decision(
             query=query,
@@ -631,7 +652,7 @@ def _search_query_results(
                 "query_id": query_id,
                 "provider": "tavily",
                 "query": tavily_query,
-                "route_mode": "rag_secondary" if serp_client is not None else "primary",
+                "route_mode": "rag_fallback" if serp_client is not None else "primary",
                 "route_reason": route_reason,
                 "topic": tavily_topic,
             }
@@ -942,7 +963,12 @@ def _plan_summary_research(home_payload: dict[str, Any], *, llm_client: LLMClien
         return []
 
     try:
-        data = llm_client.generate_json(
+        summary_items = _summary_research_items(home_payload)
+        data = generate_json_via_aql_zopedia_gateway(
+            llm_client=llm_client,
+            surface="aql.summary_research_plan",
+            purpose="attention_summary_research_plan",
+            call_type="research_grade",
             system_prompt=(
                 "You are planning research for a market homepage summary. "
                 "Look across market-wide activity and propose 3 to 5 search queries that can explain the shared macro, sector, "
@@ -954,7 +980,7 @@ def _plan_summary_research(home_payload: dict[str, Any], *, llm_client: LLMClien
                     "home_payload": {
                         "generated_at_utc": _coerce_text(home_payload.get("generated_at_utc")),
                         "coverage_summary": dict(home_payload.get("coverage_summary") or {}),
-                        "items": _summary_research_items(home_payload),
+                        "items": summary_items,
                     },
                     "instructions": {
                         "query_count": "3-5",
@@ -967,6 +993,10 @@ def _plan_summary_research(home_payload: dict[str, Any], *, llm_client: LLMClien
             ),
             schema_name="attention_research_plan",
             schema=PLANNER_SCHEMA,
+            metadata={
+                "item_count": len(summary_items),
+                "generated_at_utc": _coerce_text(home_payload.get("generated_at_utc")),
+            },
         )
     except Exception:
         return []
@@ -1019,11 +1049,20 @@ def _plan_candidate_research(candidate: dict[str, Any], peer_symbols: list[str],
         default=str,
     )
     try:
-        data = llm_client.generate_json(
+        data = generate_json_via_aql_zopedia_gateway(
+            llm_client=llm_client,
+            surface="aql.candidate_research_plan",
+            purpose="attention_candidate_research_plan",
+            call_type="research_grade",
             system_prompt=system_prompt,
             user_prompt=user_prompt,
             schema_name="attention_research_plan",
             schema=PLANNER_SCHEMA,
+            metadata={
+                "symbol": _normalize_symbol(candidate.get("symbol")),
+                "subject": _candidate_subject(candidate),
+                "peer_count": len(peer_symbols),
+            },
         )
         queries = [item for item in data.get("queries", []) if _coerce_text((item or {}).get("query"))]
         if not queries:

@@ -23,9 +23,7 @@ from .web_research import (
     SerpAPISearchClient,
     TavilySearchClient,
     WebResearchError,
-    load_serper_config,
-    load_serpapi_config,
-    load_tavily_config,
+    search_client_provider,
 )
 from .aql_zopedia_engine import load_aql_zopedia_llm_client
 
@@ -877,15 +875,15 @@ def search_market_event_news_payload(
     if not isinstance(event, dict) or not event:
         return {"articles": pd.DataFrame(), "fallback_summary": None, "source": None, "messages": []}
 
-    if serp_client is None:
-        cfg = load_serpapi_config()
-        serp_client = SerpAPISearchClient(cfg) if cfg is not None else None
-    if serper_client is None:
-        cfg = load_serper_config()
-        serper_client = SerperSearchClient(cfg) if cfg is not None else None
-    if tavily_client is None:
-        cfg = load_tavily_config()
-        tavily_client = TavilySearchClient(cfg) if cfg is not None else None
+    if serper_client is None and serp_client is None:
+        try:
+            from .aql.config import _load_search_clients
+
+            primary_client, _ = _load_search_clients()
+        except Exception:
+            primary_client = None
+        if primary_client is not None and search_client_provider(primary_client) == "serper":
+            serper_client = primary_client
 
     theme = _coerce_text(event.get("event_type")).lower() or "generic"
     event_title = _coerce_text(event.get("event_title"))

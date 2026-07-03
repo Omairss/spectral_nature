@@ -56,6 +56,7 @@ Use the docs as follows:
 
 - `MISTAKE_PREVENTION_HARDENING_2026-04-21.md`: deploy guards, secret scanning, mandatory dataset validation, LLM readiness checks, and attention service package reorganization
 - `V0_5_ROADMAP_2026-06-22.md`: v0.5 priority consolidation across pipeline simplification, Zopedia retrieval, company memory, hardcode cleanup, attention scoring, and module boundaries
+- `V0_6_AQL_ZOPEDIA_GATEWAY_ROADMAP_2026-07-01.md`: v0.6 deepfix for enforceable AQL/Zopedia model-call governance, request telemetry, direct-call audits, and migration of Trading Agent, Attention/Home, Zopedia memory, KG, and page summary model calls
 
 ## Infra and Operations
 

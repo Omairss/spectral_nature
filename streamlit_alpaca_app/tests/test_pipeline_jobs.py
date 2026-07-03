@@ -10,7 +10,10 @@ import pandas as pd
 
 from pipeline.jobs.attention_home_build import (
     AttentionHomeBuildError,
+    _apply_group_synthesis_items,
     _apply_home_surface_quality_items,
+    _attach_business_context_to_payload,
+    _attach_zopedia_enrichment_to_payload,
     _build_market_summary_query,
     _build_page_agentic_summary_frame,
     _build_zopedia_enrichment_frame,
@@ -1046,6 +1049,134 @@ def test_public_surface_preserves_observed_cohort_top_event_when_review_demotes(
     assert "AI-linked names fell together" in preserved["event_title"]
     assert "AI Infrastructure" in preserved["business_context_text"]
     assert updated_bundle_map[bundle_id]["publish"] is True
+
+
+def test_group_business_context_attachment_does_not_concatenate_member_contexts():
+    bundle_id = "event::observed-cohort-ai"
+    group_item = {
+        "bundle_id": bundle_id,
+        "bundle_type": "event",
+        "event_title": "Advanced computing stocks fell together",
+        "what_happened_text": "Advanced computing stocks fell together today.",
+        "business_context_text": "The group shares advanced-computing and data-center exposure.",
+        "observed_cohort": True,
+        "event_type": "observed_cohort",
+        "supporting_symbols": ["CBRS", "HIVE", "MSTR"],
+        "cause_status": "partial",
+    }
+    contexts_by_symbol = {
+        "CBRS": {
+            "symbol": "CBRS",
+            "business_context_text": "CBRS context. Most Likely Driver: earnings.",
+        },
+        "HIVE": {
+            "symbol": "HIVE",
+            "business_context_text": "HIVE context. What To Watch: bitcoin.",
+        },
+    }
+
+    payload, bundle_map = _attach_business_context_to_payload(
+        {"top_events": [dict(group_item)], "must_read_movers": [], "unresolved_large_moves": []},
+        {bundle_id: dict(group_item)},
+        contexts_by_symbol,
+    )
+
+    event = payload["top_events"][0]
+    assert event["business_context_text"] == "The group shares advanced-computing and data-center exposure."
+    assert "CBRS context" not in event["business_context_text"]
+    assert len(event["business_contexts"]) == 2
+    assert bundle_map[bundle_id]["business_context_text"] == "The group shares advanced-computing and data-center exposure."
+
+
+def test_group_zopedia_enrichment_is_member_context_not_display_blob():
+    bundle_id = "event::observed-cohort-ai"
+    group_item = {
+        "bundle_id": bundle_id,
+        "bundle_type": "event",
+        "event_title": "Advanced computing stocks fell together",
+        "what_happened_text": "Advanced computing stocks fell together today.",
+        "business_context_text": "The group shares advanced-computing and data-center exposure.",
+        "surface_business_context_text": "The group shares advanced-computing and data-center exposure.",
+        "observed_cohort": True,
+        "event_type": "observed_cohort",
+        "supporting_symbols": ["CBRS", "HIVE", "MSTR"],
+        "cause_status": "partial",
+    }
+    enrichment_rows = [
+        {
+            "symbol": "CBRS",
+            "status": "completed",
+            "answer_markdown": "### What Changed\nCBRS fell after earnings. ### Most Likely Driver\nMargins.",
+        },
+        {
+            "symbol": "HIVE",
+            "status": "completed",
+            "answer_markdown": "### What Changed\nHIVE fell with bitcoin. ### What To Watch\nBitcoin price.",
+        },
+    ]
+
+    payload, bundle_map = _attach_zopedia_enrichment_to_payload(
+        {"top_events": [dict(group_item)], "must_read_movers": [], "unresolved_large_moves": []},
+        {bundle_id: dict(group_item)},
+        enrichment_rows,
+    )
+
+    event = payload["top_events"][0]
+    assert event["business_resolution_text"] == ""
+    assert event["business_context_text"] == "The group shares advanced-computing and data-center exposure."
+    assert event["surface_business_context_text"] == "The group shares advanced-computing and data-center exposure."
+    assert event["zopedia_group_synthesis_status"] == "pending"
+    assert [row["symbol"] for row in event["member_zopedia_contexts"]] == ["CBRS", "HIVE"]
+    assert "Most Likely Driver" not in event["business_context_text"]
+    assert bundle_map[bundle_id]["business_resolution_text"] == ""
+
+
+def test_group_synthesis_replaces_group_display_fields():
+    bundle_id = "event::observed-cohort-ai"
+    group_item = {
+        "bundle_id": bundle_id,
+        "bundle_type": "event",
+        "event_title": "Advanced computing stocks fell together",
+        "what_happened_text": "Advanced computing stocks fell together today.",
+        "business_context_text": "The group shares advanced-computing and data-center exposure.",
+        "member_zopedia_contexts": [{"symbol": "CBRS", "context_text": "CBRS fell after earnings."}],
+        "observed_cohort": True,
+        "event_type": "observed_cohort",
+        "supporting_symbols": ["CBRS", "HIVE", "MSTR"],
+        "cause_status": "partial",
+    }
+    synthesis_items = [
+        {
+            "section": "top_events",
+            "index": 0,
+            "bundle_id": bundle_id,
+            "event_title": "Advanced computing and crypto-linked infrastructure stocks fell together",
+            "headline": "Advanced computing and crypto-linked infrastructure stocks fell together",
+            "what_happened_text": "Advanced computing and crypto-linked infrastructure stocks declined as a group.",
+            "why_happened_text": "",
+            "affected_assets_summary_text": "The move spans quantum, data-center, and bitcoin-mining exposed names.",
+            "business_context_text": "The shared thread is exposure to speculative compute infrastructure demand.",
+            "watch_next_text": "Watch for sector research or company updates that separate compute demand from crypto pressure.",
+            "cause_status": "partial",
+            "confidence_label": "Medium",
+            "synthesis_note": "Member contexts were synthesized into one group summary.",
+        }
+    ]
+
+    payload, bundle_map, counts = _apply_group_synthesis_items(
+        {"top_events": [dict(group_item)], "must_read_movers": [], "unresolved_large_moves": []},
+        {bundle_id: dict(group_item)},
+        synthesis_items,
+    )
+
+    event = payload["top_events"][0]
+    assert counts == {"changed": 1, "skipped": 0}
+    assert event["business_context_text"] == "The shared thread is exposure to speculative compute infrastructure demand."
+    assert event["business_resolution_text"] == event["business_context_text"]
+    assert event["surface_business_context_text"] == event["business_context_text"]
+    assert event["zopedia_group_synthesis_status"] == "completed"
+    assert event["cause_status"] == "partial"
+    assert bundle_map[bundle_id]["business_resolution_text"] == event["business_context_text"]
 
 
 def test_public_surface_uses_specific_observed_cohort_headline_over_sector_title():

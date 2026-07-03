@@ -36,7 +36,7 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 BRANDING_ROOT = APP_ROOT / "branding" / "Logo Files"
 APP_SIDEBAR_LOGO_PATH = BRANDING_ROOT / "png" / "White logo - no background.png"
 
-AGENTIC_OMNIBAR_SECTION = "Zopedia"
+ZOPEDIA_SECTION = "Zopedia"
 STOCK_INVESTIGATOR_SECTION = "Stock Investigator"
 PORTFOLIO_SECTION = "Portfolio"
 PORTFOLIO_PERFORMANCE_SECTION = "Portfolio Performance"
@@ -48,7 +48,7 @@ ADMIN_SECTION = "Admin"
 NAV_SEPARATOR = "---"
 BASE_SECTION_OPTIONS = [
     "Home",
-    AGENTIC_OMNIBAR_SECTION,
+    ZOPEDIA_SECTION,
     BROAD_ECONOMY_SECTION,
     MARKET_EXPLORER_SECTION,
     NAV_SEPARATOR,

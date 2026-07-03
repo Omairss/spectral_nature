@@ -1,8 +1,7 @@
 """Agent and chat/search namespace.
 
-This package is the stable import seam for omnibar, agent tool, and
-research workflow APIs while the underlying modules are migrated out of
-their legacy locations.
+This package exposes shared chat, scratchpad, and Zopedia agent utilities.
+Feature code should import canonical service modules directly when possible.
 """
 from __future__ import annotations
 
@@ -28,19 +27,19 @@ from services.agents.scratchpad import (
 )
 from services.common.hypothesis import verify_hypothesis
 
-_LEGACY_SUBMODULES = {
+_SHARED_SUBMODULES = {
     "agent_tools",
     "append_chat_message",
-    "omnibar",
-    "omnibar_agent",
-    "omnibar_research",
+    "zopedia_resolver",
+    "zopedia_agent",
+    "zopedia_research",
     "page_browsing",
     "web_research",
 }
 
 
 def __getattr__(name: str) -> Any:
-    if name in _LEGACY_SUBMODULES:
+    if name in _SHARED_SUBMODULES:
         module = import_module(f"services.{name}")
         globals()[name] = module
         return module
@@ -49,9 +48,9 @@ def __getattr__(name: str) -> Any:
 
 __all__ = [
     "agent_tools",
-    "omnibar",
-    "omnibar_agent",
-    "omnibar_research",
+    "zopedia_resolver",
+    "zopedia_agent",
+    "zopedia_research",
     "page_browsing",
     "bootstrap_chat_log",
     "clear_scratchpad",

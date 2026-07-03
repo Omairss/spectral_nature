@@ -2,6 +2,8 @@
 
 Date: 2026-05-15
 
+Last updated: 2026-07-01
+
 ## Decision
 
 Fix the LLM architecture before the Zopedia integration.
@@ -16,6 +18,23 @@ source data + retained memory + live evidence + KG/Zopedia context
 ```
 
 Direct LLM calls are still allowed for narrow utility tasks, but not for research-grade claims or user-facing market narratives.
+
+## 2026-07-01 Correction
+
+The first unification pass was not enough.
+
+It created a shared AQL/Zopedia engine boundary and moved many surfaces to
+`load_aql_zopedia_llm_client(surface=...)`, but that only labels the model
+client. It does not enforce budgets, evidence-pack ownership, provider/model
+policy, request telemetry, cost attribution, or direct-call bans.
+
+The next release gate is v0.6:
+[v0.6 AQL/Zopedia Gateway Roadmap](../../plans/V0_6_AQL_ZOPEDIA_GATEWAY_ROADMAP_2026-07-01.md).
+
+From this point forward, a surface is not considered centralized merely because
+it uses the shared loader. It is centralized only when research-grade and
+formatter-over-AQL model calls enter an enforceable gateway and leave observable
+surface/purpose/model records.
 
 ## Why Not Every LLM Layer Uses AQL Today
 
@@ -59,6 +78,11 @@ Use this split:
 | Page agentic summaries | Calls `run_aql_zopedia_agent` first, then formats result. | Keep, but replace generic agent result JSON with formal AQL evidence pack. |
 | Trading Agent | Calls `run_aql_zopedia_agent` first, then formats candidates. | Keep, but require formal AQL evidence pack and citations before formatting. |
 | Zopedia / Omnibar agent | Tool loop, retained search, live search, hypothesis tool. | Keep as the interactive AQL runtime, not a separate research brain. |
+
+Correction on 2026-07-01: the rows above are AQL-adjacent, not complete
+governance. Trading Agent, Attention/Home, Zopedia memory, KG expansion, and
+page summaries still need gateway migration for formatter/review/utility calls
+that currently invoke `generate_json` directly.
 
 ### Direct LLM Calls That Can Stay Utility-Scoped
 
@@ -177,13 +201,36 @@ Status on 2026-05-16:
 - KG service still owns storage and commits.
 - AQL proposes; review flow applies.
 
+### Phase 0: v0.6 Gateway Enforcement
+
+This supersedes the weaker "reviewed direct call" standard.
+
+- Add an AQL/Zopedia gateway around model calls.
+- Classify every model call as `research_grade`, `formatter_over_aql`,
+  `utility`, `schema_repair`, or `admin_probe`.
+- Persist model-call events with surface, purpose, provider, model, status,
+  timing, sanitized errors, usage when available, and durable artifact links.
+- Require formatter-over-AQL calls to link to an evidence pack or explicit AQL
+  unavailable state.
+- Move Trading Agent final synthesis and research reviews through the gateway.
+- Move Attention/Home group synthesis, public review, ticker enrichment, and
+  summary calls through the gateway.
+- Move Zopedia chat synthesis, memory proposal, maintenance learning, KG
+  expansion, company memory, and news-business resolution through the gateway.
+- Replace direct-call source-scan allowlists with temporary migration allowlists
+  that have owner, reason, target, and expiry milestone.
+
 ## Acceptance Tests
 
 ### Architecture Tests
 
 - Each research-grade summary row includes an AQL run ID or evidence-pack ID.
 - Page summary and Trading Agent rows persist the evidence-pack ID, not only final markdown.
-- Direct LLM narrative functions are either removed or marked as formatter-only over AQL input.
+- Direct LLM narrative functions are removed from product code or routed through
+  the AQL/Zopedia gateway as formatter-over-AQL with evidence-pack linkage.
+- Every migrated model call writes a gateway telemetry row.
+- Source scans fail on new product `generate_json` call sites outside gateway
+  internals, provider adapters, tests/fakes, or a temporary migration allowlist.
 
 ### Behavioral Tests
 
@@ -198,9 +245,14 @@ Status on 2026-05-16:
 ### Regression Tests
 
 - If AQL is unavailable, interactive/page summaries fail closed with `data_gaps` and a Zopedia action instead of fabricated prose.
-- Scheduled Trading Agent horizons may still produce explicit low-confidence fallback candidates where the product contract requires reviewable rows for every horizon.
+- Scheduled Trading Agent horizons produce explicit run states for every
+  required horizon. v0.6 should not invent research candidates without
+  gateway-governed evidence; provider/budget/evidence failures become
+  unavailable or insufficient-evidence states with telemetry.
 - If formatter LLM fails, surfaces still show the AQL evidence state.
 - No render path starts an unbounded LLM/AQL call.
+- If provider quota/auth/model errors occur, Admin/System Health can identify
+  the failing surface and purpose without reading raw job logs.
 
 ## Zopedia Dependency
 

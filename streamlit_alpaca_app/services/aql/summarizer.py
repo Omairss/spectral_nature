@@ -956,7 +956,7 @@ def build_attention_agentic_summary_with_trace(
 ) -> tuple[dict[str, Any], dict[str, pd.DataFrame]]:
     """Batch pipeline entry point: research → synthesize → verify once.
 
-    For agentic multi-pass verification with tool access, use the omnibar
+    For agentic multi-pass verification with tool access, use the zopedia
     agent with the hypothesis.verify tool instead.
 
     A critique+judge layer runs after the initial homepage summary is built:

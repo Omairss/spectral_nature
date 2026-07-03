@@ -1,7 +1,7 @@
 # Zopedia Parity Completion Plan
 
 Date: 2026-05-17  
-Last updated: 2026-05-19
+Last updated: 2026-07-01
 
 ## Status
 
@@ -10,7 +10,13 @@ Last updated: 2026-05-19
 Completed:
 
 - Phase 0 product-shell remediation is implemented and deployed to dev.
-- AQL/Zopedia engine spine is now the shared product boundary for chat/agent runs, Attention homepage summaries, page summaries, Trading Agent AQL runs, learning replay, LLM runtime loading, evidence-pack attachment, and ElevenLabs summary audio attachment.
+- AQL/Zopedia entrypoint routing exists for chat/agent runs, Attention homepage summaries, page summaries, Trading Agent AQL runs, learning replay, LLM runtime loading, evidence-pack attachment, and ElevenLabs summary audio attachment.
+
+Correction on 2026-07-01:
+
+- The entrypoint routing above is not full model governance. `load_aql_zopedia_llm_client(surface=...)` labels a client, but it does not enforce provider/model policy, request telemetry, cost attribution, evidence-pack ownership, or direct-call bans.
+- Full parity now depends on the v0.6 gateway work:
+  `documents/plans/V0_6_AQL_ZOPEDIA_GATEWAY_ROADMAP_2026-07-01.md`.
 
 Immediate blocker:
 
@@ -43,7 +49,7 @@ Source-level change:
 
 Important limitation:
 
-- This is the engine-spine correction, not a final parity claim. Some helpers still do narrow LLM formatting/classification over supplied data, but provider access and research-grade orchestration now have a shared boundary. The next proof step is answer-level/browser-path evaluation over chat, Attention homepage, page summaries, and Trading Agent outputs.
+- This is the engine-spine correction, not a final parity claim. Some helpers still do narrow LLM formatting/classification over supplied data, and some formatter/review paths still call `generate_json` directly from product modules. Provider access and research-grade orchestration need the v0.6 gateway before parity can be claimed. The next proof step is answer-level/browser-path evaluation over chat, Attention homepage, page summaries, and Trading Agent outputs after gateway telemetry exists.
 
 Wiring proof added:
 

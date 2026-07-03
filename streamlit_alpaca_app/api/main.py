@@ -15,7 +15,7 @@ if str(APP_ROOT) not in sys.path:
 
 from data_access.contracts import QueryRequest, QueryValidationError, coerce_object
 from data_access.query_service import QueryService
-from services import agent_tools, api_auth, auth_service, auth_store, omnibar as omnibar_service, research_export
+from services import agent_tools, api_auth, auth_service, auth_store, research_export, zopedia_resolver as zopedia_service
 
 
 def _auth_enabled() -> bool:
@@ -81,6 +81,16 @@ def _ensure_scopes(principal: api_auth.AuthPrincipal, required_scopes: list[str]
     missing = [scope for scope in required_scopes if scope not in set(principal.scopes)]
     if missing:
         raise _error(f"Missing required scope(s): {', '.join(missing)}", status.HTTP_403_FORBIDDEN)
+
+
+def _ensure_zopedia_resolve_scope(principal: api_auth.AuthPrincipal) -> None:
+    scopes = set(principal.scopes)
+    if api_auth.SCOPE_ZOPEDIA_RESOLVE in scopes:
+        return
+    raise _error(
+        f"Missing required scope(s): {api_auth.SCOPE_ZOPEDIA_RESOLVE}",
+        status.HTTP_403_FORBIDDEN,
+    )
 
 
 def _resolve_principal(
@@ -288,7 +298,7 @@ class ToolInvokeRequest(BaseModel):
     arguments: dict[str, Any] = Field(default_factory=dict)
 
 
-class OmnibarResolveRequest(BaseModel):
+class ZopediaResolveRequest(BaseModel):
     query: str
     preferred_mode: str = "auto"
     force_refresh: bool = False
@@ -460,14 +470,14 @@ def revoke_agent_key(
     return {"ok": True, "key": row}
 
 
-@app.post("/v1/omnibar/resolve")
-def resolve_omnibar(
-    payload: OmnibarResolveRequest,
+@app.post("/v1/zopedia/resolve")
+def resolve_zopedia(
+    payload: ZopediaResolveRequest,
     principal: api_auth.AuthPrincipal = Depends(_require_principal),
 ) -> dict[str, object]:
-    _ensure_scopes(principal, [api_auth.SCOPE_OMNIBAR_RESOLVE])
+    _ensure_zopedia_resolve_scope(principal)
     try:
-        return omnibar_service.resolve_omnibar(
+        return zopedia_service.resolve_zopedia(
             query=payload.query,
             preferred_mode=payload.preferred_mode,
             force_refresh=bool(payload.force_refresh),
@@ -475,25 +485,25 @@ def resolve_omnibar(
     except HTTPException:
         raise
     except Exception as exc:
-        raise _error(f"Failed to resolve omnibar request: {type(exc).__name__}: {exc}", status.HTTP_500_INTERNAL_SERVER_ERROR)
+        raise _error(f"Failed to resolve Zopedia request: {type(exc).__name__}: {exc}", status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@app.get("/v1/omnibar/suggestions")
-def omnibar_suggestions(
+@app.get("/v1/zopedia/suggestions")
+def zopedia_suggestions(
     limit: int = 8,
     force_refresh: bool = False,
     principal: api_auth.AuthPrincipal = Depends(_require_principal),
 ) -> dict[str, object]:
-    _ensure_scopes(principal, [api_auth.SCOPE_OMNIBAR_RESOLVE])
+    _ensure_zopedia_resolve_scope(principal)
     try:
-        return omnibar_service.list_omnibar_suggestions(
+        return zopedia_service.list_zopedia_suggestions(
             limit=limit,
             force_refresh=bool(force_refresh),
         )
     except HTTPException:
         raise
     except Exception as exc:
-        raise _error(f"Failed to build omnibar suggestions: {type(exc).__name__}: {exc}", status.HTTP_500_INTERNAL_SERVER_ERROR)
+        raise _error(f"Failed to build Zopedia suggestions: {type(exc).__name__}: {exc}", status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @app.get("/v1/capabilities")

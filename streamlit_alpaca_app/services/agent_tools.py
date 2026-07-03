@@ -5,7 +5,7 @@ from typing import Any
 
 from data_access.contracts import QueryRequest, coerce_object
 from data_access.query_service import QueryService
-from . import omnibar_research
+from . import zopedia_research
 from . import zopedia_analysis
 from .aql_zopedia_engine import load_aql_zopedia_llm_client, repair_aql_zopedia_analysis_arguments
 
@@ -787,7 +787,7 @@ def _invoke_research_tool(
     args = coerce_object(arguments, field_name="arguments")
     layer = _resolve_research_layer(service)
     if tool_name == "research.retained_context":
-        payload = omnibar_research.retained_context(
+        payload = zopedia_research.retained_context(
             query=str(args.get("query") or ""),
             focus_symbols=args.get("focus_symbols"),
             max_items=int(args.get("max_items") or 5),
@@ -796,20 +796,20 @@ def _invoke_research_tool(
         )
         datasets = ("attention_home_1d", "attention_research_bundle", "attention_ticker_background")
     elif tool_name == "research.market_impact_map":
-        payload = omnibar_research.market_impact_map(
+        payload = zopedia_research.market_impact_map(
             query=str(args.get("query") or ""),
             max_symbols=int(args.get("max_symbols") or 8),
         )
         datasets = ("attention_market_events", "commodity_proxy_profile")
     elif tool_name == "research.search_evidence":
-        payload = omnibar_research.search_evidence(
+        payload = zopedia_research.search_evidence(
             query=str(args.get("query") or ""),
             tickers=args.get("tickers"),
             max_results=int(args.get("max_results") or 10),
         )
         datasets = ("saa_evidence_chunks", "saa_documents")
     elif tool_name == "research.live_event_evidence":
-        payload = omnibar_research.live_event_evidence(
+        payload = zopedia_research.live_event_evidence(
             query=str(args.get("query") or ""),
             focus_symbols=args.get("focus_symbols"),
             max_results=int(args.get("max_results") or 6),
@@ -818,7 +818,7 @@ def _invoke_research_tool(
         )
         datasets = ("web_research", "attention_search_results")
     elif tool_name == "research.open_page":
-        payload = omnibar_research.open_page(
+        payload = zopedia_research.open_page(
             url=str(args.get("url") or ""),
             max_chars=int(args.get("max_chars") or 5000),
             require_main_content=bool(args.get("require_main_content")),
@@ -852,15 +852,15 @@ def _invoke_zopedia_tool(
 ) -> dict[str, Any]:
     args = coerce_object(arguments, field_name="arguments")
     if tool_name == "zopedia.search_pages":
-        payload = omnibar_research.zopedia_search_pages(
+        payload = zopedia_research.zopedia_search_pages(
             query=str(args.get("query") or ""),
             max_results=int(args.get("max_results") or 8),
             page_types=args.get("page_types"),
         )
     elif tool_name == "zopedia.read_page":
-        payload = omnibar_research.zopedia_read_page(page_id=str(args.get("page_id") or ""))
+        payload = zopedia_research.zopedia_read_page(page_id=str(args.get("page_id") or ""))
     elif tool_name == "zopedia.read_source":
-        payload = omnibar_research.zopedia_read_source(
+        payload = zopedia_research.zopedia_read_source(
             page_id=str(args.get("page_id") or ""),
             ref=str(args.get("ref") or ""),
             kind=str(args.get("kind") or ""),
@@ -869,31 +869,31 @@ def _invoke_zopedia_tool(
             url=str(args.get("url") or ""),
         )
     elif tool_name == "zopedia.sources_for_page":
-        payload = omnibar_research.zopedia_sources_for_page(page_id=str(args.get("page_id") or ""))
+        payload = zopedia_research.zopedia_sources_for_page(page_id=str(args.get("page_id") or ""))
     elif tool_name == "zopedia.trace_to_evidence":
-        payload = omnibar_research.zopedia_trace_to_evidence(
+        payload = zopedia_research.zopedia_trace_to_evidence(
             page_id=str(args.get("page_id") or ""),
             depth=int(args.get("depth") or 1),
         )
     elif tool_name == "zopedia.neighborhood":
-        payload = omnibar_research.zopedia_neighborhood(
+        payload = zopedia_research.zopedia_neighborhood(
             page_id=str(args.get("page_id") or ""),
             depth=int(args.get("depth") or 1),
         )
     elif tool_name == "zopedia.ingest_source":
-        payload = omnibar_research.zopedia_ingest_source(
+        payload = zopedia_research.zopedia_ingest_source(
             title=str(args.get("title") or ""),
             source_text=str(args.get("source_text") or ""),
             url=str(args.get("url") or ""),
             source_type=str(args.get("source_type") or "source"),
         )
     elif tool_name == "zopedia.ingest_youtube":
-        payload = omnibar_research.zopedia_ingest_youtube(
+        payload = zopedia_research.zopedia_ingest_youtube(
             url=str(args.get("url") or ""),
             title=str(args.get("title") or ""),
         )
     elif tool_name == "zopedia.propose_change":
-        payload = omnibar_research.zopedia_propose_change(
+        payload = zopedia_research.zopedia_propose_change(
             proposal_type=str(args.get("proposal_type") or ""),
             page_id=str(args.get("page_id") or ""),
             title=str(args.get("title") or ""),
@@ -901,25 +901,25 @@ def _invoke_zopedia_tool(
             payload=coerce_object(args.get("payload"), field_name="payload"),
         )
     elif tool_name == "zopedia.list_proposals":
-        payload = omnibar_research.zopedia_list_proposals(
+        payload = zopedia_research.zopedia_list_proposals(
             status=str(args.get("status") or "open"),
             max_results=int(args.get("max_results") or 12),
         )
     elif tool_name == "zopedia.list_mutations":
-        payload = omnibar_research.zopedia_list_mutations(
+        payload = zopedia_research.zopedia_list_mutations(
             status=str(args.get("status") or ""),
             mutation_type=str(args.get("mutation_type") or ""),
             max_results=int(args.get("max_results") or 12),
         )
     elif tool_name == "zopedia.list_maintenance_reports":
-        payload = omnibar_research.zopedia_list_maintenance_reports(
+        payload = zopedia_research.zopedia_list_maintenance_reports(
             status=str(args.get("status") or ""),
             max_results=int(args.get("max_results") or 6),
         )
     elif tool_name == "zopedia.apply_mutation":
         raw_pages = args.get("pages")
         raw_evidence_refs = args.get("evidence_refs")
-        payload = omnibar_research.zopedia_apply_mutation(
+        payload = zopedia_research.zopedia_apply_mutation(
             mutation_type=str(args.get("mutation_type") or ""),
             page_id=str(args.get("page_id") or ""),
             target_page_id=str(args.get("target_page_id") or ""),
@@ -931,7 +931,7 @@ def _invoke_zopedia_tool(
             allow_risky=bool(args.get("allow_risky")),
         )
     elif tool_name == "zopedia.rollback_mutation":
-        payload = omnibar_research.zopedia_rollback_mutation(
+        payload = zopedia_research.zopedia_rollback_mutation(
             mutation_id=str(args.get("mutation_id") or ""),
         )
     else:

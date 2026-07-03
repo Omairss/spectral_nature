@@ -47,7 +47,7 @@ def test_invoke_research_tool_dispatches_to_research_module(monkeypatch):
         captured.update(kwargs)
         return {"summary": [{"label": "Oil lower today"}], "llm_context_text": "matched retained context"}
 
-    monkeypatch.setattr(agent_tools.omnibar_research, "retained_context", _fake_retained_context)
+    monkeypatch.setattr(agent_tools.zopedia_research, "retained_context", _fake_retained_context)
 
     service = QueryService(data_access=object())
     result = agent_tools.invoke_tool(
@@ -155,7 +155,7 @@ def test_invoke_zopedia_tool_dispatches_to_research_module(monkeypatch):
         captured.update(kwargs)
         return {"summary": [{"title": "AI Power", "page_id": "zopedia::theme::ai-power"}]}
 
-    monkeypatch.setattr(agent_tools.omnibar_research, "zopedia_search_pages", _fake_search_pages)
+    monkeypatch.setattr(agent_tools.zopedia_research, "zopedia_search_pages", _fake_search_pages)
 
     service = QueryService(data_access=object())
     result = agent_tools.invoke_tool(
@@ -177,7 +177,7 @@ def test_invoke_zopedia_source_tool_dispatches_to_research_module(monkeypatch):
         captured.update(kwargs)
         return {"summary": [{"title": "AI power memo", "page_id": "zopedia::source::ai-power"}]}
 
-    monkeypatch.setattr(agent_tools.omnibar_research, "zopedia_sources_for_page", _fake_sources_for_page)
+    monkeypatch.setattr(agent_tools.zopedia_research, "zopedia_sources_for_page", _fake_sources_for_page)
 
     service = QueryService(data_access=object())
     result = agent_tools.invoke_tool(
@@ -198,7 +198,7 @@ def test_invoke_zopedia_read_source_tool_dispatches_to_research_module(monkeypat
         captured.update(kwargs)
         return {"summary": [{"title": "AI power memo", "ref": "saa_chunk::ai-power"}]}
 
-    monkeypatch.setattr(agent_tools.omnibar_research, "zopedia_read_source", _fake_read_source)
+    monkeypatch.setattr(agent_tools.zopedia_research, "zopedia_read_source", _fake_read_source)
 
     service = QueryService(data_access=object())
     result = agent_tools.invoke_tool(
@@ -220,7 +220,7 @@ def test_invoke_zopedia_list_mutations_tool_dispatches_to_research_module(monkey
         captured.update(kwargs)
         return {"summary": [{"title": "ingest", "mutation_id": "zopedia_mutation::ingest_source::abc"}]}
 
-    monkeypatch.setattr(agent_tools.omnibar_research, "zopedia_list_mutations", _fake_list_mutations)
+    monkeypatch.setattr(agent_tools.zopedia_research, "zopedia_list_mutations", _fake_list_mutations)
 
     service = QueryService(data_access=object())
     result = agent_tools.invoke_tool(
@@ -243,7 +243,7 @@ def test_invoke_zopedia_rollback_mutation_tool_dispatches_to_research_module(mon
         captured.update(kwargs)
         return {"summary": [{"mutation_id": "zopedia_mutation::rollback::abc", "status": "rolled_back"}]}
 
-    monkeypatch.setattr(agent_tools.omnibar_research, "zopedia_rollback_mutation", _fake_rollback_mutation)
+    monkeypatch.setattr(agent_tools.zopedia_research, "zopedia_rollback_mutation", _fake_rollback_mutation)
 
     service = QueryService(data_access=object())
     result = agent_tools.invoke_tool(
@@ -264,7 +264,7 @@ def test_invoke_zopedia_maintenance_reports_tool_dispatches_to_research_module(m
         captured.update(kwargs)
         return {"summary": [{"run_id": "maintenance-run", "issue_count": 2}]}
 
-    monkeypatch.setattr(agent_tools.omnibar_research, "zopedia_list_maintenance_reports", _fake_reports)
+    monkeypatch.setattr(agent_tools.zopedia_research, "zopedia_list_maintenance_reports", _fake_reports)
 
     service = QueryService(data_access=object())
     result = agent_tools.invoke_tool(
@@ -286,7 +286,7 @@ def test_invoke_zopedia_apply_mutation_tool_dispatches_to_research_module(monkey
         captured.update(kwargs)
         return {"summary": [{"mutation_id": "zopedia_mutation::metadata_patch::abc", "status": "committed"}]}
 
-    monkeypatch.setattr(agent_tools.omnibar_research, "zopedia_apply_mutation", _fake_apply_mutation)
+    monkeypatch.setattr(agent_tools.zopedia_research, "zopedia_apply_mutation", _fake_apply_mutation)
 
     service = QueryService(data_access=object())
     result = agent_tools.invoke_tool(

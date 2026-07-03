@@ -126,7 +126,7 @@ from services.market import (
 )
 from views._shared import (
     ADMIN_SECTION,
-    AGENTIC_OMNIBAR_SECTION,
+    ZOPEDIA_SECTION,
     APP_BRAND_KICKER,
     APP_BRAND_NAME,
     ATTENTION_HORIZON_LABELS,
@@ -276,8 +276,8 @@ if "_llm_readiness_logged" not in st.session_state:
 
 HOME_V3_SECTION = "Home v3"
 
-OMNIBAR_POLICY_VERSION = "streamlit-agentic-omnibar-v1"
-OMNIBAR_MACRO_RELEASES: tuple[dict[str, object], ...] = (
+ZOPEDIA_RESOLVER_POLICY_VERSION = "streamlit-zopedia-resolver-v1"
+ZOPEDIA_MACRO_RELEASES: tuple[dict[str, object], ...] = (
     {
         "release_id": "cpi",
         "label": "CPI Release",
@@ -2504,7 +2504,7 @@ def _attention_bundle_title(bundle: dict[str, object], *, fallback: dict[str, ob
     return "Research bundle"
 
 
-def _open_homepage_research_bundle_from_omnibar(bundle_id: str, symbols: list[str] | None = None) -> None:
+def _open_homepage_research_bundle_from_zopedia(bundle_id: str, symbols: list[str] | None = None) -> None:
     normalized_bundle_id = str(bundle_id or "").strip()
     if not normalized_bundle_id:
         _open_workspace_section("Home")
@@ -2514,7 +2514,7 @@ def _open_homepage_research_bundle_from_omnibar(bundle_id: str, symbols: list[st
     st.rerun()
 
 
-def _open_homepage_company_from_omnibar(symbol: str, *, bundle_id: str = "") -> None:
+def _open_homepage_company_from_zopedia(symbol: str, *, bundle_id: str = "") -> None:
     normalized_symbol = _set_workspace_ticker(symbol)
     if not normalized_symbol:
         return
@@ -2526,19 +2526,19 @@ def _open_homepage_company_from_omnibar(symbol: str, *, bundle_id: str = "") -> 
     st.rerun()
 
 
-def _omnibar_normalize_text(value: object) -> str:
+def _zopedia_normalize_text(value: object) -> str:
     return " ".join(str(value or "").split()).strip()
 
 
-def _omnibar_trim(text: object, limit: int = 140) -> str:
-    clean = _omnibar_normalize_text(text)
+def _zopedia_trim(text: object, limit: int = 140) -> str:
+    clean = _zopedia_normalize_text(text)
     if len(clean) <= limit:
         return clean
     return clean[: limit - 3].rstrip() + "..."
 
 
-def _omnibar_exact_ticker_candidate(query: str) -> str:
-    normalized = _omnibar_normalize_text(query).upper()
+def _zopedia_exact_ticker_candidate(query: str) -> str:
+    normalized = _zopedia_normalize_text(query).upper()
     if not normalized or " " in normalized:
         return ""
     if re.fullmatch(r"[A-Z][A-Z0-9.\-]{0,5}", normalized):
@@ -2546,8 +2546,8 @@ def _omnibar_exact_ticker_candidate(query: str) -> str:
     return ""
 
 
-def _omnibar_looks_like_agent_prompt(query: str) -> bool:
-    normalized = _omnibar_normalize_text(query).lower()
+def _zopedia_looks_like_agent_prompt(query: str) -> bool:
+    normalized = _zopedia_normalize_text(query).lower()
     if not normalized:
         return False
     tokens = re.findall(r"[a-z0-9]+", normalized)
@@ -2579,11 +2579,11 @@ def _omnibar_looks_like_agent_prompt(query: str) -> bool:
     return len(tokens) >= 4 or any(token in prompt_markers for token in tokens)
 
 
-def _omnibar_match_score(query: str, candidates: list[str]) -> float:
-    normalized_query = _omnibar_normalize_text(query).lower()
+def _zopedia_match_score(query: str, candidates: list[str]) -> float:
+    normalized_query = _zopedia_normalize_text(query).lower()
     if not normalized_query:
         return 0.0
-    text = " ".join(_omnibar_normalize_text(candidate).lower() for candidate in candidates if _omnibar_normalize_text(candidate))
+    text = " ".join(_zopedia_normalize_text(candidate).lower() for candidate in candidates if _zopedia_normalize_text(candidate))
     if not text:
         return 0.0
     if normalized_query == text:
@@ -2601,15 +2601,15 @@ def _omnibar_match_score(query: str, candidates: list[str]) -> float:
     return min(0.88, 0.34 + coverage * 0.42 + min(0.12, hits * 0.05))
 
 
-def _build_agentic_omnibar_symbol_catalog(
+def _build_zopedia_chat_symbol_catalog(
     beats: list[dict[str, object]],
     symbol_name_map: dict[str, str],
 ) -> dict[str, dict[str, object]]:
     catalog: dict[str, dict[str, object]] = {}
     for beat in beats:
         bundle_id = str(beat.get("bundle_id") or "").strip()
-        sentence = _omnibar_normalize_text(beat.get("sentence"))
-        summary = _omnibar_normalize_text(beat.get("summary"))
+        sentence = _zopedia_normalize_text(beat.get("sentence"))
+        summary = _zopedia_normalize_text(beat.get("summary"))
         for raw_symbol in list(beat.get("symbols") or []):
             symbol = str(raw_symbol or "").upper().strip()
             if not symbol:
@@ -2635,7 +2635,7 @@ def _build_agentic_omnibar_symbol_catalog(
     return catalog
 
 
-def _build_agentic_omnibar_results(
+def _build_zopedia_chat_results(
     cfg: AppConfig,
     query: str,
     beats: list[dict[str, object]],
@@ -2643,12 +2643,12 @@ def _build_agentic_omnibar_results(
     *,
     force_data_refresh: bool,
 ) -> list[dict[str, object]]:
-    normalized_query = _omnibar_normalize_text(query)
+    normalized_query = _zopedia_normalize_text(query)
     if not normalized_query:
         return []
 
     results: list[dict[str, object]] = []
-    exact_symbol = _omnibar_exact_ticker_candidate(normalized_query)
+    exact_symbol = _zopedia_exact_ticker_candidate(normalized_query)
     if exact_symbol:
         symbol_entry = dict(symbol_catalog.get(exact_symbol) or {})
         if not symbol_entry:
@@ -2687,7 +2687,7 @@ def _build_agentic_omnibar_results(
         )
 
     normalized_query_lower = normalized_query.lower()
-    for release in OMNIBAR_MACRO_RELEASES:
+    for release in ZOPEDIA_MACRO_RELEASES:
         aliases = [str(item).lower().strip() for item in list(release.get("aliases") or []) if str(item).strip()]
         score = 0.0
         if normalized_query_lower in aliases:
@@ -2712,7 +2712,7 @@ def _build_agentic_omnibar_results(
         bundle_id = str(beat.get("bundle_id") or "").strip()
         sentence = str(beat.get("sentence") or "").strip()
         summary = str(beat.get("summary") or "").strip()
-        score = 1.0 if bundle_id and normalized_query == bundle_id else _omnibar_match_score(
+        score = 1.0 if bundle_id and normalized_query == bundle_id else _zopedia_match_score(
             normalized_query,
             [sentence, summary, " ".join(list(beat.get("symbols") or [])), bundle_id],
         )
@@ -2723,7 +2723,7 @@ def _build_agentic_omnibar_results(
                 "kind": "bundle",
                 "ref": bundle_id or sentence,
                 "label": sentence or "Research bundle",
-                "subtitle": _omnibar_trim(summary or "Retained research bundle", limit=180),
+                "subtitle": _zopedia_trim(summary or "Retained research bundle", limit=180),
                 "score": min(score, 0.96 if bundle_id and normalized_query != bundle_id else score),
                 "bundle_id": bundle_id,
                 "symbols": [str(item).upper().strip() for item in list(beat.get("symbols") or []) if str(item).strip()],
@@ -2734,7 +2734,7 @@ def _build_agentic_omnibar_results(
         if exact_symbol and symbol == exact_symbol:
             continue
         company_name = str(entry.get("company_name") or "").strip()
-        score = _omnibar_match_score(
+        score = _zopedia_match_score(
             normalized_query,
             [
                 symbol,
@@ -2750,7 +2750,7 @@ def _build_agentic_omnibar_results(
             subtitle_parts.append(company_name)
         beat_titles = list(entry.get("beat_titles") or [])
         if beat_titles:
-            subtitle_parts.append(_omnibar_trim(beat_titles[0], limit=96))
+            subtitle_parts.append(_zopedia_trim(beat_titles[0], limit=96))
         results.append(
             {
                 "kind": "symbol",
@@ -2775,7 +2775,7 @@ def _build_agentic_omnibar_results(
     return deduped[:6]
 
 
-def _agentic_omnibar_confidence_band(intent: str, top_score: float) -> str:
+def _zopedia_chat_confidence_band(intent: str, top_score: float) -> str:
     if intent == "navigate" or top_score >= 0.92:
         return "high"
     if top_score >= 0.7:
@@ -2783,7 +2783,7 @@ def _agentic_omnibar_confidence_band(intent: str, top_score: float) -> str:
     return "low"
 
 
-def _extract_agentic_omnibar_context_items(results: list[dict[str, object]]) -> list[dict[str, str]]:
+def _extract_zopedia_chat_context_items(results: list[dict[str, object]]) -> list[dict[str, str]]:
     items: list[dict[str, str]] = []
     seen: set[tuple[str, str]] = set()
     for result in results:
@@ -2812,7 +2812,7 @@ def _extract_agentic_omnibar_context_items(results: list[dict[str, object]]) -> 
     return items
 
 
-def _build_agentic_omnibar_resolution(
+def _build_zopedia_chat_resolution(
     cfg: AppConfig,
     query: str,
     preferred_mode: str,
@@ -2821,11 +2821,11 @@ def _build_agentic_omnibar_resolution(
     *,
     force_data_refresh: bool,
 ) -> dict[str, object]:
-    normalized_query = _omnibar_normalize_text(query)
+    normalized_query = _zopedia_normalize_text(query)
     normalized_mode = str(preferred_mode or "auto").strip().lower()
     if normalized_mode not in {"auto", "search", "agent"}:
         normalized_mode = "auto"
-    search_results = _build_agentic_omnibar_results(
+    search_results = _build_zopedia_chat_results(
         cfg,
         normalized_query,
         beats,
@@ -2834,7 +2834,7 @@ def _build_agentic_omnibar_resolution(
     )
     top_score = float(search_results[0].get("score") or 0.0) if search_results else 0.0
     top_kind = str(search_results[0].get("kind") or "").strip() if search_results else ""
-    looks_like_agent_prompt = _omnibar_looks_like_agent_prompt(normalized_query)
+    looks_like_agent_prompt = _zopedia_looks_like_agent_prompt(normalized_query)
 
     if normalized_mode == "agent":
         intent = "agent"
@@ -2857,14 +2857,14 @@ def _build_agentic_omnibar_resolution(
         "query": normalized_query,
         "preferred_mode": normalized_mode,
         "intent": intent,
-        "policy_version": OMNIBAR_POLICY_VERSION,
-        "confidence_band": _agentic_omnibar_confidence_band(intent, top_score),
+        "policy_version": ZOPEDIA_RESOLVER_POLICY_VERSION,
+        "confidence_band": _zopedia_chat_confidence_band(intent, top_score),
         "search_results": search_results,
-        "context_items": _extract_agentic_omnibar_context_items(search_results),
+        "context_items": _extract_zopedia_chat_context_items(search_results),
     }
 
 
-def _build_agentic_omnibar_assistant_message(query: str, resolution: dict[str, object]) -> str:
+def _build_zopedia_chat_assistant_message(query: str, resolution: dict[str, object]) -> str:
     agent_result = dict(resolution.get("agent_result") or {})
     agent_answer = str(agent_result.get("answer_markdown") or "").strip()
     if agent_answer:
@@ -2900,29 +2900,29 @@ def _build_agentic_omnibar_assistant_message(query: str, resolution: dict[str, o
         f"{context_line}\n\n"
         "Suggested next steps:\n"
         + "\n".join(steps)
-        + f"\n\nPrompt: {_omnibar_trim(query, limit=220)}"
+        + f"\n\nPrompt: {_zopedia_trim(query, limit=220)}"
     )
 
 
-def _append_agentic_omnibar_turn(query: str, preferred_mode: str, resolution: dict[str, object]) -> None:
-    normalized_query = _omnibar_normalize_text(query)
+def _append_zopedia_chat_turn(query: str, preferred_mode: str, resolution: dict[str, object]) -> None:
+    normalized_query = _zopedia_normalize_text(query)
     normalized_mode = str(preferred_mode or "auto").strip().lower()
     signature = f"{normalized_mode}::{normalized_query.lower()}"
-    if st.session_state.get("agentic_omnibar_last_signature") == signature:
+    if st.session_state.get("zopedia_chat_last_signature") == signature:
         return
-    transcript = list(st.session_state.get("agentic_omnibar_transcript") or [])
+    transcript = list(st.session_state.get("zopedia_chat_transcript") or [])
     transcript.append({"role": "user", "content": normalized_query})
     transcript.append(
         {
             "role": "assistant",
-            "content": _build_agentic_omnibar_assistant_message(normalized_query, resolution),
+            "content": _build_zopedia_chat_assistant_message(normalized_query, resolution),
         }
     )
-    st.session_state["agentic_omnibar_transcript"] = transcript[-10:]
-    st.session_state["agentic_omnibar_last_signature"] = signature
+    st.session_state["zopedia_chat_transcript"] = transcript[-10:]
+    st.session_state["zopedia_chat_last_signature"] = signature
 
 
-def _dispatch_agentic_omnibar_progress(
+def _dispatch_zopedia_chat_progress(
     progress_callback: object | None,
     *,
     stage: str,
@@ -2944,7 +2944,7 @@ def _dispatch_agentic_omnibar_progress(
         return
 
 
-def _humanize_agentic_omnibar_tool_name(tool_name: object) -> str:
+def _humanize_zopedia_chat_tool_name(tool_name: object) -> str:
     raw_name = str(tool_name or "").strip()
     normalized = raw_name.lower().replace("_", ".").replace(" ", ".")
     friendly_names = {
@@ -2987,11 +2987,11 @@ def _humanize_agentic_omnibar_tool_name(tool_name: object) -> str:
     return clean_name if clean_name else "the next data source"
 
 
-def _agentic_omnibar_progress_message(event: dict[str, object]) -> str:
+def _zopedia_chat_progress_message(event: dict[str, object]) -> str:
     stage = str(event.get("stage") or "").strip().lower()
     intent = str(event.get("intent") or "").strip().lower()
     matches = int(event.get("matches") or 0)
-    tool_label = _humanize_agentic_omnibar_tool_name(event.get("tool_name"))
+    tool_label = _humanize_zopedia_chat_tool_name(event.get("tool_name"))
 
     if stage == "resolve_start":
         return "Checking for direct matches."
@@ -3310,7 +3310,7 @@ def _render_thinking_trace_content(
                 args_text = json.dumps(tc.get("arguments") or {}, sort_keys=True, default=str)
             except Exception:
                 args_text = str(tc.get("arguments") or {})
-            human_tool = _humanize_agentic_omnibar_tool_name(tool_name)
+            human_tool = _humanize_zopedia_chat_tool_name(tool_name)
             st.markdown(
                 "<div class='sn-zopedia-trace-step'>"
                 f"<div class='sn-zopedia-trace-title'>{html.escape(str(tc_idx + 1))}. {html.escape(human_tool)}</div>"
@@ -3334,7 +3334,7 @@ def _render_thinking_trace_content(
 
     for step_idx, step in enumerate(trace):
         step_type = str(step.get("type") or "")
-        tool_label = _humanize_agentic_omnibar_tool_name(step.get("tool_name"))
+        tool_label = _humanize_zopedia_chat_tool_name(step.get("tool_name"))
         title = trace_step_title(step, index=step_idx + 1, tool_label=tool_label)
         body = trace_step_body(step)
         if step_type in {"reasoning", "model_reasoning_trace", "tool_start", "tool_complete", "message"}:
@@ -3447,7 +3447,7 @@ def _render_inline_search_results(
                     bundle_id = str(result.get("bundle_id") or result.get("ref") or "").strip()
                     symbols = [str(item).upper().strip() for item in list(result.get("symbols") or []) if str(item).strip()]
                     if st.button("Open →", key=f"{request_id}_{kind}_{bundle_id}_open", use_container_width=True, disabled=not bool(bundle_id)):
-                        _open_homepage_research_bundle_from_omnibar(bundle_id, symbols=symbols)
+                        _open_homepage_research_bundle_from_zopedia(bundle_id, symbols=symbols)
                 elif kind == "macro_release":
                     ref = str(result.get("ref") or "").strip()
                     if st.button("Open →", key=f"{request_id}_{kind}_{ref}_open", use_container_width=True):
@@ -3583,7 +3583,7 @@ def _render_interactive_answer_markdown(
                     st.rerun()
 
 
-def _render_omnibar_welcome(beats: list[dict[str, object]]) -> None:
+def _render_zopedia_welcome(beats: list[dict[str, object]]) -> None:
     """Render the empty-state welcome screen with clickable example prompts."""
     st.markdown("#### What would you like to research?")
 
@@ -3608,8 +3608,8 @@ def _render_omnibar_welcome(beats: list[dict[str, object]]) -> None:
     cols = _responsive_columns(min(len(examples), 3))
     for i, ex in enumerate(examples[:3]):
         with cols[i]:
-            if st.button(ex, key=f"omnibar_welcome_{i}", use_container_width=True):
-                st.session_state["_omnibar_pending_query"] = ex
+            if st.button(ex, key=f"zopedia_welcome_{i}", use_container_width=True):
+                st.session_state["_zopedia_pending_query"] = ex
                 st.rerun()
 
 
@@ -3676,11 +3676,11 @@ def _render_agent_response_message(msg: dict[str, object]) -> None:
             icon=":material/travel_explore:",
         ):
             original_query = str(msg.get("query") or "").strip()
-            st.session_state["_omnibar_pending_query"] = f"{original_query} — verify and expand with more evidence"
+            st.session_state["_zopedia_pending_query"] = f"{original_query} — verify and expand with more evidence"
             st.rerun()
 
 
-def _run_agentic_omnibar_resolution(
+def _run_zopedia_chat_resolution(
     cfg: AppConfig,
     query: str,
     preferred_mode: str,
@@ -3691,14 +3691,14 @@ def _run_agentic_omnibar_resolution(
     progress_callback: object | None = None,
     conversation_history: list[dict[str, object]] | None = None,
     ) -> dict[str, object]:
-    normalized_query = _omnibar_normalize_text(query)
+    normalized_query = _zopedia_normalize_text(query)
     agent_query, followup_resolved = resolve_aql_zopedia_followup_query(
         normalized_query,
         conversation_history,
     )
     resolution_query = agent_query if followup_resolved else normalized_query
     resolution_mode = "agent" if followup_resolved else preferred_mode
-    _dispatch_agentic_omnibar_progress(
+    _dispatch_zopedia_chat_progress(
         progress_callback,
         stage="resolve_start",
         message="Resolving intent and direct matches.",
@@ -3706,7 +3706,7 @@ def _run_agentic_omnibar_resolution(
         query=normalized_query,
     )
     if followup_resolved:
-        _dispatch_agentic_omnibar_progress(
+        _dispatch_zopedia_chat_progress(
             progress_callback,
             stage="conversation_followup_resolved",
             message="Resolved the reply against the prior chat turn.",
@@ -3714,7 +3714,7 @@ def _run_agentic_omnibar_resolution(
             original_query=normalized_query,
             resolved_query=agent_query,
         )
-    resolution = _build_agentic_omnibar_resolution(
+    resolution = _build_zopedia_chat_resolution(
         cfg,
         resolution_query,
         resolution_mode,
@@ -3731,7 +3731,7 @@ def _run_agentic_omnibar_resolution(
         resolution["router_intent"] = router_intent
         resolution["intent"] = "agent"
         resolution["routing_note"] = "Deterministic routing supplied context; the agent remains responsible for the response."
-    _dispatch_agentic_omnibar_progress(
+    _dispatch_zopedia_chat_progress(
         progress_callback,
         stage="intent_ready",
         message=f"Resolved intent: {str(resolution.get('intent') or 'search').capitalize()}.",
@@ -3741,7 +3741,7 @@ def _run_agentic_omnibar_resolution(
         matches=len(list(resolution.get("search_results") or [])),
     )
     if str(resolution.get("intent") or "") == "agent":
-        _dispatch_agentic_omnibar_progress(
+        _dispatch_zopedia_chat_progress(
             progress_callback,
             stage="agent_dispatch",
             message="Running shared agent across available modules.",
@@ -3752,7 +3752,7 @@ def _run_agentic_omnibar_resolution(
             agent_progress = max(0.0, min(float(event.get("progress") or 0.0), 1.0))
             bridged_event = dict(event)
             bridged_event["progress"] = 0.34 + (agent_progress * 0.62)
-            _dispatch_agentic_omnibar_progress(progress_callback, **bridged_event)
+            _dispatch_zopedia_chat_progress(progress_callback, **bridged_event)
 
         resolution["agent_result"] = run_aql_zopedia_agent(
             query=agent_query,
@@ -3762,10 +3762,10 @@ def _run_agentic_omnibar_resolution(
             progress_callback=_agent_progress_bridge,
             conversation_history=conversation_history,
         )
-    st.session_state["agentic_omnibar_resolution"] = resolution
+    st.session_state["zopedia_chat_resolution"] = resolution
     if str(resolution.get("intent") or "") == "agent":
-        _append_agentic_omnibar_turn(query, preferred_mode, resolution)
-    _dispatch_agentic_omnibar_progress(
+        _append_zopedia_chat_turn(query, preferred_mode, resolution)
+    _dispatch_zopedia_chat_progress(
         progress_callback,
         stage="completed",
         message="Zopedia response ready.",
@@ -3775,7 +3775,7 @@ def _run_agentic_omnibar_resolution(
     return resolution
 
 
-def _build_agentic_omnibar_tool_figure(render_payload: dict[str, object]) -> go.Figure | None:
+def _build_zopedia_chat_tool_figure(render_payload: dict[str, object]) -> go.Figure | None:
     kind = str(render_payload.get("kind") or "").strip().lower()
     if kind == "timeseries":
         x_values = [str(item).strip() for item in list(render_payload.get("x") or []) if str(item).strip()]
@@ -3880,10 +3880,10 @@ def _build_agentic_omnibar_tool_figure(render_payload: dict[str, object]) -> go.
     return fig
 
 
-def _render_agentic_omnibar_debug_panel(resolution: dict[str, object], *, embedded: bool = False) -> None:
+def _render_zopedia_chat_debug_panel(resolution: dict[str, object], *, embedded: bool = False) -> None:
     agent_result = dict(resolution.get("agent_result") or {})
     tool_calls = list(agent_result.get("tool_calls") or [])
-    transcript = list(st.session_state.get("agentic_omnibar_transcript") or [])
+    transcript = list(st.session_state.get("zopedia_chat_transcript") or [])
 
     panel = st.container() if embedded else st.expander("Admin Debug", expanded=False)
     with panel:
@@ -3932,7 +3932,7 @@ def _render_agentic_omnibar_debug_panel(resolution: dict[str, object], *, embedd
                                 )
                             render_payload = dict((tool_call.get("result_summary") or {}).get("render_payload") or {})
                             if render_payload:
-                                chart = _build_agentic_omnibar_tool_figure(render_payload)
+                                chart = _build_zopedia_chat_tool_figure(render_payload)
                                 if chart is not None:
                                     st.plotly_chart(
                                         chart,
@@ -4296,7 +4296,7 @@ def _render_zopedia_page_reader(*, key_prefix: str = "zopedia_memory") -> None:
     with action_cols[2]:
         if st.button("Ask", key=f"{key_prefix}_page_ask", use_container_width=True):
             st.session_state["zopedia_workspace_mode"] = "Chat"
-            st.session_state["_omnibar_pending_query"] = {
+            st.session_state["_zopedia_pending_query"] = {
                 "display_query": f"Explain {title}",
                 "agent_query": f"Read Zopedia page {page_id} and explain the current state, sources, and open questions.",
             }
@@ -4652,7 +4652,7 @@ def _render_zopedia_proposal_reader(*, key_prefix: str = "zopedia_memory") -> No
     with action_cols[0]:
         if st.button("Ask", key=f"{key_prefix}_proposal_ask", use_container_width=True):
             st.session_state["zopedia_workspace_mode"] = "Chat"
-            st.session_state["_omnibar_pending_query"] = {
+            st.session_state["_zopedia_pending_query"] = {
                 "display_query": f"Review proposal: {title}",
                 "agent_query": (
                     f"Review Zopedia proposal {proposal_id}. Explain what it would add, "
@@ -4978,14 +4978,14 @@ def _zopedia_thread_messages_for_session(thread_payload: dict[str, object]) -> l
 
 
 def _ensure_zopedia_chat_thread(*, user_key: str, title: str) -> str:
-    thread_id = str(st.session_state.get("agentic_omnibar_thread_id") or "").strip()
+    thread_id = str(st.session_state.get("zopedia_chat_thread_id") or "").strip()
     if thread_id:
         return thread_id
     created = create_chat_thread(user_key=user_key, title=title, metadata={"source": "zopedia_chat"})
     thread_id = str((created or {}).get("thread_id") or "").strip()
     if thread_id:
-        st.session_state["agentic_omnibar_thread_id"] = thread_id
-        st.session_state["agentic_omnibar_thread_title"] = str((created or {}).get("title") or title).strip()
+        st.session_state["zopedia_chat_thread_id"] = thread_id
+        st.session_state["zopedia_chat_thread_title"] = str((created or {}).get("title") or title).strip()
     return thread_id
 
 
@@ -5010,18 +5010,18 @@ def _persist_zopedia_chat_message(
     )
     saved_thread_id = str((saved or {}).get("thread_id") or thread_id or "").strip()
     if saved_thread_id:
-        st.session_state["agentic_omnibar_thread_id"] = saved_thread_id
+        st.session_state["zopedia_chat_thread_id"] = saved_thread_id
     return saved_thread_id
 
 
 def _reset_zopedia_chat_session() -> None:
     for state_key in [
-        "agentic_omnibar_chat",
-        "agentic_omnibar_thread_id",
-        "agentic_omnibar_thread_title",
-        "agentic_omnibar_resolution",
-        "agentic_omnibar_transcript",
-        "agentic_omnibar_thinking_trace",
+        "zopedia_chat_chat",
+        "zopedia_chat_thread_id",
+        "zopedia_chat_thread_title",
+        "zopedia_chat_resolution",
+        "zopedia_chat_transcript",
+        "zopedia_chat_thinking_trace",
     ]:
         st.session_state.pop(state_key, None)
 
@@ -5066,9 +5066,9 @@ def _load_zopedia_thread_into_session(*, thread_id: str, user_key: str) -> bool:
     loaded = load_chat_thread(thread_id=thread_id, user_key=user_key)
     if not isinstance(loaded, dict):
         return False
-    st.session_state["agentic_omnibar_chat"] = _zopedia_thread_messages_for_session(loaded)
-    st.session_state["agentic_omnibar_thread_id"] = str(loaded.get("thread_id") or "")
-    st.session_state["agentic_omnibar_thread_title"] = str(loaded.get("title") or "Zopedia chat")
+    st.session_state["zopedia_chat_chat"] = _zopedia_thread_messages_for_session(loaded)
+    st.session_state["zopedia_chat_thread_id"] = str(loaded.get("thread_id") or "")
+    st.session_state["zopedia_chat_thread_title"] = str(loaded.get("title") or "Zopedia chat")
     for state_key in list(st.session_state.keys()):
         if str(state_key).startswith("zopedia_thinking_trace_open_"):
             st.session_state.pop(state_key, None)
@@ -5112,8 +5112,8 @@ def _render_zopedia_thread_list(
             label_visibility="collapsed",
         ).strip().lower()
 
-    current_thread_id = str(st.session_state.get("agentic_omnibar_thread_id") or "").strip()
-    current_chat_loaded = bool(st.session_state.get("agentic_omnibar_chat"))
+    current_thread_id = str(st.session_state.get("zopedia_chat_thread_id") or "").strip()
+    current_chat_loaded = bool(st.session_state.get("zopedia_chat_chat"))
     visible_threads: list[dict[str, object]] = []
     for item in threads:
         title = _zopedia_clean_title(item.get("title"), fallback="Zopedia chat", max_chars=120)
@@ -5146,7 +5146,7 @@ def _render_zopedia_thread_list(
 
 
 def _render_zopedia_chat_history_controls(*, user_key: str) -> None:
-    current_title = _zopedia_clean_title(st.session_state.get("agentic_omnibar_thread_title"))
+    current_title = _zopedia_clean_title(st.session_state.get("zopedia_chat_thread_title"))
     st.markdown(f"**{current_title}**")
     _render_zopedia_new_chat_action(key="zopedia_new_chat", label="New chat")
     _render_zopedia_thread_list(user_key=user_key, key_prefix="zopedia_history_panel")
@@ -5634,7 +5634,7 @@ def _render_zopedia_right_drawer(*, user_key: str, last_resolution: dict[str, ob
     if _current_user_is_admin():
         with st.popover("Admin", icon=":material/admin_panel_settings:", use_container_width=True, key="zopedia_admin_drawer"):
             if last_resolution:
-                _render_agentic_omnibar_debug_panel(last_resolution, embedded=True)
+                _render_zopedia_chat_debug_panel(last_resolution, embedded=True)
             else:
                 st.caption("No agent run selected yet.")
 
@@ -5659,7 +5659,7 @@ def _render_zopedia_mobile_context(*, user_key: str, last_resolution: dict[str, 
     if _current_user_is_admin():
         with st.popover("Admin", icon=":material/admin_panel_settings:", use_container_width=True, key="zopedia_mobile_admin"):
             if last_resolution:
-                _render_agentic_omnibar_debug_panel(last_resolution, embedded=True)
+                _render_zopedia_chat_debug_panel(last_resolution, embedded=True)
             else:
                 st.caption("No agent run selected yet.")
 
@@ -5669,7 +5669,7 @@ def _render_zopedia_header(*, mode: str = "Chat") -> None:
         current_title = "Memory browser"
     else:
         current_title = _zopedia_clean_title(
-            st.session_state.get("agentic_omnibar_thread_title"),
+            st.session_state.get("zopedia_chat_thread_title"),
             fallback="Ask about a market, company, source, or theme",
             max_chars=96,
         )
@@ -5680,7 +5680,7 @@ def _render_zopedia_header(*, mode: str = "Chat") -> None:
     )
 
 
-def _render_agentic_omnibar_section(
+def _render_zopedia_chat_section(
     cfg: AppConfig,
     *,
     force_data_refresh: bool,
@@ -5706,14 +5706,14 @@ def _render_agentic_omnibar_section(
         tracked_symbols,
         force_refresh=force_data_refresh,
     ) if tracked_symbols else {}
-    symbol_catalog = _build_agentic_omnibar_symbol_catalog(beats, symbol_name_map)
+    symbol_catalog = _build_zopedia_chat_symbol_catalog(beats, symbol_name_map)
 
     # ── Chat history ──
-    if "agentic_omnibar_chat" not in st.session_state:
-        st.session_state["agentic_omnibar_chat"] = []
-    chat: list[dict[str, object]] = st.session_state["agentic_omnibar_chat"]
+    if "zopedia_chat_chat" not in st.session_state:
+        st.session_state["zopedia_chat_chat"] = []
+    chat: list[dict[str, object]] = st.session_state["zopedia_chat_chat"]
     zopedia_user_key = _zopedia_chat_user_key()
-    if "_omnibar_pending_query" in st.session_state:
+    if "_zopedia_pending_query" in st.session_state:
         st.session_state["zopedia_workspace_mode"] = "Chat"
     workspace_mode = _zopedia_workspace_mode()
     last_admin_resolution = None
@@ -5738,7 +5738,7 @@ def _render_agentic_omnibar_section(
         else:
             with conversation_area:
                 if not chat:
-                    _render_omnibar_welcome(beats)
+                    _render_zopedia_welcome(beats)
                 for msg in chat:
                     with st.chat_message(str(msg.get("role") or "assistant")):
                         if msg.get("role") == "assistant":
@@ -5767,7 +5767,7 @@ def _render_agentic_omnibar_section(
                 conversation_area = st.container()
                 with conversation_area:
                     if not chat:
-                        _render_omnibar_welcome(beats)
+                        _render_zopedia_welcome(beats)
                     for msg in chat:
                         with st.chat_message(str(msg.get("role") or "assistant")):
                             if msg.get("role") == "assistant":
@@ -5784,7 +5784,7 @@ def _render_agentic_omnibar_section(
         return
 
     # ── Input handling ──
-    pending_query = st.session_state.pop("_omnibar_pending_query", None)
+    pending_query = st.session_state.pop("_zopedia_pending_query", None)
     typed_query, uploaded_files = _render_zopedia_chat_composer(chat_input_area)
     ingested_uploads = _ingest_zopedia_chat_uploads(uploaded_files)
     if ingested_uploads and not typed_query and pending_query is None:
@@ -5870,7 +5870,7 @@ def _render_agentic_omnibar_section(
                 run_id=str(agent_result.get("run_id") or msg_data.get("msg_id") or ""),
                 title=display_query or active_query,
             )
-        st.session_state["agentic_omnibar_chat"] = chat
+        st.session_state["zopedia_chat_chat"] = chat
 
 
 def _run_and_render_agent_live(
@@ -5898,7 +5898,7 @@ def _run_and_render_agent_live(
     def _progress_callback(event: dict[str, object]) -> None:
         nonlocal tool_count
         stage = str(event.get("stage") or "").strip().lower()
-        message = _agentic_omnibar_progress_message(event)
+        message = _zopedia_chat_progress_message(event)
 
         if stage == "planner_start":
             prior_tools = int(event.get("tool_call_count") or 0)
@@ -5935,18 +5935,18 @@ def _run_and_render_agent_live(
             if len(args_text) > 120:
                 args_text = args_text[:117] + "..."
             thinking_trace.append({"type": "tool_start", "tool_name": tool_name, "args_text": args_text})
-            human_tool = _humanize_agentic_omnibar_tool_name(tool_name)
+            human_tool = _humanize_zopedia_chat_tool_name(tool_name)
             with status_widget:
                 st.markdown(f"→ **{human_tool}**")
             _update_live_status(f"Checking {human_tool}...")
         elif stage == "tool_heartbeat":
             tool_name = str(event.get("tool_name") or "")
-            human_tool = _humanize_agentic_omnibar_tool_name(tool_name)
+            human_tool = _humanize_zopedia_chat_tool_name(tool_name)
             elapsed = int(event.get("elapsed_seconds") or 0)
             _update_live_status(f"Checking {human_tool}... ({elapsed}s)")
         elif stage == "tool_timeout":
             tool_name = str(event.get("tool_name") or "")
-            human_tool = _humanize_agentic_omnibar_tool_name(tool_name)
+            human_tool = _humanize_zopedia_chat_tool_name(tool_name)
             elapsed = int(event.get("elapsed_seconds") or 0)
             thinking_trace.append({"type": "message", "text": f"{human_tool} timed out after {elapsed}s; moving on."})
             with status_widget:
@@ -6001,7 +6001,7 @@ def _run_and_render_agent_live(
     resolution: dict[str, object] = {}
     run_error: str = ""
     try:
-        resolution = _run_agentic_omnibar_resolution(
+        resolution = _run_zopedia_chat_resolution(
             cfg,
             query,
             "auto",
@@ -6083,7 +6083,7 @@ def _run_and_render_agent_live(
             type="tertiary",
             icon=":material/travel_explore:",
         ):
-            st.session_state["_omnibar_pending_query"] = f"{query} — verify and expand with more evidence"
+            st.session_state["_zopedia_pending_query"] = f"{query} — verify and expand with more evidence"
             st.rerun()
 
     # Return data for history re-rendering
@@ -8232,8 +8232,8 @@ if section == "Home":
         force_data_refresh=force_data_refresh,
     )
 
-elif section == AGENTIC_OMNIBAR_SECTION:
-    _render_agentic_omnibar_section(
+elif section == ZOPEDIA_SECTION:
+    _render_zopedia_chat_section(
         cfg,
         force_data_refresh=force_data_refresh,
     )

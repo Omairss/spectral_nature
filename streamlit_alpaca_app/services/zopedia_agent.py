@@ -214,7 +214,7 @@ _STEP_SCHEMA: dict[str, Any] = {
 
 _AGENT_FINAL_SYSTEM_PROMPT = register_narrative_prompt(
     name="Zopedia Agent Final Answer (markdown response to user)",
-    file="services/omnibar_agent.py",
+    file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
         f"You are the Spectral Nature Zopedia agent. {NARRATIVE_STYLE_RULE} "
@@ -254,7 +254,7 @@ _FINAL_SCHEMA: dict[str, Any] = {
 
 _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
     name="Zopedia Agent Answer Judge (evidence sufficiency review)",
-    file="services/omnibar_agent.py",
+    file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
         f"You are the Spectral Nature Zopedia answer judge. {NARRATIVE_STYLE_RULE} "
@@ -315,7 +315,7 @@ _TRAJECTORY_MONITOR_SCHEMA: dict[str, Any] = {
 
 _TRAJECTORY_MONITOR_SYSTEM_PROMPT = register_narrative_prompt(
     name="Zopedia Agent Trajectory Monitor (wandering control)",
-    file="services/omnibar_agent.py",
+    file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
         f"You are the Spectral Nature Zopedia trajectory monitor. {NARRATIVE_STYLE_RULE} "
@@ -341,7 +341,7 @@ _TRAJECTORY_MONITOR_SYSTEM_PROMPT = register_narrative_prompt(
 
 _AGENT_MEMORY_SYSTEM_PROMPT = register_narrative_prompt(
     name="Zopedia Agent Memory Reflection (automatic wiki maintenance)",
-    file="services/omnibar_agent.py",
+    file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
         f"You are the Spectral Nature Zopedia memory maintainer. {NARRATIVE_STYLE_RULE} "
@@ -469,7 +469,7 @@ def _json_dumps(value: Any, *, limit: int = 3200) -> str:
 def _with_aql_evidence_pack(
     result: dict[str, Any],
     *,
-    surface: str = "omnibar_agent",
+    surface: str = "zopedia_agent",
 ) -> dict[str, Any]:
     """Attach the shared AQL evidence-pack contract to an agent result."""
     tool_calls = result.get("tool_calls")
@@ -1315,7 +1315,7 @@ def _safe_agent_error_text(error: object) -> str:
 
 _PLANNER_SYSTEM_PROMPT = register_narrative_prompt(
     name="Zopedia Agent Planner (tool-calling reasoning)",
-    file="services/omnibar_agent.py",
+    file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
         f"You are the Spectral Nature Zopedia agent. {NARRATIVE_STYLE_RULE} "
@@ -1901,7 +1901,7 @@ def _invoke_tool_with_heartbeat(
         except BaseException as exc:
             error_box[0] = exc
 
-    tool_thread = threading.Thread(target=_run_tool, name=f"omnibar-tool-{tool_name[:32]}", daemon=True)
+    tool_thread = threading.Thread(target=_run_tool, name=f"zopedia-tool-{tool_name[:32]}", daemon=True)
     tool_thread.start()
     heartbeat_interval = 5.0
     elapsed = 0.0
@@ -1960,7 +1960,7 @@ def _run_hidden_step_with_timeout(
         except BaseException as exc:
             error_box[0] = exc
 
-    step_thread = threading.Thread(target=_runner, name=f"omnibar-hidden-{label[:32]}", daemon=True)
+    step_thread = threading.Thread(target=_runner, name=f"zopedia-hidden-{label[:32]}", daemon=True)
     step_thread.start()
     heartbeat_interval = 5.0
     elapsed = 0.0
@@ -2288,7 +2288,7 @@ def _run_answer_judge(
         except BaseException as exc:
             error_box[0] = exc
 
-    judge_thread = threading.Thread(target=_runner, name="omnibar-answer-judge", daemon=True)
+    judge_thread = threading.Thread(target=_runner, name="zopedia-answer-judge", daemon=True)
     judge_thread.start()
     heartbeat_interval = 5.0
     elapsed = 0.0
@@ -2437,7 +2437,7 @@ def _run_trajectory_monitor(
         except BaseException as exc:
             error_box[0] = exc
 
-    monitor_thread = threading.Thread(target=_runner, name="omnibar-trajectory-monitor", daemon=True)
+    monitor_thread = threading.Thread(target=_runner, name="zopedia-trajectory-monitor", daemon=True)
     monitor_thread.start()
     heartbeat_interval = 5.0
     elapsed = 0.0
@@ -3126,7 +3126,7 @@ def _run_zopedia_agent_loop(
             # and retry with those.  This replaces brittle hardcoded stop-word lists.
             if saa_frame.empty:
                 try:
-                    from .omnibar_research import market_impact_map
+                    from .zopedia_research import market_impact_map
                     impact = _run_hidden_step_with_timeout(
                         label="prefetch keyword extraction",
                         timeout_seconds=prefetch_timeout_seconds,

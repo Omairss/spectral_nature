@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import pandas as pd
 
-from services import omnibar_research
+from services import zopedia_research
 
 
 
 def test_market_impact_map_highlights_oil_and_spillover_symbols(monkeypatch):
     monkeypatch.setattr(
-        omnibar_research,
+        zopedia_research,
         "_llm_query_intent",
         lambda query, llm_client, max_symbols: {
             "event_type": "oil",
@@ -24,7 +24,7 @@ def test_market_impact_map_highlights_oil_and_spillover_symbols(monkeypatch):
         },
     )
 
-    payload = omnibar_research.market_impact_map(
+    payload = zopedia_research.market_impact_map(
         query="How are things going to pan out now that there's no agreement in Iran US talks",
         max_symbols=8,
     )
@@ -39,7 +39,7 @@ def test_market_impact_map_highlights_oil_and_spillover_symbols(monkeypatch):
 
 def test_open_page_uses_browser_helper(monkeypatch):
     monkeypatch.setattr(
-        omnibar_research,
+        zopedia_research,
         "browse_page",
         lambda url, **kwargs: {
             "url": url,
@@ -52,7 +52,7 @@ def test_open_page_uses_browser_helper(monkeypatch):
         },
     )
 
-    payload = omnibar_research.open_page(url="https://example.com/story", max_chars=1200)
+    payload = zopedia_research.open_page(url="https://example.com/story", max_chars=1200)
 
     assert payload["summary"][0]["title"] == "Example page"
     assert "Example visible text." in payload["llm_context_text"]
@@ -102,12 +102,11 @@ def test_live_event_evidence_uses_impact_symbols_when_no_focus_symbols(monkeypat
             del force_refresh
             return type("Resolved", (), {"payload": {}})()
 
-    monkeypatch.setattr(omnibar_research, "search_market_event_news_payload", _fake_search_market_event_news_payload)
-    monkeypatch.setattr(omnibar_research, "search_symbol_news_payload", _fake_search_symbol_news_payload)
-    monkeypatch.setattr(omnibar_research, "load_aql_zopedia_llm_client", lambda **kwargs: None)
-    monkeypatch.setattr(omnibar_research, "_fast_serper_client", lambda timeout_seconds: None)
+    monkeypatch.setattr(zopedia_research, "search_market_event_news_payload", _fake_search_market_event_news_payload)
+    monkeypatch.setattr(zopedia_research, "search_symbol_news_payload", _fake_search_symbol_news_payload)
+    monkeypatch.setattr(zopedia_research, "load_aql_zopedia_llm_client", lambda **kwargs: None)
     monkeypatch.setattr(
-        omnibar_research,
+        zopedia_research,
         "_llm_query_intent",
         lambda query, llm_client, max_symbols: {
             "event_type": "oil",
@@ -121,12 +120,12 @@ def test_live_event_evidence_uses_impact_symbols_when_no_focus_symbols(monkeypat
         },
     )
     monkeypatch.setattr(
-        omnibar_research,
-        "resolve_omnibar",
+        zopedia_research,
+        "resolve_zopedia",
         lambda **kwargs: {"search_results": [], "intent": "agent"},
     )
 
-    payload = omnibar_research.live_event_evidence(
+    payload = zopedia_research.live_event_evidence(
         query="Iran talks stalled again",
         layer=_FakeLayer(),
     )
@@ -167,13 +166,11 @@ def test_live_event_evidence_returns_partial_when_internal_impact_map_times_out(
             del force_refresh
             return type("Resolved", (), {"payload": {}})()
 
-    monkeypatch.setattr(omnibar_research, "market_impact_map", _slow_market_impact_map)
-    monkeypatch.setattr(omnibar_research, "search_market_event_news_payload", _fake_search_market_event_news_payload)
-    monkeypatch.setattr(omnibar_research, "_fast_search_clients", lambda timeout_seconds: (None, None))
-    monkeypatch.setattr(omnibar_research, "_fast_serper_client", lambda timeout_seconds: None)
-    monkeypatch.setattr(omnibar_research, "get_config_param", lambda key: 1 if "timeout" in str(key).lower() else 6)
+    monkeypatch.setattr(zopedia_research, "market_impact_map", _slow_market_impact_map)
+    monkeypatch.setattr(zopedia_research, "search_market_event_news_payload", _fake_search_market_event_news_payload)
+    monkeypatch.setattr(zopedia_research, "get_config_param", lambda key: 1 if "timeout" in str(key).lower() else 6)
 
-    payload = omnibar_research.live_event_evidence(
+    payload = zopedia_research.live_event_evidence(
         query="What about geopolitics?",
         focus_symbols=["USO"],
         layer=_FakeLayer(),
@@ -181,3 +178,11 @@ def test_live_event_evidence_returns_partial_when_internal_impact_map_times_out(
 
     assert payload["summary"][0]["headline"] == "Oil falls as geopolitical risk premium fades"
     assert any("live_event_impact_map timed out" in item for item in payload["messages"])
+
+
+def test_zopedia_research_does_not_load_search_providers_directly():
+    source = zopedia_research.__loader__.get_source(zopedia_research.__name__)  # type: ignore[union-attr]
+
+    assert "load_serper_config" not in source
+    assert "SerperSearchClient" not in source
+    assert "_fast_search_clients" not in source

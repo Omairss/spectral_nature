@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import replace
 import json
 import os
 import re
@@ -14,10 +13,9 @@ from data_access.layer import DataAccessLayer
 from services.attention_agentic import search_symbol_news_payload
 from services.attention_live_research import search_market_event_news_payload
 from services.llm import get_config_param, register_config_param
-from services.omnibar import resolve_omnibar
+from services.zopedia_resolver import resolve_zopedia
 from services.aql_zopedia_engine import load_aql_zopedia_llm_client
 from services.common.news_freshness import is_recent_for_attention
-from services.web_research import SerperSearchClient, SerpAPISearchClient, TavilySearchClient, load_serper_config, load_serpapi_config, load_tavily_config
 from .page_browsing import browse_page
 from .saa import (
     apply_zopedia_typed_mutation,
@@ -227,36 +225,6 @@ def _remaining_budget(deadline: float) -> int:
     return max(int(deadline - time.monotonic()), 0)
 
 
-def _fast_search_clients(timeout_seconds: int) -> tuple[SerpAPISearchClient | None, TavilySearchClient | None]:
-    safe_timeout = max(int(timeout_seconds), 3)
-    serp_client = None
-    tavily_client = None
-    try:
-        serp_cfg = load_serpapi_config()
-        if serp_cfg is not None:
-            serp_client = SerpAPISearchClient(replace(serp_cfg, timeout_seconds=safe_timeout))
-    except Exception:
-        serp_client = None
-    try:
-        tavily_cfg = load_tavily_config()
-        if tavily_cfg is not None:
-            tavily_client = TavilySearchClient(replace(tavily_cfg, timeout_seconds=safe_timeout))
-    except Exception:
-        tavily_client = None
-    return serp_client, tavily_client
-
-
-def _fast_serper_client(timeout_seconds: int) -> SerperSearchClient | None:
-    safe_timeout = max(int(timeout_seconds), 3)
-    try:
-        serper_cfg = load_serper_config()
-        if serper_cfg is not None:
-            return SerperSearchClient(replace(serper_cfg, timeout_seconds=safe_timeout))
-    except Exception:
-        return None
-    return None
-
-
 def _layer(layer: DataAccessLayer | None = None) -> DataAccessLayer:
     if layer is not None and hasattr(layer, "resolve_attention_home_1d"):
         return layer
@@ -448,7 +416,7 @@ def retained_context(
             impact = {}
         impact["focus_symbols"] = list(dict.fromkeys(scoped_symbols + list(impact.get("focus_symbols") or [])))[:6]
     else:
-        resolution = resolve_omnibar(
+        resolution = resolve_zopedia(
             query=query,
             preferred_mode="search",
             force_refresh=force_refresh,
@@ -687,7 +655,7 @@ def live_event_evidence(
         resolution, resolution_warning = _run_with_timeout(
             "live_event_symbol_resolution",
             min(helper_timeout_seconds, max(_remaining_budget(deadline), 1)),
-            lambda: resolve_omnibar(
+            lambda: resolve_zopedia(
                 query=normalized_query,
                 preferred_mode="search",
                 force_refresh=force_refresh,
@@ -709,8 +677,6 @@ def live_event_evidence(
 
     rows: list[dict[str, Any]] = []
     if impact.get("evidence_needed", True):
-        serp_client, tavily_client = _fast_search_clients(provider_timeout_seconds)
-        serper_client = _fast_serper_client(provider_timeout_seconds)
         event_payload, event_warning = _run_with_timeout(
             "live_event_news_search",
             max(min(_remaining_budget(deadline), provider_timeout_seconds * 2 + 3), 1),
@@ -724,9 +690,9 @@ def live_event_evidence(
                     "event_title": normalized_query,
                 },
                 max_results=max(min(safe_limit, 6), 3),
-                serp_client=serp_client,
-                serper_client=serper_client,
-                tavily_client=tavily_client,
+                serp_client=None,
+                serper_client=None,
+                tavily_client=None,
                 search_query=normalized_query,
                 allow_llm_query=False,
             ),
@@ -760,16 +726,15 @@ def live_event_evidence(
         )
         if asset_warning:
             messages.append(asset_warning)
-        serp_client, tavily_client = _fast_search_clients(min(provider_timeout_seconds, max(remaining, 3)))
         payload, symbol_warning = _run_with_timeout(
             f"symbol_news_{symbol}",
             max(min(remaining, provider_timeout_seconds + 3), 1),
-            lambda symbol=symbol, company_name=company_name, serp_client=serp_client, tavily_client=tavily_client: search_symbol_news_payload(
+            lambda symbol=symbol, company_name=company_name: search_symbol_news_payload(
                 symbol,
                 company_name=company_name,
                 max_results=max(min(safe_limit, 6), 3),
-                serp_client=serp_client,
-                tavily_client=tavily_client,
+                serp_client=None,
+                tavily_client=None,
                 llm_client=None,
             ),
             {"articles": pd.DataFrame(), "messages": [f"Symbol news search for {symbol} did not finish within budget."]},

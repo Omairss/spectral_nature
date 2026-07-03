@@ -13,7 +13,7 @@
 #   Pipeline — pipeline/, compute/, services/aql/, services/saa/, services/attention_home_summary.py,
 #              services/attention_agentic.py, services/attention_live_research.py,
 #              services/attention_market_events.py, services/attention_home_1d.py,
-#              services/attention_ticker_snapshots.py, services/omnibar*.py,
+#              services/attention_ticker_snapshots.py, services/zopedia*.py,
 #              services/web_research.py, services/page_browsing.py,
 #              services/seeking_alpha_access.py, services/signals.py
 #   API      — api/
@@ -54,7 +54,7 @@ PIPELINE_SERVICE_PATTERNS=(
   "services/attention_home_1d.py"
   "services/attention_ticker_snapshots.py"
   "services/attention_materialized.py"
-  "services/omnibar"
+  "services/zopedia"
   "services/web_research.py"
   "services/page_browsing.py"
   "services/seeking_alpha_access.py"

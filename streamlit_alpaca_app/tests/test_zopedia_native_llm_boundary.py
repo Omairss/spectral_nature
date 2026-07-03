@@ -25,11 +25,11 @@ LOAD_ZOPEDIA_CLIENT_ALLOWED = {
 
 RUN_ZOPEDIA_AGENT_LOOP_ALLOWED = {
     "services/aql_zopedia_engine.py",
-    "services/omnibar_agent.py",
+    "services/zopedia_agent.py",
 }
 
 GENERATE_JSON_ALLOWED_EXACT = {
-    "services/aql_zopedia_engine.py",
+    "services/aql_zopedia_gateway.py",
     "services/attention_context_llm.py",
     "services/attention_live_research.py",
     "services/common/hypothesis.py",
@@ -37,11 +37,10 @@ GENERATE_JSON_ALLOWED_EXACT = {
     "services/entity_extraction.py",
     "services/entity_taxonomy.py",
     "services/knowledge_graph.py",
-    "services/omnibar_agent.py",
-    "services/omnibar_research.py",
+    "services/zopedia_agent.py",
+    "services/zopedia_research.py",
     "services/page_agentic_summary.py",
     "services/saa/zopedia.py",
-    "services/trading_agent.py",
     "services/zopedia_learning.py",
 }
 
@@ -224,6 +223,22 @@ def test_generate_json_call_sites_are_reviewed_zopedia_native_surfaces():
             offenders.append(rel)
 
     assert offenders == []
+
+
+def test_trading_agent_does_not_call_llm_native_json_directly():
+    path = APP_ROOT / "services/trading_agent.py"
+    text = path.read_text(encoding="utf-8")
+
+    assert ".generate_json(" not in text
+    assert "generate_json_via_aql_zopedia_gateway" in text
+
+
+def test_aql_zopedia_engine_structured_calls_use_gateway():
+    path = APP_ROOT / "services/aql_zopedia_engine.py"
+    text = path.read_text(encoding="utf-8")
+
+    assert ".generate_json(" not in text
+    assert "generate_json_via_aql_zopedia_gateway" in text
 
 
 def test_business_memory_synthesis_modules_do_not_call_llm_directly():

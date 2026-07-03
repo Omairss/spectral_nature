@@ -50,7 +50,7 @@ Current completion checklist:
 
 Open risks:
 
-- Trading Agent still has a scheduled low-confidence fallback candidate path because earlier product guardrails require reviewable rows for each horizon. If the new standard is "no deterministic fallback candidates," remove that contract deliberately and update the Trading Agent guardrails/tests.
+- Trading Agent previously had a scheduled low-confidence fallback candidate path because earlier product guardrails required reviewable rows for each horizon. v0.6 changes the standard: every horizon needs an auditable run state, but candidate rows should require gateway-governed AQL/Zopedia support. See `documents/plans/V0_6_AQL_ZOPEDIA_GATEWAY_ROADMAP_2026-07-01.md`.
 - Internal API/module names still use `omnibar` for compatibility. Rename only after endpoint/session compatibility is planned.
 
 ## Product Promise
@@ -954,7 +954,7 @@ Current go/no-go:
 
 ## 2026-05-16 Zopedia-Native LLM Boundary
 
-The app now has one model-loading boundary for product code:
+The app added a model-loading boundary for product code:
 
 ```text
 services.zopedia_runtime.load_zopedia_llm_client(surface=...)
@@ -967,16 +967,25 @@ Rules:
 - Zopedia/AQL internals may call `llm_client.generate_json(...)` only from reviewed modules. The source-scan test `tests/test_zopedia_native_llm_boundary.py` fails if a new unreviewed model surface appears.
 - Cheap deterministic routing should stay deterministic. The old omnibar confidence-band LLM call was removed instead of being routed through the model gateway.
 
+2026-07-01 correction:
+
+- This boundary was a loader/entrypoint improvement, not the final gateway.
+- A reviewed direct `generate_json` call is still too weak for research-grade
+  product behavior because it does not create one request ledger with surface,
+  purpose, provider, model, status, timing, usage, and artifact linkage.
+- The v0.6 standard is now the enforceable gateway described in
+  `documents/plans/V0_6_AQL_ZOPEDIA_GATEWAY_ROADMAP_2026-07-01.md`.
+
 Current meaning of "Zopedia native":
 
 ```text
 UI / job / API feature
-  -> load_zopedia_llm_client(surface=...)
-  -> Zopedia agent, AQL, SAA memory, KG proposal, or reviewed formatter/extractor
-  -> evidence pack / trace / proposal where applicable
+  -> AQL/Zopedia gateway request
+  -> Zopedia agent, AQL, SAA memory, KG proposal, or labeled utility/formatter call
+  -> evidence pack / trace / proposal / gateway event where applicable
 ```
 
-This does not mean every internal extraction step is a chat-style agent call. It means no feature owns a private model client and every model caller is either a reviewed Zopedia/AQL surface or fails the audit test.
+This does not mean every internal extraction step is a chat-style agent call. It means no feature owns a private model client and every model caller is either gateway-owned, provider-adapter internals, tests/fakes, or a temporary migration allowlist item with owner and expiry.
 
 ## 2026-05-17 Deep Product Eval
 

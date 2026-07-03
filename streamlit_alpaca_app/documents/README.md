@@ -116,6 +116,8 @@ Run the API or Streamlit UI with container ports exposed:
 - `documents/infra/README.md`: Azure deployment entrypoints and outputs
 - `documents/reference/ATTENTION_FEED_GUIDELINES.md`: current product rules for the attention feed
 - `documents/plans/README.md`: index of active implementation and recovery plans
+- `documents/plans/V0_5_ROADMAP_2026-06-22.md`: current v0.5 reliability, retrieval, company-memory, and attention-scoring roadmap
+- `documents/plans/V0_6_AQL_ZOPEDIA_GATEWAY_ROADMAP_2026-07-01.md`: v0.6 AQL/Zopedia gateway roadmap for enforceable model-call governance
 - `ios_app/SpectralNatureMVP/README.md`: native iPhone scaffold setup and generation steps
 
 ## Shared data access
@@ -194,8 +196,8 @@ For non-Python clients, use the FastAPI layer:
 - `GET /v1/auth/agent-keys` (admin)
 - `POST /v1/auth/agent-keys` (admin)
 - `POST /v1/auth/agent-keys/{key_id}/revoke` (admin)
-- `POST /v1/omnibar/resolve`
-- `GET /v1/omnibar/suggestions`
+- `POST /v1/zopedia/resolve`
+- `GET /v1/zopedia/suggestions`
 - `GET /v1/capabilities`
 - `POST /v1/query`
 - `POST /v1/dataset/{name}`

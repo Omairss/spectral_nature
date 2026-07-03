@@ -8,7 +8,7 @@ import requests
 import pandas as pd
 
 from data_access.contracts import QueryRequest, QueryResponse
-from services import omnibar_agent
+from services import zopedia_agent
 
 
 class _StubQueryService:
@@ -95,7 +95,7 @@ def _arg(name: str, value: object) -> dict[str, object]:
 
 
 def test_coerce_tool_arguments_supports_object_list_values():
-    args, error = omnibar_agent._coerce_tool_arguments(
+    args, error = zopedia_agent._coerce_tool_arguments(
         [
             {
                 "name": "dataset_refs",
@@ -120,7 +120,7 @@ def test_coerce_tool_arguments_supports_object_list_values():
 
 
 def test_coerce_tool_arguments_accepts_object_kind_with_json_list():
-    args, error = omnibar_agent._coerce_tool_arguments(
+    args, error = zopedia_agent._coerce_tool_arguments(
         [
             {
                 "name": "focus_symbols",
@@ -141,7 +141,7 @@ def test_coerce_tool_arguments_accepts_object_kind_with_json_list():
 
 
 def test_coerce_tool_arguments_accepts_string_list_from_object_value():
-    args, error = omnibar_agent._coerce_tool_arguments(
+    args, error = zopedia_agent._coerce_tool_arguments(
         [
             {
                 "name": "focus_symbols",
@@ -313,7 +313,7 @@ class _CompanyEvidencePlannerLLM:
         del system_prompt, schema
         if schema_name == "zopedia_agent_step":
             self.step_calls += 1
-            assert "Evidence contract" in user_prompt or "Evidence contract" in omnibar_agent._planner_system_prompt()
+            assert "Evidence contract" in user_prompt or "Evidence contract" in zopedia_agent._planner_system_prompt()
             plan = [
                 ("investigator.company_context", [_arg("ticker", "VRT")]),
                 ("investigator.fundamentals", [_arg("ticker", "VRT")]),
@@ -543,14 +543,14 @@ class _MemoryApplyLLM:
 
 def test__run_zopedia_agent_loop_uses_shared_tool_registry(monkeypatch):
     import services.saa as saa_module
-    import services.omnibar_research as omnibar_research
+    import services.zopedia_research as zopedia_research
 
     monkeypatch.setattr(saa_module, "search_retained_evidence_chunks", lambda *args, **kwargs: pd.DataFrame())
-    monkeypatch.setattr(omnibar_research, "market_impact_map", lambda *args, **kwargs: {"search_keywords": []})
+    monkeypatch.setattr(zopedia_research, "market_impact_map", lambda *args, **kwargs: {"search_keywords": []})
     service = _StubQueryService()
     llm = _StubLLM()
 
-    result = omnibar_agent._run_zopedia_agent_loop(
+    result = zopedia_agent._run_zopedia_agent_loop(
         query="What was the latest CPI reading?",
         service=service,
         llm_client=llm,
@@ -571,11 +571,11 @@ def test__run_zopedia_agent_loop_uses_shared_tool_registry(monkeypatch):
 
 def test__run_zopedia_agent_loop_caps_high_confidence_with_single_evidence_source(monkeypatch):
     import services.saa as saa_module
-    import services.omnibar_research as omnibar_research
+    import services.zopedia_research as zopedia_research
 
     monkeypatch.setattr(saa_module, "search_retained_evidence_chunks", lambda *args, **kwargs: pd.DataFrame())
-    monkeypatch.setattr(omnibar_research, "market_impact_map", lambda *args, **kwargs: {"search_keywords": []})
-    result = omnibar_agent._run_zopedia_agent_loop(
+    monkeypatch.setattr(zopedia_research, "market_impact_map", lambda *args, **kwargs: {"search_keywords": []})
+    result = zopedia_agent._run_zopedia_agent_loop(
         query="What is moving oil today?",
         service=_StubQueryService(),
         llm_client=_SingleEvidenceHighConfidenceLLM(),
@@ -589,10 +589,10 @@ def test__run_zopedia_agent_loop_caps_high_confidence_with_single_evidence_sourc
 
 
 def test__run_zopedia_agent_loop_caps_live_search_snippets_without_opened_source(monkeypatch):
-    import services.omnibar_research as omnibar_research
+    import services.zopedia_research as zopedia_research
 
     monkeypatch.setattr(
-        omnibar_research,
+        zopedia_research,
         "live_event_evidence",
         lambda **kwargs: {
             "summary": [
@@ -610,7 +610,7 @@ def test__run_zopedia_agent_loop_caps_live_search_snippets_without_opened_source
         },
     )
 
-    result = omnibar_agent._run_zopedia_agent_loop(
+    result = zopedia_agent._run_zopedia_agent_loop(
         query="What is happening with SpaceX?",
         service=_StubQueryService(),
         llm_client=_LiveSearchSnippetHighConfidenceLLM(),
@@ -628,7 +628,7 @@ def test__run_zopedia_agent_loop_answer_judge_can_revise_unsupported_draft():
     events: list[dict[str, object]] = []
     llm = _JudgeRevisionLLM()
 
-    result = omnibar_agent._run_zopedia_agent_loop(
+    result = zopedia_agent._run_zopedia_agent_loop(
         query="Will this company double next week?",
         service=_StubQueryService(),
         llm_client=llm,
@@ -655,9 +655,9 @@ def test__run_zopedia_agent_loop_reports_unavailable_llm(monkeypatch):
         captured_kwargs.update(kwargs)
         return None
 
-    monkeypatch.setattr(omnibar_agent, "load_aql_zopedia_llm_client", _fake_load)
+    monkeypatch.setattr(zopedia_agent, "load_aql_zopedia_llm_client", _fake_load)
 
-    result = omnibar_agent._run_zopedia_agent_loop(
+    result = zopedia_agent._run_zopedia_agent_loop(
         query="What changed in payrolls?",
         service=_StubQueryService(),
         llm_client=None,
@@ -676,9 +676,9 @@ def test__run_zopedia_agent_loop_can_skip_persistence(monkeypatch):
     def _fake_persist(**kwargs):
         persisted["called"] = True
 
-    monkeypatch.setattr(omnibar_agent, "_persist_agent_findings", _fake_persist)
+    monkeypatch.setattr(zopedia_agent, "_persist_agent_findings", _fake_persist)
 
-    result = omnibar_agent._run_zopedia_agent_loop(
+    result = zopedia_agent._run_zopedia_agent_loop(
         query="What was the latest CPI reading?",
         service=service,
         llm_client=llm,
@@ -713,9 +713,9 @@ def test_post_answer_memory_agent_applies_safe_mutation(monkeypatch):
         }
 
     events: list[dict[str, object]] = []
-    monkeypatch.setattr(omnibar_agent, "invoke_tool", _fake_invoke_tool)
+    monkeypatch.setattr(zopedia_agent, "invoke_tool", _fake_invoke_tool)
 
-    result = omnibar_agent._run_post_answer_memory_agent(
+    result = zopedia_agent._run_post_answer_memory_agent(
         llm=_MemoryApplyLLM(),
         service=_StubQueryService(),
         run_id="agrun_test",
@@ -783,9 +783,9 @@ def test_post_answer_memory_agent_propose_policy_converts_safe_mutation(monkeypa
             "provenance": None,
         }
 
-    monkeypatch.setattr(omnibar_agent, "invoke_tool", _fake_invoke_tool)
+    monkeypatch.setattr(zopedia_agent, "invoke_tool", _fake_invoke_tool)
 
-    result = omnibar_agent._run_post_answer_memory_agent(
+    result = zopedia_agent._run_post_answer_memory_agent(
         llm=_MemoryApplyLLM(),
         service=_StubQueryService(),
         run_id="agrun_test",
@@ -823,7 +823,7 @@ def test_post_answer_memory_agent_propose_policy_converts_safe_mutation(monkeypa
 
 
 def test_resolve_conversation_followup_query_turns_yes_into_actionable_context():
-    resolved, did_resolve = omnibar_agent.resolve_conversation_followup_query(
+    resolved, did_resolve = zopedia_agent.resolve_conversation_followup_query(
         "yes",
         [
             {"role": "user", "content": "Tell me about airlines and the Hormuz crisis."},
@@ -841,7 +841,7 @@ def test_resolve_conversation_followup_query_turns_yes_into_actionable_context()
 
 
 def test_resolve_conversation_followup_query_turns_contextual_question_into_actionable_context():
-    resolved, did_resolve = omnibar_agent.resolve_conversation_followup_query(
+    resolved, did_resolve = zopedia_agent.resolve_conversation_followup_query(
         "What about geopolitics?",
         [
             {"role": "user", "content": "What is happening with oil today? Why did it fall?"},
@@ -861,7 +861,7 @@ def test_resolve_conversation_followup_query_turns_contextual_question_into_acti
 def test__run_zopedia_agent_loop_resolves_bare_yes_before_planning():
     llm = _FollowupLLM()
 
-    result = omnibar_agent._run_zopedia_agent_loop(
+    result = zopedia_agent._run_zopedia_agent_loop(
         query="yes",
         service=_StubQueryService(),
         llm_client=llm,
@@ -904,10 +904,10 @@ def test__run_zopedia_agent_loop_planner_uses_company_evidence_contract(monkeypa
             "messages": [],
         }
 
-    monkeypatch.setattr(omnibar_agent, "invoke_tool", _fake_invoke_tool)
+    monkeypatch.setattr(zopedia_agent, "invoke_tool", _fake_invoke_tool)
     llm = _CompanyEvidencePlannerLLM()
 
-    result = omnibar_agent._run_zopedia_agent_loop(
+    result = zopedia_agent._run_zopedia_agent_loop(
         query="VRT: what is the company context and latest catalysts?",
         service=_StubQueryService(),
         llm_client=llm,
@@ -924,9 +924,9 @@ def test__run_zopedia_agent_loop_planner_uses_company_evidence_contract(monkeypa
 
 
 def test_bootstrap_plan_no_longer_uses_hardcoded_query_routing():
-    catalog = omnibar_agent.build_tool_catalog(_StubQueryService())
+    catalog = zopedia_agent.build_tool_catalog(_StubQueryService())
 
-    plan = omnibar_agent._bootstrap_tool_plan(
+    plan = zopedia_agent._bootstrap_tool_plan(
         query="Compare NVDA, AVGO, and TSM around AI capex risks and current market narrative.",
         tool_catalog=catalog,
         force_refresh=False,
@@ -937,7 +937,7 @@ def test_bootstrap_plan_no_longer_uses_hardcoded_query_routing():
 
 
 def test_planner_prompt_contains_generic_evidence_contract():
-    prompt = omnibar_agent._planner_system_prompt()
+    prompt = zopedia_agent._planner_system_prompt()
 
     assert "Evidence contract" in prompt
     assert "For public company or ticker questions" in prompt
@@ -960,7 +960,7 @@ def test_analysis_failure_requires_one_repair_pass_before_final():
         }
     ]
 
-    assert omnibar_agent._analysis_failure_needs_repair(tool_calls) is True
+    assert zopedia_agent._analysis_failure_needs_repair(tool_calls) is True
     tool_calls.append(
         {
             "tool_name": "analysis.run_python",
@@ -971,7 +971,7 @@ def test_analysis_failure_requires_one_repair_pass_before_final():
             },
         }
     )
-    assert omnibar_agent._analysis_failure_needs_repair(tool_calls) is False
+    assert zopedia_agent._analysis_failure_needs_repair(tool_calls) is False
 
 
 def test_bootstrap_skip_never_bypasses_llm_planner():
@@ -989,7 +989,7 @@ def test_bootstrap_skip_never_bypasses_llm_planner():
     ]
 
     assert (
-        omnibar_agent._should_skip_planner_after_bootstrap(
+        zopedia_agent._should_skip_planner_after_bootstrap(
             "NVDA: tell me about the company.",
             tool_calls,
             {"investigator.company_context"},
@@ -999,7 +999,7 @@ def test_bootstrap_skip_never_bypasses_llm_planner():
 
 
 def test_final_prompt_treats_user_premise_as_unverified():
-    prompt = omnibar_agent._final_user_prompt(
+    prompt = zopedia_agent._final_user_prompt(
         query="NVDA revenue collapsed 90% last quarter. Explain why.",
         tool_calls=[],
     )
@@ -1009,7 +1009,7 @@ def test_final_prompt_treats_user_premise_as_unverified():
 
 
 def test_attention_home_top_events_become_llm_context():
-    summary = omnibar_agent._summarize_tool_result(
+    summary = zopedia_agent._summarize_tool_result(
         {
             "result_type": "dataset",
             "payload": {
@@ -1031,7 +1031,7 @@ def test_attention_home_top_events_become_llm_context():
 
 
 def test_tool_summary_preserves_evidence_refs_for_aql_pack():
-    summary = omnibar_agent._summarize_tool_result(
+    summary = zopedia_agent._summarize_tool_result(
         {
             "result_type": "research",
             "payload": {
@@ -1059,7 +1059,7 @@ def test_tool_summary_preserves_evidence_refs_for_aql_pack():
 
 
 def test_tool_summary_does_not_promote_internal_eval_urls_to_citations():
-    summary = omnibar_agent._summarize_tool_result(
+    summary = zopedia_agent._summarize_tool_result(
         {
             "result_type": "research",
             "payload": {
@@ -1083,10 +1083,10 @@ def test_tool_summary_does_not_promote_internal_eval_urls_to_citations():
 
 
 def test_seeded_tool_timeout_emits_heartbeat_and_timeout(monkeypatch):
-    original_get_config_param = omnibar_agent.get_config_param
+    original_get_config_param = zopedia_agent.get_config_param
 
     def _fake_get_config_param(param):
-        if param == omnibar_agent._P_TOOL_CALL_TIMEOUT_SECONDS:
+        if param == zopedia_agent._P_TOOL_CALL_TIMEOUT_SECONDS:
             return 1
         return original_get_config_param(param)
 
@@ -1096,10 +1096,10 @@ def test_seeded_tool_timeout_emits_heartbeat_and_timeout(monkeypatch):
         return {"payload": {"llm_context_text": "late result"}}
 
     events: list[dict[str, object]] = []
-    monkeypatch.setattr(omnibar_agent, "get_config_param", _fake_get_config_param)
-    monkeypatch.setattr(omnibar_agent, "invoke_tool", _slow_invoke_tool)
+    monkeypatch.setattr(zopedia_agent, "get_config_param", _fake_get_config_param)
+    monkeypatch.setattr(zopedia_agent, "invoke_tool", _slow_invoke_tool)
 
-    ok = omnibar_agent._execute_seeded_tool_call(
+    ok = zopedia_agent._execute_seeded_tool_call(
         service=_StubQueryService(),
         run_id="run-test",
         tool_calls=[],
@@ -1117,7 +1117,7 @@ def test_hidden_prefetch_step_timeout_emits_progress():
     events: list[dict[str, object]] = []
 
     try:
-        omnibar_agent._run_hidden_step_with_timeout(
+        zopedia_agent._run_hidden_step_with_timeout(
             label="prefetch keyword extraction",
             timeout_seconds=1,
             progress_callback=events.append,
@@ -1133,10 +1133,10 @@ def test_hidden_prefetch_step_timeout_emits_progress():
 
 
 def test__run_zopedia_agent_loop_bounds_prefetch_and_tool_calls(monkeypatch):
-    original_get_config_param = omnibar_agent.get_config_param
+    original_get_config_param = zopedia_agent.get_config_param
 
     def _fake_get_config_param(param):
-        if param == omnibar_agent._P_TOOL_CALL_TIMEOUT_SECONDS:
+        if param == zopedia_agent._P_TOOL_CALL_TIMEOUT_SECONDS:
             return 1
         return original_get_config_param(param)
 
@@ -1157,12 +1157,12 @@ def test__run_zopedia_agent_loop_bounds_prefetch_and_tool_calls(monkeypatch):
     import services.saa as saa_module
 
     events: list[dict[str, object]] = []
-    monkeypatch.setattr(omnibar_agent, "get_config_param", _fake_get_config_param)
+    monkeypatch.setattr(zopedia_agent, "get_config_param", _fake_get_config_param)
     monkeypatch.setattr(saa_module, "search_retained_evidence_chunks", _slow_retained_search)
-    monkeypatch.setattr(omnibar_agent, "invoke_tool", _fake_invoke_tool)
+    monkeypatch.setattr(zopedia_agent, "invoke_tool", _fake_invoke_tool)
 
     started = time.monotonic()
-    result = omnibar_agent._run_zopedia_agent_loop(
+    result = zopedia_agent._run_zopedia_agent_loop(
         query="Are STRL, ECG, and PRIM all related to the AI datacenter buildout?",
         service=_StubQueryService(),
         llm_client=_TimeoutToolPlannerLLM(),
@@ -1177,7 +1177,7 @@ def test__run_zopedia_agent_loop_bounds_prefetch_and_tool_calls(monkeypatch):
 
 
 def test_final_prompt_lightly_prefers_supporting_sources():
-    prompt = omnibar_agent._final_user_prompt(
+    prompt = zopedia_agent._final_user_prompt(
         query="How are things going to pan out now that there's no agreement in Iran US talks",
         tool_calls=[],
     )
@@ -1187,7 +1187,7 @@ def test_final_prompt_lightly_prefers_supporting_sources():
 
 
 def test__run_zopedia_agent_loop_sanitizes_transient_transport_drop_after_tools():
-    result = omnibar_agent._run_zopedia_agent_loop(
+    result = zopedia_agent._run_zopedia_agent_loop(
         query="What changed in macro data?",
         service=_StubQueryService(),
         llm_client=_FinalSynthesisTransportDropLLM(),
@@ -1204,7 +1204,7 @@ def test__run_zopedia_agent_loop_sanitizes_transient_transport_drop_after_tools(
 
 
 def test_summarize_tool_result_exposes_analysis_render_payload():
-    summary = omnibar_agent._summarize_tool_result(
+    summary = zopedia_agent._summarize_tool_result(
         {
             "result_type": "analysis_result",
             "payload": {
@@ -1228,7 +1228,7 @@ def test_summarize_tool_result_exposes_analysis_render_payload():
 
 def test_tool_summary_omits_raw_text_from_generic_object_preview():
     raw_text = "\n".join(f"raw line {idx}" for idx in range(100))
-    summary = omnibar_agent._summarize_tool_result(
+    summary = zopedia_agent._summarize_tool_result(
         {
             "result_type": "dataset",
             "payload": {"title": "Retained document", "raw_text": raw_text},
@@ -1242,7 +1242,7 @@ def test_tool_summary_omits_raw_text_from_generic_object_preview():
 
 
 def test_tool_summary_includes_empty_result_messages_for_planner():
-    summary = omnibar_agent._summarize_tool_result(
+    summary = zopedia_agent._summarize_tool_result(
         {
             "result_type": "dataset",
             "payload": [],
@@ -1265,7 +1265,7 @@ def test_tool_summary_includes_empty_result_messages_for_planner():
 
 def test_tool_summary_keeps_small_market_baskets_visible():
     rows = [{"symbol": f"SYM{i}", "change_pct": i} for i in range(1, 7)]
-    summary = omnibar_agent._summarize_tool_result(
+    summary = zopedia_agent._summarize_tool_result(
         {
             "result_type": "dataset",
             "payload": rows,
@@ -1279,7 +1279,7 @@ def test_tool_summary_keeps_small_market_baskets_visible():
 
 
 def test_tool_summary_builds_long_term_context_from_momentum_profiles():
-    summary = omnibar_agent._summarize_tool_result(
+    summary = zopedia_agent._summarize_tool_result(
         {
             "request": {"operation": "dataset", "name": "momentum_profiles", "params": {}},
             "result_type": "dataset",
@@ -1305,7 +1305,7 @@ def test_tool_summary_builds_long_term_context_from_momentum_profiles():
 
 
 def test_tool_summary_builds_price_history_window_context():
-    summary = omnibar_agent._summarize_tool_result(
+    summary = zopedia_agent._summarize_tool_result(
         {
             "request": {"operation": "dataset", "name": "price_history", "params": {"ticker": "APLD"}},
             "result_type": "dataset",
@@ -1330,7 +1330,7 @@ def test_market_impact_recovery_requires_observed_market_data_before_final():
         {"name": "dataset.daily_movers"},
     ]
 
-    recovery = omnibar_agent._market_impact_recovery_tool(
+    recovery = zopedia_agent._market_impact_recovery_tool(
         query="What is the impact of the bond market today?",
         answer="Long rates are rising and equities may be pressured.",
         tool_calls=[],
@@ -1364,7 +1364,7 @@ def test_market_impact_recovery_uses_impact_map_symbols_for_daily_movers():
         }
     ]
 
-    recovery = omnibar_agent._market_impact_recovery_tool(
+    recovery = zopedia_agent._market_impact_recovery_tool(
         query="What is the impact of the bond market today?",
         answer="Equities may be pressured by higher long rates.",
         tool_calls=tool_calls,

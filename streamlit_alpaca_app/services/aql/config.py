@@ -14,10 +14,8 @@ except Exception:
     yaml = None
 
 from ..web_research import (
-    SerpAPISearchClient,
-    TavilySearchClient,
-    load_serpapi_config,
-    load_tavily_config,
+    SerperSearchClient,
+    load_serper_config,
 )
 from .constants import _ATTENTION_MACRO_PROFILE_DEFAULT_PATH
 
@@ -314,9 +312,7 @@ def _load_attention_macro_signal_profile() -> dict[str, Any]:
     return merged
 
 
-def _load_search_clients() -> tuple[SerpAPISearchClient | None, TavilySearchClient | None]:
-    serp_cfg = load_serpapi_config()
-    tavily_cfg = load_tavily_config()
-    serp_client = SerpAPISearchClient(serp_cfg) if serp_cfg is not None else None
-    tavily_client = TavilySearchClient(tavily_cfg) if tavily_cfg is not None else None
-    return serp_client, tavily_client
+def _load_search_clients() -> tuple[SerperSearchClient | None, None]:
+    serper_cfg = load_serper_config()
+    serper_client = SerperSearchClient(serper_cfg) if serper_cfg is not None else None
+    return serper_client, None

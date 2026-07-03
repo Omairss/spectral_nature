@@ -17,6 +17,26 @@
 
 - [x] Log Trading Agent Place / Reject decisions. Place is log-only for now, but the audit row keeps Alpaca handoff fields for future order submission.
 
+## v0.6 AQL/Zopedia Gateway
+
+- [x] Build the initial enforceable AQL/Zopedia model gateway described in `documents/plans/V0_6_AQL_ZOPEDIA_GATEWAY_ROADMAP_2026-07-01.md`.
+
+- [ ] Reuse the existing Zopedia/AQL knowledge cache consistently across product surfaces. Do not create a second caching layer; feature modules may materialize display artifacts, but reusable research knowledge belongs in Zopedia memory, retained evidence, pages, proposals, and source refs with freshness policy attached.
+
+- [x] Persist an initial model-call ledger with `surface`, `purpose`, `call_type`, provider, requested model, resolved model, status, sanitized error, timing, prompt/schema hashes, and metadata links. Provider-reported model, token usage, and cost stay pending until adapters expose them.
+
+- [x] Hard-move active Zopedia implementation ownership out of Omnibar-named modules. Production code uses `services.zopedia_agent`, `services.zopedia_research`, `services.zopedia_resolver`, and `/v1/zopedia/*`; old `services.omnibar*` modules, `/v1/omnibar/*` routes, and `omnibar:resolve` scope are retired.
+
+- [ ] Replace the old "reviewed direct `generate_json` call" standard with a source-scan allowlist limited to gateway internals, provider adapter internals, tests/fakes, and temporary migration entries with owner and expiry.
+
+- [ ] Complete Trading Agent migration through the gateway. Final candidate synthesis and research reviews are done; per-ticker tool-agent planner/model steps still depend on the general AQL/Zopedia agent-loop migration. Candidate Package V2 should not become the default until this is done.
+
+- [ ] Migrate Attention/Home group synthesis, ticker enrichment, public review, and market-summary calls through the gateway. AQL search acquisition now uses Serper as the default/primary provider through the shared AQL loader, labels the real provider, and routes collector LLM planning/relevance/router calls through the gateway. Tavily and SerpAPI are parked unless deliberately re-enabled in a future provider policy. Remaining work is the broader Home synthesis/review surfaces.
+
+- [ ] Migrate Zopedia chat synthesis, memory proposal generation, maintenance learning, KG expansion, company memory, and news-business resolution through the gateway.
+
+- [ ] Add Admin/System Health visibility for provider/model failures, latest failing surfaces, quota/auth errors, and surface-level usage.
+
 ## Zopedia Retrieval / Tool Discovery
 
 - [ ] Add bounded BM25 lexical retrieval as a first-class signal for Zopedia memory pages, retained evidence chunks, and agent tool metadata. Keep it hybrid with embeddings and reranking; BM25 should improve exact-term recall, not become a hardcoded routing layer.

@@ -15,7 +15,7 @@ from urllib.parse import urlparse
 import pandas as pd
 
 from ..saa import build_zopedia_change_proposal, prepare_zopedia_pages
-from ..web_research import WebResearchError
+from ..web_research import WebResearchError, search_client_provider
 from ..seeking_alpha_access import is_seeking_alpha_url
 from ..page_browsing import browse_page, page_quality_issue
 from ._shared import _source_authority_bucket, _trim
@@ -743,7 +743,8 @@ def _search_results_for_query(
     priority = int(query_spec.get("priority") or 0)
     requests: list[dict[str, Any]] = []
     results: list[dict[str, Any]] = []
-    providers: list[tuple[str, Any]] = [("serpapi", serp_client), ("tavily", tavily_client)]
+    primary_provider = search_client_provider(serp_client) or "primary_search"
+    providers: list[tuple[str, Any]] = [(primary_provider, serp_client), ("tavily", tavily_client)]
     for provider, client in providers:
         if client is None or not query:
             continue
@@ -771,7 +772,7 @@ def _search_results_for_query(
                 key=f"provider:{provider}",
                 delay_seconds=_business_research_provider_delay_seconds(),
             )
-            if provider == "serpapi":
+            if provider != "tavily":
                 provider_results = client.search(query, news=(topic == "news"), num=max(int(max_results_per_query), 1))
             else:
                 provider_results = client.search(query, max_results=max(int(max_results_per_query), 1), topic=topic)

@@ -11,6 +11,7 @@ from typing import Any, Callable
 
 import pandas as pd
 
+from .aql_zopedia_gateway import generate_json_via_aql_zopedia_gateway
 from .json_utils import to_jsonable, to_list
 from .llm import (
     LLMAPIError,
@@ -1274,7 +1275,11 @@ def _call_trading_agent_research_review(
     if llm_client is None or not hasattr(llm_client, "generate_json"):
         return _review_unavailable_payload("Trading Agent research review requires an LLM runtime.")
     try:
-        payload = llm_client.generate_json(
+        payload = generate_json_via_aql_zopedia_gateway(
+            llm_client=llm_client,
+            surface="trading_agent.review",
+            purpose="research_review",
+            call_type="research_grade",
             system_prompt=_TRADING_AGENT_REVIEW_SYSTEM_PROMPT,
             user_prompt=(
                 "Review this Trading Agent call as a research-quality post-mortem. "
@@ -1283,6 +1288,17 @@ def _call_trading_agent_research_review(
             ),
             schema_name="trading_agent_research_review",
             schema=_TRADING_AGENT_REVIEW_SCHEMA,
+            metadata={
+                "candidate_id": _clean((review_input.get("candidate") or {}).get("candidate_id"))
+                if isinstance(review_input.get("candidate"), dict)
+                else "",
+                "ticker": _clean((review_input.get("outcome") or {}).get("ticker"))
+                if isinstance(review_input.get("outcome"), dict)
+                else "",
+                "horizon_key": _clean((review_input.get("outcome") or {}).get("horizon_key"))
+                if isinstance(review_input.get("outcome"), dict)
+                else "",
+            },
         )
     except Exception as exc:
         unavailable = _review_unavailable_payload(_safe_error_text(f"{type(exc).__name__}: {exc}"))
@@ -1748,11 +1764,25 @@ def build_trading_agent_suggestions(
         "Refer to app records as materialized context, not user-supplied evidence. Use exact dates from evidence; do not infer weekdays."
     )
     try:
-        payload = llm_client.generate_json(
+        payload = generate_json_via_aql_zopedia_gateway(
+            llm_client=llm_client,
+            surface="trading_agent.synthesis",
+            purpose="candidate_synthesis",
+            call_type="formatter_over_aql",
             system_prompt=get_prompt(_TRADING_AGENT_SYSTEM_PROMPT),
             user_prompt=user_prompt,
             schema_name="trading_agent_experiment",
             schema=_TRADING_AGENT_SCHEMA,
+            metadata={
+                "horizon_label": _clean((normalized_context.get("controls") or {}).get("selected_horizon_label"))
+                if isinstance(normalized_context.get("controls"), dict)
+                else "",
+                "horizon_column": _clean((normalized_context.get("controls") or {}).get("selected_horizon_col"))
+                if isinstance(normalized_context.get("controls"), dict)
+                else "",
+                "ticker_count": len(ticker_contexts),
+                "aql_status": _clean(aql_context.get("status")),
+            },
         )
     except LLMAPIError as exc:
         safe_message = _safe_error_text(exc)

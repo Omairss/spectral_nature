@@ -26,6 +26,20 @@ def _source_label(value: object) -> str:
     return _clean(value)
 
 
+def search_client_provider(client: Any | None) -> str:
+    if client is None:
+        return ""
+    name = type(client).__name__.lower()
+    if "serper" in name:
+        return "serper"
+    if "serpapi" in name or "serp" in name:
+        return "serpapi"
+    if "tavily" in name:
+        return "tavily"
+    config_provider = _clean(getattr(getattr(client, "config", None), "provider", ""))
+    return config_provider.lower() or name or "search"
+
+
 def _timeout_seconds() -> int:
     raw = _clean(os.getenv("WEB_RESEARCH_TIMEOUT_SECONDS")) or "20"
     try:
@@ -593,4 +607,5 @@ __all__ = [
     "load_serper_config",
     "load_serpapi_config",
     "load_tavily_config",
+    "search_client_provider",
 ]

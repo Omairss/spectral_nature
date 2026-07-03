@@ -64,7 +64,7 @@ def test_issue_and_resolve_access_token_roundtrip(monkeypatch):
     assert principal.user_context is not None
     assert principal.user_context.email == "user@example.com"
     assert api_auth.SCOPE_QUERY_EXECUTE in set(principal.scopes)
-    assert api_auth.SCOPE_OMNIBAR_RESOLVE in set(principal.scopes)
+    assert api_auth.SCOPE_ZOPEDIA_RESOLVE in set(principal.scopes)
 
 
 def test_agent_key_scopes_are_normalized(monkeypatch):
@@ -92,14 +92,14 @@ def test_agent_key_scopes_are_normalized(monkeypatch):
             "not-allowed",
             api_auth.SCOPE_MCP_INVOKE,
             api_auth.SCOPE_QUERY_EXECUTE,
-            api_auth.SCOPE_OMNIBAR_RESOLVE,
+            api_auth.SCOPE_ZOPEDIA_RESOLVE,
         ],
     )
     assert created["api_key"].startswith("snak_")
     assert created["key"]["scopes"] == [
         api_auth.SCOPE_MCP_INVOKE,
-        api_auth.SCOPE_OMNIBAR_RESOLVE,
         api_auth.SCOPE_QUERY_EXECUTE,
+        api_auth.SCOPE_ZOPEDIA_RESOLVE,
     ]
 
 

@@ -515,6 +515,14 @@ def _home_surface_quality_timeout_seconds() -> int:
     return _env_positive_int("ATTENTION_HOME_SURFACE_QUALITY_TIMEOUT_SECONDS", 240)
 
 
+def _group_synthesis_timeout_seconds() -> int:
+    return _env_positive_int("ATTENTION_HOME_GROUP_SYNTHESIS_TIMEOUT_SECONDS", 240)
+
+
+def _group_synthesis_limit() -> int:
+    return _env_positive_int("ATTENTION_HOME_GROUP_SYNTHESIS_LIMIT", 8)
+
+
 _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
@@ -571,6 +579,60 @@ _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
                     "cause_status",
                     "watch_next_text",
                     "review_note",
+                ],
+            },
+        },
+    },
+    "required": ["accepted", "issues", "items"],
+}
+
+
+_GROUP_SYNTHESIS_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "accepted": {"type": "boolean"},
+        "issues": {"type": "array", "items": {"type": "string"}},
+        "items": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "section": {
+                        "type": "string",
+                        "enum": ["top_events", "must_read_movers", "unresolved_large_moves"],
+                    },
+                    "index": {"type": "integer"},
+                    "bundle_id": {"type": "string"},
+                    "event_title": {"type": "string"},
+                    "headline": {"type": "string"},
+                    "what_happened_text": {"type": "string"},
+                    "why_happened_text": {"type": "string"},
+                    "affected_assets_summary_text": {"type": "string"},
+                    "business_context_text": {"type": "string"},
+                    "watch_next_text": {"type": "string"},
+                    "cause_status": {
+                        "type": "string",
+                        "enum": ["supported", "partial", "unresolved"],
+                    },
+                    "confidence_label": {"type": "string"},
+                    "synthesis_note": {"type": "string"},
+                },
+                "required": [
+                    "section",
+                    "index",
+                    "bundle_id",
+                    "event_title",
+                    "headline",
+                    "what_happened_text",
+                    "why_happened_text",
+                    "affected_assets_summary_text",
+                    "business_context_text",
+                    "watch_next_text",
+                    "cause_status",
+                    "confidence_label",
+                    "synthesis_note",
                 ],
             },
         },
@@ -2404,12 +2466,15 @@ def _attach_business_context_to_payload(
         if not event_contexts:
             return out
         out["business_contexts"] = event_contexts[:6]
-        out["business_context_text"] = " ".join(
-            str(context.get("business_context_text") or "").strip()
-            for context in event_contexts[:3]
-            if str(context.get("business_context_text") or "").strip()
-        ).strip()
-        out["surface_business_context_text"] = out.get("business_context_text") or ""
+        existing_context = clean_attention_text(out.get("business_context_text") or out.get("surface_business_context_text"))
+        if existing_context:
+            out["business_context_text"] = existing_context
+            out["surface_business_context_text"] = existing_context
+        elif len(event_contexts) == 1:
+            context_text = clean_attention_text(event_contexts[0].get("business_context_text"))
+            if context_text:
+                out["business_context_text"] = context_text
+                out["surface_business_context_text"] = context_text
         return out
 
     def _has_substantive_home_text(item: dict[str, Any], *, require_body: bool = False) -> bool:
@@ -2485,13 +2550,7 @@ def _home_surface_quality_items(
     *,
     enrichment_rows: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
-    enrichment_by_symbol = {
-        str(row.get("symbol") or "").upper().strip(): _plain_business_text(row.get("answer_markdown"), limit=700)
-        for row in list(enrichment_rows or [])
-        if isinstance(row, dict)
-        and str(row.get("symbol") or "").upper().strip()
-        and str(row.get("status") or "").strip() in {"completed", "success"}
-    }
+    enrichment_by_symbol = _completed_zopedia_enrichment_by_symbol(enrichment_rows, limit=700)
     enrichment_by_symbol.pop(ZOPEDIA_MARKET_SUMMARY_KEY, None)
 
     def _evidence_trace(bundle: dict[str, Any]) -> list[dict[str, Any]]:
@@ -2538,11 +2597,23 @@ def _home_surface_quality_items(
             symbol = str(item.get("symbol") or bundle.get("symbol") or "").upper().strip()
             if symbol and symbol not in symbols:
                 symbols.insert(0, symbol)
-            zopedia_context = " ".join(
-                enrichment_by_symbol[sym]
-                for sym in symbols[:5]
-                if enrichment_by_symbol.get(sym)
-            ).strip()
+            is_group = _is_group_event_item(item, bundle)
+            if is_group:
+                zopedia_context = _plain_business_text(
+                    item.get("group_synthesis_text")
+                    or bundle.get("group_synthesis_text")
+                    or item.get("business_context_text")
+                    or item.get("surface_business_context_text")
+                    or bundle.get("business_context_text")
+                    or bundle.get("surface_business_context_text"),
+                    limit=1200,
+                )
+            else:
+                zopedia_context = " ".join(
+                    enrichment_by_symbol[sym]
+                    for sym in symbols[:5]
+                    if enrichment_by_symbol.get(sym)
+                ).strip()
             rows.append(
                 {
                     "section": section,
@@ -2607,19 +2678,74 @@ def _home_surface_quality_items(
     return rows
 
 
+def _completed_zopedia_enrichment_by_symbol(
+    enrichment_rows: list[dict[str, Any]] | None,
+    *,
+    limit: int,
+) -> dict[str, str]:
+    by_symbol: dict[str, str] = {}
+    for row in list(enrichment_rows or []):
+        if not isinstance(row, dict):
+            continue
+        symbol = str(row.get("symbol") or "").upper().strip()
+        if not symbol or symbol in by_symbol:
+            continue
+        if str(row.get("status") or "").strip() not in {"completed", "success"}:
+            continue
+        text = _plain_business_text(row.get("answer_markdown"), limit=limit)
+        if text:
+            by_symbol[symbol] = text
+    return by_symbol
+
+
+def _supporting_symbols_for_group_item(item: dict[str, Any], bundle: dict[str, Any] | None = None) -> list[str]:
+    values = list(item.get("supporting_symbols") or (bundle or {}).get("supporting_symbols") or [])
+    symbol = str(item.get("symbol") or (bundle or {}).get("symbol") or "").upper().strip()
+    if symbol:
+        values.insert(0, symbol)
+    symbols = [str(value or "").upper().strip() for value in values if str(value or "").strip()]
+    return list(dict.fromkeys(symbols))
+
+
+def _is_group_event_item(item: dict[str, Any], bundle: dict[str, Any] | None = None) -> bool:
+    symbols = _supporting_symbols_for_group_item(item, bundle)
+    if len(symbols) < 2:
+        return False
+    bundle_type = str(item.get("bundle_type") or (bundle or {}).get("bundle_type") or "").strip().lower()
+    if bundle_type == "event":
+        return True
+    return bool(
+        item.get("event_title")
+        or (bundle or {}).get("event_title")
+        or item.get("observed_cohort")
+        or (bundle or {}).get("observed_cohort")
+        or str(item.get("event_type") or (bundle or {}).get("event_type") or "").strip()
+    )
+
+
+def _member_zopedia_contexts(
+    symbols: list[str],
+    enrichment_by_symbol: dict[str, str],
+    *,
+    limit: int = 6,
+) -> list[dict[str, str]]:
+    contexts: list[dict[str, str]] = []
+    for symbol in symbols:
+        text = enrichment_by_symbol.get(symbol)
+        if not text:
+            continue
+        contexts.append({"symbol": symbol, "context_text": text})
+        if len(contexts) >= max(int(limit), 1):
+            break
+    return contexts
+
+
 def _attach_zopedia_enrichment_to_payload(
     payload: dict[str, Any],
     bundle_map: dict[str, dict[str, Any]],
     enrichment_rows: list[dict[str, Any]] | None,
 ) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
-    enrichment_by_symbol = {
-        str(row.get("symbol") or "").upper().strip(): _plain_business_text(row.get("answer_markdown"), limit=900)
-        for row in list(enrichment_rows or [])
-        if isinstance(row, dict)
-        and str(row.get("symbol") or "").upper().strip()
-        and str(row.get("status") or "").strip() in {"completed", "success"}
-        and _plain_business_text(row.get("answer_markdown"), limit=900)
-    }
+    enrichment_by_symbol = _completed_zopedia_enrichment_by_symbol(enrichment_rows, limit=900)
     enrichment_by_symbol.pop(ZOPEDIA_MARKET_SUMMARY_KEY, None)
     if not enrichment_by_symbol:
         return payload, bundle_map
@@ -2640,7 +2766,20 @@ def _attach_zopedia_enrichment_to_payload(
 
     def _attach(item: dict[str, Any], bundle: dict[str, Any] | None) -> dict[str, Any]:
         out = dict(item or {})
-        texts = [enrichment_by_symbol[symbol] for symbol in _symbols_for_item(out, bundle) if enrichment_by_symbol.get(symbol)]
+        symbols = _symbols_for_item(out, bundle)
+        member_contexts = _member_zopedia_contexts(symbols, enrichment_by_symbol)
+        if _is_group_event_item(out, bundle):
+            if member_contexts:
+                out["member_zopedia_contexts"] = member_contexts
+                out["zopedia_group_synthesis_status"] = out.get("zopedia_group_synthesis_status") or "pending"
+                if bundle is not None:
+                    bundle["member_zopedia_contexts"] = member_contexts
+                    bundle["zopedia_group_synthesis_status"] = bundle.get("zopedia_group_synthesis_status") or "pending"
+            out["business_resolution_text"] = ""
+            if bundle is not None:
+                bundle["business_resolution_text"] = ""
+            return out
+        texts = [enrichment_by_symbol[symbol] for symbol in symbols if enrichment_by_symbol.get(symbol)]
         text = " ".join(texts[:3]).strip()
         if not text:
             return out
@@ -2665,6 +2804,258 @@ def _attach_zopedia_enrichment_to_payload(
             items.append(_attach(item, bundle))
         updated_payload[section] = items
     return updated_payload, updated_bundle_map
+
+
+def _group_synthesis_source_items(
+    payload: dict[str, Any],
+    bundle_map: dict[str, dict[str, Any]],
+    *,
+    limit: int,
+) -> list[dict[str, Any]]:
+    items: list[dict[str, Any]] = []
+    for section in ["top_events", "must_read_movers", "unresolved_large_moves"]:
+        for index, raw_item in enumerate(list((payload or {}).get(section) or [])):
+            if not isinstance(raw_item, dict):
+                continue
+            item = dict(raw_item)
+            bundle_id = str(item.get("bundle_id") or "").strip()
+            bundle = dict(bundle_map.get(bundle_id) or {}) if bundle_id else {}
+            if not _is_group_event_item(item, bundle):
+                continue
+            symbols = _supporting_symbols_for_group_item(item, bundle)
+            member_contexts = list(item.get("member_zopedia_contexts") or bundle.get("member_zopedia_contexts") or [])
+            business_contexts = list(item.get("business_contexts") or bundle.get("business_contexts") or [])
+            if not member_contexts and not business_contexts:
+                continue
+            items.append(
+                {
+                    "section": section,
+                    "index": index,
+                    "bundle_id": bundle_id,
+                    "event_title": _plain_business_text(
+                        item.get("event_title") or item.get("headline") or bundle.get("event_title") or bundle.get("headline"),
+                        limit=220,
+                    ),
+                    "what_happened_text": _plain_business_text(
+                        item.get("what_happened_text") or bundle.get("what_happened_text"),
+                        limit=700,
+                    ),
+                    "why_happened_text": _plain_business_text(
+                        item.get("why_happened_text") or bundle.get("why_happened_text"),
+                        limit=700,
+                    ),
+                    "affected_assets_summary_text": _plain_business_text(
+                        item.get("affected_assets_summary_text") or bundle.get("affected_assets_summary_text"),
+                        limit=700,
+                    ),
+                    "business_context_text": _plain_business_text(
+                        item.get("business_context_text")
+                        or item.get("surface_business_context_text")
+                        or bundle.get("business_context_text")
+                        or bundle.get("surface_business_context_text"),
+                        limit=700,
+                    ),
+                    "watch_next_text": _plain_business_text(item.get("watch_next_text") or bundle.get("watch_next_text"), limit=500),
+                    "cause_status": str(item.get("cause_status") or bundle.get("cause_status") or "").strip(),
+                    "confidence_label": str(item.get("confidence_label") or bundle.get("confidence_label") or "").strip(),
+                    "event_type": str(item.get("event_type") or bundle.get("event_type") or "").strip(),
+                    "observed_cohort": bool(item.get("observed_cohort") or bundle.get("observed_cohort")),
+                    "direction": str(item.get("direction") or bundle.get("direction") or "").strip(),
+                    "change_pct": item.get("change_pct") if item.get("change_pct") is not None else bundle.get("change_pct"),
+                    "supporting_symbols": symbols[:8],
+                    "member_zopedia_contexts": [
+                        {
+                            "symbol": str(context.get("symbol") or "").upper().strip(),
+                            "context_text": _plain_business_text(context.get("context_text"), limit=900),
+                        }
+                        for context in member_contexts[:6]
+                        if isinstance(context, dict) and _plain_business_text(context.get("context_text"), limit=900)
+                    ],
+                    "business_contexts": [
+                        {
+                            "symbol": str(context.get("symbol") or "").upper().strip(),
+                            "business_context_text": _plain_business_text(context.get("business_context_text"), limit=700),
+                            "business_resolution_text": _plain_business_text(context.get("business_resolution_text"), limit=700),
+                            "business_stack_text": _plain_business_text(context.get("business_stack_text"), limit=700),
+                        }
+                        for context in business_contexts[:6]
+                        if isinstance(context, dict)
+                    ],
+                    "claims": [
+                        {
+                            "claim_text": _plain_business_text(claim.get("claim_text"), limit=260),
+                            "source": _plain_business_text(claim.get("source"), limit=120),
+                            "is_same_day": bool(claim.get("is_same_day")),
+                            "freshness_class": str(claim.get("freshness_class") or "").strip(),
+                        }
+                        for claim in list(bundle.get("claims") or [])[:8]
+                        if isinstance(claim, dict)
+                    ],
+                }
+            )
+            if len(items) >= max(int(limit), 1):
+                return items
+    return items
+
+
+def _apply_group_synthesis_items(
+    payload: dict[str, Any],
+    bundle_map: dict[str, dict[str, Any]],
+    synthesis_items: list[dict[str, Any]],
+) -> tuple[dict[str, Any], dict[str, dict[str, Any]], dict[str, int]]:
+    revisions: dict[tuple[str, int, str], dict[str, Any]] = {}
+    for raw in list(synthesis_items or []):
+        if not isinstance(raw, dict):
+            continue
+        section = str(raw.get("section") or "").strip()
+        try:
+            index = int(raw.get("index"))
+        except Exception:
+            continue
+        bundle_id = str(raw.get("bundle_id") or "").strip()
+        revisions[(section, index, bundle_id)] = raw
+
+    updated_payload = dict(payload or {})
+    updated_bundle_map = {key: dict(value or {}) for key, value in dict(bundle_map or {}).items()}
+    changed = 0
+    skipped = 0
+    text_fields = [
+        "event_title",
+        "headline",
+        "what_happened_text",
+        "why_happened_text",
+        "affected_assets_summary_text",
+        "business_context_text",
+        "watch_next_text",
+        "confidence_label",
+    ]
+
+    def _apply(item: dict[str, Any], bundle: dict[str, Any] | None, revision: dict[str, Any]) -> bool:
+        if not _is_group_event_item(item, bundle):
+            return False
+        group_text = clean_attention_text(revision.get("business_context_text"))
+        if not group_text:
+            return False
+        for field in text_fields:
+            value = clean_attention_text(revision.get(field))
+            if value:
+                item[field] = value
+                if bundle is not None:
+                    bundle[field] = value
+        cause_status = str(revision.get("cause_status") or "").strip().lower()
+        if cause_status in {"supported", "partial", "unresolved"}:
+            item["cause_status"] = cause_status
+            item["surface_cause_status"] = cause_status
+            if bundle is not None:
+                bundle["cause_status"] = cause_status
+                bundle["surface_cause_status"] = cause_status
+        item["business_context_text"] = group_text
+        item["surface_business_context_text"] = group_text
+        item["business_resolution_text"] = group_text
+        item["group_synthesis_text"] = group_text
+        item["zopedia_group_synthesis_status"] = "completed"
+        item["zopedia_group_synthesis_note"] = clean_attention_text(revision.get("synthesis_note"))
+        if bundle is not None:
+            bundle["business_context_text"] = group_text
+            bundle["surface_business_context_text"] = group_text
+            bundle["business_resolution_text"] = group_text
+            bundle["group_synthesis_text"] = group_text
+            bundle["zopedia_group_synthesis_status"] = "completed"
+            bundle["zopedia_group_synthesis_note"] = item["zopedia_group_synthesis_note"]
+        return True
+
+    for section in ["top_events", "must_read_movers", "unresolved_large_moves"]:
+        items: list[dict[str, Any]] = []
+        for index, raw_item in enumerate(list(updated_payload.get(section) or [])):
+            item = dict(raw_item or {})
+            bundle_id = str(item.get("bundle_id") or "").strip()
+            bundle = updated_bundle_map.get(bundle_id) if bundle_id else None
+            revision = revisions.get((section, index, bundle_id)) or revisions.get((section, index, ""))
+            if revision:
+                if _apply(item, bundle, revision):
+                    changed += 1
+                else:
+                    skipped += 1
+            items.append(item)
+        updated_payload[section] = items
+    return updated_payload, updated_bundle_map, {"changed": changed, "skipped": skipped}
+
+
+def _synthesize_group_contexts_with_zopedia(
+    payload: dict[str, Any],
+    bundle_map: dict[str, dict[str, Any]],
+    *,
+    llm_client: Any | None,
+    timeout_seconds: int,
+) -> tuple[dict[str, Any], dict[str, dict[str, Any]], dict[str, Any]]:
+    source_items = _group_synthesis_source_items(payload, bundle_map, limit=_group_synthesis_limit())
+    if not source_items:
+        return payload, bundle_map, {"status": "skipped", "reason": "no_group_items", "changed": 0, "skipped": 0}
+    if llm_client is None:
+        return payload, bundle_map, {
+            "status": "skipped",
+            "reason": "llm_unavailable",
+            "source_item_count": len(source_items),
+            "changed": 0,
+            "skipped": 0,
+        }
+
+    query = (
+        "Synthesize group-level Home attention research from supplied cohort metadata, member Zopedia context, "
+        "business-context rows, and claims. Each supplied item is one group event. Return one item for every supplied "
+        "item with the same section, index, and bundle_id.\n\n"
+        "Write one coherent group narrative. Do not paste or concatenate member answers. Do not include markdown "
+        "headings, bullets, or section labels inside any returned text field. Do not copy ticker-level subtitles such "
+        "as What Changed, Business Context, Most Likely Driver, or What To Watch into returned fields. Use plain "
+        "sentences only.\n\n"
+        "If the member context supports a common driver, put the causal chain in why_happened_text and set "
+        "cause_status=supported or partial according to evidence strength. If there is no common supported driver, "
+        "leave why_happened_text empty, set cause_status=partial, keep business_context_text focused on why the "
+        "cohort belongs together, and write a concrete watch_next_text evidence target. Do not invent causes. "
+        "Do not describe missing evidence in business_context_text.\n\n"
+        "Group synthesis source items:\n"
+        f"{json.dumps(source_items, ensure_ascii=True, sort_keys=True, default=str)}"
+    )
+    result = _call_with_timeout(
+        "attention-home-group-synthesis",
+        timeout_seconds,
+        lambda: run_aql_zopedia_structured_agent(
+            query=query,
+            schema_name="attention_home_group_synthesis",
+            schema=_GROUP_SYNTHESIS_SCHEMA,
+            task="attention_home_group_synthesis",
+            surface="attention_home.group_synthesis",
+            max_tool_calls=0,
+            llm_client=llm_client,
+            persist_findings=False,
+        ),
+    )
+    if not isinstance(result, dict) or str(result.get("status") or "") != "completed":
+        return payload, bundle_map, {
+            "status": "failed",
+            "reason": str((result or {}).get("error") or "unknown error"),
+            "changed": 0,
+            "skipped": 0,
+        }
+    synthesis_payload = result.get("payload") if isinstance(result.get("payload"), dict) else {}
+    if not bool(synthesis_payload.get("accepted")):
+        return payload, bundle_map, {
+            "status": "rejected",
+            "issues": [str(item).strip() for item in list(synthesis_payload.get("issues") or []) if str(item).strip()][:8],
+            "changed": 0,
+            "skipped": 0,
+        }
+    updated_payload, updated_bundle_map, counts = _apply_group_synthesis_items(
+        payload,
+        bundle_map,
+        list(synthesis_payload.get("items") or []),
+    )
+    return updated_payload, updated_bundle_map, {
+        "status": "completed",
+        "issues": [str(item).strip() for item in list(synthesis_payload.get("issues") or []) if str(item).strip()][:8],
+        "source_item_count": len(source_items),
+        **counts,
+    }
 
 
 def _apply_home_surface_quality_items(
@@ -3649,6 +4040,31 @@ def build_attention_home_output_frames(
         artifacts.bundle_map,
         enrichment_rows,
     )
+    try:
+        payload, artifacts.bundle_map, group_synthesis = _synthesize_group_contexts_with_zopedia(
+            payload,
+            artifacts.bundle_map,
+            llm_client=llm_client,
+            timeout_seconds=_group_synthesis_timeout_seconds(),
+        )
+        coverage = dict(payload.get("coverage_summary") or {})
+        coverage["group_synthesis_status"] = str(group_synthesis.get("status") or "")
+        coverage["group_synthesis_changed_count"] = int(group_synthesis.get("changed") or 0)
+        coverage["group_synthesis_source_item_count"] = int(group_synthesis.get("source_item_count") or 0)
+        payload["coverage_summary"] = coverage
+        print(
+            "[info] attention-home-build group synthesis: "
+            f"status={group_synthesis.get('status')} "
+            f"source_items={group_synthesis.get('source_item_count', 0)} "
+            f"changed={group_synthesis.get('changed', 0)} "
+            f"skipped={group_synthesis.get('skipped', 0)}"
+        )
+    except Exception as exc:
+        coverage = dict(payload.get("coverage_summary") or {})
+        coverage["group_synthesis_status"] = "failed"
+        coverage["group_synthesis_error"] = f"{type(exc).__name__}: {exc}"
+        payload["coverage_summary"] = coverage
+        print(f"[warn] attention-home-build group synthesis failed (non-fatal): {type(exc).__name__}: {exc}")
     print("[info] attention-home-build reviewing public Home surface with Zopedia")
     payload, artifacts.bundle_map, public_surface_review = _review_home_public_surface(
         payload,

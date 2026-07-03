@@ -7,7 +7,7 @@ Use `documents/plans/` for active implementation notes, recovery plans, and shor
 ## Map
 
 - `overall/`: app-wide architecture, simplification, signal extraction, universe, and pipeline redesign context
-- `AQL/`: Attention Query Layer ownership, package boundaries, evidence contracts, and AQL consolidation work
+- `AQL/`: Attention Query Layer ownership, package boundaries, evidence contracts, and AQL consolidation work. Active gateway roadmap: `../plans/V0_6_AQL_ZOPEDIA_GATEWAY_ROADMAP_2026-07-01.md`.
 - `SAA/`: Supporting Analysis Archive retrieval, retention, hybrid search, and SAA rollout phases
 - `attention/`: Attention feed, homepage research quality, and Attention UI/data wiring design
 - `market_data/`: market data, fundamentals, options, macro, anomaly, and signal extraction boundaries

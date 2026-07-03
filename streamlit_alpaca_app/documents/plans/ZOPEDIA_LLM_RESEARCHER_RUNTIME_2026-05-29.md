@@ -319,6 +319,10 @@ This generalizes the Trading Agent per-ticker package idea without hardcoding ti
 
 ### Phase 5: Route Trading Agent Through The Shared Runtime
 
+2026-07-01 update: this phase must run through the v0.6 AQL/Zopedia gateway,
+not through another local runtime wrapper. See
+`documents/plans/V0_6_AQL_ZOPEDIA_GATEWAY_ROADMAP_2026-07-01.md`.
+
 After the new researcher runtime works in chat, move Trading Agent from its local per-ticker package implementation toward the shared decomposition path.
 
 Trading Agent should request:
@@ -328,7 +332,7 @@ Trading Agent should request:
 - return research-only watchlist output
 - run critic before candidate publication
 
-The shared runtime decides decomposition and sufficiency. Trading Agent supplies product intent and materialized context, not bespoke research policy.
+The shared runtime decides decomposition and sufficiency. Trading Agent supplies product intent and materialized context, not bespoke research policy. Every ticker research, final synthesis, and review model call should record a gateway event with surface, purpose, provider, model, status, and artifact links.
 
 ### Phase 6: Replace `omnibar_agent.py` Ownership
 
@@ -357,6 +361,11 @@ Each surface should pass:
 - allowed tools
 - budget profile
 - output contract
+
+Each materialized surface should receive a gateway event trail. A product row
+that contains model-written claims should be able to identify which gateway call
+created or reviewed those claims, without storing raw prompts in user-facing
+payloads.
 
 The researcher/critic loop remains shared.
 
@@ -428,4 +437,3 @@ The first target is:
 > Zopedia chat can answer the latest failed divergence thread with a useful, grounded answer, without hardcoded premise logic and without the monitor killing recoverable research.
 
 If that works, replay MXL and one broad multi-ticker query. Then decide whether the runtime is ready to replace the old loop in dev.
-

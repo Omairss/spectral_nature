@@ -10,8 +10,8 @@ from data_access.layer import DataAccessLayer
 from services.aql import build_market_stories
 
 
-OMNIBAR_POLICY_VERSION = "streamlit-agentic-omnibar-v1"
-OMNIBAR_MACRO_RELEASES: tuple[dict[str, object], ...] = (
+ZOPEDIA_RESOLVER_POLICY_VERSION = "streamlit-zopedia-resolver-v1"
+ZOPEDIA_MACRO_RELEASES: tuple[dict[str, object], ...] = (
     {
         "release_id": "cpi",
         "label": "CPI Release",
@@ -52,7 +52,7 @@ OMNIBAR_MACRO_RELEASES: tuple[dict[str, object], ...] = (
 
 
 @dataclass(frozen=True)
-class OmnibarContext:
+class ZopediaResolverContext:
     home_payload: dict[str, Any]
     stories: list[dict[str, object]]
     symbol_catalog: dict[str, dict[str, object]]
@@ -177,11 +177,11 @@ def _build_symbol_catalog(
     return catalog
 
 
-def build_omnibar_context(
+def build_zopedia_resolver_context(
     *,
     layer: DataAccessLayer | None = None,
     force_refresh: bool = False,
-) -> OmnibarContext:
+) -> ZopediaResolverContext:
     resolved_layer = layer or DataAccessLayer.from_environment()
     try:
         home_payload = resolved_layer.resolve_attention_home_1d(force_refresh=force_refresh).payload
@@ -204,7 +204,7 @@ def build_omnibar_context(
         force_refresh=force_refresh,
     ) if tracked_symbols else {}
     symbol_catalog = _build_symbol_catalog(stories, symbol_name_map)
-    return OmnibarContext(
+    return ZopediaResolverContext(
         home_payload=home_payload,
         stories=stories,
         symbol_catalog=symbol_catalog,
@@ -260,7 +260,7 @@ def _build_results(
         )
 
     normalized_query_lower = normalized_query.lower()
-    for release in OMNIBAR_MACRO_RELEASES:
+    for release in ZOPEDIA_MACRO_RELEASES:
         aliases = [str(item).lower().strip() for item in list(release.get("aliases") or []) if str(item).strip()]
         score = 0.0
         if normalized_query_lower in aliases:
@@ -396,7 +396,7 @@ def _extract_context_items(results: list[dict[str, object]]) -> list[dict[str, s
     return items
 
 
-def resolve_omnibar(
+def resolve_zopedia(
     *,
     query: str,
     preferred_mode: str = "auto",
@@ -409,7 +409,7 @@ def resolve_omnibar(
         normalized_mode = "auto"
 
     resolved_layer = layer or DataAccessLayer.from_environment()
-    context = build_omnibar_context(layer=resolved_layer, force_refresh=force_refresh)
+    context = build_zopedia_resolver_context(layer=resolved_layer, force_refresh=force_refresh)
     search_results = _build_results(
         layer=resolved_layer,
         query=normalized_query,
@@ -432,12 +432,12 @@ def resolve_omnibar(
         else:
             intent = "ambiguous"
 
-    request_id = f"omni_{uuid.uuid4().hex[:10]}"
+    request_id = f"zop_{uuid.uuid4().hex[:10]}"
     context_items = _extract_context_items(search_results)
     return {
         "request_id": request_id,
         "intent": intent,
-        "policy_version": OMNIBAR_POLICY_VERSION,
+        "policy_version": ZOPEDIA_RESOLVER_POLICY_VERSION,
         "confidence_band": _confidence_band(
             intent,
             top_score,
@@ -464,7 +464,7 @@ def resolve_omnibar(
     }
 
 
-def list_omnibar_suggestions(
+def list_zopedia_suggestions(
     *,
     limit: int = 8,
     force_refresh: bool = False,
@@ -473,9 +473,9 @@ def list_omnibar_suggestions(
     safe_limit = min(max(int(limit), 1), 20)
     try:
         resolved_layer = layer or DataAccessLayer.from_environment()
-        context = build_omnibar_context(layer=resolved_layer, force_refresh=force_refresh)
+        context = build_zopedia_resolver_context(layer=resolved_layer, force_refresh=force_refresh)
     except Exception:
-        context = OmnibarContext(home_payload={}, stories=[], symbol_catalog={})
+        context = ZopediaResolverContext(home_payload={}, stories=[], symbol_catalog={})
 
     suggestions: list[dict[str, object]] = []
     seen_queries: set[str] = set()
@@ -497,7 +497,7 @@ def list_omnibar_suggestions(
             break
 
     if len(suggestions) < safe_limit:
-        for release in OMNIBAR_MACRO_RELEASES:
+        for release in ZOPEDIA_MACRO_RELEASES:
             query = _normalize_text(list(release.get("aliases") or [""])[0] if list(release.get("aliases") or []) else "")
             if not query or query in seen_queries:
                 continue
@@ -529,16 +529,16 @@ def list_omnibar_suggestions(
                 break
 
     return {
-        "policy_version": OMNIBAR_POLICY_VERSION,
+        "policy_version": ZOPEDIA_RESOLVER_POLICY_VERSION,
         "suggestions": suggestions[:safe_limit],
     }
 
 
 __all__ = [
-    "OMNIBAR_MACRO_RELEASES",
-    "OMNIBAR_POLICY_VERSION",
-    "OmnibarContext",
-    "build_omnibar_context",
-    "list_omnibar_suggestions",
-    "resolve_omnibar",
+    "ZOPEDIA_MACRO_RELEASES",
+    "ZOPEDIA_RESOLVER_POLICY_VERSION",
+    "ZopediaResolverContext",
+    "build_zopedia_resolver_context",
+    "list_zopedia_suggestions",
+    "resolve_zopedia",
 ]

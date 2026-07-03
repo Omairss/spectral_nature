@@ -149,12 +149,12 @@ def test_dataset_endpoint_rejects_missing_scope(monkeypatch):
     assert "Missing required scope" in response.json().get("detail", "")
 
 
-def test_omnibar_endpoint_rejects_missing_scope(monkeypatch):
+def test_zopedia_endpoint_rejects_missing_scope(monkeypatch):
     monkeypatch.setattr(api_main.api_auth, "principal_from_agent_api_key", lambda token: _agent_principal(api_auth.SCOPE_QUERY_EXECUTE))
 
     client = TestClient(api_main.app)
     response = client.post(
-        "/v1/omnibar/resolve",
+        "/v1/zopedia/resolve",
         headers={"X-API-Key": "snak_test"},
         json={"query": "AAPL"},
     )
@@ -163,19 +163,19 @@ def test_omnibar_endpoint_rejects_missing_scope(monkeypatch):
     assert "Missing required scope" in response.json().get("detail", "")
 
 
-def test_omnibar_endpoint_returns_resolution(monkeypatch):
+def test_zopedia_endpoint_returns_resolution(monkeypatch):
     monkeypatch.setattr(
         api_main.api_auth,
         "principal_from_agent_api_key",
-        lambda token: _agent_principal(api_auth.SCOPE_OMNIBAR_RESOLVE),
+        lambda token: _agent_principal(api_auth.SCOPE_ZOPEDIA_RESOLVE),
     )
     monkeypatch.setattr(
-        api_main.omnibar_service,
-        "resolve_omnibar",
+        api_main.zopedia_service,
+        "resolve_zopedia",
         lambda **kwargs: {
-            "request_id": "omni_123",
+            "request_id": "zop_123",
             "intent": "navigate",
-            "policy_version": "streamlit-agentic-omnibar-v1",
+            "policy_version": "streamlit-zopedia-resolver-v1",
             "confidence_band": "high",
             "confidence": 1.0,
             "query_echo": kwargs["query"],
@@ -194,31 +194,31 @@ def test_omnibar_endpoint_returns_resolution(monkeypatch):
 
     client = TestClient(api_main.app)
     response = client.post(
-        "/v1/omnibar/resolve",
+        "/v1/zopedia/resolve",
         headers={"X-API-Key": "snak_test"},
         json={"query": "AAPL", "preferred_mode": "auto"},
     )
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["request_id"] == "omni_123"
+    assert payload["request_id"] == "zop_123"
     assert payload["intent"] == "navigate"
-    assert payload["policy_version"] == "streamlit-agentic-omnibar-v1"
+    assert payload["policy_version"] == "streamlit-zopedia-resolver-v1"
     assert payload["confidence_band"] == "high"
     assert payload["search_results"][0]["ref"] == "AAPL"
 
 
-def test_omnibar_suggestions_endpoint_returns_suggestions(monkeypatch):
+def test_zopedia_suggestions_endpoint_returns_suggestions(monkeypatch):
     monkeypatch.setattr(
         api_main.api_auth,
         "principal_from_agent_api_key",
-        lambda token: _agent_principal(api_auth.SCOPE_OMNIBAR_RESOLVE),
+        lambda token: _agent_principal(api_auth.SCOPE_ZOPEDIA_RESOLVE),
     )
     monkeypatch.setattr(
-        api_main.omnibar_service,
-        "list_omnibar_suggestions",
+        api_main.zopedia_service,
+        "list_zopedia_suggestions",
         lambda **kwargs: {
-            "policy_version": "streamlit-agentic-omnibar-v1",
+            "policy_version": "streamlit-zopedia-resolver-v1",
             "suggestions": [
                 {
                     "kind": "macro_release",
@@ -232,14 +232,31 @@ def test_omnibar_suggestions_endpoint_returns_suggestions(monkeypatch):
 
     client = TestClient(api_main.app)
     response = client.get(
-        "/v1/omnibar/suggestions",
+        "/v1/zopedia/suggestions",
         headers={"X-API-Key": "snak_test"},
     )
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["policy_version"] == "streamlit-agentic-omnibar-v1"
+    assert payload["policy_version"] == "streamlit-zopedia-resolver-v1"
     assert payload["suggestions"][0]["query"] == "cpi"
+
+
+def test_old_resolver_endpoint_is_not_available(monkeypatch):
+    monkeypatch.setattr(
+        api_main.api_auth,
+        "principal_from_agent_api_key",
+        lambda token: _agent_principal(api_auth.SCOPE_ZOPEDIA_RESOLVE),
+    )
+
+    client = TestClient(api_main.app)
+    response = client.post(
+        "/v1/omnibar/resolve",
+        headers={"X-API-Key": "snak_test"},
+        json={"query": "AAPL"},
+    )
+
+    assert response.status_code == 404
 
 
 def test_protected_endpoint_fails_closed_when_auth_is_disabled(monkeypatch):

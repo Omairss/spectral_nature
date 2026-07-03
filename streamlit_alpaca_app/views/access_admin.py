@@ -1411,7 +1411,7 @@ def _render_llm_config_admin() -> None:
     import services.aql.summarizer  # noqa: F401
     import services.aql.writer  # noqa: F401
     import services.aql.constants  # noqa: F401
-    import services.omnibar_agent  # noqa: F401
+    import services.zopedia_agent  # noqa: F401
     prompts = list_narrative_prompts()
     config_params = list_config_params()
     params_by_group: dict[str, list[dict]] = {}
@@ -1746,8 +1746,8 @@ curl -o export.zip "DOWNLOAD_URL"
 | `GET` | `/v1/capabilities` | List all available datasets and charts |
 | `POST` | `/v1/query` | Generic query (specify `operation`, `name`, `params`) |
 | `POST` | `/v1/chart/{name}` | Get chart data (e.g. `portfolio_vs_benchmarks`, `technical_price_channel`) |
-| `POST` | `/v1/omnibar/resolve` | Resolve a search/analysis query |
-| `GET` | `/v1/omnibar/suggestions` | Get omnibar suggestions |
+| `POST` | `/v1/zopedia/resolve` | Resolve a Zopedia search/analysis query |
+| `GET` | `/v1/zopedia/suggestions` | Get Zopedia suggestions |
 | `GET` | `/v1/agent/tools` | List available agent tools (MCP compatible) |
 | `POST` | `/v1/agent/tools/{name}/invoke` | Invoke an agent tool |
 | `POST` | `/v1/agent/rpc` | JSON-RPC endpoint (MCP compatible) |
