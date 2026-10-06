@@ -227,9 +227,10 @@ computes a monthly-last, pairwise-complete correlation heatmap.
 - `attention-ticker-next-dev-gabf62n` succeeded and published
   `development__attention_ticker_snapshots_1d__20261006T213435Z__3958cd66` with 29 rows,
   including quarterly fundamentals for 18 symbols.
-- The full Home builder persisted the development Home and related core datasets before
-  beginning optional page-summary work. Market-card freshness does not depend on that
-  optional LLM stage.
+- The full Home execution `attention-home-next-dev-ndtwh23` succeeded. It persisted the
+  development Home, 71 ticker snapshots, 79 research bundles, 308 news rows, and five
+  optional page-summary rows. Market-card freshness does not depend on that optional LLM
+  stage.
 - Live authenticated review found no browser warnings or errors on Home or Broad Economy.
   Security headers retained HSTS, a request-nonce CSP, frame denial, content sniffing
   protection, and a restrictive permissions policy.

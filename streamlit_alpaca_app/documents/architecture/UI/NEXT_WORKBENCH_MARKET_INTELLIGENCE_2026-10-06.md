@@ -85,6 +85,9 @@ The accepted release is live at
   modifying production pointers.
 - `attention-ticker-next-dev-gabf62n` published 29 current attention symbols, including
   18 with quarterly fundamentals, through the manual development-only job.
+- `attention-home-next-dev-ndtwh23` completed successfully after publishing the full Home
+  read model, 71 embedded ticker snapshots, 79 research bundles, 308 news rows, and five
+  optional page-summary rows.
 - The deployed Home showed inline values for price, daily and monthly change, market cap,
   revenue and growth, net income, and free cash flow. Broad Economy showed three charts
   per desktop row, visible change overlays, and the correlation heatmap. The browser
