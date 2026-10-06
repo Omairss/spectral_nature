@@ -2,7 +2,7 @@
 
 Date: 2026-10-06
 
-Status: locally accepted; isolated Next.js development deployment pending.
+Status: locally accepted; isolated Next.js development deployment in progress.
 
 ## Outcome
 
@@ -16,13 +16,17 @@ The Daily Brief and Broad Economy surfaces now behave as research workspaces rat
 
 ### Attention ticker snapshots
 
-`attention-home-build` remains the owner of the Home read model. It now joins:
+`attention-home-build` remains the owner of the complete Home read model. It now joins:
 
 - `price_history` for latest price, 1-day and 20-session returns, and sparklines;
 - `universe_snapshot` and share-count data for names and market capitalization;
 - `quarterly_fundamentals` for revenue, revenue growth, operating income, net income, cash flow, and reporting-period identity.
 
 The resulting public-symbol subset is embedded in `attention_home_snapshots_1d`. This keeps the Home request to one bounded materialized read. `attention_ticker_snapshots_1d` remains separately addressable for other surfaces and for compatibility with older Home snapshots.
+
+Ticker market data also has an independent `attention-ticker-snapshot-build` job. It reads the published Home symbol set and materializes `attention_ticker_snapshots_1d` directly from price, universe, and quarterly-fundamental inputs. This prevents deterministic price and fundamental freshness from depending on the much longer agentic narrative and qualitative-review lifecycle. The complete Home build still embeds the same contract when it succeeds; the API bulk-loads the separate snapshot for older Home artifacts.
+
+The qualitative public-surface review retries bounded transient provider failures such as prematurely terminated streamed responses. Semantic rejection remains fail-closed and is never converted into a retry or automatic publish.
 
 The public DTO validates numeric values, bounds text, and only accepts the generated SVG data-URI form used by the snapshot builder. Raw filings, provider responses, prompts, model traces, and credentials do not cross the browser boundary.
 

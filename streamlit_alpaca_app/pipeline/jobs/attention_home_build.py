@@ -698,6 +698,10 @@ def _is_retryable_zopedia_llm_failure(result: object) -> bool:
             "returned invalid json",
             "returned empty content",
             "request failed",
+            "chunkedencodingerror",
+            "response ended prematurely",
+            "connection reset",
+            "connection aborted",
             "timed out",
             "timeout",
         )
@@ -3699,19 +3703,31 @@ def _review_home_public_surface(
         "Home surface items:\n"
         f"{json.dumps(review_items, ensure_ascii=True, sort_keys=True, default=str)}"
     )
-    result = _call_with_timeout(
-        "attention-home-public-surface-quality",
-        timeout_seconds,
-        lambda: run_aql_zopedia_structured_agent(
-            query=query,
-            schema_name="attention_home_public_surface_quality",
-            schema=_HOME_SURFACE_QUALITY_SCHEMA,
-            task="attention_home_public_surface_quality",
-            surface="attention_home.public_surface_quality",
-            max_tool_calls=0,
-            persist_findings=False,
-        ),
-    )
+    attempts = _env_positive_int("ATTENTION_HOME_SURFACE_QUALITY_ATTEMPTS", 2)
+    result: dict[str, Any] = {}
+    for attempt in range(1, attempts + 1):
+        result = _call_with_timeout(
+            f"attention-home-public-surface-quality-{attempt}",
+            timeout_seconds,
+            lambda: run_aql_zopedia_structured_agent(
+                query=query,
+                schema_name="attention_home_public_surface_quality",
+                schema=_HOME_SURFACE_QUALITY_SCHEMA,
+                task="attention_home_public_surface_quality",
+                surface="attention_home.public_surface_quality",
+                max_tool_calls=0,
+                persist_findings=False,
+            ),
+        )
+        if isinstance(result, dict) and str(result.get("status") or "") == "completed":
+            break
+        if attempt >= attempts or not _is_retryable_zopedia_llm_failure(result):
+            break
+        print(
+            "[warn] attention-home-build public surface review encountered a transient provider failure; "
+            f"retrying attempt={attempt + 1}/{attempts}",
+            flush=True,
+        )
     if not isinstance(result, dict) or str(result.get("status") or "") != "completed":
         raise AttentionHomeBuildError(
             f"Home public-surface quality review failed: {str((result or {}).get('error') or 'unknown error')}"

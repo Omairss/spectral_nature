@@ -29,6 +29,9 @@ from services.market_data import (
 from compute.portfolio import build_portfolio_timeseries
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
 from pipeline.jobs.attention_home_build import run_attention_home_build as run_attention_home_build_job
+from pipeline.jobs.attention_ticker_snapshot_build import (
+    run_attention_ticker_snapshot_build as run_attention_ticker_snapshot_build_job,
+)
 from services.attention_home_1d import resolve_macro_anchor_symbols
 from services.attention_context_llm import (
     build_attention_context_narratives,
@@ -2559,6 +2562,16 @@ def run_attention_home(ctx: JobContext, conn: Any | None = None) -> None:
     )
 
 
+def run_attention_ticker_snapshots(ctx: JobContext, conn: Any | None = None) -> None:
+    run_attention_ticker_snapshot_build_job(
+        ctx,
+        conn,
+        persist_dataset_fn=_persist_dataset,
+        job_progress_fn=_job_progress,
+        load_materialized_frame_fn=_load_latest_materialized_frame,
+    )
+
+
 def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
     _job_progress(ctx, conn, stage="starting", message="Starting Trading Agent materialization.", progress_pct=1.0)
     opportunity_feed = _load_latest_materialized_frame("market_opportunity_feed")
@@ -3184,6 +3197,7 @@ def main() -> None:
         "options-liquid-universe": run_options,
         "news-ingest-and-features": run_news,
         "attention-home-build": run_attention_home,
+        "attention-ticker-snapshot-build": run_attention_ticker_snapshots,
         "trading-agent-build": run_trading_agent,
         "entity-taxonomy-refresh": run_entity_taxonomy,
         "company-baseline-prefetch": run_company_baselines,
