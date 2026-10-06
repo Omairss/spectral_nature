@@ -7,13 +7,17 @@ import re
 import uuid
 from typing import Any
 
-from .secrets import postgres_connect_timeout_seconds, resolve_secret_value
+from .secrets import postgres_connect_timeout_seconds, resolve_secret_value, runtime_env_value
 
 
 try:
     import psycopg
 except Exception:
     psycopg = None
+
+
+class AuthStoreUnavailable(RuntimeError):
+    """The configured authentication store could not accept a connection."""
 
 
 def _now_utc() -> datetime:
@@ -28,6 +32,13 @@ def _schema_name() -> str:
 
 
 def _postgres_connection_string() -> str:
+    control_connection = runtime_env_value("CONTROL_POSTGRES_CONNECTION_STRING")
+    control_secret_name = runtime_env_value("CONTROL_POSTGRES_CONNECTION_STRING_SECRET")
+    if control_connection or control_secret_name:
+        return resolve_secret_value(
+            ["CONTROL_POSTGRES_CONNECTION_STRING"],
+            secret_name_env="CONTROL_POSTGRES_CONNECTION_STRING_SECRET",
+        )
     return resolve_secret_value(
         ["POSTGRES_CONNECTION_STRING"],
         secret_name_env="POSTGRES_CONNECTION_STRING_SECRET",
@@ -108,8 +119,13 @@ def _default_portfolio_name() -> str:
 
 def _ensure_schema(conn: Any) -> None:
     schema = _schema_name()
-    statements = [
-        f"CREATE SCHEMA IF NOT EXISTS {schema}",
+    with conn.cursor() as cursor:
+        cursor.execute("SELECT 1 FROM pg_namespace WHERE nspname = %s", (schema,))
+        schema_exists = cursor.fetchone() is not None
+    statements = []
+    if not schema_exists:
+        statements.append(f"CREATE SCHEMA {schema}")
+    statements.extend([
         f"""
         CREATE TABLE IF NOT EXISTS {schema}.portfolios (
             id UUID PRIMARY KEY,
@@ -316,23 +332,65 @@ def _ensure_schema(conn: Any) -> None:
             updated_at TIMESTAMPTZ NOT NULL
         )
         """,
-    ]
+    ])
     with conn.cursor() as cursor:
         for statement in statements:
             cursor.execute(statement)
     ensure_default_portfolio(conn)
 
 
-def ensure_auth_schema() -> bool:
+def _auth_schema_ready_on_connection(conn: Any) -> bool:
+    schema = _schema_name()
+    required_tables = (
+        "portfolios",
+        "users",
+        "user_credentials",
+        "user_invites",
+        "password_reset_tokens",
+        "portfolio_memberships",
+        "user_sessions",
+        "access_events",
+        "agent_api_keys",
+        "app_settings",
+    )
+    with conn.cursor() as cursor:
+        cursor.execute(
+            "SELECT " + ", ".join("to_regclass(%s)" for _ in required_tables),
+            tuple(f"{schema}.{table}" for table in required_tables),
+        )
+        row = cursor.fetchone()
+    return bool(row and all(value is not None for value in row))
+
+
+def ensure_auth_schema(*, require_available: bool = False) -> bool:
     conn = _db_connect()
     if conn is None:
+        if require_available:
+            raise AuthStoreUnavailable("Authentication store is unavailable.")
         return False
     try:
-        with conn:
-            _ensure_schema(conn)
-        return True
+        return _auth_schema_ready_on_connection(conn)
+    except Exception as exc:
+        if require_available:
+            raise AuthStoreUnavailable("Authentication store is unavailable.") from exc
+        return False
     finally:
         conn.close()
+
+
+def open_auth_store_connection() -> Any | None:
+    """Open the shared application-auth database used by user-owned services."""
+    return _db_connect()
+
+
+def auth_store_schema_name() -> str:
+    """Return the validated schema that owns users and user-scoped integrations."""
+    return _schema_name()
+
+
+def ensure_auth_schema_on_connection(conn: Any) -> None:
+    """Ensure the shared user schema inside an existing transaction boundary."""
+    _ensure_schema(conn)
 
 
 def ensure_default_portfolio(conn: Any) -> dict[str, Any]:
@@ -403,6 +461,67 @@ def _active_membership_for_user(cursor: Any, user_id: str | uuid.UUID) -> dict[s
     return _fetchone_dict(cursor)
 
 
+def get_active_portfolio_membership(*, user_id: str, portfolio_id: str) -> dict[str, Any] | None:
+    try:
+        normalized_user_id = str(uuid.UUID(str(user_id or "").strip()))
+        normalized_portfolio_id = str(uuid.UUID(str(portfolio_id or "").strip()))
+    except (TypeError, ValueError, AttributeError):
+        return None
+    conn = _db_connect()
+    if conn is None:
+        return None
+    schema = _schema_name()
+    now = _now_utc()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
+                SELECT membership.id,
+                       membership.user_id,
+                       membership.portfolio_id,
+                       membership.role,
+                       membership.can_view_full_portfolio,
+                       membership.share_fraction
+                FROM {schema}.portfolio_memberships AS membership
+                JOIN {schema}.portfolios AS portfolio
+                  ON portfolio.id = membership.portfolio_id
+                WHERE membership.user_id = %s::uuid
+                  AND membership.portfolio_id = %s::uuid
+                  AND portfolio.status = %s
+                  AND membership.effective_from <= %s
+                  AND (membership.effective_to IS NULL OR membership.effective_to > %s)
+                LIMIT 1
+                """,
+                (
+                    normalized_user_id,
+                    normalized_portfolio_id,
+                    "active",
+                    now,
+                    now,
+                ),
+            )
+            return _fetchone_dict(cursor)
+    except Exception:
+        return None
+    finally:
+        conn.close()
+
+
+def user_has_active_portfolio_membership(*, user_id: str, portfolio_id: str) -> bool:
+    return get_active_portfolio_membership(
+        user_id=user_id,
+        portfolio_id=portfolio_id,
+    ) is not None
+
+
+def user_has_active_portfolio_admin_membership(*, user_id: str, portfolio_id: str) -> bool:
+    membership = get_active_portfolio_membership(
+        user_id=user_id,
+        portfolio_id=portfolio_id,
+    )
+    return str((membership or {}).get("role") or "").strip().lower() == "admin"
+
+
 def _build_user_context_row(user_row: dict[str, Any], membership_row: dict[str, Any] | None) -> dict[str, Any]:
     membership = membership_row or {}
     first_name = str(user_row.get("first_name") or "").strip()
@@ -430,9 +549,11 @@ def _build_user_context_row(user_row: dict[str, Any], membership_row: dict[str, 
     }
 
 
-def has_users() -> bool:
+def has_users(*, require_available: bool = False) -> bool:
     conn = _db_connect()
     if conn is None:
+        if require_available:
+            raise AuthStoreUnavailable("Authentication store is unavailable.")
         return False
     schema = _schema_name()
     try:
@@ -440,6 +561,8 @@ def has_users() -> bool:
             cursor.execute(f"SELECT 1 FROM {schema}.users LIMIT 1")
             return cursor.fetchone() is not None
     except Exception:
+        if require_available:
+            raise AuthStoreUnavailable("Authentication store is unavailable.")
         return False
     finally:
         conn.close()
@@ -448,7 +571,7 @@ def has_users() -> bool:
 def get_user_for_login(email: str) -> dict[str, Any] | None:
     conn = _db_connect()
     if conn is None:
-        return None
+        raise AuthStoreUnavailable("Authentication store is unavailable.")
     schema = _schema_name()
     try:
         with conn.cursor() as cursor:
@@ -1310,7 +1433,7 @@ def reset_password(
 def list_users() -> list[dict[str, Any]]:
     conn = _db_connect()
     if conn is None:
-        return []
+        raise AuthStoreUnavailable("Authentication store is unavailable.")
     schema = _schema_name()
     now = _now_utc()
     active_since = now - timedelta(minutes=30)
@@ -1380,7 +1503,7 @@ def list_users() -> list[dict[str, Any]]:
 def list_pending_invites() -> list[dict[str, Any]]:
     conn = _db_connect()
     if conn is None:
-        return []
+        raise AuthStoreUnavailable("Authentication store is unavailable.")
     schema = _schema_name()
     now = _now_utc()
     try:
@@ -2470,14 +2593,18 @@ def set_app_setting(setting_key: str, value: Any, *, updated_by: str | None = No
 
 
 __all__ = [
+    "AuthStoreUnavailable",
     "accept_invite",
     "auth_store_configured",
+    "auth_store_schema_name",
     "bootstrap_admin",
     "clear_failed_login",
     "create_agent_api_key",
     "delete_pending_invite",
     "create_session",
     "ensure_auth_schema",
+    "ensure_auth_schema_on_connection",
+    "get_active_portfolio_membership",
     "get_agent_api_key_by_hash",
     "get_active_user_by_email",
     "get_access_admin_dashboard",
@@ -2491,6 +2618,7 @@ __all__ = [
     "list_agent_api_keys",
     "list_pending_invites",
     "list_users",
+    "open_auth_store_connection",
     "record_access_event",
     "record_failed_login",
     "revoke_agent_api_key",
@@ -2499,4 +2627,6 @@ __all__ = [
     "revoke_session",
     "revoke_user_sessions",
     "update_pending_invite",
+    "user_has_active_portfolio_admin_membership",
+    "user_has_active_portfolio_membership",
 ]

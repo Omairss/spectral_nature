@@ -59,7 +59,8 @@ def test_market_opportunity_feed_merges_movers_and_momentum_once_per_symbol():
     assert feed.loc[0, "opportunity"] == "Upside momentum"
     assert feed.loc[1, "opportunity"] == "Downside pressure"
     assert "1 Month +8.2%" in feed.loc[0, "details"]
-    assert "volume 1,200,000" in feed.loc[0, "details"]
+    assert feed.loc[0, "volume"] == 1200000
+    assert "volume" not in feed.loc[0, "details"].lower()
 
 
 def test_market_opportunity_feed_can_use_movers_without_momentum():
@@ -74,6 +75,82 @@ def test_market_opportunity_feed_can_use_movers_without_momentum():
     assert feed.loc[0, "close"] == 260.0
     assert feed.loc[0, "daily_change_pct"] == 5.4
     assert feed.loc[0, "opportunity"] == "Daily dislocation"
+    assert bool(feed.loc[0, "horizon_metric_available"]) is False
+    assert feed.loc[0, "opportunity_score"] == 25.0
+    assert feed.loc[0, "retrieval_method"] == "reciprocal_rank_fusion_v1"
+    assert feed.loc[0, "retrieval_signal_count"] == 1
+
+
+def test_market_opportunity_feed_uses_rank_fusion_instead_of_one_dominant_metric():
+    momentum = pd.DataFrame(
+        [
+            {
+                "symbol": "SPIKE",
+                "daily_change_pct": 0.1,
+                "return_1m_pct": 100.0,
+                "momentum_roc_score": 0.1,
+                "trend_fit_gap": 0.9,
+            },
+            {
+                "symbol": "BROAD",
+                "daily_change_pct": 4.0,
+                "return_1m_pct": 20.0,
+                "momentum_roc_score": 0.8,
+                "trend_fit_gap": 0.05,
+            },
+        ]
+    )
+
+    feed = build_market_opportunity_feed(
+        movers=pd.DataFrame(),
+        momentum=momentum,
+        selected_horizon_col="return_1m_pct",
+        selected_horizon_label="1 Month",
+    )
+
+    assert feed["symbol"].tolist() == ["BROAD", "SPIKE"]
+    assert feed.loc[0, "horizon_retrieval_rank"] == 2.0
+    assert feed.loc[0, "momentum_change_retrieval_rank"] == 1.0
+    assert feed.loc[0, "daily_move_retrieval_rank"] == 1.0
+    assert feed.loc[0, "trend_quality_retrieval_rank"] == 1.0
+
+
+def test_market_opportunity_horizon_selection_can_require_selected_metric():
+    materialized = pd.DataFrame(
+        [
+            {
+                "business_filter": "All Market",
+                "selected_horizon_col": "return_5y_pct",
+                "rank": 1,
+                "symbol": "NEW",
+                "opportunity_score": 98.0,
+                "return_5y_pct": pd.NA,
+            },
+            {
+                "business_filter": "All Market",
+                "selected_horizon_col": "return_5y_pct",
+                "rank": 2,
+                "symbol": "OLD",
+                "opportunity_score": 72.0,
+                "return_5y_pct": 81.0,
+            },
+        ]
+    )
+
+    display_rows = select_market_opportunity_feed(
+        materialized,
+        selected_horizon_col="return_5y_pct",
+        limit=5,
+    )
+    research_rows = select_market_opportunity_feed(
+        materialized,
+        selected_horizon_col="return_5y_pct",
+        require_horizon_metric=True,
+        limit=5,
+    )
+
+    assert display_rows["symbol"].tolist() == ["NEW", "OLD"]
+    assert research_rows["symbol"].tolist() == ["OLD"]
 
 
 def test_materialized_market_opportunity_feeds_include_focus_and_horizon_variants():
@@ -119,3 +196,30 @@ def test_materialized_market_opportunity_feeds_include_focus_and_horizon_variant
     assert selected["symbol"].tolist() == ["MSFT"]
     assert selected.loc[0, "business_filter"] == "Software"
     assert selected.loc[0, "selected_horizon_label"] == "1 Month"
+
+
+def test_materialized_market_opportunity_feed_keeps_full_all_market_retrieval_corpus():
+    movers = pd.DataFrame(
+        [
+            {"symbol": "AAA", "change_pct": 3.0},
+            {"symbol": "BBB", "change_pct": 2.0},
+            {"symbol": "CCC", "change_pct": 1.0},
+        ]
+    )
+    momentum = pd.DataFrame(
+        [
+            {"symbol": symbol, "return_1m_pct": value}
+            for symbol, value in [("AAA", 3.0), ("BBB", 2.0), ("CCC", 1.0)]
+        ]
+    )
+
+    materialized = build_materialized_market_opportunity_feeds(
+        movers=movers,
+        momentum=momentum,
+        focus_symbol_map={"All Market": [], "Focused": ["AAA", "BBB", "CCC"]},
+        horizon_specs=({"key": "1m", "column": "return_1m_pct", "label": "1 Month"},),
+        limit=1,
+    )
+
+    counts = materialized.groupby("business_filter").size().to_dict()
+    assert counts == {"All Market": 3, "Focused": 1}

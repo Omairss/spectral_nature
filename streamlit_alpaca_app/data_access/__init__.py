@@ -1,4 +1,14 @@
-from .contracts import ChartModel, ChartTraceModel, DataProvenance, QueryRequest, QueryResponse, ResolvedPayload
+from .contracts import (
+    ChartModel,
+    ChartTraceModel,
+    DataProvenance,
+    DatasetArtifact,
+    DatasetColumn,
+    QueryRequest,
+    QueryResponse,
+    ResolvedPayload,
+    VisualizationArtifact,
+)
 from .layer import DataAccessLayer
 from .query_service import QueryService
 
@@ -7,8 +17,11 @@ __all__ = [
     "ChartTraceModel",
     "DataAccessLayer",
     "DataProvenance",
+    "DatasetArtifact",
+    "DatasetColumn",
     "QueryRequest",
     "QueryResponse",
     "QueryService",
     "ResolvedPayload",
+    "VisualizationArtifact",
 ]

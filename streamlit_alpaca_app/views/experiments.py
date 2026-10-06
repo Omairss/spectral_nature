@@ -291,8 +291,7 @@ def _render_experiment_placeholder_page(
                 status_callback=_status_callback,
             )
         except Exception as exc:
-            status_box.update(label="Existing anchor scan failed", state="error", expanded=True)
-            status_box.write(f"{type(exc).__name__}: {exc}")
+            status_box.update(label="Anchor scan unavailable", state="error", expanded=False)
             return []
 
         if matches:
@@ -320,15 +319,15 @@ def _render_experiment_placeholder_page(
             "draft_search": "Finding existing anchors for the query.",
             "draft_neighborhood": "Loading the nearby neighborhood from the committed graph.",
             "research": "Collecting optional external research context.",
-            "llm": "Asking the LLM for proposed nodes and edges.",
-            "llm_error": "LLM expansion failed. Keeping the local draft only.",
-            "agent_unavailable": "LLM runtime is unavailable. Keeping the local draft only.",
+            "llm": "Expanding the graph.",
+            "llm_error": "Expansion unavailable.",
+            "agent_unavailable": "Expansion unavailable.",
             "draft_done": "Draft graph is ready.",
         }
         status_box = st.status("Running graph builder", expanded=True)
 
         def _status_callback(stage: str, detail: str) -> None:
-            message = str(detail or stage_labels.get(stage) or stage.replace("_", " ").title()).strip()
+            message = str(stage_labels.get(stage) or detail or stage.replace("_", " ").title()).strip()
             if message:
                 status_box.write(message)
 
@@ -340,18 +339,10 @@ def _render_experiment_placeholder_page(
                 snapshot=graph_snapshot,
                 status_callback=_status_callback,
             )
-        except Exception as exc:
-            status_box.update(label="Graph builder failed", state="error", expanded=True)
-            status_box.write(f"{type(exc).__name__}: {exc}")
+        except Exception:
+            status_box.update(label="Graph unavailable", state="error", expanded=False)
             return None
 
-        limitation_lines = [
-            str(item).strip()
-            for item in list(draft_payload.get("limitations") or [])
-            if str(item).strip()
-        ]
-        if limitation_lines:
-            status_box.write("Limits: " + " | ".join(limitation_lines[:3]))
         status_box.update(
             label=f"Draft ready: {len(list(draft_payload.get('nodes') or []))} nodes, {len(list(draft_payload.get('edges') or []))} edges",
             state="complete",
@@ -365,7 +356,6 @@ def _render_experiment_placeholder_page(
     header_cols = _responsive_columns([4.8, 1.4])
     with header_cols[0]:
         st.title("Knowledge Graph Lab")
-        st.caption("Open knowledge graph PoC. This is separate from the homepage attention graph.")
     with header_cols[1]:
         if st.button("Reset Draft", key="experiment_reset_draft", use_container_width=True):
             _clear_experiment_graph_state(keep_query=False)
@@ -391,10 +381,6 @@ def _render_experiment_placeholder_page(
         "Embeddings + Web"
         if runtime_status.get("embedding_ready") and runtime_status.get("web_search_ready")
         else ("Embeddings" if runtime_status.get("embedding_ready") else ("Web" if runtime_status.get("web_search_ready") else "Local only")),
-    )
-
-    st.caption(
-        "Flow: extract entities -> choose anchors -> visualize the draft -> add, update, or remove nodes and edges -> commit the reviewed delta."
     )
 
     query = st.text_input(
@@ -428,10 +414,6 @@ def _render_experiment_placeholder_page(
         type="primary",
         disabled=not normalized_query,
     )
-    st.caption(
-        "Find Existing Anchors extracts entities, links them to the current graph, and falls back to graph search. Build Editable Graph creates a reviewable add/remove draft from those anchors."
-    )
-
     if not normalized_query:
         total_nodes = len(list(snapshot.get("nodes") or []))
         total_edges = len(list(snapshot.get("edges") or []))
@@ -480,16 +462,12 @@ def _render_experiment_placeholder_page(
                 hide_index=True,
             )
         try:
-            proposal_frame, proposal_metadata = load_latest_dataset_frame("knowledge_graph_update_proposals")
+            proposal_frame, _proposal_metadata = load_latest_dataset_frame("knowledge_graph_update_proposals")
         except Exception:
-            proposal_frame, proposal_metadata = pd.DataFrame(), None
+            proposal_frame, _proposal_metadata = pd.DataFrame(), None
         if isinstance(proposal_frame, pd.DataFrame) and not proposal_frame.empty:
             st.subheader("Latest Attention KG Proposals")
-            st.caption(
-                f"{len(proposal_frame)} proposal row(s) from "
-                f"{getattr(proposal_metadata, 'dataset_version_id', '') or 'the latest Attention run'}. "
-                "Reviewing them here does not update the core graph until you commit."
-            )
+            st.caption(f"{len(proposal_frame)} proposals")
             st.dataframe(
                 proposal_frame[
                     [
@@ -561,7 +539,6 @@ def _render_experiment_placeholder_page(
             },
         )
         if add_candidates:
-            st.caption("Unlinked high-confidence entities will be added to the draft as proposed new node rows.")
             st.dataframe(
                 pd.DataFrame(add_candidates),
                 use_container_width=True,
@@ -613,7 +590,7 @@ def _render_experiment_placeholder_page(
             help="These seed nodes anchor the local neighborhood before agent suggestions are added.",
         )
     elif normalized_query and resolved_query == normalized_query:
-        st.info("No confident existing anchors were found. You can still run the graph builder directly from the raw query.")
+        st.info("No existing anchors found.")
 
     if generate_clicked and normalized_query:
         mentions: list[object] = []
@@ -666,9 +643,6 @@ def _render_experiment_placeholder_page(
         st.subheader("Editable Graph Draft")
         if str(draft.get("agentic_summary") or "").strip():
             st.caption(str(draft.get("agentic_summary") or ""))
-        for limitation in list(draft.get("limitations") or []):
-            if str(limitation or "").strip():
-                st.warning(str(limitation))
 
         st.plotly_chart(
             plot_knowledge_graph_draft(draft),
@@ -709,7 +683,7 @@ def _render_experiment_placeholder_page(
             placeholder="Describe what you approved, removed, or added in this draft.",
         )
         if not runtime_status.get("store_ready"):
-            st.info("Commit is disabled because the Postgres knowledge-graph store is not ready in this environment.")
+            st.info("Commit unavailable.")
         if st.button(
             "Commit to Core Knowledge Graph",
             key=f"knowledge_graph_commit_button_{draft_key}",
@@ -752,7 +726,6 @@ def _render_market_opportunity_experiments(
     heading_cols = _responsive_columns([10, 2])
     with heading_cols[0]:
         st.subheader("Advanced")
-        st.caption("Less-standard scanners for regime shifts, structural leadership, and commodity transmission.")
         st.caption(f"{lens_label}: {lens_name} | {len(lens_symbols)} names")
     with heading_cols[1]:
         _render_help_popover(
@@ -780,10 +753,6 @@ def _render_phase_shift_experiment(
     heading_cols = _responsive_columns([10, 2])
     with heading_cols[0]:
         st.markdown("##### Broad Markets")
-        st.caption(
-            "Correlation phase-shift analyzer: searches for changes in rolling market correlation versus multi-horizon compounding "
-            "momentum to surface decoupling leaders, beta-linked breakouts, and crowded unwinds."
-        )
         st.caption(f"Business lens: {business_filter}")
     with heading_cols[1]:
         _render_help_popover(
@@ -842,7 +811,7 @@ def _render_phase_shift_experiment(
                 )
     except AlpacaAPIError as exc:
         _log_event("scan_correlation_phase_shifts_failed", benchmark=benchmark, error=str(exc)[:200])
-        st.error(f"Could not run the phase-shift analyzer: {exc}")
+        st.error("Phase-shift analysis unavailable.")
         return
 
     summary = experiment_data.get("summary", pd.DataFrame())
@@ -1190,9 +1159,6 @@ def _render_commodity_experiment(
     heading_cols = _responsive_columns([10, 2])
     with heading_cols[0]:
         st.markdown("##### Commodity Section")
-        st.caption(
-            "Commodity-first view that answers what is moving, in what direction, and how those moves can transmit across upstream and downstream links."
-        )
         st.caption(f"Commodity filter: {commodity_focus}")
     with heading_cols[1]:
         _render_help_popover(
@@ -1264,7 +1230,7 @@ def _render_commodity_experiment(
                 )
     except AlpacaAPIError as exc:
         _log_event("scan_commodity_regimes_failed", basket=commodity_focus, error=str(exc)[:200])
-        st.error(f"Could not run the commodity analyzer: {exc}")
+        st.error("Commodity analysis unavailable.")
         return
 
     summary = experiment_data.get("summary", pd.DataFrame())

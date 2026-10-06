@@ -86,21 +86,21 @@ def _resolve_data_access_payload(
 
 def _load_account_cached(cfg: AppConfig, force_refresh: bool = False) -> dict[str, object]:
     context = _current_user_context()
-    if context is not None and not context.can_view_full_portfolio:
+    if context is not None:
         return _resolve_data_access_payload("resolve_user_account", cfg=cfg, user_context=context, force_refresh=force_refresh)
     return _resolve_data_access_payload("resolve_account", cfg=cfg, force_refresh=force_refresh)
 
 
 def _load_positions_cached(cfg: AppConfig, force_refresh: bool = False) -> pd.DataFrame:
     context = _current_user_context()
-    if context is not None and not context.can_view_full_portfolio:
+    if context is not None:
         return _resolve_data_access_payload("resolve_user_positions", cfg=cfg, user_context=context, force_refresh=force_refresh)
     return _resolve_data_access_payload("resolve_positions", cfg=cfg, force_refresh=force_refresh)
 
 
 def _load_timeseries_cached(cfg: AppConfig, period: str, force_refresh: bool = False) -> pd.DataFrame:
     context = _current_user_context()
-    if context is not None and not context.can_view_full_portfolio:
+    if context is not None:
         return _resolve_data_access_payload(
             "resolve_user_portfolio_timeseries",
             cfg=cfg,
@@ -118,7 +118,7 @@ def _load_timeseries_cached(cfg: AppConfig, period: str, force_refresh: bool = F
 
 def _load_portfolio_performance_cached(cfg: AppConfig, period: str, force_refresh: bool = False) -> pd.DataFrame:
     context = _current_user_context()
-    if context is not None and not context.can_view_full_portfolio:
+    if context is not None:
         return _resolve_data_access_payload(
             "resolve_user_portfolio_performance",
             cfg=cfg,

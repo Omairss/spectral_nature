@@ -133,6 +133,68 @@ class ChartModel:
 
 
 @dataclass(frozen=True)
+class DatasetColumn:
+    name: str
+    logical_type: str
+
+    def to_dict(self) -> dict[str, str]:
+        return {"name": self.name, "logical_type": self.logical_type}
+
+
+@dataclass(frozen=True)
+class DatasetArtifact:
+    dataset_id: str
+    name: str
+    delivery: str
+    row_count: int
+    columns: tuple[DatasetColumn, ...]
+    records: list[dict[str, Any]]
+    schema_version: str = "dataset.v1"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "schema_version": self.schema_version,
+            "dataset_id": self.dataset_id,
+            "name": self.name,
+            "delivery": self.delivery,
+            "row_count": self.row_count,
+            "columns": [column.to_dict() for column in self.columns],
+            "records": to_jsonable(self.records),
+        }
+
+
+@dataclass(frozen=True)
+class VisualizationArtifact:
+    artifact_id: str
+    title: str
+    renderer: str
+    renderer_contract: str
+    datasets: dict[str, DatasetArtifact]
+    spec: dict[str, Any]
+    linked_selection_group: str
+    provenance: dict[str, Any]
+    performance: dict[str, Any]
+    schema_version: str = "visualization.v1"
+    artifact_type: str = "visualization"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "schema_version": self.schema_version,
+            "artifact_type": self.artifact_type,
+            "artifact_id": self.artifact_id,
+            "title": self.title,
+            "renderer": self.renderer,
+            "renderer_contract": self.renderer_contract,
+            "dataset_refs": [dataset.dataset_id for dataset in self.datasets.values()],
+            "datasets": {name: dataset.to_dict() for name, dataset in self.datasets.items()},
+            "spec": to_jsonable(self.spec),
+            "linked_selection_group": self.linked_selection_group,
+            "provenance": to_jsonable(self.provenance),
+            "performance": to_jsonable(self.performance),
+        }
+
+
+@dataclass(frozen=True)
 class QueryRequest:
     operation: str
     name: str
@@ -163,7 +225,7 @@ class QueryResponse:
     messages: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
-        if isinstance(self.payload, ChartModel):
+        if isinstance(self.payload, (ChartModel, VisualizationArtifact)):
             payload = self.payload.to_dict()
         else:
             payload = to_jsonable(self.payload)

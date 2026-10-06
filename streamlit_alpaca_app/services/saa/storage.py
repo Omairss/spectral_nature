@@ -33,6 +33,9 @@ _SEARCH_TEXT_MAX_CHARS = 6000
 _DEFAULT_SEARCH_SCAN_LIMIT = 500
 _DEFAULT_SEMANTIC_SCAN_LIMIT = 160
 _DEFAULT_SEMANTIC_THRESHOLD = 0.72
+_DEFAULT_DB_STATEMENT_TIMEOUT_SECONDS = 30
+_DEFAULT_DB_LOCK_TIMEOUT_SECONDS = 5
+_DEFAULT_DB_IDLE_TRANSACTION_TIMEOUT_SECONDS = 60
 
 
 def _coerce_text(value: object) -> str:
@@ -298,8 +301,28 @@ def _db_connection() -> Any | None:
     )
     if not conn_str or psycopg is None:
         return None
+
+    def _timeout_ms(name: str, default_seconds: int) -> int:
+        try:
+            seconds = int(os.getenv(name, str(default_seconds)))
+        except Exception:
+            seconds = int(default_seconds)
+        return max(seconds, 1) * 1000
+
+    session_options = " ".join(
+        (
+            f"-c statement_timeout={_timeout_ms('SAA_POSTGRES_STATEMENT_TIMEOUT_SECONDS', _DEFAULT_DB_STATEMENT_TIMEOUT_SECONDS)}",
+            f"-c lock_timeout={_timeout_ms('SAA_POSTGRES_LOCK_TIMEOUT_SECONDS', _DEFAULT_DB_LOCK_TIMEOUT_SECONDS)}",
+            f"-c idle_in_transaction_session_timeout={_timeout_ms('SAA_POSTGRES_IDLE_TRANSACTION_TIMEOUT_SECONDS', _DEFAULT_DB_IDLE_TRANSACTION_TIMEOUT_SECONDS)}",
+        )
+    )
     try:
-        return psycopg.connect(conn_str, connect_timeout=postgres_connect_timeout_seconds())
+        return psycopg.connect(
+            conn_str,
+            connect_timeout=postgres_connect_timeout_seconds(),
+            application_name="spectral_nature_saa",
+            options=session_options,
+        )
     except Exception:
         return None
 

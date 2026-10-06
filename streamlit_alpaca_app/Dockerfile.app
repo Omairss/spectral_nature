@@ -11,8 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt ./requirements.txt
-RUN pip install --upgrade pip && pip install -r requirements.txt
+COPY requirements-ui.lock ./requirements-ui.lock
+RUN pip install --require-hashes -r requirements-ui.lock
 RUN python -m playwright install --with-deps chromium
 
 COPY . .

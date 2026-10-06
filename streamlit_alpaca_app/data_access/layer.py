@@ -65,6 +65,7 @@ from services.pipeline_store import (
     pipeline_store_configured,
     start_source_refresh_job,
 )
+from services.pipeline_slices import load_latest_dataset_frame_slice
 from services.saa import load_retained_document, load_retained_document_metadata, search_retained_documents, search_retained_evidence_chunks
 from services.treasury_yields import TreasuryYieldError, load_treasury_yield_curve
 from services.universe import build_liquidity_ranked_equity_universe
@@ -94,7 +95,7 @@ def _fred_cache_scope(api_key: str) -> str:
 def _pipeline_details(metadata: Any | None) -> dict[str, Any]:
     if metadata is None:
         return {}
-    return {
+    details = {
         "dataset_name": metadata.dataset_name,
         "dataset_version_id": metadata.dataset_version_id,
         "blob_path": metadata.blob_path,
@@ -102,6 +103,10 @@ def _pipeline_details(metadata: Any | None) -> dict[str, Any]:
         "ingested_at_utc": metadata.ingested_at_utc,
         "row_count": metadata.row_count,
     }
+    partitioning = getattr(metadata, "partitioning", {})
+    if isinstance(partitioning, dict) and partitioning:
+        details["partition_strategy"] = str(partitioning.get("strategy") or "")
+    return details
 
 
 def _coerce_text(value: object) -> str:
@@ -601,6 +606,15 @@ class DataAccessLayer:
         frame, metadata = load_latest_dataset_frame(dataset_name)
         return frame, _pipeline_details(metadata)
 
+    def _pipeline_frame_slice(
+        self,
+        dataset_name: str,
+        *,
+        filters: dict[str, object],
+    ) -> tuple[pd.DataFrame, dict[str, Any]]:
+        frame, metadata = load_latest_dataset_frame_slice(dataset_name, filters=filters)
+        return frame, _pipeline_details(metadata)
+
     def _materialized_only_result(
         self,
         payload: Any,
@@ -666,6 +680,20 @@ class DataAccessLayer:
             return None
         frame, details = self._pipeline_frame(dataset_name)
         if frame.empty and not details:
+            return None
+        return frame, details
+
+    def _try_pipeline_symbol_frame(
+        self,
+        dataset_name: str,
+        symbol: str,
+        *,
+        force_refresh: bool,
+    ) -> tuple[pd.DataFrame, dict[str, Any]] | None:
+        if not self._should_try_pipeline(force_refresh):
+            return None
+        frame, details = self._pipeline_frame_slice(dataset_name, filters={"symbol": symbol})
+        if frame.empty:
             return None
         return frame, details
 
@@ -2094,7 +2122,7 @@ class DataAccessLayer:
         )
 
     def resolve_price_history(self, ticker: str, *, days: int, force_refresh: bool = False) -> ResolvedPayload:
-        materialized = self._try_pipeline_frame("price_history", force_refresh=force_refresh)
+        materialized = self._try_pipeline_symbol_frame("price_history", ticker, force_refresh=force_refresh)
         if materialized is not None:
             pipeline, details = materialized
             if not pipeline.empty and {"symbol", "timestamp"}.issubset(set(pipeline.columns)):
@@ -2123,7 +2151,7 @@ class DataAccessLayer:
         return self._resolved(frame, mode="on_demand", datasets=("price_history",), details={"ticker": ticker.upper(), "days": days})
 
     def resolve_technical_signal_history(self, ticker: str, *, days: int, force_refresh: bool = False) -> ResolvedPayload:
-        materialized = self._try_pipeline_frame("technical_signal_history", force_refresh=force_refresh)
+        materialized = self._try_pipeline_symbol_frame("technical_signal_history", ticker, force_refresh=force_refresh)
         if materialized is not None:
             pipeline, details = materialized
             if not pipeline.empty and {"symbol", "timestamp"}.issubset(set(pipeline.columns)):
@@ -2228,7 +2256,7 @@ class DataAccessLayer:
         details: dict[str, Any] = {"ticker": ticker.upper(), "days": days, "horizon": horizon, "simulations": simulations}
         resolved_mode = "computed"
         if frame is None:
-            materialized = self._try_pipeline_frame("technical_signal_history", force_refresh=force_refresh)
+            materialized = self._try_pipeline_symbol_frame("technical_signal_history", ticker, force_refresh=force_refresh)
             if materialized is not None:
                 pipeline, pipeline_details = materialized
                 if not pipeline.empty and "symbol" in pipeline.columns:

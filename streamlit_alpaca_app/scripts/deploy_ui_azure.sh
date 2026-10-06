@@ -65,6 +65,9 @@ for key in \
   LLM_BASE_URL LLM_TIMEOUT_SECONDS LLM_TEMPERATURE LLM_REASONING_EFFORT \
   OPENAI_API_KEY_SECRET_NAME OPENAI_MODEL OPENAI_BASE_URL OPENAI_REASONING_EFFORT \
   AZURE_OPENAI_ENDPOINT AZURE_OPENAI_API_VERSION AZURE_OPENAI_DEPLOYMENT \
+  CONTROL_POSTGRES_CONNECTION_STRING_SECRET APP_ACCESS_SCHEMA \
+  APP_PUBLIC_BASE_URL \
+  PIPELINE_DATASET_NAMESPACE \
   STREAMLIT_MOBILE_UI_ENABLED STREAMLIT_LAYOUT_MODE_DEFAULT \
 ; do
   capture_requested_env_override "$key"
@@ -106,6 +109,7 @@ OPENAI_REASONING_EFFORT="${OPENAI_REASONING_EFFORT:-}"
 EMBEDDING_MODEL="${EMBEDDING_MODEL:-}"
 EMBEDDING_DEPLOYMENT="${EMBEDDING_DEPLOYMENT:-}"
 PIPELINE_CACHE_MAX_BYTES="${PIPELINE_CACHE_MAX_BYTES:-}"
+PIPELINE_DATASET_NAMESPACE="${PIPELINE_DATASET_NAMESPACE:-}"
 STREAMLIT_MOBILE_UI_ENABLED="${STREAMLIT_MOBILE_UI_ENABLED:-}"
 STREAMLIT_LAYOUT_MODE_DEFAULT="${STREAMLIT_LAYOUT_MODE_DEFAULT:-}"
 
@@ -506,7 +510,8 @@ status_row() {
   local ready_revision
   local url
   local http_code
-  local browser_cookie_value
+  local disable_cookie_value
+  local legacy_allow_value
   local auth_persistence_label
 
   fqdn="$(app_fqdn "$app_name")"
@@ -514,11 +519,12 @@ status_row() {
   ready_revision="$(containerapp_query "$app_name" "properties.latestReadyRevisionName")"
   disable_cookie_value="$(app_env_value "$app_name" "UI_DISABLE_BROWSER_SESSION_COOKIE")"
   legacy_allow_value="$(app_env_value "$app_name" "UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE")"
-  # Persistence is ON by default; only off if explicitly disabled.
-  auth_persistence_label="browser cookie (default)"
+  auth_persistence_label="image default (verify)"
   if truthy_value "$disable_cookie_value"; then
     auth_persistence_label="session only (disabled)"
-  elif [[ -n "$legacy_allow_value" ]] && ! truthy_value "$legacy_allow_value"; then
+  elif [[ -n "$legacy_allow_value" ]] && truthy_value "$legacy_allow_value"; then
+    auth_persistence_label="browser cookie (explicit opt-in)"
+  elif [[ -n "$legacy_allow_value" ]]; then
     auth_persistence_label="session only (legacy opt-out)"
   fi
   url="https://${fqdn}"
@@ -561,7 +567,10 @@ ${dev_row}
 
 - UI container apps live in resource group \`${RESOURCE_GROUP}\`.
 - Both apps use the same managed identity and Key Vault-based auth configuration.
-- Browser session persistence is **on by default**. Disable with \`UI_DISABLE_BROWSER_SESSION_COOKIE=1\`. The legacy \`UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE=0\` also disables it.
+- Session persistence should be set explicitly during the current image transition.
+  \`UI_DISABLE_BROWSER_SESSION_COOKIE=1\` or \`UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE=0\`
+  selects session-only behavior; \`UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE=1\` is an
+  explicit browser-cookie opt-in.
 - UI deploys default to automatic web layout (\`STREAMLIT_MOBILE_UI_ENABLED=true\`, \`STREAMLIT_LAYOUT_MODE_DEFAULT=auto\`) unless the deploy command explicitly overrides those vars.
 - Sidebar now displays \`Environment: production\` or \`Environment: development\` via \`APP_TRACK\`.
 - Keep Production stable by avoiding direct experimental changes to \`${PROD_CONTAINER_APP}\`.
@@ -649,6 +658,7 @@ if [[ -n "$PROMOTE_FROM" ]]; then
 fi
 TARGET_TRACK_VALUE="development"
 TARGET_CACHE_DISABLED_VALUE="true"
+TARGET_PIPELINE_DATASET_NAMESPACE_VALUE="development"
 # Mobile web is a product runtime setting, not a one-off Azure edit. Keep it on
 # for both dev and prod unless a deploy command explicitly opts out.
 if ! requested_env_override_present "STREAMLIT_MOBILE_UI_ENABLED"; then
@@ -669,10 +679,19 @@ TARGET_FORCE_REFRESH_DEFAULT_VALUE="${APP_FORCE_DATA_REFRESH_DEFAULT_OVERRIDE:-f
 if [[ "$TARGET" == "prod" ]]; then
   TARGET_TRACK_VALUE="production"
   TARGET_CACHE_DISABLED_VALUE="false"
+  TARGET_PIPELINE_DATASET_NAMESPACE_VALUE=""
+elif requested_env_override_present "PIPELINE_DATASET_NAMESPACE"; then
+  TARGET_PIPELINE_DATASET_NAMESPACE_VALUE="$PIPELINE_DATASET_NAMESPACE"
 fi
 
 TARGET_FQDN="$(app_fqdn "$TARGET_APP")"
-TARGET_PUBLIC_BASE_URL_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_PUBLIC_BASE_URL" "${APP_PUBLIC_BASE_URL:-}" "${TARGET_FQDN:+https://${TARGET_FQDN}}")"
+if [[ "$TARGET" == "dev" ]] && ! requested_env_override_present "APP_PUBLIC_BASE_URL"; then
+  # OAuth callbacks must stay inside development. An inherited production
+  # custom domain would hand the authorization code to the wrong runtime.
+  TARGET_PUBLIC_BASE_URL_VALUE="${TARGET_FQDN:+https://${TARGET_FQDN}}"
+else
+  TARGET_PUBLIC_BASE_URL_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_PUBLIC_BASE_URL" "${APP_PUBLIC_BASE_URL:-}" "${TARGET_FQDN:+https://${TARGET_FQDN}}")"
+fi
 TARGET_ALPACA_BASE_URL_VALUE="$(existing_or_override_env "$TARGET_APP" "APCA_API_BASE_URL" "${APCA_API_BASE_URL:-}")"
 TARGET_ALPACA_DATA_BASE_URL_VALUE="$(existing_or_override_env "$TARGET_APP" "ALPACA_DATA_BASE_URL" "${ALPACA_DATA_BASE_URL:-}" "https://data.alpaca.markets")"
 TARGET_SMTP_HOST_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_SMTP_HOST" "${APP_SMTP_HOST:-}")"
@@ -682,6 +701,8 @@ TARGET_SMTP_USE_SSL_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_SMTP_US
 TARGET_SMTP_USERNAME_SECRET_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_SMTP_USERNAME_SECRET" "${APP_SMTP_USERNAME_SECRET:-}")"
 TARGET_SMTP_PASSWORD_SECRET_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_SMTP_PASSWORD_SECRET" "${APP_SMTP_PASSWORD_SECRET:-}")"
 TARGET_EMAIL_FROM_SECRET_VALUE="$(existing_or_override_env "$TARGET_APP" "APP_EMAIL_FROM_SECRET" "${APP_EMAIL_FROM_SECRET:-}")"
+TARGET_CONTROL_POSTGRES_SECRET_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "CONTROL_POSTGRES_CONNECTION_STRING_SECRET" "${CONTROL_POSTGRES_CONNECTION_STRING_SECRET:-}" "$PROMOTION_SOURCE_APP")"
+TARGET_APP_ACCESS_SCHEMA_VALUE="$(existing_or_override_or_source_env "$TARGET_APP" "APP_ACCESS_SCHEMA" "${APP_ACCESS_SCHEMA:-}" "$PROMOTION_SOURCE_APP")"
 # Persistence is on by default; these vars are only needed to opt out.
 TARGET_UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE_VALUE="$(existing_or_override_env "$TARGET_APP" "UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE" "${UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE:-}")"
 TARGET_UI_DISABLE_BROWSER_SESSION_COOKIE_VALUE="$(existing_or_override_env "$TARGET_APP" "UI_DISABLE_BROWSER_SESSION_COOKIE" "${UI_DISABLE_BROWSER_SESSION_COOKIE:-}")"
@@ -727,6 +748,7 @@ UPDATE_ENV_VARS=(
   "APP_FORCE_DATA_REFRESH_DEFAULT=${TARGET_FORCE_REFRESH_DEFAULT_VALUE}"
   "APP_RELEASE_TS=${RELEASE_TS}"
   "AZURE_STORAGE_CONTAINER=${AZURE_STORAGE_CONTAINER}"
+  "PIPELINE_DATASET_NAMESPACE=${TARGET_PIPELINE_DATASET_NAMESPACE_VALUE}"
 )
 maybe_append_env "APP_PUBLIC_BASE_URL" "$TARGET_PUBLIC_BASE_URL_VALUE"
 maybe_append_env "STREAMLIT_MOBILE_UI_ENABLED" "$TARGET_STREAMLIT_MOBILE_UI_ENABLED_VALUE"
@@ -740,6 +762,8 @@ maybe_append_env "APP_SMTP_USE_SSL" "$TARGET_SMTP_USE_SSL_VALUE"
 maybe_append_env "APP_SMTP_USERNAME_SECRET" "$TARGET_SMTP_USERNAME_SECRET_VALUE"
 maybe_append_env "APP_SMTP_PASSWORD_SECRET" "$TARGET_SMTP_PASSWORD_SECRET_VALUE"
 maybe_append_env "APP_EMAIL_FROM_SECRET" "$TARGET_EMAIL_FROM_SECRET_VALUE"
+maybe_append_env "CONTROL_POSTGRES_CONNECTION_STRING_SECRET" "$TARGET_CONTROL_POSTGRES_SECRET_VALUE"
+maybe_append_env "APP_ACCESS_SCHEMA" "$TARGET_APP_ACCESS_SCHEMA_VALUE"
 maybe_append_env "UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE" "$TARGET_UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE_VALUE"
 maybe_append_env "UI_DISABLE_BROWSER_SESSION_COOKIE" "$TARGET_UI_DISABLE_BROWSER_SESSION_COOKIE_VALUE"
 maybe_append_env "LLM_API_KEY_SECRET_NAME" "$TARGET_LLM_API_KEY_SECRET_NAME_VALUE"

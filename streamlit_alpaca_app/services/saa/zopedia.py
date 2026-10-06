@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 
 import pandas as pd
 
+from ..aql_zopedia_gateway import generate_json_via_aql_zopedia_gateway
 from .storage import (
     _coerce_text,
     _db_connection,
@@ -106,10 +107,36 @@ ZOPEDIA_MAINTENANCE_REPORT_COLUMNS: tuple[str, ...] = (
     "created_at_utc",
 )
 
+ZOPEDIA_FOLDER_COLUMNS: tuple[str, ...] = (
+    "folder_id",
+    "tree_key",
+    "parent_folder_id",
+    "folder_type",
+    "name",
+    "slug",
+    "path",
+    "sort_order",
+    "metadata_json",
+    "created_at_utc",
+    "updated_at_utc",
+)
+
+ZOPEDIA_PAGE_FOLDER_MEMBERSHIP_COLUMNS: tuple[str, ...] = (
+    "folder_id",
+    "page_id",
+    "membership_type",
+    "sort_order",
+    "metadata_json",
+    "created_at_utc",
+    "updated_at_utc",
+)
+
 _VALID_PAGE_TYPES = {
     "source",
     "concept",
     "entity",
+    "analysis",
+    "research_report",
     "theme",
     "market_event",
     "ticker",
@@ -126,6 +153,63 @@ _DEFAULT_STALE_AFTER_DAYS = 120
 _DEFAULT_BLOAT_CHAR_LIMIT = 32_000
 _SAFE_MUTATION_TYPES = {"upsert_pages", "link_pages", "metadata_patch"}
 _RISKY_MUTATION_TYPES = {"archive_pages", "delete_pages", "merge_pages", "rewrite_pages", "remove_links", "unlink_pages"}
+_ZOPEDIA_TREE_KEY = "zopedia"
+_ZOPEDIA_ROOT_FOLDER_PATH = "wiki"
+_ZOPEDIA_SECTION_DEFS: tuple[dict[str, str], ...] = (
+    {"key": "facts", "heading": "Facts", "incremental_label": "New facts"},
+    {"key": "contradictions", "heading": "Contradictions", "incremental_label": "New contradictions"},
+    {"key": "assumptions", "heading": "Assumptions", "incremental_label": "New assumptions"},
+    {"key": "data", "heading": "Data", "incremental_label": "New data"},
+)
+_ZOPEDIA_PRIMARY_FOLDER_BY_TYPE: dict[str, str] = {
+    "source": "wiki/sources",
+    "entity": "wiki/entities",
+    "concept": "wiki/concepts",
+    "analysis": "wiki/analysis",
+    "research_report": "wiki/analysis",
+    "theme": "wiki/concepts/themes",
+    "market_event": "wiki/analysis/market-events",
+    "ticker": "wiki/entities/tickers",
+    "macro": "wiki/concepts/macro",
+    "question": "wiki/analysis/questions",
+    "index": "wiki/indexes",
+}
+_ZOPEDIA_DEFAULT_FOLDERS: tuple[tuple[str, str, str, int], ...] = (
+    ("wiki", "Wiki", "root", 0),
+    ("wiki/sources", "Sources", "namespace", 10),
+    ("wiki/entities", "Entities", "namespace", 20),
+    ("wiki/entities/tickers", "Tickers", "namespace", 21),
+    ("wiki/concepts", "Concepts", "namespace", 30),
+    ("wiki/concepts/themes", "Themes", "namespace", 31),
+    ("wiki/concepts/macro", "Macro", "namespace", 32),
+    ("wiki/analysis", "Analysis", "namespace", 40),
+    ("wiki/analysis/questions", "Questions", "namespace", 41),
+    ("wiki/analysis/market-events", "Market Events", "namespace", 42),
+    ("wiki/godnodes", "Godnodes", "generated", 50),
+    ("wiki/indexes", "Indexes", "generated", 60),
+)
+
+_ZOPEDIA_REQUIRED_RELATIONS: tuple[str, ...] = (
+    "saa_zopedia_pages",
+    "idx_saa_zopedia_pages_updated",
+    "idx_saa_zopedia_pages_type_status",
+    "idx_saa_zopedia_pages_search_tsvector",
+    "saa_zopedia_change_proposals",
+    "idx_saa_zopedia_proposals_status",
+    "saa_zopedia_mutation_audit",
+    "idx_saa_zopedia_mutation_audit_status",
+    "idx_saa_zopedia_mutation_audit_type",
+    "saa_zopedia_backlinks",
+    "idx_saa_zopedia_backlinks_target",
+    "saa_zopedia_community_index",
+    "idx_saa_zopedia_community_score",
+    "saa_zopedia_maintenance_reports",
+    "idx_saa_zopedia_maintenance_reports_created",
+    "saa_zopedia_folders",
+    "idx_saa_zopedia_folders_parent",
+    "saa_zopedia_page_folder_memberships",
+    "idx_saa_zopedia_page_folder_page",
+)
 
 
 def _utc_now() -> datetime:
@@ -201,6 +285,225 @@ def _trim(value: object, limit: int) -> str:
     if len(text) <= max(int(limit), 1):
         return text
     return text[: max(int(limit), 1) - 3].rstrip() + "..."
+
+
+def _folder_id_for_path(path: object, *, tree_key: str = _ZOPEDIA_TREE_KEY) -> str:
+    clean_path = "/".join(part for part in _coerce_text(path).strip("/").split("/") if part)
+    digest = _sha256_text(f"{tree_key}|{clean_path}")[:16]
+    return f"zopedia_folder::{tree_key}::{digest}"
+
+
+def _folder_parent_path(path: object) -> str:
+    parts = [part for part in _coerce_text(path).strip("/").split("/") if part]
+    if len(parts) <= 1:
+        return ""
+    return "/".join(parts[:-1])
+
+
+def _folder_slug_from_path(path: object) -> str:
+    parts = [part for part in _coerce_text(path).strip("/").split("/") if part]
+    return _slug(parts[-1] if parts else "wiki", default="wiki")
+
+
+def _folder_name_from_path(path: object) -> str:
+    slug = _folder_slug_from_path(path)
+    return slug.replace("-", " ").replace("_", " ").title() or "Wiki"
+
+
+def _default_folder_path_for_page_type(page_type: object) -> str:
+    normalized = _normalize_page_type(page_type)
+    return _ZOPEDIA_PRIMARY_FOLDER_BY_TYPE.get(normalized, "wiki/sources")
+
+
+def _canonical_path_for_page(page: dict[str, Any]) -> str:
+    folder_path = _default_folder_path_for_page_type(page.get("page_type"))
+    slug = _slug(page.get("slug") or page.get("title"), default="untitled")
+    return f"{folder_path}/{slug}"
+
+
+def _as_text_list(value: object) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return []
+        try:
+            parsed = json.loads(text)
+        except Exception:
+            parsed = [text]
+    else:
+        parsed = value
+    if not isinstance(parsed, (list, tuple, set)):
+        parsed = [parsed]
+    out: list[str] = []
+    seen: set[str] = set()
+    for item in parsed:
+        if isinstance(item, dict):
+            text = _coerce_text(item.get("text") or item.get("claim") or item.get("value") or item.get("summary"))
+        else:
+            text = _coerce_text(item)
+        text = re.sub(r"\s+", " ", text).strip()
+        key = text.lower()
+        if text and key not in seen:
+            seen.add(key)
+            out.append(text)
+    return out
+
+
+def _structured_sections_from_metadata(metadata: dict[str, Any]) -> dict[str, list[str]]:
+    raw = metadata.get("zopedia_sections")
+    parsed = _json_dict(raw)
+    sections: dict[str, list[str]] = {}
+    for section in _ZOPEDIA_SECTION_DEFS:
+        key = section["key"]
+        values = _as_text_list(parsed.get(key) if parsed else metadata.get(key))
+        if values:
+            sections[key] = values
+    return sections
+
+
+def _structured_sections_from_page(page: dict[str, Any]) -> dict[str, list[str]]:
+    metadata = _json_dict(page.get("metadata") or page.get("metadata_json"))
+    sections = _structured_sections_from_metadata(metadata)
+    aliases = {
+        "facts": ("facts", "key_facts"),
+        "contradictions": ("contradictions", "contradicting_claims"),
+        "assumptions": ("assumptions", "caveats"),
+        "data": ("data", "data_points", "metrics"),
+    }
+    for key, names in aliases.items():
+        values: list[str] = []
+        for name in names:
+            values.extend(_as_text_list(page.get(name)))
+        if values:
+            merged = list(sections.get(key) or [])
+            seen = {item.lower() for item in merged}
+            for item in values:
+                marker = item.lower()
+                if marker not in seen:
+                    seen.add(marker)
+                    merged.append(item)
+            sections[key] = merged
+    body = _coerce_text(page.get("body_markdown") or page.get("body"))
+    for section in _ZOPEDIA_SECTION_DEFS:
+        key = section["key"]
+        markdown_values = _markdown_section_items(body, section["heading"])
+        if not markdown_values:
+            continue
+        merged = list(sections.get(key) or [])
+        seen = {item.lower() for item in merged}
+        for item in markdown_values:
+            marker = item.lower()
+            if marker not in seen:
+                seen.add(marker)
+                merged.append(item)
+        if merged:
+            sections[key] = merged
+    return sections
+
+
+def _store_structured_sections(metadata: dict[str, Any], sections: dict[str, list[str]]) -> dict[str, Any]:
+    clean_sections = {
+        section["key"]: _as_text_list(sections.get(section["key"]))
+        for section in _ZOPEDIA_SECTION_DEFS
+        if _as_text_list(sections.get(section["key"]))
+    }
+    out = dict(metadata)
+    if clean_sections:
+        out["zopedia_sections"] = clean_sections
+    return out
+
+
+def _extract_markdown_section(text: object, heading: str) -> str:
+    body = _coerce_text(text)
+    clean_heading = re.escape(_coerce_text(heading))
+    match = re.search(
+        rf"(?ms)^##\s+{clean_heading}\s*\n(.*?)(?=^##\s+|\Z)",
+        body,
+    )
+    return match.group(1).strip() if match else ""
+
+
+def _markdown_section_items(text: object, heading: str) -> list[str]:
+    section_text = _extract_markdown_section(text, heading)
+    if not section_text:
+        return []
+    items: list[str] = []
+    for line in section_text.splitlines():
+        clean = re.sub(r"^\s*[-*]\s+", "", line).strip()
+        clean = re.sub(r"^\s*\d+[.)]\s+", "", clean).strip()
+        if clean:
+            items.append(clean)
+    return _as_text_list(items)
+
+
+def _has_structured_zopedia_sections(text: object) -> bool:
+    body = _coerce_text(text)
+    if not body:
+        return False
+    return any(f"## {section['heading']}" in body for section in _ZOPEDIA_SECTION_DEFS)
+
+
+def _render_bullets(items: list[str]) -> str:
+    return "\n".join(f"- {item}" for item in _as_text_list(items))
+
+
+def _render_zopedia_structured_body(
+    *,
+    title: object,
+    summary: object,
+    sections: dict[str, list[str]],
+    source_urls: list[str] | None = None,
+    source_document_ids: list[str] | None = None,
+    referenced_by: str = "",
+    merge_history: str = "",
+    incremental_updates: str = "",
+) -> str:
+    title_text = _coerce_text(title) or "Untitled Zopedia Page"
+    parts = [f"# {title_text}", "", "## Summary", _coerce_text(summary)]
+    for section in _ZOPEDIA_SECTION_DEFS:
+        heading = section["heading"]
+        bullets = _render_bullets(list(sections.get(section["key"]) or []))
+        parts.extend(["", f"## {heading}", bullets])
+    source_lines: list[str] = []
+    for url in _as_text_list(source_urls or []):
+        source_lines.append(f"- {url}")
+    for doc_id in _as_text_list(source_document_ids or []):
+        source_lines.append(f"- {doc_id}")
+    parts.extend(["", "## Sources", "\n".join(source_lines)])
+    if referenced_by:
+        parts.extend(["", "## Referenced by Research", referenced_by.strip()])
+    if merge_history:
+        parts.extend(["", "## Merge History", merge_history.strip()])
+    if incremental_updates:
+        parts.extend(["", "## Incremental Updates", incremental_updates.strip()])
+    return "\n".join(parts).strip() + "\n"
+
+
+def _append_incremental_update_block(existing_updates: str, lines: list[str], *, now: datetime | None = None) -> str:
+    clean_lines = [_coerce_text(line) for line in lines if _coerce_text(line)]
+    if not clean_lines:
+        return _coerce_text(existing_updates)
+    timestamp = pd.to_datetime(now or _utc_now(), utc=True, errors="coerce").isoformat()
+    block = "\n".join([f"### Update {timestamp}", *[f"- {line}" for line in clean_lines]])
+    if _coerce_text(existing_updates):
+        return f"{_coerce_text(existing_updates)}\n\n{block}".strip()
+    return block
+
+
+def _merge_text_lists(existing: list[str], incoming: list[str]) -> tuple[list[str], list[str]]:
+    merged = list(_as_text_list(existing))
+    seen = {item.lower() for item in merged}
+    novel: list[str] = []
+    for item in _as_text_list(incoming):
+        key = item.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        merged.append(item)
+        novel.append(item)
+    return merged, novel
 
 
 def _looks_like_text(value: str) -> bool:
@@ -384,10 +687,33 @@ def normalize_zopedia_page(
     entity_refs = _json_list(page.get("entity_refs") or page.get("entity_refs_json"))
     outgoing_links = _json_list(page.get("outgoing_links") or page.get("outgoing_links_json"))
     metadata = _json_dict(page.get("metadata") or page.get("metadata_json"))
+    sections = _structured_sections_from_page(page)
+    metadata = _store_structured_sections(metadata, sections)
     if source_title and "source_title" not in metadata:
         metadata["source_title"] = source_title
     if source_url and "source_url" not in metadata:
         metadata["source_url"] = source_url
+    for key in ("confidence", "time_sensitivity", "published_at", "as_of_date"):
+        value = _coerce_text(page.get(key))
+        if value and key not in metadata:
+            metadata[key] = value
+    source_refs = page.get("source_refs")
+    if source_refs and "source_refs" not in metadata:
+        metadata["source_refs"] = source_refs
+    canonical_stub = {
+        "page_type": page_type,
+        "slug": slug,
+        "title": title,
+    }
+    metadata.setdefault("canonical_path", _canonical_path_for_page(canonical_stub))
+    if page_type != "source" and sections and not _has_structured_zopedia_sections(body):
+        body = _render_zopedia_structured_body(
+            title=title,
+            summary=summary,
+            sections=sections,
+            source_urls=source_urls,
+            source_document_ids=source_document_ids,
+        )
     return {
         "page_id": _coerce_text(page.get("page_id")) or build_zopedia_page_id(
             page_type=page_type,
@@ -434,7 +760,427 @@ def prepare_zopedia_pages(
     return frame, records
 
 
+def _page_text_list(page: dict[str, Any], field: str, json_field: str) -> list[str]:
+    return _json_list(page.get(field) or page.get(json_field))
+
+
+def _merge_aux_markdown_section(existing_body: object, incoming_body: object, heading: str) -> str:
+    parts: list[str] = []
+    for value in (
+        _extract_markdown_section(existing_body, heading),
+        _extract_markdown_section(incoming_body, heading),
+    ):
+        clean = _coerce_text(value)
+        if clean and clean not in parts:
+            parts.append(clean)
+    return "\n\n".join(parts).strip()
+
+
+def _merge_zopedia_page_for_commit(
+    existing: dict[str, Any],
+    incoming: dict[str, Any],
+    *,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    if not existing:
+        return dict(incoming)
+
+    timestamp = pd.to_datetime(now or _utc_now(), utc=True, errors="coerce")
+    existing_page = dict(existing)
+    incoming_page = dict(incoming)
+    page_type = _normalize_page_type(incoming_page.get("page_type") or existing_page.get("page_type"))
+    incoming_metadata = _json_dict(incoming_page.get("metadata") or incoming_page.get("metadata_json"))
+    existing_metadata = _json_dict(existing_page.get("metadata") or existing_page.get("metadata_json"))
+    merged_metadata = {**existing_metadata, **incoming_metadata}
+    merge_mode = _coerce_text(incoming_metadata.get("merge_mode") or incoming_page.get("merge_mode")).lower()
+
+    source_urls, new_source_urls = _merge_text_lists(
+        _page_text_list(existing_page, "source_urls", "source_urls_json"),
+        _page_text_list(incoming_page, "source_urls", "source_urls_json"),
+    )
+    source_document_ids, new_source_document_ids = _merge_text_lists(
+        _page_text_list(existing_page, "source_document_ids", "source_document_ids_json"),
+        _page_text_list(incoming_page, "source_document_ids", "source_document_ids_json"),
+    )
+    entity_refs, _ = _merge_text_lists(
+        _page_text_list(existing_page, "entity_refs", "entity_refs_json"),
+        _page_text_list(incoming_page, "entity_refs", "entity_refs_json"),
+    )
+    outgoing_links, _ = _merge_text_lists(
+        _page_text_list(existing_page, "outgoing_links", "outgoing_links_json"),
+        _page_text_list(incoming_page, "outgoing_links", "outgoing_links_json"),
+    )
+
+    if page_type == "source":
+        out = dict(incoming_page)
+        out["created_at_utc"] = existing_page.get("created_at_utc") or incoming_page.get("created_at_utc")
+        out["updated_at_utc"] = timestamp
+        out["source_urls"] = source_urls
+        out["source_document_ids"] = source_document_ids
+        out["entity_refs"] = entity_refs
+        out["outgoing_links"] = outgoing_links
+        merged_metadata.setdefault("canonical_path", _canonical_path_for_page(out))
+        out["metadata"] = merged_metadata
+        return out
+
+    if merge_mode == "replace":
+        out = dict(incoming_page)
+        out["created_at_utc"] = existing_page.get("created_at_utc") or incoming_page.get("created_at_utc")
+        out["updated_at_utc"] = timestamp
+        out["source_urls"] = source_urls
+        out["source_document_ids"] = source_document_ids
+        out["entity_refs"] = entity_refs
+        out["outgoing_links"] = outgoing_links
+        sections = _structured_sections_from_page(out)
+        merged_metadata = _store_structured_sections(merged_metadata, sections)
+        merged_metadata["last_replace_at_utc"] = timestamp.isoformat()
+        merged_metadata.setdefault("canonical_path", _canonical_path_for_page(out))
+        merged_metadata.pop("merge_mode", None)
+        out["metadata"] = merged_metadata
+        if sections and not _has_structured_zopedia_sections(out.get("body_markdown")):
+            out["body_markdown"] = _render_zopedia_structured_body(
+                title=out.get("title") or existing_page.get("title"),
+                summary=out.get("summary") or existing_page.get("summary"),
+                sections=sections,
+                source_urls=source_urls,
+                source_document_ids=source_document_ids,
+                referenced_by=_merge_aux_markdown_section(
+                    existing_page.get("body_markdown"),
+                    incoming_page.get("body_markdown"),
+                    "Referenced by Research",
+                ),
+                merge_history=_merge_aux_markdown_section(
+                    existing_page.get("body_markdown"),
+                    incoming_page.get("body_markdown"),
+                    "Merge History",
+                ),
+                incremental_updates=_merge_aux_markdown_section(
+                    existing_page.get("body_markdown"),
+                    incoming_page.get("body_markdown"),
+                    "Incremental Updates",
+                ),
+            )
+        return out
+
+    existing_sections = _structured_sections_from_page(existing_page)
+    incoming_sections = _structured_sections_from_page(incoming_page)
+    merged_sections: dict[str, list[str]] = {}
+    update_lines: list[str] = []
+    for section in _ZOPEDIA_SECTION_DEFS:
+        key = section["key"]
+        merged, novel = _merge_text_lists(
+            list(existing_sections.get(key) or []),
+            list(incoming_sections.get(key) or []),
+        )
+        if merged:
+            merged_sections[key] = merged
+        for item in novel[:8]:
+            update_lines.append(f"{section['incremental_label']}: {_trim(item, 420)}")
+        if len(novel) > 8:
+            update_lines.append(f"{section['incremental_label']}: {len(novel) - 8} more item(s) stored")
+
+    if new_source_urls:
+        update_lines.append(f"New source URLs: {', '.join(new_source_urls[:4])}")
+    if new_source_document_ids:
+        update_lines.append(f"New source documents: {', '.join(new_source_document_ids[:4])}")
+
+    existing_summary = _coerce_text(existing_page.get("summary"))
+    incoming_summary = _coerce_text(incoming_page.get("summary"))
+    summary = incoming_summary or existing_summary
+    if existing_summary and incoming_summary and existing_summary.strip().lower() != incoming_summary.strip().lower():
+        update_lines.append("Summary revised from new source-backed material.")
+
+    existing_body = _coerce_text(existing_page.get("body_markdown"))
+    incoming_body = _coerce_text(incoming_page.get("body_markdown"))
+    incremental_updates = _merge_aux_markdown_section(existing_body, incoming_body, "Incremental Updates")
+    incremental_updates = _append_incremental_update_block(incremental_updates, update_lines, now=timestamp.to_pydatetime())
+    referenced_by = _merge_aux_markdown_section(existing_body, incoming_body, "Referenced by Research")
+    merge_history = _merge_aux_markdown_section(existing_body, incoming_body, "Merge History")
+
+    out = dict(existing_page)
+    out.update(
+        {
+            "page_id": _coerce_text(incoming_page.get("page_id")) or _coerce_text(existing_page.get("page_id")),
+            "page_type": page_type,
+            "title": _coerce_text(incoming_page.get("title")) or _coerce_text(existing_page.get("title")),
+            "slug": _slug(incoming_page.get("slug") or existing_page.get("slug") or incoming_page.get("title"), default="untitled"),
+            "summary": summary,
+            "source_urls": source_urls,
+            "source_document_ids": source_document_ids,
+            "entity_refs": entity_refs,
+            "outgoing_links": outgoing_links,
+            "status": _coerce_text(incoming_page.get("status")) or _coerce_text(existing_page.get("status")) or "active",
+            "created_at_utc": existing_page.get("created_at_utc") or incoming_page.get("created_at_utc"),
+            "updated_at_utc": timestamp,
+        }
+    )
+    merged_metadata = _store_structured_sections(merged_metadata, merged_sections)
+    merged_metadata["last_incremental_update_at_utc"] = timestamp.isoformat()
+    merged_metadata["incremental_update_count"] = int(merged_metadata.get("incremental_update_count") or 0) + (
+        1 if update_lines else 0
+    )
+    merged_metadata["source_count"] = len(source_urls) + len(source_document_ids)
+    merged_metadata.setdefault("canonical_path", _canonical_path_for_page(out))
+    out["metadata"] = merged_metadata
+
+    if merged_sections:
+        out["body_markdown"] = _render_zopedia_structured_body(
+            title=out.get("title"),
+            summary=summary,
+            sections=merged_sections,
+            source_urls=source_urls,
+            source_document_ids=source_document_ids,
+            referenced_by=referenced_by,
+            merge_history=merge_history,
+            incremental_updates=incremental_updates,
+        )
+    else:
+        out["body_markdown"] = incoming_body or existing_body or summary
+    return out
+
+
+def _prepare_zopedia_pages_for_commit(
+    pages: list[dict[str, Any]] | tuple[dict[str, Any], ...],
+    *,
+    conn: Any | None = None,
+    now: datetime | None = None,
+    source_title: str = "",
+    source_url: str = "",
+    merge_existing: bool = True,
+) -> tuple[pd.DataFrame, list[tuple[Any, ...]]]:
+    timestamp = now or _utc_now()
+    frame, records = prepare_zopedia_pages(
+        list(pages or []),
+        now=timestamp,
+        source_title=source_title,
+        source_url=source_url,
+    )
+    if not merge_existing or conn is None or frame.empty:
+        return frame, records
+    page_ids = [
+        _coerce_text(row.get("page_id"))
+        for _, row in frame.iterrows()
+        if _coerce_text(row.get("page_id"))
+    ]
+    if not page_ids:
+        return frame, records
+    existing_rows = _load_zopedia_pages_by_ids(page_ids=page_ids, conn=conn)
+    existing_by_id = {_coerce_text(row.get("page_id")): dict(row) for row in existing_rows}
+    if not existing_by_id:
+        return frame, records
+    merged_pages: list[dict[str, Any]] = []
+    for _, row in frame.iterrows():
+        incoming = dict(row.to_dict())
+        existing = existing_by_id.get(_coerce_text(incoming.get("page_id")))
+        merged_pages.append(
+            _merge_zopedia_page_for_commit(existing, incoming, now=timestamp)
+            if existing
+            else incoming
+        )
+    return prepare_zopedia_pages(
+        merged_pages,
+        now=timestamp,
+        source_title=source_title,
+        source_url=source_url,
+    )
+
+
+def _folder_record(
+    *,
+    path: str,
+    name: str = "",
+    folder_type: str = "namespace",
+    sort_order: int = 0,
+    metadata: dict[str, Any] | None = None,
+    now: datetime | None = None,
+) -> tuple[Any, ...]:
+    timestamp = pd.to_datetime(now or _utc_now(), utc=True, errors="coerce")
+    clean_path = "/".join(part for part in _coerce_text(path).strip("/").split("/") if part) or _ZOPEDIA_ROOT_FOLDER_PATH
+    parent_path = _folder_parent_path(clean_path)
+    return (
+        _folder_id_for_path(clean_path),
+        _ZOPEDIA_TREE_KEY,
+        _folder_id_for_path(parent_path) if parent_path else None,
+        _coerce_text(folder_type) or "namespace",
+        _coerce_text(name) or _folder_name_from_path(clean_path),
+        _folder_slug_from_path(clean_path),
+        clean_path,
+        int(sort_order),
+        _json_text(metadata or {}, default=metadata or {}),
+        timestamp,
+        timestamp,
+    )
+
+
+def _upsert_zopedia_folder_records(conn: Any, records: list[tuple[Any, ...]]) -> None:
+    if not records:
+        return
+    with conn.cursor() as cur:
+        cur.executemany(
+            """
+            INSERT INTO saa_zopedia_folders (
+                folder_id, tree_key, parent_folder_id, folder_type, name, slug,
+                path, sort_order, metadata_json, created_at_utc, updated_at_utc
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s,
+                %s, %s, %s::jsonb, %s, %s
+            )
+            ON CONFLICT (folder_id) DO UPDATE SET
+                tree_key = EXCLUDED.tree_key,
+                parent_folder_id = EXCLUDED.parent_folder_id,
+                folder_type = EXCLUDED.folder_type,
+                name = EXCLUDED.name,
+                slug = EXCLUDED.slug,
+                path = EXCLUDED.path,
+                sort_order = EXCLUDED.sort_order,
+                metadata_json = EXCLUDED.metadata_json,
+                updated_at_utc = EXCLUDED.updated_at_utc
+            """,
+            records,
+        )
+
+
+def _ensure_zopedia_default_folders(conn: Any) -> None:
+    timestamp = _utc_now()
+    records = [
+        _folder_record(
+            path=path,
+            name=name,
+            folder_type=folder_type,
+            sort_order=sort_order,
+            metadata={"default": True},
+            now=timestamp,
+        )
+        for path, name, folder_type, sort_order in _ZOPEDIA_DEFAULT_FOLDERS
+    ]
+    _upsert_zopedia_folder_records(conn, records)
+
+
+def _sync_primary_folder_memberships(conn: Any, page_records: list[tuple[Any, ...]]) -> None:
+    if not page_records:
+        return
+    timestamp = pd.to_datetime(_utc_now(), utc=True, errors="coerce")
+    active_rows: list[tuple[Any, ...]] = []
+    deleted_page_ids: list[str] = []
+    folder_paths: set[str] = set()
+    for record in page_records:
+        if len(record) < 11:
+            continue
+        page_id = _coerce_text(record[0])
+        page_type = _coerce_text(record[1])
+        title = _coerce_text(record[2])
+        slug = _coerce_text(record[3])
+        status = _coerce_text(record[10]).lower()
+        if not page_id:
+            continue
+        if status == "deleted":
+            deleted_page_ids.append(page_id)
+            continue
+        folder_path = _default_folder_path_for_page_type(page_type)
+        folder_paths.add(folder_path)
+        canonical_path = _canonical_path_for_page({"page_type": page_type, "title": title, "slug": slug})
+        active_rows.append(
+            (
+                _folder_id_for_path(folder_path),
+                page_id,
+                "primary",
+                0,
+                _json_text(
+                    {
+                        "canonical_path": canonical_path,
+                        "page_type": _normalize_page_type(page_type),
+                        "generated": False,
+                    },
+                    default={},
+                ),
+                timestamp,
+                timestamp,
+            )
+        )
+    if not active_rows and not deleted_page_ids:
+        return
+    _upsert_zopedia_folder_records(
+        conn,
+        [
+            _folder_record(
+                path=path,
+                name=_folder_name_from_path(path),
+                folder_type="namespace",
+                metadata={"default": False, "created_by": "primary_membership"},
+                now=timestamp.to_pydatetime(),
+            )
+            for path in sorted(folder_paths)
+        ],
+    )
+    page_ids = [_coerce_text(row[1]) for row in active_rows if _coerce_text(row[1])] + deleted_page_ids
+    with conn.cursor() as cur:
+        if page_ids:
+            cur.execute(
+                """
+                DELETE FROM saa_zopedia_page_folder_memberships
+                WHERE membership_type = 'primary'
+                  AND page_id = ANY(%s)
+                """,
+                (page_ids,),
+            )
+        if active_rows:
+            cur.executemany(
+                """
+                INSERT INTO saa_zopedia_page_folder_memberships (
+                    folder_id, page_id, membership_type, sort_order,
+                    metadata_json, created_at_utc, updated_at_utc
+                ) VALUES (
+                    %s, %s, %s, %s,
+                    %s::jsonb, %s, %s
+                )
+                ON CONFLICT (folder_id, page_id, membership_type) DO UPDATE SET
+                    sort_order = EXCLUDED.sort_order,
+                    metadata_json = EXCLUDED.metadata_json,
+                    updated_at_utc = EXCLUDED.updated_at_utc
+                """,
+                active_rows,
+            )
+
+
+def _zopedia_storage_ready(conn: Any) -> bool:
+    """Check the complete runtime schema without taking DDL locks."""
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    NOT EXISTS (
+                        SELECT 1
+                        FROM unnest(%s::text[]) AS required(relation_name)
+                        WHERE to_regclass(required.relation_name) IS NULL
+                    )
+                    AND EXISTS (
+                        SELECT 1
+                        FROM information_schema.columns
+                        WHERE table_schema = current_schema()
+                          AND table_name = 'saa_zopedia_pages'
+                          AND column_name = 'source_urls_json'
+                    )
+                    AND EXISTS (
+                        SELECT 1
+                        FROM information_schema.columns
+                        WHERE table_schema = current_schema()
+                          AND table_name = 'saa_zopedia_pages'
+                          AND column_name = 'search_tsvector'
+                    )
+                """,
+                (list(_ZOPEDIA_REQUIRED_RELATIONS),),
+            )
+            row = cur.fetchone()
+    except Exception:
+        return False
+    return bool(row and row[0])
+
+
 def bootstrap_zopedia_storage(conn: Any, *, commit: bool = True) -> None:
+    if _zopedia_storage_ready(conn):
+        return
     with conn.cursor() as cur:
         cur.execute(
             """
@@ -596,6 +1342,51 @@ def bootstrap_zopedia_storage(conn: Any, *, commit: bool = True) -> None:
             ON saa_zopedia_maintenance_reports (created_at_utc DESC)
             """
         )
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS saa_zopedia_folders (
+                folder_id TEXT PRIMARY KEY,
+                tree_key TEXT NOT NULL DEFAULT 'zopedia',
+                parent_folder_id TEXT REFERENCES saa_zopedia_folders(folder_id),
+                folder_type TEXT NOT NULL,
+                name TEXT NOT NULL,
+                slug TEXT NOT NULL,
+                path TEXT NOT NULL,
+                sort_order INTEGER NOT NULL DEFAULT 0,
+                metadata_json JSONB,
+                created_at_utc TIMESTAMPTZ NOT NULL,
+                updated_at_utc TIMESTAMPTZ NOT NULL,
+                UNIQUE (tree_key, path)
+            )
+            """
+        )
+        cur.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_saa_zopedia_folders_parent
+            ON saa_zopedia_folders (tree_key, parent_folder_id, sort_order, name)
+            """
+        )
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS saa_zopedia_page_folder_memberships (
+                folder_id TEXT NOT NULL REFERENCES saa_zopedia_folders(folder_id),
+                page_id TEXT NOT NULL REFERENCES saa_zopedia_pages(page_id),
+                membership_type TEXT NOT NULL,
+                sort_order INTEGER NOT NULL DEFAULT 0,
+                metadata_json JSONB,
+                created_at_utc TIMESTAMPTZ NOT NULL,
+                updated_at_utc TIMESTAMPTZ NOT NULL,
+                PRIMARY KEY (folder_id, page_id, membership_type)
+            )
+            """
+        )
+        cur.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_saa_zopedia_page_folder_page
+            ON saa_zopedia_page_folder_memberships (page_id, membership_type)
+            """
+        )
+    _ensure_zopedia_default_folders(conn)
     if commit:
         conn.commit()
 
@@ -650,6 +1441,7 @@ def _upsert_zopedia_page_records(conn: Any, records: list[tuple[Any, ...]], *, c
             records,
         )
     _refresh_search_vectors(conn, [str(record[0]) for record in records if record])
+    _sync_primary_folder_memberships(conn, records)
     if commit:
         conn.commit()
 
@@ -662,19 +1454,31 @@ def persist_zopedia_pages(
     source_title: str = "",
     source_url: str = "",
 ) -> pd.DataFrame:
-    frame, records = prepare_zopedia_pages(
-        list(pages or []),
-        now=now,
-        source_title=source_title,
-        source_url=source_url,
-    )
     own_conn = False
     if conn is None:
         conn = _db_connection()
         own_conn = conn is not None
+    frame = pd.DataFrame(columns=list(ZOPEDIA_PAGE_COLUMNS))
+    records: list[tuple[Any, ...]] = []
     try:
-        if conn is not None and records:
+        if conn is not None:
             bootstrap_zopedia_storage(conn)
+            frame, records = _prepare_zopedia_pages_for_commit(
+                list(pages or []),
+                conn=conn,
+                now=now,
+                source_title=source_title,
+                source_url=source_url,
+                merge_existing=True,
+            )
+        else:
+            frame, records = prepare_zopedia_pages(
+                list(pages or []),
+                now=now,
+                source_title=source_title,
+                source_url=source_url,
+            )
+        if conn is not None and records:
             _upsert_zopedia_page_records(conn, records)
     finally:
         if own_conn:
@@ -947,6 +1751,110 @@ def load_zopedia_page(*, page_id: str, conn: Any | None = None) -> dict[str, Any
 
 def list_zopedia_pages(*, limit: int = 30, conn: Any | None = None) -> pd.DataFrame:
     return search_zopedia_pages(query="", limit=limit, conn=conn)
+
+
+def list_zopedia_folders(
+    *,
+    parent_path: str = "",
+    conn: Any | None = None,
+) -> pd.DataFrame:
+    own_conn = False
+    if conn is None:
+        conn = _db_connection()
+        own_conn = conn is not None
+    if conn is None:
+        return pd.DataFrame(columns=list(ZOPEDIA_FOLDER_COLUMNS))
+    try:
+        bootstrap_zopedia_storage(conn)
+        parent = _coerce_text(parent_path).strip("/")
+        params: list[Any] = []
+        if parent:
+            where_sql = "tree_key = %s AND parent_folder_id = %s"
+            params = [_ZOPEDIA_TREE_KEY, _folder_id_for_path(parent)]
+        else:
+            where_sql = "tree_key = %s"
+            params = [_ZOPEDIA_TREE_KEY]
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT folder_id, tree_key, parent_folder_id, folder_type, name, slug,
+                       path, sort_order, metadata_json::text, created_at_utc, updated_at_utc
+                FROM saa_zopedia_folders
+                WHERE {where_sql}
+                ORDER BY sort_order ASC, name ASC
+                """,
+                tuple(params),
+            )
+            rows = cur.fetchall()
+        return pd.DataFrame(rows, columns=list(ZOPEDIA_FOLDER_COLUMNS))
+    finally:
+        if own_conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+
+def list_zopedia_folder_pages(
+    *,
+    folder_path: str,
+    membership_type: str = "",
+    limit: int = 250,
+    conn: Any | None = None,
+) -> pd.DataFrame:
+    normalized_path = _coerce_text(folder_path).strip("/")
+    if not normalized_path:
+        return pd.DataFrame(columns=list(ZOPEDIA_PAGE_COLUMNS) + ["folder_membership_type", "folder_sort_order"])
+    own_conn = False
+    if conn is None:
+        conn = _db_connection()
+        own_conn = conn is not None
+    if conn is None:
+        return pd.DataFrame(columns=list(ZOPEDIA_PAGE_COLUMNS) + ["folder_membership_type", "folder_sort_order"])
+    try:
+        bootstrap_zopedia_storage(conn)
+        params: list[Any] = [_folder_id_for_path(normalized_path)]
+        membership_clause = ""
+        normalized_membership = _coerce_text(membership_type)
+        if normalized_membership:
+            membership_clause = "AND m.membership_type = %s"
+            params.append(normalized_membership)
+        params.append(max(int(limit), 1))
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT
+                    p.page_id, p.page_type, p.title, p.slug, p.summary, p.body_markdown,
+                    p.source_document_ids_json::text, p.source_urls_json::text,
+                    p.entity_refs_json::text, p.outgoing_links_json::text,
+                    p.status, p.version, p.created_at_utc, p.updated_at_utc, p.metadata_json::text,
+                    0.0 AS ts_rank_score,
+                    m.membership_type AS folder_membership_type,
+                    m.sort_order AS folder_sort_order
+                FROM saa_zopedia_page_folder_memberships m
+                JOIN saa_zopedia_pages p ON p.page_id = m.page_id
+                WHERE m.folder_id = %s
+                  AND p.status != 'deleted'
+                  {membership_clause}
+                ORDER BY m.sort_order ASC, p.updated_at_utc DESC, p.title ASC
+                LIMIT %s
+                """,
+                tuple(params),
+            )
+            rows = cur.fetchall()
+        if not rows:
+            return pd.DataFrame(columns=list(ZOPEDIA_PAGE_COLUMNS) + ["folder_membership_type", "folder_sort_order"])
+        page_rows = [row[: len(ZOPEDIA_PAGE_COLUMNS)] for row in rows]
+        frame = _frame_from_zopedia_page_rows(page_rows)
+        frame["folder_membership_type"] = [row[len(ZOPEDIA_PAGE_COLUMNS)] for row in rows]
+        frame["folder_sort_order"] = [row[len(ZOPEDIA_PAGE_COLUMNS) + 1] for row in rows]
+        return frame
+    finally:
+        if own_conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 def zopedia_page_neighborhood(*, page_id: str, depth: int = 1, conn: Any | None = None) -> dict[str, Any]:
@@ -1760,6 +2668,91 @@ def _replace_zopedia_community_index(conn: Any, frame: pd.DataFrame) -> None:
         )
 
 
+def _sync_community_folder_memberships(conn: Any, frame: pd.DataFrame) -> None:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            DELETE FROM saa_zopedia_page_folder_memberships
+            WHERE membership_type = 'community'
+            """
+        )
+    if frame.empty:
+        return
+
+    timestamp = pd.to_datetime(_utc_now(), utc=True, errors="coerce")
+    folder_records: list[tuple[Any, ...]] = []
+    membership_records: list[tuple[Any, ...]] = []
+    for index, (_, row) in enumerate(frame.iterrows()):
+        community_id = _coerce_text(row.get("community_id"))
+        if not community_id:
+            continue
+        label = _coerce_text(row.get("label")) or "Zopedia Community"
+        digest = _sha256_text(community_id)[:8]
+        folder_path = f"wiki/godnodes/{_slug(label, default='community')}-{digest}"
+        page_ids = _json_list(row.get("page_ids_json"))
+        central_page_ids = _json_list(row.get("central_page_ids_json"))
+        folder_records.append(
+            _folder_record(
+                path=folder_path,
+                name=label,
+                folder_type="generated",
+                sort_order=index,
+                metadata={
+                    "community_id": community_id,
+                    "central_page_ids": central_page_ids,
+                    "page_count": int(row.get("page_count") or len(page_ids)),
+                    "score": float(row.get("score") or 0.0),
+                    "generated_by": "zopedia_maintenance",
+                },
+                now=timestamp.to_pydatetime(),
+            )
+        )
+        folder_id = _folder_id_for_path(folder_path)
+        for sort_order, page_id in enumerate(page_ids):
+            clean_page_id = _coerce_text(page_id)
+            if not clean_page_id:
+                continue
+            membership_records.append(
+                (
+                    folder_id,
+                    clean_page_id,
+                    "community",
+                    sort_order,
+                    _json_text(
+                        {
+                            "community_id": community_id,
+                            "community_label": label,
+                            "central": clean_page_id in set(central_page_ids),
+                        },
+                        default={},
+                    ),
+                    timestamp,
+                    timestamp,
+                )
+            )
+
+    _upsert_zopedia_folder_records(conn, folder_records)
+    if not membership_records:
+        return
+    with conn.cursor() as cur:
+        cur.executemany(
+            """
+            INSERT INTO saa_zopedia_page_folder_memberships (
+                folder_id, page_id, membership_type, sort_order,
+                metadata_json, created_at_utc, updated_at_utc
+            ) VALUES (
+                %s, %s, %s, %s,
+                %s::jsonb, %s, %s
+            )
+            ON CONFLICT (folder_id, page_id, membership_type) DO UPDATE SET
+                sort_order = EXCLUDED.sort_order,
+                metadata_json = EXCLUDED.metadata_json,
+                updated_at_utc = EXCLUDED.updated_at_utc
+            """,
+            membership_records,
+        )
+
+
 def _upsert_zopedia_maintenance_report(conn: Any, report: dict[str, Any]) -> None:
     with conn.cursor() as cur:
         cur.execute(
@@ -1818,6 +2811,7 @@ def persist_zopedia_maintenance_snapshot(
         report = dict(snapshot.get("report") or {})
         _replace_zopedia_backlinks(db_conn, backlinks)
         _replace_zopedia_community_index(db_conn, communities)
+        _sync_community_folder_memberships(db_conn, communities)
         audit = build_zopedia_mutation_audit(
             mutation_type="maintenance_index",
             risk_level="safe",
@@ -2843,7 +3837,15 @@ def apply_zopedia_typed_mutation(
             before_page_ids = [normalized_page_id]
 
         before_rows = _load_zopedia_pages_by_ids(page_ids=before_page_ids, conn=db_conn)
-        frame, records = prepare_zopedia_pages(after_pages, now=timestamp)
+        if normalized_type == "upsert_pages":
+            frame, records = _prepare_zopedia_pages_for_commit(
+                after_pages,
+                conn=db_conn,
+                now=timestamp,
+                merge_existing=True,
+            )
+        else:
+            frame, records = prepare_zopedia_pages(after_pages, now=timestamp)
         rows = frame.to_dict("records") if not frame.empty else []
         if not records:
             return {

@@ -93,3 +93,25 @@ def test_gateway_records_failure_and_reraises(monkeypatch):
     assert event["status"] == "failure"
     assert event["error_type"] == "RuntimeError"
     assert "provider exhausted" in event["error_summary"]
+
+
+def test_gateway_telemetry_failure_does_not_mask_model_success(monkeypatch):
+    def _fail_telemetry(**kwargs):
+        del kwargs
+        raise RuntimeError("telemetry database unavailable")
+
+    monkeypatch.setattr(pipeline_store, "record_model_call", _fail_telemetry)
+
+    result = aql_zopedia_gateway.generate_json_via_aql_zopedia_gateway(
+        llm_client=_FakeLLM(),
+        surface="test.surface",
+        purpose="telemetry_failure",
+        call_type="utility",
+        system_prompt="system",
+        user_prompt="user",
+        schema_name="gateway_test",
+        schema={"type": "object", "properties": {}, "additionalProperties": False},
+        metadata={"run_id": "agrun_test"},
+    )
+
+    assert result == {"ok": True, "summary": "Gateway call completed."}

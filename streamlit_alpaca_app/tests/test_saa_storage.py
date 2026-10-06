@@ -176,7 +176,7 @@ def test_db_connection_uses_generated_deployment_vault(monkeypatch, tmp_path):
     )
 
     captured_secret: dict[str, str] = {}
-    captured_connect: dict[str, str] = {}
+    captured_connect: dict[str, object] = {}
 
     def fake_read_secret(secret_name: str, vault_url: str) -> dict[str, str]:
         captured_secret["secret_name"] = secret_name
@@ -186,6 +186,8 @@ def test_db_connection_uses_generated_deployment_vault(monkeypatch, tmp_path):
     def fake_connect(conn_str: str, **kwargs):
         captured_connect["conn_str"] = conn_str
         captured_connect["connect_timeout"] = kwargs.get("connect_timeout")
+        captured_connect["application_name"] = kwargs.get("application_name")
+        captured_connect["options"] = kwargs.get("options")
         return "db-connection"
 
     monkeypatch.setattr(secrets, "APP_ROOT", tmp_path)
@@ -199,13 +201,21 @@ def test_db_connection_uses_generated_deployment_vault(monkeypatch, tmp_path):
     monkeypatch.delenv("AZURE_KEY_VAULT_NAME", raising=False)
     monkeypatch.delenv("KEY_VAULT_NAME", raising=False)
     monkeypatch.delenv("POSTGRES_CONNECT_TIMEOUT_SECONDS", raising=False)
+    monkeypatch.delenv("SAA_POSTGRES_STATEMENT_TIMEOUT_SECONDS", raising=False)
+    monkeypatch.delenv("SAA_POSTGRES_LOCK_TIMEOUT_SECONDS", raising=False)
+    monkeypatch.delenv("SAA_POSTGRES_IDLE_TRANSACTION_TIMEOUT_SECONDS", raising=False)
 
     assert storage._db_connection() == "db-connection"
     assert captured_secret == {
         "secret_name": "postgres-connection-string",
         "vault_url": "https://local-generated-vault.vault.azure.net",
     }
-    assert captured_connect == {"conn_str": "postgres://example", "connect_timeout": 5}
+    assert captured_connect == {
+        "conn_str": "postgres://example",
+        "connect_timeout": 5,
+        "application_name": "spectral_nature_saa",
+        "options": "-c statement_timeout=30000 -c lock_timeout=5000 -c idle_in_transaction_session_timeout=60000",
+    }
 
 
 def test_annotate_source_documents_adds_canonical_fields():

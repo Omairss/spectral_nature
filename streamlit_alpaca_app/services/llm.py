@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import json
 import os
 import re
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 
 import requests
 
@@ -19,6 +19,39 @@ class LLMJSONParseError(LLMAPIError):
     def __init__(self, message: str, *, raw_content: str = "") -> None:
         super().__init__(message)
         self.raw_content = raw_content
+
+
+def _deepseek_response_error(response: requests.Response, *, operation: str = "request") -> LLMAPIError:
+    status_code = int(response.status_code)
+    response_text = _clean(response.text)[:400]
+    provider_code = ""
+    provider_message = ""
+    try:
+        payload = response.json()
+    except Exception:
+        payload = {}
+    if isinstance(payload, dict):
+        error = payload.get("error")
+        if isinstance(error, dict):
+            provider_code = _clean(error.get("code")).lower()
+            provider_message = _clean(error.get("message"))
+
+    balance_failure = (
+        status_code == 402
+        or provider_code == "insufficient_balance"
+        or "insufficient balance" in provider_message.lower()
+        or "insufficient balance" in response_text.lower()
+    )
+    if balance_failure:
+        return LLMAPIError(
+            "DeepSeek account has insufficient funds. Add credit in DeepSeek billing before retrying "
+            f"the pipeline. Provider response: HTTP {status_code}"
+            + (f" ({provider_code})" if provider_code else "")
+            + "."
+        )
+
+    detail = provider_message or response_text or "No provider error details were returned."
+    return LLMAPIError(f"DeepSeek {operation} failed: HTTP {status_code}. {detail}")
 
 
 # Words/phrases the LLM must never use in user-facing narrative.
@@ -48,9 +81,12 @@ _JARGON_REPLACEMENTS: list[tuple[str, str]] = [
 # Import this and include it in any prompt that writes text shown to users.
 NARRATIVE_STYLE_RULE = (
     "Write like a trader speaking plainly — short sentences, real numbers, no jargon. "
+    "Lead with the conclusion. Every sentence must add a fact, an interpretation, or a concrete next check. "
+    "Do not add audience qualification, generic caveats, process narration, or commentary about tools, prompts, storage, and data plumbing. "
     "Never use: idiosyncratic, nuanced, multifaceted, robust, granular, leverage (as a verb), "
     "synergy, paradigm, actionable, holistic, bespoke, cutting-edge, game-changer, deep-dive, "
     "unpack, or surface (as a verb meaning 'explain'). "
+    "Avoid trading-floor shorthand such as tape; say market data, price action, or market move. "
     "If cause is unclear, state the exact missing evidence succinctly — do not invent a reason."
 )
 
@@ -286,6 +322,29 @@ class LLMConfig:
     embedding_model: str = "text-embedding-3-small"
 
 
+@runtime_checkable
+class JSONLLMClient(Protocol):
+    """Provider-neutral model boundary used by AQL/Zopedia orchestration."""
+
+    config: LLMConfig
+
+    def generate_json(
+        self,
+        *,
+        system_prompt: str,
+        user_prompt: str,
+        schema_name: str,
+        schema: dict[str, Any],
+    ) -> dict[str, Any]: ...
+
+
+@runtime_checkable
+class EmbeddingClient(Protocol):
+    config: LLMConfig
+
+    def generate_embeddings(self, texts: list[str]) -> list[list[float]]: ...
+
+
 def _clean(value: object) -> str:
     return str(value or "").strip()
 
@@ -462,10 +521,15 @@ def load_llm_config(env_prefix: str = "") -> LLMConfig | None:
         return None
 
     api_key = _resolve_api_key(env_prefix)
-    if not api_key:
+    if not api_key and provider != "local":
         return None
 
-    model = config_value(env_prefix, "LLM_MODEL", "OPENAI_MODEL") or "gpt-4.1-mini"
+    default_models = {
+        "deepseek": "deepseek-chat",
+        "local": "local-model",
+    }
+    default_model = default_models.get(provider, "gpt-4.1-mini")
+    model = config_value(env_prefix, "LLM_MODEL", "OPENAI_MODEL") or default_model
     deployment = config_value(env_prefix, "LLM_DEPLOYMENT", "AZURE_OPENAI_DEPLOYMENT") or model
     if provider == "azure_openai":
         base_url = _normalize_azure_base_url(
@@ -477,6 +541,9 @@ def load_llm_config(env_prefix: str = "") -> LLMConfig | None:
     elif provider == "deepseek":
         base_url = config_value(env_prefix, "LLM_BASE_URL", "OPENAI_BASE_URL") or "https://api.deepseek.com"
         api_version = ""
+    elif provider == "local":
+        base_url = config_value(env_prefix, "LLM_BASE_URL", "OPENAI_BASE_URL") or "http://127.0.0.1:8000/v1"
+        api_version = ""
     else:
         base_url = config_value(env_prefix, "LLM_BASE_URL", "OPENAI_BASE_URL") or "https://api.openai.com/v1"
         api_version = ""
@@ -486,7 +553,7 @@ def load_llm_config(env_prefix: str = "") -> LLMConfig | None:
     reasoning_effort = _normalized_reasoning_effort(
         config_value(env_prefix, "LLM_REASONING_EFFORT", "OPENAI_REASONING_EFFORT")
     )
-    if provider == "deepseek":
+    if provider in {"deepseek", "local"}:
         # DeepSeek reasoning traces come from the reasoning model response
         # itself. Do not forward OpenAI-style reasoning_effort settings; a
         # global provider swap should not inherit Azure/OpenAI-only knobs.
@@ -758,6 +825,13 @@ class DeepSeekChatJSONClient:
         self.config = config
         self.session = session or requests.Session()
 
+    @property
+    def provider_label(self) -> str:
+        return "DeepSeek"
+
+    def _response_error(self, response: requests.Response, *, operation: str = "request") -> LLMAPIError:
+        return _deepseek_response_error(response, operation=operation)
+
     def generate_json(
         self,
         *,
@@ -783,11 +857,12 @@ class DeepSeekChatJSONClient:
             payload["temperature"] = self.config.temperature
 
         request_url = f"{self.config.base_url}/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {self.config.api_key}",
-            "Content-Type": "application/json",
-        }
+        headers = {"Content-Type": "application/json"}
+        if self.config.api_key:
+            headers["Authorization"] = f"Bearer {self.config.api_key}"
         import requests as _requests_mod
+        message: dict[str, Any] = {}
+        raw = ""
         for attempt in range(2):
             try:
                 response = self.session.post(
@@ -796,25 +871,28 @@ class DeepSeekChatJSONClient:
                     json=payload,
                     timeout=self.config.timeout_seconds,
                 )
-                break
             except (_requests_mod.exceptions.ReadTimeout, _requests_mod.exceptions.ConnectionError):
                 if attempt == 0:
                     continue
                 raise
-        if response.status_code != 200:
-            raise LLMAPIError(f"DeepSeek request failed status={response.status_code}: {response.text[:400]}")
-        try:
-            parsed = response.json()
-        except Exception as exc:
-            raise LLMAPIError(f"DeepSeek returned invalid JSON: {exc}") from exc
+            if response.status_code != 200:
+                raise self._response_error(response)
+            try:
+                parsed = response.json()
+            except Exception as exc:
+                raise LLMAPIError(f"{self.provider_label} returned invalid JSON: {exc}") from exc
 
-        choices = parsed.get("choices") or []
-        if not choices:
-            raise LLMAPIError("DeepSeek returned no choices.")
-        message = choices[0].get("message") or {}
-        raw = _chat_message_text(message)
-        if not raw:
-            raise LLMAPIError("DeepSeek returned empty content.")
+            choices = parsed.get("choices") or []
+            if choices:
+                message = choices[0].get("message") or {}
+                raw = _chat_message_text(message)
+                if raw:
+                    break
+            if attempt == 0:
+                continue
+            if not choices:
+                raise LLMAPIError(f"{self.provider_label} returned no choices.")
+            raise LLMAPIError(f"{self.provider_label} returned empty content.")
         try:
             parsed_object = _extract_first_json_object(raw)
         except LLMJSONParseError as exc:
@@ -831,26 +909,46 @@ class DeepSeekChatJSONClient:
                 timeout=self.config.timeout_seconds,
             )
             if repair_response.status_code != 200:
-                raise LLMAPIError(
-                    f"DeepSeek JSON repair failed status={repair_response.status_code}: {repair_response.text[:400]}"
-                ) from exc
+                raise self._response_error(repair_response, operation="JSON repair") from exc
             try:
                 repair_parsed = repair_response.json()
             except Exception as repair_exc:
-                raise LLMAPIError(f"DeepSeek JSON repair returned invalid JSON: {repair_exc}") from exc
+                raise LLMAPIError(f"{self.provider_label} JSON repair returned invalid JSON: {repair_exc}") from exc
             repair_choices = repair_parsed.get("choices") or []
             if not repair_choices:
-                raise LLMAPIError("DeepSeek JSON repair returned no choices.") from exc
+                raise LLMAPIError(f"{self.provider_label} JSON repair returned no choices.") from exc
             repair_message = repair_choices[0].get("message") or {}
             repair_raw = _chat_message_text(repair_message)
             if not repair_raw:
-                raise LLMAPIError("DeepSeek JSON repair returned empty content.") from exc
+                raise LLMAPIError(f"{self.provider_label} JSON repair returned empty content.") from exc
             parsed_object = _extract_first_json_object(repair_raw)
         result = _strip_jargon_from_dict(parsed_object)
         reasoning_content = _clean(message.get("reasoning_content"))
         if reasoning_content:
             result["__reasoning_content"] = reasoning_content
         return result
+
+
+class LocalChatJSONClient(DeepSeekChatJSONClient):
+    """JSON client for a local chat-completions-compatible inference server.
+
+    Local inference is intentionally a wire-protocol adapter, not an SDK
+    dependency. Authentication is optional and controlled by ``LLM_API_KEY``.
+    """
+
+    def __init__(self, config: LLMConfig, *, session: requests.Session | None = None) -> None:
+        if not config.base_url:
+            raise LLMAPIError("Missing local LLM base URL.")
+        self.config = config
+        self.session = session or requests.Session()
+
+    @property
+    def provider_label(self) -> str:
+        return "Local LLM"
+
+    def _response_error(self, response: requests.Response, *, operation: str = "request") -> LLMAPIError:
+        detail = _clean(response.text)[:400] or "No server error details were returned."
+        return LLMAPIError(f"Local LLM {operation} failed: HTTP {int(response.status_code)}. {detail}")
 
 
 class OpenAIEmbeddingClient:
@@ -942,7 +1040,7 @@ class AzureOpenAIEmbeddingClient:
         return vectors
 
 
-def load_llm_client(env_prefix: str = "") -> OpenAIChatJSONClient | AzureOpenAIChatJSONClient | DeepSeekChatJSONClient | None:
+def load_llm_client(env_prefix: str = "") -> JSONLLMClient | None:
     config = load_llm_config(env_prefix=env_prefix)
     if config is None:
         return None
@@ -952,6 +1050,8 @@ def load_llm_client(env_prefix: str = "") -> OpenAIChatJSONClient | AzureOpenAIC
         return AzureOpenAIChatJSONClient(config)
     if config.provider == "deepseek":
         return DeepSeekChatJSONClient(config)
+    if config.provider == "local":
+        return LocalChatJSONClient(config)
     raise LLMAPIError(f"Unsupported LLM provider: {config.provider}")
 
 
@@ -1021,10 +1121,13 @@ __all__ = [
     "AzureOpenAIEmbeddingClient",
     "AzureOpenAIChatJSONClient",
     "DeepSeekChatJSONClient",
+    "EmbeddingClient",
     "OpenAIEmbeddingClient",
     "LLMAPIError",
     "LLMJSONParseError",
     "LLMConfig",
+    "JSONLLMClient",
+    "LocalChatJSONClient",
     "OpenAIChatJSONClient",
     "check_llm_readiness",
     "load_embedding_client",

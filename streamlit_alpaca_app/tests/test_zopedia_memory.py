@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 from services.aql.evidence_pack import build_aql_evidence_pack
+from services.saa import zopedia as zopedia_module
 from services.saa.zopedia import (
     apply_zopedia_typed_mutation,
     build_zopedia_maintenance_snapshot,
@@ -52,6 +53,47 @@ class _FakeLLM:
                 },
             ]
         }
+
+
+class _ReadySchemaCursor:
+    def __init__(self, queries: list[str]):
+        self.queries = queries
+
+    def execute(self, query, params=None):
+        del params
+        self.queries.append(str(query))
+
+    def fetchone(self):
+        return (True,)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+
+class _ReadySchemaConnection:
+    def __init__(self):
+        self.queries: list[str] = []
+        self.commit_count = 0
+
+    def cursor(self):
+        return _ReadySchemaCursor(self.queries)
+
+    def commit(self):
+        self.commit_count += 1
+
+
+def test_zopedia_bootstrap_avoids_ddl_when_runtime_schema_is_ready():
+    conn = _ReadySchemaConnection()
+
+    zopedia_module.bootstrap_zopedia_storage(conn)
+
+    assert len(conn.queries) == 1
+    assert "to_regclass" in conn.queries[0]
+    assert "CREATE TABLE" not in conn.queries[0]
+    assert conn.commit_count == 0
 
 
 def test_zopedia_pages_are_searchable_without_database():

@@ -40,6 +40,45 @@ def test_build_tool_catalog_uses_typed_param_schemas():
     assert tools_by_name["analysis.read_raw_output"]["inputSchema"]["required"] == ["analysis_run_id"]
 
 
+def test_tool_registry_is_canonical_catalog_and_groups_namespaces():
+    service = QueryService(data_access=object())
+    registry = agent_tools.build_tool_registry(service)
+    catalog = agent_tools.build_tool_catalog(service)
+
+    assert registry.catalog() == catalog
+    assert registry.get("tools.search")["inputSchema"]["required"] == ["query"]
+    assert registry.get("dataset.price_history")["name"] == "dataset.price_history"
+    assert registry.namespaces()["research"] > 0
+    assert registry.namespaces()["zopedia"] > 0
+
+
+def test_tool_registry_search_finds_capability_without_query_routing():
+    registry = agent_tools.build_tool_registry(QueryService(data_access=object()))
+
+    matches = registry.search("historical ticker prices", namespace="dataset", limit=5)
+
+    assert matches
+    assert "dataset.price_history" in [match["name"] for match in matches]
+    assert all(match["search_score"] > 0 for match in matches)
+
+
+def test_invoke_tool_search_returns_schemas_and_registry_provenance():
+    service = QueryService(data_access=object())
+    registry = agent_tools.build_tool_registry(service)
+
+    result = agent_tools.invoke_tool(
+        service=service,
+        tool_name="tools.search",
+        arguments={"query": "open and read a web page", "namespace": "research", "limit": 4},
+        registry=registry,
+    )
+
+    names = [tool["name"] for tool in result["payload"]["tools"]]
+    assert "research.open_page" in names
+    assert result["provenance"]["details"]["index"] == "tool_registry_bm25"
+    assert "inputSchema" in result["payload"]["tools"][0]
+
+
 def test_invoke_research_tool_dispatches_to_research_module(monkeypatch):
     captured: dict[str, object] = {}
 
@@ -377,45 +416,22 @@ def test_invoke_analysis_read_raw_output_dispatches_to_analysis_storage(monkeypa
     assert result["payload"]["raw_text"] == "rows=2 last=11"
 
 
-def test_invoke_analysis_tool_repairs_flattened_code_once(monkeypatch):
+def test_invoke_analysis_tool_returns_structured_failure_to_planner(monkeypatch):
     calls: list[dict[str, object]] = []
 
     def _fake_run_analysis_python(**kwargs):
         calls.append(kwargs)
-        if len(calls) == 1:
-            return {
-                "analysis_run_id": "zopedia_analysis::bad",
-                "status": "rejected",
-                "objective": kwargs["objective"],
-                "error": "Syntax error: invalid syntax (<unknown>, line 1)",
-                "metadata": {"failure_category": "analysis_code_error"},
-                "messages": [],
-                "llm_context_text": "Failure category: analysis_code_error",
-            }
         return {
-            "analysis_run_id": "zopedia_analysis::fixed",
-            "status": "succeeded",
+            "analysis_run_id": "zopedia_analysis::bad",
+            "status": "rejected",
             "objective": kwargs["objective"],
-            "metrics": [{"name": "rows", "value": 2}],
-            "tables": [],
-            "charts": [],
-            "artifacts": [],
+            "error": "Syntax error: invalid syntax (<unknown>, line 1)",
+            "metadata": {"failure_category": "analysis_code_error"},
             "messages": [],
-            "metadata": {"runner": "zopedia_analysis.v1"},
-            "llm_context_text": "Zopedia analysis run succeeded.",
-        }
-
-    def _fake_repair(**kwargs):
-        return {
-            "objective": "count rows",
-            "code": "prices = datasets['prices']\nadd_metric('rows', len(prices))",
-            "dataset_refs": [],
-            "inline_datasets": [{"name": "prices", "rows": [{"close": 10}, {"close": 11}]}],
-            "notes": "restored multiline Python and explicit inputs",
+            "llm_context_text": "Failure category: analysis_code_error",
         }
 
     monkeypatch.setattr(agent_tools.zopedia_analysis, "run_analysis_python", _fake_run_analysis_python)
-    monkeypatch.setattr(agent_tools, "repair_aql_zopedia_analysis_arguments", _fake_repair)
 
     service = QueryService(data_access=object())
     result = agent_tools.invoke_tool(
@@ -428,90 +444,10 @@ def test_invoke_analysis_tool_repairs_flattened_code_once(monkeypatch):
         },
     )
 
-    assert len(calls) == 2
+    assert len(calls) == 1
     assert calls[0]["dataset_refs"] == [{"name": "price_history", "params": {"ticker": "SPY", "days": 60}}]
-    assert calls[1]["code"] == "prices = datasets['prices']\nadd_metric('rows', len(prices))"
-    assert result["payload"]["status"] == "succeeded"
-    assert result["payload"]["metadata"]["analysis_repaired"] is True
-    assert result["payload"]["metadata"]["repaired_from_run_id"] == "zopedia_analysis::bad"
-
-
-def test_invoke_analysis_tool_retries_when_first_repair_still_fails(monkeypatch):
-    calls: list[dict[str, object]] = []
-    repair_failures: list[dict[str, object]] = []
-
-    def _fake_run_analysis_python(**kwargs):
-        calls.append(kwargs)
-        if len(calls) == 1:
-            return {
-                "analysis_run_id": "zopedia_analysis::bad_original",
-                "status": "rejected",
-                "objective": kwargs["objective"],
-                "error": "Syntax error: invalid syntax (<unknown>, line 1)",
-                "metadata": {"failure_category": "analysis_code_error"},
-                "messages": [],
-                "llm_context_text": "Failure category: analysis_code_error",
-            }
-        if len(calls) == 2:
-            return {
-                "analysis_run_id": "zopedia_analysis::bad_repair",
-                "status": "rejected",
-                "objective": kwargs["objective"],
-                "error": "Syntax error: expected an indented block",
-                "metadata": {"failure_category": "analysis_code_error"},
-                "messages": [],
-                "llm_context_text": "Failure category: analysis_code_error",
-            }
-        return {
-            "analysis_run_id": "zopedia_analysis::fixed",
-            "status": "succeeded",
-            "objective": kwargs["objective"],
-            "metrics": [{"name": "rows", "value": 2}],
-            "tables": [],
-            "charts": [],
-            "artifacts": [],
-            "messages": [],
-            "metadata": {"runner": "zopedia_analysis.v1"},
-            "llm_context_text": "Zopedia analysis run succeeded.",
-        }
-
-    def _fake_repair(**kwargs):
-        repair_failures.append(kwargs["failure_payload"])
-        if len(repair_failures) == 1:
-            return {
-                "objective": "count rows",
-                "code": "if True:\nadd_metric('rows', 2)",
-                "dataset_refs": [],
-                "inline_datasets": [{"name": "prices", "rows": [{"close": 10}, {"close": 11}]}],
-                "notes": "first repair still has bad indentation",
-            }
-        return {
-            "objective": "count rows",
-            "code": "prices = datasets['prices']\nadd_metric('rows', len(prices))",
-            "dataset_refs": [],
-            "inline_datasets": [{"name": "prices", "rows": [{"close": 10}, {"close": 11}]}],
-            "notes": "fixed indentation",
-        }
-
-    monkeypatch.setattr(agent_tools.zopedia_analysis, "run_analysis_python", _fake_run_analysis_python)
-    monkeypatch.setattr(agent_tools, "repair_aql_zopedia_analysis_arguments", _fake_repair)
-
-    result = agent_tools.invoke_tool(
-        service=QueryService(data_access=object()),
-        tool_name="analysis.run_python",
-        arguments={
-            "objective": "count rows",
-            "code": "import pandas as pd add_metric('rows', 2)",
-        },
-    )
-
-    assert len(calls) == 3
-    assert [failure["analysis_run_id"] for failure in repair_failures] == [
-        "zopedia_analysis::bad_original",
-        "zopedia_analysis::bad_repair",
-    ]
-    assert result["payload"]["status"] == "succeeded"
-    assert result["payload"]["metadata"]["analysis_repair_attempt"] == 2
+    assert result["payload"]["status"] == "rejected"
+    assert result["payload"]["metadata"]["failure_category"] == "analysis_code_error"
 
 
 def test_invoke_analysis_tool_accepts_json_object_inline_datasets(monkeypatch):

@@ -474,11 +474,11 @@ def _build_page_agentic_summary_frame(
 
 
 def _zopedia_enrichment_limit() -> int:
-    return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_LIMIT", 80)
+    return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_LIMIT", 12)
 
 
 def _zopedia_enrichment_timeout_seconds() -> int:
-    return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_TIMEOUT_SECONDS", 600)
+    return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_TIMEOUT_SECONDS", 90)
 
 
 def _zopedia_agent_tool_timeout_seconds(total_timeout_seconds: int) -> int:
@@ -492,7 +492,7 @@ def _zopedia_agent_llm_timeout_seconds(total_timeout_seconds: int) -> int:
 
 
 def _zopedia_enrichment_max_workers() -> int:
-    return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_MAX_WORKERS", 16)
+    return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_MAX_WORKERS", 4)
 
 
 def _zopedia_market_summary_quality_revisions() -> int:
@@ -500,15 +500,15 @@ def _zopedia_market_summary_quality_revisions() -> int:
 
 
 def _zopedia_enrichment_quality_revisions() -> int:
-    return min(_env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_QUALITY_REVISIONS", 2), 4)
+    return min(_env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_QUALITY_REVISIONS", 1), 4)
 
 
 def _zopedia_enrichment_llm_retries() -> int:
-    return min(_env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_LLM_RETRIES", 2), 5)
+    return min(_env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_LLM_RETRIES", 1), 5)
 
 
 def _zopedia_agent_max_tool_calls() -> int:
-    return min(_env_positive_int("ATTENTION_HOME_ZOPEDIA_AGENT_MAX_TOOL_CALLS", 18), 40)
+    return min(_env_positive_int("ATTENTION_HOME_ZOPEDIA_AGENT_MAX_TOOL_CALLS", 8), 40)
 
 
 def _home_surface_quality_timeout_seconds() -> int:
@@ -961,11 +961,10 @@ def _revise_zopedia_enrichment_payload(
         ),
     )
     if not isinstance(result, dict) or str(result.get("status") or "") != "completed":
-        error = str((result or {}).get("error") or "Zopedia quality pass did not complete.")
         return {
             "answer_markdown": "",
             "confidence": "low",
-            "limitations": [error],
+            "limitations": [],
             "_status": "failed_quality_review",
         }
     payload = result.get("payload") if isinstance(result.get("payload"), dict) else {}
@@ -973,7 +972,7 @@ def _revise_zopedia_enrichment_payload(
         return {
             "answer_markdown": "",
             "confidence": str(payload.get("confidence") or "low").strip() or "low",
-            "limitations": list(payload.get("limitations") or ["Zopedia quality pass returned an empty enrichment."]),
+            "limitations": [],
             "_status": "failed_quality_review",
         }
     return dict(payload)
@@ -1068,10 +1067,7 @@ def _run_single_zopedia_enrichment(
                 payload_result = {
                     "answer_markdown": "",
                     "confidence": "low",
-                    "limitations": [
-                        "Zopedia ticker enrichment failed the quality monitor after revision.",
-                        *list(current_review.get("issues") or [])[:5],
-                    ],
+                    "limitations": [],
                     "_status": "failed_quality_review",
                 }
             answer_markdown = str(payload_result.get("answer_markdown") or "")
@@ -1080,7 +1076,6 @@ def _run_single_zopedia_enrichment(
         if _looks_like_failed_zopedia_synthesis_answer(answer_markdown):
             answer_markdown = ""
             status = "failed_synthesis"
-            limitations.append("Zopedia returned tool output instead of a final synthesis; hidden from display.")
         failure_categories = _zopedia_enrichment_failure_categories(
             status=status,
             answer_markdown=answer_markdown,
@@ -1093,7 +1088,7 @@ def _run_single_zopedia_enrichment(
             "status": status,
             "answer_markdown": answer_markdown,
             "confidence": _cap_zopedia_confidence(payload_result.get("confidence") or result.get("confidence"), limitations),
-            "limitations_json": json.dumps(limitations),
+            "limitations_json": "[]",
             "tool_calls_json": json.dumps([
                 {
                     "tool_name": str(tc.get("tool_name") or ""),
@@ -1118,7 +1113,7 @@ def _run_single_zopedia_enrichment(
             "status": "failed",
             "answer_markdown": "",
             "confidence": "",
-            "limitations_json": json.dumps([f"{type(exc).__name__}: {exc}"]),
+            "limitations_json": "[]",
             "tool_calls_json": "[]",
             "quality_review_json": "{}",
             "failure_categories_json": json.dumps(failure_categories),
@@ -1563,7 +1558,7 @@ def _build_market_summary_query(
         symbols = ", ".join(str(s).strip() for s in list(story.get("symbols") or []) if str(s).strip())
         if sentence:
             story_lines.append(f"- {sentence} [{symbols}]" if symbols else f"- {sentence}")
-    stories_text = "\n".join(story_lines) if story_lines else "No market stories available."
+    stories_text = "\n".join(story_lines)
     asof_text = _zopedia_asof_text(asof_time_utc)
     enrichment_text = _zopedia_enrichment_context(list(enrichment_rows or []))
     enrichment_block = (
@@ -1697,11 +1692,10 @@ def _revise_zopedia_market_summary_payload(
         ),
     )
     if not isinstance(result, dict) or str(result.get("status") or "") != "completed":
-        error = str((result or {}).get("error") or "Zopedia quality pass did not complete.")
         return {
             "answer_markdown": "",
             "confidence": "low",
-            "limitations": [error],
+            "limitations": [],
             "_status": "failed_quality_review",
         }
     payload = result.get("payload") if isinstance(result.get("payload"), dict) else {}
@@ -1709,7 +1703,7 @@ def _revise_zopedia_market_summary_payload(
         return {
             "answer_markdown": "",
             "confidence": "low",
-            "limitations": ["Zopedia quality pass returned an empty summary."],
+            "limitations": [],
             "_status": "failed_quality_review",
         }
     return dict(payload)
@@ -1779,27 +1773,21 @@ def _run_zopedia_market_summary(
                 payload_result = {
                     "answer_markdown": "",
                     "confidence": "low",
-                    "limitations": [
-                        "Zopedia market summary failed the quality monitor after revision.",
-                        *list(current_review.get("issues") or [])[:5],
-                    ],
+                    "limitations": [],
                     "_status": "failed_quality_review",
                 }
         answer_markdown = str(payload_result.get("answer_markdown") or "")
         status = str(payload_result.get("_status") or result.get("status") or agent_result.get("status") or "unknown")
         limitations = list(payload_result.get("limitations") or [])
-        if result.get("error"):
-            limitations.append(str(result.get("error")))
         if _looks_like_failed_zopedia_synthesis_answer(answer_markdown):
             answer_markdown = ""
             status = "failed_synthesis"
-            limitations.append("Zopedia returned tool output instead of a final synthesis; hidden from display.")
         row = {
             "symbol": ZOPEDIA_MARKET_SUMMARY_KEY,
             "status": status,
             "answer_markdown": answer_markdown,
             "confidence": str(payload_result.get("confidence") or agent_result.get("confidence") or ""),
-            "limitations_json": json.dumps(limitations),
+            "limitations_json": "[]",
             "tool_calls_json": json.dumps([
                 {
                     "tool_name": str(tc.get("tool_name") or ""),
@@ -1818,7 +1806,7 @@ def _run_zopedia_market_summary(
             "status": "failed",
             "answer_markdown": "",
             "confidence": "",
-            "limitations_json": json.dumps([f"{type(exc).__name__}: {exc}"]),
+            "limitations_json": "[]",
             "tool_calls_json": "[]",
             "quality_review_json": "{}",
             "model": "",
@@ -1865,7 +1853,7 @@ def _build_zopedia_enrichment_frame(
                         "status": "failed",
                         "answer_markdown": "",
                         "confidence": "",
-                        "limitations_json": json.dumps([str(exc)]),
+                        "limitations_json": "[]",
                         "tool_calls_json": "[]",
                         "quality_review_json": "{}",
                         "failure_categories_json": json.dumps(

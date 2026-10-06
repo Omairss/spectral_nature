@@ -25,6 +25,7 @@ from services.attention_home_1d import (
     build_attention_home_1d,
     build_attention_research_bundle,
 )
+from services.runtime_policy import attention_candidate_policy
 from services.aql import (
     attach_attention_home_summary_audio,
     build_attention_agentic_summary,
@@ -1302,6 +1303,84 @@ def test_build_attention_event_candidates_1d_preserves_security_name_for_graph_l
 
     assert not candidates.empty
     assert candidates.loc[0, "security_name"] == "Acme Industrial Holdings Inc."
+
+
+def test_build_attention_event_candidates_1d_hotswaps_anomaly_scoring(monkeypatch):
+    def make_bars(returns: list[float], *, volumes: list[int]) -> pd.DataFrame:
+        closes = [100.0]
+        for move in returns:
+            closes.append(closes[-1] * (1.0 + float(move) / 100.0))
+        timestamps = pd.date_range("2026-01-05", periods=len(closes), freq="B")
+        return pd.DataFrame(
+            {
+                "timestamp": timestamps,
+                "close": closes,
+                "high": [value * 1.01 for value in closes],
+                "low": [value * 0.99 for value in closes],
+                "volume": volumes,
+            }
+        )
+
+    steady_returns = [0.05 if index % 2 else -0.05 for index in range(35)] + [3.0]
+    volatile_returns = [8.0 if index % 2 else -8.0 for index in range(35)] + [12.0]
+    daily_movers = pd.DataFrame(
+        [
+            {"symbol": "STDY", "security_name": "Steady Systems", "change_pct": 3.0, "close": 103.0, "prev_close": 100.0, "volume": 2_000_000, "dollar_volume": 206_000_000},
+            {"symbol": "VOLX", "security_name": "Volatile Exploration", "change_pct": 12.0, "close": 56.0, "prev_close": 50.0, "volume": 2_000_000, "dollar_volume": 112_000_000},
+        ]
+    )
+    bars_by_symbol = {
+        "STDY": make_bars(steady_returns, volumes=[1_000_000] * 36 + [2_000_000]),
+        "VOLX": make_bars(volatile_returns, volumes=[1_000_000] * 36 + [2_000_000]),
+    }
+    entity_master = pd.DataFrame(
+        [
+            {
+                "symbol": symbol,
+                "security_name": name,
+                "asset_class": "equity",
+                "security_type": "common_stock",
+                "sector": "Information Technology",
+                "industry": "Software",
+                "country": "US",
+                "commodity_role": "",
+                "rates_role": "",
+                "defensive_role": "",
+                "macro_role_tags": [],
+                "business_role_tags": ["software"],
+                "source_of_truth": "unit_test",
+                "override_reason": "unit-test",
+            }
+            for symbol, name in [("STDY", "Steady Systems"), ("VOLX", "Volatile Exploration")]
+        ]
+    )
+
+    monkeypatch.setenv("ATTENTION_CANDIDATE_SCORING_MODE", "legacy")
+    attention_candidate_policy.cache_clear()
+    legacy = build_attention_event_candidates_1d(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        entity_master=entity_master,
+        asof_time_utc=pd.Timestamp("2026-03-02T18:00:00Z"),
+    )
+    assert legacy.iloc[0]["symbol"] == "VOLX"
+    assert set(legacy["scoring_mode"]) == {"legacy"}
+
+    monkeypatch.setenv("ATTENTION_CANDIDATE_SCORING_MODE", "anomaly_v2")
+    attention_candidate_policy.cache_clear()
+    upgraded = build_attention_event_candidates_1d(
+        daily_movers,
+        bars_by_symbol=bars_by_symbol,
+        entity_master=entity_master,
+        asof_time_utc=pd.Timestamp("2026-03-02T18:00:00Z"),
+    )
+
+    assert upgraded.iloc[0]["symbol"] == "STDY"
+    assert set(upgraded["scoring_mode"]) == {"anomaly_v2"}
+    assert upgraded.set_index("symbol").loc["STDY", "anomaly_score"] > upgraded.set_index("symbol").loc["VOLX", "anomaly_score"]
+
+    monkeypatch.delenv("ATTENTION_CANDIDATE_SCORING_MODE", raising=False)
+    attention_candidate_policy.cache_clear()
 
 
 def test_build_attention_home_1d_includes_taxonomy_multi_horizon_trend_surface():

@@ -41,10 +41,9 @@ def _render_market_explorer_section(
     st.title(MARKET_EXPLORER_SECTION)
     if not _has_live_api(
         api,
-        f"{MARKET_EXPLORER_SECTION} requires a working live market connection or retained market snapshots.",
+        "Market data unavailable.",
         allow_pipeline=True,
     ):
-        st.info("Restore the live market connection or configure retained market snapshots to scan movers and load price history.")
         return
 
     market_view_options = ["Markets", "Broad Markets", "Commodity Section"]
@@ -76,7 +75,6 @@ def _render_market_explorer_section(
                 key="market_commodity_focus",
             )
         with lens_cols[1]:
-            st.caption("Commodity-market lens for the experiment view.")
             st.caption(commodity_focus_description(experiment_filter))
         experiment_symbols = commodity_focus_universe(experiment_filter)
         from views.experiments import _render_market_opportunity_experiments
@@ -104,9 +102,6 @@ def _render_market_explorer_section(
                 key="market_business_filter",
             )
         with lens_cols[1]:
-            st.caption(
-                "Custom business lens based on what the company primarily sells, not standard sector classifications."
-            )
             st.caption(business_focus_description(experiment_filter))
         experiment_symbols = business_focus_universe(experiment_filter)
         from views.experiments import _render_market_opportunity_experiments
@@ -135,9 +130,6 @@ def _render_market_explorer_section(
                 key="market_business_filter",
             )
         with lens_cols[1]:
-            st.caption(
-                "Custom business lens based on what the company primarily sells, not standard sector classifications."
-            )
             st.caption(business_focus_description(business_filter))
         business_symbols = extend_symbol_universe(
             business_focus_universe(business_filter),
@@ -245,16 +237,6 @@ def _render_market_explorer_section(
             title=f"Daily Movers - {business_filter} (Volume / Change %)",
         )
         st.plotly_chart(tree, use_container_width=True, key=f"market_explorer_daily_movers_{business_filter}_treemap")
-    else:
-        st.info("Daily mover volume was not available, so the treemap is hidden.")
-
-    scanned_detail_symbols: set[str] = set()
-    if not opportunity_feed.empty and "symbol" in opportunity_feed.columns:
-        scanned_detail_symbols.update(
-            str(symbol).upper().strip()
-            for symbol in opportunity_feed["symbol"].astype(str).tolist()
-            if str(symbol).strip()
-        )
 
     focus_ticker = str(st.session_state.get("market_selected_ticker") or "").upper().strip()
     if selected_market_ticker:
@@ -262,23 +244,9 @@ def _render_market_explorer_section(
     elif requested_market_ticker:
         focus_ticker = _set_workspace_ticker(requested_market_ticker) or focus_ticker
 
-    if requested_market_ticker and requested_market_ticker not in scanned_detail_symbols:
-        st.caption(
-            f"{requested_market_ticker} was opened from attention and pinned into the ticker handoff because it is outside the current {business_filter} scan lens."
-        )
-
     if focus_ticker:
-        handoff_cols = _responsive_columns([4.8, 1.4])
-        with handoff_cols[0]:
-            st.caption(
-                f"Stock focus: {focus_ticker}. Open Stock Investigator for technicals, fundamentals, and company context."
-            )
-        with handoff_cols[1]:
-            if st.button(
-                "Open Stock Investigator",
-                key=f"market_open_stock_investigator_{focus_ticker}",
-                use_container_width=True,
-            ):
-                _open_attention_target(STOCK_INVESTIGATOR_SECTION, {"ticker": focus_ticker})
-    else:
-        st.info("Select a ticker from a market table to continue in Stock Investigator.")
+        if st.button(
+            f"Open {focus_ticker} in Stock Investigator",
+            key=f"market_open_stock_investigator_{focus_ticker}",
+        ):
+            _open_attention_target(STOCK_INVESTIGATOR_SECTION, {"ticker": focus_ticker})

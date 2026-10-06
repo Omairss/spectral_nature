@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from io import BytesIO
+import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import time
@@ -47,6 +49,7 @@ class PipelineDataset:
     asof_time_utc: str
     ingested_at_utc: str
     row_count: int
+    partitioning: dict[str, Any] = field(default_factory=dict)
 
 
 SOURCE_JOB_MAP: dict[str, str] = {
@@ -153,12 +156,109 @@ SOURCE_DATASETS: dict[str, list[str]] = {
         "attention_feed",
     ],
     "trading_agent": [
+        "trading_agent_research_packages",
+        "trading_agent_ranked_opportunities",
         "trading_agent_runs",
         "trading_agent_candidates",
         "trading_agent_outcomes",
         "trading_agent_research_reviews",
     ],
 }
+
+
+_DATASET_NAMESPACE_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_-]{0,62}$")
+SYMBOL_HASH_PARTITION_STRATEGY = "symbol_hash_v1"
+SYMBOL_HASH_PARTITION_BUCKETS = 64
+
+
+def symbol_partition_bucket(value: object, *, bucket_count: int = SYMBOL_HASH_PARTITION_BUCKETS) -> str:
+    normalized = str(value or "").strip().upper()
+    if not normalized:
+        raise ValueError("Symbol partition value is required.")
+    bounded_count = max(1, min(int(bucket_count), 256))
+    bucket = int(hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:8], 16) % bounded_count
+    width = max(2, len(f"{bounded_count - 1:x}"))
+    return f"{bucket:0{width}x}"
+
+
+def normalize_dataset_namespace(value: object | None = None) -> str:
+    """Return the validated materialized-dataset namespace.
+
+    The empty namespace is the existing production storage contract. Explicit
+    names are isolated in blob storage, Postgres metadata, and local caches.
+    """
+    raw = os.getenv("PIPELINE_DATASET_NAMESPACE", "") if value is None else value
+    namespace = str(raw or "").strip().lower()
+    if namespace in {"", "prod", "production", "default"}:
+        return ""
+    if not _DATASET_NAMESPACE_PATTERN.fullmatch(namespace):
+        raise ValueError(
+            "PIPELINE_DATASET_NAMESPACE must start with a lowercase letter or digit "
+            "and contain only lowercase letters, digits, underscores, or hyphens."
+        )
+    return namespace
+
+
+def dataset_namespace() -> str:
+    return normalize_dataset_namespace()
+
+
+def dataset_blob_path(path: object, *, namespace: object | None = None) -> str:
+    logical_path = str(path or "").strip().lstrip("/")
+    if not logical_path:
+        raise ValueError("Dataset blob path is required.")
+    resolved_namespace = normalize_dataset_namespace(namespace)
+    if not resolved_namespace:
+        return logical_path
+    prefix = f"namespaces/{resolved_namespace}/"
+    if logical_path.startswith(prefix):
+        return logical_path
+    if logical_path.startswith("namespaces/"):
+        raise ValueError("Dataset blob path belongs to a different namespace.")
+    return f"{prefix}{logical_path}"
+
+
+def logical_dataset_blob_path(path: object, *, namespace: object | None = None) -> str:
+    physical_path = str(path or "").strip().lstrip("/")
+    resolved_namespace = normalize_dataset_namespace(namespace)
+    if not resolved_namespace:
+        if physical_path.startswith("namespaces/"):
+            raise ValueError("Namespaced blob path cannot be read as production data.")
+        return physical_path
+    prefix = f"namespaces/{resolved_namespace}/"
+    if not physical_path.startswith(prefix):
+        raise ValueError("Dataset blob path does not belong to the requested namespace.")
+    return physical_path[len(prefix) :]
+
+
+def dataset_storage_name(dataset_name: object, *, namespace: object | None = None) -> str:
+    canonical_name = str(dataset_name or "").strip()
+    if not canonical_name:
+        raise ValueError("Dataset name is required.")
+    resolved_namespace = normalize_dataset_namespace(namespace)
+    return f"{resolved_namespace}::{canonical_name}" if resolved_namespace else canonical_name
+
+
+def dataset_version_id_for_namespace(version_id: object, *, namespace: object | None = None) -> str:
+    canonical_id = str(version_id or "").strip()
+    if not canonical_id:
+        raise ValueError("Dataset version id is required.")
+    resolved_namespace = normalize_dataset_namespace(namespace)
+    if not resolved_namespace:
+        return canonical_id
+    prefix = f"{resolved_namespace}__"
+    return canonical_id if canonical_id.startswith(prefix) else f"{prefix}{canonical_id}"
+
+
+def pipeline_job_resource_name(job_name: object) -> str:
+    canonical_name = str(job_name or "").strip()
+    if not canonical_name:
+        raise ValueError("Pipeline job name is required.")
+    namespace = dataset_namespace()
+    if not namespace:
+        return canonical_name
+    suffix = "dev" if namespace == "development" else namespace
+    return f"{canonical_name}-{suffix}"
 
 def _deployment_env_paths() -> tuple[Path, ...]:
     override = (os.getenv("DEPLOYMENT_ENV_FILE") or "").strip()
@@ -201,12 +301,14 @@ def _load_deployment_env() -> dict[str, str]:
 
 
 def _pipeline_cache_dir(dataset_name: str, dataset_version_id: str) -> Path:
+    dataset_name = dataset_storage_name(dataset_name)
     safe_dataset = "".join(ch if ch.isalnum() or ch in {"-", "_"} else "_" for ch in str(dataset_name or "").strip())
     safe_version = "".join(ch if ch.isalnum() or ch in {"-", "_"} else "_" for ch in str(dataset_version_id or "").strip())
     return PIPELINE_CACHE_ROOT / safe_dataset / safe_version
 
 
 def _metadata_cache_path(dataset_name: str) -> Path:
+    dataset_name = dataset_storage_name(dataset_name)
     safe_dataset = "".join(ch if ch.isalnum() or ch in {"-", "_"} else "_" for ch in str(dataset_name or "").strip())
     return PIPELINE_CACHE_ROOT / "_metadata" / f"{safe_dataset}.json"
 
@@ -370,6 +472,7 @@ def _write_cached_metadata(dataset_name: str, dataset: PipelineDataset | None) -
             "asof_time_utc": dataset.asof_time_utc,
             "ingested_at_utc": dataset.ingested_at_utc,
             "row_count": dataset.row_count,
+            "partitioning": dataset.partitioning,
         },
     }
     path.write_text(json.dumps(payload), encoding="utf-8")
@@ -528,7 +631,8 @@ def pipeline_store_configured() -> bool:
     return bool(_storage_account_url())
 
 
-def _db_connect() -> Any | None:
+def open_database_connection() -> Any | None:
+    """Open the shared application Postgres connection, or return None."""
     conn_str = _postgres_connection_string()
     if not conn_str or psycopg is None:
         return None
@@ -536,6 +640,11 @@ def _db_connect() -> Any | None:
         return psycopg.connect(conn_str, connect_timeout=postgres_connect_timeout_seconds())
     except Exception:
         return None
+
+
+def _db_connect() -> Any | None:
+    """Compatibility alias for older persistence modules."""
+    return open_database_connection()
 
 
 def _blob_service_client() -> Any | None:
@@ -613,6 +722,52 @@ def _write_local_frame_cache(dataset: PipelineDataset, frame: pd.DataFrame) -> N
     _prune_pipeline_cache(keep_paths=(path,))
 
 
+def _local_partition_cache_path(dataset: PipelineDataset, partition_key: str) -> Path:
+    safe_key = re.sub(r"[^a-zA-Z0-9_.-]+", "_", str(partition_key or "").strip())
+    return _pipeline_cache_dir(dataset.dataset_name, dataset.dataset_version_id) / "partitions" / f"{safe_key}.pkl"
+
+
+def _read_local_partition_cache(dataset: PipelineDataset, partition_key: str) -> pd.DataFrame | None:
+    if not _pipeline_cache_enabled():
+        return None
+    path = _local_partition_cache_path(dataset, partition_key)
+    if not path.exists():
+        return None
+    try:
+        frame = pd.read_pickle(path)
+    except Exception:
+        return None
+    return frame if isinstance(frame, pd.DataFrame) else None
+
+
+def _write_local_partition_cache(dataset: PipelineDataset, partition_key: str, frame: pd.DataFrame) -> None:
+    if not _pipeline_cache_enabled():
+        return
+    path = _local_partition_cache_path(dataset, partition_key)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    frame.to_pickle(path)
+    if _path_size_bytes(path) > _pipeline_cache_max_bytes():
+        _delete_cache_path(path)
+        return
+    _prune_pipeline_cache(keep_paths=(path,))
+
+
+def _filter_frame(frame: pd.DataFrame, filters: dict[str, object]) -> pd.DataFrame:
+    out = frame.copy()
+    for column, expected in filters.items():
+        if column not in out.columns:
+            return pd.DataFrame(columns=out.columns)
+        series = out[column]
+        if column == "symbol":
+            mask = series.astype(str).str.upper().str.strip() == str(expected or "").upper().strip()
+        else:
+            mask = series == expected
+        out = out[mask].copy()
+        if out.empty:
+            break
+    return out.reset_index(drop=True)
+
+
 def _read_blob_json(blob_path: str) -> dict[str, Any] | None:
     client = _blob_service_client()
     if client is None:
@@ -640,6 +795,7 @@ def _coerce_manifest_dataset(manifest: dict[str, Any], *, fallback_path: str | N
         row_count = int(manifest.get("row_count") or 0)
     except Exception:
         row_count = 0
+    partitioning = manifest.get("partitioning")
     return PipelineDataset(
         dataset_name=dataset_name,
         dataset_version_id=dataset_version_id,
@@ -647,6 +803,7 @@ def _coerce_manifest_dataset(manifest: dict[str, Any], *, fallback_path: str | N
         asof_time_utc=asof_time_utc,
         ingested_at_utc=ingested_at_utc,
         row_count=row_count,
+        partitioning=dict(partitioning) if isinstance(partitioning, dict) else {},
     )
 
 
@@ -682,11 +839,13 @@ def _newer_dataset(left: PipelineDataset | None, right: PipelineDataset | None) 
         _dataset_time_epoch(right.asof_time_utc),
         right.dataset_version_id,
     )
+    if left.dataset_version_id == right.dataset_version_id and right.partitioning:
+        return right
     return right if right_key > left_key else left
 
 
 def _stable_latest_manifest_metadata(dataset_name: str) -> PipelineDataset | None:
-    latest_manifest = _read_blob_json(f"manifests/{dataset_name}/latest.json")
+    latest_manifest = _read_blob_json(dataset_blob_path(f"manifests/{dataset_name}/latest.json"))
     if latest_manifest:
         dataset = _coerce_manifest_dataset(latest_manifest)
         if dataset is not None:
@@ -704,7 +863,7 @@ def _latest_manifest_metadata(dataset_name: str) -> PipelineDataset | None:
         return None
     try:
         container = client.get_container_client(_storage_container())
-        prefix = f"manifests/{dataset_name}/"
+        prefix = dataset_blob_path(f"manifests/{dataset_name}/")
         blobs = list(container.list_blobs(name_starts_with=prefix))
     except Exception:
         return None
@@ -751,12 +910,12 @@ def latest_dataset_metadata(dataset_name: str) -> PipelineDataset | None:
                     ORDER BY ingested_at_utc DESC
                     LIMIT 1
                     """,
-                    (dataset_name,),
+                    (dataset_storage_name(dataset_name),),
                 )
                 row = cur.fetchone()
             if row:
                 db_dataset = PipelineDataset(
-                    dataset_name=str(row[0]),
+                    dataset_name=dataset_name,
                     dataset_version_id=str(row[1]),
                     blob_path=str(row[2]),
                     asof_time_utc=str(row[3]),
@@ -802,13 +961,13 @@ def dataset_metadata_asof(dataset_name: str, target_date: str) -> PipelineDatase
                 ORDER BY asof_time_utc DESC
                 LIMIT 1
                 """,
-                (dataset_name, target_end),
+                (dataset_storage_name(dataset_name), target_end),
             )
             row = cur.fetchone()
             if not row:
                 return None
             return PipelineDataset(
-                dataset_name=str(row[0]),
+                dataset_name=dataset_name,
                 dataset_version_id=str(row[1]),
                 blob_path=str(row[2]),
                 asof_time_utc=str(row[3]),
@@ -865,6 +1024,63 @@ def load_latest_dataset_frame(dataset_name: str) -> tuple[pd.DataFrame, Pipeline
     return frame, metadata
 
 
+def load_latest_dataset_frame_slice(
+    dataset_name: str,
+    *,
+    filters: dict[str, object],
+) -> tuple[pd.DataFrame, PipelineDataset | None]:
+    """Load a bounded exact-match slice without downloading a large global artifact.
+
+    Symbol-hash partitions are preferred. A cached full frame remains usable, and small
+    legacy artifacts may still be scanned. Large unpartitioned artifacts fail closed so
+    callers can use their existing on-demand source rather than pulling millions of rows.
+    """
+    normalized_filters = {str(key).strip(): value for key, value in filters.items() if str(key).strip()}
+    if not normalized_filters:
+        raise ValueError("At least one dataset slice filter is required.")
+    metadata = latest_dataset_metadata(dataset_name)
+    if metadata is None:
+        return pd.DataFrame(), None
+
+    cached = _read_local_frame_cache(metadata)
+    if cached is not None:
+        return _filter_frame(cached, normalized_filters), metadata
+
+    partitioning = dict(metadata.partitioning or {})
+    strategy = str(partitioning.get("strategy") or "").strip()
+    partition_column = str(partitioning.get("column") or "").strip()
+    paths = partitioning.get("paths")
+    if (
+        strategy == SYMBOL_HASH_PARTITION_STRATEGY
+        and partition_column == "symbol"
+        and isinstance(paths, dict)
+        and "symbol" in normalized_filters
+    ):
+        try:
+            bucket_count = int(partitioning.get("bucket_count") or SYMBOL_HASH_PARTITION_BUCKETS)
+            bucket = symbol_partition_bucket(normalized_filters["symbol"], bucket_count=bucket_count)
+        except (TypeError, ValueError):
+            return pd.DataFrame(), metadata
+        blob_path = str(paths.get(bucket) or "").strip()
+        if not blob_path:
+            return pd.DataFrame(), metadata
+        partition_frame = _read_local_partition_cache(metadata, bucket)
+        if partition_frame is None:
+            partition_frame = _read_blob_parquet(blob_path)
+            if not partition_frame.empty:
+                try:
+                    _write_local_partition_cache(metadata, bucket, partition_frame)
+                except Exception:
+                    pass
+        return _filter_frame(partition_frame, normalized_filters), metadata
+
+    max_full_scan_rows = max(int(os.getenv("PIPELINE_SLICE_FULL_SCAN_MAX_ROWS", "250000")), 0)
+    if int(metadata.row_count or 0) > max_full_scan_rows:
+        return pd.DataFrame(), metadata
+    frame, resolved_metadata = load_latest_dataset_frame(dataset_name)
+    return _filter_frame(frame, normalized_filters), resolved_metadata
+
+
 def recent_dataset_metadata(dataset_name: str, *, limit: int = 8) -> list[PipelineDataset]:
     dataset_key = str(dataset_name or "").strip()
     if not dataset_key:
@@ -885,14 +1101,14 @@ def recent_dataset_metadata(dataset_name: str, *, limit: int = 8) -> list[Pipeli
                 ORDER BY ingested_at_utc DESC
                 LIMIT %s
                 """,
-                (dataset_key, capped_limit),
+                (dataset_storage_name(dataset_key), capped_limit),
             )
             rows = cur.fetchall()
         out: list[PipelineDataset] = []
         for row in rows or []:
             out.append(
                 PipelineDataset(
-                    dataset_name=str(row[0]),
+                    dataset_name=dataset_key,
                     dataset_version_id=str(row[1]),
                     blob_path=str(row[2]),
                     asof_time_utc=str(row[3]),
@@ -900,7 +1116,10 @@ def recent_dataset_metadata(dataset_name: str, *, limit: int = 8) -> list[Pipeli
                     row_count=int(row[5] or 0),
                 )
             )
-        return out
+        if out:
+            return out
+        latest = latest_dataset_metadata(dataset_key)
+        return [latest] if latest is not None else []
     except Exception:
         latest = latest_dataset_metadata(dataset_key)
         return [latest] if latest is not None else []
@@ -968,7 +1187,8 @@ def _bootstrap_trading_agent_actions(conn: Any) -> None:
                 requested_by TEXT,
                 requested_email TEXT,
                 notes TEXT,
-                candidate_payload JSONB
+                candidate_payload JSONB,
+                dataset_namespace TEXT NOT NULL DEFAULT ''
             )
             """
         )
@@ -998,6 +1218,12 @@ def _bootstrap_trading_agent_actions(conn: Any) -> None:
         )
         cur.execute(
             """
+            ALTER TABLE trading_agent_actions
+            ADD COLUMN IF NOT EXISTS dataset_namespace TEXT NOT NULL DEFAULT ''
+            """
+        )
+        cur.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_trading_agent_actions_candidate_created
             ON trading_agent_actions (candidate_id, created_at_utc DESC)
             """
@@ -1013,7 +1239,7 @@ def _bootstrap_trading_agent_actions(conn: Any) -> None:
 
 def _normalize_trading_agent_action(action: object) -> tuple[str, str]:
     text = str(action or "").strip().lower()
-    if text in {"place", "placed", "place_requested", "request_place"}:
+    if text in {"approve", "approved", "place", "placed", "place_requested", "request_place"}:
         return "place_requested", "logged"
     if text in {"reject", "rejected"}:
         return "rejected", "logged"
@@ -1028,11 +1254,7 @@ def record_trading_agent_action(
     requested_email: str = "",
     notes: str = "",
 ) -> tuple[bool, str]:
-    """Persist an admin Trading Agent decision.
-
-    `place` is intentionally logged as a review action. This function does not
-    submit broker orders.
-    """
+    """Persist an admin Trading Agent decision."""
     if not isinstance(candidate, dict) or not str(candidate.get("candidate_id") or "").strip():
         return False, "Missing Trading Agent candidate id."
     action_value, status_value = _normalize_trading_agent_action(action)
@@ -1052,12 +1274,13 @@ def record_trading_agent_action(
                     action_id, candidate_id, trading_agent_run_id, run_id,
                     horizon_key, ticker, action, execution_mode, status,
                     broker, broker_order_id, order_payload, created_at_utc,
-                    requested_by, requested_email, notes, candidate_payload
+                    requested_by, requested_email, notes, candidate_payload,
+                    dataset_namespace
                 ) VALUES (
                     %s, %s, %s, %s,
                     %s, %s, %s, %s, %s,
                     %s, %s, %s::jsonb, %s,
-                    %s, %s, %s, %s::jsonb
+                    %s, %s, %s, %s::jsonb, %s
                 )
                 """,
                 (
@@ -1078,6 +1301,7 @@ def record_trading_agent_action(
                     str(requested_email or "").strip() or None,
                     str(notes or "").strip() or None,
                     json.dumps(candidate, ensure_ascii=True, sort_keys=True, default=str),
+                    dataset_namespace(),
                 ),
             )
         conn.commit()
@@ -1094,8 +1318,8 @@ def record_trading_agent_action(
             pass
 
     if action_value == "place_requested":
-        return True, "Place decision logged for review. No broker order was submitted."
-    return True, "Reject decision logged."
+        return True, "Candidate approved."
+    return True, "Candidate rejected."
 
 
 def trading_agent_actions_table(*, limit: int = 500) -> pd.DataFrame:
@@ -1113,10 +1337,11 @@ def trading_agent_actions_table(*, limit: int = 500) -> pd.DataFrame:
                        broker, broker_order_id, created_at_utc,
                        requested_by, requested_email, notes
                 FROM trading_agent_actions
+                WHERE dataset_namespace = %s
                 ORDER BY created_at_utc DESC
                 LIMIT %s
                 """,
-                (max(int(limit), 1),),
+                (dataset_namespace(), max(int(limit), 1)),
             )
             rows = cur.fetchall()
         if not rows:
@@ -1135,9 +1360,10 @@ def trading_agent_actions_table(*, limit: int = 500) -> pd.DataFrame:
 
 def start_source_refresh_job(source: str) -> tuple[bool, str]:
     source_key = str(source or "").strip().lower()
-    job_name = SOURCE_JOB_MAP.get(source_key)
-    if not job_name:
+    canonical_job_name = SOURCE_JOB_MAP.get(source_key)
+    if not canonical_job_name:
         return False, f"Unknown source: {source}"
+    job_name = pipeline_job_resource_name(canonical_job_name)
 
     resource_group = _resource_group()
     if not resource_group:
@@ -1179,6 +1405,22 @@ def start_source_refresh_job(source: str) -> tuple[bool, str]:
     return True, f"Triggered `{job_name}` execution `{execution}`"
 
 
+def start_container_app_job(job_name: str) -> tuple[bool, str]:
+    """Start one explicitly named Container Apps Job through managed identity.
+
+    The caller owns the allowlist/configuration decision. This boundary accepts
+    only a single Azure resource name and never forwards an execution template,
+    prompt, credential, or other caller-controlled environment value.
+    """
+    resolved_job_name = str(job_name or "").strip()
+    if not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?", resolved_job_name):
+        return False, "Invalid Container Apps Job resource name."
+    resource_group = _resource_group()
+    if not resource_group:
+        return False, "Missing resource group configuration."
+    return _start_source_refresh_job_via_arm(resolved_job_name, resource_group)
+
+
 def latest_job_status_table() -> pd.DataFrame:
     columns = [
         "job_name",
@@ -1209,7 +1451,7 @@ def latest_job_status_table() -> pd.DataFrame:
                             ORDER BY start_time_utc DESC
                             LIMIT 1
                             """,
-                            (job_name,),
+                            (dataset_storage_name(job_name),),
                         )
                         row = cur.fetchone()
                         if row:
@@ -1244,7 +1486,7 @@ def latest_job_status_table() -> pd.DataFrame:
                         ORDER BY start_time_utc DESC
                         LIMIT 1
                         """,
-                        (job_name,),
+                        (dataset_storage_name(job_name),),
                     )
                     row = cur.fetchone()
                     if not row:
@@ -1339,20 +1581,25 @@ def job_run_history(*, days: int = 7) -> pd.DataFrame:
         return pd.DataFrame(columns=columns)
     try:
         with conn.cursor() as cur:
+            namespace = dataset_namespace()
+            namespace_filter = "job_name LIKE %s" if namespace else "job_name NOT LIKE %s"
             cur.execute(
-                """
+                f"""
                 SELECT job_name, run_id, status, start_time_utc, end_time_utc,
                        error_summary, progress_stage
                 FROM job_runs
                 WHERE start_time_utc >= NOW() - INTERVAL '%s days'
+                  AND {namespace_filter}
                 ORDER BY start_time_utc DESC
                 """,
-                (days,),
+                (days, f"{namespace}::%" if namespace else "%::%"),
             )
             rows = cur.fetchall()
         if not rows:
             return pd.DataFrame(columns=columns)
         df = pd.DataFrame(rows, columns=columns)
+        if dataset_namespace():
+            df["job_name"] = df["job_name"].astype(str).str.split("::", n=1).str[-1]
         df["status"] = df["status"].apply(_normalize_job_status_label)
         for col in ["start_time_utc", "end_time_utc"]:
             df[col] = pd.to_datetime(df[col], errors="coerce", utc=True)
@@ -1376,19 +1623,24 @@ def dataset_version_history(*, days: int = 7) -> pd.DataFrame:
         return pd.DataFrame(columns=columns)
     try:
         with conn.cursor() as cur:
+            namespace = dataset_namespace()
+            namespace_filter = "dataset_name LIKE %s" if namespace else "dataset_name NOT LIKE %s"
             cur.execute(
-                """
+                f"""
                 SELECT dataset_name, row_count, ingested_at_utc, run_id
                 FROM dataset_versions
                 WHERE ingested_at_utc >= NOW() - INTERVAL '%s days'
+                  AND {namespace_filter}
                 ORDER BY ingested_at_utc DESC
                 """,
-                (days,),
+                (days, f"{namespace}::%" if namespace else "%::%"),
             )
             rows = cur.fetchall()
         if not rows:
             return pd.DataFrame(columns=columns)
         df = pd.DataFrame(rows, columns=columns)
+        if dataset_namespace():
+            df["dataset_name"] = df["dataset_name"].astype(str).str.split("::", n=1).str[-1]
         df["row_count"] = pd.to_numeric(df["row_count"], errors="coerce").fillna(0).astype(int)
         df["ingested_at_utc"] = pd.to_datetime(df["ingested_at_utc"], errors="coerce", utc=True)
         return df
@@ -1416,18 +1668,24 @@ def latest_dataset_status_table() -> pd.DataFrame:
         return pd.DataFrame(columns=columns)
     try:
         with conn.cursor() as cur:
+            namespace = dataset_namespace()
+            namespace_filter = "dataset_name LIKE %s" if namespace else "dataset_name NOT LIKE %s"
             cur.execute(
-                """
+                f"""
                 SELECT DISTINCT ON (dataset_name)
                     dataset_name, dataset_version_id, row_count, ingested_at_utc, run_id
                 FROM dataset_versions
+                WHERE {namespace_filter}
                 ORDER BY dataset_name, ingested_at_utc DESC NULLS LAST
-                """
+                """,
+                (f"{namespace}::%" if namespace else "%::%",),
             )
             rows = cur.fetchall()
         if not rows:
             return pd.DataFrame(columns=columns)
         df = pd.DataFrame(rows, columns=columns[:-1])
+        if dataset_namespace():
+            df["dataset_name"] = df["dataset_name"].astype(str).str.split("::", n=1).str[-1]
         df["row_count"] = pd.to_numeric(df["row_count"], errors="coerce").fillna(0).astype(int)
         df["ingested_at_utc"] = pd.to_datetime(df["ingested_at_utc"], errors="coerce", utc=True)
         now = pd.Timestamp.now(tz="UTC")
@@ -1472,20 +1730,22 @@ def _latest_db_dataset_metadata_map(dataset_names: list[str]) -> dict[str, Pipel
                 WHERE dataset_name = ANY(%s) AND status = 'ready'
                 ORDER BY dataset_name, ingested_at_utc DESC NULLS LAST
                 """,
-                (names,),
+                ([dataset_storage_name(name) for name in names],),
             )
             rows = cur.fetchall()
         out: dict[str, PipelineDataset] = {}
         for row in rows or []:
+            stored_name = str(row[0])
+            canonical_name = stored_name.split("::", 1)[-1] if dataset_namespace() else stored_name
             dataset = PipelineDataset(
-                dataset_name=str(row[0]),
+                dataset_name=canonical_name,
                 dataset_version_id=str(row[1]),
                 blob_path=str(row[2]),
                 asof_time_utc=str(row[3]),
                 ingested_at_utc=str(row[4]),
                 row_count=int(row[5] or 0),
             )
-            out[dataset.dataset_name] = dataset
+            out[canonical_name] = dataset
         return out
     except Exception:
         return {}
@@ -1753,7 +2013,9 @@ def record_connector_call(
     normalized_status = _clean_text(status).lower() or "unknown"
     timestamp = started_at_utc or datetime.now(timezone.utc)
     safe_error_summary = _clean_text(error_summary)[:800]
-    safe_metadata = json.dumps(dict(metadata or {}), ensure_ascii=False, sort_keys=True, default=str)
+    metadata_dict = dict(metadata or {})
+    safe_metadata = json.dumps(metadata_dict, ensure_ascii=False, sort_keys=True, default=str)
+    linked_run_id = _clean_text(metadata_dict.get("run_id")) or _get_env("PIPELINE_RUN_ID")
     conn = _db_connect()
     if conn is None:
         return False
@@ -1779,7 +2041,7 @@ def record_connector_call(
                     _clean_text(error_type)[:120],
                     safe_error_summary,
                     _get_env("PIPELINE_JOB_NAME") or _get_env("APP_TRACK"),
-                    _get_env("PIPELINE_RUN_ID"),
+                    linked_run_id,
                     safe_metadata,
                 ),
             )
@@ -1953,7 +2215,13 @@ def record_model_call(
     if not _model_call_telemetry_enabled():
         return False
     timestamp = started_at_utc or datetime.now(timezone.utc)
-    safe_metadata = json.dumps(dict(metadata or {}), ensure_ascii=False, sort_keys=True, default=str)
+    metadata_payload = dict(metadata or {})
+    event_run_id = (
+        _clean_text(metadata_payload.get("run_id"))
+        or _clean_text(metadata_payload.get("parent_run_id"))
+        or _get_env("PIPELINE_RUN_ID")
+    )
+    safe_metadata = json.dumps(metadata_payload, ensure_ascii=False, sort_keys=True, default=str)
     conn = _db_connect()
     if conn is None:
         return False
@@ -1993,7 +2261,7 @@ def record_model_call(
                     _clean_text(prompt_hash)[:96],
                     _clean_text(schema_hash)[:96],
                     _get_env("PIPELINE_JOB_NAME") or _get_env("APP_TRACK"),
-                    _get_env("PIPELINE_RUN_ID"),
+                    event_run_id[:180],
                     safe_metadata,
                 ),
             )

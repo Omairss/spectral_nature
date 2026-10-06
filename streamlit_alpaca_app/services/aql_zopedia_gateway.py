@@ -122,25 +122,28 @@ def _record_gateway_call(
         "client_surface": zopedia_surface_from_client(llm_client),
         "timeout_seconds": _client_config_value(llm_client, "timeout_seconds"),
     }
-    pipeline_store.record_model_call(
-        model_call_id=model_call_id,
-        surface=surface,
-        purpose=purpose,
-        call_type=call_type,
-        provider=_client_provider(llm_client),
-        requested_model=requested_model,
-        resolved_model=resolved_model,
-        provider_reported_model="",
-        status=status,
-        started_at_utc=started_at_utc,
-        duration_ms=duration_ms,
-        error_type=type(error).__name__ if error is not None else "",
-        error_summary=str(error) if error is not None else "",
-        schema_name=schema_name,
-        prompt_hash=prompt_hash,
-        schema_hash=schema_hash,
-        metadata=safe_metadata,
-    )
+    try:
+        pipeline_store.record_model_call(
+            model_call_id=model_call_id,
+            surface=surface,
+            purpose=purpose,
+            call_type=call_type,
+            provider=_client_provider(llm_client),
+            requested_model=requested_model,
+            resolved_model=resolved_model,
+            provider_reported_model="",
+            status=status,
+            started_at_utc=started_at_utc,
+            duration_ms=duration_ms,
+            error_type=type(error).__name__ if error is not None else "",
+            error_summary=str(error) if error is not None else "",
+            schema_name=schema_name,
+            prompt_hash=prompt_hash,
+            schema_hash=schema_hash,
+            metadata=safe_metadata,
+        )
+    except Exception:
+        return
 
 
 def generate_json_via_aql_zopedia_gateway(

@@ -224,6 +224,7 @@ def issue_user_tokens_from_password(
     if not bool(login_result.get("ok")):
         return {
             "ok": False,
+            "unavailable": bool(login_result.get("unavailable")),
             "message": str(login_result.get("message") or "Invalid email or password."),
         }
 

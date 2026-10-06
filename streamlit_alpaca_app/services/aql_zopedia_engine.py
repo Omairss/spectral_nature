@@ -132,6 +132,7 @@ def load_aql_zopedia_llm_client(
 def run_aql_zopedia_agent(
     *,
     query: str,
+    run_id: str | None = None,
     task: str = "agent_answer",
     surface: str = "zopedia.chat",
     force_refresh: bool = False,
@@ -165,6 +166,7 @@ def run_aql_zopedia_agent(
 
     result = _run_zopedia_agent_loop(
         query=query,
+        run_id=run_id,
         task=task,
         surface=surface,
         force_refresh=force_refresh,
@@ -458,113 +460,6 @@ def resolve_aql_zopedia_followup_query(
     from .zopedia_agent import resolve_conversation_followup_query
 
     return resolve_conversation_followup_query(query, conversation_history)
-
-
-def repair_aql_zopedia_analysis_arguments(
-    *,
-    original_args: dict[str, Any],
-    failure_payload: dict[str, Any],
-    dataset_capabilities: dict[str, Any] | None = None,
-    analysis_input_profile: dict[str, Any] | None = None,
-    repair_attempt: int = 1,
-    llm_client: ZopediaLLMClient | None = None,
-) -> dict[str, Any] | None:
-    """Repair malformed analysis tool arguments through the shared engine.
-
-    This keeps LLM-native code repair out of feature/tool modules while giving
-    `analysis.run_python` a small bounded chance to recover from generated
-    syntax or input-contract errors before the product answer is synthesized.
-    """
-    resolved_llm = llm_client or load_aql_zopedia_llm_client(surface="analysis.run_python.repair")
-    if resolved_llm is None:
-        return None
-    schema = {
-        "type": "object",
-        "properties": {
-            "objective": {"type": "string"},
-            "code": {"type": "string"},
-            "dataset_refs": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string"},
-                        "alias": {"type": "string"},
-                        "params": {"type": "object"},
-                    },
-                    "required": ["name", "alias", "params"],
-                    "additionalProperties": False,
-                },
-            },
-            "inline_datasets": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string"},
-                        "rows": {"type": "array", "items": {"type": "object"}},
-                    },
-                    "required": ["name", "rows"],
-                    "additionalProperties": False,
-                },
-            },
-            "notes": {"type": "string"},
-        },
-        "required": ["objective", "code", "dataset_refs", "inline_datasets", "notes"],
-        "additionalProperties": False,
-    }
-    system_prompt = (
-        "Repair a failed bounded Python analysis tool call. Return only the corrected tool arguments. "
-        "Do not answer the user's research question. "
-        "The code must be valid multiline Python for ast.parse(..., mode='exec'). "
-        "Inputs are already fetched before execution. Use pandas DataFrames from `datasets['alias']` "
-        "or variables named by each alias. Do not use load_dataset, get_dataset, context, globals, "
-        "open, file writes, network, subprocess, statsmodels, or unapproved imports. "
-        "Do not assume columns that are not present in the input profile. "
-        "When joining date or timestamp columns, normalize both sides to the same timezone-naive "
-        "date or datetime dtype before merging. "
-        "Use add_metric, add_table, add_chart, or result to expose outputs. "
-        "Every dataset_ref must be an object with name, alias, and params. "
-        "Use explicit aliases when the same dataset is requested more than once. "
-        "If a prior repair failed, fix that exact new failure rather than repeating the same shape."
-    )
-    user_prompt = json.dumps(
-        {
-            "original_arguments": original_args,
-            "failure": {
-                "status": failure_payload.get("status"),
-                "error": failure_payload.get("error"),
-                "metadata": failure_payload.get("metadata"),
-                "llm_context_text": failure_payload.get("llm_context_text"),
-                "input_refs": failure_payload.get("input_refs"),
-            },
-            "available_dataset_capabilities": dataset_capabilities or {},
-            "actual_input_profile": analysis_input_profile or {},
-            "repair_attempt": repair_attempt,
-        },
-        ensure_ascii=True,
-        sort_keys=True,
-        default=str,
-    )
-    try:
-        result = generate_json_via_aql_zopedia_gateway(
-            llm_client=resolved_llm,
-            surface="analysis.run_python.repair",
-            purpose="analysis_argument_repair",
-            call_type="schema_repair",
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-            schema_name="zopedia_analysis_repair",
-            schema=schema,
-            metadata={
-                "engine": "aql_zopedia",
-                "tool": "analysis.run_python",
-                "repair_attempt": repair_attempt,
-            },
-        )
-    except Exception:
-        return None
-    return result if isinstance(result, dict) else None
 
 
 def run_aql_zopedia_page_summary_agent(

@@ -213,13 +213,45 @@ def test_get_auth_email_delivery_status_reports_missing_public_base_url(monkeypa
     assert "APP_PUBLIC_BASE_URL" in status["message"]
 
 
-def test_browser_session_cookie_is_enabled_by_default(monkeypatch):
+def test_auth_initialization_does_not_resolve_email_secrets_by_default(monkeypatch):
+    monkeypatch.setattr(
+        auth_service,
+        "get_auth_email_delivery_status",
+        lambda **_kwargs: (_ for _ in ()).throw(AssertionError("email secrets should not be resolved")),
+    )
+    monkeypatch.setattr(auth_service.auth_store, "auth_store_configured", lambda: False)
+
+    status = auth_service.initialize_auth_system()
+
+    assert status["available"] is False
+    assert status["email_delivery"] is False
+    assert status["email_delivery_status"] == {}
+
+
+def test_auth_initialization_reports_configured_but_unreachable_store_as_unavailable(monkeypatch):
+    monkeypatch.setattr(auth_service.auth_store, "auth_store_configured", lambda: True)
+
+    def unavailable(*, require_available: bool = False):
+        assert require_available is True
+        raise auth_service.auth_store.AuthStoreUnavailable("connection limit reached")
+
+    monkeypatch.setattr(auth_service.auth_store, "ensure_auth_schema", unavailable)
+
+    status = auth_service.initialize_auth_system()
+
+    assert status["available"] is False
+    assert status["ready"] is False
+    assert status["has_users"] is False
+    assert status["bootstrapped"] is False
+
+
+def test_browser_session_cookie_is_disabled_by_default(monkeypatch):
     monkeypatch.delenv("UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE", raising=False)
     monkeypatch.delenv("UI_DISABLE_BROWSER_SESSION_COOKIE", raising=False)
 
-    assert auth_service.allow_insecure_browser_session_cookie() is True
-    assert auth_service.browser_session_persistence_mode() == "browser_cookie"
-    assert auth_service.browser_session_persistence_message() == ""
+    assert auth_service.allow_insecure_browser_session_cookie() is False
+    assert auth_service.browser_session_persistence_mode() == "session_only"
+    assert "disabled" in auth_service.browser_session_persistence_message().lower()
 
 
 def test_browser_session_cookie_disabled_via_opt_out_flag(monkeypatch):
@@ -324,6 +356,24 @@ def test_authenticate_user_rejects_active_user_without_membership(monkeypatch):
 
     assert result == {"ok": False, "message": "Account is missing an active portfolio membership."}
     assert events[-1]["detail"] == {"reason": "missing_active_membership"}
+
+
+def test_authenticate_user_distinguishes_store_outage_from_bad_credentials(monkeypatch):
+    def unavailable(_email: str):
+        raise auth_service.auth_store.AuthStoreUnavailable("database connection limit reached")
+
+    monkeypatch.setattr(auth_service.auth_store, "get_user_for_login", unavailable)
+
+    result = auth_service.authenticate_user(
+        email="investor@example.com",
+        password="StrongEnough123",
+    )
+
+    assert result == {
+        "ok": False,
+        "unavailable": True,
+        "message": "Sign-in is unavailable.",
+    }
 
 
 def test_issue_invite_returns_specific_delivery_message_when_sender_secret_missing(monkeypatch):

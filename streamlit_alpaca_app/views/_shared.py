@@ -158,25 +158,6 @@ def _timed(step: str, **fields: object):
         _log_event(f"END {step}", elapsed_s=f"{elapsed:.3f}")
 
 
-def _render_page_intro(kicker: str, title: str, body: str) -> None:
-    kicker_text = str(kicker or "").strip()
-    title_text = str(title or "").strip()
-    body_text = str(body or "").strip()
-    kicker_markup = f"<div class='sn-page-kicker'>{html.escape(kicker_text)}</div>" if kicker_text else ""
-    title_markup = f"<div class='sn-page-title'>{html.escape(title_text)}</div>" if title_text else ""
-    body_markup = f"<div class='sn-page-text'>{html.escape(body_text)}</div>" if body_text else ""
-    st.markdown(
-        (
-            "<div class='sn-page-intro'>"
-            f"{kicker_markup}"
-            f"{title_markup}"
-            f"{body_markup}"
-            "</div>"
-        ),
-        unsafe_allow_html=True,
-    )
-
-
 def _render_help_popover(title: str, body: str, label: str = "How to read") -> None:
     with st.popover(label, help=title, use_container_width=True):
         st.markdown(body)
@@ -363,7 +344,6 @@ def _render_selectable_ticker_table(
         return None
 
     table = df[columns].copy()
-    st.caption("Click a row to open the ticker details below.")
     event = st.dataframe(
         table,
         use_container_width=True,
@@ -787,8 +767,7 @@ def _render_overview_fundamentals(
         return
     try:
         fundamentals = dashboard_loaders._load_quarterly_fundamentals_cached(normalized_ticker, force_refresh=force_data_refresh)
-    except Exception as exc:
-        st.caption(f"Fundamentals unavailable: {exc}")
+    except Exception:
         return
     scoped = _filter_fundamentals_asof(fundamentals, asof_time_utc=asof_time_utc)
     has_any = any(isinstance((scoped or {}).get(key), pd.DataFrame) and not (scoped or {}).get(key).empty for key in ["income", "balance", "cashflow"])
@@ -847,34 +826,19 @@ def _render_page_agentic_summary_panel(
     status = str(summary.get("status") or "").strip()
     headline = str(summary.get("headline") or "").strip()
     summary_markdown = str(summary.get("summary_markdown") or "").strip()
-    data_gaps = [
-        str(item).strip()
-        for item in to_list(summary.get("data_gaps"))
-        if str(item).strip()
-    ]
-    if status != "ok" and not data_gaps:
+    if status != "ok" or not summary_markdown:
         return summary
     with st.container(border=True):
-        st.subheader("Zopedia Summary")
-        if status == "ok" and summary_markdown:
-            if headline:
-                st.markdown(f"**{headline}**")
-            st.markdown(summary_markdown)
-            watch_items = [
-                str(item).strip()
-                for item in to_list(summary.get("watch_items"))
-                if str(item).strip()
-            ]
-            if watch_items:
-                st.markdown("**Worth Looking Into**")
-                st.markdown("\n".join(f"- {item}" for item in watch_items[:5]))
-            if data_gaps:
-                with st.expander("Data gaps", expanded=False):
-                    st.markdown("\n".join(f"- {item}" for item in data_gaps[:5]))
-            confidence = str(summary.get("confidence") or "").strip()
-            if confidence:
-                st.caption(f"Confidence: {confidence}")
-        else:
-            st.markdown("**Worth Looking Into**")
-            st.markdown("\n".join(f"- {item}" for item in data_gaps[:5]))
+        st.subheader("Research Summary")
+        if headline:
+            st.markdown(f"**{headline}**")
+        st.markdown(summary_markdown)
+        watch_items = [
+            str(item).strip()
+            for item in to_list(summary.get("watch_items"))
+            if str(item).strip()
+        ]
+        if watch_items:
+            st.markdown("**Next Checks**")
+            st.markdown("\n".join(f"- {item}" for item in watch_items[:5]))
     return summary

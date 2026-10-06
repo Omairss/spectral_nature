@@ -11,17 +11,14 @@ from typing import Any
 import pandas as pd
 
 from ..llm import (
+    EmbeddingClient,
+    JSONLLMClient,
     NARRATIVE_STYLE_RULE,
-    AzureOpenAIChatJSONClient,
-    AzureOpenAIEmbeddingClient,
-    OpenAIChatJSONClient,
-    OpenAIEmbeddingClient,
     get_prompt,
     register_narrative_prompt,
 )
 
-LLMClient = OpenAIChatJSONClient | AzureOpenAIChatJSONClient
-EmbeddingClient = OpenAIEmbeddingClient | AzureOpenAIEmbeddingClient
+LLMClient = JSONLLMClient
 
 DEFAULT_PROMPT_VERSION = (os.getenv("ATTENTION_PROMPT_VERSION") or "attention-bottom-up-v1").strip() or "attention-bottom-up-v1"
 DEFAULT_WRITER_MODEL = "planner"

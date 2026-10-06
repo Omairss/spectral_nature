@@ -37,7 +37,6 @@ GENERATE_JSON_ALLOWED_EXACT = {
     "services/entity_extraction.py",
     "services/entity_taxonomy.py",
     "services/knowledge_graph.py",
-    "services/zopedia_agent.py",
     "services/zopedia_research.py",
     "services/page_agentic_summary.py",
     "services/saa/zopedia.py",

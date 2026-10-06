@@ -39,8 +39,8 @@ from services.attention_materialized import (
 )
 from services import attention_surface as attention_surface_module
 from services.company import build_attention_news_narrative, summarize_recent_news
-from services.config import AppConfig, alpaca_secret_name_settings, load_config
-from services.data_cache import cache_data_root, cache_policy_path, dataset_scope
+from services.config import AppConfig, load_config
+from services.data_cache import dataset_scope
 from services.elevenlabs_tts import (
     ElevenLabsTTSAPIError,
     load_elevenlabs_tts_config,
@@ -52,7 +52,6 @@ from services.pipeline_store import (
     job_run_history,
     latest_job_status_table,
     load_latest_dataset_frame,
-    pipeline_store_configured,
     record_trading_agent_action,
     start_source_refresh_job,
     trading_agent_actions_table,
@@ -171,7 +170,6 @@ from views._shared import (
     _render_help_popover,
     _render_overview_fundamentals,
     _render_page_agentic_summary_panel,
-    _render_page_intro,
     _render_section_back_button,
     _render_selectable_ticker_table,
     _render_tracked_activity_link,
@@ -1077,19 +1075,13 @@ def _render_sidebar_brand_panel() -> None:
     )
 
 
-def _render_mobile_brand_header(caption: str = "") -> None:
-    caption_markup = (
-        f"<div class='sn-mobile-caption'>{html.escape(str(caption).strip())}</div>"
-        if str(caption or "").strip()
-        else ""
-    )
+def _render_mobile_brand_header() -> None:
     st.markdown(
         (
             "<div class='sn-mobile-brand-row'>"
             f"<div class='sn-mobile-brand'>{html.escape(APP_BRAND_NAME)}</div>"
             f"<div class='sn-mobile-kicker'>by {html.escape(APP_BRAND_KICKER)}</div>"
             "</div>"
-            f"{caption_markup}"
         ),
         unsafe_allow_html=True,
     )
@@ -1115,12 +1107,12 @@ def _render_mobile_home_replay_date(key: str = "homepage_replay_date") -> None:
 
 def _render_mobile_auth_shell() -> None:
     with st.container(border=True, key="mobile_shell_auth"):
-        _render_mobile_brand_header("Secure access")
+        _render_mobile_brand_header()
 
 
 def _render_mobile_public_home_shell() -> None:
     with st.container(border=True, key="mobile_shell_public_home"):
-        _render_mobile_brand_header("Market narrative home")
+        _render_mobile_brand_header()
         _render_mobile_home_replay_date()
         if st.button("Sign in", type="primary", width="stretch", key="mobile_public_signin"):
             st.session_state["_show_login_form"] = True
@@ -1131,8 +1123,6 @@ def _render_mobile_workspace_shell(
     *,
     section_options: list[str],
     current_section: str,
-    cache_disabled: bool,
-    force_refresh_default: bool,
     current_user: auth_service.UserContext | None,
 ) -> tuple[str, object, object, object]:
     current = _normalize_workspace_section(current_section) or (section_options[0] if section_options else "Home")
@@ -1146,7 +1136,7 @@ def _render_mobile_workspace_shell(
         st.session_state["_mobile_workspace_synced_section"] = current
 
     with st.container(border=True, key="mobile_shell_workspace"):
-        _render_mobile_brand_header("Workspace")
+        _render_mobile_brand_header()
         selected = st.selectbox(
             "Navigate",
             section_options,
@@ -1162,39 +1152,25 @@ def _render_mobile_workspace_shell(
         if current == "Home":
             _render_mobile_home_replay_date()
 
-        with st.expander("Workspace Status", expanded=False):
-            if pipeline_store_configured():
-                if _presentation_layer_only():
-                    st.caption("Data mode: Curated presentation snapshots")
-                else:
-                    st.caption("Data mode: Curated metadata + parquet snapshots")
+        if st.button("Logout", key="mobile_dashboard_logout", width="stretch"):
+            if st.session_state.get("_ui_auth_mode") == "database":
+                auth_service.record_access_event(
+                    event_type="logout",
+                    event_category="usage",
+                    user=current_user,
+                    session_token=str(st.session_state.get("_ui_auth_session_id") or ""),
+                    ip_address=_request_ip_address(),
+                    user_agent=_request_user_agent(),
+                )
+                auth_service.logout_session(str(st.session_state.get("_ui_auth_session_id") or ""))
             else:
-                st.caption("Data mode: Snapshot store unavailable")
-            st.caption(f"Cache: {'disabled' if cache_disabled else 'enabled'}")
-            st.caption(
-                f"Inline force refresh: {'disabled' if _presentation_layer_only() else ('on' if force_refresh_default else 'off')}"
-            )
-            st.caption(f"CSV cache: {cache_data_root()}")
-            st.caption(f"Cache policy: {cache_policy_path()}")
-            if st.button("Logout", key="mobile_dashboard_logout", width="stretch"):
-                if st.session_state.get("_ui_auth_mode") == "database":
-                    auth_service.record_access_event(
-                        event_type="logout",
-                        event_category="usage",
-                        user=current_user,
-                        session_token=str(st.session_state.get("_ui_auth_session_id") or ""),
-                        ip_address=_request_ip_address(),
-                        user_agent=_request_user_agent(),
-                    )
-                    auth_service.logout_session(str(st.session_state.get("_ui_auth_session_id") or ""))
-                else:
-                    _invalidate_auth_session(st.session_state.get("_ui_auth_session_id"))
-                _clear_local_auth_state()
-                st.session_state["_ui_clear_auth_cookie"] = True
-                st.rerun()
-            sidebar_connection = st.empty()
-            sidebar_status = st.empty()
-            sidebar_buying_power = st.empty()
+                _invalidate_auth_session(st.session_state.get("_ui_auth_session_id"))
+            _clear_local_auth_state()
+            st.session_state["_ui_clear_auth_cookie"] = True
+            st.rerun()
+        sidebar_connection = st.empty()
+        sidebar_status = st.empty()
+        sidebar_buying_power = st.empty()
 
     return current, sidebar_connection, sidebar_status, sidebar_buying_power
 
@@ -1214,12 +1190,8 @@ def _alpaca_cache_scope(cfg: AppConfig) -> str:
     return f"{trading_scope}__{data_scope}__{account_scope}"
 
 
-def _render_connection_issue(summary: str, *, details: str | None = None, setup_code: str | None = None) -> None:
+def _render_connection_issue(summary: str) -> None:
     st.error(summary)
-    if details:
-        st.caption(details)
-    if setup_code:
-        st.code(setup_code, language="bash")
 
 
 def _auth_enabled() -> bool:
@@ -1330,6 +1302,50 @@ def _consume_cross_page_inspector_query_params() -> None:
         st.session_state["_pending_workspace_section"] = STOCK_INVESTIGATOR_SECTION
         _set_workspace_ticker(inspect_ticker)
     _clear_query_params("inspect_ticker", "inspect_view")
+
+
+def _consume_robinhood_oauth_callback() -> None:
+    if _query_param_value("robinhood_oauth").lower() != "callback":
+        return
+    user = _current_user_context()
+    notice: dict[str, str]
+    if user is None or not user.is_admin:
+        notice = {"status": "error", "message": "An admin session is required to connect Robinhood."}
+    else:
+        provider_error = _query_param_value("error")
+        if provider_error:
+            description = _query_param_value("error_description")
+            notice = {
+                "status": "error",
+                "message": description or f"Robinhood authorization failed: {provider_error}",
+            }
+        else:
+            try:
+                from services import robinhood_mcp
+
+                result = robinhood_mcp.complete_authorization(
+                    user_id=user.user_id,
+                    code=_query_param_value("code"),
+                    state=_query_param_value("state"),
+                    issuer=_query_param_value("iss"),
+                )
+                notice = {
+                    "status": "success",
+                    "message": f"Robinhood connected with {int(result.get('tool_count') or 0)} available tools.",
+                }
+            except Exception as exc:
+                notice = {"status": "error", "message": str(exc)}
+    st.session_state["_robinhood_oauth_notice"] = notice
+    st.session_state["_pending_workspace_section"] = TRADING_AGENT_SECTION
+    _clear_query_params(
+        "robinhood_oauth",
+        "code",
+        "state",
+        "iss",
+        "error",
+        "error_description",
+    )
+    st.rerun()
 
 
 def _env_flag(name: str, *, default: bool = False) -> bool:
@@ -1448,15 +1464,6 @@ def _auth_cookie_value() -> str:
 
 def _browser_session_cookie_enabled() -> bool:
     return auth_service.allow_insecure_browser_session_cookie()
-
-
-def _render_auth_persistence_notice() -> None:
-    app_track = (os.getenv("APP_TRACK") or "").strip().lower()
-    if app_track in {"prod", "production"}:
-        return
-    if auth_service.browser_session_persistence_mode() != "session_only":
-        return
-    st.caption(auth_service.browser_session_persistence_message())
 
 
 def _render_auth_cookie_sync(
@@ -1629,7 +1636,6 @@ def _restore_database_login_from_cookie() -> bool:
 
 
 def _render_login_gate_sidebar() -> None:
-    app_track = (os.getenv("APP_TRACK") or "local").strip().lower()
     if _mobile_layout_active():
         _render_mobile_auth_shell()
         return
@@ -1642,26 +1648,10 @@ def _render_legacy_login_gate() -> None:
     _render_login_gate_sidebar()
     username_expected = _auth_username()
     password_expected = _auth_password()
-    _render_page_intro(
-        "Secure Access",
-        "Welcome back",
-        "Private client access to the Spectral Nature workspace for market intelligence, portfolio context, and daily research.",
-    )
-    _render_auth_persistence_notice()
+    st.title("Sign in")
 
     if not username_expected or not password_expected:
-        st.error("Dashboard authentication is enabled, but legacy login credentials are not configured.")
-        st.code(
-            "export DASHBOARD_AUTH_ENABLED=true\n"
-            "export DASHBOARD_AUTH_USERNAME='admin'\n"
-            "export DASHBOARD_AUTH_PASSWORD='change-me'\n"
-            "# or switch to database auth:\n"
-            "# export DASHBOARD_AUTH_MODE='database'\n"
-            "# export POSTGRES_CONNECTION_STRING='postgresql://...'\n"
-            "# export DASHBOARD_AUTH_BOOTSTRAP_ADMIN_EMAIL='admin@example.com'\n"
-            "# export DASHBOARD_AUTH_BOOTSTRAP_ADMIN_PASSWORD='ChangeMe1234'\n",
-            language="bash",
-        )
+        st.error("Sign-in is unavailable.")
         st.stop()
 
     with st.form("dashboard_login_legacy", clear_on_submit=False):
@@ -1687,33 +1677,14 @@ def _render_legacy_login_gate() -> None:
 def _render_database_login_gate() -> None:
     _render_login_gate_sidebar()
     auth_state = auth_service.initialize_auth_system()
-    _render_page_intro(
-        "Secure Access",
-        "Welcome back",
-        "Private client access to the Spectral Nature workspace for market intelligence, portfolio context, and daily research.",
-    )
-    _render_auth_persistence_notice()
+    st.title("Sign in")
 
     if not auth_state.get("available"):
-        st.error("Database-backed authentication is enabled, but the auth store is unavailable.")
-        st.code(
-            "export DASHBOARD_AUTH_MODE='database'\n"
-            "export POSTGRES_CONNECTION_STRING='postgresql://...'\n"
-            "./scripts/run_ui_local.sh",
-            language="bash",
-        )
+        st.error("Sign-in is unavailable.")
         st.stop()
 
     if not auth_state.get("has_users"):
-        st.error("Database auth is configured, but no users are available yet.")
-        st.code(
-            "export DASHBOARD_AUTH_MODE='database'\n"
-            "export POSTGRES_CONNECTION_STRING='postgresql://...'\n"
-            "export DASHBOARD_AUTH_BOOTSTRAP_ADMIN_EMAIL='admin@example.com'\n"
-            "export DASHBOARD_AUTH_BOOTSTRAP_ADMIN_PASSWORD='ChangeMe1234'\n"
-            "./scripts/run_ui_local.sh",
-            language="bash",
-        )
+        st.error("Sign-in is unavailable.")
         st.stop()
 
     invite_token = _query_param_value("invite_token")
@@ -2399,7 +2370,6 @@ def _render_related_news_database_section(
     if rows.empty:
         st.caption("No related news was available.")
         return
-    st.caption("Source: news database")
     for index, (_, row) in enumerate(rows.iterrows()):
         headline = str(row.get("headline") or "Untitled").strip()
         source = str(row.get("source") or "News").strip()
@@ -2989,80 +2959,28 @@ def _humanize_zopedia_chat_tool_name(tool_name: object) -> str:
 
 def _zopedia_chat_progress_message(event: dict[str, object]) -> str:
     stage = str(event.get("stage") or "").strip().lower()
-    intent = str(event.get("intent") or "").strip().lower()
-    matches = int(event.get("matches") or 0)
     tool_label = _humanize_zopedia_chat_tool_name(event.get("tool_name"))
 
-    if stage == "resolve_start":
-        return "Checking for direct matches."
-    if stage == "intent_ready":
-        if intent == "agent":
-            return "This needs analysis, so I am gathering evidence."
-        if intent == "search":
-            return "Found direct matches." if matches > 0 else "No direct match yet. Expanding the search."
-        if intent == "ambiguous":
-            return "This could be a lookup or an analysis request."
-        return "Finished reading the request."
-    if stage == "agent_dispatch":
-        return "Starting the analysis."
-    if stage == "start":
-        return "Starting the research."
-    if stage == "tool_catalog_ready":
-        return "Getting ready."
-    if stage == "hidden_step_heartbeat":
-        elapsed = int(event.get("elapsed_seconds") or 0)
-        return f"Checking saved research... ({elapsed}s)"
-    if stage == "hidden_step_timeout":
-        elapsed = int(event.get("elapsed_seconds") or 0)
-        return f"Saved-research check timed out after {elapsed}s. Continuing."
-    if stage == "planner_start":
-        return "Planning the next research step."
-    if stage == "planner_heartbeat":
-        elapsed = int(event.get("elapsed_seconds") or 0)
-        return f"Still reasoning... ({elapsed}s)"
-    if stage == "planner_reasoning":
-        reasoning = str(event.get("reasoning") or "").strip()
-        return reasoning if reasoning else "Thinking about the next step."
-    if stage == "tool_start":
-        return f"Checking {tool_label}."
-    if stage == "tool_heartbeat":
-        elapsed = int(event.get("elapsed_seconds") or 0)
-        return f"Still checking {tool_label}... ({elapsed}s)"
-    if stage == "tool_timeout":
-        elapsed = int(event.get("elapsed_seconds") or 0)
-        return f"{tool_label.capitalize()} timed out after {elapsed}s. Moving on."
+    if stage in {"resolve_start", "intent_ready", "agent_dispatch", "start", "tool_catalog_ready"}:
+        return "Researching..."
+    if stage in {"hidden_step_heartbeat", "planner_start", "planner_heartbeat", "planner_reasoning"}:
+        return "Reviewing evidence..."
+    if stage in {"hidden_step_timeout", "tool_timeout", "tool_failed"}:
+        return "Checking other sources..."
+    if stage in {"tool_start", "tool_heartbeat"}:
+        return f"Checking {tool_label}..."
     if stage == "tool_complete":
-        return f"Added evidence from {tool_label}."
-    if stage == "tool_failed":
-        return f"{tool_label.capitalize()} did not return usable data. Trying another path."
-    if stage in {"planner_final", "final_synthesis_start"}:
-        return "Writing the answer."
-    if stage == "final_synthesis_heartbeat":
-        elapsed = int(event.get("elapsed_seconds") or 0)
-        return f"Writing the answer... ({elapsed}s)"
-    if stage == "final_synthesis_timeout":
-        return "Synthesis timed out. Returning the evidence gathered so far."
-    if stage == "memory_reflection_start":
-        return "Checking whether Zopedia memory should change."
-    if stage == "memory_reflection_complete":
-        return str(event.get("message") or "Zopedia memory checked.")
-    if stage == "memory_reflection_timeout":
-        return "Zopedia memory check timed out. Continuing."
-    if stage == "memory_reflection_failed":
-        return "Zopedia memory check failed. Continuing."
-    if stage == "memory_mutation_start":
-        return "Updating Zopedia memory."
-    if stage == "memory_mutation_complete":
-        return str(event.get("message") or "Zopedia memory updated.")
-    if stage == "memory_mutation_failed":
-        return "Zopedia memory update failed. Continuing."
+        return "Reviewing evidence..."
+    if stage in {"planner_final", "final_synthesis_start", "final_synthesis_heartbeat", "final_synthesis_timeout"}:
+        return "Writing..."
+    if stage.startswith("memory_"):
+        return "Saving..."
     if stage == "failed":
-        return "The analysis hit an error."
+        return "Unavailable"
     if stage in {"completed", "status"}:
-        return "Answer ready."
+        return "Done"
 
-    fallback = str(event.get("message") or "").strip()
-    return fallback if fallback else "Working through the request."
+    return "Researching..."
 
 
 def _looks_like_transient_agent_transport_error(text: object) -> bool:
@@ -3175,252 +3093,6 @@ def _render_source_evidence_strip(sources: list[dict[str, str]]) -> None:
             with st.container(border=True):
                 st.markdown(f"**{i + 1}**&ensp;[{short_label}]({url})")
                 st.caption(domain)
-
-
-def _research_detail_count(
-    *,
-    trace: list[dict[str, object]],
-    sources: list[dict[str, str]],
-    tool_count: object = None,
-    agent_result: dict[str, object] | None = None,
-) -> int:
-    try:
-        parsed_tool_count = int(tool_count or 0)
-    except Exception:
-        parsed_tool_count = 0
-    if parsed_tool_count > 0:
-        return parsed_tool_count
-    tool_starts = [
-        step
-        for step in trace
-        if isinstance(step, dict) and str(step.get("type") or "").strip() == "tool_start"
-    ]
-    if tool_starts:
-        return len(tool_starts)
-    tool_calls = list((agent_result or {}).get("tool_calls") or [])
-    if tool_calls:
-        return len(tool_calls)
-    return len(_public_source_links(sources))
-
-
-def _research_details_label(
-    *,
-    source_count: int,
-    duration_seconds: object = None,
-    failed: bool = False,
-) -> str:
-    if failed:
-        prefix = f"Checked {source_count} source{'s' if source_count != 1 else ''}" if source_count else "Research attempted"
-    else:
-        prefix = f"Researched {source_count} source{'s' if source_count != 1 else ''}" if source_count else "Research details"
-    try:
-        duration = float(duration_seconds or 0)
-    except Exception:
-        duration = 0.0
-    if duration > 0:
-        return f"{prefix} · {duration:.0f}s"
-    return prefix
-
-
-def _render_research_details_panel(
-    *,
-    trace: list[dict[str, object]],
-    agent_result: dict[str, object] | None,
-    sources: list[dict[str, str]],
-    source_count: object = None,
-    duration_seconds: object = None,
-    panel_id: str,
-    key_prefix: str,
-    failed: bool = False,
-) -> None:
-    has_trace = bool(trace) or bool(list((agent_result or {}).get("tool_calls") or []))
-    has_sources = bool(_public_source_links(sources))
-    if not has_trace and not has_sources and not source_count:
-        return
-    count = _research_detail_count(
-        trace=trace,
-        sources=sources,
-        tool_count=source_count,
-        agent_result=agent_result,
-    )
-    label = _research_details_label(
-        source_count=count,
-        duration_seconds=duration_seconds,
-        failed=failed,
-    )
-    with st.expander(label, expanded=False):
-        if has_sources:
-            _render_source_evidence_strip(sources)
-        if has_trace:
-            _render_thinking_trace_content(trace, agent_result, key_prefix=key_prefix)
-
-
-def _render_thinking_trace_content(
-    trace: list[dict[str, object]],
-    agent_result: dict[str, object] | None = None,
-    key_prefix: str = "trace",
-) -> None:
-    """Render the product-visible research trace as readable steps."""
-
-    def _render_analysis_result(render_payload: dict[str, object], *, key: str) -> None:
-        analysis = dict(render_payload.get("analysis") or {})
-        metrics = [dict(item) for item in list(analysis.get("metrics") or []) if isinstance(item, dict)]
-        if metrics:
-            st.dataframe(pd.DataFrame(metrics), use_container_width=True, hide_index=True)
-        for table_idx, table in enumerate(list(analysis.get("tables") or [])[:2]):
-            if not isinstance(table, dict):
-                continue
-            rows = list(table.get("rows") or [])
-            if not rows:
-                continue
-            st.caption(str(table.get("name") or f"table_{table_idx + 1}"))
-            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
-        for chart_idx, chart in enumerate(list(analysis.get("charts") or [])[:2]):
-            if not isinstance(chart, dict):
-                continue
-            x_values = list(chart.get("x") or [])
-            y_values = pd.to_numeric(pd.Series(list(chart.get("y") or [])), errors="coerce")
-            if not x_values or len(x_values) != len(y_values) or y_values.dropna().empty:
-                continue
-            chart_kind = str(chart.get("kind") or "line").strip().lower()
-            fig = go.Figure()
-            trace_name = str(chart.get("series_name") or chart.get("name") or "series").strip()
-            if chart_kind == "bar":
-                fig.add_trace(go.Bar(x=x_values, y=y_values, name=trace_name))
-            else:
-                mode = "markers" if chart_kind == "scatter" else "lines+markers"
-                fig.add_trace(go.Scatter(x=x_values, y=y_values, mode=mode, name=trace_name))
-            fig.update_layout(
-                template="plotly_dark",
-                title=str(chart.get("name") or "Analysis chart"),
-                margin={"l": 18, "r": 18, "t": 42, "b": 18},
-                height=260,
-            )
-            st.plotly_chart(fig, use_container_width=True, key=f"{key}_analysis_chart_{chart_idx}")
-        error = str(analysis.get("error") or "").strip()
-        if error:
-            st.caption(f"Analysis error: {error}")
-
-    if not trace:
-        tool_calls = list((agent_result or {}).get("tool_calls") or [])
-        for tc_idx, tc in enumerate(tool_calls):
-            tool_name = str(tc.get("tool_name") or "tool")
-            tc_status = str(tc.get("status") or "unknown")
-            try:
-                args_text = json.dumps(tc.get("arguments") or {}, sort_keys=True, default=str)
-            except Exception:
-                args_text = str(tc.get("arguments") or {})
-            human_tool = _humanize_zopedia_chat_tool_name(tool_name)
-            st.markdown(
-                "<div class='sn-zopedia-trace-step'>"
-                f"<div class='sn-zopedia-trace-title'>{html.escape(str(tc_idx + 1))}. {html.escape(human_tool)}</div>"
-                f"<div class='sn-zopedia-trace-body'>{html.escape(tc_status.capitalize())}"
-                + (f"<br><span>{html.escape(args_text)}</span>" if args_text and args_text != "{}" else "")
-                + "</div></div>",
-                unsafe_allow_html=True,
-            )
-            preview = str((tc.get("result_summary") or {}).get("preview_text") or "").strip()
-            if preview:
-                for preview_block in _prepare_answer_markdown_blocks(preview)[:3]:
-                    table = parse_markdown_table(preview_block)
-                    if table:
-                        st.dataframe(pd.DataFrame(table.rows, columns=table.columns), use_container_width=True, hide_index=True)
-                    else:
-                        st.markdown(preview_block)
-            rp = (tc.get("result_summary") or {}).get("render_payload") if isinstance(tc.get("result_summary"), dict) else None
-            if isinstance(rp, dict) and rp.get("kind") == "analysis_result":
-                _render_analysis_result(rp, key=f"{key_prefix}_tool_{tc_idx}")
-        return
-
-    for step_idx, step in enumerate(trace):
-        step_type = str(step.get("type") or "")
-        tool_label = _humanize_zopedia_chat_tool_name(step.get("tool_name"))
-        title = trace_step_title(step, index=step_idx + 1, tool_label=tool_label)
-        body = trace_step_body(step)
-        if step_type in {"reasoning", "model_reasoning_trace", "tool_start", "tool_complete", "message"}:
-            body_html = ""
-            if body:
-                body_paragraphs = [
-                    html.escape(paragraph.strip())
-                    for paragraph in re.split(r"\n\s*\n|(?<=[.!?])\s+(?=[A-Z0-9])", body)
-                    if paragraph.strip()
-                ]
-                body_html = "".join(f"<p>{paragraph}</p>" for paragraph in body_paragraphs[:6])
-            st.markdown(
-                "<div class='sn-zopedia-trace-step'>"
-                f"<div class='sn-zopedia-trace-title'>{html.escape(title)}</div>"
-                f"<div class='sn-zopedia-trace-body'>{body_html}</div>"
-                "</div>",
-                unsafe_allow_html=True,
-            )
-        if step_type == "reasoning":
-            continue
-        elif step_type == "model_reasoning_trace":
-            continue
-        elif step_type == "tool_start":
-            continue
-        elif step_type == "tool_complete":
-            preview = str(step.get("preview") or "")
-            if preview:
-                for preview_block in _prepare_answer_markdown_blocks(preview)[:3]:
-                    table = parse_markdown_table(preview_block)
-                    if table:
-                        st.dataframe(pd.DataFrame(table.rows, columns=table.columns), use_container_width=True, hide_index=True)
-                    else:
-                        st.markdown(preview_block)
-            rp = step.get("render_payload")
-            if isinstance(rp, dict) and rp.get("kind") == "chart_model":
-                try:
-                    import plotly.graph_objects as _go_trace
-                except ImportError:
-                    _go_trace = None
-                if _go_trace is not None:
-                    try:
-                        chart_model = dict(rp.get("chart_model") or {})
-                        traces_list = list(chart_model.get("traces") or [])
-                        datasets = dict(chart_model.get("datasets") or {})
-                        if traces_list and datasets:
-                            fig = _go_trace.Figure()
-                            for trace_spec in traces_list[:6]:
-                                trace_spec = dict(trace_spec)
-                                ds_name = str(trace_spec.get("dataset") or "")
-                                x_col = str(trace_spec.get("x") or "")
-                                y_col = str(trace_spec.get("y") or "")
-                                trace_type = str(trace_spec.get("type") or "scatter").lower()
-                                label = str(trace_spec.get("name") or trace_spec.get("label") or y_col)
-                                ds_rows = list(datasets.get(ds_name) or [])
-                                if not ds_rows or not x_col or not y_col:
-                                    continue
-                                x_vals = [row.get(x_col) for row in ds_rows if isinstance(row, dict)]
-                                y_vals = [row.get(y_col) for row in ds_rows if isinstance(row, dict)]
-                                if trace_type == "bar":
-                                    fig.add_trace(_go_trace.Bar(x=x_vals, y=y_vals, name=label))
-                                else:
-                                    fig.add_trace(_go_trace.Scatter(x=x_vals, y=y_vals, mode="lines", name=label))
-                            chart_title = str(chart_model.get("title") or "")
-                            fig.update_layout(
-                                height=250,
-                                margin=dict(l=30, r=10, t=30 if chart_title else 10, b=20),
-                                title_text=chart_title if chart_title else None,
-                            )
-                            st.plotly_chart(fig, use_container_width=True, key=f"{key_prefix}_chart_{step_idx}")
-                    except Exception:
-                        pass
-            if isinstance(rp, dict) and rp.get("kind") == "analysis_result":
-                _render_analysis_result(rp, key=f"{key_prefix}_{step_idx}")
-            links = step.get("source_links")
-            if isinstance(links, list) and links:
-                link_parts = []
-                for link in links[:5]:
-                    if isinstance(link, dict):
-                        url = str(link.get("url") or "").strip()
-                        lbl = str(link.get("label") or url).strip()
-                        if url and _is_public_web_source_url(url):
-                            link_parts.append(f"[{lbl}]({url})")
-                if link_parts:
-                    st.caption("Sources: " + " · ".join(link_parts))
-        elif step_type == "message":
-            continue
 
 
 def _render_inline_search_results(
@@ -3615,26 +3287,13 @@ def _render_zopedia_welcome(beats: list[dict[str, object]]) -> None:
 
 def _render_agent_response_message(msg: dict[str, object]) -> None:
     """Render a saved assistant message from chat history."""
-    trace = list(msg.get("thinking_trace") or [])
-    agent_result = dict(msg.get("agent_result") or {})
     error = str(msg.get("error") or "").strip()
     msg_id = str(msg.get("msg_id") or "hist")
     sources = list(msg.get("source_links") or [])
 
     # Error message
     if error:
-        st.error(f"Zopedia encountered an error: {error}")
-
-    _render_research_details_panel(
-        trace=trace,
-        agent_result=agent_result,
-        sources=sources,
-        source_count=msg.get("tool_count"),
-        duration_seconds=msg.get("duration_seconds"),
-        panel_id=msg_id,
-        key_prefix=f"hist_{msg_id}",
-        failed=bool(error),
-    )
+        st.error("Zopedia could not complete this request.")
 
     # Key metrics
     answer = str(msg.get("content") or "").strip()
@@ -3651,16 +3310,8 @@ def _render_agent_response_message(msg: dict[str, object]) -> None:
             msg_id=str(msg.get("msg_id") or hashlib.sha256(answer.encode("utf-8")).hexdigest()[:12]),
         )
 
-    # Confidence and limitations
-    confidence = str(msg.get("confidence") or "").strip()
-    limitations = [str(item).strip() for item in list(msg.get("limitations") or []) if str(item).strip()]
-    if confidence or limitations:
-        footer_parts = []
-        if confidence:
-            footer_parts.append(f"Confidence: **{confidence}**")
-        if limitations:
-            footer_parts.append(" · ".join(limitations[:2]))
-        st.caption(" | ".join(footer_parts))
+    if sources:
+        _render_source_evidence_strip(sources)
 
     # Search results
     search_results = list(msg.get("search_results") or [])
@@ -4233,7 +3884,8 @@ def _render_zopedia_page_reader(*, key_prefix: str = "zopedia_memory") -> None:
     try:
         page = load_zopedia_page(page_id=page_id)
     except Exception as exc:
-        st.warning(f"Zopedia page could not be opened: {exc}")
+        _log_event("zopedia_page_open_failed", page_id=page_id, error=f"{type(exc).__name__}: {str(exc)[:200]}")
+        st.warning("Zopedia page unavailable.")
         return
     if not page:
         st.warning("Zopedia page not found.")
@@ -5918,8 +5570,6 @@ def _run_and_render_agent_live(
             reasoning = str(event.get("reasoning") or "").strip()
             if reasoning:
                 thinking_trace.append({"type": "reasoning", "text": reasoning})
-                with status_widget:
-                    st.caption(reasoning)
         elif stage == "model_reasoning_trace":
             reasoning_trace = str(event.get("reasoning_trace") or "").strip()
             if reasoning_trace:
@@ -5949,9 +5599,7 @@ def _run_and_render_agent_live(
             human_tool = _humanize_zopedia_chat_tool_name(tool_name)
             elapsed = int(event.get("elapsed_seconds") or 0)
             thinking_trace.append({"type": "message", "text": f"{human_tool} timed out after {elapsed}s; moving on."})
-            with status_widget:
-                st.caption(f"{human_tool} timed out after {elapsed}s; moving on.")
-            _update_live_status(f"{human_tool} timed out; continuing...")
+            _update_live_status("Checking other sources...")
         elif stage == "tool_complete":
             preview = str(event.get("result_preview") or "").strip()
             trace_entry: dict[str, object] = {
@@ -5969,29 +5617,29 @@ def _run_and_render_agent_live(
             if preview or render_payload or links:
                 thinking_trace.append(trace_entry)
         elif stage == "planner_final":
-            _update_live_status(f"Writing answer from {tool_count} source{'s' if tool_count != 1 else ''}...")
+            _update_live_status("Writing...")
         elif stage == "final_synthesis_start":
-            _update_live_status(f"Synthesizing answer from {tool_count} source{'s' if tool_count != 1 else ''}...")
+            _update_live_status("Writing...")
         elif stage.startswith("memory_"):
             thinking_trace.append({"type": "message", "text": message})
             _update_live_status(message)
         elif stage == "tool_catalog_ready":
             tool_total = int(event.get("tool_count") or 0)
             if tool_total > 0:
-                _update_live_status("Getting the research workspace ready...")
+                _update_live_status("Researching...")
         elif stage == "hidden_step_heartbeat":
             elapsed = int(event.get("elapsed_seconds") or 0)
             _update_live_status(f"Checking saved research... ({elapsed}s)")
         elif stage == "hidden_step_timeout":
             elapsed = int(event.get("elapsed_seconds") or 0)
             thinking_trace.append({"type": "message", "text": f"Saved-research check timed out after {elapsed}s; continuing."})
-            _update_live_status("Saved-research check timed out; continuing...")
+            _update_live_status("Checking other sources...")
         elif stage == "final_synthesis_heartbeat":
             elapsed = int(event.get("elapsed_seconds") or 0)
             _update_live_status(f"Writing the answer... ({elapsed}s)")
         elif stage == "final_synthesis_timeout":
             thinking_trace.append({"type": "message", "text": "Synthesis timed out; returning the evidence gathered so far."})
-            _update_live_status("Synthesis timed out; returning gathered evidence...")
+            _update_live_status("Writing...")
         elif stage not in {"completed", "status", "resolve_start", "intent_ready", "agent_dispatch", "start"}:
             thinking_trace.append({"type": "message", "text": message})
 
@@ -6016,19 +5664,10 @@ def _run_and_render_agent_live(
 
     duration = round(_time_mod.monotonic() - run_start, 1)
 
-    # Close status — show error state if failed
     if run_error:
-        _update_live_status(
-            f"Error after {duration:.0f}s ({tool_count} source{'s' if tool_count != 1 else ''} checked)",
-            state="error",
-            expanded=False,
-        )
+        _update_live_status("Unavailable", state="error", expanded=False)
     else:
-        _update_live_status(
-            f"Researched {tool_count} source{'s' if tool_count != 1 else ''} · {duration:.0f}s",
-            state="complete",
-            expanded=False,
-        )
+        _update_live_status("Done", state="complete", expanded=False)
 
     # ── Render structured response ──
     agent_result = dict(resolution.get("agent_result") or {})
@@ -6040,7 +5679,7 @@ def _run_and_render_agent_live(
 
     # Error message
     if run_error:
-        st.error(f"Zopedia encountered an error: {run_error}")
+        st.error("Zopedia could not complete this request.")
 
     if source_links_all:
         with status_widget:
@@ -6060,16 +5699,7 @@ def _run_and_render_agent_live(
             msg_id=request_id,
         )
     elif not search_results and not run_error:
-        st.markdown("No answer could be generated for this query.")
-
-    # Confidence + limitations footer
-    if confidence or limitations:
-        footer_parts = []
-        if confidence:
-            footer_parts.append(f"Confidence: **{confidence}**")
-        if limitations:
-            footer_parts.append(" · ".join(limitations[:2]))
-        st.caption(" | ".join(footer_parts))
+        st.info("No answer available.")
 
     # Search results (simplified)
     if search_results and not answer:
@@ -6185,7 +5815,6 @@ def _render_attention_card(
         llm_narrative_text = str((context_payload or {}).get("llm_narrative_text") or "").strip()
         llm_why_now = str((context_payload or {}).get("llm_why_now") or "").strip()
         llm_management_signal = str((context_payload or {}).get("llm_management_signal") or "").strip()
-        llm_confidence = str((context_payload or {}).get("llm_confidence") or "").strip()
         llm_source_line = str((context_payload or {}).get("llm_source_line") or "").strip()
         llm_supporting_points = (context_payload or {}).get("llm_supporting_points", [])
         filing_links = (context_payload or {}).get("top_filing_links", [])
@@ -6234,8 +5863,6 @@ def _render_attention_card(
                 st.caption(f"Why now: {llm_why_now}")
             if llm_management_signal:
                 st.caption(f"Management signal: {llm_management_signal}")
-            if llm_confidence:
-                st.caption(f"Confidence: {llm_confidence}")
             if llm_source_line:
                 st.caption(llm_source_line)
             if context_story_text:
@@ -6354,7 +5981,6 @@ def _render_market_event_card(
 ) -> None:
     title = str(event.get("event_title") or "Market event").strip()
     anchor_symbol = str(event.get("anchor_symbol") or "").upper().strip()
-    confidence_label = str(event.get("confidence_label") or "Developing").strip()
     what_happened_text = attention_content._raw_attention_text(event.get("what_happened_text"))
     why_happened_text = attention_content._raw_attention_text(event.get("why_happened_text"))
     affected_assets_summary_text = attention_content._raw_attention_text(event.get("affected_assets_summary_text"))
@@ -6376,7 +6002,7 @@ def _render_market_event_card(
         header_cols = _responsive_columns([5.4, 1.3, 1.3])
         with header_cols[0]:
             st.markdown(f"##### {title}")
-            meta = [item for item in [anchor_symbol, confidence_label, f"{breadth_count} buckets" if breadth_count else ""] if item]
+            meta = [item for item in [anchor_symbol] if item]
             if meta:
                 st.caption(" | ".join(meta))
         with header_cols[1]:
@@ -6664,11 +6290,6 @@ def _render_attention_home_event_card(
                 [
                     {
                         "symbol": str(payload.get("anchor_symbol") or event.get("anchor_symbol") or "").strip(),
-                        "extras": [
-                            str(payload.get("confidence_label") or event.get("confidence_label") or "").strip(),
-                            f"{int(pd.to_numeric(payload.get('source_count', event.get('source_count')), errors='coerce') or 0)} sources",
-                            f"{int(pd.to_numeric(payload.get('evidence_count', event.get('evidence_count')), errors='coerce') or 0)} evidence",
-                        ],
                     }
                 ],
                 force_refresh=force_refresh,
@@ -6704,19 +6325,6 @@ def _render_attention_home_event_card(
                 click_target=click_target,
                 key_prefix=f"{key_prefix}_{bundle_id or 'event'}_supporting",
             )
-
-        meta_line = [
-            part
-            for part in [
-                str(payload.get("confidence_label") or event.get("confidence_label") or "").strip(),
-                str(payload.get("evidence_quality") or "").strip(),
-                str(payload.get("freshness_quality") or "").strip(),
-                str(payload.get("source_summary") or event.get("source_summary") or "").strip(),
-            ]
-            if part
-        ]
-        if meta_line:
-            st.caption(" | ".join(meta_line))
 
         if st.session_state.get(toggle_key, False) and bundle_id:
             if not bundle:
@@ -6804,19 +6412,6 @@ def _render_attention_home_mover_card(
             _render_attention_text_block("What Else Moved", what_else_moved)
         if business_context and business_context not in {why_today, what_else_moved}:
             _render_attention_text_block("Business Context", business_context)
-        meta_line = [
-            part
-            for part in [
-                str(payload.get("confidence_label") or mover.get("confidence_label") or "").strip(),
-                str(payload.get("evidence_quality") or "").strip(),
-                str(payload.get("freshness_quality") or "").strip(),
-                str(payload.get("source_summary") or mover.get("top_source") or "").strip(),
-            ]
-            if part
-        ]
-        if meta_line:
-            st.caption(" | ".join(meta_line))
-
         if st.session_state.get(toggle_key, False) and bundle_id:
             if not bundle:
                 bundle = dashboard_loaders._safe_load_attention_research_bundle_cached(cfg, bundle_id, force_refresh=force_refresh)
@@ -6979,43 +6574,7 @@ def _render_attention_summary_async_audio_fallback(
 
 def _render_attention_home_summary_card(
     home_payload: dict[str, object],
-    *,
-    snapshot_label: str,
-    title: str = "Market Summary",
 ) -> None:
-    def _render_summary_trace(summary_payload: dict[str, object]) -> None:
-        queries = [str(item).strip() for item in list(summary_payload.get("research_queries") or []) if str(item).strip()]
-        top_sources = [item for item in list(summary_payload.get("top_sources") or []) if isinstance(item, dict)]
-        supporting_claims = [item for item in list(summary_payload.get("supporting_claims") or []) if isinstance(item, dict)]
-        if not queries and not top_sources and not supporting_claims:
-            return
-        with st.expander("Research trace", expanded=False):
-            if queries:
-                st.markdown("**Searches run**")
-                for query in queries[:4]:
-                    st.markdown(f"- `{query}`")
-            if top_sources:
-                st.markdown("**Sources used**")
-                for item in top_sources[:4]:
-                    source = str(item.get("source") or "Source").strip()
-                    title_text = str(item.get("title") or "").strip()
-                    url = str(item.get("url") or "").strip()
-                    match_source = str(item.get("match_source") or "").strip()
-                    suffix = f" ({match_source})" if match_source else ""
-                    if url:
-                        st.markdown(f"- **{source}**: [{title_text or url}]({url}){suffix}")
-                    else:
-                        st.markdown(f"- **{source}**: {title_text or 'Untitled'}{suffix}")
-            if supporting_claims:
-                st.markdown("**Supporting evidence**")
-                for item in supporting_claims[:3]:
-                    text = str(item.get("text") or "").strip()
-                    source = str(item.get("source") or "").strip()
-                    if not text:
-                        continue
-                    label = f"**{source}**: " if source else ""
-                    st.markdown(f"- {label}{text}")
-
     stored_summary_payload = home_payload.get("homepage_summary")
     summary_payload = dict(stored_summary_payload) if isinstance(stored_summary_payload, dict) else {}
     if not summary_payload:
@@ -7028,7 +6587,6 @@ def _render_attention_home_summary_card(
     with st.container(border=True):
         if summary_text:
             st.markdown(summary_text)
-        _render_summary_trace(summary_payload)
 
         if not audio_text:
             return
@@ -7119,14 +6677,15 @@ def _load_homepage_narrative_payload(cfg: AppConfig, *, force_data_refresh: bool
     try:
         with _inline_loading_banner(
             "Loading today's narrative home",
-            "Assembling the day-only homepage summary from the latest event set and research snapshot.",
+            "",
         ):
             return dashboard_loaders._load_attention_home_1d_cached(
                 cfg,
                 force_refresh=force_data_refresh,
             )
     except Exception as exc:
-        st.warning(f"Could not build Home: {exc}")
+        _log_event("load_home_failed", error=f"{type(exc).__name__}: {str(exc)[:200]}")
+        st.warning("Home is unavailable.")
         return None
 
 
@@ -7136,8 +6695,8 @@ def _load_homepage_replay_payload(target_date: str) -> dict[str, object] | None:
         from data_access.layer import resolve_homepage_asof
 
         with _inline_loading_banner(
-            f"Loading {target_date} snapshot",
-            f"Retrieving the stored homepage from {target_date}.",
+            f"Loading {target_date}",
+            "",
         ):
             replay = resolve_homepage_asof(target_date)
         home_payload = replay.get("home_payload")
@@ -7146,7 +6705,8 @@ def _load_homepage_replay_payload(target_date: str) -> dict[str, object] | None:
             return None
         return home_payload
     except Exception as exc:
-        st.warning(f"Could not load historical snapshot: {exc}")
+        _log_event("load_home_replay_failed", error=f"{type(exc).__name__}: {str(exc)[:200]}")
+        st.warning("Historical view unavailable.")
         return None
 
 
@@ -7386,9 +6946,6 @@ def _render_zopedia_ticker_result(result: dict[str, object], *, debug: bool = Fa
                 st.markdown("---")
             st.markdown(f"###### {attention_content.streamlit_safe_markdown_text(heading)}")
         st.markdown(body)
-
-    if confidence and confidence not in ("", "low", "medium"):
-        st.caption(f"Confidence: {confidence.title()}")
 
     if debug:
         meta_parts: list[str] = []
@@ -7673,11 +7230,9 @@ def _render_homepage_v3(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_ref
 
     beats = _build_homepage_narrative_beats(home_payload)
     if not beats:
-        st.info("No daily market stories were produced from the latest market data.")
+        st.info("No market stories available.")
         return
 
-    generated_at = pd.to_datetime(home_payload.get("generated_at_utc"), utc=True, errors="coerce")
-    snapshot_label = generated_at.strftime("%Y-%m-%d %H:%M UTC") if pd.notna(generated_at) else "just now"
     run_token = str(home_payload.get("run_id") or home_payload.get("generated_at_utc") or "").strip()
 
     _render_homepage_graph_banner(home_payload)
@@ -7689,15 +7244,10 @@ def _render_homepage_v3(cfg: AppConfig, api: AlpacaAPI | None, *, force_data_ref
             _render_zopedia_ticker_result(market_summary, debug=_homev3_debug_mode())
             _render_zopedia_summary_audio(market_summary)
     else:
-        _render_attention_home_summary_card(
-            home_payload,
-            snapshot_label=snapshot_label,
-            title="Market Summary",
-        )
+        _render_attention_home_summary_card(home_payload)
 
     st.markdown("---")
     st.subheader("Market Narrative")
-    st.caption("Each beat is a distinct market signal. Expand to see retained research or a Zopedia deep dive on any ticker.")
 
     _render_homepage_v3_story_fragment(
         cfg,
@@ -7775,7 +7325,6 @@ def _prepare_momentum_table(
     if "company_name" in table.columns:
         column_config["company_name"] = st.column_config.TextColumn(
             "Company",
-            help="Company name is shown directly because the current selectable table does not keep row hover tooltips reliable across refreshes.",
             width="medium",
         )
     if "sparkline_3m" in table.columns:
@@ -7897,7 +7446,7 @@ def _trading_agent_ticker_evidence(
             news_summary = summarize_recent_news(symbol, news_payload)
         except Exception as exc:
             news_payload = {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
-            news_summary = {"summary_lines": [f"Recent news unavailable: {exc}"], "articles": pd.DataFrame()}
+            news_summary = {"summary_lines": [], "articles": pd.DataFrame()}
         try:
             attention_context = dashboard_loaders._load_attention_context_cached(
                 cfg,
@@ -8002,39 +7551,14 @@ with _timed("load_config"):
 api: AlpacaAPI | None = None
 account: dict[str, object] = {}
 startup_error_summary: str | None = None
-startup_error_details: str | None = None
-startup_setup_code: str | None = None
 
 if cfg is None:
     _log_event("config_invalid")
-    key_secret_name, secret_secret_name = alpaca_secret_name_settings()
-    key_vault_name = (os.getenv("AZURE_KEY_VAULT_NAME") or os.getenv("KEY_VAULT_NAME") or "").strip()
-    key_vault_url = (os.getenv("AZURE_KEY_VAULT_URL") or "").strip()
-    startup_setup_code = (
-        "az login\n"
-        "export AZURE_KEY_VAULT_NAME='spectral-nature-kvault'\n"
-        f"export APCA_API_KEY_SECRET_NAME='{key_secret_name}'\n"
-        f"export APCA_API_SECRET_KEY_SECRET_NAME='{secret_secret_name}'\n"
-        "export APCA_API_BASE_URL='https://paper-api.alpaca.markets'\n"
-        "./scripts/run_ui_local.sh"
-    )
-    if not key_vault_name and not key_vault_url:
-        startup_error_summary = "Market data credentials are unavailable."
-        startup_error_details = (
-            "Set AZURE_KEY_VAULT_NAME or AZURE_KEY_VAULT_URL so the app can load Alpaca secrets from Key Vault."
-        )
-    else:
-        startup_error_summary = "Market data credentials are unavailable from Key Vault."
-        startup_error_details = (
-            f"Expected secrets `{key_secret_name}` and `{secret_secret_name}` in the configured vault."
-        )
+    startup_error_summary = "Market data is unavailable."
 
 elif cfg.alpaca_trading_base_url.startswith("hhttps://") or not cfg.alpaca_trading_base_url.startswith(("http://", "https://")):
     _log_event("config_invalid_base_url", base_url=cfg.alpaca_trading_base_url)
-    startup_error_summary = (
-        "Invalid APCA_API_BASE_URL value. Expected the paper or live trading endpoint."
-    )
-    startup_setup_code = "APCA_API_BASE_URL=https://api.alpaca.markets"
+    startup_error_summary = "Market data is unavailable."
 
 else:
     with _timed("create_api_client"):
@@ -8054,6 +7578,7 @@ if (
     and not _show_login_forced
     and not _auth_action_query_param_present()
     and _routing_target == "Home"
+    and _query_param_value("robinhood_oauth").lower() != "callback"
 ):
     if _layout_mode == "mobile":
         _render_mobile_public_home_shell()
@@ -8083,7 +7608,8 @@ if not _is_authenticated and _auth_enabled():
     _enforce_login_gate()
     # _enforce_login_gate calls st.stop() if login not yet completed.
 
-cache_disabled = (os.getenv("APP_DISABLE_CACHE") or "").strip().lower() in {"1", "true", "yes", "on"}
+_consume_robinhood_oauth_callback()
+
 force_refresh_default_raw = os.getenv("APP_FORCE_DATA_REFRESH_DEFAULT")
 if force_refresh_default_raw is None or not str(force_refresh_default_raw).strip():
     force_refresh_default = False
@@ -8114,8 +7640,6 @@ if _layout_mode == "mobile":
     section, sidebar_connection, sidebar_status, sidebar_buying_power = _render_mobile_workspace_shell(
         section_options=[s for s in section_options if s != NAV_SEPARATOR],
         current_section=_nav_current,
-        cache_disabled=cache_disabled,
-        force_refresh_default=force_refresh_default,
         current_user=current_user,
     )
 else:
@@ -8148,37 +7672,25 @@ else:
                 st.rerun()
         section = _nav_current
 
-        with st.expander("Workspace Status", expanded=False):
-            if pipeline_store_configured():
-                if _presentation_layer_only():
-                    st.caption("Data mode: Curated presentation snapshots")
-                else:
-                    st.caption("Data mode: Curated metadata + parquet snapshots")
+        if st.button("Logout", key="dashboard_logout", use_container_width=True):
+            if st.session_state.get("_ui_auth_mode") == "database":
+                auth_service.record_access_event(
+                    event_type="logout",
+                    event_category="usage",
+                    user=current_user,
+                    session_token=str(st.session_state.get("_ui_auth_session_id") or ""),
+                    ip_address=_request_ip_address(),
+                    user_agent=_request_user_agent(),
+                )
+                auth_service.logout_session(str(st.session_state.get("_ui_auth_session_id") or ""))
             else:
-                st.caption("Data mode: Snapshot store unavailable")
-            st.caption(f"Cache: {'disabled' if cache_disabled else 'enabled'}")
-            st.caption(f"Inline force refresh: {'disabled' if _presentation_layer_only() else ('on' if force_refresh_default else 'off')}")
-            st.caption(f"CSV cache: {cache_data_root()}")
-            st.caption(f"Cache policy: {cache_policy_path()}")
-            if st.button("Logout", key="dashboard_logout", use_container_width=True):
-                if st.session_state.get("_ui_auth_mode") == "database":
-                    auth_service.record_access_event(
-                        event_type="logout",
-                        event_category="usage",
-                        user=current_user,
-                        session_token=str(st.session_state.get("_ui_auth_session_id") or ""),
-                        ip_address=_request_ip_address(),
-                        user_agent=_request_user_agent(),
-                    )
-                    auth_service.logout_session(str(st.session_state.get("_ui_auth_session_id") or ""))
-                else:
-                    _invalidate_auth_session(st.session_state.get("_ui_auth_session_id"))
-                _clear_local_auth_state()
-                st.session_state["_ui_clear_auth_cookie"] = True
-                st.rerun()
-            sidebar_connection = st.empty()
-            sidebar_status = st.empty()
-            sidebar_buying_power = st.empty()
+                _invalidate_auth_session(st.session_state.get("_ui_auth_session_id"))
+            _clear_local_auth_state()
+            st.session_state["_ui_clear_auth_cookie"] = True
+            st.rerun()
+        sidebar_connection = st.empty()
+        sidebar_status = st.empty()
+        sidebar_buying_power = st.empty()
 
 _log_event("ui_sidebar_ready")
 _record_workspace_section_view(section_name=section, current_user=current_user, app_track=app_track)
@@ -8217,11 +7729,7 @@ if (
         sidebar_buying_power.metric("Buying Power", f"${_to_float(sidebar_account, 'buying_power'):,.2f}")
 
 if startup_error_summary:
-    _render_connection_issue(
-        startup_error_summary,
-        details=startup_error_details,
-        setup_code=startup_setup_code,
-    )
+    _render_connection_issue(startup_error_summary)
 
 force_data_refresh = force_refresh_default
 
@@ -8280,13 +7788,11 @@ elif section == MARKET_EXPLORER_SECTION:
 elif section == STOCK_INVESTIGATOR_SECTION:
     st.title("Stock Investigator")
 
-    if not _has_live_api(
+    if _has_live_api(
         api,
-        "Stock Investigator requires a working live market connection or retained market snapshots.",
+        "Stock data unavailable.",
         allow_pipeline=True,
     ):
-        st.info("Restore the live market connection or configure retained market snapshots to inspect ticker details.")
-    else:
         from views.stock_investigator import _render_stock_investigator_workspace
         _render_stock_investigator_workspace(
             cfg,

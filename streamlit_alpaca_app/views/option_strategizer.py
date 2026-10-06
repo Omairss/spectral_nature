@@ -30,7 +30,7 @@ def _render_option_strategizer_section(
 
     if not ticker or not _has_live_api(
         api,
-        "Option Strategizer requires a working live market connection or retained market snapshots.",
+        "Options data unavailable.",
         allow_pipeline=True,
     ):
         return
@@ -54,7 +54,7 @@ def _render_option_strategizer_section(
                 )
     except AlpacaAPIError as exc:
         _log_event("load_option_chain_failed", ticker=ticker, error=str(exc)[:200])
-        st.warning(f"Could not load option chain: {exc}")
+        st.warning("Option chain unavailable.")
         expirations = []
 
     if not expirations:
@@ -73,7 +73,7 @@ def _render_option_strategizer_section(
                 )
     except AlpacaAPIError as exc:
         _log_event("load_option_chain_expiration_failed", ticker=ticker, expiration=exp, error=str(exc)[:200])
-        st.warning(f"Could not load option quotes: {exc}")
+        st.warning("Option quotes unavailable.")
         calls = pd.DataFrame()
         puts = pd.DataFrame()
 
@@ -104,7 +104,7 @@ def _render_option_strategizer_section(
     st.markdown("---")
     st.subheader("Greek-Based Scenario Selector")
     if not np.isfinite(spot_price):
-        st.info("A recent stock price was not available, so the Greek-based scenario selector is hidden for this ticker.")
+        st.info("Recent stock price unavailable.")
         return
 
     st.caption(
@@ -155,7 +155,7 @@ def _render_option_strategizer_section(
                 )
     except AlpacaAPIError as exc:
         _log_event("load_option_surface_failed", ticker=ticker, error=str(exc)[:200])
-        st.warning(f"Could not build option surface: {exc}")
+        st.warning("Option surface unavailable.")
         surface = pd.DataFrame()
 
     if surface.empty:

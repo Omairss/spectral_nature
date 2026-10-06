@@ -104,9 +104,23 @@ def section_data_available(
 
 @dataclass(frozen=True)
 class AttentionCandidatePolicy:
+    scoring_mode: str
     shortlist_default_max_count: int
     shortlist_liquidity_min_dollar_volume: float
     shortlist_macro_anchor_min_abs_change_pct: float
+    anomaly_min_history_days: int
+    anomaly_candidate_pool_max_count: int
+    anomaly_lookback_days: int
+    anomaly_min_return_std_pct: float
+    anomaly_min_log_volume_std: float
+    anomaly_min_range_std_pct: float
+    anomaly_return_weight: float
+    anomaly_volume_weight: float
+    anomaly_range_weight: float
+    anomaly_score_mult: float
+    anomaly_score_cap: float
+    anomaly_evidence_bonus_cap: float
+    anomaly_context_bonus_cap: float
     confidence_high_abs_change_pct: float
     confidence_high_abs_surprise_z: float
     confidence_high_best_authority_rank_max: int
@@ -180,6 +194,7 @@ class AttentionUIPolicy:
 @lru_cache(maxsize=1)
 def attention_candidate_policy() -> AttentionCandidatePolicy:
     return AttentionCandidatePolicy(
+        scoring_mode=_env_text("ATTENTION_CANDIDATE_SCORING_MODE", "legacy").lower(),
         shortlist_default_max_count=_env_int("ATTENTION_SHORTLIST_DEFAULT_MAX_COUNT", 100, minimum=1),
         shortlist_liquidity_min_dollar_volume=_env_float(
             "ATTENTION_SHORTLIST_LIQUIDITY_MIN_DOLLAR_VOLUME",
@@ -191,6 +206,19 @@ def attention_candidate_policy() -> AttentionCandidatePolicy:
             1.0,
             minimum=0.0,
         ),
+        anomaly_min_history_days=_env_int("ATTENTION_ANOMALY_MIN_HISTORY_DAYS", 25, minimum=5),
+        anomaly_candidate_pool_max_count=_env_int("ATTENTION_ANOMALY_CANDIDATE_POOL_MAX_COUNT", 500, minimum=25),
+        anomaly_lookback_days=_env_int("ATTENTION_ANOMALY_LOOKBACK_DAYS", 90, minimum=10),
+        anomaly_min_return_std_pct=_env_float("ATTENTION_ANOMALY_MIN_RETURN_STD_PCT", 0.35, minimum=0.01),
+        anomaly_min_log_volume_std=_env_float("ATTENTION_ANOMALY_MIN_LOG_VOLUME_STD", 0.25, minimum=0.01),
+        anomaly_min_range_std_pct=_env_float("ATTENTION_ANOMALY_MIN_RANGE_STD_PCT", 0.35, minimum=0.01),
+        anomaly_return_weight=_env_float("ATTENTION_ANOMALY_RETURN_WEIGHT", 1.0, minimum=0.0),
+        anomaly_volume_weight=_env_float("ATTENTION_ANOMALY_VOLUME_WEIGHT", 0.45, minimum=0.0),
+        anomaly_range_weight=_env_float("ATTENTION_ANOMALY_RANGE_WEIGHT", 0.35, minimum=0.0),
+        anomaly_score_mult=_env_float("ATTENTION_ANOMALY_SCORE_MULT", 18.0, minimum=0.0),
+        anomaly_score_cap=_env_float("ATTENTION_ANOMALY_SCORE_CAP", 120.0, minimum=0.0),
+        anomaly_evidence_bonus_cap=_env_float("ATTENTION_ANOMALY_EVIDENCE_BONUS_CAP", 18.0, minimum=0.0),
+        anomaly_context_bonus_cap=_env_float("ATTENTION_ANOMALY_CONTEXT_BONUS_CAP", 12.0, minimum=0.0),
         confidence_high_abs_change_pct=_env_float("ATTENTION_CONFIDENCE_HIGH_ABS_CHANGE_PCT", 6.0, minimum=0.0),
         confidence_high_abs_surprise_z=_env_float("ATTENTION_CONFIDENCE_HIGH_ABS_SURPRISE_Z", 2.0, minimum=0.0),
         confidence_high_best_authority_rank_max=_env_int("ATTENTION_CONFIDENCE_HIGH_MAX_AUTHORITY_RANK", 1, minimum=0),

@@ -11,7 +11,14 @@ if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
 import api.main as api_main
-from data_access.contracts import QueryRequest, QueryResponse
+from data_access.contracts import (
+    ChartModel,
+    ChartTraceModel,
+    DataProvenance,
+    QueryRequest,
+    QueryResponse,
+    ResolvedPayload,
+)
 from services import api_auth, auth_service
 
 
@@ -50,6 +57,22 @@ class _StubQueryService:
             result_type="dataset",
             payload=[{"symbol": "AAPL"}],
             provenance=None,
+        )
+
+    def build_chart(self, name: str, params: dict[str, object]) -> ResolvedPayload:
+        return ResolvedPayload(
+            payload=ChartModel(
+                chart_id=name,
+                title="AAPL Price Channel",
+                datasets={"primary": [{"timestamp": "2026-04-01T00:00:00", "close": 100.0}]},
+                traces=[ChartTraceModel(trace_type="line", name="Close", x="timestamp", y="close")],
+                metadata={"ticker": str(params.get("ticker") or "")},
+            ),
+            provenance=DataProvenance(
+                mode="materialized",
+                datasets=("technical_signal_history",),
+                details={"dataset_version_id": "tech-v1"},
+            ),
         )
 
 
@@ -103,6 +126,65 @@ def test_login_returns_access_and_refresh_tokens(monkeypatch):
     assert payload["access_token"] == "access-token"
     assert payload["refresh_token"] == "refresh-token"
     assert payload["context"]["email"] == "user@example.com"
+
+
+def test_public_auth_status_omits_secret_diagnostics(monkeypatch):
+    monkeypatch.setattr(
+        api_main.auth_service,
+        "initialize_auth_system",
+        lambda **_kwargs: {
+            "available": True,
+            "ready": True,
+            "has_users": True,
+            "bootstrapped": False,
+            "email_delivery": True,
+            "email_delivery_status": {
+                "mail_status": {
+                    "smtp_username": {"value": "must-not-leak"},
+                    "smtp_password": {"value": "must-not-leak"},
+                }
+            },
+            "message": "",
+        },
+    )
+    monkeypatch.setattr(api_main, "_auth_status", lambda: {"enabled": True, "error": "private diagnostic"})
+    monkeypatch.setattr(api_main.auth_service, "auth_mode", lambda: "database")
+
+    client = TestClient(api_main.app)
+    response = client.get("/v1/auth/status")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "available": True,
+        "ready": True,
+        "has_users": True,
+        "bootstrapped": False,
+        "email_delivery": True,
+        "mode": "database",
+        "database_auth_enabled": True,
+    }
+
+
+def test_login_returns_service_unavailable_when_shared_auth_store_is_down(monkeypatch):
+    monkeypatch.setattr(api_main, "_auth_enabled", lambda: True)
+    monkeypatch.setattr(
+        api_main.api_auth,
+        "issue_user_tokens_from_password",
+        lambda **_kwargs: {
+            "ok": False,
+            "unavailable": True,
+            "message": "Sign-in is unavailable.",
+        },
+    )
+
+    client = TestClient(api_main.app)
+    response = client.post(
+        "/v1/auth/login",
+        json={"email": "user@example.com", "password": "StrongPass123"},
+    )
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Sign-in is unavailable."}
 
 
 def test_refresh_returns_rotated_tokens(monkeypatch):
@@ -286,6 +368,31 @@ def test_protected_endpoint_fails_closed_when_auth_backend_errors(monkeypatch):
 
     assert response.status_code == 503
     assert "Authentication backend unavailable" in response.json().get("detail", "")
+
+
+def test_visualization_endpoint_returns_versioned_plotly_artifact(monkeypatch):
+    monkeypatch.setattr(
+        api_main.api_auth,
+        "principal_from_agent_api_key",
+        lambda token: _agent_principal(api_auth.SCOPE_QUERY_EXECUTE, api_auth.SCOPE_CHART_READ),
+    )
+    monkeypatch.setattr(api_main.QueryService, "from_environment", lambda: _StubQueryService())
+
+    client = TestClient(api_main.app)
+    response = client.post(
+        "/v1/visualization/technical_price_channel",
+        headers={"X-API-Key": "snak_test"},
+        json={"params": {"ticker": "AAPL", "days": 365}},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["result_type"] == "visualization"
+    assert payload["request"]["operation"] == "visualization"
+    assert payload["payload"]["schema_version"] == "visualization.v1"
+    assert payload["payload"]["renderer_contract"] == "plotly.figure.v1"
+    assert payload["payload"]["datasets"]["primary"]["row_count"] == 1
+    assert payload["payload"]["provenance"]["details"]["dataset_version_id"] == "tech-v1"
 
 
 def test_agent_rpc_tools_call_executes_dataset(monkeypatch):

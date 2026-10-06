@@ -1,13 +1,198 @@
 from __future__ import annotations
 
+from collections import Counter
 import json
+import math
+import re
 from typing import Any
 
 from data_access.contracts import QueryRequest, coerce_object
 from data_access.query_service import QueryService
 from . import zopedia_research
 from . import zopedia_analysis
-from .aql_zopedia_engine import load_aql_zopedia_llm_client, repair_aql_zopedia_analysis_arguments
+from .aql_zopedia_engine import load_aql_zopedia_llm_client
+
+
+_TOOL_TOKEN_PATTERN = re.compile(r"[a-z0-9]+")
+
+
+def _tool_tokens(value: object) -> list[str]:
+    normalized: list[str] = []
+    for token in _TOOL_TOKEN_PATTERN.findall(str(value or "").lower()):
+        if len(token) > 4 and token.endswith("ies"):
+            token = token[:-3] + "y"
+        elif len(token) > 3 and token.endswith("s") and not token.endswith("ss"):
+            token = token[:-1]
+        normalized.append(token)
+    return normalized
+
+
+def _tool_search_text(tool: dict[str, Any]) -> str:
+    searchable = {
+        "name": tool.get("name"),
+        "description": tool.get("description"),
+        "input_schema": tool.get("inputSchema"),
+        "examples": tool.get("examples"),
+        "failure_modes": tool.get("failure_modes"),
+        "empty_result_guidance": tool.get("empty_result_guidance"),
+    }
+    return json.dumps(searchable, ensure_ascii=True, sort_keys=True, default=str)
+
+
+class ToolRegistry:
+    """Canonical tool definitions with exact lookup and bounded BM25 search."""
+
+    def __init__(self, tools: list[dict[str, Any]]) -> None:
+        ordered: list[dict[str, Any]] = []
+        by_name: dict[str, dict[str, Any]] = {}
+        for raw_tool in tools:
+            tool = dict(raw_tool or {})
+            name = str(tool.get("name") or "").strip()
+            if not name:
+                raise ValueError("Tool definitions require a non-empty name.")
+            if name in by_name:
+                raise ValueError(f"Duplicate tool definition: {name}")
+            tool["name"] = name
+            ordered.append(tool)
+            by_name[name] = tool
+        self._tools = ordered
+        self._by_name = by_name
+        self._token_counts = [Counter(_tool_tokens(_tool_search_text(tool))) for tool in ordered]
+        self._document_lengths = [sum(counts.values()) for counts in self._token_counts]
+        self._average_document_length = (
+            sum(self._document_lengths) / len(self._document_lengths)
+            if self._document_lengths
+            else 0.0
+        )
+        self._document_frequency: Counter[str] = Counter()
+        for counts in self._token_counts:
+            self._document_frequency.update(counts.keys())
+
+    def __len__(self) -> int:
+        return len(self._tools)
+
+    def catalog(self) -> list[dict[str, Any]]:
+        return [dict(tool) for tool in self._tools]
+
+    def get(self, name: object) -> dict[str, Any] | None:
+        tool = self._by_name.get(str(name or "").strip())
+        return dict(tool) if tool is not None else None
+
+    def namespaces(self) -> dict[str, int]:
+        counts: Counter[str] = Counter()
+        for name in self._by_name:
+            namespace = name.split(".", 1)[0] if "." in name else "system"
+            counts[namespace] += 1
+        return dict(sorted(counts.items()))
+
+    def search(
+        self,
+        query: object,
+        *,
+        namespace: object = "",
+        limit: int = 8,
+    ) -> list[dict[str, Any]]:
+        query_text = str(query or "").strip().lower()
+        query_tokens = _tool_tokens(query_text)
+        if not query_tokens:
+            return []
+        namespace_text = str(namespace or "").strip().lower().rstrip(".")
+        limit = max(1, min(int(limit or 8), 20))
+        document_count = max(len(self._tools), 1)
+        average_length = self._average_document_length or 1.0
+        ranked: list[tuple[float, str, dict[str, Any]]] = []
+        for index, tool in enumerate(self._tools):
+            name = str(tool["name"])
+            if namespace_text and not name.lower().startswith(f"{namespace_text}."):
+                continue
+            counts = self._token_counts[index]
+            document_length = self._document_lengths[index]
+            score = 0.0
+            for token in query_tokens:
+                frequency = counts.get(token, 0)
+                if frequency <= 0:
+                    continue
+                document_frequency = self._document_frequency.get(token, 0)
+                inverse_document_frequency = math.log(
+                    1.0 + (document_count - document_frequency + 0.5) / (document_frequency + 0.5)
+                )
+                denominator = frequency + 1.2 * (1.0 - 0.75 + 0.75 * document_length / average_length)
+                score += inverse_document_frequency * (frequency * 2.2) / denominator
+            lower_name = name.lower()
+            if query_text == lower_name:
+                score += 100.0
+            elif query_text in lower_name:
+                score += 12.0
+            name_tokens = set(_tool_tokens(lower_name))
+            score += 2.5 * len(name_tokens.intersection(query_tokens))
+            if score > 0:
+                ranked.append((score, name, tool))
+        ranked.sort(key=lambda item: (-item[0], item[1]))
+        return [
+            {**dict(tool), "search_score": round(score, 6)}
+            for score, _, tool in ranked[:limit]
+        ]
+
+    def search_result(
+        self,
+        query: object,
+        *,
+        namespace: object = "",
+        limit: int = 8,
+    ) -> dict[str, Any]:
+        matches = self.search(query, namespace=namespace, limit=limit)
+        namespace_text = str(namespace or "").strip().lower().rstrip(".")
+        lines = [
+            f"- {tool['name']}: {str(tool.get('description') or '').strip()}"
+            for tool in matches
+        ]
+        return {
+            "request": {
+                "operation": "tool_search",
+                "name": "tools.search",
+                "params": {
+                    "query": str(query or "").strip(),
+                    "namespace": namespace_text,
+                    "limit": max(1, min(int(limit or 8), 20)),
+                },
+            },
+            "result_type": "tool_search",
+            "payload": {
+                "tools": matches,
+                "match_count": len(matches),
+                "namespaces": self.namespaces(),
+                "llm_context_text": "\n".join(lines) if lines else "No matching tools were found.",
+            },
+            "provenance": {
+                "mode": "computed",
+                "datasets": [],
+                "details": {"index": "tool_registry_bm25"},
+            },
+            "messages": [],
+        }
+
+
+_TOOL_SEARCH_TOOL: dict[str, Any] = {
+    "name": "tools.search",
+    "description": (
+        "Search the shared tool registry when the needed capability is not obvious. "
+        "Returns matching tool names, descriptions, and input schemas. Search by the "
+        "evidence or computation needed, not by a guessed implementation name."
+    ),
+    "inputSchema": {
+        "type": "object",
+        "properties": {
+            "query": {"type": "string", "description": "Capability or evidence needed."},
+            "namespace": {
+                "type": ["string", "null"],
+                "description": "Optional namespace such as research, zopedia, dataset, or analysis.",
+            },
+            "limit": {"type": "integer", "description": "Maximum matches, from 1 to 20."},
+        },
+        "required": ["query"],
+        "additionalProperties": False,
+    },
+}
 
 
 def tool_schema(
@@ -709,9 +894,14 @@ def is_analysis_tool(tool_name: str) -> bool:
     return str(tool_name or "").strip() in {"analysis.run_python", "analysis.read_raw_output"}
 
 
-def build_tool_catalog(service: QueryService) -> list[dict[str, Any]]:
+def is_tool_search_tool(tool_name: str) -> bool:
+    return str(tool_name or "").strip() == "tools.search"
+
+
+def build_tool_registry(service: QueryService) -> ToolRegistry:
     capabilities = service.list_capabilities()
     tools: list[dict[str, Any]] = [
+        _TOOL_SEARCH_TOOL,
         {
             "name": "system.capabilities",
             "description": "Return dataset and chart capability metadata.",
@@ -745,7 +935,12 @@ def build_tool_catalog(service: QueryService) -> list[dict[str, Any]]:
                 "resolution": spec.get("resolution"),
             }
         )
-    return tools
+    return ToolRegistry(tools)
+
+
+def build_tool_catalog(service: QueryService) -> list[dict[str, Any]]:
+    """Compatibility view of the canonical shared tool registry."""
+    return build_tool_registry(service).catalog()
 
 
 def build_query_request_for_tool(
@@ -985,38 +1180,6 @@ def _invoke_analysis_tool(
         raise ValueError(f"Unsupported tool '{tool_name}'.")
     normalized_args = _normalize_analysis_arguments(args)
     payload = _run_analysis_payload(service=service, args=normalized_args)
-    repair_attempt = 0
-    max_repair_attempts = 3
-    while _analysis_payload_needs_repair(payload) and repair_attempt < max_repair_attempts:
-        repair_attempt += 1
-        repaired_args = _repair_analysis_arguments(
-            service=service,
-            original_args=normalized_args,
-            failure_payload=payload,
-            repair_attempt=repair_attempt,
-        )
-        if repaired_args is not None:
-            repaired_payload = _run_analysis_payload(service=service, args=repaired_args)
-            repaired_payload.setdefault("messages", [])
-            repaired_payload["messages"] = list(repaired_payload.get("messages") or []) + [
-                f"Analysis input/code repair attempt {repair_attempt} ran after a tool-contract failure."
-            ]
-            repaired_payload.setdefault("metadata", {})
-            repaired_payload["metadata"] = {
-                **dict(repaired_payload.get("metadata") or {}),
-                "analysis_repaired": True,
-                "repaired_from_run_id": payload.get("analysis_run_id"),
-                "repair_notes": repaired_args.get("_repair_notes") or "",
-                "analysis_repair_attempt": repair_attempt,
-            }
-            repaired_payload["llm_context_text"] = (
-                str(repaired_payload.get("llm_context_text") or "")
-                + f"\nRepair: analysis input/code repair attempt {repair_attempt} ran after the prior failure."
-            ).strip()
-            payload = repaired_payload
-            normalized_args = repaired_args
-        else:
-            break
     return {
         "request": {"operation": "analysis", "name": tool_name, "params": normalized_args},
         "result_type": "analysis_result",
@@ -1126,75 +1289,6 @@ def _coerce_analysis_inline_datasets(value: object) -> list[dict[str, Any]]:
             if isinstance(rows, list):
                 datasets.append({"name": str(parsed.get("name") or parsed.get("alias") or "inline"), "rows": rows})
     return datasets
-
-
-def _analysis_payload_needs_repair(payload: dict[str, Any]) -> bool:
-    status = str(payload.get("status") or "").strip().lower()
-    if status in {"succeeded", "success"}:
-        return False
-    metadata = dict(payload.get("metadata") or {})
-    category = str(metadata.get("failure_category") or "").strip()
-    if category in {"analysis_code_error", "analysis_input_missing", "analysis_runtime_error"}:
-        return True
-    error = str(payload.get("error") or "").lower()
-    return any(marker in error for marker in ("syntax error", "no analysis input", "nameerror", "keyerror"))
-
-
-def _repair_analysis_arguments(
-    *,
-    service: QueryService,
-    original_args: dict[str, Any],
-    failure_payload: dict[str, Any],
-    repair_attempt: int = 1,
-) -> dict[str, Any] | None:
-    capabilities: dict[str, Any] = {}
-    try:
-        raw_capabilities = service.list_capabilities()
-        capabilities = {
-            "datasets": {
-                name: {
-                    "description": spec.get("description"),
-                    "params": spec.get("params"),
-                    "required_params": spec.get("required_params"),
-                    "param_schema": spec.get("param_schema"),
-                }
-                for name, spec in dict((raw_capabilities or {}).get("datasets") or {}).items()
-                if isinstance(spec, dict)
-            }
-        }
-    except Exception:
-        capabilities = {}
-    try:
-        input_profile = zopedia_analysis.build_analysis_input_profile(
-            service=service,
-            dataset_refs=list(original_args.get("dataset_refs") or []),
-            inline_datasets=list(original_args.get("inline_datasets") or []),
-            max_rows=_int_arg(original_args.get("max_rows"), default=zopedia_analysis.MAX_DATASET_ROWS),
-            sample_rows=3,
-        )
-    except Exception as exc:
-        input_profile = {"status": "failed", "error": f"{type(exc).__name__}: {exc}"}
-    repaired = repair_aql_zopedia_analysis_arguments(
-        original_args=original_args,
-        failure_payload=failure_payload,
-        dataset_capabilities=capabilities,
-        analysis_input_profile=input_profile,
-        repair_attempt=repair_attempt,
-    )
-    if not isinstance(repaired, dict):
-        return None
-    normalized = _normalize_analysis_arguments(
-        {
-            "objective": repaired.get("objective") or original_args.get("objective") or "",
-            "code": repaired.get("code") or "",
-            "dataset_refs": repaired.get("dataset_refs") or [],
-            "inline_datasets": repaired.get("inline_datasets") or [],
-            "timeout_seconds": original_args.get("timeout_seconds") or zopedia_analysis.DEFAULT_TIMEOUT_SECONDS,
-            "max_rows": original_args.get("max_rows") or zopedia_analysis.MAX_DATASET_ROWS,
-        }
-    )
-    normalized["_repair_notes"] = str(repaired.get("notes") or "").strip()
-    return normalized if str(normalized.get("code") or "").strip() else None
 
 
 def _invoke_hypothesis_tool(
@@ -1790,7 +1884,16 @@ def invoke_tool(
     tool_name: str,
     arguments: dict[str, Any] | None = None,
     run_id: str = "",
+    registry: ToolRegistry | None = None,
 ) -> dict[str, Any]:
+    if is_tool_search_tool(tool_name):
+        args = coerce_object(arguments, field_name="arguments")
+        resolved_registry = registry or build_tool_registry(service)
+        return resolved_registry.search_result(
+            args.get("query"),
+            namespace=args.get("namespace"),
+            limit=int(args.get("limit") or 8),
+        )
     if is_research_tool(tool_name):
         return _invoke_research_tool(service=service, tool_name=tool_name, arguments=arguments)
     if is_zopedia_tool(tool_name):
@@ -1810,13 +1913,16 @@ def invoke_tool(
 
 
 __all__ = [
+    "ToolRegistry",
     "build_tool_catalog",
+    "build_tool_registry",
     "build_query_request_for_tool",
     "is_analysis_tool",
     "is_investigator_tool",
     "is_query_service_tool",
     "is_research_tool",
     "is_scratchpad_tool",
+    "is_tool_search_tool",
     "is_zopedia_tool",
     "invoke_tool",
     "tool_schema",

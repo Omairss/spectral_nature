@@ -96,6 +96,15 @@ def _secret_resolution_message(label: str, resolution: dict[str, Any]) -> str:
     return f"{label} is missing."
 
 
+def _safe_secret_resolution(resolution: dict[str, Any]) -> dict[str, Any]:
+    """Keep operational provenance while making resolved secret values non-serializable."""
+    return {
+        key: value
+        for key, value in dict(resolution or {}).items()
+        if key not in {"value", "error_message"}
+    }
+
+
 def email_delivery_status() -> dict[str, Any]:
     smtp_host = _smtp_host()
     from_address = describe_secret_resolution(
@@ -128,11 +137,11 @@ def email_delivery_status() -> dict[str, Any]:
         "smtp_host": smtp_host,
         "from_address_present": bool(from_address.get("resolved")),
         "from_address_source": str(from_address.get("source") or ""),
-        "from_address": from_address,
+        "from_address": _safe_secret_resolution(from_address),
         "smtp_username_present": bool(smtp_username.get("resolved")),
-        "smtp_username": smtp_username,
+        "smtp_username": _safe_secret_resolution(smtp_username),
         "smtp_password_present": bool(smtp_password.get("resolved")),
-        "smtp_password": smtp_password,
+        "smtp_password": _safe_secret_resolution(smtp_password),
         "smtp_auth_configured": bool(smtp_username.get("resolved")) and bool(smtp_password.get("resolved")),
     }
 

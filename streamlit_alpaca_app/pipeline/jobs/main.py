@@ -57,6 +57,8 @@ from services.market_data import (
     scan_momentum_profiles,
 )
 from services.aql_zopedia_engine import load_aql_zopedia_llm_client
+from services.agents.research_runs import execute_next_queued_run
+from services.all_signal_ranker import RANKING_DATASET_NAMES, rank_trading_agent_opportunities
 from services.aql.business_model_stack import build_ticker_business_model_stack_frames
 from services.aql.config import _load_search_clients
 from services.aql.news_business_resolution import build_news_business_resolution_frames
@@ -68,7 +70,17 @@ from services.page_agentic_summary import (
     build_page_agentic_summary,
     build_unavailable_page_agentic_summary,
 )
-from services.pipeline_store import load_latest_dataset_frame, load_recent_dataset_frames
+from services.pipeline_store import (
+    SYMBOL_HASH_PARTITION_BUCKETS,
+    SYMBOL_HASH_PARTITION_STRATEGY,
+    dataset_blob_path,
+    dataset_namespace,
+    dataset_storage_name,
+    dataset_version_id_for_namespace,
+    load_latest_dataset_frame,
+    load_recent_dataset_frames,
+    symbol_partition_bucket,
+)
 from services.saa import (
     apply_zopedia_typed_mutation,
     bootstrap_saa_storage,
@@ -79,12 +91,13 @@ from services.saa import (
 )
 from services.secrets import postgres_connect_timeout_seconds, resolve_secret_value
 from services.simfin_refresh import build_quarterly_fundamentals_frame, simfin_refresh_configured
+from services.system_health import run_system_health_check
 from services.treasury_yields import TreasuryYieldError, load_treasury_yield_datasets
 from services.trading_agent import (
     build_trading_agent_materialized_frames,
     build_trading_agent_outcomes,
     build_trading_agent_research_reviews,
-    build_trading_agent_suggestions,
+    build_trading_agent_shared_research_frames,
 )
 from services.universe import build_liquidity_ranked_equity_universe, load_us_equity_listings
 from services.zopedia_learning import run_zopedia_learning_job as run_zopedia_learning_service
@@ -130,7 +143,8 @@ def _to_json(payload: dict) -> str:
 
 
 def _dataset_version_id(dataset_name: str, ctx: JobContext) -> str:
-    return f"{dataset_name}__{ctx.asof.strftime('%Y%m%dT%H%M%SZ')}__{ctx.run_id[:8]}"
+    base_id = f"{dataset_name}__{ctx.asof.strftime('%Y%m%dT%H%M%SZ')}__{ctx.run_id[:8]}"
+    return dataset_version_id_for_namespace(base_id)
 
 
 def _parameter_hash(ctx: JobContext) -> str:
@@ -326,7 +340,7 @@ def _db_mark_job_start(conn: Any, ctx: JobContext) -> None:
             """,
             (
                 ctx.run_id,
-                ctx.name,
+                dataset_storage_name(ctx.name),
                 (os.getenv("SCHEDULE_SLOT") or "").strip() or None,
                 _utc_now(),
                 "Running",
@@ -525,7 +539,7 @@ def _db_upsert_dataset_version(conn: Any, manifest: dict, ctx: JobContext) -> No
             """,
             (
                 manifest["dataset_version_id"],
-                manifest["dataset_name"],
+                dataset_storage_name(manifest["dataset_name"]),
                 manifest.get("universe_version"),
                 _parameter_hash(ctx),
                 manifest["asof_time_utc"],
@@ -552,7 +566,7 @@ def _db_dataset_is_fresh(conn: Any, dataset_name: str, max_age_hours: float) -> 
                 FROM dataset_versions
                 WHERE dataset_name = %s AND status = 'ready'
                 """,
-                (dataset_name,),
+                (dataset_storage_name(dataset_name),),
             )
             row = cur.fetchone()
     except Exception:
@@ -630,7 +644,7 @@ def _prepare_frame_for_parquet(frame: pd.DataFrame) -> pd.DataFrame:
 def _upload_frame(dataset_name: str, frame: pd.DataFrame, ctx: JobContext) -> str:
     asof_slug = ctx.asof.strftime("%Y-%m-%dT%H-%M-%SZ")
     dt_slug = ctx.asof.strftime("%Y-%m-%d")
-    path = (
+    path = dataset_blob_path(
         f"datasets/{dataset_name}/dt={dt_slug}/asof={asof_slug}/"
         f"universe={ctx.universe_version}/part-{ctx.run_id[:8]}.parquet"
     )
@@ -641,13 +655,59 @@ def _upload_frame(dataset_name: str, frame: pd.DataFrame, ctx: JobContext) -> st
     return path
 
 
-def _upload_manifest(dataset_name: str, path: str, frame: pd.DataFrame, ctx: JobContext) -> dict | None:
+_SYMBOL_PARTITIONED_DATASETS = {"price_history", "technical_signal_history"}
+
+
+def _upload_symbol_partitions(dataset_name: str, frame: pd.DataFrame, ctx: JobContext) -> dict[str, object]:
+    if dataset_name not in _SYMBOL_PARTITIONED_DATASETS or frame.empty or "symbol" not in frame.columns:
+        return {}
+    partitioned = frame.copy()
+    normalized_symbols = partitioned["symbol"].astype(str).str.upper().str.strip()
+    partitioned = partitioned[normalized_symbols.ne("")].copy()
+    if partitioned.empty:
+        return {}
+    partitioned["symbol"] = normalized_symbols.loc[partitioned.index]
+    partitioned["_symbol_bucket"] = partitioned["symbol"].map(symbol_partition_bucket)
+    asof_slug = ctx.asof.strftime("%Y-%m-%dT%H-%M-%SZ")
+    dt_slug = ctx.asof.strftime("%Y-%m-%d")
+    paths: dict[str, str] = {}
+    row_counts: dict[str, int] = {}
+    for bucket, bucket_frame in partitioned.groupby("_symbol_bucket", sort=True):
+        clean_frame = bucket_frame.drop(columns=["_symbol_bucket"]).reset_index(drop=True)
+        path = dataset_blob_path(
+            f"datasets/{dataset_name}/dt={dt_slug}/asof={asof_slug}/"
+            f"universe={ctx.universe_version}/partition={SYMBOL_HASH_PARTITION_STRATEGY}/"
+            f"bucket={bucket}/part-{ctx.run_id[:8]}.parquet"
+        )
+        buffer = BytesIO()
+        _prepare_frame_for_parquet(clean_frame).to_parquet(buffer, index=False)
+        _upload_bytes(path, buffer.getvalue(), "application/octet-stream")
+        paths[str(bucket)] = path
+        row_counts[str(bucket)] = int(len(clean_frame))
+    return {
+        "strategy": SYMBOL_HASH_PARTITION_STRATEGY,
+        "column": "symbol",
+        "bucket_count": SYMBOL_HASH_PARTITION_BUCKETS,
+        "paths": paths,
+        "row_counts": row_counts,
+    }
+
+
+def _upload_manifest(
+    dataset_name: str,
+    path: str,
+    frame: pd.DataFrame,
+    ctx: JobContext,
+    *,
+    partitioning: dict[str, object] | None = None,
+) -> dict | None:
     if not path:
         return None
     dataset_version_id = _dataset_version_id(dataset_name, ctx)
     manifest = {
         "dataset_version_id": dataset_version_id,
         "dataset_name": dataset_name,
+        "dataset_namespace": dataset_namespace(),
         "run_id": ctx.run_id,
         "asof_time_utc": ctx.asof.isoformat(),
         "ingested_at_utc": _utc_now().isoformat(),
@@ -656,10 +716,12 @@ def _upload_manifest(dataset_name: str, path: str, frame: pd.DataFrame, ctx: Job
         "row_count": int(len(frame)),
         "schema_columns": list(frame.columns),
     }
-    manifest_path = f"manifests/{dataset_name}/{dataset_version_id}.json"
+    if partitioning:
+        manifest["partitioning"] = partitioning
+    manifest_path = dataset_blob_path(f"manifests/{dataset_name}/{dataset_version_id}.json")
     payload = _to_json(manifest).encode("utf-8")
     _upload_bytes(manifest_path, payload, "application/json")
-    _upload_bytes(f"manifests/{dataset_name}/latest.json", payload, "application/json")
+    _upload_bytes(dataset_blob_path(f"manifests/{dataset_name}/latest.json"), payload, "application/json")
     return manifest
 
 
@@ -692,7 +754,12 @@ def _persist_dataset(dataset_name: str, frame: pd.DataFrame, ctx: JobContext, co
         except Exception as exc:
             print(f"[warn] failed to retain evidence chunks for `{dataset_name}`: {type(exc).__name__}: {exc}")
     path = _upload_frame(dataset_name, prepared_frame, ctx)
-    manifest = _upload_manifest(dataset_name, path, prepared_frame, ctx)
+    partitioning = _upload_symbol_partitions(dataset_name, prepared_frame, ctx)
+    manifest = (
+        _upload_manifest(dataset_name, path, prepared_frame, ctx, partitioning=partitioning)
+        if partitioning
+        else _upload_manifest(dataset_name, path, prepared_frame, ctx)
+    )
     if manifest and conn is not None:
         _db_upsert_dataset_version(conn, manifest, ctx)
     _job_progress(
@@ -2492,10 +2559,6 @@ def run_attention_home(ctx: JobContext, conn: Any | None = None) -> None:
     )
 
 
-def _trading_agent_horizon_timeout_seconds() -> int:
-    return _parse_int_env("TRADING_AGENT_HORIZON_TIMEOUT_SECONDS", 300, minimum=30)
-
-
 def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
     _job_progress(ctx, conn, stage="starting", message="Starting Trading Agent materialization.", progress_pct=1.0)
     opportunity_feed = _load_latest_materialized_frame("market_opportunity_feed")
@@ -2503,6 +2566,29 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
         message = "Trading Agent materialization requires market_opportunity_feed from attention-home-build."
         _job_progress(ctx, conn, stage="failed", message=message, progress_pct=100.0, status="Failed")
         raise RuntimeError(message)
+
+    if "business_filter" in opportunity_feed.columns:
+        all_market = opportunity_feed[
+            opportunity_feed["business_filter"].astype(str).str.strip().str.casefold().eq("all market")
+        ].copy()
+        if not all_market.empty:
+            opportunity_feed = all_market
+
+    ranking_frames = {
+        dataset_name: _load_latest_materialized_frame(dataset_name)
+        for dataset_name in RANKING_DATASET_NAMES
+    }
+    opportunity_feed = rank_trading_agent_opportunities(opportunity_feed, ranking_frames)
+    available_ranking_datasets = [
+        dataset_name
+        for dataset_name, frame in ranking_frames.items()
+        if isinstance(frame, pd.DataFrame) and not frame.empty
+    ]
+    print(
+        "[info] trading-agent all-signal rank ready: "
+        f"rows={len(opportunity_feed)} datasets={len(available_ranking_datasets)} "
+        f"sources={','.join(available_ranking_datasets)}"
+    )
 
     page_summaries = _load_latest_materialized_frame("page_agentic_summaries")
     llm_client = None
@@ -2512,16 +2598,10 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
         print(f"[warn] trading-agent LLM runtime unavailable: {exc}")
 
     candidate_limit = _parse_int_env("TRADING_AGENT_CANDIDATE_LIMIT", 4, minimum=1)
-    timeout_seconds = _trading_agent_horizon_timeout_seconds()
-
-    def _bounded_suggestion_builder(**kwargs: Any) -> dict[str, Any]:
-        context = kwargs.get("context") if isinstance(kwargs.get("context"), dict) else {}
-        controls = context.get("controls") if isinstance(context.get("controls"), dict) else {}
-        horizon_label = str(controls.get("selected_horizon_label") or controls.get("momentum_horizon") or "horizon")
-        return _call_with_timeout(
-            f"trading agent {horizon_label}",
-            timeout_seconds,
-            lambda: build_trading_agent_suggestions(**kwargs),
+    generation_mode = str(os.getenv("TRADING_AGENT_GENERATION_MODE") or "shared_research_v2").strip().lower()
+    if generation_mode not in {"shared_research_v2", "legacy_per_horizon_v1"}:
+        raise ValueError(
+            "TRADING_AGENT_GENERATION_MODE must be shared_research_v2 or legacy_per_horizon_v1."
         )
 
     _job_progress(
@@ -2529,29 +2609,86 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
         conn,
         stage="build_horizons",
         message=(
-            "Building Trading Agent research candidates across 1 week, 1 month, 3 month, "
-            "1 year, and 5 year horizons."
+            "Building Trading Agent company research once, then evaluating it across "
+            "1 week, 1 month, 3 month, 1 year, and 5 year horizons."
+            if generation_mode == "shared_research_v2"
+            else "Building Trading Agent candidates with the legacy per-horizon research path."
         ),
         progress_pct=15.0,
     )
-    runs, candidates = build_trading_agent_materialized_frames(
-        opportunity_feed=opportunity_feed,
-        page_summaries=page_summaries,
-        llm_client=llm_client,
-        run_id=ctx.run_id,
-        asof_time_utc=ctx.asof,
-        business_filter="All Market",
-        max_candidates=candidate_limit,
-        suggestion_builder=_bounded_suggestion_builder,
-    )
+
+    research_packages = pd.DataFrame()
+    if generation_mode == "shared_research_v2":
+        def _research_progress(completed: int, total: int, package: dict[str, Any]) -> None:
+            ticker = str(package.get("ticker") or "company").strip().upper()
+            status = str(package.get("status") or "unknown").strip().lower()
+            progress_pct = 15.0 + (55.0 * completed / max(total, 1))
+            _job_progress(
+                ctx,
+                conn,
+                stage="research_companies",
+                message=f"Company research {completed}/{total}: {ticker} {status}.",
+                progress_pct=progress_pct,
+            )
+
+        runs, candidates, research_packages = build_trading_agent_shared_research_frames(
+            opportunity_feed=opportunity_feed,
+            page_summaries=page_summaries,
+            llm_client=llm_client,
+            run_id=ctx.run_id,
+            asof_time_utc=ctx.asof,
+            business_filter="All Market",
+            max_candidates=candidate_limit,
+            research_candidate_limit=_parse_int_env(
+                "TRADING_AGENT_SCOUT_LIMIT_PER_HORIZON",
+                6,
+                minimum=candidate_limit,
+            ),
+            research_pool_limit=_parse_int_env("TRADING_AGENT_RESEARCH_POOL_LIMIT", 8, minimum=1),
+            research_parallelism=_parse_int_env("TRADING_AGENT_RESEARCH_PARALLELISM", 2, minimum=1),
+            research_max_tool_calls=_parse_int_env("TRADING_AGENT_RESEARCH_MAX_TOOL_CALLS", 4, minimum=1),
+            research_attempts=_parse_int_env("TRADING_AGENT_RESEARCH_ATTEMPTS", 2, minimum=1),
+            research_tool_timeout_seconds=_parse_int_env(
+                "TRADING_AGENT_RESEARCH_TOOL_TIMEOUT_SECONDS",
+                45,
+                minimum=5,
+            ),
+            research_llm_step_timeout_seconds=_parse_int_env(
+                "TRADING_AGENT_RESEARCH_LLM_STEP_TIMEOUT_SECONDS",
+                90,
+                minimum=10,
+            ),
+            research_prefetch_timeout_seconds=_parse_int_env(
+                "TRADING_AGENT_RESEARCH_PREFETCH_TIMEOUT_SECONDS",
+                15,
+                minimum=5,
+            ),
+            research_progress_callback=_research_progress,
+        )
+    else:
+        runs, candidates = build_trading_agent_materialized_frames(
+            opportunity_feed=opportunity_feed,
+            page_summaries=page_summaries,
+            llm_client=llm_client,
+            run_id=ctx.run_id,
+            asof_time_utc=ctx.asof,
+            business_filter="All Market",
+            max_candidates=candidate_limit,
+        )
 
     _job_progress(
         ctx,
         conn,
         stage="persist_trading_agent",
-        message=f"Persisting Trading Agent runs={len(runs)} candidates={len(candidates)}.",
+        message=(
+            f"Persisting Trading Agent packages={len(research_packages)} "
+            f"runs={len(runs)} candidates={len(candidates)}."
+        ),
         progress_pct=85.0,
     )
+    if generation_mode == "shared_research_v2":
+        _persist_dataset("trading_agent_research_packages", research_packages, ctx, conn)
+    _persist_dataset("trading_agent_ranked_opportunities", opportunity_feed, ctx, conn)
     _persist_dataset("trading_agent_runs", runs, ctx, conn)
     _persist_dataset("trading_agent_candidates", candidates, ctx, conn)
 
@@ -2614,14 +2751,28 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
     )
     _persist_dataset("trading_agent_outcomes", outcomes, ctx, conn)
     _persist_dataset("trading_agent_research_reviews", reviews, ctx, conn)
+    successful_horizons = int(runs["status"].astype(str).str.lower().eq("ok").sum()) if "status" in runs.columns else 0
+    completion_message = (
+        "Trading Agent materialization complete: "
+        f"mode={generation_mode} packages={len(research_packages)} "
+        f"successful_horizons={successful_horizons}/{len(runs)} "
+        f"candidates={len(candidates)} outcomes={len(outcomes)} reviews={len(reviews)}."
+    )
+    if successful_horizons == 0:
+        _job_progress(
+            ctx,
+            conn,
+            stage="failed",
+            message=completion_message,
+            progress_pct=100.0,
+            status="Failed",
+        )
+        raise RuntimeError("Trading Agent produced no successful horizon synthesis; inspect research packages and run errors.")
     _job_progress(
         ctx,
         conn,
         stage="done",
-        message=(
-            "Trading Agent materialization complete: "
-            f"runs={len(runs)} candidates={len(candidates)} outcomes={len(outcomes)} reviews={len(reviews)}."
-        ),
+        message=completion_message,
         progress_pct=100.0,
     )
 
@@ -2984,6 +3135,35 @@ def run_zopedia_learning_job(ctx: JobContext, conn: Any | None = None) -> None:
     )
 
 
+def run_system_health(ctx: JobContext, conn: Any | None = None) -> None:
+    _job_progress(ctx, conn, stage="starting", message="Checking current product health.", progress_pct=1.0)
+    if conn is None:
+        raise RuntimeError("System health monitoring requires a database connection.")
+    result = run_system_health_check(conn=conn, now=ctx.asof)
+    _job_progress(
+        ctx,
+        conn,
+        stage="done",
+        message=(
+            "System health check complete: "
+            f"open={len(result.open_issues)}, opened={len(result.opened_issue_keys)}, "
+            f"recovered={len(result.recovered_issue_keys)}, emails={result.emails_sent}."
+        ),
+        progress_pct=100.0,
+    )
+
+
+def run_research_run_executor(ctx: JobContext, conn: Any | None = None) -> None:
+    del conn
+    executor_id = (os.getenv("CONTAINER_APP_JOB_EXECUTION_NAME") or ctx.run_id).strip()
+    result = execute_next_queued_run(executor_id=executor_id)
+    print(
+        f"[info] research executor status={result.get('status', '')} "
+        f"run_id={result.get('run_id', '')}",
+        flush=True,
+    )
+
+
 def main() -> None:
     job_name = (os.getenv("PIPELINE_JOB_NAME") or "equities-intraday-preload").strip()
     ctx = JobContext(
@@ -3010,6 +3190,8 @@ def main() -> None:
         "fundamentals-quarterly-refresh": run_fundamentals,
         "zopedia-maintenance": run_zopedia_maintenance_job,
         "zopedia-learning": run_zopedia_learning_job,
+        "system-health": run_system_health,
+        "research-run-execute": run_research_run_executor,
     }
 
     handler = dispatch.get(ctx.name)

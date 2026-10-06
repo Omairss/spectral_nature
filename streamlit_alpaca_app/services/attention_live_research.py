@@ -16,7 +16,7 @@ from .common.news_freshness import (
 from .aql import search_symbol_news_payload
 from .attention_agentic import build_bottom_up_attention_bundle
 from .attention_home_1d import build_attention_research_bundle
-from .llm import NARRATIVE_STYLE_RULE, AzureOpenAIChatJSONClient, LLMAPIError, OpenAIChatJSONClient, get_prompt, register_narrative_prompt
+from .llm import JSONLLMClient, NARRATIVE_STYLE_RULE, LLMAPIError, get_prompt, register_narrative_prompt
 from .runtime_policy import source_authority_policy
 from .web_research import (
     SerperSearchClient,
@@ -28,7 +28,7 @@ from .web_research import (
 from .aql_zopedia_engine import load_aql_zopedia_llm_client
 
 
-LLMClient = OpenAIChatJSONClient | AzureOpenAIChatJSONClient
+LLMClient = JSONLLMClient
 
 MOVE_WORD_TOKENS = [
     "stock",

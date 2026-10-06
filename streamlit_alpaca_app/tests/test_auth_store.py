@@ -12,6 +12,77 @@ if str(APP_ROOT) not in sys.path:
 from services import auth_store
 
 
+def test_auth_store_prefers_dedicated_control_connection(monkeypatch):
+    values = {
+        "CONTROL_POSTGRES_CONNECTION_STRING": "postgresql://control-direct",
+        "CONTROL_POSTGRES_CONNECTION_STRING_SECRET": "control-postgres-connection-string",
+    }
+    calls: list[tuple[tuple[str, ...], str | None, str | None]] = []
+
+    monkeypatch.setattr(auth_store, "runtime_env_value", lambda name: values.get(name, ""))
+
+    def resolve(env_names, *, secret_name_env=None, default_secret_name=None):
+        calls.append((tuple(env_names), secret_name_env, default_secret_name))
+        return "control-dsn"
+
+    monkeypatch.setattr(auth_store, "resolve_secret_value", resolve)
+
+    assert auth_store._postgres_connection_string() == "control-dsn"
+    assert calls == [
+        (("CONTROL_POSTGRES_CONNECTION_STRING",), "CONTROL_POSTGRES_CONNECTION_STRING_SECRET", None)
+    ]
+
+
+def test_auth_store_falls_back_to_legacy_pipeline_connection_when_control_is_unconfigured(monkeypatch):
+    monkeypatch.setattr(auth_store, "runtime_env_value", lambda _name: "")
+    calls: list[tuple[tuple[str, ...], str | None, str | None]] = []
+
+    def resolve(env_names, *, secret_name_env=None, default_secret_name=None):
+        calls.append((tuple(env_names), secret_name_env, default_secret_name))
+        return "legacy-dsn"
+
+    monkeypatch.setattr(auth_store, "resolve_secret_value", resolve)
+
+    assert auth_store._postgres_connection_string() == "legacy-dsn"
+    assert calls == [
+        (("POSTGRES_CONNECTION_STRING",), "POSTGRES_CONNECTION_STRING_SECRET", "postgres-connection-string")
+    ]
+
+
+def test_auth_store_fails_closed_when_control_secret_is_configured_but_unavailable(monkeypatch):
+    monkeypatch.setattr(
+        auth_store,
+        "runtime_env_value",
+        lambda name: "control-postgres-connection-string"
+        if name == "CONTROL_POSTGRES_CONNECTION_STRING_SECRET"
+        else "",
+    )
+    calls: list[tuple[str, ...]] = []
+
+    def resolve(env_names, **_kwargs):
+        calls.append(tuple(env_names))
+        return ""
+
+    monkeypatch.setattr(auth_store, "resolve_secret_value", resolve)
+
+    assert auth_store._postgres_connection_string() == ""
+    assert calls == [("CONTROL_POSTGRES_CONNECTION_STRING",)]
+
+
+def test_auth_readiness_does_not_run_schema_migrations(monkeypatch):
+    fake_conn = _FakeConnection(_FakeCursor())
+    monkeypatch.setattr(auth_store, "_db_connect", lambda: fake_conn)
+    monkeypatch.setattr(auth_store, "_auth_schema_ready_on_connection", lambda conn: conn is fake_conn)
+    monkeypatch.setattr(
+        auth_store,
+        "_ensure_schema",
+        lambda _conn: (_ for _ in ()).throw(AssertionError("runtime readiness must not execute DDL")),
+    )
+
+    assert auth_store.ensure_auth_schema(require_available=True) is True
+    assert fake_conn.closed is True
+
+
 class _FakeCursor:
     def __init__(self) -> None:
         self.description = []
@@ -145,6 +216,28 @@ def test_list_users_aliases_users_table_and_merges_session_stats(monkeypatch):
     assert users[0]["open_session_count"] == 3
     assert users[0]["active_session_count"] == 1
     assert users[0]["last_seen_at"] == datetime(2026, 4, 11, 18, 20, tzinfo=timezone.utc)
+
+
+def test_list_users_distinguishes_store_outage_from_empty_directory(monkeypatch):
+    monkeypatch.setattr(auth_store, "_db_connect", lambda: None)
+
+    try:
+        auth_store.list_users()
+    except auth_store.AuthStoreUnavailable:
+        pass
+    else:
+        raise AssertionError("A store outage must not be reported as an empty user directory.")
+
+
+def test_list_pending_invites_distinguishes_store_outage_from_empty_list(monkeypatch):
+    monkeypatch.setattr(auth_store, "_db_connect", lambda: None)
+
+    try:
+        auth_store.list_pending_invites()
+    except auth_store.AuthStoreUnavailable:
+        pass
+    else:
+        raise AssertionError("A store outage must not be reported as an empty invite list.")
 
 
 def test_session_restore_filters_inactive_users(monkeypatch):

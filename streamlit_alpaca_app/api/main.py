@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response, status
+from fastapi import Depends, FastAPI, File, Header, HTTPException, Request, Response, UploadFile, status
 from pydantic import BaseModel, Field
 
 
@@ -13,9 +13,24 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from data_access.contracts import QueryRequest, QueryValidationError, coerce_object
+from data_access.contracts import QueryRequest, QueryResponse, QueryValidationError, coerce_object
 from data_access.query_service import QueryService
+from presentation.visualization_artifacts import build_plotly_visualization_artifact
 from services import agent_tools, api_auth, auth_service, auth_store, research_export, zopedia_resolver as zopedia_service
+from services.agents.research_runs import (
+    ResearchRunConflict,
+    ResearchRunError,
+    ResearchRunNotFound,
+    ResearchRunRepository,
+    dispatch_research_run,
+)
+from services.admin_view import build_admin_view
+from services.home_view import build_public_home_audio, build_public_home_view
+from services.market_view import build_market_lenses_view
+from services.portfolio_view import build_portfolio_view
+from services.stock_view import build_stock_investigator_view
+from services.trading_agent_view import build_trading_agent_view, record_trading_agent_decision
+from services.zopedia_view import build_zopedia_workspace, store_uploaded_zopedia_source
 
 
 def _auth_enabled() -> bool:
@@ -72,7 +87,7 @@ def _required_scopes_for_query(request_dict: dict[str, Any]) -> list[str]:
         return [api_auth.SCOPE_CAPABILITIES_READ]
     if operation == "dataset":
         return [api_auth.SCOPE_QUERY_EXECUTE, api_auth.SCOPE_DATASET_READ]
-    if operation == "chart":
+    if operation in {"chart", "visualization"}:
         return [api_auth.SCOPE_QUERY_EXECUTE, api_auth.SCOPE_CHART_READ]
     return [api_auth.SCOPE_QUERY_EXECUTE]
 
@@ -146,6 +161,12 @@ def _require_admin_user(principal: api_auth.AuthPrincipal) -> None:
         raise _error("Admin role required.", status.HTTP_403_FORBIDDEN)
 
 
+def _require_user_context(principal: api_auth.AuthPrincipal) -> auth_service.UserContext:
+    if principal.user_context is None:
+        raise _error("User session required.", status.HTTP_403_FORBIDDEN)
+    return principal.user_context
+
+
 def _execute_query(service: QueryService, payload: dict[str, Any]) -> dict[str, Any]:
     try:
         query = QueryRequest.from_dict(payload)
@@ -154,6 +175,27 @@ def _execute_query(service: QueryService, payload: dict[str, Any]) -> dict[str, 
         raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
     except Exception as exc:
         raise _error(f"{type(exc).__name__}: {exc}", status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return response.to_dict()
+
+
+def _execute_visualization(service: QueryService, *, name: str, params: dict[str, Any]) -> dict[str, Any]:
+    try:
+        resolved = service.build_chart(name, params)
+    except (QueryValidationError, ValueError) as exc:
+        raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
+    try:
+        artifact = build_plotly_visualization_artifact(
+            resolved.payload,
+            provenance=resolved.provenance,
+        )
+        response = QueryResponse(
+            request=QueryRequest(operation="visualization", name=name, params=params),
+            result_type="visualization",
+            payload=artifact,
+            provenance=resolved.provenance,
+        )
+    except Exception:
+        raise _error("Visualization could not be built.", status.HTTP_500_INTERNAL_SERVER_ERROR)
     return response.to_dict()
 
 
@@ -309,6 +351,75 @@ class ResearchExportRequest(BaseModel):
     end_date: str
 
 
+class ResearchRunCreateRequest(BaseModel):
+    query: str = Field(min_length=3, max_length=4000)
+    parent_run_id: str = Field(default="", max_length=80)
+
+
+class TradingAgentDecisionRequest(BaseModel):
+    candidate_id: str = Field(min_length=1, max_length=160)
+    action: str = Field(min_length=1, max_length=20)
+
+
+class AdminInviteRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=320)
+    role: str = Field(min_length=1, max_length=20)
+    share_fraction: float | None = None
+
+
+class AdminPasswordResetRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=320)
+
+
+class ResearchRunResultResponse(BaseModel):
+    status: str
+    answer_markdown: str
+    confidence: str
+    limitations: list[str] = Field(default_factory=list)
+    citations: list[dict[str, str]] = Field(default_factory=list)
+    provider: str = ""
+    model: str = ""
+    evidence_pack_id: str = ""
+    error: str = ""
+
+
+class ResearchRunResponse(BaseModel):
+    run_id: str
+    surface: str
+    task: str
+    query: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    status: str
+    result: ResearchRunResultResponse | None = None
+    last_event_sequence: int
+    created_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+    cancel_requested_at: datetime | None = None
+    attempt_count: int
+    dispatch_status: str
+    error_code: str = ""
+    write_policy: str
+
+
+class ResearchRunEventResponse(BaseModel):
+    event_id: str
+    run_id: str
+    sequence: int
+    event_type: str
+    stage: str
+    message: str
+    progress: float
+    payload: dict[str, Any] = Field(default_factory=dict)
+    created_at: datetime
+
+
+class ResearchRunEventsResponse(BaseModel):
+    run_id: str
+    events: list[ResearchRunEventResponse] = Field(default_factory=list)
+    last_event_sequence: int
+
+
 app = FastAPI(
     title="Spectral Nature API",
     version="1.0.0",
@@ -324,15 +435,177 @@ def healthcheck() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/v1/home")
+def public_home(response: Response, date: str = "") -> dict[str, Any]:
+    response.headers["Cache-Control"] = (
+        "public, max-age=3600, stale-while-revalidate=86400"
+        if date
+        else "public, max-age=30, stale-while-revalidate=120"
+    )
+    try:
+        return build_public_home_view(target_date=date)
+    except ValueError as exc:
+        raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
+    except Exception:
+        raise _error("Home data is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+@app.get("/v1/home/audio")
+def public_home_audio(date: str = "") -> Response:
+    try:
+        result = build_public_home_audio(target_date=date)
+    except ValueError as exc:
+        raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
+    except Exception:
+        raise _error("Home audio is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+    if result is None:
+        raise _error("Home audio is unavailable.", status.HTTP_404_NOT_FOUND)
+    audio, mime_type = result
+    return Response(
+        content=audio,
+        media_type=mime_type,
+        headers={
+            "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400" if date else "public, max-age=300",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
+
+
+@app.get("/v1/investigator/{ticker}")
+def stock_investigator_view(
+    ticker: str,
+    response: Response,
+    days: int = 365,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    _ensure_scopes(principal, [api_auth.SCOPE_QUERY_EXECUTE, api_auth.SCOPE_DATASET_READ])
+    response.headers["Cache-Control"] = "private, no-store"
+    try:
+        return build_stock_investigator_view(ticker, days=days, service=_query_service())
+    except ValueError as exc:
+        raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
+    except Exception:
+        raise _error("Stock Investigator data is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+@app.get("/v1/market-lenses")
+def market_lenses_view(
+    response: Response,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    _ensure_scopes(principal, [api_auth.SCOPE_QUERY_EXECUTE, api_auth.SCOPE_DATASET_READ])
+    response.headers["Cache-Control"] = "private, max-age=300"
+    try:
+        return build_market_lenses_view()
+    except Exception:
+        raise _error("Market lenses are unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+@app.get("/v1/portfolio")
+def portfolio_view(
+    response: Response,
+    period: str = "1Y",
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    context = _require_user_context(principal)
+    response.headers["Cache-Control"] = "private, no-store"
+    try:
+        return build_portfolio_view(context, period=period, service=_query_service())
+    except ValueError as exc:
+        raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
+    except Exception:
+        raise _error("Portfolio data is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+@app.get("/v1/trading-agent")
+def trading_agent_view(
+    response: Response,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    _require_admin_user(principal)
+    response.headers["Cache-Control"] = "private, no-store"
+    try:
+        return build_trading_agent_view()
+    except Exception:
+        raise _error("Trading Agent data is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+@app.post("/v1/trading-agent/decisions")
+def trading_agent_decision(
+    body: TradingAgentDecisionRequest,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    _require_admin_user(principal)
+    context = _require_user_context(principal)
+    try:
+        return record_trading_agent_decision(
+            candidate_id=body.candidate_id,
+            action=body.action,
+            context=context,
+        )
+    except ValueError as exc:
+        raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
+    except RuntimeError as exc:
+        raise _error(str(exc), status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+@app.get("/v1/admin")
+def admin_view(
+    response: Response,
+    days: int = 7,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    _require_admin_user(principal)
+    response.headers["Cache-Control"] = "private, no-store"
+    try:
+        return build_admin_view(days=days)
+    except Exception:
+        raise _error("Admin data is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+@app.post("/v1/admin/invites")
+def admin_invite(
+    body: AdminInviteRequest,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    _require_admin_user(principal)
+    context = _require_user_context(principal)
+    result = auth_service.issue_invite(
+        email=body.email,
+        role=body.role,
+        share_fraction=body.share_fraction,
+        created_by=context,
+    )
+    if not result.get("ok"):
+        raise _error(str(result.get("message") or "Invite could not be created."), status.HTTP_400_BAD_REQUEST)
+    return result
+
+
+@app.post("/v1/admin/password-resets")
+def admin_password_reset(
+    body: AdminPasswordResetRequest,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    _require_admin_user(principal)
+    context = _require_user_context(principal)
+    result = auth_service.admin_issue_password_reset(email=body.email, requested_by=context)
+    if not result.get("ok"):
+        raise _error(str(result.get("message") or "Password reset could not be issued."), status.HTTP_400_BAD_REQUEST)
+    return result
+
+
 @app.get("/v1/auth/status")
 def auth_status() -> dict[str, Any]:
-    initialized = auth_service.initialize_auth_system()
+    initialized = auth_service.initialize_auth_system(include_email_delivery=True)
     auth_status_payload = _auth_status()
     return {
-        **initialized,
+        "available": bool(initialized.get("available")),
+        "ready": bool(initialized.get("ready")),
+        "has_users": bool(initialized.get("has_users")),
+        "bootstrapped": bool(initialized.get("bootstrapped")),
+        "email_delivery": bool(initialized.get("email_delivery")),
         "mode": auth_service.auth_mode(),
-        "database_auth_enabled": auth_status_payload["enabled"],
-        "database_auth_error": auth_status_payload["error"],
+        "database_auth_enabled": bool(auth_status_payload["enabled"]),
     }
 
 
@@ -348,6 +621,8 @@ def login(payload: LoginRequest, request: Request) -> dict[str, Any]:
         ip_address=ip_address,
     )
     if not bool(result.get("ok")):
+        if bool(result.get("unavailable")):
+            raise _error("Sign-in is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
         raise _error(str(result.get("message") or "Invalid email or password."), status.HTTP_401_UNAUTHORIZED)
     context = result.get("context")
     return {
@@ -488,6 +763,182 @@ def resolve_zopedia(
         raise _error(f"Failed to resolve Zopedia request: {type(exc).__name__}: {exc}", status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@app.get("/v1/zopedia/workspace")
+def get_zopedia_workspace(
+    response: Response,
+    q: str = "",
+    limit: int = 60,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    response.headers["Cache-Control"] = "no-store"
+    context = _require_user_context(principal)
+    _ensure_zopedia_resolve_scope(principal)
+    try:
+        return build_zopedia_workspace(query=q, is_admin=context.is_admin, limit=limit)
+    except Exception:
+        raise _error("Zopedia workspace is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+@app.post("/v1/zopedia/sources/upload", status_code=status.HTTP_201_CREATED)
+async def upload_zopedia_source(
+    source: UploadFile = File(...),
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    context = _require_user_context(principal)
+    _ensure_zopedia_resolve_scope(principal)
+    filename = str(source.filename or "uploaded-source").strip()[:255]
+    if not filename:
+        raise _error("A source filename is required.", status.HTTP_400_BAD_REQUEST)
+    content = await source.read(5_242_881)
+    if not content:
+        raise _error("The source file is empty.", status.HTTP_400_BAD_REQUEST)
+    if len(content) > 5_242_880:
+        raise _error("Source files must be 5 MB or smaller.", status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+    try:
+        return store_uploaded_zopedia_source(
+            filename=filename,
+            content=content,
+            content_type=str(source.content_type or "")[:160],
+            owner_id=context.user_id,
+            owner_email=context.email,
+        )
+    except ValueError as exc:
+        raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
+    except Exception:
+        raise _error("The source could not be stored.", status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+@app.post("/v1/research-runs", response_model=ResearchRunResponse, status_code=status.HTTP_202_ACCEPTED)
+def create_research_run(
+    payload: ResearchRunCreateRequest,
+    response: Response,
+    idempotency_key: str = Header(alias="Idempotency-Key"),
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    response.headers["Cache-Control"] = "no-store"
+    context = _require_user_context(principal)
+    _ensure_zopedia_resolve_scope(principal)
+    repository: ResearchRunRepository | None = None
+    try:
+        repository = ResearchRunRepository.from_environment()
+        run, created = repository.create(
+            owner_id=context.user_id,
+            owner_email=context.email,
+            query=payload.query,
+            idempotency_key=idempotency_key,
+            parent_run_id=payload.parent_run_id,
+        )
+        if run["status"] == "queued" and (
+            created or run["dispatch_status"] in {"pending", "failed"}
+        ):
+            dispatch_research_run(repository, run_id=run["run_id"])
+            run = repository.get_for_user(run_id=run["run_id"], owner_id=context.user_id)
+        return run
+    except ValueError as exc:
+        raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
+    except ResearchRunConflict as exc:
+        raise _error(str(exc), status.HTTP_409_CONFLICT)
+    except ResearchRunError:
+        raise _error("Research service is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+    finally:
+        if repository is not None:
+            repository.close()
+
+
+@app.get("/v1/research-runs", response_model=list[ResearchRunResponse])
+def list_research_runs(
+    response: Response,
+    limit: int = 50,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> list[dict[str, Any]]:
+    response.headers["Cache-Control"] = "no-store"
+    context = _require_user_context(principal)
+    _ensure_zopedia_resolve_scope(principal)
+    repository: ResearchRunRepository | None = None
+    try:
+        repository = ResearchRunRepository.from_environment()
+        return repository.list_for_user(owner_id=context.user_id, limit=limit)
+    except (ValueError, ResearchRunError):
+        raise _error("Research threads are unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+    finally:
+        if repository is not None:
+            repository.close()
+
+
+@app.get("/v1/research-runs/{run_id}", response_model=ResearchRunResponse)
+def get_research_run(
+    run_id: str,
+    response: Response,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    response.headers["Cache-Control"] = "no-store"
+    context = _require_user_context(principal)
+    repository: ResearchRunRepository | None = None
+    try:
+        repository = ResearchRunRepository.from_environment()
+        return repository.get_for_user(run_id=run_id, owner_id=context.user_id)
+    except (ValueError, ResearchRunNotFound):
+        raise _error("Research run not found.", status.HTTP_404_NOT_FOUND)
+    except ResearchRunError:
+        raise _error("Research service is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+    finally:
+        if repository is not None:
+            repository.close()
+
+
+@app.get("/v1/research-runs/{run_id}/events", response_model=ResearchRunEventsResponse)
+def get_research_run_events(
+    run_id: str,
+    response: Response,
+    after_sequence: int = 0,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    response.headers["Cache-Control"] = "no-store"
+    context = _require_user_context(principal)
+    repository: ResearchRunRepository | None = None
+    try:
+        repository = ResearchRunRepository.from_environment()
+        events = repository.list_events_for_user(
+            run_id=run_id,
+            owner_id=context.user_id,
+            after_sequence=max(int(after_sequence), 0),
+        )
+        run = repository.get_for_user(run_id=run_id, owner_id=context.user_id)
+        return {
+            "run_id": run["run_id"],
+            "events": events,
+            "last_event_sequence": run["last_event_sequence"],
+        }
+    except (ValueError, ResearchRunNotFound):
+        raise _error("Research run not found.", status.HTTP_404_NOT_FOUND)
+    except ResearchRunError:
+        raise _error("Research service is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+    finally:
+        if repository is not None:
+            repository.close()
+
+
+@app.post("/v1/research-runs/{run_id}/cancel", response_model=ResearchRunResponse)
+def cancel_research_run(
+    run_id: str,
+    response: Response,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    response.headers["Cache-Control"] = "no-store"
+    context = _require_user_context(principal)
+    repository: ResearchRunRepository | None = None
+    try:
+        repository = ResearchRunRepository.from_environment()
+        return repository.request_cancel(run_id=run_id, owner_id=context.user_id)
+    except (ValueError, ResearchRunNotFound):
+        raise _error("Research run not found.", status.HTTP_404_NOT_FOUND)
+    except ResearchRunError:
+        raise _error("Research service is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+    finally:
+        if repository is not None:
+            repository.close()
+
+
 @app.get("/v1/zopedia/suggestions")
 def zopedia_suggestions(
     limit: int = 8,
@@ -558,6 +1009,22 @@ def chart(
     }
     _ensure_scopes(principal, _required_scopes_for_query(request_dict))
     return _execute_query(service, request_dict)
+
+
+@app.post("/v1/visualization/{name}")
+def visualization(
+    name: str,
+    body: QueryBody,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    service = _query_service()
+    request_dict = {
+        "operation": "visualization",
+        "name": name,
+        "params": body.params,
+    }
+    _ensure_scopes(principal, _required_scopes_for_query(request_dict))
+    return _execute_visualization(service, name=name, params=body.params)
 
 
 @app.get("/v1/agent/tools")

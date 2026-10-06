@@ -55,7 +55,11 @@ def test_data_access_layer_prefers_materialized_price_history_when_available(mon
     )
 
     monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
-    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", lambda dataset_name: (pipeline.copy(), metadata))
+    monkeypatch.setattr(
+        layer_module,
+        "load_latest_dataset_frame_slice",
+        lambda dataset_name, *, filters: (pipeline.copy(), metadata),
+    )
 
     resolved = DataAccessLayer().resolve_price_history("AAPL", days=30)
 
@@ -70,7 +74,11 @@ def test_data_access_layer_materialized_only_does_not_fallback_for_price_history
     import data_access.layer as layer_module
 
     monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
-    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", lambda dataset_name: (pd.DataFrame(), None))
+    monkeypatch.setattr(
+        layer_module,
+        "load_latest_dataset_frame_slice",
+        lambda dataset_name, *, filters: (pd.DataFrame(), None),
+    )
     monkeypatch.setattr(layer_module, "load_price_history", lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("live fetch should not run")))
 
     resolved = DataAccessLayer(materialized_only=True).resolve_price_history("AAPL", days=30)
@@ -1792,7 +1800,11 @@ def test_data_access_layer_materialized_only_forecast_uses_materialized_signal_h
         return pd.DataFrame(), None
 
     monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
-    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", _load)
+    monkeypatch.setattr(
+        layer_module,
+        "load_latest_dataset_frame_slice",
+        lambda dataset_name, *, filters: _load(dataset_name),
+    )
 
     resolved = DataAccessLayer(materialized_only=True).resolve_forecast_next_week("VRDN", days=365)
 

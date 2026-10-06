@@ -15,7 +15,7 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from services import pipeline_store
+from services import pipeline_slices, pipeline_store
 
 
 class _FakeDownload:
@@ -80,6 +80,79 @@ def test_pipeline_store_configured_with_storage_only(monkeypatch):
     assert pipeline_store.pipeline_store_configured() is True
 
 
+def test_dataset_namespace_scopes_storage_database_and_cache(monkeypatch):
+    monkeypatch.setenv("PIPELINE_DATASET_NAMESPACE", "development")
+
+    assert pipeline_store.dataset_namespace() == "development"
+    assert pipeline_store.dataset_blob_path("manifests/trading_agent_runs/latest.json") == (
+        "namespaces/development/manifests/trading_agent_runs/latest.json"
+    )
+    assert pipeline_store.dataset_storage_name("trading_agent_runs") == "development::trading_agent_runs"
+    assert pipeline_store.dataset_version_id_for_namespace("trading_agent_runs__v1") == (
+        "development__trading_agent_runs__v1"
+    )
+    assert "development__trading_agent_runs" in str(
+        pipeline_store._metadata_cache_path("trading_agent_runs")
+    )
+
+
+def test_production_dataset_namespace_preserves_existing_paths(monkeypatch):
+    monkeypatch.delenv("PIPELINE_DATASET_NAMESPACE", raising=False)
+
+    assert pipeline_store.dataset_namespace() == ""
+    assert pipeline_store.dataset_blob_path("manifests/trading_agent_runs/latest.json") == (
+        "manifests/trading_agent_runs/latest.json"
+    )
+    assert pipeline_store.dataset_storage_name("trading_agent_runs") == "trading_agent_runs"
+    assert pipeline_store.dataset_version_id_for_namespace("trading_agent_runs__v1") == "trading_agent_runs__v1"
+
+
+def test_record_model_call_promotes_metadata_run_id(monkeypatch):
+    captured: dict[str, object] = {}
+
+    class _Cursor:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def execute(self, query, params=None):
+            if "INSERT INTO aql_zopedia_model_call_events" in str(query):
+                captured["params"] = params
+
+    class _Conn:
+        def cursor(self):
+            return _Cursor()
+
+        def commit(self):
+            captured["committed"] = True
+
+        def rollback(self):
+            captured["rolled_back"] = True
+
+        def close(self):
+            captured["closed"] = True
+
+    monkeypatch.setenv("AQL_ZOPEDIA_MODEL_TELEMETRY_ENABLED", "1")
+    monkeypatch.delenv("PIPELINE_RUN_ID", raising=False)
+    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: _Conn())
+    monkeypatch.setattr(pipeline_store, "_ensure_model_call_events_table", lambda conn: None)
+
+    assert pipeline_store.record_model_call(
+        model_call_id="call-1",
+        surface="zopedia.chat",
+        purpose="agent.research_step",
+        call_type="research_grade",
+        status="success",
+        metadata={"run_id": "agrun_dynamic", "iteration": 1},
+    ) is True
+
+    params = captured["params"]
+    assert params[17] == "agrun_dynamic"
+    assert captured["committed"] is True
+
+
 def test_start_source_refresh_job_uses_arm_without_azure_cli(monkeypatch):
     calls: list[tuple[str, str]] = []
 
@@ -140,7 +213,7 @@ def test_start_source_refresh_job_reports_arm_error_without_azure_cli(monkeypatc
     assert "Azure CLI" not in message
 
 
-def test_record_trading_agent_place_action_is_log_only_for_alpaca(monkeypatch):
+def test_record_trading_agent_approval_preserves_execution_contract(monkeypatch):
     captured: dict[str, object] = {}
 
     class _Cursor:
@@ -178,13 +251,13 @@ def test_record_trading_agent_place_action_is_log_only_for_alpaca(monkeypatch):
             "horizon_key": "1w",
             "ticker": "AAPL",
         },
-        action="place",
+        action="approve",
         requested_by="admin-user",
         requested_email="admin@example.com",
     )
 
     assert ok is True
-    assert "No broker order was submitted" in message
+    assert message == "Candidate approved."
     params = captured["params"]
     assert params[6] == "place_requested"
     assert params[7] == "log_only"
@@ -719,6 +792,102 @@ def test_load_latest_dataset_frame_uses_local_frame_cache(monkeypatch, tmp_path)
     assert second_meta == metadata
     assert first["entity_id"].tolist() == ["ABBV", "TSLA"]
     assert second["entity_id"].tolist() == ["ABBV", "TSLA"]
+
+
+def test_load_latest_dataset_frame_slice_reads_only_symbol_partition(monkeypatch, tmp_path):
+    bucket = pipeline_store.symbol_partition_bucket("AAPL")
+    partition_path = f"datasets/price_history/partition=symbol_hash_v1/bucket={bucket}/part.parquet"
+    metadata = pipeline_store.PipelineDataset(
+        dataset_name="price_history",
+        dataset_version_id="price_history__partitioned",
+        blob_path="datasets/price_history/full.parquet",
+        asof_time_utc="2026-10-02T00:00:00Z",
+        ingested_at_utc="2026-10-02T00:05:00Z",
+        row_count=1_500_000,
+        partitioning={
+            "strategy": pipeline_store.SYMBOL_HASH_PARTITION_STRATEGY,
+            "column": "symbol",
+            "bucket_count": pipeline_store.SYMBOL_HASH_PARTITION_BUCKETS,
+            "paths": {bucket: partition_path},
+        },
+    )
+    partition = pd.DataFrame(
+        {
+            "symbol": ["AAPL", "AAPL", "MSFT"],
+            "timestamp": ["2026-10-01", "2026-10-02", "2026-10-02"],
+            "close": [100.0, 101.0, 200.0],
+        }
+    )
+
+    monkeypatch.setattr(pipeline_store, "PIPELINE_CACHE_ROOT", tmp_path)
+    monkeypatch.setattr(pipeline_store, "latest_dataset_metadata", lambda dataset_name: metadata)
+    monkeypatch.setattr(
+        pipeline_store,
+        "_read_blob_parquet",
+        lambda blob_path: partition.copy() if blob_path == partition_path else (_ for _ in ()).throw(AssertionError("full blob must not be read")),
+    )
+
+    frame, resolved_metadata = pipeline_store.load_latest_dataset_frame_slice(
+        "price_history",
+        filters={"symbol": "aapl"},
+    )
+
+    assert resolved_metadata == metadata
+    assert frame["symbol"].tolist() == ["AAPL", "AAPL"]
+    assert frame["close"].tolist() == [100.0, 101.0]
+
+
+def test_load_latest_dataset_frame_slice_refuses_large_unpartitioned_scan(monkeypatch, tmp_path):
+    metadata = pipeline_store.PipelineDataset(
+        dataset_name="technical_signal_history",
+        dataset_version_id="technical_signal_history__legacy",
+        blob_path="datasets/technical_signal_history/full.parquet",
+        asof_time_utc="2026-10-02T00:00:00Z",
+        ingested_at_utc="2026-10-02T00:05:00Z",
+        row_count=1_500_000,
+    )
+    monkeypatch.setattr(pipeline_store, "PIPELINE_CACHE_ROOT", tmp_path)
+    monkeypatch.setattr(pipeline_store, "latest_dataset_metadata", lambda dataset_name: metadata)
+    monkeypatch.setattr(
+        pipeline_store,
+        "_read_blob_parquet",
+        lambda blob_path: (_ for _ in ()).throw(AssertionError("large full blob must not be read")),
+    )
+
+    frame, resolved_metadata = pipeline_store.load_latest_dataset_frame_slice(
+        "technical_signal_history",
+        filters={"symbol": "AAPL"},
+    )
+
+    assert resolved_metadata == metadata
+    assert frame.empty
+
+
+def test_pipeline_slice_compatibility_boundary_refuses_large_legacy_artifact(monkeypatch):
+    metadata = pipeline_store.PipelineDataset(
+        dataset_name="technical_signal_history",
+        dataset_version_id="technical_signal_history__legacy",
+        blob_path="datasets/technical_signal_history/full.parquet",
+        asof_time_utc="2026-10-02T00:00:00Z",
+        ingested_at_utc="2026-10-02T00:05:00Z",
+        row_count=1_500_000,
+    )
+    monkeypatch.delattr(pipeline_store, "load_latest_dataset_frame_slice")
+    monkeypatch.setattr(pipeline_store, "latest_dataset_metadata", lambda dataset_name: metadata)
+    monkeypatch.setattr(pipeline_store, "_read_local_frame_cache", lambda resolved: None)
+    monkeypatch.setattr(
+        pipeline_store,
+        "load_latest_dataset_frame",
+        lambda dataset_name: (_ for _ in ()).throw(AssertionError("large legacy artifact must not be read")),
+    )
+
+    frame, resolved_metadata = pipeline_slices.load_latest_dataset_frame_slice(
+        "technical_signal_history",
+        filters={"symbol": "AAPL"},
+    )
+
+    assert resolved_metadata == metadata
+    assert frame.empty
 
 
 def test_prune_pipeline_cache_removes_oldest_entries_when_limit_exceeded(monkeypatch, tmp_path):

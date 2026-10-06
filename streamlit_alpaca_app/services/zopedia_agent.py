@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import threading
 import time
 import uuid
@@ -9,13 +10,12 @@ from urllib.parse import urlparse
 
 from data_access.query_service import QueryService
 from .aql.evidence_pack import build_aql_evidence_pack
-from .agent_tools import build_tool_catalog, invoke_tool
+from .agent_tools import ToolRegistry, build_tool_catalog, build_tool_registry, invoke_tool
+from .aql_zopedia_gateway import generate_json_via_aql_zopedia_gateway
 from .llm import (
+    JSONLLMClient,
     NARRATIVE_STYLE_RULE,
-    AzureOpenAIChatJSONClient,
-    DeepSeekChatJSONClient,
     LLMAPIError,
-    OpenAIChatJSONClient,
     get_config_param,
     get_prompt,
     register_config_param,
@@ -24,7 +24,7 @@ from .llm import (
 from .aql_zopedia_engine import load_aql_zopedia_llm_client
 
 
-LLMClient = OpenAIChatJSONClient | AzureOpenAIChatJSONClient | DeepSeekChatJSONClient
+LLMClient = JSONLLMClient
 ProgressCallback = Callable[[dict[str, Any]], None]
 DEFAULT_MAX_TOOL_CALLS = 8
 
@@ -144,6 +144,21 @@ _P_POST_ANSWER_MEMORY_ENABLED = register_config_param(
     group="Zopedia",
     default=1,
     description="After a grounded answer, let the agent apply safe Zopedia memory updates or create review proposals",
+)
+_P_DEFERRED_TOOL_DISCOVERY_ENABLED = register_config_param(
+    "Agent deferred tool discovery enabled",
+    group="Zopedia",
+    default=0,
+    description=(
+        "Start with tools.search and load matching tool definitions on demand. "
+        "Keep disabled until DeepSeek replay evaluation passes."
+    ),
+)
+_P_TOOL_DISCOVERY_MAX_STEPS = register_config_param(
+    "Agent tool discovery max steps",
+    group="Zopedia",
+    default=2,
+    description="Extra planner iterations reserved for free tool-registry searches when deferred discovery is enabled.",
 )
 
 _AFFIRMATIVE_FOLLOWUP_REPLIES = {
@@ -322,7 +337,8 @@ _TRAJECTORY_MONITOR_SYSTEM_PROMPT = register_narrative_prompt(
         "You do not answer the user. You inspect the active task, surface, user request, and tool trace, then decide whether the research thread is on contract. "
         "Return double_down when the thread is anchored to the requested subject and the next step should continue. "
         "Return restart when the thread has wandered or compressed evidence too early but can recover with one clear corrective instruction. "
-        "Return kill when the thread is off-contract, unsafe, fabricating, looping on low-signal tools, or likely to synthesize unsupported output. "
+        "Return kill only when the thread is clearly off-contract, unsafe, fabricating, or irrecoverably looping, and name at least one concrete off_contract_signal. "
+        "Missing, weak, contradictory, or incomplete evidence is not a kill condition. It belongs in evidence_gaps and should lead to double_down, restart, or a grounded partial answer reviewed by the critic. "
         "When the newest trace item has status planned, judge the proposed tool before it runs. "
         "If the proposed tool is recoverably off-task, return restart so the planner can choose a better next step; reserve kill for unrecoverable drift or exhausted restart budget. "
         "For named company/ticker tasks, judge organization before narrowness. Spillover recall is useful when the thread keeps the requested company as the center of gravity. "
@@ -436,7 +452,7 @@ def _clean(value: object) -> str:
 
 
 def _clean_model_output(value: object) -> str:
-    text = _clean(value)
+    text = str(value or "").replace("\r\n", "\n").replace("\r", "\n").strip()
     if not text:
         return ""
     for token in (
@@ -448,7 +464,15 @@ def _clean_model_output(value: object) -> str:
         "<|system|>",
     ):
         text = text.replace(token, " ")
-    return _clean(text)
+    lines = [line.rstrip() for line in text.split("\n")]
+    compacted: list[str] = []
+    for line in lines:
+        if not line.strip():
+            if compacted and compacted[-1] != "":
+                compacted.append("")
+            continue
+        compacted.append(line)
+    return "\n".join(compacted).strip()
 
 
 def _truncate(text: object, *, limit: int = 1600) -> str:
@@ -1032,6 +1056,35 @@ def _tool_entry_by_name(catalog: list[dict[str, Any]], tool_name: str) -> dict[s
     return next((tool for tool in catalog if _clean(tool.get("name")) == normalized_name), {})
 
 
+def _activate_discovered_tools(
+    *,
+    tool_catalog: list[dict[str, Any]],
+    tool_registry: ToolRegistry,
+    search_result: dict[str, Any],
+) -> list[str]:
+    payload = search_result.get("payload") if isinstance(search_result, dict) else {}
+    matches = payload.get("tools") if isinstance(payload, dict) else []
+    active_names = {
+        _clean(tool.get("name"))
+        for tool in tool_catalog
+        if isinstance(tool, dict) and _clean(tool.get("name"))
+    }
+    activated: list[str] = []
+    for match in list(matches or [])[:20]:
+        if not isinstance(match, dict):
+            continue
+        name = _clean(match.get("name"))
+        if not name or name in active_names:
+            continue
+        canonical = tool_registry.get(name)
+        if canonical is None:
+            continue
+        tool_catalog.append(canonical)
+        active_names.add(name)
+        activated.append(name)
+    return activated
+
+
 def _normalized_arguments(
     tool_entry: dict[str, Any],
     arguments: dict[str, Any],
@@ -1280,7 +1333,11 @@ def _emit_progress(
     payload.update(extra)
     try:
         progress_callback(payload)
-    except Exception:
+    except Exception as exc:
+        from .agents.research_session import ResearchCancellationRequested
+
+        if isinstance(exc, ResearchCancellationRequested):
+            raise
         return
 
 
@@ -1303,6 +1360,21 @@ def _looks_like_transient_transport_error(text: object) -> bool:
     return any(marker in cleaned for marker in markers)
 
 
+def _looks_like_recoverable_model_step_error(error: BaseException) -> bool:
+    if isinstance(error, TimeoutError) or _looks_like_transient_transport_error(error):
+        return True
+    if not isinstance(error, LLMAPIError):
+        return False
+    cleaned = str(error).strip().lower()
+    return any(
+        marker in cleaned
+        for marker in (
+            "returned empty content",
+            "returned no choices",
+        )
+    )
+
+
 def _safe_agent_error_text(error: object) -> str:
     raw = f"{type(error).__name__}: {error}" if isinstance(error, BaseException) else str(error or "")
     if _looks_like_transient_transport_error(raw):
@@ -1321,6 +1393,7 @@ _PLANNER_SYSTEM_PROMPT = register_narrative_prompt(
         f"You are the Spectral Nature Zopedia agent. {NARRATIVE_STYLE_RULE} "
         "Answer the user's question by calling the available tools when needed. Do not invent data. "
         "Do not repeat a tool with materially identical arguments. "
+        "When the available catalog does not contain the capability you need, call tools.search with a concise description of the missing evidence or computation, then use one of the returned tools on the next step. "
         "\n\nEvidence contract: "
         "Do not final-answer from language-model memory alone. "
         "For public company or ticker questions, collect company context, fundamentals, recent/current evidence when relevant, "
@@ -1614,20 +1687,23 @@ def _cap_confidence(value: str, maximum: str) -> str:
     return normalized_max
 
 
+_NON_EVIDENCE_TOOL_NAMES = {
+    "analysis.read_raw_output",
+    "scratchpad.read",
+    "scratchpad.write",
+    "system.capabilities",
+    "tools.search",
+    "trajectory.monitor",
+    "zopedia.apply_mutation",
+    "zopedia.list_maintenance_reports",
+    "zopedia.list_mutations",
+    "zopedia.list_proposals",
+    "zopedia.propose_change",
+    "zopedia.rollback_mutation",
+}
+
+
 def _successful_evidence_tool_count(tool_calls: list[dict[str, Any]]) -> int:
-    excluded_exact = {
-        "scratchpad.write",
-        "scratchpad.read",
-        "system.capabilities",
-        "zopedia.apply_mutation",
-        "zopedia.propose_change",
-        "zopedia.list_proposals",
-        "zopedia.list_mutations",
-        "zopedia.list_maintenance_reports",
-        "zopedia.rollback_mutation",
-        "analysis.read_raw_output",
-        "trajectory.monitor",
-    }
     count = 0
     for call in tool_calls:
         if not isinstance(call, dict):
@@ -1636,7 +1712,7 @@ def _successful_evidence_tool_count(tool_calls: list[dict[str, Any]]) -> int:
         status = _clean(call.get("status")).lower()
         if status not in {"completed", "success", "ok"}:
             continue
-        if tool_name in excluded_exact:
+        if tool_name in _NON_EVIDENCE_TOOL_NAMES:
             continue
         count += 1
     return count
@@ -1795,6 +1871,7 @@ def _execute_seeded_tool_call(
     arguments: dict[str, Any],
     progress: float,
     tool_call_timeout_seconds: int | None = None,
+    tool_registry: ToolRegistry | None = None,
 ) -> bool:
     call_id = f"agtc_{len(tool_calls) + 1}"
     _emit_progress(
@@ -1818,6 +1895,7 @@ def _execute_seeded_tool_call(
             tool_call_id=call_id,
             tool_call_count=len(tool_calls),
             timeout_seconds=tool_call_timeout_seconds,
+            tool_registry=tool_registry,
         )
         result_summary = _summarize_tool_result(result)
         tool_calls.append(
@@ -1883,6 +1961,7 @@ def _invoke_tool_with_heartbeat(
     tool_call_id: str,
     tool_call_count: int,
     timeout_seconds: int | None = None,
+    tool_registry: ToolRegistry | None = None,
 ) -> dict[str, Any]:
     if timeout_seconds is None:
         timeout_seconds = int(get_config_param(_P_TOOL_CALL_TIMEOUT_SECONDS))
@@ -1892,12 +1971,19 @@ def _invoke_tool_with_heartbeat(
 
     def _run_tool() -> None:
         try:
-            result_box[0] = invoke_tool(
-                service=service,
-                tool_name=tool_name,
-                arguments=arguments,
-                run_id=run_id,
-            )
+            if tool_name == "tools.search" and tool_registry is not None:
+                result_box[0] = tool_registry.search_result(
+                    arguments.get("query"),
+                    namespace=arguments.get("namespace"),
+                    limit=int(arguments.get("limit") or 8),
+                )
+            else:
+                result_box[0] = invoke_tool(
+                    service=service,
+                    tool_name=tool_name,
+                    arguments=arguments,
+                    run_id=run_id,
+                )
         except BaseException as exc:
             error_box[0] = exc
 
@@ -2094,6 +2180,7 @@ def _budgeted_tool_calls(tool_calls: list[dict[str, Any]]) -> list[dict[str, Any
     free_tools = {
         "trajectory.monitor",
         "research.prefetched_context",
+        "tools.search",
     }
     return [
         call
@@ -2239,6 +2326,7 @@ def _synthesis_llm_client(primary_llm: LLMClient) -> LLMClient:
 def _run_answer_judge(
     *,
     llm: LLMClient,
+    run_id: str,
     query: str,
     tool_calls: list[dict[str, Any]],
     draft_answer: str,
@@ -2269,7 +2357,11 @@ def _run_answer_judge(
 
     def _runner() -> None:
         try:
-            result_box[0] = llm.generate_json(
+            result_box[0] = generate_json_via_aql_zopedia_gateway(
+                llm_client=llm,
+                surface=_clean(surface) or "zopedia.chat",
+                purpose="agent.answer_judge",
+                call_type="research_grade",
                 system_prompt=get_prompt(_AGENT_JUDGE_SYSTEM_PROMPT),
                 user_prompt=_judge_user_prompt(
                     query=query,
@@ -2284,6 +2376,11 @@ def _run_answer_judge(
                 ),
                 schema_name="zopedia_agent_judge",
                 schema=_JUDGE_SCHEMA,
+                metadata={
+                    "run_id": run_id,
+                    "task": _clean(task) or "agent_answer",
+                    "tool_call_count": len(tool_calls),
+                },
             )
         except BaseException as exc:
             error_box[0] = exc
@@ -2351,12 +2448,8 @@ def _run_answer_judge(
     _emit_progress(
         progress_callback,
         stage="answer_judge_complete",
-        message=review["critique_summary"] or "Answer review complete.",
+        message="Answer review complete.",
         progress=0.99,
-        verdict=review["verdict"],
-        confidence=review["confidence"],
-        unsupported_claim_count=len(review["unsupported_claims"]),
-        evidence_gap_count=len(review["evidence_gaps"]),
     )
     return review
 
@@ -2389,6 +2482,7 @@ def _trajectory_monitor_user_prompt(
 def _run_trajectory_monitor(
     *,
     llm: LLMClient,
+    run_id: str,
     query: str,
     task: str,
     surface: str,
@@ -2420,7 +2514,11 @@ def _run_trajectory_monitor(
 
     def _runner() -> None:
         try:
-            result_box[0] = llm.generate_json(
+            result_box[0] = generate_json_via_aql_zopedia_gateway(
+                llm_client=llm,
+                surface=_clean(surface) or "zopedia.chat",
+                purpose="agent.trajectory_monitor",
+                call_type="utility",
                 system_prompt=get_prompt(_TRAJECTORY_MONITOR_SYSTEM_PROMPT),
                 user_prompt=_trajectory_monitor_user_prompt(
                     query=query,
@@ -2433,6 +2531,12 @@ def _run_trajectory_monitor(
                 ),
                 schema_name="zopedia_agent_trajectory_monitor",
                 schema=_TRAJECTORY_MONITOR_SCHEMA,
+                metadata={
+                    "run_id": run_id,
+                    "task": _clean(task) or "agent_answer",
+                    "restart_count": int(restart_count),
+                    "tool_call_count": len(tool_calls),
+                },
             )
         except BaseException as exc:
             error_box[0] = exc
@@ -2477,6 +2581,36 @@ def _run_trajectory_monitor(
     payload["decision"] = decision
     payload["status"] = "completed"
     return payload
+
+
+def _normalized_trajectory_monitor_result(
+    monitor_result: dict[str, Any],
+    *,
+    restart_count: int,
+    max_restarts: int,
+) -> tuple[dict[str, Any], str]:
+    normalized = dict(monitor_result or {})
+    decision = _clean(normalized.get("decision")).lower() or "double_down"
+    off_contract_signals = [
+        _clean(item)
+        for item in list(normalized.get("off_contract_signals") or [])
+        if _clean(item)
+    ]
+    if decision == "kill" and not off_contract_signals:
+        decision = "double_down"
+        normalized["reason"] = (
+            _clean(normalized.get("reason"))
+            + " Continuing because evidence insufficiency is handled by the critic, not by terminating the research session."
+        ).strip()
+    elif decision == "restart" and int(restart_count) >= int(max_restarts):
+        decision = "double_down"
+        normalized["reason"] = (
+            (_clean(normalized.get("reason")) + " ")
+            + "The correction budget is exhausted, so the researcher will continue to a critic-reviewed answer."
+        ).strip()
+    normalized["decision"] = decision
+    normalized["off_contract_signals"] = off_contract_signals
+    return normalized, decision
 
 
 def _append_trajectory_monitor_call(
@@ -2530,6 +2664,8 @@ def _has_memory_candidate(
         return True
     for call in tool_calls:
         if _clean(call.get("status")).lower() != "completed":
+            continue
+        if _clean(call.get("tool_name")) in _NON_EVIDENCE_TOOL_NAMES:
             continue
         summary = dict(call.get("result_summary") or {})
         if (
@@ -2780,11 +2916,20 @@ def _run_post_answer_memory_agent(
             timeout_seconds=max(int(timeout_seconds), 1),
             progress_callback=progress_callback,
             progress=0.992,
-            func=lambda: llm.generate_json(
+            func=lambda: generate_json_via_aql_zopedia_gateway(
+                llm_client=llm,
+                surface="zopedia.memory",
+                purpose="agent.memory_reflection",
+                call_type="research_grade",
                 system_prompt=get_prompt(_AGENT_MEMORY_SYSTEM_PROMPT),
                 user_prompt=memory_prompt,
                 schema_name="zopedia_memory_reflection",
                 schema=_MEMORY_SCHEMA,
+                metadata={
+                    "run_id": run_id,
+                    "write_policy": normalized_write_policy,
+                    "tool_call_count": len(tool_calls),
+                },
             ),
         )
     except TimeoutError as exc:
@@ -2835,7 +2980,11 @@ def _run_post_answer_memory_agent(
                 timeout_seconds=max(int(timeout_seconds), 1),
                 progress_callback=progress_callback,
                 progress=0.995,
-                func=lambda: llm.generate_json(
+                func=lambda: generate_json_via_aql_zopedia_gateway(
+                    llm_client=llm,
+                    surface="zopedia.memory",
+                    purpose="agent.memory_reflection_repair",
+                    call_type="schema_repair",
                     system_prompt=get_prompt(_AGENT_MEMORY_SYSTEM_PROMPT),
                     user_prompt=_memory_reflection_repair_user_prompt(
                         base_prompt=memory_prompt,
@@ -2844,6 +2993,11 @@ def _run_post_answer_memory_agent(
                     ),
                     schema_name="zopedia_memory_reflection_repair",
                     schema=_MEMORY_SCHEMA,
+                    metadata={
+                        "run_id": run_id,
+                        "write_policy": normalized_write_policy,
+                        "contract_issue_count": len(repair_issues),
+                    },
                 ),
             )
             if isinstance(repaired_payload, dict) and repaired_payload:
@@ -2990,6 +3144,81 @@ def _run_post_answer_memory_agent(
 def _run_zopedia_agent_loop(
     *,
     query: str,
+    run_id: str | None = None,
+    task: str = "agent_answer",
+    surface: str = "zopedia.chat",
+    force_refresh: bool = False,
+    max_tool_calls: int = DEFAULT_MAX_TOOL_CALLS,
+    service: QueryService | None = None,
+    llm_client: LLMClient | None = None,
+    progress_callback: ProgressCallback | None = None,
+    conversation_history: list[dict[str, Any]] | None = None,
+    persist_findings: bool = True,
+    write_policy: str | None = None,
+    tool_call_timeout_seconds: int | None = None,
+    llm_step_timeout_seconds: int | None = None,
+    prefetch_timeout_seconds: int | None = None,
+) -> dict[str, Any]:
+    from .agents.research_session import NullResearchSessionStore, create_research_session
+
+    resolved_run_id = _clean(run_id) or f"agrun_{uuid.uuid4().hex[:10]}"
+    if not re.fullmatch(r"agrun_[a-zA-Z0-9_-]{8,64}", resolved_run_id):
+        raise ValueError("Invalid research run id.")
+    resolved_llm = llm_client or load_aql_zopedia_llm_client(
+        surface="zopedia.agent",
+    )
+    client_config = getattr(resolved_llm, "config", None)
+    provider = _clean(getattr(client_config, "provider", ""))
+    model = _clean(getattr(client_config, "model", ""))
+    session = create_research_session(
+        run_id=resolved_run_id,
+        surface=surface,
+        task=task,
+        query=query,
+        provider=provider,
+        model=model,
+        metadata={
+            "force_refresh": bool(force_refresh),
+            "max_tool_calls": int(max_tool_calls),
+            "persist_findings": bool(persist_findings),
+            "write_policy": _clean(write_policy),
+        },
+        store=NullResearchSessionStore() if not persist_findings else None,
+    )
+    session_progress_callback = session.progress_callback(progress_callback)
+    try:
+        result = _execute_zopedia_agent_loop(
+            run_id=resolved_run_id,
+            query=query,
+            task=task,
+            surface=surface,
+            force_refresh=force_refresh,
+            max_tool_calls=max_tool_calls,
+            service=service,
+            llm_client=resolved_llm,
+            progress_callback=session_progress_callback,
+            conversation_history=conversation_history,
+            persist_findings=persist_findings,
+            write_policy=write_policy,
+            tool_call_timeout_seconds=tool_call_timeout_seconds,
+            llm_step_timeout_seconds=llm_step_timeout_seconds,
+            prefetch_timeout_seconds=prefetch_timeout_seconds,
+        )
+    except BaseException as exc:
+        session.finish(error=exc)
+        session.close()
+        raise
+    session.finish(result=result)
+    result.setdefault("runtime", {})
+    result["runtime"].update(session.runtime_metadata())
+    session.close()
+    return result
+
+
+def _execute_zopedia_agent_loop(
+    *,
+    run_id: str,
+    query: str,
     task: str = "agent_answer",
     surface: str = "zopedia.chat",
     force_refresh: bool = False,
@@ -3022,7 +3251,6 @@ def _run_zopedia_agent_loop(
         prefetch_timeout_seconds = min(tool_call_timeout_seconds, 15)
     prefetch_timeout_seconds = max(int(prefetch_timeout_seconds), 1)
     resolved_write_policy = _normalize_zopedia_write_policy(write_policy, persist_findings=persist_findings)
-    run_id = f"agrun_{uuid.uuid4().hex[:10]}"
     if not agent_query:
         return _with_aql_evidence_pack({
             "run_id": run_id,
@@ -3032,7 +3260,7 @@ def _run_zopedia_agent_loop(
             "tool_calls": [],
             "answer_markdown": "",
             "confidence": "low",
-            "limitations": ["Empty query."],
+            "limitations": [],
             "error": "Empty query.",
             "query": agent_query,
             "original_query": normalized_query,
@@ -3050,9 +3278,9 @@ def _run_zopedia_agent_loop(
             "mode": "sync",
             "model": "",
             "tool_calls": [],
-            "answer_markdown": "The LLM runtime is not configured, so the Zopedia agent cannot run tool-based analysis right now.",
+            "answer_markdown": "",
             "confidence": "low",
-            "limitations": ["LLM runtime is unavailable."],
+            "limitations": [],
             "error": "LLM runtime is unavailable.",
             "query": agent_query,
             "original_query": normalized_query,
@@ -3074,7 +3302,15 @@ def _run_zopedia_agent_loop(
             original_query=normalized_query,
             resolved_query=agent_query,
         )
-    tool_catalog = _tool_catalog_for_write_policy(build_tool_catalog(resolved_service), resolved_write_policy)
+    full_tool_registry = build_tool_registry(resolved_service)
+    allowed_tool_catalog = _tool_catalog_for_write_policy(full_tool_registry.catalog(), resolved_write_policy)
+    tool_registry = ToolRegistry(allowed_tool_catalog)
+    deferred_tool_discovery = int(get_config_param(_P_DEFERRED_TOOL_DISCOVERY_ENABLED)) != 0
+    if deferred_tool_discovery:
+        tool_search_entry = tool_registry.get("tools.search")
+        tool_catalog = [tool_search_entry] if tool_search_entry is not None else []
+    else:
+        tool_catalog = tool_registry.catalog()
     # Inject conversation.prior_answers tool when chat history is available
     if conversation_history:
         tool_catalog.append({
@@ -3103,6 +3339,8 @@ def _run_zopedia_agent_loop(
         message=f"Loaded {len(tool_catalog)} available modules.",
         progress=0.08,
         tool_count=len(tool_catalog),
+        registry_tool_count=len(tool_registry),
+        deferred_discovery=deferred_tool_discovery,
     )
     # Pre-fetch SAA retained evidence so the planner has it in context
     # even if it doesn't call search_evidence explicitly.
@@ -3239,6 +3477,7 @@ def _run_zopedia_agent_loop(
                 arguments=seed_arguments,
                 progress=min(0.13 + (idx * 0.04), 0.28),
                 tool_call_timeout_seconds=tool_call_timeout_seconds,
+                tool_registry=tool_registry,
             )
         zopedia_page_id = _first_zopedia_page_id_from_search(tool_calls)
         if (
@@ -3256,6 +3495,7 @@ def _run_zopedia_agent_loop(
                 arguments={"page_id": zopedia_page_id},
                 progress=min(0.13 + (len(tool_calls) * 0.04), 0.34),
                 tool_call_timeout_seconds=tool_call_timeout_seconds,
+                tool_registry=tool_registry,
             )
     for call in tool_calls:
         seen_calls.add(f"{_clean(call.get('tool_name'))}::{_json_dumps(call.get('arguments') or {}, limit=1200)}")
@@ -3283,6 +3523,7 @@ def _run_zopedia_agent_loop(
             monitor_tool_calls.append(pending_call)
         monitor_result = _run_trajectory_monitor(
             llm=_synthesis_llm_client(resolved_llm),
+            run_id=run_id,
             query=agent_query,
             task=task,
             surface=surface,
@@ -3296,26 +3537,15 @@ def _run_zopedia_agent_loop(
             ),
             progress_callback=progress_callback,
         )
+        requested_decision = _clean(monitor_result.get("decision")).lower() or "double_down"
+        monitor_result, decision = _normalized_trajectory_monitor_result(
+            monitor_result,
+            restart_count=trajectory_restart_count,
+            max_restarts=trajectory_max_restarts,
+        )
         if monitor_result.get("status") == "completed":
             trajectory_reviews.append(dict(monitor_result))
-        decision = _clean(monitor_result.get("decision")).lower() or "double_down"
-        if (
-            decision == "kill"
-            and _clean(task).startswith("ticker_business_model")
-            and _budgeted_tool_count(monitor_tool_calls) < int(max_tool_calls)
-            and not [
-                _clean(item)
-                for item in list(monitor_result.get("off_contract_signals") or [])
-                if _clean(item)
-            ]
-        ):
-            monitor_result = dict(monitor_result)
-            monitor_result["decision"] = "double_down"
-            monitor_result["reason"] = (
-                _clean(monitor_result.get("reason"))
-                + " Continuing because empty internal evidence is a coverage gap, not off-contract drift, and the job still has research budget."
-            ).strip()
-            decision = "double_down"
+        if requested_decision != decision:
             _emit_progress(
                 progress_callback,
                 stage="trajectory_monitor_continue",
@@ -3324,53 +3554,20 @@ def _run_zopedia_agent_loop(
                 tool_call_count=len(tool_calls),
             )
         if decision == "restart":
-            if trajectory_restart_count >= trajectory_max_restarts:
-                decision = "kill"
-                monitor_result = dict(monitor_result)
-                monitor_result["decision"] = "kill"
-                monitor_result["reason"] = (
-                    _clean(monitor_result.get("reason"))
-                    or "Trajectory monitor requested another restart after the restart budget was exhausted."
-                )
-            else:
-                trajectory_restart_count += 1
-                _append_trajectory_monitor_call(
-                    tool_calls,
-                    monitor_result=monitor_result,
-                    restart_count=trajectory_restart_count,
-                )
-                _emit_progress(
-                    progress_callback,
-                    stage="trajectory_monitor_restart",
-                    message=_clean(monitor_result.get("reason")) or "Restarting the planner with corrected task focus.",
-                    progress=0.94,
-                    restart_count=trajectory_restart_count,
-                )
-                return "restart"
-        if (
-            decision == "kill"
-            and _clean(task).startswith("ticker_business_model")
-            and _budgeted_tool_count(monitor_tool_calls) < int(max_tool_calls)
-            and not [
-                _clean(item)
-                for item in list(monitor_result.get("off_contract_signals") or [])
-                if _clean(item)
-            ]
-        ):
-            monitor_result = dict(monitor_result)
-            monitor_result["decision"] = "double_down"
-            monitor_result["reason"] = (
-                _clean(monitor_result.get("reason"))
-                + " Continuing because empty internal evidence is a coverage gap, not off-contract drift, and the job still has research budget."
-            ).strip()
-            decision = "double_down"
+            trajectory_restart_count += 1
+            _append_trajectory_monitor_call(
+                tool_calls,
+                monitor_result=monitor_result,
+                restart_count=trajectory_restart_count,
+            )
             _emit_progress(
                 progress_callback,
-                stage="trajectory_monitor_continue",
-                message=_clean(monitor_result.get("reason")) or "Continuing on-contract research.",
+                stage="trajectory_monitor_restart",
+                message=_clean(monitor_result.get("reason")) or "Restarting the planner with corrected task focus.",
                 progress=0.94,
-                tool_call_count=len(tool_calls),
+                restart_count=trajectory_restart_count,
             )
+            return "restart"
         if decision == "kill":
             trajectory_killed = True
             _append_trajectory_monitor_call(
@@ -3392,7 +3589,12 @@ def _run_zopedia_agent_loop(
         return "double_down"
 
     try:
-        total_steps = max(int(max_tool_calls), 1)
+        discovery_steps = (
+            max(int(get_config_param(_P_TOOL_DISCOVERY_MAX_STEPS)), 0)
+            if deferred_tool_discovery
+            else 0
+        )
+        total_steps = max(int(max_tool_calls) + discovery_steps, 1)
         planner_steps = 0 if skip_planner_after_bootstrap or int(max_tool_calls) <= 0 else total_steps
         if skip_planner_after_bootstrap:
             _emit_progress(
@@ -3427,7 +3629,11 @@ def _run_zopedia_agent_loop(
 
             def _run_planner() -> None:
                 try:
-                    _llm_result[0] = resolved_llm.generate_json(
+                    _llm_result[0] = generate_json_via_aql_zopedia_gateway(
+                        llm_client=resolved_llm,
+                        surface=_clean(surface) or "zopedia.chat",
+                        purpose="agent.research_step",
+                        call_type="research_grade",
                         system_prompt=_planner_system_prompt(),
                         user_prompt=_planner_user_prompt(
                             query=agent_query,
@@ -3441,6 +3647,13 @@ def _run_zopedia_agent_loop(
                         ),
                         schema_name="zopedia_agent_step",
                         schema=_STEP_SCHEMA,
+                        metadata={
+                            "run_id": run_id,
+                            "task": task,
+                            "iteration": step_index + 1,
+                            "tool_call_count": len(tool_calls),
+                            "max_tool_calls": int(max_tool_calls),
+                        },
                     )
                 except BaseException as exc:
                     _llm_error[0] = exc
@@ -3480,10 +3693,19 @@ def _run_zopedia_agent_loop(
                         tool_call_count=len(tool_calls),
                     )
             if _llm_error[0] is not None:
-                if isinstance(_llm_error[0], TimeoutError) and any(
-                    str(call.get("status") or "") == "completed" for call in tool_calls
+                if (
+                    _looks_like_recoverable_model_step_error(_llm_error[0])
+                    and _successful_evidence_tool_count(tool_calls) > 0
                 ):
-                    limitations.append("Stopped planning after a timed-out model step; synthesizing from collected evidence.")
+                    _emit_progress(
+                        progress_callback,
+                        stage="planner_recovered_from_model_error",
+                        message="Planning stopped; synthesizing from the evidence already collected.",
+                        progress=min(step_progress + 0.04, 0.9),
+                        iteration=step_index + 1,
+                        tool_call_count=len(tool_calls),
+                        error_type=type(_llm_error[0]).__name__,
+                    )
                     break
                 raise _llm_error[0]
             decision = _llm_result[0]
@@ -3505,10 +3727,9 @@ def _run_zopedia_agent_loop(
                 _emit_progress(
                     progress_callback,
                     stage="planner_reasoning",
-                    message=reasoning,
+                    message="Planner selected the next research step.",
                     progress=step_progress + 0.02,
                     iteration=step_index + 1,
-                    reasoning=reasoning,
                 )
             if action not in {"tool_call", "final"}:
                 direct_answer = _direct_structured_payload_answer(agent_query, decision)
@@ -3551,6 +3772,7 @@ def _run_zopedia_agent_loop(
                         arguments={"page_id": zopedia_page_id},
                         progress=min(step_progress + 0.05, 0.9),
                         tool_call_timeout_seconds=tool_call_timeout_seconds,
+                        tool_registry=tool_registry,
                     )
                     for call in tool_calls:
                         seen_calls.add(f"{_clean(call.get('tool_name'))}::{_json_dumps(call.get('arguments') or {}, limit=1200)}")
@@ -3589,6 +3811,7 @@ def _run_zopedia_agent_loop(
                         arguments=recovery_arguments,
                         progress=min(step_progress + 0.06, 0.9),
                         tool_call_timeout_seconds=tool_call_timeout_seconds,
+                        tool_registry=tool_registry,
                     )
                     for call in tool_calls:
                         seen_calls.add(f"{_clean(call.get('tool_name'))}::{_json_dumps(call.get('arguments') or {}, limit=1200)}")
@@ -3599,7 +3822,6 @@ def _run_zopedia_agent_loop(
                     message="Final answer is ready to render.",
                     progress=min(step_progress + 0.08, 0.9),
                     iteration=step_index + 1,
-                    reasoning=reasoning,
                 )
                 final_answer = candidate_answer
                 final_confidence = _clean(decision.get("confidence")).lower() or "low"
@@ -3611,6 +3833,16 @@ def _run_zopedia_agent_loop(
                 break
 
             tool_name = _clean(decision.get("tool_name"))
+            if tool_name != "tools.search" and _budgeted_tool_count(tool_calls) >= int(max_tool_calls):
+                limitations.append("Research tool budget reached; synthesizing from collected evidence.")
+                _emit_progress(
+                    progress_callback,
+                    stage="tool_budget_reached",
+                    message="Research budget reached; moving to synthesis.",
+                    progress=min(step_progress + 0.04, 0.9),
+                    tool_call_count=len(tool_calls),
+                )
+                break
             tool_entry = _tool_entry_by_name(tool_catalog, tool_name)
             call_id = f"agtc_{len(tool_calls) + 1}"
             raw_arguments = decision.get("tool_arguments")
@@ -3740,7 +3972,7 @@ def _run_zopedia_agent_loop(
                 "status": "planned",
                 "error": None,
                 "result_summary": {
-                    "preview_text": "Planner proposed this tool call; trajectory monitor is reviewing it before execution.",
+                    "preview_text": "",
                     "result_type": "planned_tool_call",
                     "provenance": None,
                     "preview": {"kind": "planned_tool_call"},
@@ -3782,6 +4014,14 @@ def _run_zopedia_agent_loop(
                         tool_call_id=call_id,
                         tool_call_count=len(tool_calls),
                         timeout_seconds=tool_call_timeout_seconds,
+                        tool_registry=tool_registry,
+                    )
+                activated_tools: list[str] = []
+                if tool_name == "tools.search":
+                    activated_tools = _activate_discovered_tools(
+                        tool_catalog=tool_catalog,
+                        tool_registry=tool_registry,
+                        search_result=result,
                     )
                 result_summary = _summarize_tool_result(result)
                 tool_calls.append(
@@ -3808,13 +4048,16 @@ def _run_zopedia_agent_loop(
                     render_payload=result_summary.get("render_payload"),
                     source_links=result_summary.get("source_links"),
                 )
-                trajectory_decision = _check_trajectory()
-                if trajectory_decision == "kill":
-                    break
-                if trajectory_decision == "restart":
-                    for call in tool_calls:
-                        seen_calls.add(f"{_clean(call.get('tool_name'))}::{_json_dumps(call.get('arguments') or {}, limit=1200)}")
-                    continue
+                if activated_tools:
+                    _emit_progress(
+                        progress_callback,
+                        stage="tool_catalog_expanded",
+                        message=f"Loaded {len(activated_tools)} matching modules.",
+                        progress=min(step_progress + 0.15, 0.92),
+                        activated_tool_names=activated_tools,
+                        tool_count=len(tool_catalog),
+                        registry_tool_count=len(tool_registry),
+                    )
             except Exception as exc:
                 tool_calls.append(
                     {
@@ -3868,7 +4111,11 @@ def _run_zopedia_agent_loop(
 
             def _run_final_synthesis() -> None:
                 try:
-                    _final_result[0] = synthesis_llm.generate_json(
+                    _final_result[0] = generate_json_via_aql_zopedia_gateway(
+                        llm_client=synthesis_llm,
+                        surface=_clean(surface) or "zopedia.chat",
+                        purpose="agent.final_synthesis",
+                        call_type="research_grade",
                         system_prompt=get_prompt(_AGENT_FINAL_SYSTEM_PROMPT),
                         user_prompt=_final_user_prompt(
                             query=agent_query,
@@ -3880,6 +4127,11 @@ def _run_zopedia_agent_loop(
                         ),
                         schema_name="zopedia_agent_final",
                         schema=_FINAL_SCHEMA,
+                        metadata={
+                            "run_id": run_id,
+                            "task": task,
+                            "tool_call_count": len(tool_calls),
+                        },
                     )
                 except BaseException as exc:
                     _final_error[0] = exc
@@ -3954,6 +4206,7 @@ def _run_zopedia_agent_loop(
             "run_id": run_id,
             "status": "failed",
             "mode": "sync",
+            "provider": _clean(getattr(resolved_llm.config, "provider", "")),
             "model": str(resolved_llm.config.model),
             "tool_calls": tool_calls,
             "answer_markdown": "",
@@ -3984,6 +4237,7 @@ def _run_zopedia_agent_loop(
     if final_answer and not direct_structured_payload_used:
         quality_review = _run_answer_judge(
             llm=_synthesis_llm_client(resolved_llm),
+            run_id=run_id,
             query=agent_query,
             task=task,
             surface=surface,
@@ -4000,18 +4254,17 @@ def _run_zopedia_agent_loop(
             verdict = _clean(quality_review.get("verdict")).lower()
             judge_answer = _clean_model_output(quality_review.get("answer_markdown"))
             revised_answer_applied = False
-            if verdict in {"revise", "insufficient"} and judge_answer:
+            if judge_answer:
+                revised_answer_applied = judge_answer != final_answer
                 final_answer = judge_answer
-                revised_answer_applied = True
             final_confidence = _clean(quality_review.get("confidence")).lower() or final_confidence
-            for item in [
-                *list(quality_review.get("limitations") or []),
-                *list(quality_review.get("unsupported_claims") or []),
-                *list(quality_review.get("evidence_gaps") or []),
-            ]:
-                clean_item = _clean(item)
-                if clean_item and clean_item not in limitations:
-                    limitations.append(clean_item)
+            reviewed_limitations = [
+                _clean(item)
+                for item in list(quality_review.get("limitations") or [])
+                if _clean(item)
+            ]
+            if reviewed_limitations:
+                limitations = reviewed_limitations
             quality_review = {
                 "status": "completed",
                 "verdict": verdict,
@@ -4089,6 +4342,7 @@ def _run_zopedia_agent_loop(
         "run_id": run_id,
         "status": status,
         "mode": "sync",
+        "provider": _clean(getattr(resolved_llm.config, "provider", "")),
         "model": str(resolved_llm.config.model),
         "synthesis_model": str(getattr(getattr(_synthesis_llm_client(resolved_llm), "config", object()), "model", resolved_llm.config.model)),
         "tool_calls": tool_calls,
@@ -4163,6 +4417,8 @@ def _persist_agent_findings(
 
         for call in tool_calls:
             if str(call.get("status") or "") != "completed":
+                continue
+            if _clean(call.get("tool_name")) in _NON_EVIDENCE_TOOL_NAMES:
                 continue
             result_summary = dict(call.get("result_summary") or {})
             context_text = _clean(result_summary.get("llm_context_text"))

@@ -13,7 +13,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from services import api_auth, auth_service
+from services import api_auth, auth_service, auth_store
 from services.config import AppConfig, load_config
 from services.data_cache import dataset_scope
 from services.elevenlabs_tts import load_elevenlabs_tts_config
@@ -503,13 +503,8 @@ def _render_access_usage_admin_dashboard(
         )
 
     st.subheader("Usage")
-    st.caption(
-        "Section-level usage comes from the access event tracker. Detailed click trails only include the higher-signal actions we explicitly record."
-    )
     if selected_user_id:
-        st.caption(
-            f"Filtered to {selected_user_label}. The detailed activity trail below only shows recorded usage behavior for this user."
-        )
+        st.caption(f"User: {selected_user_label}")
 
     usage_metrics = _responsive_columns(6)
     if selected_user_id:
@@ -536,14 +531,6 @@ def _render_access_usage_admin_dashboard(
     section_usage = pd.DataFrame(dashboard.get("section_usage") or [])
     usage_sankey_rows = list(dashboard.get("usage_sankey") or [])
     st.subheader("Usage Flow" if not selected_user_id else "Selected User Usage Flow")
-    if selected_user_id:
-        st.caption(
-            "This flow is limited to the selected user. Page-only views stop at the page node, while tracked item and feature clicks continue to the right."
-        )
-    else:
-        st.caption(
-            f"This flow is limited to the top {sankey_user_limit} active users in the selected usage window so the chart stays fast and readable."
-        )
     usage_sankey_figure = _build_access_usage_sankey_figure(usage_sankey_rows)
     if usage_sankey_figure is None:
         st.info("Not enough page or item activity has been recorded to build the usage flow chart yet.")
@@ -618,7 +605,6 @@ def _render_access_usage_admin_dashboard(
 
     selected_user_targets = pd.DataFrame(dashboard.get("selected_user_targets") or [])
     st.subheader("Selected User Activity Targets")
-    st.caption("This highlights the sections, bundles, tickers, and content links this user is actually opening.")
     if selected_user_targets.empty:
         st.info("No detailed activity targets have been recorded for this user yet.")
     else:
@@ -711,9 +697,6 @@ def _render_access_security_admin_dashboard(
     active_label = f"{active_window_minutes}m"
 
     st.subheader("Security")
-    st.caption(
-        "Security covers login failures, account locks, password resets, live sessions, and Azure audit and diagnostic coverage."
-    )
     if selected_user_id:
         st.caption(f"Filtered to {selected_user_label}.")
 
@@ -1122,7 +1105,6 @@ def _format_access_admin_list(values: object, *, max_items: int = 4) -> str:
 
 def _render_invite_email_designer(*, current_user: auth_service.UserContext) -> None:
     st.subheader("Invite Email Designer")
-    st.caption("Manage dark/white invite templates, upload the primary chart image, and preview exactly what recipients will see.")
     _apply_pending_invite_template_state()
     _show_invite_template_notice()
 
@@ -1325,8 +1307,6 @@ def _render_invite_email_designer(*, current_user: auth_service.UserContext) -> 
                 if st.button("Clear Uploaded Chart", key="_access_invite_template_clear_upload", use_container_width=False):
                     _clear_invite_template_upload_chart(reset_widget=True)
                     st.rerun()
-            else:
-                st.caption("No upload selected yet. Preview will fall back to the selected built-in chart.")
 
     with color_col:
         st.color_picker("Background", key=_invite_theme_widget_state_key("background_color"))
@@ -1377,7 +1357,7 @@ def _render_llm_config_admin() -> None:
     st.subheader("LLM Configuration")
     config = load_llm_config()
     if config is None:
-        st.warning("No LLM is configured. Set LLM_API_KEY (or OPENAI_API_KEY) to enable.")
+        st.warning("No LLM runtime configured.")
     else:
         col1, col2, col3 = _responsive_columns(3)
         col1.metric("Provider", config.provider)
@@ -1388,7 +1368,6 @@ def _render_llm_config_admin() -> None:
 
     st.divider()
     st.subheader("Narrative Style Rule")
-    st.caption("Shared rule appended to every user-facing system prompt.")
     active_rule = get_active_narrative_style_rule()
     edited_rule = st.text_area(
         "Narrative Style Rule",
@@ -1401,7 +1380,6 @@ def _render_llm_config_admin() -> None:
 
     st.divider()
     st.subheader("System Prompts & Tuning Parameters")
-    st.caption("Edit prompts and numeric limits below. Changes apply after saving. Pipeline prompts take effect on next job run.")
     # Ensure modules are imported so their register_narrative_prompt calls run.
     import services.aql_zopedia_engine  # noqa: F401
     import services.attention_market_events  # noqa: F401
@@ -1763,7 +1741,7 @@ def _render_access_admin_section() -> None:
         _render_section_back_button("admin_back")
 
     if st.session_state.get("_ui_auth_mode") != "database":
-        st.info("Database-backed auth is required for user invites and password reset management.")
+        st.info("User management unavailable.")
         return
 
     current_user = _current_user_context()
@@ -1771,18 +1749,20 @@ def _render_access_admin_section() -> None:
         st.error("Only admin users can access this section.")
         return
 
-    auth_state = auth_service.initialize_auth_system()
+    auth_state = auth_service.initialize_auth_system(include_email_delivery=True)
     email_status = auth_state.get("email_delivery_status") or {}
-    st.caption(
-        "Manage invite-based account creation, review pending invites, issue password reset links, and design invite emails."
-    )
     st.caption(
         f"Email delivery: {'configured' if auth_state.get('email_delivery') else 'not configured'}"
     )
     if not auth_state.get("email_delivery"):
         st.caption(str(email_status.get("message") or "Email delivery is not configured."))
     _show_access_pending_invite_notice()
-    user_rows = auth_service.list_users()
+    user_directory_available = True
+    try:
+        user_rows = auth_service.list_users()
+    except auth_store.AuthStoreUnavailable:
+        user_rows = []
+        user_directory_available = False
     analytics_user_options: dict[str, dict[str, str]] = {"": {"label": "All users", "email": ""}}
     for row in user_rows:
         if not isinstance(row, dict):
@@ -1810,6 +1790,9 @@ def _render_access_admin_section() -> None:
     )
 
     if admin_view == "Access Management":
+        if not user_directory_available:
+            st.error("User directory is unavailable. Try again shortly.")
+            return
         invite_col, reset_col = _responsive_two_panel()
         with invite_col:
             st.subheader("Create Invite")
@@ -1887,15 +1870,18 @@ def _render_access_admin_section() -> None:
                     users[timestamp_col] = users[timestamp_col].apply(_format_access_admin_timestamp)
             st.dataframe(users[display_cols], use_container_width=True, hide_index=True)
 
-        invites = auth_service.list_pending_invites()
         st.subheader("Pending Invites")
-        if not invites:
-            st.info("No pending invites.")
+        try:
+            invites = auth_service.list_pending_invites()
+        except auth_store.AuthStoreUnavailable:
+            st.error("Pending invites are unavailable. Try again shortly.")
         else:
-            st.caption("Each invite now has its own row actions.")
-            for invite in invites:
-                if isinstance(invite, dict):
-                    _render_access_pending_invite_card(invite, current_user=current_user)
+            if not invites:
+                st.info("No pending invites.")
+            else:
+                for invite in invites:
+                    if isinstance(invite, dict):
+                        _render_access_pending_invite_card(invite, current_user=current_user)
 
         _render_api_keys_admin(current_user=current_user, user_rows=user_rows)
 
@@ -2155,7 +2141,7 @@ def _render_system_health_admin(*, source_refresh_flags: dict[str, bool]) -> Non
             ~home_market_coverage_health["health"].astype(str).str.lower().isin({"ok", "complete"})
         ].copy()
     if not home_coverage_rows.empty:
-        st.warning("Latest Home market coverage is incomplete. Home summaries should not be treated as a complete broad-market recap until the next healthy Attention build.")
+        st.warning("Home market coverage is incomplete.")
         with st.expander("Home Market Coverage", expanded=True):
             coverage_display = home_coverage_rows.copy()
             for column in ("asof_time_utc", "generated_at_utc"):
@@ -2387,7 +2373,6 @@ def _render_system_health_admin(*, source_refresh_flags: dict[str, bool]) -> Non
 
     # ── Job Controls Table ──────────────────────────────────────────────
     st.subheader("Job Controls")
-    st.caption("Trigger remote snapshot refresh jobs.")
     groups = _job_control_groups()
     for group in groups:
         job_name = str(group["job_name"])

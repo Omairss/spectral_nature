@@ -14,6 +14,9 @@ MARKET_OPPORTUNITY_HORIZON_SPECS: tuple[dict[str, str], ...] = (
     {"key": "5yr", "column": "return_5y_pct", "label": "5 Year"},
 )
 
+_RETRIEVAL_METHOD = "reciprocal_rank_fusion_v1"
+_RRF_K = 60.0
+
 
 def _num(value: object, default: float = np.nan) -> float:
     parsed = pd.to_numeric(value, errors="coerce")
@@ -53,14 +56,28 @@ def _filter_symbols(frame: pd.DataFrame, symbols: list[str] | tuple[str, ...] | 
     return source[source["symbol"].isin(normalized)].reset_index(drop=True)
 
 
-def _score_series(values: pd.Series, *, higher_is_better: bool = True) -> pd.Series:
+def _retrieval_rank(values: pd.Series, *, higher_is_better: bool = True) -> pd.Series:
     numeric = pd.to_numeric(values, errors="coerce")
     if numeric.dropna().empty:
-        return pd.Series(0.0, index=values.index)
-    ranked = numeric.rank(pct=True, na_option="bottom")
-    if not higher_is_better:
-        ranked = 1.0 - ranked
-    return ranked.fillna(0.0).astype(float)
+        return pd.Series(np.nan, index=values.index, dtype=float)
+    return numeric.rank(
+        method="min",
+        ascending=not higher_is_better,
+        na_option="keep",
+    ).astype(float)
+
+
+def _reciprocal_rank_score(rank_series: list[pd.Series]) -> tuple[pd.Series, pd.Series]:
+    if not rank_series:
+        return pd.Series(dtype=float), pd.Series(dtype="int64")
+    score = pd.Series(0.0, index=rank_series[0].index)
+    signal_count = pd.Series(0, index=rank_series[0].index, dtype="int64")
+    for ranks in rank_series:
+        available = ranks.notna()
+        score.loc[available] += 1.0 / (_RRF_K + ranks.loc[available])
+        signal_count.loc[available] += 1
+    maximum = len(rank_series) / (_RRF_K + 1.0)
+    return (score / maximum * 100.0).round(1), signal_count
 
 
 def _direction_label(row: pd.Series, horizon_col: str) -> str:
@@ -118,9 +135,6 @@ def _detail_text(row: pd.Series, horizon_col: str, horizon_label: str) -> str:
     trend_gap = _num(row.get("trend_fit_gap"))
     if pd.notna(trend_gap):
         parts.append(f"trend gap {trend_gap:.2f}")
-    mover_volume = _num(row.get("volume"))
-    if pd.notna(mover_volume) and mover_volume > 0:
-        parts.append(f"volume {mover_volume:,.0f}")
     return " | ".join(parts)
 
 
@@ -209,16 +223,27 @@ def build_market_opportunity_feed(
         if column not in combined.columns:
             combined[column] = np.nan
 
-    combined["_horizon_abs_rank"] = _score_series(pd.to_numeric(combined[horizon_col], errors="coerce").abs())
-    combined["_roc_abs_rank"] = _score_series(pd.to_numeric(combined["momentum_roc_score"], errors="coerce").abs())
-    combined["_daily_abs_rank"] = _score_series(pd.to_numeric(combined["daily_change_pct"], errors="coerce").abs())
-    combined["_trend_rank"] = _score_series(combined["trend_fit_gap"], higher_is_better=False)
-    combined["opportunity_score"] = (
-        combined["_horizon_abs_rank"] * 42.0
-        + combined["_roc_abs_rank"] * 26.0
-        + combined["_daily_abs_rank"] * 20.0
-        + combined["_trend_rank"] * 12.0
-    ).round(1)
+    horizon_values = pd.to_numeric(combined[horizon_col], errors="coerce")
+    combined["horizon_metric_available"] = horizon_values.notna()
+    retrieval_ranks = {
+        "horizon_retrieval_rank": _retrieval_rank(horizon_values.abs()),
+        "momentum_change_retrieval_rank": _retrieval_rank(
+            pd.to_numeric(combined["momentum_roc_score"], errors="coerce").abs()
+        ),
+        "daily_move_retrieval_rank": _retrieval_rank(
+            pd.to_numeric(combined["daily_change_pct"], errors="coerce").abs()
+        ),
+        "trend_quality_retrieval_rank": _retrieval_rank(
+            combined["trend_fit_gap"],
+            higher_is_better=False,
+        ),
+    }
+    for column, ranks in retrieval_ranks.items():
+        combined[column] = ranks
+    combined["opportunity_score"], combined["retrieval_signal_count"] = _reciprocal_rank_score(
+        list(retrieval_ranks.values())
+    )
+    combined["retrieval_method"] = _RETRIEVAL_METHOD
 
     names = name_map or {}
     combined["company_name"] = [
@@ -235,11 +260,18 @@ def build_market_opportunity_feed(
         "opportunity",
         "direction",
         "opportunity_score",
+        "retrieval_method",
+        "retrieval_signal_count",
+        "horizon_retrieval_rank",
+        "momentum_change_retrieval_rank",
+        "daily_move_retrieval_rank",
+        "trend_quality_retrieval_rank",
         "sparkline_3m",
         "close",
         "volume",
         "daily_change_pct",
         horizon_col,
+        "horizon_metric_available",
         "return_1w_pct",
         "return_3m_pct",
         "momentum_score",
@@ -252,7 +284,12 @@ def build_market_opportunity_feed(
             combined[column] = np.nan
 
     out = combined[display_columns].copy()
-    out = out.sort_values(["opportunity_score", horizon_col], ascending=[False, False], na_position="last")
+    out["_horizon_abs_sort"] = pd.to_numeric(out[horizon_col], errors="coerce").abs()
+    out = out.sort_values(
+        ["opportunity_score", "_horizon_abs_sort", "symbol"],
+        ascending=[False, False, True],
+        na_position="last",
+    ).drop(columns=["_horizon_abs_sort"])
     out = out.head(max(int(limit), 1)).reset_index(drop=True)
     return out
 
@@ -282,6 +319,10 @@ def build_materialized_market_opportunity_feeds(
         if focus_movers.empty and focus_momentum.empty:
             continue
 
+        focus_limit = max(int(limit), 1)
+        if focus_label.casefold() == "all market":
+            focus_limit = max(focus_limit, len(focus_movers), len(focus_momentum))
+
         for spec in horizon_specs:
             horizon_key = str(spec.get("key") or spec.get("column") or "").strip()
             horizon_col = str(spec.get("column") or "return_1m_pct").strip() or "return_1m_pct"
@@ -292,7 +333,7 @@ def build_materialized_market_opportunity_feeds(
                 selected_horizon_col=horizon_col,
                 selected_horizon_label=horizon_label,
                 name_map=name_map,
-                limit=limit,
+                limit=focus_limit,
             )
             if feed.empty:
                 continue
@@ -317,6 +358,7 @@ def select_market_opportunity_feed(
     business_filter: str = "All Market",
     selected_horizon_col: str = "return_1m_pct",
     symbols: list[str] | tuple[str, ...] | set[str] | None = None,
+    require_horizon_metric: bool = False,
     limit: int = 80,
 ) -> pd.DataFrame:
     """Select one materialized Market Opportunity feed variant for presentation."""
@@ -354,6 +396,11 @@ def select_market_opportunity_feed(
 
     if horizon_col not in out.columns:
         out[horizon_col] = np.nan
+    if require_horizon_metric:
+        horizon_values = pd.to_numeric(out[horizon_col], errors="coerce")
+        out = out[horizon_values.notna()].copy()
+        if out.empty:
+            return pd.DataFrame(columns=frame.columns)
     if "rank" in out.columns:
         out["_sort_rank"] = pd.to_numeric(out["rank"], errors="coerce")
         out = out.sort_values(["_sort_rank", "opportunity_score"], ascending=[True, False], na_position="last")

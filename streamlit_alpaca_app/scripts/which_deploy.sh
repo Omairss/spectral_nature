@@ -9,15 +9,15 @@
 #   ./scripts/which_deploy.sh --check api
 #
 # Source directories per container:
-#   UI       — app.py, presentation/, config/, branding/, services/* (request-time only)
+#   UI       — app.py, views/, presentation/, config/, branding/, services/* (request-time only)
 #   Pipeline — pipeline/, compute/, services/aql/, services/saa/, services/attention_home_summary.py,
 #              services/attention_agentic.py, services/attention_live_research.py,
 #              services/attention_market_events.py, services/attention_home_1d.py,
-#              services/attention_ticker_snapshots.py, services/zopedia*.py,
+#              services/attention_ticker_snapshots.py,
 #              services/web_research.py, services/page_browsing.py,
 #              services/seeking_alpha_access.py, services/signals.py
 #   API      — api/
-#   Shared   — services/ (files used by both UI and pipeline), data_access/, requirements.txt
+#   Shared   — services/ (including the UI-facing Zopedia engine), data_access/, requirements.txt
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -54,7 +54,6 @@ PIPELINE_SERVICE_PATTERNS=(
   "services/attention_home_1d.py"
   "services/attention_ticker_snapshots.py"
   "services/attention_materialized.py"
-  "services/zopedia"
   "services/web_research.py"
   "services/page_browsing.py"
   "services/seeking_alpha_access.py"
@@ -84,7 +83,7 @@ while IFS= read -r file; do
     api/*)
       API_CHANGES+=("$rel")
       ;;
-    app.py|presentation/*|branding/*|config/*)
+    app.py|views/*|presentation/*|branding/*|config/*)
       UI_CHANGES+=("$rel")
       ;;
     services/*)
@@ -176,6 +175,9 @@ if ((${#SHARED_CHANGES[@]} > 0)); then
   fi
   if [[ ! " ${NEEDS_DEPLOY[*]:-} " =~ "Pipeline" ]]; then
     NEEDS_DEPLOY+=("Pipeline (deploy_pipeline_azure.sh)")
+  fi
+  if [[ ! " ${NEEDS_DEPLOY[*]:-} " =~ "API" ]]; then
+    NEEDS_DEPLOY+=("API (deploy_api_azure.sh)")
   fi
 fi
 

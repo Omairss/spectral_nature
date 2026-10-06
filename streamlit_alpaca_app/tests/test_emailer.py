@@ -29,6 +29,9 @@ def test_email_delivery_status_supports_default_secret_names(monkeypatch):
     status = emailer.email_delivery_status()
     assert status["configured"] is True
     assert status["smtp_auth_configured"] is True
+    assert "value" not in status["smtp_username"]
+    assert "value" not in status["smtp_password"]
+    assert "error_message" not in status["smtp_password"]
     assert emailer.email_delivery_configured() is True
 
 

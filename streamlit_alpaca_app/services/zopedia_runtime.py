@@ -3,14 +3,10 @@ from __future__ import annotations
 from typing import Any
 
 from . import llm as llm_service
-from .llm import (
-    AzureOpenAIChatJSONClient,
-    DeepSeekChatJSONClient,
-    OpenAIChatJSONClient,
-)
+from .llm import JSONLLMClient
 
 
-ZopediaLLMClient = OpenAIChatJSONClient | AzureOpenAIChatJSONClient | DeepSeekChatJSONClient
+ZopediaLLMClient = JSONLLMClient
 
 
 def _clean(value: object) -> str:

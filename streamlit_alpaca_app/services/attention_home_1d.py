@@ -45,6 +45,12 @@ CANDIDATE_COLUMNS = [
     "expected_move_pct",
     "surprise_pct",
     "surprise_z",
+    "anomaly_score",
+    "return_z",
+    "volume_z",
+    "range_z",
+    "anomaly_history_count",
+    "scoring_mode",
     "close",
     "prev_close",
     "volume",
@@ -562,6 +568,126 @@ def _compute_expectation_stats(frame: pd.DataFrame | None) -> tuple[float, float
     return expected, surprise, surprise / std
 
 
+def _normalized_scoring_mode() -> str:
+    mode = _coerce_text(attention_candidate_policy().scoring_mode).lower().replace("-", "_")
+    if mode in {"anomaly", "v2", "anomaly_v2", "standardized_anomaly"}:
+        return "anomaly_v2"
+    return "legacy"
+
+
+def _finite_or_nan(value: object) -> float:
+    numeric = _coerce_float(value)
+    return numeric if np.isfinite(numeric) else float("nan")
+
+
+def _standardized_latest_value(series: pd.Series, *, minimum_std: float, lookback: int, min_history: int) -> tuple[float, int]:
+    values = pd.to_numeric(series, errors="coerce").dropna()
+    if len(values) < max(int(min_history) + 1, 2):
+        return float("nan"), max(int(len(values) - 1), 0)
+    latest = float(values.iloc[-1])
+    baseline = values.iloc[:-1].tail(max(int(lookback), 1)).dropna()
+    history_count = int(len(baseline))
+    if history_count < int(min_history):
+        return float("nan"), history_count
+    mean = float(baseline.mean())
+    std = float(baseline.std(ddof=0))
+    if not np.isfinite(std) or std < float(minimum_std):
+        std = float(minimum_std)
+    return (latest - mean) / std, history_count
+
+
+def _candidate_anomaly_features(
+    frame: pd.DataFrame | None,
+    *,
+    change_pct: float,
+    surprise_z: float,
+    current_volume: float,
+) -> dict[str, float | int]:
+    policy = attention_candidate_policy()
+    fallback_return_z = _finite_or_nan(surprise_z)
+    if not np.isfinite(fallback_return_z):
+        denominator = max(float(policy.confidence_medium_abs_change_pct), 1.0)
+        fallback_return_z = change_pct / denominator if np.isfinite(change_pct) else float("nan")
+
+    features: dict[str, float | int] = {
+        "return_z": fallback_return_z,
+        "volume_z": float("nan"),
+        "range_z": float("nan"),
+        "anomaly_score": abs(fallback_return_z) if np.isfinite(fallback_return_z) else float("nan"),
+        "history_count": 0,
+    }
+    if not isinstance(frame, pd.DataFrame) or frame.empty or "close" not in frame.columns:
+        return features
+
+    out = frame.copy()
+    if "timestamp" in out.columns:
+        out["timestamp"] = pd.to_datetime(out["timestamp"], utc=True, errors="coerce")
+        out = out.sort_values("timestamp", na_position="last")
+    out["close"] = pd.to_numeric(out.get("close"), errors="coerce")
+    out = out.dropna(subset=["close"]).reset_index(drop=True)
+    if len(out) < max(int(policy.anomaly_min_history_days) + 1, 2):
+        return features
+
+    returns = out["close"].pct_change() * 100.0
+    return_z, return_count = _standardized_latest_value(
+        returns,
+        minimum_std=policy.anomaly_min_return_std_pct,
+        lookback=policy.anomaly_lookback_days,
+        min_history=policy.anomaly_min_history_days,
+    )
+    if np.isfinite(return_z):
+        features["return_z"] = return_z
+    features["history_count"] = max(int(features.get("history_count") or 0), int(return_count))
+
+    if "volume" in out.columns:
+        volumes = pd.to_numeric(out.get("volume"), errors="coerce")
+        last_volume = (
+            float(pd.to_numeric(pd.Series([volumes.iloc[-1]]), errors="coerce").iloc[0])
+            if not volumes.empty
+            else float("nan")
+        )
+        if np.isfinite(current_volume) and current_volume > 0 and not np.isfinite(last_volume):
+            volumes.iloc[-1] = current_volume
+        positive_volume = volumes.where(volumes > 0)
+        volume_z, volume_count = _standardized_latest_value(
+            np.log1p(positive_volume),
+            minimum_std=policy.anomaly_min_log_volume_std,
+            lookback=policy.anomaly_lookback_days,
+            min_history=max(min(int(policy.anomaly_min_history_days), 20), 5),
+        )
+        features["volume_z"] = volume_z
+        features["history_count"] = max(int(features.get("history_count") or 0), int(volume_count))
+
+    if {"high", "low"}.issubset(set(out.columns)):
+        highs = pd.to_numeric(out.get("high"), errors="coerce")
+        lows = pd.to_numeric(out.get("low"), errors="coerce")
+        ranges = ((highs - lows) / out["close"].replace(0, np.nan)) * 100.0
+        range_z, range_count = _standardized_latest_value(
+            ranges,
+            minimum_std=policy.anomaly_min_range_std_pct,
+            lookback=policy.anomaly_lookback_days,
+            min_history=max(min(int(policy.anomaly_min_history_days), 20), 5),
+        )
+        features["range_z"] = range_z
+        features["history_count"] = max(int(features.get("history_count") or 0), int(range_count))
+
+    weighted_sum = 0.0
+    weight_sum = 0.0
+    for key, weight in [
+        ("return_z", policy.anomaly_return_weight),
+        ("volume_z", policy.anomaly_volume_weight),
+        ("range_z", policy.anomaly_range_weight),
+    ]:
+        z_value = _finite_or_nan(features.get(key))
+        if not np.isfinite(z_value) or float(weight) <= 0:
+            continue
+        weighted_sum += float(weight) * (z_value ** 2)
+        weight_sum += float(weight)
+    if weight_sum > 0:
+        features["anomaly_score"] = math.sqrt(weighted_sum)
+    return features
+
+
 def _build_entity_row(
     symbol: str,
     asset_metadata: dict[str, Any] | None = None,
@@ -714,22 +840,33 @@ def shortlist_attention_symbols_1d(
         if liquid.empty:
             liquid = movers.copy()
 
-        gainers = liquid[liquid["change_pct"] > 0].sort_values(["change_pct", "dollar_volume"], ascending=[False, False], na_position="last")
-        losers = liquid[liquid["change_pct"] < 0].sort_values(["change_pct", "dollar_volume"], ascending=[True, False], na_position="last")
-        macro = _abs_change_sort(liquid[liquid["symbol"].isin(macro_anchor_symbols)].copy())
-        large = _abs_change_sort(
-            liquid[
-                liquid["change_pct"].abs().ge(policy.confidence_medium_abs_change_pct)
-                | (
-                    liquid["symbol"].isin(macro_anchor_symbols)
-                    & liquid["change_pct"].abs().ge(policy.shortlist_macro_anchor_min_abs_change_pct)
-                )
-            ].copy()
-        )
-        _extend(macro["symbol"].head(20).tolist())
-        _extend(losers["symbol"].head(25).tolist())
-        _extend(gainers["symbol"].head(25).tolist())
-        _extend(large["symbol"].head(40).tolist())
+        if _normalized_scoring_mode() == "anomaly_v2":
+            pool_limit = max(int(policy.anomaly_candidate_pool_max_count), 1)
+            by_liquidity = liquid.sort_values(["dollar_volume", "symbol"], ascending=[False, True], na_position="last")
+            by_move = _abs_change_sort(liquid)
+            anomaly_pool = pd.concat(
+                [by_move.head(pool_limit), by_liquidity.head(pool_limit)],
+                ignore_index=True,
+                sort=False,
+            ).drop_duplicates(subset=["symbol"], keep="first")
+            _extend(anomaly_pool["symbol"].head(pool_limit).tolist())
+        else:
+            gainers = liquid[liquid["change_pct"] > 0].sort_values(["change_pct", "dollar_volume"], ascending=[False, False], na_position="last")
+            losers = liquid[liquid["change_pct"] < 0].sort_values(["change_pct", "dollar_volume"], ascending=[True, False], na_position="last")
+            macro = _abs_change_sort(liquid[liquid["symbol"].isin(macro_anchor_symbols)].copy())
+            large = _abs_change_sort(
+                liquid[
+                    liquid["change_pct"].abs().ge(policy.confidence_medium_abs_change_pct)
+                    | (
+                        liquid["symbol"].isin(macro_anchor_symbols)
+                        & liquid["change_pct"].abs().ge(policy.shortlist_macro_anchor_min_abs_change_pct)
+                    )
+                ].copy()
+            )
+            _extend(macro["symbol"].head(20).tolist())
+            _extend(losers["symbol"].head(25).tolist())
+            _extend(gainers["symbol"].head(25).tolist())
+            _extend(large["symbol"].head(40).tolist())
 
         holding_set = {_normalize_symbol(item) for item in list(holdings or []) if _normalize_symbol(item)}
         if holding_set:
@@ -743,11 +880,14 @@ def shortlist_attention_symbols_1d(
         rows = rows.sort_values(["attention_score", "entity_id"], ascending=[False, True], na_position="last")
         _extend(rows["entity_id"].head(25).tolist())
 
-    effective_max = policy.shortlist_default_max_count if max_count is None else max_count
+    if _normalized_scoring_mode() == "anomaly_v2":
+        effective_max = policy.anomaly_candidate_pool_max_count
+    else:
+        effective_max = policy.shortlist_default_max_count if max_count is None else max_count
     return ordered[: max(int(effective_max), 1)]
 
 
-def _candidate_score(
+def _legacy_candidate_score(
     *,
     change_pct: float,
     surprise_z: float,
@@ -785,6 +925,79 @@ def _candidate_score(
     macro_bonus = policy.macro_bonus if is_macro_anchor else 0.0
     portfolio_bonus = policy.portfolio_bonus if in_portfolio else 0.0
     return round(move_score + surprise_score + liquidity_score + evidence_score + attention_bonus + macro_bonus + portfolio_bonus, 1)
+
+
+def _anomaly_candidate_score(
+    *,
+    anomaly_score: float,
+    best_authority_rank: int,
+    evidence_count: int,
+    attention_score: float,
+    is_macro_anchor: bool,
+    in_portfolio: bool,
+) -> float:
+    policy = attention_candidate_policy()
+    if not np.isfinite(anomaly_score):
+        anomaly_component = 0.0
+    else:
+        anomaly_component = min(max(float(anomaly_score), 0.0) * policy.anomaly_score_mult, policy.anomaly_score_cap)
+
+    evidence_bonus = 0.0
+    if evidence_count > 0:
+        authority_bonus = 0.0
+        if best_authority_rank <= 0:
+            authority_bonus = policy.authority_bonus_official
+        elif best_authority_rank <= 1:
+            authority_bonus = policy.authority_bonus_wire
+        elif best_authority_rank <= 2:
+            authority_bonus = policy.authority_bonus_press
+        evidence_bonus = min(
+            (evidence_count * policy.evidence_score_per_item) + authority_bonus,
+            policy.anomaly_evidence_bonus_cap,
+        )
+
+    context_bonus = 0.0
+    if np.isfinite(attention_score):
+        context_bonus += max(float(attention_score), 0.0) * policy.attention_bonus_mult * 0.5
+    if is_macro_anchor:
+        context_bonus += policy.macro_bonus * 0.5
+    if in_portfolio:
+        context_bonus += policy.portfolio_bonus
+    context_bonus = min(context_bonus, policy.anomaly_context_bonus_cap)
+    return round(anomaly_component + evidence_bonus + context_bonus, 1)
+
+
+def _candidate_score(
+    *,
+    change_pct: float,
+    surprise_z: float,
+    anomaly_score: float,
+    dollar_volume: float,
+    best_authority_rank: int,
+    evidence_count: int,
+    attention_score: float,
+    is_macro_anchor: bool,
+    in_portfolio: bool,
+) -> float:
+    if _normalized_scoring_mode() == "anomaly_v2":
+        return _anomaly_candidate_score(
+            anomaly_score=anomaly_score,
+            best_authority_rank=best_authority_rank,
+            evidence_count=evidence_count,
+            attention_score=attention_score,
+            is_macro_anchor=is_macro_anchor,
+            in_portfolio=in_portfolio,
+        )
+    return _legacy_candidate_score(
+        change_pct=change_pct,
+        surprise_z=surprise_z,
+        dollar_volume=dollar_volume,
+        best_authority_rank=best_authority_rank,
+        evidence_count=evidence_count,
+        attention_score=attention_score,
+        is_macro_anchor=is_macro_anchor,
+        in_portfolio=in_portfolio,
+    )
 
 
 def build_attention_event_candidates_1d(
@@ -859,6 +1072,13 @@ def build_attention_event_candidates_1d(
         expected_move_pct, surprise_pct, surprise_z = _compute_expectation_stats((bars_by_symbol or {}).get(symbol))
         if not np.isfinite(surprise_pct) and np.isfinite(change_pct):
             surprise_pct = change_pct - (expected_move_pct if np.isfinite(expected_move_pct) else 0.0)
+        volume = _coerce_float(mover_row.get("volume"))
+        anomaly_features = _candidate_anomaly_features(
+            (bars_by_symbol or {}).get(symbol),
+            change_pct=change_pct,
+            surprise_z=surprise_z,
+            current_volume=volume,
+        )
         evidence_rows = _symbol_evidence_rows(
             symbol,
             news_payloads=news_payloads,
@@ -898,6 +1118,7 @@ def build_attention_event_candidates_1d(
         candidate_score = _candidate_score(
             change_pct=change_pct,
             surprise_z=surprise_z,
+            anomaly_score=_coerce_float(anomaly_features.get("anomaly_score")),
             dollar_volume=dollar_volume,
             best_authority_rank=best_authority_rank,
             evidence_count=len(current_evidence_rows),
@@ -939,9 +1160,23 @@ def build_attention_event_candidates_1d(
                 "expected_move_pct": round(expected_move_pct, 2) if np.isfinite(expected_move_pct) else np.nan,
                 "surprise_pct": round(surprise_pct, 2) if np.isfinite(surprise_pct) else np.nan,
                 "surprise_z": round(surprise_z, 2) if np.isfinite(surprise_z) else np.nan,
+                "anomaly_score": round(_coerce_float(anomaly_features.get("anomaly_score")), 2)
+                if np.isfinite(_coerce_float(anomaly_features.get("anomaly_score")))
+                else np.nan,
+                "return_z": round(_coerce_float(anomaly_features.get("return_z")), 2)
+                if np.isfinite(_coerce_float(anomaly_features.get("return_z")))
+                else np.nan,
+                "volume_z": round(_coerce_float(anomaly_features.get("volume_z")), 2)
+                if np.isfinite(_coerce_float(anomaly_features.get("volume_z")))
+                else np.nan,
+                "range_z": round(_coerce_float(anomaly_features.get("range_z")), 2)
+                if np.isfinite(_coerce_float(anomaly_features.get("range_z")))
+                else np.nan,
+                "anomaly_history_count": int(anomaly_features.get("history_count") or 0),
+                "scoring_mode": _normalized_scoring_mode(),
                 "close": _coerce_float(mover_row.get("close")),
                 "prev_close": _coerce_float(mover_row.get("prev_close")),
-                "volume": _coerce_float(mover_row.get("volume")),
+                "volume": volume,
                 "dollar_volume": dollar_volume,
                 "attention_score": attention_score,
                 "severity_score": severity_score if np.isfinite(severity_score) else candidate_score,
@@ -978,6 +1213,8 @@ def build_attention_event_candidates_1d(
     out["dollar_volume"] = pd.to_numeric(out["dollar_volume"], errors="coerce")
     out["change_pct"] = pd.to_numeric(out["change_pct"], errors="coerce")
     out = out.sort_values(["candidate_score", "dollar_volume", "change_pct"], ascending=[False, False, False], na_position="last").reset_index(drop=True)
+    if _normalized_scoring_mode() == "anomaly_v2":
+        out = out.head(max(int(attention_candidate_policy().shortlist_default_max_count), 1)).reset_index(drop=True)
     return out[CANDIDATE_COLUMNS].copy()
 
 

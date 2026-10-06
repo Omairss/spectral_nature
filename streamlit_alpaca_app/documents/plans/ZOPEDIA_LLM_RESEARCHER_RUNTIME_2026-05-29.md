@@ -2,6 +2,60 @@
 
 Date: 2026-05-29
 
+## 2026-09-19 Runtime Foundation Update
+
+The runtime will remain fully repository-owned. DeepSeek is the active provider and a local GPU inference endpoint is the expected next transport. Do not add OpenAI, Anthropic, or another hosted agent/session dependency.
+
+Implemented foundation:
+
+- `JSONLLMClient` is now the structural model boundary used by Zopedia/AQL code.
+- `deepseek` and unauthenticated `local` chat-completions transports use the same JSON contract without an SDK.
+- `ResearchSession` wraps the existing public agent entry point and records sanitized append-only progress events in `aql_research_sessions` and `aql_research_session_events` when persistence is enabled.
+- every model call inside the Zopedia planner, monitor, critic, final synthesis, and memory reflection now passes through the AQL/Zopedia gateway with the research run id.
+- `ToolRegistry` is the canonical tool catalog and provides bounded BM25 search through `tools.search`.
+- deferred tool discovery is implemented behind `Agent deferred tool discovery enabled`; it remains off until live DeepSeek replay evaluation passes.
+- tool discovery, monitor calls, scratchpad calls, and mutation administration are explicitly excluded from evidence counts and memory promotion.
+- the trajectory monitor can terminate only for explicit off-contract signals. Evidence gaps and exhausted restart budgets continue to critic-reviewed synthesis.
+
+The detailed ownership and persistence contract is in `documents/architecture/new_features/zopedia/ZOPEDIA_PROVIDER_NEUTRAL_RUNTIME_2026-09-19.md`.
+
+Still pending:
+
+- replace the planner/fallback-synthesis split with one researcher loop
+- add complete resumable researcher checkpoints after that state contract stabilizes
+- run the qualitative DeepSeek replay set and enable deferred discovery in development only if it improves results
+- move the remaining direct model-call migration entries through the gateway
+- isolate analysis execution from application credentials and network access
+
+### 2026-09-19 Live DeepSeek Probe
+
+A bounded development probe ran on `deepseek-reasoner` with deferred discovery enabled only for that process, two research-tool calls, no persistence, and no provider fallback.
+
+Observed trajectory:
+
+1. The researcher called `tools.search` for local inflation data.
+2. The registry loaded `dataset.fred_dashboard` and related macro tools into the active catalog.
+3. `dataset.fred_dashboard` timed out at the probe's 20-second tool deadline.
+4. The researcher used `dataset.macro_release_events_1d` as a fallback; it returned zero rows.
+5. The researcher produced a low-confidence answer that named the missing CPI observations and did not invent a value.
+6. The answer critic completed and accepted the fail-closed result.
+
+This validates the discovery and failure-handling mechanics, not answer quality on a successful data path. Deferred discovery remains disabled by default until the full replay set includes successful, partial, broad, and wrong-framing cases.
+
+### 2026-09-20 Development Deployment Verification
+
+The runtime foundation is deployed and verified in development without adding OpenAI, Anthropic, or another hosted agent dependency.
+
+- Final images: `pipeline-jobs:20260919221758`, UI revision `0000435`, API revision `0000046`.
+- All scheduled jobs are configured for `deepseek` / `deepseek-reasoner`; the local HTTP transport remains available through the same `JSONLLMClient` contract.
+- Final probe `agrun_76639664e6` completed in 40 seconds at the durable-session boundary and 29 seconds at the chat row, using one evidence tool and four successful gateway model calls.
+- The answer critic found one unsupported seasonal-adjustment statement and the returned answer removed it while preserving a valid Markdown table and the rest of the authored line structure.
+- The durable ledger has 18 gapless events, zero sensitive-payload matches, and complete run-id correlation across session, model-call, and chat records.
+- A normal scheduled health execution succeeded after the probe. UI root and Streamlit health return 200, API health returns 200, and unauthenticated capabilities correctly returns 401.
+- Playwright verified the public dev shell at 1440px and 390px with no browser errors, exceptions, or horizontal overflow. The asynchronous Plotly graph rendered at both widths.
+
+The live probes also removed two avoidable orchestration costs found during rollout: hidden analysis-argument repair calls no longer continue after an outer tool timeout, and a redundant post-success trajectory-monitor call was removed. The visible planner remains responsible for its bounded retry policy.
+
 ## Objective
 
 Replace the current stepwise Zopedia planner/monitor loop with an LLM-led research runtime.
@@ -24,7 +78,7 @@ The public entrypoint remains `run_aql_zopedia_agent(...)` while the internals a
 The current chat backend has these pieces:
 
 - `services/aql_zopedia_engine.py` exposes `run_aql_zopedia_agent(...)`
-- `services/omnibar_agent.py` owns the actual loop
+- `services/zopedia_agent.py` owns the actual loop
 - the loop asks a planner for one next action
 - a trajectory monitor inspects raw tool calls and can restart or kill
 - final synthesis runs after the loop
@@ -94,7 +148,7 @@ The important change is ownership. The LLM researcher owns the investigation. Th
 
 Create a new implementation module, likely `services/zopedia_researcher.py`.
 
-It should replace the planner/monitor/final-answer split inside `services/omnibar_agent.py`, but initially stay behind `run_aql_zopedia_agent(...)`.
+It should replace the planner/monitor/final-answer split inside `services/zopedia_agent.py`, but initially stay behind `run_aql_zopedia_agent(...)`.
 
 The researcher prompt should say:
 
@@ -334,13 +388,13 @@ Trading Agent should request:
 
 The shared runtime decides decomposition and sufficiency. Trading Agent supplies product intent and materialized context, not bespoke research policy. Every ticker research, final synthesis, and review model call should record a gateway event with surface, purpose, provider, model, status, and artifact links.
 
-### Phase 6: Replace `omnibar_agent.py` Ownership
+### Phase 6: Replace The Transitional Planner Loop
 
-Once probes pass, move ownership:
+The Omnibar-named implementation has already been retired. Once probes pass, move ownership:
 
 - `services/zopedia_researcher.py` owns the loop
 - `services/aql_zopedia_engine.py` remains the public entrypoint
-- `services/omnibar_agent.py` becomes obsolete and is deleted during pipeline simplification
+- the transitional planner/monitor implementation in `services/zopedia_agent.py` is deleted rather than retained as a second runtime
 
 Do not keep a compatibility maze. The old implementation can remain only while the feature flag is active.
 

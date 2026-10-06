@@ -137,7 +137,7 @@ def _render_stock_investigator_workspace(
                 )
     except AlpacaAPIError as exc:
         _log_event("load_price_history_failed", ticker=ticker, error=str(exc)[:200])
-        st.warning(f"Could not load price history: {exc}")
+        st.warning("Price history unavailable.")
         price = pd.DataFrame()
 
     st.subheader(f"{ticker} Technicals")
@@ -156,16 +156,12 @@ def _render_stock_investigator_workspace(
             )
         except Exception as exc:
             _log_event("stock_investigator_technical_overview_failed", ticker=ticker, error=str(exc)[:200])
-            st.caption("Technical overview chart unavailable for this ticker.")
 
         with st.expander("Show Recent Price Data", expanded=False):
             st.dataframe(price.tail(40), use_container_width=True, hide_index=True)
 
         if _SIGNALS_IMPORT_ERROR:
-            st.warning(
-                "Advanced signal charts are temporarily unavailable because the optional signals module "
-                f"did not load: {_SIGNALS_IMPORT_ERROR}"
-            )
+            st.warning("Advanced signals unavailable.")
 
         signal_frame = dashboard_loaders._load_technical_signal_history_cached(
             cfg,
@@ -282,7 +278,7 @@ def _render_stock_investigator_workspace(
                 )
     except Exception as exc:
         _log_event("load_market_detail_context_failed", ticker=ticker, error=str(exc)[:200])
-        st.warning(f"Could not load company context for {ticker}: {exc}")
+        st.warning("Company context unavailable.")
         news_payload = {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
         attention_context = {
             "context_story_text": "",

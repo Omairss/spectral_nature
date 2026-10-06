@@ -342,7 +342,7 @@ def build_attention_home_summary(
         summary_lines = []
         audio_text = ""
         summary_status = "unavailable"
-        data_gaps = ["Homepage summary LLM unavailable; deterministic code did not synthesize a narrative."]
+        data_gaps = []
 
     summary_text = "\n".join(line for line in summary_lines if line is not None).strip()
     return {

@@ -16,3 +16,5 @@ notebooks/
 documents/
 ios_app/
 infra/
+web/node_modules/
+web/.next/

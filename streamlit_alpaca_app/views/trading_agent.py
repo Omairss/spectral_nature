@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import html
 import json
 
 import numpy as np
@@ -10,11 +9,16 @@ import streamlit as st
 
 from services.config import AppConfig
 from services.json_utils import to_list
+from services import robinhood_mcp
 from services.pipeline_store import (
     load_latest_dataset_frame,
     load_recent_dataset_frames,
     record_trading_agent_action,
     trading_agent_actions_table,
+)
+from services.trading_agent import (
+    TRADING_AGENT_NARRATIVE_CONTRACT_VERSION,
+    normalize_trading_agent_candidate,
 )
 from views._shared import (
     LOGGER,
@@ -45,43 +49,372 @@ def _trading_agent_pct(value: object) -> str:
         return "n/a"
     return f"{numeric:+.1f}%"
 
-def _trading_agent_strength(value: float | None, *, scale: float, inverse: bool = False) -> int:
-    if value is None:
-        return 0
-    if inverse:
-        score = (1.0 - min(abs(value), scale) / scale) * 100.0
-    else:
-        score = min(abs(value), scale) / scale * 100.0
-    return int(max(0.0, min(100.0, score)))
+def _trading_agent_time_label(value: object) -> str:
+    parsed = pd.to_datetime(_trading_agent_text(value), utc=True, errors="coerce")
+    if pd.isna(parsed):
+        return ""
+    return parsed.strftime("%Y-%m-%d %H:%M UTC")
 
-def _trading_agent_trend_quality(trend_gap: float | None) -> tuple[str, int]:
-    if trend_gap is None:
-        return "Unavailable", 0
-    if trend_gap <= 0.12:
-        return "Clean trend", 88
-    if trend_gap <= 0.28:
-        return "Usable trend", 64
-    if trend_gap <= 0.50:
-        return "Choppy trend", 38
-    return "Noisy trend", 18
 
-def _trading_agent_momentum_label(momentum_roc: float | None) -> str:
-    if momentum_roc is None:
-        return "Pace unavailable"
-    if momentum_roc >= 0.25:
-        return "Accelerating"
-    if momentum_roc <= -0.25:
-        return "Fading"
-    return "Stable pace"
+def _robinhood_walk_values(value: object, *, keys: set[str]) -> list[object]:
+    matches: list[object] = []
+    if isinstance(value, dict):
+        for key, item in value.items():
+            normalized_key = "".join(char for char in str(key).lower() if char.isalnum())
+            if normalized_key in keys and item not in (None, ""):
+                matches.append(item)
+            matches.extend(_robinhood_walk_values(item, keys=keys))
+    elif isinstance(value, list):
+        for item in value:
+            matches.extend(_robinhood_walk_values(item, keys=keys))
+    return matches
+
+
+def _robinhood_first_value(value: object, *keys: str) -> object | None:
+    normalized = {"".join(char for char in key.lower() if char.isalnum()) for key in keys}
+    values = _robinhood_walk_values(value, keys=normalized)
+    return values[0] if values else None
+
+
+def _robinhood_money(value: object) -> str:
+    numeric = _trading_agent_float(value)
+    return f"${numeric:,.2f}" if numeric is not None else "n/a"
+
+
+def _robinhood_list_count(value: object) -> int | None:
+    if isinstance(value, list):
+        return len(value)
+    if isinstance(value, dict):
+        for key in ("results", "accounts", "positions", "items"):
+            item = value.get(key)
+            if isinstance(item, list):
+                return len(item)
+    return None
+
+
+def _render_robinhood_snapshot(snapshot: dict[str, object]) -> None:
+    results = snapshot.get("results") if isinstance(snapshot, dict) else {}
+    errors = snapshot.get("errors") if isinstance(snapshot, dict) else {}
+    if not isinstance(results, dict):
+        results = {}
+    if not isinstance(errors, dict):
+        errors = {}
+
+    portfolio = results.get("get_portfolio")
+    positions = results.get("get_equity_positions")
+    accounts = results.get("get_accounts")
+    approvals = results.get("get_trade_approval_setting")
+    total_value = _robinhood_first_value(
+        portfolio,
+        "total_value",
+        "portfolio_value",
+        "equity",
+        "market_value",
+    )
+    buying_power = _robinhood_first_value(
+        portfolio,
+        "buying_power",
+        "realtime_buying_power",
+        "available_buying_power",
+    )
+    approval_value = _robinhood_first_value(
+        approvals,
+        "trade_approvals_enabled",
+        "trade_approval_setting",
+        "enabled",
+        "status",
+    )
+    position_count = _robinhood_list_count(positions)
+    account_count = _robinhood_list_count(accounts)
+
+    metrics: list[tuple[str, str]] = []
+    if total_value is not None:
+        metrics.append(("Portfolio value", _robinhood_money(total_value)))
+    if buying_power is not None:
+        metrics.append(("Buying power", _robinhood_money(buying_power)))
+    if position_count is not None:
+        metrics.append(("Equity positions", str(position_count)))
+    if account_count is not None:
+        metrics.append(("Accounts", str(account_count)))
+    if approval_value is not None:
+        if isinstance(approval_value, bool):
+            approval_label = "On" if approval_value else "Off"
+        else:
+            approval_label = _trading_agent_text(approval_value)
+        metrics.append(("Trade approvals", approval_label))
+    if metrics:
+        for column, (label, value) in zip(_responsive_columns(len(metrics)), metrics):
+            column.metric(label, value)
+    elif results:
+        st.success("Robinhood account data refreshed.")
+
+    if errors:
+        with st.expander("Unavailable Robinhood account fields", expanded=False):
+            for tool_name, message in errors.items():
+                st.markdown(f"- `{tool_name}`: {_trading_agent_text(message)}")
+
+
+def _render_robinhood_equity_order(*, user_id: str, snapshot: dict[str, object]) -> None:
+    if not robinhood_mcp.execution_enabled():
+        return
+    raw_accounts = snapshot.get("agentic_accounts") if isinstance(snapshot, dict) else []
+    accounts = [item for item in list(raw_accounts or []) if isinstance(item, dict)]
+    if not accounts:
+        st.caption("Refresh account data to load the Robinhood account enabled for agent trading.")
+        return
+
+    with st.expander("Equity order", expanded=False):
+        account_index = st.selectbox(
+            "Account",
+            options=list(range(len(accounts))),
+            format_func=lambda index: _trading_agent_text(accounts[index].get("label")) or "Robinhood account",
+            key="robinhood_order_account_index",
+        )
+        first_row = _responsive_columns(3)
+        side = first_row[0].selectbox(
+            "Side",
+            ["buy", "sell"],
+            format_func=str.title,
+            key="robinhood_order_side",
+        )
+        symbol = first_row[1].text_input(
+            "Symbol",
+            key="robinhood_order_symbol",
+            max_chars=32,
+        )
+        order_type = first_row[2].selectbox(
+            "Order type",
+            ["market", "limit", "stop_market", "stop_limit"],
+            format_func=lambda value: value.replace("_", " ").title(),
+            key="robinhood_order_type",
+        )
+
+        second_row = _responsive_columns(3)
+        size_type = second_row[0].selectbox(
+            "Size",
+            ["shares", "dollars"] if order_type == "market" else ["shares"],
+            key="robinhood_order_size_type",
+        )
+        size_value = second_row[1].text_input(
+            "Quantity" if size_type == "shares" else "Dollar amount",
+            key="robinhood_order_size_value",
+        )
+        time_in_force = second_row[2].selectbox(
+            "Time in force",
+            ["gfd", "gtc"],
+            format_func=lambda value: "Good for day" if value == "gfd" else "Good till canceled",
+            key="robinhood_order_time_in_force",
+        )
+
+        price_row = _responsive_columns(3)
+        limit_price = ""
+        stop_price = ""
+        if order_type in {"limit", "stop_limit"}:
+            limit_price = price_row[0].text_input(
+                "Limit price",
+                key="robinhood_order_limit_price",
+            )
+        if order_type in {"stop_market", "stop_limit"}:
+            stop_price = price_row[1].text_input(
+                "Stop price",
+                key="robinhood_order_stop_price",
+            )
+        market_hours_options = ["regular_hours"]
+        if order_type == "limit":
+            market_hours_options.extend(["extended_hours", "all_day_hours"])
+        market_hours = price_row[2].selectbox(
+            "Market hours",
+            market_hours_options,
+            format_func=lambda value: value.replace("_", " ").title(),
+            key="robinhood_order_market_hours",
+        )
+
+        if st.button(
+            "Review order",
+            key="robinhood_review_order",
+            use_container_width=True,
+        ):
+            st.session_state.pop("_robinhood_pending_order", None)
+            arguments: dict[str, object] = {
+                "account_number": _trading_agent_text(accounts[int(account_index)].get("account_number")),
+                "side": side,
+                "symbol": symbol,
+                "type": order_type,
+                "market_hours": market_hours,
+                "time_in_force": time_in_force,
+            }
+            arguments["quantity" if size_type == "shares" else "dollar_amount"] = size_value
+            if limit_price:
+                arguments["limit_price"] = limit_price
+            if stop_price:
+                arguments["stop_price"] = stop_price
+            try:
+                reviewed = robinhood_mcp.review_equity_order(
+                    user_id=user_id,
+                    arguments=arguments,
+                )
+                st.session_state["_robinhood_pending_order"] = {
+                    "ticket_id": reviewed.get("ticket_id"),
+                    "arguments": robinhood_mcp.normalize_equity_order_arguments(arguments),
+                    "order": reviewed.get("order"),
+                    "review": reviewed.get("review"),
+                    "expires_at": reviewed.get("expires_at"),
+                }
+            except Exception as exc:
+                st.error(str(exc))
+
+        pending = st.session_state.get("_robinhood_pending_order")
+        if not isinstance(pending, dict):
+            return
+        order = pending.get("order") if isinstance(pending.get("order"), dict) else {}
+        size_label = (
+            f"{order.get('quantity')} shares"
+            if order.get("quantity")
+            else f"${order.get('dollar_amount')}"
+        )
+        st.markdown(
+            f"**{str(order.get('side') or '').upper()} {size_label} of "
+            f"{str(order.get('symbol') or '').upper()} · "
+            f"{str(order.get('type') or '').replace('_', ' ')} · {order.get('account', '')}**"
+        )
+        if order.get("limit_price"):
+            st.caption(f"Limit ${order['limit_price']}")
+        if order.get("stop_price"):
+            st.caption(f"Stop ${order['stop_price']}")
+        review = pending.get("review")
+        if review not in (None, "", {}, []):
+            st.markdown("**Robinhood review**")
+            if isinstance(review, (dict, list)):
+                st.json(review, expanded=False)
+            else:
+                st.write(review)
+        confirm_cols = _responsive_columns([2.0, 1.0])
+        if confirm_cols[0].button(
+            "Place order",
+            key="robinhood_confirm_order",
+            type="primary",
+            use_container_width=True,
+        ):
+            try:
+                outcome = robinhood_mcp.confirm_equity_order(
+                    user_id=user_id,
+                    ticket_id=_trading_agent_text(pending.get("ticket_id")),
+                    arguments=dict(pending.get("arguments") or {}),
+                )
+                st.session_state.pop("_robinhood_pending_order", None)
+                if outcome.get("status") == "executed":
+                    st.success("Order submitted to Robinhood.")
+                    if outcome.get("result") not in (None, "", {}, []):
+                        st.json(outcome.get("result"), expanded=False)
+                else:
+                    st.error("Robinhood rejected the order.")
+            except Exception as exc:
+                st.session_state.pop("_robinhood_pending_order", None)
+                st.error(str(exc))
+        if confirm_cols[1].button(
+            "Cancel",
+            key="robinhood_cancel_pending_order",
+            use_container_width=True,
+        ):
+            try:
+                robinhood_mcp.cancel_equity_order_review(
+                    user_id=user_id,
+                    ticket_id=_trading_agent_text(pending.get("ticket_id")),
+                )
+                st.session_state.pop("_robinhood_pending_order", None)
+                st.rerun()
+            except Exception as exc:
+                st.error(str(exc))
+
+
+def _render_robinhood_connection_panel() -> None:
+    user = _current_user_context()
+    if user is None:
+        return
+    notice = st.session_state.pop("_robinhood_oauth_notice", None)
+    if isinstance(notice, dict):
+        message = _trading_agent_text(notice.get("message"))
+        if notice.get("status") == "success":
+            st.success(message)
+        else:
+            st.error(message)
+
+    try:
+        status = robinhood_mcp.connection_status(user_id=user.user_id)
+    except Exception as exc:
+        st.error(str(exc))
+        return
+    state = _trading_agent_text(status.get("status") or "disconnected").lower()
+
+    with st.container(border=True):
+        header, state_col = _responsive_columns([3.0, 1.0])
+        header.subheader("Robinhood")
+        state_col.caption("Connected" if state == "connected" else "Not connected")
+
+        if state == "connected":
+            verified = _trading_agent_time_label(status.get("last_verified_at"))
+            tool_count = int(status.get("tool_count") or 0)
+            summary_cols = _responsive_columns(2)
+            summary_cols[0].metric("Available tools", tool_count)
+            summary_cols[1].metric("Last verified", verified or "Not yet")
+            action_cols = _responsive_columns([1.3, 1.0, 2.0])
+            if action_cols[0].button(
+                "Refresh account",
+                key="robinhood_refresh_account",
+                use_container_width=True,
+            ):
+                try:
+                    robinhood_mcp.refresh_connection(user_id=user.user_id)
+                    st.session_state["_robinhood_account_snapshot"] = robinhood_mcp.load_account_snapshot(
+                        user_id=user.user_id
+                    )
+                    st.session_state.pop("_robinhood_pending_order", None)
+                    st.rerun()
+                except Exception as exc:
+                    st.error(str(exc))
+            if action_cols[1].button(
+                "Disconnect",
+                key="robinhood_disconnect",
+                use_container_width=True,
+            ):
+                robinhood_mcp.disconnect(user_id=user.user_id)
+                st.session_state.pop("_robinhood_account_snapshot", None)
+                st.session_state.pop("_robinhood_authorization_url", None)
+                st.session_state.pop("_robinhood_pending_order", None)
+                st.rerun()
+            snapshot = st.session_state.get("_robinhood_account_snapshot")
+            if isinstance(snapshot, dict):
+                _render_robinhood_snapshot(snapshot)
+                _render_robinhood_equity_order(user_id=user.user_id, snapshot=snapshot)
+            return
+
+        if state in {"reauth_required", "error"} and _trading_agent_text(status.get("last_error")):
+            st.warning(_trading_agent_text(status.get("last_error")))
+        if st.button(
+            "Connect Robinhood",
+            key="robinhood_connect",
+            type="primary",
+            use_container_width=True,
+        ):
+            try:
+                authorization = robinhood_mcp.begin_authorization(user_id=user.user_id)
+                st.session_state["_robinhood_authorization_url"] = str(
+                    authorization.get("authorization_url") or ""
+                )
+            except Exception as exc:
+                st.error(str(exc))
+        authorization_url = _trading_agent_text(st.session_state.get("_robinhood_authorization_url"))
+        if authorization_url:
+            st.link_button(
+                "Continue to Robinhood",
+                authorization_url,
+                use_container_width=True,
+                type="primary",
+            )
 
 def _trading_agent_source_freshness(opportunity: dict[str, object]) -> str:
-    asof = _trading_agent_text(opportunity.get("asof_time_utc"))
-    if asof:
-        return f"As of {asof}"
-    run_id = _trading_agent_text(opportunity.get("run_id"))
-    if run_id:
-        return f"Run {run_id[:8]}"
-    return ""
+    label = _trading_agent_time_label(opportunity.get("asof_time_utc"))
+    return f"Price data as of {label}" if label else ""
 
 def _trading_agent_sparkline_values(value: object) -> list[float]:
     values: list[float] = []
@@ -110,80 +443,19 @@ def _trading_agent_signal_model(
     )
     horizon_return = _trading_agent_float(opportunity.get(selected_horizon_col))
     daily_move = _trading_agent_float(opportunity.get("daily_change_pct"))
-    momentum_roc = _trading_agent_float(opportunity.get("momentum_roc_score"))
-    trend_gap = _trading_agent_float(opportunity.get("trend_fit_gap"))
-    trend_label, trend_strength = _trading_agent_trend_quality(trend_gap)
-    rank = _trading_agent_float(opportunity.get("opportunity_score"))
-
-    missing = []
-    for label, value in [
-        ("market signal rank", rank),
-        ("1D move", daily_move),
-        (f"{selected_horizon_label} return", horizon_return),
-        ("momentum pace", momentum_roc),
-        ("trend quality", trend_gap),
-    ]:
-        if value is None:
-            missing.append(label)
 
     return {
-        "rank": rank,
-        "rank_label": "n/a" if rank is None else f"{rank:.0f}/100",
         "market_pattern": _trading_agent_text(opportunity.get("direction") or opportunity.get("opportunity")) or "Pattern unavailable",
-        "opportunity_label": _trading_agent_text(opportunity.get("opportunity")),
         "selected_horizon_col": selected_horizon_col,
         "selected_horizon_label": selected_horizon_label,
         "horizon_return": horizon_return,
         "daily_move": daily_move,
-        "momentum_roc": momentum_roc,
-        "momentum_label": _trading_agent_momentum_label(momentum_roc),
-        "trend_gap": trend_gap,
-        "trend_label": trend_label,
-        "score_components": [
-            {
-                "label": f"{selected_horizon_label} move",
-                "value": _trading_agent_strength(horizon_return, scale=20.0),
-                "display": _trading_agent_pct(horizon_return),
-            },
-            {
-                "label": "Momentum pace",
-                "value": _trading_agent_strength(momentum_roc, scale=1.0),
-                "display": "n/a" if momentum_roc is None else f"{momentum_roc:+.2f}",
-            },
-            {
-                "label": "1D move",
-                "value": _trading_agent_strength(daily_move, scale=5.0),
-                "display": _trading_agent_pct(daily_move),
-            },
-            {
-                "label": "Trend quality",
-                "value": trend_strength,
-                "display": trend_label,
-            },
-        ],
         "sparkline": _trading_agent_sparkline_values(opportunity.get("sparkline_3m")),
         "freshness": _trading_agent_source_freshness(opportunity),
-        "missing": missing,
     }
-
-def _render_trading_agent_signal_bar(label: str, value: int, display: str) -> None:
-    safe_label = html.escape(str(label))
-    safe_display = html.escape(str(display))
-    bounded = int(max(0, min(100, value)))
-    st.markdown(
-        "<div class='sn-trading-signal-row'>"
-        f"<div class='sn-trading-signal-label'>{safe_label}</div>"
-        "<div class='sn-trading-signal-track'>"
-        f"<div class='sn-trading-signal-fill' style='width:{bounded}%'></div>"
-        "</div>"
-        f"<div class='sn-trading-signal-value'>{safe_display}</div>"
-        "</div>",
-        unsafe_allow_html=True,
-    )
 
 def _render_trading_agent_sparkline(values: list[float], *, key: str) -> None:
     if len(values) < 2:
-        st.caption("No 3M sparkline available.")
         return
     frame = pd.DataFrame({"point": range(len(values)), "value": values})
     fig = go.Figure(
@@ -205,44 +477,6 @@ def _render_trading_agent_sparkline(values: list[float], *, key: str) -> None:
         plot_bgcolor="rgba(0,0,0,0)",
     )
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False}, key=key)
-
-def _render_trading_agent_evidence_checklist(
-    *,
-    evidence: list[str],
-    invalidation: str,
-    risks: list[str],
-    ticker_evidence: dict[str, object],
-    aql_agent: dict[str, object],
-) -> None:
-    stock_summary = ticker_evidence.get("stock_summary") if isinstance(ticker_evidence, dict) else {}
-    attention_context = ticker_evidence.get("attention_context") if isinstance(ticker_evidence, dict) else {}
-    news_lines = to_list(ticker_evidence.get("news_summary_lines")) if isinstance(ticker_evidence, dict) else []
-    checks = [
-        ("Market evidence", bool(evidence)),
-        ("AQL synthesis", _trading_agent_text((aql_agent or {}).get("answer_markdown")) != ""),
-        ("Stock summary", isinstance(stock_summary, dict) and bool(_trading_agent_text(stock_summary.get("headline")))),
-        (
-            "Recent context",
-            bool(news_lines)
-            or (
-                isinstance(attention_context, dict)
-                and any(_trading_agent_text(attention_context.get(key)) for key in ["llm_headline", "llm_why_now"])
-            ),
-        ),
-        ("Invalidation", bool(invalidation)),
-        ("Tail risk", bool(risks)),
-    ]
-    st.markdown(
-        "<div class='sn-trading-checklist'>"
-        + "".join(
-            "<span class='sn-trading-check'>"
-            f"{'&#10003;' if ok else '&ndash;'} {html.escape(label)}"
-            "</span>"
-            for label, ok in checks
-        )
-        + "</div>",
-        unsafe_allow_html=True,
-    )
 
 def _trading_agent_context_lookup(context: dict[str, object]) -> dict[str, dict[str, object]]:
     lookup: dict[str, dict[str, object]] = {}
@@ -280,75 +514,18 @@ def _trading_agent_company_name(symbol: str, context_item: dict[str, object]) ->
             return company
     return ""
 
-def _render_trading_agent_source_summaries(context: dict[str, object], result: dict[str, object]) -> None:
-    source_summaries = dict((context or {}).get("source_summaries") or {})
-    if source_summaries:
-        with st.expander("Source summaries", expanded=False):
-            for label, key in [
-                ("Market Explorer", "market_explorer"),
-                ("Broad Economy", "broad_economy"),
-            ]:
-                summary = source_summaries.get(key)
-                if not isinstance(summary, dict):
-                    continue
-                headline = _trading_agent_text(summary.get("headline"))
-                body = _trading_agent_text(summary.get("summary_markdown"))
-                confidence = _trading_agent_text(summary.get("confidence"))
-                st.markdown(f"**{label}**")
-                if headline:
-                    st.caption(headline)
-                if body:
-                    st.markdown(body)
-                if confidence:
-                    st.caption(f"Confidence: {confidence}")
-            stock_summaries = [
-                item
-                for item in to_list(source_summaries.get("stock_investigator"))
-                if isinstance(item, dict)
-            ]
-            if stock_summaries:
-                rows = []
-                for item in stock_summaries:
-                    rows.append(
-                        {
-                            "Ticker": _trading_agent_text(item.get("ticker") or item.get("symbol")).upper(),
-                            "Headline": _trading_agent_text(item.get("headline")),
-                            "Confidence": _trading_agent_text(item.get("confidence")),
-                        }
-                    )
-                st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
-
-    aql_agent = result.get("aql_agent") if isinstance(result.get("aql_agent"), dict) else {}
-    tool_calls = [
-        item
-        for item in to_list((aql_agent or {}).get("tool_calls"))
-        if isinstance(item, dict)
-    ]
-    if tool_calls:
-        with st.expander("AQL trace", expanded=False):
-            rows = []
-            for call in tool_calls:
-                rows.append(
-                    {
-                        "Tool": _trading_agent_text(call.get("tool_name")),
-                        "Status": _trading_agent_text(call.get("status")),
-                        "Preview": _trading_agent_text(call.get("preview")),
-                    }
-                )
-            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
-
 def _render_trading_agent_candidate_card(
     candidate: dict[str, object],
     *,
     context_item: dict[str, object],
     controls: dict[str, object],
-    aql_agent: dict[str, object],
     idx: int,
     action_state: dict[str, object] | None = None,
+    show_narrative: bool = True,
 ) -> None:
     ticker = _trading_agent_text(candidate.get("ticker")).upper()
     direction = _trading_agent_text(candidate.get("direction") or "watch").upper()
-    confidence = _trading_agent_text(candidate.get("confidence") or "low").title()
+    stance = _trading_agent_text(candidate.get("stance") or "no_call").lower()
     horizon = _trading_agent_text(candidate.get("suggested_horizon"))
     company_name = _trading_agent_company_name(ticker, context_item)
     opportunity = context_item.get("opportunity") if isinstance(context_item, dict) else {}
@@ -365,74 +542,58 @@ def _render_trading_agent_candidate_card(
     signal_model = _trading_agent_signal_model(opportunity, controls)
 
     with st.container(border=True):
-        header_cols = _responsive_columns([3.7, 1.0, 1.0, 1.1])
+        header_cols = _responsive_columns([4.7, 1.0, 1.1])
         identity = ticker or "n/a"
         if company_name:
             identity = f"{identity} · {company_name}"
         header_cols[0].markdown(f"### {identity}")
         header_cols[1].markdown(f"**{direction}**")
-        header_cols[2].markdown(f"**{confidence}**")
-        header_cols[3].caption(horizon or "Horizon n/a")
+        header_cols[2].caption(horizon or "Horizon n/a")
 
-        setup = _trading_agent_text(candidate.get("setup"))
+        setup = _trading_agent_text(candidate.get("setup")) if show_narrative else ""
         if setup:
-            st.markdown(f"**Setup:** {setup}")
+            st.markdown(f"**Why it is on the list:** {setup}")
 
-        signal_cols = _responsive_columns([1.05, 1.35, 1.2])
-        with signal_cols[0]:
-            st.markdown("**Market signal rank**")
-            st.metric(
-                "Relative scanner rank",
-                str(signal_model.get("rank_label") or "n/a"),
-                label_visibility="collapsed",
-            )
-            st.caption("0-100 relative rank, not expected return or conviction.")
-        with signal_cols[1]:
-            st.markdown("**Signal breakdown**")
-            for component in to_list(signal_model.get("score_components")):
-                if not isinstance(component, dict):
-                    continue
-                _render_trading_agent_signal_bar(
-                    _trading_agent_text(component.get("label")),
-                    int(component.get("value") or 0),
-                    _trading_agent_text(component.get("display")) or "n/a",
-                )
-        with signal_cols[2]:
-            st.markdown("**Price action**")
+        sparkline = to_list(signal_model.get("sparkline"))
+        if len(sparkline) >= 2:
+            st.markdown("**Recent price path**")
             _render_trading_agent_sparkline(
-                to_list(signal_model.get("sparkline")),
+                sparkline,
                 key=f"trading_agent_sparkline_{idx}_{ticker or 'na'}",
             )
 
-        price_cols = _responsive_columns(4)
+        price_cols = _responsive_columns(3)
         price_cols[0].metric("1D move", _trading_agent_pct(signal_model.get("daily_move")))
         price_cols[1].metric(
             f"{_trading_agent_text(signal_model.get('selected_horizon_label'))} return",
             _trading_agent_pct(signal_model.get("horizon_return")),
         )
-        price_cols[2].metric("Momentum pace", _trading_agent_text(signal_model.get("momentum_label")) or "n/a")
-        price_cols[3].metric("Trend quality", _trading_agent_text(signal_model.get("trend_label")) or "n/a")
         pattern = _trading_agent_text(signal_model.get("market_pattern"))
-        opportunity_label = _trading_agent_text(signal_model.get("opportunity_label"))
+        price_cols[2].metric("Price pattern", pattern or "n/a")
         freshness = _trading_agent_text(signal_model.get("freshness"))
-        captions = [item for item in [f"Market pattern: {pattern}" if pattern else "", opportunity_label, freshness] if item]
-        if captions:
-            st.caption(" | ".join(captions))
+        if freshness:
+            st.caption(freshness)
 
-        hypothesis = _trading_agent_text(candidate.get("hypothesis"))
+        hypothesis = _trading_agent_text(candidate.get("hypothesis")) if show_narrative else ""
         if hypothesis:
-            st.write(hypothesis)
+            st.markdown(f"**Thesis:** {hypothesis}")
 
-        evidence = [_trading_agent_text(item) for item in to_list(candidate.get("evidence")) if _trading_agent_text(item)]
-        invalidation = _trading_agent_text(candidate.get("invalidation"))
-        risks = [_trading_agent_text(item) for item in to_list(candidate.get("tail_risks")) if _trading_agent_text(item)]
-        _render_trading_agent_evidence_checklist(
-            evidence=evidence,
-            invalidation=invalidation,
-            risks=risks,
-            ticker_evidence=ticker_evidence,
-            aql_agent=aql_agent,
-        )
+        evidence = [
+            _trading_agent_text(item)
+            for item in to_list(candidate.get("evidence"))
+            if show_narrative and _trading_agent_text(item)
+        ]
+        invalidation = _trading_agent_text(candidate.get("invalidation")) if show_narrative else ""
+        risks = [
+            _trading_agent_text(item)
+            for item in to_list(candidate.get("tail_risks"))
+            if show_narrative and _trading_agent_text(item)
+        ]
+        evidence_limits = [
+            _trading_agent_text(item)
+            for item in to_list(candidate.get("evidence_limits"))
+            if show_narrative and _trading_agent_text(item)
+        ]
         news_lines = [
             _trading_agent_text(item)
             for item in to_list(ticker_evidence.get("news_summary_lines"))
@@ -447,83 +608,53 @@ def _render_trading_agent_candidate_card(
                 if _trading_agent_text(attention_context.get(key))
             ]
 
-        body_cols = _responsive_columns([1.15, 1.0])
-        with body_cols[0]:
-            if evidence:
-                st.markdown("**Evidence**")
-                st.markdown("\n".join(f"- {item}" for item in evidence[:5]))
-            if invalidation:
-                st.markdown(f"**Invalidation**  \n{invalidation}")
-        with body_cols[1]:
-            if risks:
-                st.markdown("**Tail Risks**")
-                st.markdown("\n".join(f"- {item}" for item in risks[:5]))
-            if attention_lines or news_lines:
-                with st.expander("Ticker context", expanded=False):
-                    for item in attention_lines[:3]:
-                        st.markdown(f"- {item}")
-                    for item in news_lines[:3]:
-                        st.markdown(f"- {item}")
-            missing = [_trading_agent_text(item) for item in to_list(signal_model.get("missing")) if _trading_agent_text(item)]
-            if missing:
-                with st.expander("Missing signal fields", expanded=False):
-                    st.markdown("\n".join(f"- {item}" for item in missing[:6]))
-            with st.expander("Raw signal values", expanded=False):
-                st.dataframe(
-                    pd.DataFrame(
-                        [
-                            {
-                                "Field": "Market signal rank",
-                                "Value": signal_model.get("rank_label"),
-                            },
-                            {
-                                "Field": f"{signal_model.get('selected_horizon_label')} return",
-                                "Value": _trading_agent_pct(signal_model.get("horizon_return")),
-                            },
-                            {"Field": "1D move", "Value": _trading_agent_pct(signal_model.get("daily_move"))},
-                            {
-                                "Field": "Momentum pace",
-                                "Value": "n/a"
-                                if signal_model.get("momentum_roc") is None
-                                else f"{float(signal_model.get('momentum_roc')):+.2f}",
-                            },
-                            {
-                                "Field": "Trend gap",
-                                "Value": "n/a"
-                                if signal_model.get("trend_gap") is None
-                                else f"{float(signal_model.get('trend_gap')):.2f}",
-                            },
-                        ]
-                    ),
-                    hide_index=True,
-                    use_container_width=True,
-                )
+        if show_narrative:
+            body_cols = _responsive_columns([1.15, 1.0])
+            with body_cols[0]:
+                if evidence:
+                    st.markdown("**Evidence**")
+                    st.markdown("\n".join(f"- {item}" for item in evidence[:5]))
+                if invalidation:
+                    st.markdown(f"**What would disprove it**  \n{invalidation}")
+            with body_cols[1]:
+                if risks:
+                    st.markdown("**What could go wrong**")
+                    st.markdown("\n".join(f"- {item}" for item in risks[:5]))
+                if evidence_limits:
+                    st.markdown("**What we still need**")
+                    st.markdown("\n".join(f"- {item}" for item in evidence_limits[:5]))
+                if attention_lines or news_lines:
+                    with st.expander("Company context", expanded=False):
+                        for item in attention_lines[:3]:
+                            st.markdown(f"- {item}")
+                        for item in news_lines[:3]:
+                            st.markdown(f"- {item}")
 
         candidate_id = _trading_agent_text(candidate.get("candidate_id"))
         latest_action = _trading_agent_text((action_state or {}).get("action"))
-        latest_status = _trading_agent_text((action_state or {}).get("status"))
         action_label = ""
         if latest_action == "place_requested":
-            action_label = "Place requested"
+            action_label = "Approved"
         elif latest_action == "rejected":
             action_label = "Rejected"
         if action_label:
-            st.caption(f"Decision: {action_label}" + (f" ({latest_status})" if latest_status else ""))
+            st.caption(f"Decision: {action_label}")
 
         action_cols = _responsive_columns([1.0, 1.0, 2.4])
-        action_disabled = bool(latest_action in {"place_requested", "rejected"}) or not candidate_id
+        action_recorded = bool(latest_action in {"place_requested", "rejected"})
+        place_disabled = action_recorded or not candidate_id or stance not in {"long", "short"}
+        reject_disabled = action_recorded or not candidate_id
         with action_cols[0]:
             if st.button(
-                "Place",
-                key=f"trading_agent_place_{idx}_{candidate_id or ticker}",
+                "Approve",
+                key=f"trading_agent_approve_{idx}_{candidate_id or ticker}",
                 use_container_width=True,
-                disabled=action_disabled,
-                help="Logs a place decision for admin review. No broker order is submitted.",
+                disabled=place_disabled,
             ):
                 user = _current_user_context()
                 ok, msg = record_trading_agent_action(
                     candidate=dict(candidate),
-                    action="place",
+                    action="approve",
                     requested_by=str(getattr(user, "user_id", "") or ""),
                     requested_email=str(getattr(user, "email", "") or ""),
                 )
@@ -537,7 +668,7 @@ def _render_trading_agent_candidate_card(
                 "Reject",
                 key=f"trading_agent_reject_{idx}_{candidate_id or ticker}",
                 use_container_width=True,
-                disabled=action_disabled,
+                disabled=reject_disabled,
             ):
                 user = _current_user_context()
                 ok, msg = record_trading_agent_action(
@@ -644,6 +775,9 @@ def _trading_agent_candidate_from_row(row: pd.Series) -> dict[str, object]:
     if not isinstance(candidate, dict):
         candidate = {}
     candidate = dict(candidate)
+    stored_narrative_contract_version = _trading_agent_text(
+        candidate.get("narrative_contract_version")
+    )
     candidate.update(
         {
             "candidate_id": _trading_agent_text(row.get("candidate_id")),
@@ -654,12 +788,21 @@ def _trading_agent_candidate_from_row(row: pd.Series) -> dict[str, object]:
             "selected_horizon_col": _trading_agent_text(row.get("selected_horizon_col")),
             "ticker": _trading_agent_text(candidate.get("ticker") or row.get("ticker")).upper(),
             "direction": _trading_agent_text(candidate.get("direction") or row.get("direction")),
+            "stance": _trading_agent_text(candidate.get("stance") or row.get("stance")),
+            "research_status": _trading_agent_text(
+                candidate.get("research_status") or row.get("research_status")
+            ),
             "setup": _trading_agent_text(candidate.get("setup") or row.get("setup")),
             "hypothesis": _trading_agent_text(candidate.get("hypothesis") or row.get("hypothesis")),
             "invalidation": _trading_agent_text(candidate.get("invalidation") or row.get("invalidation")),
             "suggested_horizon": _trading_agent_text(candidate.get("suggested_horizon") or row.get("suggested_horizon")),
             "confidence": _trading_agent_text(candidate.get("confidence") or row.get("confidence") or "low"),
         }
+    )
+    candidate = normalize_trading_agent_candidate(candidate)
+    candidate["narrative_contract_version"] = stored_narrative_contract_version
+    candidate["decision_status"] = (
+        "open" if candidate["stance"] in {"long", "short"} else "research_only"
     )
     evidence = candidate.get("evidence")
     if not to_list(evidence):
@@ -669,6 +812,14 @@ def _trading_agent_candidate_from_row(row: pd.Series) -> dict[str, object]:
     if not to_list(risks):
         risks = _trading_agent_json_value(row.get("tail_risks_json"), [])
     candidate["tail_risks"] = [_trading_agent_text(item) for item in to_list(risks) if _trading_agent_text(item)]
+    evidence_limits = candidate.get("evidence_limits")
+    if not to_list(evidence_limits):
+        evidence_limits = _trading_agent_json_value(row.get("evidence_limits_json"), [])
+    candidate["evidence_limits"] = [
+        _trading_agent_text(item)
+        for item in to_list(evidence_limits)
+        if _trading_agent_text(item)
+    ]
     return candidate
 
 def _trading_agent_context_from_run(row: pd.Series) -> dict[str, object]:
@@ -702,16 +853,12 @@ def _render_trading_agent_section(
         return
 
     st.title(TRADING_AGENT_SECTION)
-    st.caption(
-        "Admin-only research log. Place and Reject are audit decisions; Place is stored for future Alpaca handoff and does not submit an order."
-    )
+    _render_robinhood_connection_panel()
 
     runs, candidates_frame, actions, metadata = _load_latest_trading_agent_output()
-    if metadata is not None:
-        st.caption(
-            f"Latest Trading Agent snapshot: {_trading_agent_text(getattr(metadata, 'asof_time_utc', ''))} "
-            f"run `{_trading_agent_text(getattr(metadata, 'dataset_version_id', ''))}`"
-        )
+    asof_time = _trading_agent_time_label(getattr(metadata, "asof_time_utc", "")) if metadata is not None else ""
+    if asof_time:
+        st.caption(f"As of {asof_time}")
 
     if runs.empty or candidates_frame.empty:
         st.info("No Trading Agent candidates are available yet.")
@@ -736,7 +883,7 @@ def _render_trading_agent_section(
         key=_trading_agent_horizon_sort_key,
     )
     if not horizon_values:
-        st.info("Trading Agent run metadata did not include horizon keys.")
+        st.info("No horizon data available.")
         return
     horizon_labels = {
         _trading_agent_text(row.get("horizon_key")): _trading_agent_text(row.get("horizon_label")) or _trading_agent_text(row.get("horizon_key"))
@@ -763,17 +910,19 @@ def _render_trading_agent_section(
     controls_context = dict(context.get("controls") or {})
     controls_context.setdefault("selected_horizon_label", _trading_agent_text(run_row.get("horizon_label")))
     controls_context.setdefault("selected_horizon_col", _trading_agent_text(run_row.get("selected_horizon_col")))
-    aql_agent = result.get("aql_agent") if isinstance(result.get("aql_agent"), dict) else {}
-
     status = _trading_agent_text(result.get("status"))
     if status != "ok":
-        st.info(_trading_agent_text(result.get("error")) or "Trading Agent output is unavailable for this horizon.")
-        gaps = [_trading_agent_text(item) for item in to_list(result.get("data_gaps")) if _trading_agent_text(item)]
-        if gaps:
-            st.markdown("\n".join(f"- {gap}" for gap in gaps[:6]))
+        st.info("Analysis unavailable for this horizon.")
         return
 
-    st.subheader("Regime Read")
+    show_narrative = (
+        _trading_agent_text(result.get("narrative_contract_version"))
+        == TRADING_AGENT_NARRATIVE_CONTRACT_VERSION
+    )
+    if not show_narrative:
+        st.info("Analysis unavailable for this horizon.")
+        return
+    st.subheader("Market Backdrop")
     st.write(_trading_agent_text(result.get("regime_read")))
     posture = _trading_agent_text(result.get("portfolio_posture"))
     if posture:
@@ -792,34 +941,39 @@ def _render_trading_agent_section(
 
     action_map = _latest_trading_agent_action_map(actions)
     candidates = [_trading_agent_candidate_from_row(row) for _, row in horizon_candidates.iterrows()]
-    long_watch_candidates = [
+    long_candidates = [
         item
         for item in candidates
-        if _trading_agent_text(item.get("direction")).lower() not in {"short", "avoid"}
+        if _trading_agent_text(item.get("stance")).lower() == "long"
     ]
     short_candidates = [
         item
         for item in candidates
-        if _trading_agent_text(item.get("direction")).lower() in {"short", "avoid"}
+        if _trading_agent_text(item.get("stance")).lower() == "short"
+    ]
+    research_candidates = [
+        item
+        for item in candidates
+        if _trading_agent_text(item.get("stance")).lower() not in {"long", "short"}
     ]
 
-    if long_watch_candidates:
-        st.subheader("Long / Watch Setups")
-        for idx, candidate in enumerate(long_watch_candidates):
+    if long_candidates:
+        st.subheader("Long Calls")
+        for idx, candidate in enumerate(long_candidates):
             ticker = _trading_agent_text(candidate.get("ticker")).upper()
             candidate_id = _trading_agent_text(candidate.get("candidate_id"))
             _render_trading_agent_candidate_card(
                 candidate,
                 context_item=context_lookup.get(ticker, {}),
                 controls=controls_context,
-                aql_agent=aql_agent,
                 idx=idx,
                 action_state=action_map.get(candidate_id, {}),
+                show_narrative=show_narrative,
             )
 
     if short_candidates:
-        st.subheader("Short / Avoid Setups")
-        offset = len(long_watch_candidates)
+        st.subheader("Short Calls")
+        offset = len(long_candidates)
         for idx, candidate in enumerate(short_candidates, start=offset):
             ticker = _trading_agent_text(candidate.get("ticker")).upper()
             candidate_id = _trading_agent_text(candidate.get("candidate_id"))
@@ -827,37 +981,51 @@ def _render_trading_agent_section(
                 candidate,
                 context_item=context_lookup.get(ticker, {}),
                 controls=controls_context,
-                aql_agent=aql_agent,
                 idx=idx,
                 action_state=action_map.get(candidate_id, {}),
+                show_narrative=show_narrative,
             )
 
-    if context:
-        _render_trading_agent_source_summaries(context, result)
+    if research_candidates:
+        st.subheader("Watchlist")
+        offset = len(long_candidates) + len(short_candidates)
+        for idx, candidate in enumerate(research_candidates, start=offset):
+            ticker = _trading_agent_text(candidate.get("ticker")).upper()
+            candidate_id = _trading_agent_text(candidate.get("candidate_id"))
+            _render_trading_agent_candidate_card(
+                candidate,
+                context_item=context_lookup.get(ticker, {}),
+                controls=controls_context,
+                idx=idx,
+                action_state=action_map.get(candidate_id, {}),
+                show_narrative=show_narrative,
+            )
 
-    gaps = [_trading_agent_text(item) for item in to_list(result.get("data_gaps")) if _trading_agent_text(item)]
-    if gaps:
-        with st.expander("Data gaps", expanded=False):
-            st.markdown("\n".join(f"- {gap}" for gap in gaps[:6]))
-
-    with st.expander("Decision Log", expanded=False):
+    with st.expander("Decisions", expanded=False):
         if actions.empty:
-            st.info("No Trading Agent decisions have been logged yet.")
+            st.info("No decisions yet.")
         else:
             display_actions = actions.copy()
+            if "action" in display_actions.columns:
+                display_actions["Decision"] = display_actions["action"].map(
+                    {"place_requested": "Approved", "rejected": "Rejected"}
+                ).fillna(display_actions["action"])
+            display_actions = display_actions.rename(
+                columns={
+                    "created_at_utc": "Time",
+                    "ticker": "Ticker",
+                    "horizon_key": "Horizon",
+                    "requested_email": "Reviewed by",
+                }
+            )
             show_cols = [
                 column
                 for column in [
-                    "created_at_utc",
-                    "ticker",
-                    "horizon_key",
-                    "action",
-                    "execution_mode",
-                    "status",
-                    "broker",
-                    "broker_order_id",
-                    "requested_email",
-                    "candidate_id",
+                    "Time",
+                    "Ticker",
+                    "Horizon",
+                    "Decision",
+                    "Reviewed by",
                 ]
                 if column in display_actions.columns
             ]

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from io import BytesIO
 import json
 import time
 from types import SimpleNamespace
@@ -33,6 +34,7 @@ from pipeline.jobs.main import (
     _resolve_equity_symbols,
     _upload_frame,
     _upload_manifest,
+    _upload_symbol_partitions,
     _zopedia_memory_commit_report_frame,
     run_attention_home,
     run_commodities,
@@ -98,6 +100,67 @@ def test_upload_manifest_writes_stable_latest_pointer(monkeypatch):
     assert latest_path in uploaded
     assert uploaded[latest_path]["payload"]["blob_path"] == "datasets/home.parquet"
     assert uploaded[latest_path]["content_type"] == "application/json"
+
+
+def test_symbol_partition_uploads_publish_a_bounded_manifest_index(monkeypatch):
+    uploaded: dict[str, bytes] = {}
+
+    def _capture(path: str, payload: bytes, content_type: str) -> None:
+        assert content_type == "application/octet-stream"
+        uploaded[path] = payload
+
+    monkeypatch.setattr("pipeline.jobs.main._upload_bytes", _capture)
+    ctx = JobContext(
+        name="equities-intraday-preload",
+        run_id="12345678-partition-run",
+        asof=datetime(2026, 10, 2, 12, 0, tzinfo=timezone.utc),
+        universe_version="20261002",
+    )
+    frame = pd.DataFrame(
+        [
+            {"symbol": "aapl", "timestamp": "2026-10-01", "close": 100.0},
+            {"symbol": "AAPL", "timestamp": "2026-10-02", "close": 101.0},
+            {"symbol": "MSFT", "timestamp": "2026-10-02", "close": 200.0},
+        ]
+    )
+
+    partitioning = _upload_symbol_partitions("price_history", frame, ctx)
+
+    assert partitioning["strategy"] == "symbol_hash_v1"
+    assert partitioning["column"] == "symbol"
+    assert sum(partitioning["row_counts"].values()) == 3
+    assert set(partitioning["paths"].values()) == set(uploaded)
+    persisted = pd.concat([pd.read_parquet(BytesIO(payload)) for payload in uploaded.values()], ignore_index=True)
+    assert sorted(persisted["symbol"].tolist()) == ["AAPL", "AAPL", "MSFT"]
+
+
+def test_uploads_are_isolated_in_configured_dataset_namespace(monkeypatch):
+    uploaded: dict[str, dict[str, object]] = {}
+
+    def _capture(path: str, payload: bytes, content_type: str) -> None:
+        uploaded[path] = {
+            "payload": json.loads(payload.decode("utf-8")) if content_type == "application/json" else None,
+            "content_type": content_type,
+        }
+
+    monkeypatch.setenv("PIPELINE_DATASET_NAMESPACE", "development")
+    monkeypatch.setattr("pipeline.jobs.main._upload_bytes", _capture)
+    ctx = JobContext(
+        name="trading-agent-build",
+        run_id="12345678-dev-run",
+        asof=datetime(2026, 9, 20, 12, 0, tzinfo=timezone.utc),
+        universe_version="20260920",
+    )
+
+    path = _upload_frame("trading_agent_runs", pd.DataFrame([{"status": "ok"}]), ctx)
+    manifest = _upload_manifest("trading_agent_runs", path, pd.DataFrame([{"status": "ok"}]), ctx)
+
+    assert path.startswith("namespaces/development/datasets/trading_agent_runs/")
+    assert manifest is not None
+    assert manifest["dataset_namespace"] == "development"
+    assert str(manifest["dataset_version_id"]).startswith("development__trading_agent_runs__")
+    latest_path = "namespaces/development/manifests/trading_agent_runs/latest.json"
+    assert uploaded[latest_path]["payload"]["blob_path"] == path
 
 
 def test_commit_zopedia_memory_pages_uses_audited_typed_mutation(monkeypatch):
@@ -738,6 +801,8 @@ def test_pipeline_store_lists_attention_job_and_datasets():
 def test_pipeline_store_lists_trading_agent_job_and_datasets():
     assert SOURCE_JOB_MAP["trading_agent"] == "trading-agent-build"
     assert set(SOURCE_DATASETS["trading_agent"]) == {
+        "trading_agent_research_packages",
+        "trading_agent_ranked_opportunities",
         "trading_agent_runs",
         "trading_agent_candidates",
         "trading_agent_outcomes",
@@ -821,12 +886,30 @@ def test_run_trading_agent_persists_runs_and_candidates(monkeypatch):
     monkeypatch.setattr("pipeline.jobs.main._persist_dataset", _fake_persist)
     monkeypatch.setattr("pipeline.jobs.main.load_recent_dataset_frames", lambda dataset_name, *, limit=8: [])
     monkeypatch.setattr("pipeline.jobs.main.load_aql_zopedia_llm_client", lambda **kwargs: object())
-    monkeypatch.setattr("pipeline.jobs.main.build_trading_agent_suggestions", _fake_suggestions)
-    monkeypatch.setenv("TRADING_AGENT_HORIZON_TIMEOUT_SECONDS", "30")
+    def _fake_shared_frames(**kwargs):
+        from services.trading_agent import build_trading_agent_materialized_frames
+
+        runs, candidates = build_trading_agent_materialized_frames(
+            opportunity_feed=kwargs["opportunity_feed"],
+            page_summaries=kwargs["page_summaries"],
+            llm_client=kwargs["llm_client"],
+            run_id=kwargs["run_id"],
+            asof_time_utc=kwargs["asof_time_utc"],
+            business_filter=kwargs["business_filter"],
+            max_candidates=kwargs["max_candidates"],
+            suggestion_builder=_fake_suggestions,
+        )
+        packages = pd.DataFrame([{"ticker": "AAPL", "status": "completed"}])
+        return runs, candidates, packages
+
+    monkeypatch.setattr("pipeline.jobs.main.build_trading_agent_shared_research_frames", _fake_shared_frames)
+    monkeypatch.setenv("TRADING_AGENT_GENERATION_MODE", "shared_research_v2")
 
     run_trading_agent(ctx, conn=None)
 
     assert set(persisted) == {
+        "trading_agent_research_packages",
+        "trading_agent_ranked_opportunities",
         "trading_agent_runs",
         "trading_agent_candidates",
         "trading_agent_outcomes",
@@ -1315,7 +1398,8 @@ def test_build_page_agentic_summary_frame_fails_closed_on_timeout(monkeypatch):
     assert set(frame["status"]) == {"unavailable"}
     summaries = [json.loads(value) for value in frame["summary_json"].astype(str)]
     assert all(not summary["summary_markdown"] for summary in summaries)
-    assert all("Page summary failed" in summary["data_gaps"][0] for summary in summaries)
+    assert all(summary["data_gaps"] == [] for summary in summaries)
+    assert all(summary["error"] == "" for summary in summaries)
 
 
 def test_run_attention_home_persists_core_outputs_before_optional_page_summaries(monkeypatch):
@@ -2212,6 +2296,7 @@ def test_zopedia_market_summary_enrichment_carries_its_own_audio(monkeypatch):
 
     summary_row = frame[frame["symbol"] == "__MARKET_SUMMARY__"].iloc[0].to_dict()
     assert summary_row["status"] == "completed"
+    assert frame["limitations_json"].eq("[]").all()
     assert summary_row["audio_base64"] == "YXVkaW8="
     assert summary_row["audio_mime_type"] == "audio/mpeg"
     assert "###" not in summary_row["audio_text"]

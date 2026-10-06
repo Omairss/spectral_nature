@@ -7,7 +7,7 @@ from typing import Any, Callable
 
 import pandas as pd
 
-from .llm import AzureOpenAIChatJSONClient, OpenAIChatJSONClient
+from .llm import JSONLLMClient
 from .pipeline_store import load_latest_dataset_frame
 from .runtime_policy import taxonomy_classifier_policy
 from .secrets import postgres_connect_timeout_seconds, resolve_secret_value
@@ -19,7 +19,7 @@ except Exception:
     psycopg = None
 
 
-LLMClient = OpenAIChatJSONClient | AzureOpenAIChatJSONClient
+LLMClient = JSONLLMClient
 TaxonomyProgressCallback = Callable[[dict[str, Any]], None]
 
 ENTITY_TAXONOMY_COLUMNS = [

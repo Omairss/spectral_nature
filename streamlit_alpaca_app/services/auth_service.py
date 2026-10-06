@@ -150,15 +150,10 @@ def auth_mode() -> str:
 
 
 def allow_insecure_browser_session_cookie() -> bool:
-    # Opt-out takes priority.
     if (os.getenv("UI_DISABLE_BROWSER_SESSION_COOKIE") or "").strip().lower() in _TRUE_VALUES:
         return False
-    # Explicit opt-out via the legacy allow flag (set to 0/false).
-    legacy = (os.getenv("UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE") or "").strip().lower()
-    if legacy and legacy not in _TRUE_VALUES:
-        return False
-    # Default: enabled. Persistent sessions are expected behavior on HTTPS deployments.
-    return True
+    explicit_opt_in = (os.getenv("UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE") or "").strip().lower()
+    return explicit_opt_in in _TRUE_VALUES
 
 
 def browser_session_persistence_mode() -> str:
@@ -1037,21 +1032,32 @@ def database_auth_enabled() -> bool:
     return not (legacy_username and legacy_password)
 
 
-def initialize_auth_system() -> dict[str, Any]:
-    email_status = get_auth_email_delivery_status()
+def initialize_auth_system(*, include_email_delivery: bool = False) -> dict[str, Any]:
+    email_status = get_auth_email_delivery_status() if include_email_delivery else {}
     available = auth_store.auth_store_configured()
     if not available:
         return {
             "available": False,
             "ready": False,
             "has_users": False,
-            "email_delivery": bool(email_status.get("ready")),
+            "email_delivery": bool(email_status.get("ready")) if include_email_delivery else False,
             "email_delivery_status": email_status,
             "message": "Authentication database is unavailable.",
         }
 
-    ready = auth_store.ensure_auth_schema()
-    has_users = auth_store.has_users() if ready else False
+    try:
+        ready = auth_store.ensure_auth_schema(require_available=True)
+        has_users = auth_store.has_users(require_available=True) if ready else False
+    except auth_store.AuthStoreUnavailable:
+        return {
+            "available": False,
+            "ready": False,
+            "has_users": False,
+            "bootstrapped": False,
+            "email_delivery": bool(email_status.get("ready")) if include_email_delivery else False,
+            "email_delivery_status": email_status,
+            "message": "Authentication database is unavailable.",
+        }
     bootstrapped = False
     if ready and (not has_users) and database_auth_bootstrap_configured():
         password_error = validate_password_strength(_bootstrap_admin_password())
@@ -1064,13 +1070,13 @@ def initialize_auth_system() -> dict[str, Any]:
                 display_name="",
             )
             bootstrapped = True
-            has_users = auth_store.has_users()
+            has_users = auth_store.has_users(require_available=True)
     return {
         "available": available,
         "ready": ready and has_users,
         "has_users": has_users,
         "bootstrapped": bootstrapped,
-        "email_delivery": bool(email_status.get("ready")),
+        "email_delivery": bool(email_status.get("ready")) if include_email_delivery else False,
         "email_delivery_status": email_status,
         "message": "",
     }
@@ -1150,7 +1156,14 @@ def authenticate_user(
     remember_me: bool = True,
 ) -> dict[str, Any]:
     normalized_email = str(email or "").strip()
-    record = auth_store.get_user_for_login(email)
+    try:
+        record = auth_store.get_user_for_login(email)
+    except auth_store.AuthStoreUnavailable:
+        return {
+            "ok": False,
+            "unavailable": True,
+            "message": "Sign-in is unavailable.",
+        }
     generic_error = "Invalid email or password."
     if record is None:
         record_access_event(

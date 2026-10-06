@@ -33,17 +33,8 @@ def _render_broad_economy_section(
 
     fred_api_key = load_fred_api_key()
     if not fred_api_key:
-        st.info(
-            "The macro dashboard looks for Azure Key Vault secret `Fred` in `spectral-nature-kvault` first, "
-            "then falls back to `FRED_API_KEY`."
-        )
-        st.code(
-            "export AZURE_KEY_VAULT_NAME='spectral-nature-kvault'\n"
-            "# or fallback:\n"
-            "export FRED_API_KEY='...'\n"
-            "./scripts/run_ui_local.sh",
-            language="bash",
-        )
+        st.info("Macro data unavailable.")
+        return
     else:
         lookback_years = st.slider("Lookback (years)", 3, 20, 10, step=1)
         show_stationary_overlay = True
@@ -57,7 +48,7 @@ def _render_broad_economy_section(
                     )
         except FredAPIError as exc:
             _log_event("load_fred_dashboard_failed", error=str(exc)[:200], years=lookback_years)
-            st.error(f"Could not load FRED data: {exc}")
+            st.error("Macro data unavailable.")
             st.stop()
 
         summary = dashboard["summary"].copy()
@@ -70,7 +61,7 @@ def _render_broad_economy_section(
         release_index = dashboard.get("release_index", pd.DataFrame())
 
         if summary.empty:
-            st.info("No macro indicators were returned from FRED.")
+            st.info("No macro indicators available.")
             st.stop()
 
         overview = summary.copy()
@@ -199,7 +190,7 @@ def _render_broad_economy_section(
 
         with tabs[-1]:
             if series_index.empty or observations.empty:
-                st.info("Series Explorer becomes available when both loaded series metadata and observations are present.")
+                st.info("Series data unavailable.")
             else:
                 explorer_series = series_index.copy()
                 if "title" not in explorer_series.columns:

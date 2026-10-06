@@ -24,7 +24,7 @@ _PAGE_SUMMARY_SYSTEM_PROMPT = register_narrative_prompt(
     prompt=(
         f"You are the Spectral Nature page summary agent. {NARRATIVE_STYLE_RULE} "
         "Write from the supplied page data only. Do not invent live prices, catalysts, or macro releases. "
-        "Focus on updates, what is worth looking into, and the data gaps that matter. "
+        "Focus on updates, the supported analytical focus, and concrete next checks. "
         "Do not headline unknowns or narrate missing evidence. If evidence is thin, write the observable setup and move the open question "
         "into watch_items as a concrete evidence target. Data gaps must name evidence to go fetch, not complain about "
         "what was unavailable; write gaps as noun phrases or checks, not sentences about evidence being absent. "
@@ -33,7 +33,7 @@ _PAGE_SUMMARY_SYSTEM_PROMPT = register_narrative_prompt(
         "If that context is not present, return no summary and put the business evidence needed in data_gaps. "
         "When using numeric levels, compare them literally. If close is below resistance, say near/below resistance, "
         "not through resistance. Do not turn technical levels into a driver. "
-        "Use watch/investigate language, not personalized financial advice. "
+        "Make direct analytical calls when the evidence supports them. Do not address the reader or describe the research process. "
         "Return concise markdown that can sit at the top of a dense research page."
     ),
 )
@@ -136,6 +136,17 @@ def page_summary_context_signature(context: dict[str, Any]) -> str:
 def _public_page_summary_payload(summary: dict[str, Any]) -> dict[str, Any]:
     payload = summary if isinstance(summary, dict) else {}
     status = _clean(payload.get("status")) or "unavailable"
+    if status != "ok":
+        return {
+            "status": status,
+            "surface": _clean(payload.get("surface")),
+            "headline": "",
+            "summary_markdown": "",
+            "watch_items": [],
+            "data_gaps": [],
+            "confidence": "low",
+            "error": "",
+        }
     headline = _clean_page_narrative(payload.get("headline"))
     summary_markdown = _clean_page_narrative(payload.get("summary_markdown"))
     watch_items = [
@@ -148,7 +159,6 @@ def _public_page_summary_payload(summary: dict[str, Any]) -> dict[str, Any]:
         for item in (_clean_page_narrative(value) for value in to_list(payload.get("data_gaps")))
         if item
     ][:5]
-    error = _public_unavailable_reason(payload.get("error")) if status != "ok" else ""
     public_payload = {
         "status": status,
         "surface": _clean(payload.get("surface")),
@@ -157,10 +167,8 @@ def _public_page_summary_payload(summary: dict[str, Any]) -> dict[str, Any]:
         "watch_items": watch_items,
         "data_gaps": data_gaps,
         "confidence": _clean(payload.get("confidence")) or "low",
-        "error": error,
+        "error": "",
     }
-    if status != "ok" and error and error not in public_payload["data_gaps"]:
-        public_payload["data_gaps"] = [error, *public_payload["data_gaps"]][:5]
     return public_payload
 
 
@@ -273,7 +281,7 @@ def _aql_agent_query(*, surface: str, context: dict[str, Any]) -> str:
         f"Use the shared AQL / Zopedia evidence path to write a grounded top-of-page summary for {surface}."
         f"{symbol_line} Start from the supplied page data, then check retained evidence or live evidence if needed. "
         "Focus on what changed, what is worth investigating next, and meaningful data gaps. "
-        "Use watch/investigate language, not personalized financial advice.\n\n"
+        "Write the analysis directly. Do not address the reader or describe the research process.\n\n"
         "Supplied page data JSON:\n"
         f"{_compact_json(context, limit=9000)}"
     )
@@ -314,28 +322,6 @@ def _aql_agent_context(result: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _public_unavailable_reason(reason: object) -> str:
-    text = _clean(reason)
-    lowered = text.lower()
-    if not text:
-        return "Page summary was not produced for this run."
-    if "page summary failed" in lowered and "exceeded" in lowered:
-        return "Page summary failed: background job budget exceeded."
-    if "exceeded" in lowered and "page aql summary" in lowered:
-        return "Page summary was not produced within the background job budget."
-    if "tool budget exhausted" in lowered or "trajectory monitor" in lowered:
-        return "AQL did not return enough grounded evidence for a page summary."
-    if "did not produce a grounded page summary" in lowered:
-        return "AQL did not return enough grounded evidence for a page summary."
-    if "llm runtime is not configured" in lowered:
-        return "LLM runtime is not configured."
-    if "formatting failed" in lowered:
-        return "Page summary formatting failed."
-    if "aql summary failed" in lowered:
-        return "AQL page summary failed."
-    return text
-
-
 def _unavailable_page_summary(
     *,
     surface: str,
@@ -343,17 +329,15 @@ def _unavailable_page_summary(
     aql_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     clean_surface = _clean(surface) or "Page"
-    public_reason = _public_unavailable_reason(reason)
-    data_gaps = [public_reason] if public_reason else []
     return {
         "status": "unavailable",
         "surface": clean_surface,
         "headline": "",
         "summary_markdown": "",
         "watch_items": [],
-        "data_gaps": data_gaps[:5],
+        "data_gaps": [],
         "confidence": "low",
-        "error": public_reason,
+        "error": "",
     }
 
 
@@ -621,7 +605,7 @@ def _revise_page_summary_payload(
             "headline": "",
             "summary_markdown": "",
             "watch_items": [],
-            "data_gaps": [str((result or {}).get("error") or "Zopedia page summary quality pass did not complete.")],
+            "data_gaps": [],
             "confidence": "low",
         }
     payload = result.get("payload") if isinstance(result.get("payload"), dict) else {}
@@ -629,7 +613,7 @@ def _revise_page_summary_payload(
         "headline": "",
         "summary_markdown": "",
         "watch_items": [],
-        "data_gaps": ["Zopedia page summary quality pass returned an invalid payload."],
+        "data_gaps": [],
         "confidence": "low",
     }
 
@@ -680,10 +664,7 @@ def _quality_review_page_summary_payload(
             "headline": "",
             "summary_markdown": "",
             "watch_items": [],
-            "data_gaps": [
-                "Zopedia page summary failed the quality monitor after revision.",
-                *list(current_review.get("issues") or [])[:5],
-            ],
+            "data_gaps": [],
             "confidence": "low",
         }
     return current_payload, review_state
@@ -698,16 +679,10 @@ def build_page_agentic_summary(
 ) -> dict[str, Any]:
     clean_surface = _clean(surface) or _clean((context or {}).get("surface")) or "Page"
     if llm_client is None:
-        return {
-            "status": "unavailable",
-            "surface": clean_surface,
-            "headline": "",
-            "summary_markdown": "",
-            "watch_items": [],
-            "data_gaps": ["LLM runtime is not configured."],
-            "confidence": "low",
-            "error": "LLM runtime is not configured.",
-        }
+        return _unavailable_page_summary(
+            surface=clean_surface,
+            reason="LLM runtime is not configured.",
+        )
 
     runner = aql_agent_runner or _default_aql_agent_runner
     try:

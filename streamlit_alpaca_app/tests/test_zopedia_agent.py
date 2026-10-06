@@ -273,6 +273,41 @@ class _FinalSynthesisTransportDropLLM:
         raise AssertionError(f"Unexpected schema_name: {schema_name}")
 
 
+class _PlannerEmptyContentAfterEvidenceLLM:
+    def __init__(self) -> None:
+        self.config = SimpleNamespace(provider="deepseek", model="deepseek-test")
+        self.step_calls = 0
+
+    def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict[str, object]) -> dict[str, object]:
+        del system_prompt, user_prompt, schema
+        if schema_name == "zopedia_agent_step":
+            self.step_calls += 1
+            if self.step_calls == 1:
+                return {
+                    "action": "tool_call",
+                    "reasoning": "Read the current macro dashboard.",
+                    "tool_name": "dataset.fred_dashboard",
+                    "tool_arguments": [_arg("years", 3)],
+                    "answer_markdown": "",
+                    "confidence": "low",
+                    "needs_more_tools": True,
+                }
+            raise zopedia_agent.LLMAPIError("DeepSeek returned empty content.")
+        if schema_name == "zopedia_agent_final":
+            return {
+                "answer_markdown": "Latest CPI is 319.8, with year-over-year inflation at 2.9%.",
+                "confidence": "medium",
+                "limitations": [],
+                "used_tool_call_ids": ["agtc_1"],
+            }
+        if schema_name == "zopedia_agent_judge":
+            return _judge_accept(
+                "Latest CPI is 319.8, with year-over-year inflation at 2.9%.",
+                "medium",
+            )
+        raise AssertionError(f"Unexpected schema_name: {schema_name}")
+
+
 class _FollowupLLM:
     def __init__(self) -> None:
         self.config = SimpleNamespace(model="gpt-test")
@@ -517,6 +552,35 @@ class _JudgeRevisionLLM:
         raise AssertionError(f"Unexpected schema_name: {schema_name}")
 
 
+class _JudgeAcceptRepairLLM:
+    def __init__(self) -> None:
+        self.config = SimpleNamespace(model="deepseek-test")
+
+    def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict[str, object]) -> dict[str, object]:
+        del system_prompt, user_prompt, schema
+        if schema_name == "zopedia_agent_step":
+            return {
+                "action": "final",
+                "reasoning": "The available evidence is sufficient.",
+                "tool_name": "",
+                "tool_arguments": [],
+                "answer_markdown": "**Broken **nested emphasis** in the answer.**",
+                "confidence": "medium",
+                "needs_more_tools": False,
+            }
+        if schema_name == "zopedia_agent_judge":
+            return {
+                "verdict": "accept",
+                "critique_summary": "The substance is supported and the returned answer repairs the Markdown.",
+                "answer_markdown": "**The evidence supports the answer.**",
+                "confidence": "medium",
+                "limitations": ["No current price series was collected."],
+                "unsupported_claims": [],
+                "evidence_gaps": ["No current price series was collected."],
+            }
+        raise AssertionError(f"Unexpected schema_name: {schema_name}")
+
+
 class _MemoryApplyLLM:
     def __init__(self) -> None:
         self.config = SimpleNamespace(model="deepseek-test")
@@ -648,6 +712,21 @@ def test__run_zopedia_agent_loop_answer_judge_can_revise_unsupported_draft():
     assert any("Draft answer" in prompt for prompt in llm.judge_prompts)
 
 
+def test__run_zopedia_agent_loop_uses_judge_returned_answer_even_when_verdict_accepts():
+    result = zopedia_agent._run_zopedia_agent_loop(
+        query="Summarize the available evidence.",
+        service=_StubQueryService(),
+        llm_client=_JudgeAcceptRepairLLM(),
+        max_tool_calls=1,
+        persist_findings=False,
+    )
+
+    assert result["answer_markdown"] == "**The evidence supports the answer.**"
+    assert result["limitations"] == ["No current price series was collected."]
+    assert result["quality_review"]["verdict"] == "accept"
+    assert result["quality_review"]["revised_answer_applied"] is True
+
+
 def test__run_zopedia_agent_loop_reports_unavailable_llm(monkeypatch):
     captured_kwargs = {}
 
@@ -664,8 +743,36 @@ def test__run_zopedia_agent_loop_reports_unavailable_llm(monkeypatch):
     )
 
     assert result["status"] == "unavailable"
-    assert "cannot run tool-based analysis" in result["answer_markdown"]
+    assert result["answer_markdown"] == ""
+    assert result["limitations"] == []
     assert captured_kwargs == {"surface": "zopedia.agent"}
+
+
+def test__run_zopedia_agent_loop_resolves_default_llm_before_session_start(monkeypatch):
+    import services.agents.research_session as research_session
+
+    llm = _StubLLM()
+    llm.config = SimpleNamespace(provider="deepseek", model="deepseek-test")
+    captured: dict[str, object] = {}
+    original_create = research_session.create_research_session
+
+    def _capture_session(**kwargs):
+        captured.update(kwargs)
+        return original_create(**kwargs)
+
+    monkeypatch.setattr(zopedia_agent, "load_aql_zopedia_llm_client", lambda **kwargs: llm)
+    monkeypatch.setattr(research_session, "create_research_session", _capture_session)
+
+    result = zopedia_agent._run_zopedia_agent_loop(
+        query="What was the latest CPI reading?",
+        service=_StubQueryService(),
+        llm_client=None,
+        persist_findings=False,
+    )
+
+    assert result["status"] == "completed"
+    assert captured["provider"] == "deepseek"
+    assert captured["model"] == "deepseek-test"
 
 
 def test__run_zopedia_agent_loop_can_skip_persistence(monkeypatch):
@@ -948,6 +1055,26 @@ def test_planner_prompt_contains_generic_evidence_contract():
     assert "Treat user-supplied claims as hypotheses" in prompt
 
 
+def test_clean_model_output_preserves_markdown_line_structure():
+    answer = (
+        "**Bottom line:** Supported.\n\n"
+        "| Measure | Value |\n"
+        "| --- | --- |\n"
+        "| CPI | 3.7% |\n"
+        "<|endoftext|>"
+    )
+
+    cleaned = zopedia_agent._clean_model_output(answer)
+
+    assert cleaned.splitlines() == [
+        "**Bottom line:** Supported.",
+        "",
+        "| Measure | Value |",
+        "| --- | --- |",
+        "| CPI | 3.7% |",
+    ]
+
+
 def test_analysis_failure_requires_one_repair_pass_before_final():
     tool_calls = [
         {
@@ -1176,6 +1303,147 @@ def test__run_zopedia_agent_loop_bounds_prefetch_and_tool_calls(monkeypatch):
     assert any(event.get("stage") == "tool_timeout" for event in events)
 
 
+def test_deferred_tool_discovery_loads_matching_tool_before_execution(monkeypatch):
+    original_get_config_param = zopedia_agent.get_config_param
+
+    def _config(param):
+        if param == zopedia_agent._P_DEFERRED_TOOL_DISCOVERY_ENABLED:
+            return 1
+        if param == zopedia_agent._P_TOOL_DISCOVERY_MAX_STEPS:
+            return 2
+        if param in {
+            zopedia_agent._P_TRAJECTORY_MONITOR_ENABLED,
+            zopedia_agent._P_ANSWER_JUDGE_ENABLED,
+            zopedia_agent._P_POST_ANSWER_MEMORY_ENABLED,
+        }:
+            return 0
+        return original_get_config_param(param)
+
+    class _DeferredDiscoveryLLM:
+        def __init__(self) -> None:
+            self.config = SimpleNamespace(provider="deepseek", model="deepseek-test")
+            self.steps = 0
+
+        def generate_json(self, *, system_prompt, user_prompt, schema_name, schema):
+            del system_prompt, schema
+            assert schema_name == "zopedia_agent_step"
+            self.steps += 1
+            if self.steps == 1:
+                assert "tools.search" in user_prompt
+                assert "dataset.fred_dashboard" not in user_prompt
+                return {
+                    "action": "tool_call",
+                    "reasoning": "Find the local inflation dataset.",
+                    "tool_name": "tools.search",
+                    "tool_arguments": [_arg("query", "inflation macro FRED dashboard")],
+                    "answer_markdown": "",
+                    "confidence": "low",
+                    "needs_more_tools": True,
+                }
+            if self.steps == 2:
+                assert "dataset.fred_dashboard" in user_prompt
+                return {
+                    "action": "tool_call",
+                    "reasoning": "Read the discovered inflation dataset.",
+                    "tool_name": "dataset.fred_dashboard",
+                    "tool_arguments": [_arg("years", 3)],
+                    "answer_markdown": "",
+                    "confidence": "low",
+                    "needs_more_tools": True,
+                }
+            return {
+                "action": "final",
+                "reasoning": "The local dataset answers the question.",
+                "tool_name": "",
+                "tool_arguments": [],
+                "answer_markdown": "Latest CPI is 319.8 and year-over-year inflation is 2.9%.",
+                "confidence": "high",
+                "needs_more_tools": False,
+            }
+
+    monkeypatch.setattr(zopedia_agent, "get_config_param", _config)
+    events: list[dict[str, object]] = []
+
+    result = zopedia_agent._run_zopedia_agent_loop(
+        query="What does the latest inflation dashboard show?",
+        service=_StubQueryService(),
+        llm_client=_DeferredDiscoveryLLM(),
+        max_tool_calls=2,
+        progress_callback=events.append,
+        persist_findings=False,
+        prefetch_timeout_seconds=1,
+    )
+
+    assert result["status"] == "completed"
+    assert [call["tool_name"] for call in result["tool_calls"] if call["tool_name"] != "research.prefetched_context"] == [
+        "tools.search",
+        "dataset.fred_dashboard",
+    ]
+    assert any(event.get("stage") == "tool_catalog_expanded" for event in events)
+
+
+def test_tool_discovery_metadata_is_not_counted_as_research_evidence():
+    calls = [
+        {
+            "tool_name": "tools.search",
+            "status": "completed",
+            "result_summary": {"llm_context_text": "dataset.price_history: historical prices"},
+        }
+    ]
+
+    assert zopedia_agent._successful_evidence_tool_count(calls) == 0
+    assert zopedia_agent._has_memory_candidate(tool_calls=calls, prefetched_context="") is False
+
+
+def test_trajectory_monitor_cannot_kill_for_evidence_gap_alone():
+    normalized, decision = zopedia_agent._normalized_trajectory_monitor_result(
+        {
+            "decision": "kill",
+            "reason": "The evidence is incomplete.",
+            "off_contract_signals": [],
+            "evidence_gaps": ["Current source is missing."],
+        },
+        restart_count=0,
+        max_restarts=2,
+    )
+
+    assert decision == "double_down"
+    assert normalized["decision"] == "double_down"
+    assert normalized["evidence_gaps"] == ["Current source is missing."]
+
+
+def test_trajectory_monitor_preserves_kill_for_explicit_off_contract_signal():
+    normalized, decision = zopedia_agent._normalized_trajectory_monitor_result(
+        {
+            "decision": "kill",
+            "reason": "The thread switched companies and fabricated a source.",
+            "off_contract_signals": ["wrong entity", "fabricated source"],
+            "evidence_gaps": [],
+        },
+        restart_count=0,
+        max_restarts=2,
+    )
+
+    assert decision == "kill"
+    assert normalized["off_contract_signals"] == ["wrong entity", "fabricated source"]
+
+
+def test_trajectory_restart_exhaustion_continues_to_critic():
+    normalized, decision = zopedia_agent._normalized_trajectory_monitor_result(
+        {
+            "decision": "restart",
+            "reason": "Try a narrower evidence query.",
+            "off_contract_signals": [],
+            "evidence_gaps": ["Source body not opened."],
+        },
+        restart_count=2,
+        max_restarts=2,
+    )
+
+    assert decision == "double_down"
+    assert "critic-reviewed answer" in normalized["reason"]
+
+
 def test_final_prompt_lightly_prefers_supporting_sources():
     prompt = zopedia_agent._final_user_prompt(
         query="How are things going to pan out now that there's no agreement in Iran US talks",
@@ -1201,6 +1469,24 @@ def test__run_zopedia_agent_loop_sanitizes_transient_transport_drop_after_tools(
     assert "research or model connection dropped" in result["error"]
     assert "RemoteDisconnected" not in result["error"]
     assert "Connection aborted" not in result["error"]
+
+
+def test__run_zopedia_agent_loop_synthesizes_after_empty_planner_response():
+    events: list[dict[str, object]] = []
+
+    result = zopedia_agent._run_zopedia_agent_loop(
+        query="Summarize the broad economy.",
+        service=_StubQueryService(),
+        llm_client=_PlannerEmptyContentAfterEvidenceLLM(),
+        max_tool_calls=2,
+        progress_callback=events.append,
+        persist_findings=False,
+    )
+
+    assert result["status"] == "completed"
+    assert "319.8" in result["answer_markdown"]
+    assert not any("empty content" in item.lower() for item in result["limitations"])
+    assert any(event.get("stage") == "planner_recovered_from_model_error" for event in events)
 
 
 def test_summarize_tool_result_exposes_analysis_render_payload():

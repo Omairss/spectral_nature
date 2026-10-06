@@ -2,7 +2,7 @@
 
 Date: 2026-06-24
 
-Last updated: 2026-07-01
+Last updated: 2026-09-21
 
 ## Purpose
 
@@ -106,7 +106,74 @@ Mapping to v0.5:
 
 ## Implementation Status
 
-Updated: 2026-07-01
+Updated: 2026-09-21
+
+The candidate-generation boundary has moved to shared research V2. The active
+path builds balanced horizon scout lists, researches each selected company
+once through Zopedia/AQL, persists `trading_agent_research_packages`, and then
+uses those packages for every relevant horizon synthesis. Recall and cost are
+independently tunable through scout breadth, unique-company pool size, AQL tool
+depth, and provider-safe parallelism.
+
+The old per-horizon implementation remains available through
+`TRADING_AGENT_GENERATION_MODE=legacy_per_horizon_v1`. The default is
+`shared_research_v2`.
+
+Production diagnosis on 2026-08-10 found the previous path timing out after
+300 seconds on all five sequential horizons. Its thread timeout did not cancel
+the underlying research, and timeout rows became price-only fallback
+candidates. Shared research V2 removes that horizon timeout wrapper and never
+creates fallback candidates. If no grounded package is available, the horizon
+persists an error with zero candidates. If every horizon fails, the job fails
+after diagnostic datasets are persisted.
+
+A latest-feed replay reduced the planned research work from 30 per-horizon
+company packages to 8 unique packages while retaining representation across
+all five horizons. A live one-company probe completed through the actual
+gateway and correctly returned a low-confidence watch candidate when company
+and current-event evidence were missing.
+
+Production verification completed on 2026-08-10. The first shared-research V2
+execution completed seven of eight unique company packages, isolated one
+provider empty-content response, produced successful runs for all five
+horizons and 13 grounded candidates, and emitted no fallback rows. The
+production job is pinned to the final V2 image digest. Recall can now be tuned
+through scout breadth, global pool size, and per-company research depth
+without restoring repeated per-horizon research.
+
+Development namespace verification completed on 2026-09-21. A manual Azure
+execution completed eight of eight company packages and all five horizons,
+then materialized 14 candidates and 14 outcomes without moving production
+pointers or writing Zopedia memory. All 14 candidates were research-only
+`no_call` rows and all outcomes were `not_scoreable`; this is a valid pipeline
+and presentation check, not evidence of investment performance. The exact
+view adapters accepted all five horizon results and all 14 candidates under
+the `plain_investor_research_v2` contract.
+
+Candidate retrieval was upgraded later that day. The All Market materialized
+corpus now retains all 999 ranked symbols per horizon, each horizon performs a
+24-company primary retrieval followed by reciprocal-rank-fusion reranking,
+and the eight-company research pool evaluates complete rank tiers before its
+cutoff. Development run `194a70a0-cfaf-47c2-ba6b-bc5b72df0c0c` completed the
+new path with 8/8 packages, 5/5 horizons, and 12 candidates. One candidate was
+a supported directional call; the other 11 remained research-only. This is a
+better measured selection contract, not yet proof of better returns.
+
+The development-only ranking revision now replaces that four-field retrieval
+score with `domain_balanced_all_signal_v1`. The Trading Agent loads all
+usable pre-decision stock-linked sources before research, normalizes them within
+industry/size peers, balances correlated fields inside signal families, treats
+missing sparse sources as neutral, and persists the complete ranking trace in
+`trading_agent_ranked_opportunities`. Outcome labels and post-call reviews stay
+outside the rank. This broadens evidence coverage but still does not establish
+predictive performance; the historical point-in-time backtest remains required.
+
+Development execution `0ce40dea-5b75-4460-a654-69df89f13773` verified the
+completed path on 2026-09-21: 5,994 ranked rows, 8/8 company packages, 5/5
+horizon runs, and 18 candidates. Every horizon selected research through
+`all_signal_rank`. Five evidence domains were populated; positions and
+stock-linked macro context were empty, and commodity proxies remain unlinked
+to individual stocks.
 
 Phase 0 and Phase 1 first slice are implemented behind the existing
 `trading-agent-build` materialization job.
@@ -134,12 +201,12 @@ Intentionally deferred:
 - Benchmark-relative performance is represented in the schema but not yet
   populated.
 - Post-call news/event attribution is not yet part of the review package.
-- Candidate Package V2 remains blocked on the v0.5 AQL/Zopedia retrieval and
-  company-memory runtime proof work, plus the v0.6 AQL/Zopedia gateway.
-- Trading Agent final synthesis and research review still need gateway
-  migration. Direct `llm_client.generate_json(...)` calls in the product module
-  are not acceptable for V2 because they bypass centralized request telemetry,
-  budget policy, model attribution, and evidence-pack linkage.
+- Candidate Package V2 now has a first durable package dataset and shared
+  research execution path. The richer evidence-slot schema and historical
+  evidence-native backtest remain incomplete.
+- Trading Agent research, final synthesis, and research review use the shared
+  AQL/Zopedia engine or gateway. Package rows retain evidence-pack IDs and
+  bounded tool summaries for auditability.
 - No performance tuning, direction filtering, prompt mutation, or Zopedia
   memory promotion was added.
 

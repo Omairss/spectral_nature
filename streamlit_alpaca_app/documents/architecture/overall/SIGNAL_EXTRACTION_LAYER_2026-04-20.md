@@ -1,8 +1,10 @@
 # Signal Extraction Layer
 
 **Date:** 2026-04-20
-**Status:** Planned
+**Status:** Partially implemented. The shared extraction module exists; current materialization and ranking coverage are tracked in [Platform Signal Index](../market_data/PLATFORM_SIGNAL_INDEX_2026-09-21.md).
 **Goal:** Build a dense, LLM-consumable signal vocabulary on top of existing precomputed pipeline data — no new API calls required.
+
+> This is the original design record. Do not infer current dataset availability from its implementation tables; the live capability and coverage audit now belongs to the Platform Signal Index linked above.
 
 ---
 

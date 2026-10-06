@@ -296,6 +296,35 @@ COMMODITY_REFERENCE_SYMBOLS = _unique_symbols(
     ["PDBC", "USO", "BNO", "UNG", "GLD", "SLV", "CPER", "DBB", "REMX", "DBA", "CORN", "JO", "BDRY"]
 )
 
+
+def business_focus_catalog(symbols: list[str] | None = None) -> list[dict[str, object]]:
+    """Resolve the taxonomy-backed market lenses from one consistent snapshot.
+
+    Building a market-lens menu must not reload the same taxonomy once for the
+    option list, again for every description, and again for every universe.
+    Besides being slow, those independent reads can produce a menu assembled
+    from different dataset revisions.  This catalog is the shared read model
+    for UI and API consumers that need all lenses at once.
+    """
+    mapping = _taxonomy_focus_map(symbols)
+    catalog: list[dict[str, object]] = []
+    for label, values in mapping.items():
+        resolved = list(values)
+        if label == "All Market":
+            description = (
+                f"Dynamic taxonomy-backed liquid universe ({len(resolved)} symbols)."
+                if resolved
+                else "Dynamic taxonomy-backed liquid universe."
+            )
+        else:
+            description = (
+                f"Taxonomy-derived peer cohort ({len(resolved)} symbols)."
+                if resolved
+                else "Taxonomy-derived peer cohort."
+            )
+        catalog.append({"name": label, "description": description, "symbols": resolved})
+    return catalog
+
 def business_focus_options() -> list[str]:
     return list(_taxonomy_focus_map().keys())
 

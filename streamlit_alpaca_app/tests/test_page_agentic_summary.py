@@ -131,7 +131,8 @@ def test_build_page_agentic_summary_fails_closed_when_aql_fails():
 
     assert result["status"] == "unavailable"
     assert result["summary_markdown"] == ""
-    assert result["data_gaps"][0] == "AQL did not return enough grounded evidence for a page summary."
+    assert result["data_gaps"] == []
+    assert result["error"] == ""
 
 
 def test_build_page_agentic_summary_fails_closed_when_aql_raises():
@@ -156,7 +157,8 @@ def test_build_page_agentic_summary_fails_closed_when_aql_raises():
 
     assert result["status"] == "unavailable"
     assert result["summary_markdown"] == ""
-    assert result["data_gaps"][0] == "AQL page summary failed."
+    assert result["data_gaps"] == []
+    assert result["error"] == ""
 
 
 def test_materialized_page_agentic_summary_round_trips_exact_context():

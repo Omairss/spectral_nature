@@ -594,7 +594,20 @@ def _build_candidate_bundle(
     yield_facts: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     cause_status, why_today_mode = _judge_cause_status(claims)
+    asof_time = pd.to_datetime(candidate.get("asof_time_utc"), utc=True, errors="coerce")
+    same_day_documents = [
+        doc
+        for doc in list(documents or [])
+        if _coerce_text(doc.get("source_kind")).lower() in {"news", "search"}
+        and _freshness_score(pd.to_datetime(doc.get("published_at"), utc=True, errors="coerce"), asof_time) >= 0.95
+    ]
+    if cause_status == "unresolved" and same_day_documents:
+        cause_status = "partial"
+        why_today_mode = "source_context"
     evidence_quality, freshness_quality = _quality_label(claims, cause_status)
+    if cause_status == "partial" and same_day_documents:
+        evidence_quality = "Developing"
+        freshness_quality = "High"
     written = _write_symbol_bundle(candidate, claims, peer_moves, llm_client=llm_client, cause_status=cause_status, yield_facts=yield_facts)
     document_importance = _document_importance_map(claims)
     evidence = []
@@ -604,7 +617,7 @@ def _build_candidate_bundle(
         source_kind = _coerce_text(doc.get("source_kind"))
         evidence_role = (
             "same_day"
-            if _freshness_score(pd.to_datetime(doc.get("published_at"), utc=True, errors="coerce"), pd.to_datetime(candidate.get("asof_time_utc"), utc=True, errors="coerce")) >= 0.95
+            if _freshness_score(pd.to_datetime(doc.get("published_at"), utc=True, errors="coerce"), asof_time) >= 0.95
             else "background"
         )
         importance_score = float(document_importance.get(document_id, 0.0))
@@ -640,6 +653,9 @@ def _build_candidate_bundle(
         for item in evidence + background
         if bool(item.get("is_important")) and _coerce_text(item.get("source_kind")).lower() in {"news", "search"}
     )
+    claim_sources = [item.get("source") for item in claims if _coerce_text(item.get("source"))]
+    document_sources = [item.get("source_provider") for item in documents if _coerce_text(item.get("source_provider"))]
+    same_day_claim_count = len([item for item in claims if bool(item.get("is_same_day"))])
     return {
         "bundle_id": _coerce_text(candidate.get("bundle_id")) or f"symbol::{_normalize_symbol(candidate.get('symbol'))}",
         "bundle_type": "symbol",
@@ -660,10 +676,10 @@ def _build_candidate_bundle(
         "confidence_label": "High" if cause_status == "supported" and evidence_quality == "High" else ("Medium" if cause_status == "supported" else "Developing"),
         "sector": _coerce_text(candidate.get("sector")),
         "industry": _coerce_text(candidate.get("industry")),
-        "source_summary": _top_sources(claims),
-        "source_count": len({item.get("source") for item in claims if _coerce_text(item.get("source"))}),
+        "source_summary": _top_sources(claims) or ", ".join(list(dict.fromkeys(_coerce_text(item) for item in document_sources if _coerce_text(item)))[:4]),
+        "source_count": len({item for item in claim_sources + document_sources if _coerce_text(item)}),
         "evidence_count": len(documents),
-        "same_day_evidence_count": len([item for item in claims if bool(item.get("is_same_day"))]),
+        "same_day_evidence_count": same_day_claim_count + len(same_day_documents),
         "important_news_count": int(important_news_count),
         "evidence": evidence[:6],
         "background_context": background[:4],
@@ -820,10 +836,18 @@ def _build_home_payload(
             existing_bundle_ids.add(bundle_id)
         forced_macro_added += 1
     candidate_rows = candidates.to_dict(orient="records")
+    top_event_symbols = {
+        _normalize_symbol(symbol)
+        for item in top_event_items
+        for symbol in _safe_list(item.get("supporting_symbols"))
+        if _normalize_symbol(symbol)
+    }
     must_read: list[dict[str, Any]] = []
     unresolved: list[dict[str, Any]] = []
     for candidate in candidate_rows:
         symbol = _normalize_symbol(candidate.get("symbol"))
+        if symbol in top_event_symbols:
+            continue
         bundle = bundle_map.get(f"symbol::{symbol}", {})
         if not bundle:
             continue
@@ -873,6 +897,8 @@ def _build_home_payload(
             )
     coverage_summary = {
         "candidate_count": int(len(candidates)),
+        "candidate_scoring_mode": _coerce_text(candidates["scoring_mode"].dropna().astype(str).head(1).tolist()[0]) if "scoring_mode" in candidates.columns and not candidates["scoring_mode"].dropna().empty else "",
+        "candidate_anomaly_scored_count": int(pd.to_numeric(candidates.get("anomaly_score"), errors="coerce").notna().sum()) if "anomaly_score" in candidates.columns else 0,
         "event_count": int(len(top_event_items)),
         "must_read_count": int(len(must_read)),
         "unresolved_count": int(len(unresolved)),

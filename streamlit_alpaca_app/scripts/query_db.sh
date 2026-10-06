@@ -28,7 +28,7 @@ source "$ENV_FILE"
 RESOURCE_GROUP="${RESOURCE_GROUP:-sn-pipeline-rg-03130136}"
 POSTGRES_SERVER="${POSTGRES_SERVER:-sn-pg-03130136}"
 KEYVAULT_NAME="${KEYVAULT_NAME:-spectral-nature-kvault}"
-RULE_NAME="local-query-$(date +%s)"
+RULE_NAME="local-query-$(date +%s)-$$-${RANDOM}"
 
 # ── Resolve public IP ──
 PUBLIC_IP="$(curl -s --max-time 5 ifconfig.me || curl -s --max-time 5 api.ipify.org || true)"
@@ -110,24 +110,25 @@ if [[ -z "$SQL" ]]; then
 fi
 
 # ── Run query ──
-python3 -c "
-import psycopg, sys
+QUERY_DB_CONN_STRING="$CONN_STRING" QUERY_DB_SQL="$SQL" python3 - <<'PY'
+import os
 
-conn = psycopg.connect('''${CONN_STRING}''', connect_timeout=15)
+import psycopg
+
+conn = psycopg.connect(os.environ["QUERY_DB_CONN_STRING"], connect_timeout=15)
 cur = conn.cursor()
-cur.execute('''${SQL}''')
+cur.execute(os.environ["QUERY_DB_SQL"])
 
 if cur.description:
     headers = [d.name for d in cur.description]
     rows = cur.fetchall()
-    # Print header
-    print('\t'.join(headers))
-    print('\t'.join('-' * max(len(h), 4) for h in headers))
+    print("\t".join(headers))
+    print("\t".join("-" * max(len(h), 4) for h in headers))
     for row in rows:
-        print('\t'.join(str(v)[:120] if v is not None else '-' for v in row))
-    print(f'\n({len(rows)} row(s))')
+        print("\t".join(str(v)[:120] if v is not None else "-" for v in row))
+    print(f"\n({len(rows)} row(s))")
 else:
-    print('Query executed (no result set).')
+    print("Query executed (no result set).")
 
 conn.close()
-"
+PY

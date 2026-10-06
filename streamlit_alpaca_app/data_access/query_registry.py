@@ -776,6 +776,10 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         ),
         resolution="materialized_first",
         handler=_resolve_price_history,
+        description=(
+            "Historical daily price bars for one ticker over a requested lookback. "
+            "Use for raw closes, returns, event-window moves, and price history analysis."
+        ),
     ),
     "technical_signal_history": DatasetSpec(
         params=(

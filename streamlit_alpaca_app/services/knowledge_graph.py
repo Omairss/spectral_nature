@@ -1324,12 +1324,12 @@ def _agentic_graph_expansion(
 ) -> dict[str, Any]:
     llm_client = load_aql_zopedia_llm_client(surface="knowledge_graph.expansion")
     if llm_client is None:
-        _emit_status(status_callback, "agent_unavailable", "LLM runtime is unavailable. Building a local-only draft.")
+        _emit_status(status_callback, "agent_unavailable", "Expansion unavailable.")
         return {
             "summary": "",
             "nodes": [],
             "edges": [],
-            "limitations": ["LLM runtime is unavailable, so no agentic graph suggestions were added."],
+            "limitations": [],
         }
 
     _emit_status(status_callback, "research", "Collecting external context for the current query.")
@@ -1376,12 +1376,12 @@ def _agentic_graph_expansion(
             schema=_GRAPH_EXPANSION_SCHEMA,
         )
     except LLMAPIError as exc:
-        _emit_status(status_callback, "llm_error", f"LLM expansion failed. Falling back to the local neighborhood only: {exc}")
+        _emit_status(status_callback, "llm_error", "Expansion unavailable.")
         return {
             "summary": "",
             "nodes": [],
             "edges": [],
-            "limitations": [f"LLM expansion failed: {exc}"],
+            "limitations": [],
         }
 
 
