@@ -62,6 +62,29 @@ export type HomeBeat = {
   summary: string;
   business_context: string;
   symbols: string[];
+  primary_symbol: string;
+  change_pct: number | null;
+  tickers: HomeTickerSnapshot[];
+};
+
+export type HomeTickerSnapshot = {
+  symbol: string;
+  company_name: string;
+  latest_close: number | null;
+  price_change_1d_pct: number | null;
+  price_change_1m_pct: number | null;
+  market_cap: number | null;
+  market_cap_label: string;
+  revenue: number | null;
+  revenue_yoy_pct: number | null;
+  operating_income: number | null;
+  net_income: number | null;
+  net_income_yoy_pct: number | null;
+  operating_cash_flow: number | null;
+  free_cash_flow: number | null;
+  fundamentals_period: string;
+  fundamentals_report_date: string;
+  sparkline_data_uri: string;
 };
 
 export type HomeView = {

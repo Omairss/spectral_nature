@@ -17,6 +17,7 @@ from compute.fred import (
     FRED_CATEGORY_BLURBS,
     FRED_SERIES_SPECS,
     FredSeriesSpec,
+    build_fred_derived_views,
     build_fred_series_summary,
     format_fred_delta,
     format_fred_value,
@@ -404,14 +405,18 @@ def _finalize_fred_dashboard_payload(
         series_data[spec.series_id] = frame.reset_index(drop=True)
         summary_rows.append(build_fred_series_summary(spec, metadata, frame.reset_index(drop=True)))
 
+    summary = pd.DataFrame(summary_rows)
+    observations, summary, correlations = build_fred_derived_views(observations, summary)
+
     return {
-        "summary": pd.DataFrame(summary_rows),
+        "summary": summary,
         "series_data": series_data,
         "metadata": metadata_by_id,
         "specs_by_category": fred_specs_by_category(),
         "category_blurbs": FRED_CATEGORY_BLURBS,
         "series_index": series_index,
         "observations": observations,
+        "correlations": correlations,
         "release_index": release_index,
     }
 

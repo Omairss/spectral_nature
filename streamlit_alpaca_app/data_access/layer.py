@@ -2774,6 +2774,48 @@ class DataAccessLayer:
                 )
         return self._resolved({}, mode="materialized" if self.materialized_only else "on_demand", datasets=ATTENTION_TICKER_SNAPSHOT_DATASETS, details={"ticker": target, **({"materialized_only": True} if self.materialized_only else {})})
 
+    def resolve_attention_ticker_snapshots(
+        self,
+        symbols: list[str] | None = None,
+        *,
+        force_refresh: bool = False,
+    ) -> ResolvedPayload:
+        targets = {
+            str(symbol or "").upper().strip()
+            for symbol in list(symbols or [])
+            if str(symbol or "").strip()
+        }
+        materialized = self._first_materialized_frame(
+            ATTENTION_TICKER_SNAPSHOT_DATASETS,
+            force_refresh=force_refresh,
+        )
+        if materialized is not None:
+            dataset_name, frame, details = materialized
+            if "symbol" in frame.columns:
+                rows = frame.copy()
+                rows["symbol"] = rows["symbol"].astype(str).str.upper().str.strip()
+                rows = rows[rows["symbol"].ne("")]
+                if targets:
+                    rows = rows[rows["symbol"].isin(targets)]
+                rows = rows.drop_duplicates(subset=["symbol"], keep="first")
+                payload = {
+                    str(row.get("symbol") or ""): row.to_dict()
+                    for _, row in rows.iterrows()
+                    if str(row.get("symbol") or "")
+                }
+                return self._resolved(
+                    payload,
+                    mode="materialized",
+                    datasets=(dataset_name,),
+                    details={**details, "symbols": sorted(targets)},
+                )
+        return self._resolved(
+            {},
+            mode="materialized" if self.materialized_only else "on_demand",
+            datasets=ATTENTION_TICKER_SNAPSHOT_DATASETS,
+            details={"symbols": sorted(targets), **({"materialized_only": True} if self.materialized_only else {})},
+        )
+
     def resolve_attention_ticker_background(self, ticker: str, *, force_refresh: bool = False) -> ResolvedPayload:
         target = str(ticker or "").upper().strip()
         materialized_payload: dict[str, Any] = {}

@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 from datetime import date, datetime, timezone
 import hashlib
+import math
 from typing import Any
 
 from data_access.contracts import DataProvenance
@@ -23,6 +24,43 @@ def _count(value: object) -> int:
         return 0
 
 
+def _number(value: object) -> float | None:
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        return None
+    return parsed if math.isfinite(parsed) else None
+
+
+def _ticker_snapshot_view(symbol: str, raw: object, *, attention_change_pct: object = None) -> dict[str, Any]:
+    payload = dict(raw) if isinstance(raw, dict) else {}
+    sparkline = _clean(payload.get("sparkline_data_uri"), limit=20_000)
+    if sparkline and not sparkline.startswith("data:image/svg+xml;base64,"):
+        sparkline = ""
+    move = _number(payload.get("price_change_1d_pct"))
+    if move is None:
+        move = _number(attention_change_pct)
+    return {
+        "symbol": _clean(symbol, limit=20).upper(),
+        "company_name": _clean(payload.get("company_name"), limit=160),
+        "latest_close": _number(payload.get("latest_close")),
+        "price_change_1d_pct": move,
+        "price_change_1m_pct": _number(payload.get("price_change_1m_pct")),
+        "market_cap": _number(payload.get("market_cap")),
+        "market_cap_label": _clean(payload.get("market_cap_label"), limit=40),
+        "revenue": _number(payload.get("revenue")),
+        "revenue_yoy_pct": _number(payload.get("revenue_yoy_pct")),
+        "operating_income": _number(payload.get("operating_income")),
+        "net_income": _number(payload.get("net_income")),
+        "net_income_yoy_pct": _number(payload.get("net_income_yoy_pct")),
+        "operating_cash_flow": _number(payload.get("operating_cash_flow")),
+        "free_cash_flow": _number(payload.get("free_cash_flow")),
+        "fundamentals_period": _clean(payload.get("fundamentals_period"), limit=20),
+        "fundamentals_report_date": _clean(payload.get("fundamentals_report_date"), limit=20),
+        "sparkline_data_uri": sparkline,
+    }
+
+
 def _validated_target_date(value: str | None) -> str:
     text = _clean(value, limit=20)
     if not text:
@@ -40,11 +78,13 @@ def _home_payload(
     service: QueryService,
     *,
     target_date: str = "",
-) -> tuple[dict[str, Any], DataProvenance, bool]:
+) -> tuple[dict[str, Any], dict[str, dict[str, Any]], DataProvenance, bool]:
     if not target_date:
         resolved = service.data_access.resolve_attention_home_1d(force_refresh=False)
         payload = dict(resolved.payload) if isinstance(resolved.payload, dict) else {}
-        return payload, resolved.provenance, False
+        embedded = payload.get("ticker_snapshots")
+        ticker_snapshots = dict(embedded) if isinstance(embedded, dict) else {}
+        return payload, ticker_snapshots, resolved.provenance, False
 
     from data_access.layer import resolve_homepage_asof
 
@@ -58,7 +98,8 @@ def _home_payload(
         datasets=datasets or ("attention_home_1d",),
         details={"target_date": target_date},
     )
-    return payload, provenance, True
+    ticker_snapshots = replay.get("ticker_snapshots")
+    return payload, dict(ticker_snapshots) if isinstance(ticker_snapshots, dict) else {}, provenance, True
 
 
 def build_public_home_view(
@@ -69,7 +110,7 @@ def build_public_home_view(
     """Build the public Home DTO from the materialized attention snapshot only."""
     resolved_service = service or QueryService.from_environment()
     replay_date = _validated_target_date(target_date)
-    payload, resolved_provenance, is_replay = _home_payload(resolved_service, target_date=replay_date)
+    payload, ticker_snapshots, resolved_provenance, is_replay = _home_payload(resolved_service, target_date=replay_date)
     provenance = resolved_provenance.to_dict()
     if not payload:
         return {
@@ -113,14 +154,36 @@ def build_public_home_view(
             "audio_mime_type": _clean(summary_payload.get("audio_mime_type"), limit=80) or "audio/mpeg",
         }
 
+    narrative_beats = [item for item in build_attention_home_narrative_beats(payload)[:16] if isinstance(item, dict)]
+    if not ticker_snapshots and not is_replay:
+        requested_symbols = list(
+            dict.fromkeys(
+                _clean(symbol, limit=20).upper()
+                for item in narrative_beats
+                for symbol in list(item.get("symbols") or [])
+                if _clean(symbol, limit=20)
+            )
+        )
+        if requested_symbols:
+            resolved_snapshots = resolved_service.data_access.resolve_attention_ticker_snapshots(requested_symbols)
+            ticker_snapshots = dict(resolved_snapshots.payload) if isinstance(resolved_snapshots.payload, dict) else {}
+
     beats: list[dict[str, Any]] = []
-    for item in build_attention_home_narrative_beats(payload)[:16]:
+    for item in narrative_beats:
         if not isinstance(item, dict):
             continue
         title = _clean(item.get("sentence"), limit=400)
         body = _clean(item.get("summary"), limit=1600)
         if not title and not body:
             continue
+        symbols = [
+            _clean(symbol, limit=20).upper()
+            for symbol in list(item.get("symbols") or [])[:12]
+            if _clean(symbol, limit=20)
+        ]
+        primary_symbol = _clean(item.get("primary_symbol"), limit=20).upper() or (symbols[0] if symbols else "")
+        ordered_symbols = list(dict.fromkeys(([primary_symbol] if primary_symbol else []) + symbols))
+        attention_change_pct = item.get("change_pct")
         beats.append(
             {
                 "id": _clean(item.get("bundle_id"), limit=160),
@@ -128,10 +191,16 @@ def build_public_home_view(
                 "title": title,
                 "summary": body,
                 "business_context": _clean(item.get("business_context"), limit=1200),
-                "symbols": [
-                    _clean(symbol, limit=20).upper()
-                    for symbol in list(item.get("symbols") or [])[:12]
-                    if _clean(symbol, limit=20)
+                "symbols": ordered_symbols,
+                "primary_symbol": primary_symbol,
+                "change_pct": _number(attention_change_pct),
+                "tickers": [
+                    _ticker_snapshot_view(
+                        symbol,
+                        ticker_snapshots.get(symbol),
+                        attention_change_pct=attention_change_pct if symbol == primary_symbol else None,
+                    )
+                    for symbol in ordered_symbols[:4]
                 ],
             }
         )
@@ -182,7 +251,7 @@ def build_public_home_audio(
     """Return retained summary audio without placing base64 media in the Home DTO."""
     resolved_service = service or QueryService.from_environment()
     replay_date = _validated_target_date(target_date)
-    payload, _, _ = _home_payload(resolved_service, target_date=replay_date)
+    payload, _, _, _ = _home_payload(resolved_service, target_date=replay_date)
     summary = payload.get("homepage_summary")
     summary_payload = dict(summary) if isinstance(summary, dict) else {}
     encoded = _clean(summary_payload.get("audio_base64"), limit=40_000_000)

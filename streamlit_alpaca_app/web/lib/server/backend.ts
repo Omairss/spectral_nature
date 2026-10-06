@@ -3,7 +3,10 @@ import "server-only";
 import { cookies } from "next/headers";
 import { ACCESS_COOKIE, clearAuthCookies, REFRESH_COOKIE, setAuthCookies } from "@/lib/server/auth";
 
-type BackendOptions = RequestInit & { timeoutMs?: number };
+type BackendOptions = RequestInit & {
+  timeoutMs?: number;
+  next?: { revalidate?: number; tags?: string[] };
+};
 
 type RefreshPayload = {
   access_token?: string;
@@ -31,7 +34,7 @@ export async function backendFetch(path: string, options: BackendOptions = {}) {
   return fetch(`${backendBaseUrl()}${path}`, {
     ...init,
     headers,
-    cache: "no-store",
+    cache: init.cache || "no-store",
     redirect: "error",
     signal: AbortSignal.timeout(timeoutMs),
   });

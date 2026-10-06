@@ -65,6 +65,20 @@ def _latest_close_from_price_history(frame: pd.DataFrame) -> float | None:
     return float(close.iloc[-1])
 
 
+def _price_return_pct(frame: pd.DataFrame, periods: int) -> float | None:
+    if frame.empty or "close" not in frame.columns:
+        return None
+    closes = pd.to_numeric(frame["close"], errors="coerce").dropna()
+    lookback = max(int(periods), 1)
+    if len(closes) <= lookback:
+        return None
+    previous = float(closes.iloc[-(lookback + 1)])
+    latest = float(closes.iloc[-1])
+    if previous == 0:
+        return None
+    return float((latest / previous - 1.0) * 100.0)
+
+
 def _format_market_cap_label(value: float | None) -> str:
     if value is None or pd.isna(value):
         return "n/a"
@@ -212,6 +226,92 @@ def _price_windows_by_symbol(
 
     grouped = {symbol: rows.reset_index(drop=True) for symbol, rows in frame.groupby("symbol", sort=False)}
     return {symbol: grouped.get(symbol, pd.DataFrame()) for symbol in normalized}
+
+
+def _quarterly_yoy_pct(rows: pd.DataFrame) -> float | None:
+    if rows.empty:
+        return None
+    ordered = rows.dropna(subset=["report_date", "value"]).sort_values("report_date")
+    if len(ordered) < 2:
+        return None
+    latest = ordered.iloc[-1]
+    previous = pd.DataFrame()
+    period = _coerce_text(latest.get("year_quarter"))
+    if len(period) >= 6 and period[:4].isdigit() and period[-2:-1].upper() == "Q" and period[-1:].isdigit():
+        prior_period = f"{int(period[:4]) - 1}Q{period[-1]}"
+        previous = ordered[ordered["year_quarter"].astype(str).str.upper() == prior_period]
+    if previous.empty:
+        latest_date = pd.Timestamp(latest["report_date"])
+        candidates = ordered[
+            (ordered["report_date"] >= latest_date - pd.Timedelta(days=460))
+            & (ordered["report_date"] <= latest_date - pd.Timedelta(days=270))
+        ]
+        previous = candidates.tail(1)
+    if previous.empty:
+        return None
+    current_value = float(latest["value"])
+    prior_value = float(previous.iloc[-1]["value"])
+    if prior_value == 0:
+        return None
+    return float((current_value / prior_value - 1.0) * 100.0)
+
+
+def _fundamental_snapshots_by_symbol(
+    fundamentals_frame: pd.DataFrame | None,
+    symbols: list[str],
+    *,
+    asof_time_utc: object | None,
+) -> dict[str, dict[str, Any]]:
+    normalized = [symbol for symbol in dict.fromkeys(_normalize_symbol(item) for item in symbols) if symbol]
+    empty = {symbol: {} for symbol in normalized}
+    required = {"ticker", "metric", "report_date", "value"}
+    if not isinstance(fundamentals_frame, pd.DataFrame) or fundamentals_frame.empty or not required.issubset(fundamentals_frame.columns):
+        return empty
+
+    frame = fundamentals_frame.copy()
+    frame["ticker"] = frame["ticker"].astype(str).str.upper().str.strip()
+    frame = frame[frame["ticker"].isin(normalized)].copy()
+    if frame.empty:
+        return empty
+    frame["report_date"] = pd.to_datetime(frame["report_date"], errors="coerce")
+    frame["value"] = pd.to_numeric(frame["value"], errors="coerce")
+    frame = frame.dropna(subset=["report_date", "value"])
+    asof_ts = pd.to_datetime(asof_time_utc, utc=True, errors="coerce")
+    if pd.notna(asof_ts):
+        frame = frame[frame["report_date"] <= asof_ts.tz_localize(None)]
+
+    metric_fields = {
+        "Total Revenue": "revenue",
+        "Operating Income": "operating_income",
+        "Net Income": "net_income",
+        "Operating Cash Flow": "operating_cash_flow",
+        "Free Cash Flow": "free_cash_flow",
+        "Total Assets": "total_assets",
+        "Total Liabilities": "total_liabilities",
+    }
+    frame = frame[frame["metric"].astype(str).isin(metric_fields)].copy()
+    out: dict[str, dict[str, Any]] = {symbol: {} for symbol in normalized}
+    for symbol, symbol_rows in frame.groupby("ticker", sort=False):
+        snapshot: dict[str, Any] = {}
+        latest_dates: list[pd.Timestamp] = []
+        latest_period = ""
+        for metric_name, field_name in metric_fields.items():
+            rows = symbol_rows[symbol_rows["metric"].astype(str) == metric_name].sort_values("report_date")
+            if rows.empty:
+                continue
+            latest = rows.iloc[-1]
+            snapshot[field_name] = float(latest["value"])
+            latest_dates.append(pd.Timestamp(latest["report_date"]))
+            period = _coerce_text(latest.get("year_quarter"))
+            if period:
+                latest_period = period
+            if metric_name in {"Total Revenue", "Net Income"}:
+                snapshot[f"{field_name}_yoy_pct"] = _quarterly_yoy_pct(rows)
+        if latest_dates:
+            snapshot["fundamentals_report_date"] = max(latest_dates).date().isoformat()
+        snapshot["fundamentals_period"] = latest_period
+        out[str(symbol)] = snapshot
+    return out
 
 
 def _fundamentals_asof(
@@ -554,6 +654,7 @@ def build_attention_ticker_snapshot_frame(
     universe_snapshot_frame: pd.DataFrame | None,
     asof_time_utc: object | None,
     run_id: str,
+    quarterly_fundamentals_frame: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
     asof_label = _coerce_text(pd.to_datetime(asof_time_utc, utc=True, errors="coerce").isoformat() if pd.notna(pd.to_datetime(asof_time_utc, utc=True, errors="coerce")) else asof_time_utc)
@@ -561,29 +662,38 @@ def build_attention_ticker_snapshot_frame(
     universe_names = _name_map(universe_snapshot_frame)
     price_windows = _price_windows_by_symbol(price_history_frame, ordered_symbols, asof_time_utc=asof_time_utc, lookback_days=60)
     share_counts = share_counts_asof(ordered_symbols, asof_time_utc=asof_time_utc)
+    fundamental_snapshots = _fundamental_snapshots_by_symbol(
+        quarterly_fundamentals_frame,
+        ordered_symbols,
+        asof_time_utc=asof_time_utc,
+    )
     for symbol in ordered_symbols:
         price_history = price_windows.get(symbol, pd.DataFrame())
         latest_close = _latest_close_from_price_history(price_history)
         share_count, share_report_date, share_metric = share_counts.get(symbol, (None, None, None))
         market_cap = (latest_close * share_count) if latest_close is not None and share_count else None
+        fundamentals = fundamental_snapshots.get(symbol, {})
         rows.append(
             {
                 "symbol": symbol,
                 "company_name": _company_name_from_map(symbol, universe_names),
                 "latest_close": latest_close,
+                "price_change_1d_pct": _price_return_pct(price_history, 1),
+                "price_change_1m_pct": _price_return_pct(price_history, 20),
                 "market_cap": market_cap,
                 "market_cap_label": _format_market_cap_label(market_cap),
                 "share_count": share_count,
                 "share_count_metric": _coerce_text(share_metric),
                 "share_count_report_date": _coerce_text(pd.to_datetime(share_report_date, errors="coerce").date().isoformat() if pd.notna(pd.to_datetime(share_report_date, errors="coerce")) else ""),
                 "sparkline_data_uri": _sparkline_data_uri(price_history),
+                **fundamentals,
                 "run_id": _coerce_text(run_id),
                 "asof_time_utc": asof_label,
                 "prompt_version": "",
                 "model_name": "deterministic",
                 "source_trace_json": _json_dumps(
                     {
-                        "datasets": ["price_history", "universe_snapshot"],
+                        "datasets": ["price_history", "universe_snapshot", "quarterly_fundamentals"],
                         "share_count_source": "local_quarterly_fundamentals",
                         "price_points": int(len(price_history)),
                     }

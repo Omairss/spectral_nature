@@ -40,6 +40,7 @@ def serialize_attention_home_payload(payload: dict[str, Any]) -> pd.DataFrame:
         "entity_master_json": _json_dumps((payload or {}).get("entity_master") or []),
         "homepage_graph_json": _json_dumps((payload or {}).get("homepage_graph") or {}),
         "homepage_summary_json": _json_dumps((payload or {}).get("homepage_summary") or {}),
+        "ticker_snapshots_json": _json_dumps((payload or {}).get("ticker_snapshots") or {}),
     }
     return pd.DataFrame([row])
 
@@ -61,6 +62,7 @@ def deserialize_attention_home_payload(frame: pd.DataFrame) -> dict[str, Any]:
         "entity_master": _json_loads(row.get("entity_master_json"), default=[]),
         "homepage_graph": _json_loads(row.get("homepage_graph_json"), default={}),
         "homepage_summary": _json_loads(row.get("homepage_summary_json"), default={}),
+        "ticker_snapshots": _json_loads(row.get("ticker_snapshots_json"), default={}),
     }
 
 

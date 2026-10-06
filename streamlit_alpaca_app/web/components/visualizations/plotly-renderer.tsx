@@ -44,7 +44,7 @@ export function PlotlyRenderer({ artifact, onSelection }: PlotlyRendererProps) {
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(8,12,17,0.72)",
         font: { color: "#aeb8c2", family: "Inter, ui-sans-serif, system-ui, sans-serif", size: 11 },
-        margin: compact ? { l: 44, r: 12, t: 60, b: 48 } : { l: 58, r: 24, t: 52, b: 48 },
+        margin: source.margin || (compact ? { l: 44, r: 12, t: 60, b: 48 } : { l: 58, r: 24, t: 52, b: 48 }),
         title: compact ? { ...sourceTitle, font: { size: 14 }, x: 0, xanchor: "left" } : sourceTitle,
         legend: compact
           ? {

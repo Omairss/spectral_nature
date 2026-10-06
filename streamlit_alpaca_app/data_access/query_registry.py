@@ -436,10 +436,17 @@ def _resolve_option_candidates(data_access: Any, params: dict[str, Any]) -> Reso
 
 
 def _resolve_fred_dashboard(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:
-    return data_access.resolve_fred_dashboard(
+    resolved = data_access.resolve_fred_dashboard(
         years=_int_value(params, "years", 10),
         force_refresh=_force_refresh(params),
     )
+    payload = dict(resolved.payload) if isinstance(resolved.payload, dict) else {}
+    # The workbench consumes the normalized observation table. The legacy
+    # per-series frames duplicate every observation and materially inflate the
+    # authenticated API response without adding information.
+    for duplicate_key in ("series_data", "metadata", "specs_by_category"):
+        payload.pop(duplicate_key, None)
+    return ResolvedPayload(payload=payload, provenance=resolved.provenance)
 
 
 def _resolve_macro_release_events_1d(data_access: Any, params: dict[str, Any]) -> ResolvedPayload:

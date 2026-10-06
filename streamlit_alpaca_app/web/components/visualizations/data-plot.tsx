@@ -10,9 +10,10 @@ type DataPlotProps = {
   data: unknown[];
   layout?: Record<string, unknown>;
   rowCount?: number;
+  displayModeBar?: boolean;
 };
 
-export function DataPlot({ id, title, data, layout = {}, rowCount = 0 }: DataPlotProps) {
+export function DataPlot({ id, title, data, layout = {}, rowCount = 0, displayModeBar = true }: DataPlotProps) {
   const artifact = useMemo<VisualizationArtifact>(() => ({
     schema_version: "visualization.v1",
     artifact_type: "visualization",
@@ -24,7 +25,7 @@ export function DataPlot({ id, title, data, layout = {}, rowCount = 0 }: DataPlo
     datasets: {},
     spec: {
       figure: { data, layout: { title: { text: title }, ...layout } },
-      config: { displayModeBar: true },
+      config: { displayModeBar },
     },
     linked_selection_group: id,
     provenance: { mode: "application-view", datasets: [], details: {} },
@@ -34,6 +35,6 @@ export function DataPlot({ id, title, data, layout = {}, rowCount = 0 }: DataPlo
       delivery: "inline",
       level_of_detail: "full",
     },
-  }), [data, id, layout, rowCount, title]);
+  }), [data, displayModeBar, id, layout, rowCount, title]);
   return <Visualization artifact={artifact} />;
 }

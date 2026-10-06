@@ -1,15 +1,20 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Markdown } from "@/components/markdown";
 import { Visualization } from "@/components/visualizations/visualization";
 import { backendFetch } from "@/lib/server/backend";
-import type { HomeView } from "@/lib/types";
+import type { HomeTickerSnapshot, HomeView } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 async function loadHome(targetDate: string): Promise<HomeView | null> {
   try {
     const path = `/v1/home${targetDate ? `?date=${encodeURIComponent(targetDate)}` : ""}`;
-    const response = await backendFetch(path, { timeoutMs: 20_000 });
+    const response = await backendFetch(path, {
+      timeoutMs: 20_000,
+      cache: "force-cache",
+      next: { revalidate: targetDate ? 3_600 : 30 },
+    });
     return response.ok ? (await response.json()) as HomeView : null;
   } catch {
     return null;
@@ -45,6 +50,63 @@ function beatKind(kind: string) {
   if (kind === "event") return "Event";
   if (kind === "unresolved") return "Watch";
   return "Mover";
+}
+
+function numeric(value: number | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function formatPrice(value: number | null) {
+  const parsed = numeric(value);
+  if (parsed === null) return "—";
+  return parsed.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: parsed >= 1_000 ? 0 : 2 });
+}
+
+function formatFinancial(value: number | null) {
+  const parsed = numeric(value);
+  if (parsed === null) return "—";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(parsed);
+}
+
+function formatPercent(value: number | null) {
+  const parsed = numeric(value);
+  if (parsed === null) return "—";
+  return `${parsed > 0 ? "+" : ""}${parsed.toFixed(1)}%`;
+}
+
+function changeTone(value: number | null) {
+  const parsed = numeric(value);
+  if (parsed === null || parsed === 0) return "flat";
+  return parsed > 0 ? "positive" : "negative";
+}
+
+function TickerSnapshot({ ticker }: { ticker: HomeTickerSnapshot }) {
+  const company = ticker.company_name && ticker.company_name !== ticker.symbol ? ticker.company_name : "";
+  return (
+    <Link className="attention-ticker" href={`/stock-investigator?ticker=${encodeURIComponent(ticker.symbol)}`}>
+      <header>
+        <div><strong>{ticker.symbol}</strong>{company ? <span>{company}</span> : null}</div>
+        <div className="ticker-price">
+          <strong>{formatPrice(ticker.latest_close)}</strong>
+          <span className={changeTone(ticker.price_change_1d_pct)}>{formatPercent(ticker.price_change_1d_pct)}</span>
+        </div>
+      </header>
+      {ticker.sparkline_data_uri ? <Image alt="" aria-hidden="true" height={56} src={ticker.sparkline_data_uri} unoptimized width={164} /> : null}
+      <dl>
+        <div><dt>Market cap</dt><dd>{ticker.market_cap_label && ticker.market_cap_label !== "n/a" ? ticker.market_cap_label : formatFinancial(ticker.market_cap)}</dd></div>
+        <div><dt>Revenue</dt><dd>{formatFinancial(ticker.revenue)}</dd></div>
+        <div><dt>Revenue YoY</dt><dd className={changeTone(ticker.revenue_yoy_pct)}>{formatPercent(ticker.revenue_yoy_pct)}</dd></div>
+        <div><dt>Net income</dt><dd>{formatFinancial(ticker.net_income)}</dd></div>
+        <div><dt>Free cash flow</dt><dd>{formatFinancial(ticker.free_cash_flow)}</dd></div>
+        <div><dt>1 month</dt><dd className={changeTone(ticker.price_change_1m_pct)}>{formatPercent(ticker.price_change_1m_pct)}</dd></div>
+      </dl>
+    </Link>
+  );
 }
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ date?: string | string[] }> }) {
@@ -108,16 +170,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </section>
           ) : null}
 
-          {home.graph ? (
-            <section className="home-graph-panel" aria-label="Market attention network">
-              <header className="section-heading">
-                <div><p className="section-label">Structure</p><h2>{home.graph.title}</h2></div>
-                <span>{home.graph.performance.row_count.toLocaleString()} plotted points</span>
-              </header>
-              <Visualization artifact={home.graph} />
-            </section>
-          ) : null}
-
           <section className="signal-section" aria-label="Market movements">
             <header className="section-heading">
               <div><p className="section-label">Attention</p><h2>Market movements</h2></div>
@@ -130,21 +182,27 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   <article>
                     <div className="signal-meta">
                       <span className="signal-kind">{beatKind(beat.kind)}</span>
-                      {beat.symbols.length ? <span>{beat.symbols.join(" · ")}</span> : null}
+                      {beat.symbols.length ? <span>{beat.symbols.length} {beat.symbols.length === 1 ? "company" : "companies"}</span> : null}
                     </div>
                     <h3>{beat.title}</h3>
                     {beat.summary ? <p>{beat.summary}</p> : null}
                     {beat.business_context ? <p className="business-context">{beat.business_context}</p> : null}
-                    {beat.symbols[0] ? (
-                      <Link className="entity-link" href={`/stock-investigator?ticker=${encodeURIComponent(beat.symbols[0])}`}>
-                        Open {beat.symbols[0]} <span aria-hidden="true">↗</span>
-                      </Link>
-                    ) : null}
+                    {beat.tickers.length ? <div className="attention-ticker-grid">{beat.tickers.map((ticker) => <TickerSnapshot key={ticker.symbol} ticker={ticker} />)}</div> : null}
                   </article>
                 </li>
               ))}
             </ol>
           </section>
+
+          {home.graph ? (
+            <section className="home-graph-panel" aria-label="Market attention network">
+              <header className="section-heading">
+                <div><p className="section-label">Structure</p><h2>{home.graph.title}</h2></div>
+                <span>{home.graph.performance.row_count.toLocaleString()} plotted points</span>
+              </header>
+              <Visualization artifact={home.graph} />
+            </section>
+          ) : null}
         </>
       )}
     </div>

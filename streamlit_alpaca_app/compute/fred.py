@@ -153,6 +153,134 @@ def _pct_delta(current: float | None, previous: float | None) -> float | None:
     return float((float(current) / float(previous) - 1.0) * 100.0)
 
 
+def _is_rate_like_series(metadata: dict[str, Any], values: pd.Series | None = None) -> bool:
+    units_blob = " ".join(
+        str(metadata.get(key) or "")
+        for key in ("units_short", "units", "indicator", "title")
+    ).lower()
+    rate_tokens = ("percent", "%", "rate", "ratio", "basis points", "bps", "spread")
+    if any(token in units_blob for token in rate_tokens):
+        return True
+    numeric = pd.to_numeric(values, errors="coerce").dropna() if values is not None else pd.Series(dtype=float)
+    return bool(not numeric.empty and (numeric <= 0).any())
+
+
+def _series_rate_of_change(
+    values: pd.Series,
+    metadata: dict[str, Any],
+) -> tuple[pd.Series, str, str]:
+    numeric = pd.to_numeric(values, errors="coerce")
+    if _is_rate_like_series(metadata, numeric):
+        return numeric.diff(), "delta", "Obs-to-obs delta"
+    return numeric.pct_change(fill_method=None) * 100.0, "percent_change", "Obs-to-obs % change"
+
+
+def build_fred_derived_views(
+    observations: pd.DataFrame,
+    summary: pd.DataFrame,
+    *,
+    minimum_correlation_observations: int = 8,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Add chart-ready change series and frequency-aligned category correlations.
+
+    Rate-like series are differenced; positive level series use percent change.
+    Correlations are calculated from monthly-last levels transformed after
+    alignment, so daily, weekly, monthly, and quarterly series are compared on
+    one defensible time grid without forward-filling missing releases.
+    """
+    obs = observations.copy()
+    summary_frame = summary.copy()
+    empty_correlations = pd.DataFrame(
+        columns=["category", "left_series_id", "right_series_id", "correlation", "observations"]
+    )
+    if obs.empty or not {"series_id", "date", "value"}.issubset(obs.columns):
+        if "rate_of_change" not in obs.columns:
+            obs["rate_of_change"] = pd.Series(dtype=float)
+        return obs, summary_frame, empty_correlations
+
+    obs["series_id"] = obs["series_id"].astype(str)
+    obs["date"] = pd.to_datetime(obs["date"], errors="coerce")
+    obs["value"] = pd.to_numeric(obs["value"], errors="coerce")
+    obs = (
+        obs.dropna(subset=["series_id", "date", "value"])
+        .sort_values(["series_id", "date"])
+        .drop_duplicates(subset=["series_id", "date"], keep="last")
+        .reset_index(drop=True)
+    )
+    obs["rate_of_change"] = pd.NA
+
+    metadata_by_id: dict[str, dict[str, Any]] = {}
+    if not summary_frame.empty and "series_id" in summary_frame.columns:
+        summary_frame["series_id"] = summary_frame["series_id"].astype(str)
+        metadata_by_id = {
+            str(row.get("series_id") or ""): row.dropna().to_dict()
+            for _, row in summary_frame.iterrows()
+            if str(row.get("series_id") or "").strip()
+        }
+
+    derived_metadata: dict[str, dict[str, Any]] = {}
+    monthly_changes: dict[str, pd.Series] = {}
+    for series_id, indexes in obs.groupby("series_id", sort=False).groups.items():
+        series_rows = obs.loc[indexes].sort_values("date")
+        metadata = metadata_by_id.get(str(series_id), {})
+        rate, kind, label = _series_rate_of_change(series_rows["value"], metadata)
+        obs.loc[series_rows.index, "rate_of_change"] = rate.to_numpy()
+        derived_metadata[str(series_id)] = {
+            "rate_of_change_kind": kind,
+            "rate_of_change_label": label,
+            "latest_rate_of_change": float(rate.dropna().iloc[-1]) if not rate.dropna().empty else None,
+        }
+
+        monthly = (
+            series_rows.assign(month=series_rows["date"].dt.to_period("M").dt.to_timestamp())
+            .groupby("month", sort=True)["value"]
+            .last()
+        )
+        monthly_rate, _, _ = _series_rate_of_change(monthly, metadata)
+        monthly_changes[str(series_id)] = monthly_rate.dropna()
+
+    obs["rate_of_change"] = pd.to_numeric(obs["rate_of_change"], errors="coerce")
+    if not summary_frame.empty and "series_id" in summary_frame.columns:
+        for field in ("rate_of_change_kind", "rate_of_change_label", "latest_rate_of_change"):
+            summary_frame[field] = summary_frame["series_id"].map(
+                {series_id: metadata.get(field) for series_id, metadata in derived_metadata.items()}
+            )
+
+    correlation_rows: list[dict[str, Any]] = []
+    if not summary_frame.empty and {"series_id", "category"}.issubset(summary_frame.columns):
+        minimum = max(int(minimum_correlation_observations), 3)
+        for category, category_summary in summary_frame.groupby("category", sort=False):
+            series_ids = [
+                str(value)
+                for value in category_summary["series_id"].dropna().astype(str).tolist()
+                if str(value) in monthly_changes
+            ]
+            if not series_ids:
+                continue
+            aligned = pd.concat(
+                [monthly_changes[series_id].rename(series_id) for series_id in series_ids],
+                axis=1,
+            )
+            correlations = aligned.corr(min_periods=minimum)
+            for left_id in series_ids:
+                for right_id in series_ids:
+                    paired = aligned[[left_id, right_id]].dropna() if left_id != right_id else aligned[[left_id]].dropna()
+                    count = int(len(paired))
+                    value = correlations.at[left_id, right_id] if left_id in correlations.index and right_id in correlations.columns else None
+                    correlation_rows.append(
+                        {
+                            "category": str(category),
+                            "left_series_id": left_id,
+                            "right_series_id": right_id,
+                            "correlation": float(value) if value is not None and pd.notna(value) and count >= minimum else None,
+                            "observations": count,
+                        }
+                    )
+
+    correlations_frame = pd.DataFrame(correlation_rows, columns=empty_correlations.columns)
+    return obs, summary_frame, correlations_frame
+
+
 def _format_scaled_number(value: float) -> str:
     magnitude = abs(value)
     if magnitude >= 1_000_000_000_000:
@@ -388,14 +516,18 @@ def build_fred_dashboard_from_pipeline(
         frame = series_data.get(spec.series_id, pd.DataFrame(columns=["date", "value"]))
         summary_rows.append(build_fred_series_summary(spec, metadata, frame.reset_index(drop=True)))
 
+    summary_output = pd.DataFrame(summary_rows).reset_index(drop=True)
+    obs_frame, summary_output, correlations = build_fred_derived_views(obs_frame, summary_output)
+
     return {
-        "summary": pd.DataFrame(summary_rows).reset_index(drop=True),
+        "summary": summary_output,
         "series_data": series_data,
         "metadata": metadata_by_id,
         "specs_by_category": fred_specs_by_category(),
         "category_blurbs": FRED_CATEGORY_BLURBS,
         "series_index": series_index_frame.reset_index(drop=True),
         "observations": obs_frame.reset_index(drop=True),
+        "correlations": correlations.reset_index(drop=True),
         "release_index": release_index_frame.reset_index(drop=True),
     }
 
@@ -418,6 +550,7 @@ __all__ = [
     "FRED_CATEGORY_BLURBS",
     "FRED_SERIES_SPECS",
     "FredSeriesSpec",
+    "build_fred_derived_views",
     "build_fred_dashboard_from_pipeline",
     "build_fred_signal_dicts",
     "build_fred_series_summary",

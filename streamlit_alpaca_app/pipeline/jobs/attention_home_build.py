@@ -10,6 +10,7 @@ from typing import Any, Callable
 
 import pandas as pd
 
+from data_access.contracts import frame_to_records
 from services.attention_agentic import build_bottom_up_attention_artifacts, search_symbol_news_payload
 from services.aql.summarizer import build_market_stories
 from services.aql_zopedia_engine import (
@@ -4087,6 +4088,7 @@ def build_attention_home_output_frames(
         _materialize_news_payload_frame(search_backfill_payloads, asof_time_utc=ctx.asof),
     )
     momentum_profiles_frame = load_materialized_frame_fn("momentum_profiles")
+    quarterly_fundamentals_frame = load_materialized_frame_fn("quarterly_fundamentals")
 
     def _materialize_ticker_snapshots() -> pd.DataFrame:
         print(f"[info] attention-home-build materializing ticker snapshots: symbols={len(snapshot_symbols)}")
@@ -4096,6 +4098,7 @@ def build_attention_home_output_frames(
             universe_snapshot_frame=universe_snapshot_frame,
             asof_time_utc=ctx.asof,
             run_id=ctx.run_id,
+            quarterly_fundamentals_frame=quarterly_fundamentals_frame,
         )
 
     def _materialize_ticker_background() -> pd.DataFrame:
@@ -4145,6 +4148,19 @@ def build_attention_home_output_frames(
                 frame = pd.DataFrame()
             artifacts.frames[name] = frame
             print(f"[info] attention-home-build materialized {name} rows={len(frame)}")
+
+    public_symbols = set(collect_attention_ticker_symbols(payload, max_symbols=60))
+    ticker_snapshot_frame = artifacts.frames.get("attention_ticker_snapshots_1d", pd.DataFrame())
+    if not ticker_snapshot_frame.empty and "symbol" in ticker_snapshot_frame.columns:
+        embedded = ticker_snapshot_frame[
+            ticker_snapshot_frame["symbol"].astype(str).str.upper().str.strip().isin(public_symbols)
+        ].copy()
+        payload["ticker_snapshots"] = {
+            str(record.get("symbol") or "").upper().strip(): record
+            for record in frame_to_records(embedded)
+            if str(record.get("symbol") or "").strip()
+        }
+        artifacts.frames["attention_home_snapshots_1d"] = serialize_attention_home_payload(payload)
 
     if include_page_agentic:
         try:

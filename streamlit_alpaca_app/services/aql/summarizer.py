@@ -225,6 +225,17 @@ def build_attention_home_narrative_beats(home_payload: dict[str, object]) -> lis
         sentence = _coerce_text(event.get("event_title"))
         if cause_status == "unresolved":
             sentence = _observed_beat_sentence(preview, sentence)
+        primary_symbol = _coerce_text(event.get("anchor_symbol")).upper()
+        symbols = list(
+            dict.fromkeys(
+                [primary_symbol]
+                + [
+                    str(item).upper().strip()
+                    for item in list(event.get("supporting_symbols") or [])
+                    if str(item).strip()
+                ]
+            )
+        )
         beats.append(
             {
                 "bundle_id": _coerce_text(event.get("bundle_id")),
@@ -235,11 +246,9 @@ def build_attention_home_narrative_beats(home_payload: dict[str, object]) -> lis
                     or event.get("business_context_text")
                     or event.get("surface_business_context_text")
                 ),
-                "symbols": [
-                    str(item).upper().strip()
-                    for item in list(event.get("supporting_symbols") or [])
-                    if str(item).strip()
-                ],
+                "symbols": [symbol for symbol in symbols if symbol],
+                "primary_symbol": primary_symbol or (symbols[0] if symbols else ""),
+                "change_pct": event.get("change_pct"),
                 "kind": "event",
             }
         )
@@ -257,6 +266,8 @@ def build_attention_home_narrative_beats(home_payload: dict[str, object]) -> lis
                     or mover.get("surface_business_context_text")
                 ),
                 "symbols": [str(mover.get("symbol") or "").upper().strip()],
+                "primary_symbol": str(mover.get("symbol") or "").upper().strip(),
+                "change_pct": mover.get("change_pct"),
                 "kind": "mover",
             }
         )
@@ -273,6 +284,8 @@ def build_attention_home_narrative_beats(home_payload: dict[str, object]) -> lis
                 or mover.get("surface_business_context_text")
             ),
             "symbols": [str(mover.get("symbol") or "").upper().strip()],
+            "primary_symbol": str(mover.get("symbol") or "").upper().strip(),
+            "change_pct": mover.get("change_pct"),
             "kind": "unresolved",
         }
         if not _is_low_information_unresolved_beat(beat):

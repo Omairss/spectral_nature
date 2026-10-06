@@ -9,6 +9,11 @@ streamlit_alpaca_app/infra/deployment.outputs.env
 streamlit_alpaca_app/infra/email_delivery.outputs.env
 streamlit_alpaca_app/cache/pipeline_store/*
 !streamlit_alpaca_app/cache/pipeline_store/.gitignore
+streamlit_alpaca_app/web/.next/
+streamlit_alpaca_app/web/node_modules/
+streamlit_alpaca_app/web/*.tsbuildinfo
+streamlit_alpaca_app/web/playwright-report/
+streamlit_alpaca_app/web/test-results/
 
 .ssh/*
 data/*
