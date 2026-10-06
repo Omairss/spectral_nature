@@ -43,6 +43,11 @@ snapshot for every dataset by default. It copies the referenced parquet,
 rewrites the version and blob identities, and writes both a version manifest
 and stable `latest.json` pointer in the destination namespace.
 
+The implementation lives in `pipeline.jobs.namespace_refresh`, so the same
+validated operation can run under a managed Container Apps Job identity without
+placing storage credentials on an operator workstation. The script remains the
+thin local CLI for the same contract.
+
 The initializer is idempotent by default: an existing destination latest
 manifest is skipped. `--overwrite` is required to refresh an initialized
 namespace from production.
