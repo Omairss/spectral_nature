@@ -121,3 +121,18 @@ memory were unchanged.
 
 The first namespaced Trading Agent execution and artifact review are recorded
 in `documents/plans/TRADING_AGENT_CALL_CONTRACT_REPAIR_2026-09-19.md`.
+
+## Managed refresh and attention snapshots — 2026-10-06
+
+Development namespace refresh is now an explicit manual Container Apps Job instead of an
+operator-only local command. Execution `dataset-refresh-dev-rvolsod` copied 22 selected
+latest production snapshots into development and did not move a production pointer.
+
+Current attention-card market data has its own manual development job,
+`attention-ticker-next-dev`. Execution `attention-ticker-next-dev-gabf62n` succeeded using
+the development-only namespace and published
+`development__attention_ticker_snapshots_1d__20261006T213435Z__3958cd66`: 29 public-symbol
+rows, 18 with quarterly fundamentals. The job image is pinned to
+`pipeline-jobs@sha256:2b1865c2a74e11b82ad18b19c36a4d10b59d540e9cbce630a2ff3b0d0a2ace3c`,
+has no ingress, and is manual-only. This separates price and fundamental freshness from
+the full agentic Home build and its optional qualitative stages.

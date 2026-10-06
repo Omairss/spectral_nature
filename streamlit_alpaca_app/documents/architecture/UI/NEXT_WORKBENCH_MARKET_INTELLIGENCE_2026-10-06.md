@@ -2,7 +2,7 @@
 
 Date: 2026-10-06
 
-Status: locally accepted; isolated Next.js development deployment in progress.
+Status: accepted locally and deployed to the isolated Next.js development stack.
 
 ## Outcome
 
@@ -70,3 +70,26 @@ This work targets only the isolated Next.js development stack:
 - a development-namespaced materialization path when a fresh Home artifact is required
 
 It does not replace or update `sn-streamlit-ui-dev`, any production frontend, or any production dataset pointer.
+
+## Development acceptance
+
+The accepted release is live at
+`https://sn-next-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io`.
+
+- Web revision: `sn-next-ui-dev--0000004`, image
+  `next-ui-dev@sha256:3d21a9163e4979eb1b5d4bda9ffeedcd87d781df185bd086baad9321ab0dc7c1`.
+- API revision: `sn-api-next-dev--0000007`, image
+  `api-next-dev@sha256:ca9718c8f0b0b1448b481bbbd2017473bdde24ccf36f00d61fcaf051a585cdc2`.
+- Both web and API keep one warm replica. The API remains internal-only.
+- `dataset-refresh-dev-rvolsod` refreshed 22 development snapshot pointers without
+  modifying production pointers.
+- `attention-ticker-next-dev-gabf62n` published 29 current attention symbols, including
+  18 with quarterly fundamentals, through the manual development-only job.
+- The deployed Home showed inline values for price, daily and monthly change, market cap,
+  revenue and growth, net income, and free cash flow. Broad Economy showed three charts
+  per desktop row, visible change overlays, and the correlation heatmap. The browser
+  console contained no warnings or errors.
+- Warm authenticated requests completed without a platform cold start. The login and
+  session checks returned in approximately 0.19 and 0.26 seconds respectively.
+- Streamlit development remained on `sn-streamlit-ui-dev--0000456` and production was
+  not targeted.

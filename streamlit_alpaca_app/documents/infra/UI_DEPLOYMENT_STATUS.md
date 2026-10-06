@@ -1,6 +1,6 @@
 # UI Deployment Status Tracker
 
-Last updated (UTC): 2026-10-03 02:13
+Last updated (UTC): 2026-10-06 21:40
 
 ## Environment Mapping
 
@@ -8,6 +8,7 @@ Last updated (UTC): 2026-10-03 02:13
 |---|---|---|---|---|---|---|---|
 | **Production (stable)** | `sn-pipeline-rg-03130136` | `sn-streamlit-ui` | https://sn-streamlit-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io | `sn-streamlit-ui--0000087` | `snpipelineacr03130136.azurecr.io/streamlit-ui@sha256:7e059ad6122682792975fbf534b7acf864070a4ac2b6f110fdec1d6a534cd3e5` | browser cookie (explicit opt-in) | HTTP 200 |
 | **Development** | `sn-pipeline-rg-03130136` | `sn-streamlit-ui-dev` | https://sn-streamlit-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io | `sn-streamlit-ui-dev--0000456` | `snpipelineacr03130136.azurecr.io/streamlit-ui@sha256:7e059ad6122682792975fbf534b7acf864070a4ac2b6f110fdec1d6a534cd3e5` | session only (disabled) | HTTP 200 |
+| **Alternative Next.js Development** | `sn-pipeline-rg-03130136` | `sn-next-ui-dev` | https://sn-next-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io | `sn-next-ui-dev--0000004` | `snpipelineacr03130136.azurecr.io/next-ui-dev@sha256:3d21a9163e4979eb1b5d4bda9ffeedcd87d781df185bd086baad9321ab0dc7c1` | HTTP-only host cookies through same auth store | HTTP 200; one warm replica |
 
 ## Promotion Workflow
 
@@ -27,6 +28,11 @@ Last updated (UTC): 2026-10-03 02:13
 - UI deploys default to automatic web layout (`STREAMLIT_MOBILE_UI_ENABLED=true`, `STREAMLIT_LAYOUT_MODE_DEFAULT=auto`) unless the deploy command explicitly overrides those vars.
 - Sidebar now displays `Environment: production` or `Environment: development` via `APP_TRACK`.
 - Keep Production stable by avoiding direct experimental changes to `sn-streamlit-ui`.
+- The alternative Next.js development app is an independent frontend. Its private API is
+  `sn-api-next-dev--0000007` at digest
+  `sha256:ca9718c8f0b0b1448b481bbbd2017473bdde24ccf36f00d61fcaf051a585cdc2`;
+  it has no public ingress and keeps one warm replica. This release did not update either
+  Streamlit app.
 - Development revision 455 maps Robinhood `queued` and `running` refreshes to
   the visible `In progress` state on both portfolio surfaces and prevents a
   linked Robinhood portfolio from silently falling back to Alpaca before its

@@ -10,8 +10,8 @@ Status: live, isolated Next.js development workbench accepted for feature-parity
 
 | Role | Azure resource | Exposure | Image |
 | --- | --- | --- | --- |
-| Browser UI and BFF | `sn-next-ui-dev` | External HTTPS, port 3000 | `next-ui-dev@sha256:e85f8685a00bfe8d42a09ee55403ce2865b39e7aeeab462f2026fe61f3f6857d` |
-| Product API | `sn-api-next-dev` | Internal HTTPS, port 8080 | `api-next-dev@sha256:2b1eaf3071a02e99fa0bf3823523af4c70736d7eeee3f950ecb11bb4958905e6` |
+| Browser UI and BFF | `sn-next-ui-dev` | External HTTPS, port 3000 | `next-ui-dev@sha256:3d21a9163e4979eb1b5d4bda9ffeedcd87d781df185bd086baad9321ab0dc7c1` |
+| Product API | `sn-api-next-dev` | Internal HTTPS, port 8080 | `api-next-dev@sha256:ca9718c8f0b0b1448b481bbbd2017473bdde24ccf36f00d61fcaf051a585cdc2` |
 | Research executor | `sn-research-run-dev` | No ingress; manual one-run job | `research-worker-dev@sha256:73b8bf0ce462d4295a56e1fa610a52941aba552cce44d8a14ad26ca38721d51f` |
 
 All three resources run in `sn-pipeline-env` and read the `development` dataset
@@ -61,7 +61,7 @@ in HTTP-only cookies and enforce same-origin mutation controls.
 
 ## Acceptance Evidence
 
-- Active isolated revisions: web `sn-next-ui-dev--0000003`; API `sn-api-next-dev--0000006`; research worker remains a manual job with the digest above.
+- Active isolated revisions: web `sn-next-ui-dev--0000004`; API `sn-api-next-dev--0000007`; research worker remains a manual job with the digest above.
 - Deployed Home: HTTP 200 with the real materialized market summary, coverage data, nonce-bearing scripts, and the complete security-header set.
 - Deployed login: HTTP 200. Anonymous session inspection returns only `{"authenticated":false}` and clears legacy/non-host cookies; it does not expose auth diagnostics.
 - Existing browser authentication restored as `Admin User`; the deployed Admin directory loaded 12 users and one pending invitation rather than fabricating an empty directory.
@@ -204,3 +204,35 @@ The images were built from a 67 MiB staged source context rather than the dirty 
 root. Azure Container Registry builds `cjqc`, `cjqb`, and `cjqa` succeeded and the deployed
 resources reference their immutable digests. Earlier oversized build runs `cjq7` and `cjq8`
 were explicitly canceled before deployment.
+
+## Market intelligence release — 2026-10-06
+
+The isolated Next.js development stack now carries the information-dense Daily Brief and
+Broad Economy release. Attention cards expose price, daily and monthly change, a sparkline,
+market capitalization, revenue and growth, net income, and free cash flow without requiring
+a ticker drill-down. Broad Economy renders every indicator in the chosen category in a
+responsive chart grid, adds an observation-to-observation change line on a second axis, and
+computes a monthly-last, pairwise-complete correlation heatmap.
+
+- Web: `sn-next-ui-dev--0000004`, immutable digest
+  `sha256:3d21a9163e4979eb1b5d4bda9ffeedcd87d781df185bd086baad9321ab0dc7c1`.
+- Internal API: `sn-api-next-dev--0000007`, immutable digest
+  `sha256:ca9718c8f0b0b1448b481bbbd2017473bdde24ccf36f00d61fcaf051a585cdc2`.
+- Web and API scale are each fixed at one warm development replica; the API still has no
+  public ingress.
+- Manual development pipeline jobs use
+  `pipeline-jobs@sha256:2b1865c2a74e11b82ad18b19c36a4d10b59d540e9cbce630a2ff3b0d0a2ace3c`.
+- `dataset-refresh-dev-rvolsod` succeeded and copied 22 current snapshot pointers from
+  production into the isolated development namespace without changing production.
+- `attention-ticker-next-dev-gabf62n` succeeded and published
+  `development__attention_ticker_snapshots_1d__20261006T213435Z__3958cd66` with 29 rows,
+  including quarterly fundamentals for 18 symbols.
+- The full Home builder persisted the development Home and related core datasets before
+  beginning optional page-summary work. Market-card freshness does not depend on that
+  optional LLM stage.
+- Live authenticated review found no browser warnings or errors on Home or Broad Economy.
+  Security headers retained HSTS, a request-nonce CSP, frame denial, content sniffing
+  protection, and a restrictive permissions policy.
+- Streamlit development remained on `sn-streamlit-ui-dev--0000456` at digest
+  `sha256:7e059ad6122682792975fbf534b7acf864070a4ac2b6f110fdec1d6a534cd3e5`.
+  No production resource was targeted.
