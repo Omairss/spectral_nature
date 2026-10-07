@@ -61,6 +61,10 @@ destination manifest. Never relax the dashboard's global-scan limit.
   and the ten-year Treasury yield. Rejected intermediate claims about financing
   dependence and consecutive quarterly growth; strengthened the shared selection
   instructions instead of editing the model's answers or forcing chart categories.
+- Live materialization also exposed a wording mismatch between eight recent observations
+  supplied to the model and twenty quarters displayed in the chart. Supply complete
+  financial histories and explicit chart ranges/counts; require date-qualified claims
+  about recent subsets. This fixes the evidence contract rather than truncating charts.
 - Successful Nvidia search: 45 internal pages plus matching retained sources. An unknown
   query now gives zero wiki and source results rather than unrelated fallback sources.
 - Opened actual IOVA ticker/entity pages, followed outgoing links and backlinks, and
