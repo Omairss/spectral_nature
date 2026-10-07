@@ -2,7 +2,9 @@
 
 Date: 2026-10-06
 
-Status: deployed to the alternative development stack; final daily materialization review in progress.
+Status: implemented and deployed to the alternative development stack. Final
+owner-authenticated review of the latest layout and slash-containing source-page route
+is waiting for the owner to sign in again; earlier live acceptance checks are recorded below.
 
 ## Daily Brief
 
@@ -66,10 +68,13 @@ The existing Streamlit development and production apps were not redeployed. The 
 workbench continues at
 `https://sn-next-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io`.
 
-- UI revision: `sn-next-ui-dev--0000005`, source `74e5f5b7`, image
-  `next-ui-dev@sha256:7ee463b61e3b49f5536626355147650245880723033ad7be9e314e770d5ec26b`.
-- Private API revision: `sn-api-next-dev--0000008`, source `74e5f5b7`, image
-  `api-next-dev@sha256:b03686386b091838077b61bcb8f492985a1aebfe8130547ae7a2f5c770e9f5af`.
+- UI revision: `sn-next-ui-dev--0000006`, source `9db2b8c4`, image
+  `next-ui-dev@sha256:8a5bf80910f2dfb9f46102b3bf9f589ad87e79420123ea393885af2044956a93`.
+- Private API revision: `sn-api-next-dev--0000009`, source `9db2b8c4`, image
+  `api-next-dev@sha256:f6e554e5f0c0e925f726064b9e04c68b17ea8daad4bcffdb440d368dedb08a1e`.
+  Both are ready; the UI serves 100% of traffic from the latest revision. The final
+  clean Next.js production build succeeded. Streamlit remains at development revision
+  `0000456` and production revision `0000087`, with neither image changed.
 - Ticker refresh: `attention-ticker-next-dev-wzdd07u`, succeeded. Base release job image:
   `pipeline-jobs@sha256:336b9f620ec4013a26baf8d066ca162570bfadf9171d31b9d21dd54fb5620a86`.
 - Technical migration: `technical-history-next-dev-rpst6au`, succeeded. The actual
@@ -101,6 +106,13 @@ the entity page's backlink. There are 1,285 non-source wiki pages at review time
 Missing financial series are not fabricated; provider coverage and reporting dates
 remain visible in the charts.
 
+The final rollout's browser reload redirected to sign-in. Do not describe the newest
+layout or opaque-ID ingress fix as owner-session verified until login is restored and
+the source article and five-column chart row are inspected. The new canonical query
+route returns 401 anonymously, and the same slash-containing identifier round-tripped
+successfully through the local API/BFF transport review. No authentication bypass or
+credential change was introduced for this work.
+
 Security checks: the API ingress remains private; an unauthenticated wiki-page BFF request
 returns 401; same-origin CSP, HSTS, no-store, and frame protections remain intact.
 `npm audit --omit=dev` reports zero known runtime vulnerabilities. Five existing audit
@@ -116,7 +128,7 @@ has been removed.
   rejected. Subsequent prompt review emphasizes complementary quantitative explanations,
   correct reporting dates, and a chart that directly illustrates its stated insight.
   Values are always supplied by the dataset, never by the model.
-- Personally reviewed the final real-model selection against its source observations:
+- Personally reviewed an intermediate real-model selection against its source observations:
   Ciena revenue, Comfort Systems revenue, Seagate free cash flow, Twist free cash flow,
   and the ten-year Treasury yield. Rejected intermediate claims about financing
   dependence and consecutive quarterly growth; strengthened the shared selection
@@ -134,8 +146,9 @@ has been removed.
 - Reviewed raw-plus-EMA and smoothed-only macro charts. EMA uses only trailing data.
 - Reviewed all five AAPL investigator panels without switching chart tabs; data and
   provenance remain independent per panel. Empty datasets get an honest empty state.
-- Portfolio selector opens at 5Y. Brokerage content requires deployed owner-session QA;
-  the local transport does not borrow private brokerage credentials.
+- Portfolio selector opens at 5Y. The local transport does not borrow private brokerage
+  credentials; the earlier deployed owner-session review confirmed the portfolio page's
+  five-year selector and actual portfolio/diagnostic sections.
 - At 390 × 844, Home and the wiki reader have no horizontal overflow.
 - Legacy partition migration preserves all 1,449,535 rows across 64 buckets; AAPL's
   bounded bucket contains 20,784 rows, including all 1,545 AAPL observations.
