@@ -67,7 +67,7 @@ def build_daily_datapoint_catalog(*, snapshots: pd.DataFrame, fred_observations:
         frame = frame.dropna(subset=["date", "value"])
         frame = frame[(frame["date"] <= cutoff) & (frame["date"] >= cutoff - pd.Timedelta(days=365 * 3))]
         for series_id, rows in frame.groupby("series_id", sort=False):
-            rows = rows.sort_values("date").drop_duplicates("date", keep="last")
+            rows = rows.sort_values("date").drop_duplicates("date", keep="last").tail(20)
             if len(rows) < 2:
                 continue
             meta = metadata.get(str(series_id), {})
@@ -89,7 +89,7 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
     candidates = [{
         **{key: value for key, value in candidate.items() if key != "points"},
         "chart_range": {"start": candidate["points"][0]["date"], "end": candidate["points"][-1]["date"], "observation_count": len(candidate["points"])},
-        "recent_observations": candidate["points"] if candidate["kind"] == "fundamental" else candidate["points"][-8:],
+        "observations": candidate["points"],
     } for candidate in catalog.values()]
     schema = {"type": "object", "additionalProperties": False, "properties": {"datapoints": {"type": "array", "minItems": 5, "maxItems": 5, "items": {
         "type": "object", "additionalProperties": False, "properties": {
@@ -118,7 +118,7 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
             "Partial causes and plausible business channels are not proven causes. No universal ranking or 'only' claim from this bounded candidate catalog. "
             "Do not infer solvency, financing dependence, or balance-sheet strength from an income or cash-flow series alone. "
             "Check trend descriptions against every supplied observation: endpoint growth does not establish consecutive increases, and a range does not establish a direction. "
-            "The chart_range describes the full displayed history; recent_observations can be only a subset. State an explicit date range when discussing that subset, never call it all quarters shown. "
+            "The observations and chart_range are exactly the full displayed history. State explicit reporting periods or dates when discussing a subset of that history. "
             "Return a concise descriptive title (at most 65 characters) and one specific sentence of significance (at most 180 characters) for each. "
             "Titles describe the insight without repeating the price or latest value already shown by the chart. "
             "No generic market commentary, process language, disclaimer, or evidence-gap filler. "
