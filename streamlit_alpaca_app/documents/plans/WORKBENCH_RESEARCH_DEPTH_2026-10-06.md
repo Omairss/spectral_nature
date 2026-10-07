@@ -2,7 +2,7 @@
 
 Date: 2026-10-06
 
-Status: local implementation reviewed; alternative-development release pending.
+Status: deployed to the alternative development stack; final daily materialization review in progress.
 
 ## Daily Brief
 
@@ -16,6 +16,11 @@ Attention ticker snapshots retain quarterly revenue, net income, and free cash f
 history. Compact charts expose the reporting periods and actual values, including
 negative values and gaps. Latest values remain useful chart labels rather than replacing
 the history.
+
+The five daily charts are grouped in a full-width aligned row beneath the summary,
+stacking at smaller breakpoints. Keeping five charts in the old two-counter sidebar
+created a tall empty column beside the summary. Reviewed the grouped layout at desktop
+and 390-pixel mobile widths before releasing the adjustment.
 
 ## Analytical pages
 
@@ -48,6 +53,47 @@ left price/pullback artifacts empty. Namespace refresh now preserves and relocat
 existing partition blobs and offers `--partition-symbol-datasets` to migrate legacy
 price/technical histories. Complete all partition uploads before publishing the new
 destination manifest. Never relax the dashboard's global-scan limit.
+
+## Development release
+
+The existing Streamlit development and production apps were not redeployed. The separate
+workbench continues at
+`https://sn-next-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io`.
+
+- UI revision: `sn-next-ui-dev--0000005`, source `74e5f5b7`, image
+  `next-ui-dev@sha256:7ee463b61e3b49f5536626355147650245880723033ad7be9e314e770d5ec26b`.
+- Private API revision: `sn-api-next-dev--0000008`, source `74e5f5b7`, image
+  `api-next-dev@sha256:b03686386b091838077b61bcb8f492985a1aebfe8130547ae7a2f5c770e9f5af`.
+- Ticker refresh: `attention-ticker-next-dev-wzdd07u`, succeeded. Base release job image:
+  `pipeline-jobs@sha256:336b9f620ec4013a26baf8d066ca162570bfadf9171d31b9d21dd54fb5620a86`.
+- Technical migration: `technical-history-next-dev-rpst6au`, succeeded. The actual
+  development AAPL slice contains 1,557 observations through October 6, 2026, loaded
+  from one of 64 symbol buckets. Both technical-history/latest pointers were refreshed.
+- Daily selection is a dedicated manual job, `daily-datapoints-next-dev`. It inherits
+  the existing model and Key Vault references, not plaintext credentials. It has no
+  research tools or knowledge-write policy. The full `attention-home-next-dev` build
+  also embeds the selection for future Home snapshots and replay.
+
+These are manual development jobs, not a new production schedule. To refresh the
+independent daily cards, run the ticker job before the daily-selection job. A changed
+Home snapshot requires a new selection carrying that Home identity; the read layer
+refuses a selection belonging to another Home. Rendering never triggers paid model work.
+
+Live owner-session checks confirmed five daily charts, 39 inline financial charts across
+13 covered ticker cards, all five Investigator charts with real series, the 5Y portfolio
+default, and raw/EMA macro controls. Zopedia returned 45 Nvidia wiki matches, zero wiki
+or source results for an unknown query, and rendered IOVA's actual outgoing links and
+the entity page's backlink. There are 1,285 non-source wiki pages at review time.
+Missing financial series are not fabricated; provider coverage and reporting dates
+remain visible in the charts.
+
+Security checks: the API ingress remains private; an unauthenticated wiki-page BFF request
+returns 401; same-origin CSP, HSTS, no-store, and frame protections remain intact.
+`npm audit --omit=dev` reports zero known runtime vulnerabilities. Five existing audit
+entries remain in the ESLint/fast-glob/micromatch/braces development-only dependency
+chain; do not apply npm's suggested framework downgrade as a blind fix. Temporary
+loopback QA servers have been stopped and the exact temporary Postgres firewall rule
+has been removed.
 
 ## Local review
 
