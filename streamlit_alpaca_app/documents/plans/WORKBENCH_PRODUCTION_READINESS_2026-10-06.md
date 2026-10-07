@@ -2,17 +2,16 @@
 
 Date: 2026-10-06 (verification continues October 7 UTC)
 
-Status: production staging authorized by the owner; live traffic must remain on Streamlit.
-No domain swap is authorized. Do not confuse an accepted development UI, generated release
-templates, healthy containers, and a verified production candidate.
+Status: the owner authorized proceeding with the frontend replacement on October 7 and
+will resolve Robinhood separately. Cutover is in progress, pending recovered Zopedia/research
+acceptance. Earlier staging-only restrictions below describe historical checkpoints.
 
-Release decision: NOT READY TO SWAP. The complete Home refresh succeeded and the owner
-signed in. Actual private-path review found two blockers: Zopedia reads/research fail
-behind shared database locks, and a missing production Robinhood connection was silently
-replaced by Alpaca data. Source fixes are staged, but shared-lock recovery and correct-provider
-acceptance remain open; neither container health
-nor a completed research worker clears these gates. Details below distinguish current
-findings from earlier staging checkpoints.
+Release scope: replace the production frontend while preserving the existing backend,
+authentication, credentials, scheduled jobs, domains, and certificates. Robinhood linkage,
+broker connection-management UI, and trade execution are deferred, not certified as complete.
+Provider failures remain unavailable rather than substituting another account. Shared database
+lock recovery must pass actual knowledge search, linked-page traversal, and grounded research
+before switching the frontend.
 
 Staging exists at `https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io`:
 web revision `sn-next-ui--0000003`, private API revision `sn-api-next--0000002`, and manual
@@ -23,7 +22,7 @@ owner-session review; portfolio and research acceptance failed for the reasons b
 
 ## Deployment boundary
 
-Keep `sn-streamlit-ui` and `sn-streamlit-ui-dev` unchanged. Stage the accepted images as
+Keep `sn-streamlit-ui-dev` unchanged. Stage the accepted images as
 `sn-next-ui`, private `sn-api-next`, and manual `sn-research-run` in the existing environment.
 The candidate uses production datasets and the same control database, users, password
 hashes, memberships, auth policy, and API-signing secret. This is not a backend rewrite or
@@ -111,6 +110,21 @@ Runtime dependency audit is clean; five pre-existing development-only lint-tool 
 entries remain. Do not force npm's suggested framework downgrade.
 
 ## Cutover and rollback
+
+The approved October 7 cutover uses the existing `sn-streamlit-ui` Container App rather
+than transferring domains to `sn-next-ui`. Replace only its frontend template, ingress
+target port, and runtime identity lifecycle. This retains its generated hostname, all
+four domain/certificate bindings, and existing DNS, including the direct www CNAMEs.
+The old Streamlit template, ingress port, and identity lifecycle are captured for rollback.
+The web process receives only non-secret frontend settings; all retained managed identities
+are unavailable to its runtime. The private Python API keeps the existing production
+control/data credentials. Robinhood settings and connections are unchanged.
+
+`scripts/prepare_workbench_cutover.py` only prepares an immutable ignored release directory.
+Compare its original-properties fingerprint immediately before applying the template-only
+PATCH; verify protected configuration, identities, domain bindings, and HTTPS afterward.
+The prepared bundle is `infra/.generated/workbench-production/cutover-20261007-6856a1de/`.
+Do not overwrite it or apply a historical domain-transfer procedure.
 
 Current domains: `spectral-nature.com`, `www.spectral-nature.com`, `torres-cap.com`, and
 `www.torres-cap.com`. Preserve their existing managed-certificate IDs. Apex A records point
@@ -400,3 +414,24 @@ and the specific stuck-transaction cleanup await owner approval. Broker connecti
 and guarded order-review/execution UI remain explicit parity gaps; do not promote a
 read-only candidate as a full replacement. Streamlit prod `0000087`, Streamlit dev `0000456`,
 public API `0000003`, and all four live domain bindings were re-read unchanged.
+
+## October 7 approved recovery and cutover
+
+The owner's “Proceed, I'll fix the robinhood separately” authorizes frontend cutover and
+leaves broker repair outside this release. Read-only checks in both live Streamlit and the
+candidate confirmed the same control database/schema, a portfolio linked to development,
+and only development snapshots. The independent production Robinhood worker runs every
+15 minutes; its eight observed executions through 17:00 UTC each processed zero work.
+This existing state is not a frontend migration requirement to create new credentials.
+
+After the 17:03 UTC inspection, the confirmed blocking read session was terminated only after matching PID
+1161355, its exact backend start, idle-in-transaction state, no assigned write transaction,
+and a Zopedia SELECT older than 30 minutes. Queued schema updates completed; subsequent
+inspection found zero blocked queries and 1,442 stored pages. The owner UI then loaded
+1,320 knowledge pages and 60 retained sources; Ciena search returned 13 knowledge matches
+and 26 sources. Stored page counts and visible category counts describe different sets.
+
+Recurrence prevention backports only accepted schema guards, tracking-connection limits,
+and closing the news-resolution read to the existing immutable pipeline image families.
+It does not upgrade their dependencies or unrelated job behavior. Runtime acceptance and
+the final production revision will be recorded after verification.
