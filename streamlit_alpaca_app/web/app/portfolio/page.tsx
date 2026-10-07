@@ -16,7 +16,7 @@ const periods = ["1D", "1W", "1M", "3M", "YTD", "1Y", "5Y", "ALL"];
 export default function PortfolioPage() {
   const router = useRouter();
   const { session, sessionError } = useAuthenticatedSession("/portfolio");
-  const [period, setPeriod] = useState("1Y");
+  const [period, setPeriod] = useState("5Y");
   const [assetClass, setAssetClass] = useState("equity");
   const { portfolio, loading, error } = usePortfolio(period, Boolean(session?.authenticated));
   const holdings = useMemo(() => portfolio?.holdings || [], [portfolio]);

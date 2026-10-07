@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Markdown } from "@/components/markdown";
 import { Visualization } from "@/components/visualizations/visualization";
+import { TrendChart } from "@/components/visualizations/trend-chart";
 import { backendFetch } from "@/lib/server/backend";
 import type { HomeTickerSnapshot, HomeView } from "@/lib/types";
 
@@ -99,12 +100,9 @@ function TickerSnapshot({ ticker }: { ticker: HomeTickerSnapshot }) {
       {ticker.sparkline_data_uri ? <Image alt="" aria-hidden="true" height={56} src={ticker.sparkline_data_uri} unoptimized width={164} /> : null}
       <dl>
         <div><dt>Market cap</dt><dd>{ticker.market_cap_label && ticker.market_cap_label !== "n/a" ? ticker.market_cap_label : formatFinancial(ticker.market_cap)}</dd></div>
-        <div><dt>Revenue</dt><dd>{formatFinancial(ticker.revenue)}</dd></div>
-        <div><dt>Revenue YoY</dt><dd className={changeTone(ticker.revenue_yoy_pct)}>{formatPercent(ticker.revenue_yoy_pct)}</dd></div>
-        <div><dt>Net income</dt><dd>{formatFinancial(ticker.net_income)}</dd></div>
-        <div><dt>Free cash flow</dt><dd>{formatFinancial(ticker.free_cash_flow)}</dd></div>
         <div><dt>1 month</dt><dd className={changeTone(ticker.price_change_1m_pct)}>{formatPercent(ticker.price_change_1m_pct)}</dd></div>
       </dl>
+      <div className="ticker-financial-trends">{[["revenue", "Revenue", "teal"], ["net_income", "Net income", "violet"], ["free_cash_flow", "Free cash flow", "blue"]].map(([key, label, tone]) => ticker.financial_trends?.[key]?.length ? <TrendChart key={key} points={ticker.financial_trends[key]} label={label} tone={tone} compact /> : null)}</div>
     </Link>
   );
 }
@@ -161,12 +159,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   />
                 ) : null}
               </div>
-              <dl className="coverage-ledger" aria-label="Coverage">
-                <div><dt>Events</dt><dd>{home.coverage.event_count || 0}</dd></div>
-                <div><dt>Must read</dt><dd>{home.coverage.must_read_count || 0}</dd></div>
-                <div><dt>News backed</dt><dd>{home.coverage.news_backed_count || 0}</dd></div>
-                <div><dt>Watch</dt><dd>{home.coverage.unresolved_count || 0}</dd></div>
-              </dl>
+              {home.daily_datapoints?.length ? <aside className="daily-datapoints" aria-label="Five crucial datapoints"><p className="section-label">Key datapoints</p>{home.daily_datapoints.map((point) => <article key={point.id}><h3>{point.title}</h3><TrendChart label={point.label} unit={point.unit} points={point.points} price={point.kind === "price"} tone={point.kind === "macro" ? "violet" : "teal"} /><p>{point.significance}</p><time dateTime={point.date}>{point.period ? `${point.period} · ` : ""}{point.date}</time></article>)}</aside> : null}
             </section>
           ) : null}
 

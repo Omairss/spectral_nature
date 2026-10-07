@@ -7,6 +7,9 @@ from datetime import datetime, timezone
 import json
 import tempfile
 from typing import Any
+from io import BytesIO
+
+import pandas as pd
 
 from services.pipeline_store import (
     _blob_service_client,
@@ -15,6 +18,9 @@ from services.pipeline_store import (
     dataset_version_id_for_namespace,
     logical_dataset_blob_path,
     normalize_dataset_namespace,
+    SYMBOL_HASH_PARTITION_BUCKETS,
+    SYMBOL_HASH_PARTITION_STRATEGY,
+    symbol_partition_bucket,
 )
 
 
@@ -32,6 +38,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--overwrite", action="store_true", help="Replace initialized destination snapshots.")
     parser.add_argument("--dry-run", action="store_true", help="List the copy without writing blobs.")
+    parser.add_argument("--partition-symbol-datasets", action="store_true", help="Build bounded symbol partitions for legacy price and technical histories.")
     return parser
 
 
@@ -61,6 +68,27 @@ def _copy_blob(container: Any, source_path: str, destination_path: str) -> None:
         destination.upload_blob(stream, overwrite=True, max_concurrency=4)
 
 
+def _build_symbol_partitions(container: Any, source_path: str, destination_path: str) -> dict[str, Any]:
+    with tempfile.SpooledTemporaryFile(max_size=64 * 1024 * 1024) as stream:
+        container.get_blob_client(source_path).download_blob(max_concurrency=4).readinto(stream)
+        stream.seek(0)
+        frame = pd.read_parquet(stream)
+    if "symbol" not in frame.columns or frame.empty:
+        raise ValueError("A symbol history must contain nonempty symbol rows.")
+    frame["symbol"] = frame["symbol"].astype(str).str.strip().str.upper()
+    frame = frame[frame["symbol"].ne("")].copy()
+    frame["_symbol_bucket"] = frame["symbol"].map(symbol_partition_bucket)
+    directory, filename = destination_path.rsplit("/", 1)
+    paths, row_counts = {}, {}
+    for bucket, rows in frame.groupby("_symbol_bucket", sort=True):
+        path = f"{directory}/partition={SYMBOL_HASH_PARTITION_STRATEGY}/bucket={bucket}/{filename}"
+        buffer = BytesIO()
+        rows.drop(columns="_symbol_bucket").to_parquet(buffer, index=False)
+        container.get_blob_client(path).upload_blob(buffer.getvalue(), overwrite=True)
+        paths[str(bucket)], row_counts[str(bucket)] = path, len(rows)
+    return {"strategy": SYMBOL_HASH_PARTITION_STRATEGY, "column": "symbol", "bucket_count": SYMBOL_HASH_PARTITION_BUCKETS, "paths": paths, "row_counts": row_counts}
+
+
 def initialize_namespace(
     *,
     source_namespace: str,
@@ -68,6 +96,7 @@ def initialize_namespace(
     selected_datasets: set[str] | None,
     overwrite: bool,
     dry_run: bool,
+    partition_symbol_datasets: bool = False,
 ) -> dict[str, Any]:
     client = _blob_service_client()
     if client is None:
@@ -133,6 +162,16 @@ def initialize_namespace(
         print(f"[copy] {dataset_name}: {source_data_path} -> {destination_data_path}", flush=True)
         if not dry_run:
             _copy_blob(container, source_data_path, destination_data_path)
+            partitioning = dict(manifest.get("partitioning") or {})
+            if partition_symbol_datasets and dataset_name in {"price_history", "technical_signal_history"}:
+                destination_manifest["partitioning"] = _build_symbol_partitions(container, source_data_path, destination_data_path)
+            elif partitioning.get("paths"):
+                paths = {}
+                for bucket, source_partition in partitioning["paths"].items():
+                    destination_partition = dataset_blob_path(logical_dataset_blob_path(source_partition, namespace=source_namespace), namespace=destination_namespace)
+                    _copy_blob(container, source_partition, destination_partition)
+                    paths[bucket] = destination_partition
+                destination_manifest["partitioning"] = {**partitioning, "paths": paths}
             payload = json.dumps(destination_manifest, ensure_ascii=False, default=str, indent=2).encode("utf-8")
             container.get_blob_client(destination_version_path).upload_blob(
                 payload,
@@ -172,6 +211,7 @@ def main() -> None:
         selected_datasets=selected,
         overwrite=bool(args.overwrite),
         dry_run=bool(args.dry_run),
+        partition_symbol_datasets=bool(args.partition_symbol_datasets),
     )
     print(json.dumps(result, indent=2), flush=True)
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 from datetime import date, datetime, timezone
 import hashlib
+import json
 import math
 from typing import Any
 
@@ -58,7 +59,57 @@ def _ticker_snapshot_view(symbol: str, raw: object, *, attention_change_pct: obj
         "fundamentals_period": _clean(payload.get("fundamentals_period"), limit=20),
         "fundamentals_report_date": _clean(payload.get("fundamentals_report_date"), limit=20),
         "sparkline_data_uri": sparkline,
+        "financial_trends": _financial_trends(payload.get("financial_trends_json")),
     }
+
+
+def _json_value(raw: object, default: Any) -> Any:
+    try:
+        value = json.loads(raw) if isinstance(raw, str) else raw
+        return value if isinstance(value, type(default)) else default
+    except (TypeError, ValueError):
+        return default
+
+
+def _trend_points(raw: object, *, limit: int = 1200) -> list[dict[str, Any]]:
+    points = []
+    for point in _json_value(raw, [])[-limit:]:
+        if not isinstance(point, dict):
+            continue
+        value = _number(point.get("value"))
+        try:
+            observed = date.fromisoformat(str(point.get("date") or "")[:10]).isoformat()
+        except ValueError:
+            continue
+        if value is not None:
+            points.append({"date": observed, "value": value, "period": _clean(point.get("period"), limit=20)})
+    return sorted(points, key=lambda point: point["date"])
+
+
+def _financial_trends(raw: object) -> dict[str, list[dict[str, Any]]]:
+    source = _json_value(raw, {})
+    return {metric: _trend_points(source.get(metric), limit=20) for metric in ("revenue", "net_income", "free_cash_flow")}
+
+
+def _daily_datapoints_view(raw: object, home_run_id: str) -> list[dict[str, Any]]:
+    rows = _json_value(raw, [])
+    result = []
+    for row in sorted([item for item in rows if isinstance(item, dict)], key=lambda item: _count(item.get("rank"))):
+        if _clean(row.get("home_run_id")) != home_run_id or row.get("selection_method") != "aql_zopedia":
+            continue
+        points = _trend_points(row.get("points_json"))
+        title = _clean(row.get("title"), limit=100)
+        if not points or not title:
+            continue
+        result.append({
+            "id": _clean(row.get("id"), limit=160), "title": title,
+            "significance": _clean(row.get("significance"), limit=260),
+            "label": _clean(row.get("label"), limit=160), "kind": _clean(row.get("kind"), limit=20),
+            "symbol": _clean(row.get("symbol"), limit=20), "series_id": _clean(row.get("series_id"), limit=40),
+            "unit": _clean(row.get("unit"), limit=80), "date": points[-1]["date"],
+            "value": points[-1]["value"], "period": _clean(row.get("period"), limit=20), "points": points,
+        })
+    return result[:5] if len(result) == 5 and len({item["id"] for item in result}) == 5 else []
 
 
 def _validated_target_date(value: str | None) -> str:
@@ -123,6 +174,7 @@ def build_public_home_view(
             "graph": None,
             "beats": [],
             "coverage": {},
+            "daily_datapoints": [],
             "provenance": {
                 "mode": _clean(provenance.get("mode"), limit=40),
                 "datasets": [_clean(item, limit=120) for item in list(provenance.get("datasets") or [])[:8]],
@@ -155,7 +207,7 @@ def build_public_home_view(
         }
 
     narrative_beats = [item for item in build_attention_home_narrative_beats(payload)[:16] if isinstance(item, dict)]
-    if not ticker_snapshots and not is_replay:
+    if not is_replay:
         requested_symbols = list(
             dict.fromkeys(
                 _clean(symbol, limit=20).upper()
@@ -166,7 +218,19 @@ def build_public_home_view(
         )
         if requested_symbols:
             resolved_snapshots = resolved_service.data_access.resolve_attention_ticker_snapshots(requested_symbols)
-            ticker_snapshots = dict(resolved_snapshots.payload) if isinstance(resolved_snapshots.payload, dict) else {}
+            independent = dict(resolved_snapshots.payload) if isinstance(resolved_snapshots.payload, dict) else {}
+            for symbol, candidate in independent.items():
+                embedded = ticker_snapshots.get(symbol) or {}
+                if str(candidate.get("asof_time_utc") or "") >= str(embedded.get("asof_time_utc") or ""):
+                    ticker_snapshots[symbol] = candidate
+
+    daily_datapoints = payload.get("daily_datapoints") or []
+    if not is_replay:
+        resolved_datapoints = resolved_service.data_access.resolve_daily_market_datapoints()
+        current_points = _daily_datapoints_view(resolved_datapoints.payload, str(payload.get("run_id") or ""))
+    else:
+        current_points = []
+    daily_datapoints = current_points or _daily_datapoints_view(daily_datapoints, str(payload.get("run_id") or ""))
 
     beats: list[dict[str, Any]] = []
     for item in narrative_beats:
@@ -229,6 +293,7 @@ def build_public_home_view(
         "summary": summary,
         "graph": graph,
         "beats": beats,
+        "daily_datapoints": daily_datapoints,
         "coverage": {
             "candidate_count": _count(coverage.get("candidate_count")),
             "event_count": _count(coverage.get("event_count")),

@@ -194,8 +194,9 @@ def build_fred_derived_views(
         columns=["category", "left_series_id", "right_series_id", "correlation", "observations"]
     )
     if obs.empty or not {"series_id", "date", "value"}.issubset(obs.columns):
-        if "rate_of_change" not in obs.columns:
-            obs["rate_of_change"] = pd.Series(dtype=float)
+        for field in ("rate_of_change", "smoothed_rate_of_change"):
+            if field not in obs.columns:
+                obs[field] = pd.Series(dtype=float)
         return obs, summary_frame, empty_correlations
 
     obs["series_id"] = obs["series_id"].astype(str)
@@ -208,6 +209,7 @@ def build_fred_derived_views(
         .reset_index(drop=True)
     )
     obs["rate_of_change"] = pd.NA
+    obs["smoothed_rate_of_change"] = pd.NA
 
     metadata_by_id: dict[str, dict[str, Any]] = {}
     if not summary_frame.empty and "series_id" in summary_frame.columns:
@@ -225,10 +227,17 @@ def build_fred_derived_views(
         metadata = metadata_by_id.get(str(series_id), {})
         rate, kind, label = _series_rate_of_change(series_rows["value"], metadata)
         obs.loc[series_rows.index, "rate_of_change"] = rate.to_numpy()
+        frequency = normalize_fred_frequency_short(metadata.get("frequency_short") or metadata.get("frequency"))
+        span = 21 if frequency in {"D", "B"} else 8 if frequency.startswith("W") or frequency == "BW" else 4 if frequency == "Q" else 3 if frequency in {"A", "SA"} else 6
+        smoothed = rate.ewm(span=span, adjust=False, min_periods=max(2, span // 3)).mean()
+        obs.loc[series_rows.index, "smoothed_rate_of_change"] = smoothed.to_numpy()
         derived_metadata[str(series_id)] = {
             "rate_of_change_kind": kind,
             "rate_of_change_label": label,
             "latest_rate_of_change": float(rate.dropna().iloc[-1]) if not rate.dropna().empty else None,
+            "smoothing_span": span,
+            "smoothing_label": f"{span}-observation EMA",
+            "latest_smoothed_rate_of_change": float(smoothed.dropna().iloc[-1]) if not smoothed.dropna().empty else None,
         }
 
         monthly = (
@@ -240,8 +249,9 @@ def build_fred_derived_views(
         monthly_changes[str(series_id)] = monthly_rate.dropna()
 
     obs["rate_of_change"] = pd.to_numeric(obs["rate_of_change"], errors="coerce")
+    obs["smoothed_rate_of_change"] = pd.to_numeric(obs["smoothed_rate_of_change"], errors="coerce")
     if not summary_frame.empty and "series_id" in summary_frame.columns:
-        for field in ("rate_of_change_kind", "rate_of_change_label", "latest_rate_of_change"):
+        for field in ("rate_of_change_kind", "rate_of_change_label", "latest_rate_of_change", "smoothing_span", "smoothing_label", "latest_smoothed_rate_of_change"):
             summary_frame[field] = summary_frame["series_id"].map(
                 {series_id: metadata.get(field) for series_id, metadata in derived_metadata.items()}
             )

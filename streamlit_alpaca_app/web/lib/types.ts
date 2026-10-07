@@ -85,7 +85,11 @@ export type HomeTickerSnapshot = {
   fundamentals_period: string;
   fundamentals_report_date: string;
   sparkline_data_uri: string;
+  financial_trends: Record<string, TrendPoint[]>;
 };
+
+export type TrendPoint = { date: string; value: number; period?: string };
+export type DailyDatapoint = { id: string; title: string; significance: string; label: string; kind: string; symbol: string; series_id: string; unit: string; date: string; value: number; period: string; points: TrendPoint[] };
 
 export type HomeView = {
   status: "available" | "unavailable";
@@ -103,6 +107,7 @@ export type HomeView = {
   };
   graph: VisualizationArtifact | null;
   beats: HomeBeat[];
+  daily_datapoints: DailyDatapoint[];
   coverage: Record<string, number>;
   provenance: { mode: string; datasets: string[] };
 };

@@ -20,12 +20,14 @@ type MacroSummary = Record<string, unknown> & {
   latest_rate_of_change: number | null;
   rate_of_change_kind: "delta" | "percent_change" | "";
   rate_of_change_label: string;
+  smoothing_label: string;
 };
 type Observation = Record<string, unknown> & {
   series_id: string;
   date: string;
   value: number | null;
   rate_of_change: number | null;
+  smoothed_rate_of_change: number | null;
   release_id: string;
 };
 type Correlation = {
@@ -54,6 +56,7 @@ type MacroPayload = {
 };
 
 function number(value: unknown) {
+  if (value === null || value === undefined || value === "") return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
@@ -100,12 +103,14 @@ function MacroChart({
   row,
   selected,
   years,
+  overlay,
   onSelect,
 }: {
   observations: Observation[];
   row: MacroSummary;
   selected: boolean;
   years: number;
+  overlay: string;
   onSelect: () => void;
 }) {
   return (
@@ -114,7 +119,7 @@ function MacroChart({
         <span><strong>{row.indicator}</strong><small>{row.series_id} · {row.frequency_short}</small></span>
         <span><strong>{formatValue(row.latest_value, row.units_short)}</strong><small className={tone(row.latest_rate_of_change)}>{formatRate(row.latest_rate_of_change, row.rate_of_change_kind)}</small></span>
       </button>
-      <div className="macro-chart-legend" aria-hidden="true"><span>Level</span><span>{row.rate_of_change_kind === "percent_change" ? "% change" : "Change"}</span></div>
+      <div className="macro-chart-legend" aria-hidden="true"><span>Level</span>{["combined", "raw"].includes(overlay) ? <span className="legend-raw">Change</span> : null}{["combined", "smoothed"].includes(overlay) ? <span className="legend-smoothed">{row.smoothing_label}</span> : null}</div>
       <div className="macro-mini-chart">
         <DataPlot
           data={[
@@ -127,19 +132,25 @@ function MacroChart({
               line: { color: "#52d6c7", width: 2 },
               hovertemplate: "%{x|%Y-%m-%d}<br>Level %{y:,.2f}<extra></extra>",
             },
-            {
+            ...(["combined", "raw"].includes(overlay) ? [{
               type: "scatter",
               mode: "lines",
               name: row.rate_of_change_label || "Rate of change",
               x: observations.map((item) => item.date),
               y: observations.map((item) => item.rate_of_change),
               yaxis: "y2",
-              line: { color: "#a991f7", width: 1.25, dash: "dot" },
+              line: { color: overlay === "combined" ? "rgba(169,145,247,.24)" : "rgba(169,145,247,.65)", width: 1, dash: "dot" },
               hovertemplate: "%{x|%Y-%m-%d}<br>Change %{y:,.2f}<extra></extra>",
               connectgaps: false,
-            },
+            }] : []),
+            ...(["combined", "smoothed"].includes(overlay) ? [{
+              type: "scatter", mode: "lines", name: row.smoothing_label || "Smoothed change",
+              x: observations.map((item) => item.date), y: observations.map((item) => item.smoothed_rate_of_change),
+              yaxis: "y2", line: { color: "#b6a0f4", width: 1.65 }, connectgaps: false,
+              hovertemplate: `%{x|%Y-%m-%d}<br>${row.smoothing_label} %{y:,.2f}<extra></extra>`,
+            }] : []),
           ]}
-          id={`macro-${row.series_id}-${years}`}
+          id={`macro-${row.series_id}-${years}-${overlay}`}
           displayModeBar={false}
           layout={{
             title: { text: "" },
@@ -148,7 +159,7 @@ function MacroChart({
             margin: { l: 38, r: 38, t: 8, b: 28 },
             xaxis: { title: "", showgrid: false, zeroline: false },
             yaxis: { title: "", showgrid: true, gridcolor: "rgba(91,105,120,.13)", zeroline: false },
-            yaxis2: { title: "", overlaying: "y", side: "right", showgrid: false, zeroline: true, zerolinecolor: "rgba(169,145,247,.2)" },
+            yaxis2: { title: "", visible: overlay !== "off", overlaying: "y", side: "right", showgrid: false, zeroline: true, zerolinecolor: "rgba(169,145,247,.2)" },
           }}
           rowCount={observations.length}
           title={row.indicator}
@@ -161,6 +172,7 @@ function MacroChart({
 export default function BroadEconomyPage() {
   const { session, sessionError } = useAuthenticatedSession("/broad-economy");
   const [years, setYears] = useState(10);
+  const [overlay, setOverlay] = useState("combined");
   const [payload, setPayload] = useState<MacroPayload | null>(null);
   const [activeCategory, setActiveCategory] = useState("Money Supply");
   const [selectedSeries, setSelectedSeries] = useState("M2SL");
@@ -233,11 +245,11 @@ export default function BroadEconomyPage() {
     <div className="page-shell workbook-page macro-workspace">
       <header className="artifact-header workbook-heading">
         <div><p className="breadcrumb">Research <span>/</span> Macro</p><h1>Broad Economy</h1></div>
-        <label className="compact-control">Lookback
+        <div className="macro-controls"><label className="compact-control">Change overlay<select value={overlay} onChange={(event) => setOverlay(event.target.value)}><option value="combined">Raw + smoothed</option><option value="smoothed">Smoothed</option><option value="raw">Raw</option><option value="off">Off</option></select></label><label className="compact-control">Lookback
           <select onChange={(event) => setYears(Number(event.target.value))} value={years}>
             {[3, 5, 10, 15, 20].map((value) => <option key={value} value={value}>{value} years</option>)}
           </select>
-        </label>
+        </label></div>
       </header>
       {sessionError || error ? <p className="subtle-error" role="alert">{sessionError || error}</p> : null}
       {loading && !payload ? <p className="loading-label">Loading macro workbook…</p> : null}
@@ -266,6 +278,7 @@ export default function BroadEconomyPage() {
                 row={row}
                 selected={row.series_id === activeId}
                 years={years}
+                overlay={overlay}
               />
             ))}
           </div>

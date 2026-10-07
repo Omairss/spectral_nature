@@ -14,7 +14,6 @@ import type {
   VisualizationResponse,
 } from "@/lib/types";
 
-type InvestigatorView = "chart" | "data" | "provenance";
 type ArtifactKey = "price" | "pullback" | "income" | "balance" | "cashflow";
 
 const artifactDefinitions: Record<ArtifactKey, { label: string; endpoint: string; statement?: string }> = {
@@ -89,6 +88,24 @@ function DatasetTable({ dataset }: { dataset: DatasetArtifact }) {
   );
 }
 
+function AnalysisPanel({ label, artifact, loading, error }: { label: string; artifact?: VisualizationArtifact; loading: boolean; error?: string }) {
+  const [inspector, setInspector] = useState<"data" | "provenance" | null>(null);
+  const dataset = artifact ? Object.values(artifact.datasets)[0] : null;
+  return <section className="artifact-panel investigator-chart-panel" aria-busy={loading} aria-label={label}>
+    <header className="artifact-toolbar"><h2>{label}</h2><div className="view-tabs">
+      <button aria-expanded={inspector === "data"} disabled={!dataset} onClick={() => setInspector(inspector === "data" ? null : "data")} type="button"><Icon name="table" />Data</button>
+      <button aria-expanded={inspector === "provenance"} disabled={!artifact} onClick={() => setInspector(inspector === "provenance" ? null : "provenance")} type="button">Provenance</button>
+    </div></header>
+    {artifact ? dataset?.records.length ? <Visualization artifact={artifact} /> : <p className="search-empty">No {label.toLowerCase()} data for this symbol.</p> : loading ? <div className="visualization-loading" aria-label={`Loading ${label}`} /> : null}
+    {error ? <p className="visualization-error" role="status">{error}</p> : null}
+    {inspector === "data" && dataset ? <DatasetTable dataset={dataset} /> : null}
+    {inspector === "provenance" && artifact ? <dl className="provenance-grid">
+      <div><dt>Source</dt><dd>{artifact.provenance.mode}</dd></div><div><dt>Datasets</dt><dd>{artifact.provenance.datasets.join(", ")}</dd></div>
+      <div><dt>Rows</dt><dd>{artifact.performance.row_count.toLocaleString()}</dd></div><div><dt>Artifact</dt><dd>{artifact.artifact_id}</dd></div>
+    </dl> : null}
+  </section>;
+}
+
 function StockInvestigatorWorkspace() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -99,16 +116,16 @@ function StockInvestigatorWorkspace() {
   const [days, setDays] = useState(initialDays);
   const [artifacts, setArtifacts] = useState<Partial<Record<ArtifactKey, VisualizationArtifact>>>({});
   const [snapshot, setSnapshot] = useState<StockInvestigatorView | null>(null);
-  const [activeArtifact, setActiveArtifact] = useState<ArtifactKey>("price");
-  const [view, setView] = useState<InvestigatorView>("chart");
+  const [artifactErrors, setArtifactErrors] = useState<Partial<Record<ArtifactKey, string>>>({});
+  const [pendingArtifacts, setPendingArtifacts] = useState<ArtifactKey[]>([]);
   const [error, setError] = useState("");
   const [snapshotError, setSnapshotError] = useState("");
   const [loading, setLoading] = useState(false);
   const [snapshotLoading, setSnapshotLoading] = useState(false);
-  const initialLoad = useRef(false);
+  const loadedQuery = useRef("");
+  const artifactRequest = useRef(0);
+  const snapshotRequest = useRef(0);
 
-  const artifact = artifacts[activeArtifact] || null;
-  const dataset = useMemo(() => artifact ? Object.values(artifact.datasets)[0] || null : null, [artifact]);
   const priceDataset = useMemo(() => artifacts.price ? Object.values(artifacts.price.datasets)[0] || null : null, [artifacts.price]);
   const latest = priceDataset?.records.at(-1);
   const close = numberFrom(snapshot?.technical, "close") ?? numberValue(latest, "close");
@@ -135,29 +152,32 @@ function StockInvestigatorWorkspace() {
     return payload.payload;
   }, []);
 
-  const loadTechnicals = useCallback(async (requestedTicker: string, requestedDays: number) => {
+  const loadAnalyses = useCallback(async (requestedTicker: string, requestedDays: number) => {
+    const requestId = ++artifactRequest.current;
+    const keys = Object.keys(artifactDefinitions) as ArtifactKey[];
     setLoading(true);
     setError("");
-    const [priceResult, pullbackResult] = await Promise.allSettled([
-      fetchArtifact("price", requestedTicker, requestedDays),
-      fetchArtifact("pullback", requestedTicker, requestedDays),
-    ]);
-    const next: Partial<Record<ArtifactKey, VisualizationArtifact>> = {};
-    const failures: string[] = [];
-    if (priceResult.status === "fulfilled") next.price = priceResult.value;
-    else failures.push(priceResult.reason instanceof Error ? priceResult.reason.message : "Price channel could not be loaded.");
-    if (pullbackResult.status === "fulfilled") next.pullback = pullbackResult.value;
-    else failures.push(pullbackResult.reason instanceof Error ? pullbackResult.reason.message : "Pullback could not be loaded.");
-    setArtifacts(next);
-    setActiveArtifact(next.price ? "price" : "pullback");
-    setView("chart");
-    setError([...new Set(failures)].join(" "));
-    setLoading(false);
+    setArtifacts({});
+    setArtifactErrors({});
+    setPendingArtifacts(keys);
+    await Promise.allSettled(keys.map(async (key) => {
+      try {
+        const next = await fetchArtifact(key, requestedTicker, requestedDays);
+        if (requestId === artifactRequest.current) setArtifacts((current) => ({ ...current, [key]: next }));
+      } catch (reason) {
+        if (requestId === artifactRequest.current) setArtifactErrors((current) => ({ ...current, [key]: reason instanceof Error ? reason.message : `${artifactDefinitions[key].label} could not be loaded.` }));
+      } finally {
+        if (requestId === artifactRequest.current) setPendingArtifacts((current) => current.filter((item) => item !== key));
+      }
+    }));
+    if (requestId === artifactRequest.current) setLoading(false);
   }, [fetchArtifact]);
 
   const loadSnapshot = useCallback(async (requestedTicker: string, requestedDays: number) => {
+    const requestId = ++snapshotRequest.current;
     setSnapshotLoading(true);
     setSnapshotError("");
+    setSnapshot(null);
     try {
       const response = await fetch(
         `/api/investigator/${encodeURIComponent(requestedTicker)}?days=${requestedDays}`,
@@ -165,12 +185,14 @@ function StockInvestigatorWorkspace() {
       );
       if (!response.ok) throw new Error(await responseError(response, "Company context could not be loaded."));
       const next = (await response.json()) as StockInvestigatorView;
-      setSnapshot(next.ticker === requestedTicker ? next : null);
+      if (requestId === snapshotRequest.current) setSnapshot(next.ticker === requestedTicker ? next : null);
     } catch (reason) {
-      setSnapshot(null);
-      setSnapshotError(reason instanceof Error ? reason.message : "Company context could not be loaded.");
+      if (requestId === snapshotRequest.current) {
+        setSnapshot(null);
+        setSnapshotError(reason instanceof Error ? reason.message : "Company context could not be loaded.");
+      }
     } finally {
-      setSnapshotLoading(false);
+      if (requestId === snapshotRequest.current) setSnapshotLoading(false);
     }
   }, []);
 
@@ -185,10 +207,15 @@ function StockInvestigatorWorkspace() {
   }, [router]);
 
   useEffect(() => {
-    if (!session?.authenticated || initialLoad.current) return;
-    initialLoad.current = true;
-    void Promise.all([loadTechnicals(initialTicker, initialDays), loadSnapshot(initialTicker, initialDays)]);
-  }, [initialDays, initialTicker, loadSnapshot, loadTechnicals, session]);
+    if (!session?.authenticated || loadedQuery.current === `${initialTicker}:${initialDays}`) return;
+    const timer = window.setTimeout(() => {
+      loadedQuery.current = `${initialTicker}:${initialDays}`;
+      setTicker(initialTicker);
+      setDays(initialDays);
+      void Promise.all([loadAnalyses(initialTicker, initialDays), loadSnapshot(initialTicker, initialDays)]);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [initialDays, initialTicker, loadSnapshot, loadAnalyses, session]);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -198,22 +225,8 @@ function StockInvestigatorWorkspace() {
     setDays(requestedDays);
     setSnapshot(null);
     router.replace(`/stock-investigator?ticker=${encodeURIComponent(requestedTicker)}&days=${requestedDays}`);
-    void Promise.all([loadTechnicals(requestedTicker, requestedDays), loadSnapshot(requestedTicker, requestedDays)]);
-  }
-
-  async function selectArtifact(key: ArtifactKey) {
-    setActiveArtifact(key);
-    setView("chart");
-    setError("");
-    if (artifacts[key]) return;
-    setLoading(true);
-    try {
-      const next = await fetchArtifact(key, ticker, days);
-      setArtifacts((current) => ({ ...current, [key]: next }));
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : `${artifactDefinitions[key].label} could not be loaded.`);
-    } finally {
-      setLoading(false);
+    if (loadedQuery.current === `${requestedTicker}:${requestedDays}`) {
+      void Promise.all([loadAnalyses(requestedTicker, requestedDays), loadSnapshot(requestedTicker, requestedDays)]);
     }
   }
 
@@ -228,7 +241,7 @@ function StockInvestigatorWorkspace() {
           <p className="breadcrumb">Research <span>/</span> Equity</p>
           <div className="entity-title">
             <h1>{ticker}</h1>
-            <span>{company?.name || company?.business_lens || artifactDefinitions[activeArtifact].label}</span>
+            <span>{company?.name || company?.business_lens || ""}</span>
           </div>
         </div>
         <form className="investigator-controls" onSubmit={submit}>
@@ -293,46 +306,10 @@ function StockInvestigatorWorkspace() {
 
       {snapshotError ? <p className="subtle-error" role="status">{snapshotError}</p> : null}
 
-      <section className="artifact-panel" aria-busy={loading}>
-        <nav className="analysis-tabs" aria-label="Equity analysis artifacts">
-          {(Object.keys(artifactDefinitions) as ArtifactKey[]).map((key) => (
-            <button
-              aria-current={activeArtifact === key ? "page" : undefined}
-              className={activeArtifact === key ? "active" : ""}
-              disabled={loading && activeArtifact === key && !artifacts[key]}
-              key={key}
-              onClick={() => void selectArtifact(key)}
-              type="button"
-            >
-              {artifactDefinitions[key].label}
-              {artifacts[key] ? <span className="loaded-dot" /> : null}
-            </button>
-          ))}
-        </nav>
-        <header className="artifact-toolbar">
-          <div className="view-tabs" role="tablist" aria-label="Artifact view">
-            <button aria-selected={view === "chart"} className={view === "chart" ? "active" : ""} onClick={() => setView("chart")} role="tab" type="button"><Icon name="chart" />Chart</button>
-            <button aria-selected={view === "data"} className={view === "data" ? "active" : ""} disabled={!dataset} onClick={() => setView("data")} role="tab" type="button"><Icon name="table" />Data</button>
-            <button aria-selected={view === "provenance"} className={view === "provenance" ? "active" : ""} disabled={!artifact} onClick={() => setView("provenance")} role="tab" type="button">Provenance</button>
-          </div>
-          {artifact ? <span className="artifact-row-count">{artifact.performance.row_count.toLocaleString()} rows</span> : null}
-        </header>
-
-        {error ? <div className="visualization-error" role="alert">{error}</div> : null}
-        {artifact && view === "chart" ? <Visualization artifact={artifact} /> : null}
-        {dataset && view === "data" ? <DatasetTable dataset={dataset} /> : null}
-        {artifact && view === "provenance" ? (
-          <dl className="provenance-grid">
-            <div><dt>Artifact</dt><dd>{artifact.artifact_id}</dd></div>
-            <div><dt>Source mode</dt><dd>{artifact.provenance.mode}</dd></div>
-            <div><dt>Datasets</dt><dd>{artifact.provenance.datasets.join(", ")}</dd></div>
-            <div><dt>Renderer</dt><dd>{artifact.renderer_contract}</dd></div>
-            <div><dt>Delivery</dt><dd>{artifact.performance.delivery}</dd></div>
-            <div><dt>Encoded size</dt><dd>{Math.round(artifact.performance.encoded_bytes / 1024).toLocaleString()} KB</dd></div>
-          </dl>
-        ) : null}
-        {loading && !artifact ? <div className="visualization-loading" aria-label="Loading visualization" /> : null}
-      </section>
+      {error ? <p className="subtle-error" role="alert">{error}</p> : null}
+      <div className="investigator-chart-grid">{(Object.keys(artifactDefinitions) as ArtifactKey[]).map((key) =>
+        <AnalysisPanel key={key} artifact={artifacts[key]} error={artifactErrors[key]} label={artifactDefinitions[key].label} loading={pendingArtifacts.includes(key)} />
+      )}</div>
 
       {snapshot?.articles.length ? (
         <section className="evidence-section" aria-label={`${ticker} recent evidence`}>

@@ -2816,6 +2816,13 @@ class DataAccessLayer:
             details={"symbols": sorted(targets), **({"materialized_only": True} if self.materialized_only else {})},
         )
 
+    def resolve_daily_market_datapoints(self, *, force_refresh: bool = False) -> ResolvedPayload:
+        materialized = self._first_materialized_frame(("daily_market_datapoints_1d",), force_refresh=force_refresh)
+        if materialized is not None:
+            dataset_name, frame, details = materialized
+            return self._resolved(frame.to_dict("records"), mode="materialized", datasets=(dataset_name,), details=details)
+        return self._resolved([], mode="materialized", datasets=("daily_market_datapoints_1d",))
+
     def resolve_attention_ticker_background(self, ticker: str, *, force_refresh: bool = False) -> ResolvedPayload:
         target = str(ticker or "").upper().strip()
         materialized_payload: dict[str, Any] = {}

@@ -1748,6 +1748,11 @@ def search_retained_documents(
     if normalized_providers:
         clauses.append("(lower(source_provider) = ANY(%s) OR lower(search_provider) = ANY(%s))")
         params.extend([normalized_providers, normalized_providers])
+    # Filter the corpus in SQL before the recency limit. Otherwise older matching
+    # sources are unreachable, regardless of the lexical rank applied below.
+    if query_text:
+        clauses.append("(canonical_document_id IN (SELECT canonical_document_id FROM saa_evidence_chunks WHERE search_tsvector @@ websearch_to_tsquery('english', %s)) OR title ILIKE %s OR search_text ILIKE %s)")
+        params.extend([query_text, f"%{query_text}%", f"%{query_text}%"])
     parsed_start = pd.to_datetime(start_date, utc=True, errors="coerce") if _coerce_text(start_date) else pd.NaT
     parsed_end = pd.to_datetime(end_date, utc=True, errors="coerce") if _coerce_text(end_date) else pd.NaT
     if pd.notna(parsed_start):

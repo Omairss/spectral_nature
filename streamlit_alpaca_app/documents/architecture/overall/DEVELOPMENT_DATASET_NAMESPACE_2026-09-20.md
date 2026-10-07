@@ -124,6 +124,13 @@ in `documents/plans/TRADING_AGENT_CALL_CONTRACT_REPAIR_2026-09-19.md`.
 
 ## Managed refresh and attention snapshots — 2026-10-06
 
+Namespace copies must preserve the entire read contract, including partition blobs.
+`namespace_refresh` relocates every partition path into the destination namespace before
+publishing its manifest. `--partition-symbol-datasets` also builds bounded 64-bucket
+symbol partitions for legacy price and technical histories. This is an explicit data
+migration, not permission for dashboard requests to scan multi-million-row histories.
+Destination pointers are published only after all required uploads succeed.
+
 Development namespace refresh is now an explicit manual Container Apps Job instead of an
 operator-only local command. Execution `dataset-refresh-dev-rvolsod` copied 22 selected
 latest production snapshots into development and did not move a production pointer.

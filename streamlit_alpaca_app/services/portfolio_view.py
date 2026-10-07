@@ -106,10 +106,10 @@ def _performance(raw: pd.DataFrame) -> dict[str, Any]:
 def build_portfolio_view(
     context: UserContext,
     *,
-    period: str = "1Y",
+    period: str = "5Y",
     service: QueryService | None = None,
 ) -> dict[str, Any]:
-    selected_period = str(period or "1Y").strip().upper()
+    selected_period = str(period or "5Y").strip().upper()
     if selected_period not in PERIODS:
         raise ValueError("Portfolio period is invalid.")
     resolved_service = service or QueryService.from_environment()

@@ -355,6 +355,11 @@ The 2026-10-02 authentication incident reinforced two cleanup requirements:
 Do not port a tangled route. First establish its service ownership and typed contract,
 then prove its Next.js replacement beside Streamlit, and only then retire the old route.
 
+The 2026-10-06 research-depth increment follows that boundary: managed AQL-selected
+datapoints, materialized financial trends, simultaneous investigator panels, trailing
+macro smoothing, and a read-only linked-wiki browser. Local review and release state are
+tracked in `documents/plans/WORKBENCH_RESEARCH_DEPTH_2026-10-06.md`.
+
 ## First Implementation Order
 
 1. Add and baseline `architecture_cleanup_metrics.py`.

@@ -9,11 +9,14 @@ import pandas as pd
 
 from services.saa.storage import search_retained_documents
 from services.saa.zopedia import (
+    browse_zopedia_pages,
     ingest_zopedia_source,
     list_zopedia_change_proposals,
     list_zopedia_maintenance_reports,
+    list_zopedia_folders,
+    list_zopedia_page_links,
+    load_zopedia_page,
     prepare_zopedia_uploaded_source,
-    search_zopedia_pages,
 )
 
 
@@ -61,27 +64,50 @@ def _records(frame: pd.DataFrame, fields: tuple[str, ...], *, limit: int) -> lis
     ]
 
 
-def build_zopedia_workspace(*, query: str = "", is_admin: bool = False, limit: int = 60) -> dict[str, Any]:
+def _page_view(row: dict[str, Any], *, body: bool = False) -> dict[str, Any]:
+    page = {
+        "page_id": _text(row.get("page_id"), limit=240), "page_type": _text(row.get("page_type"), limit=80),
+        "title": _text(row.get("title"), limit=300), "slug": _text(row.get("slug"), limit=300),
+        "summary": _text(row.get("summary"), limit=1_200), "status": _text(row.get("status"), limit=40),
+        "version": int(row.get("version") or 0), "updated_at": _safe(row.get("updated_at_utc")),
+        "source_urls": _json_list(row.get("source_urls_json")),
+    }
+    if body:
+        page["body_markdown"] = _text(row.get("body_markdown"), limit=80_000)
+        page["outgoing_links"] = _json_list(row.get("outgoing_links_json"))
+    return page
+
+
+def build_zopedia_page_view(page_id: str) -> dict[str, Any] | None:
+    page = load_zopedia_page(page_id=page_id)
+    if not page:
+        return None
+    links = list_zopedia_page_links(page_id=page_id)
+    return {**_page_view(page, body=True), "links": [
+        {**_page_view(row), "direction": _text(row.get("direction"), limit=20)}
+        for row in links.to_dict("records")
+    ]}
+
+
+def build_zopedia_workspace(*, query: str = "", is_admin: bool = False, limit: int = 60, folder: str = "", offset: int = 0) -> dict[str, Any]:
     safe_limit = max(1, min(int(limit or 60), 100))
     normalized_query = " ".join(str(query or "").split()).strip()[:300]
-    pages_frame = search_zopedia_pages(query=normalized_query, limit=safe_limit)
+    pages_frame = browse_zopedia_pages(query=normalized_query, folder_path=folder, limit=safe_limit, offset=offset)
+    source_pages_frame = browse_zopedia_pages(query=normalized_query, page_types=["source"], limit=safe_limit)
+    folders_frame = list_zopedia_folders()
+    current_folder = folder.strip("/") or "wiki"
+    folder_name = "Knowledge"
+    if not folders_frame.empty:
+        current = folders_frame[folders_frame["path"] == current_folder]
+        if not current.empty:
+            folder_name = str(current.iloc[0]["name"])
+        folders_frame = folders_frame[folders_frame["path"].astype(str).str.rsplit("/", n=1).str[0] == current_folder].sort_values(["name", "path"])
     documents_frame = search_retained_documents(query=normalized_query, limit=safe_limit)
 
     pages: list[dict[str, object]] = []
     if isinstance(pages_frame, pd.DataFrame) and not pages_frame.empty:
         for row in pages_frame.head(safe_limit).to_dict("records"):
-            pages.append(
-                {
-                    "page_id": _text(row.get("page_id"), limit=240),
-                    "page_type": _text(row.get("page_type"), limit=80),
-                    "title": _text(row.get("title"), limit=300),
-                    "summary": _text(row.get("summary"), limit=1_200),
-                    "status": _text(row.get("status"), limit=40),
-                    "version": int(row.get("version") or 0),
-                    "updated_at": _safe(row.get("updated_at_utc")),
-                    "source_urls": _json_list(row.get("source_urls_json")),
-                }
-            )
+            pages.append(_page_view(row))
 
     documents: list[dict[str, object]] = []
     if isinstance(documents_frame, pd.DataFrame) and not documents_frame.empty:
@@ -120,11 +146,17 @@ def build_zopedia_workspace(*, query: str = "", is_admin: bool = False, limit: i
     return {
         "query": normalized_query,
         "pages": pages,
+        "source_pages": [_page_view(row) for row in source_pages_frame.to_dict("records")],
+        "folders": _records(folders_frame, ("folder_id", "parent_folder_id", "name", "path", "folder_type"), limit=500),
+        "folder": _text(folder, limit=300),
+        "folder_name": folder_name,
+        "offset": max(0, int(offset)),
+        "has_more": bool(not pages_frame.empty and int(pages_frame.iloc[0].get("total_count") or 0) > offset + len(pages)),
         "documents": documents,
         "proposals": proposals,
         "maintenance_reports": reports,
         "counts": {
-            "pages": len(pages),
+            "pages": int(pages_frame.iloc[0].get("total_count") or len(pages)) if not pages_frame.empty else 0,
             "documents": len(documents),
             "open_proposals": len(proposals),
         },

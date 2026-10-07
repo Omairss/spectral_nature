@@ -30,7 +30,7 @@ from services.market_view import build_market_lenses_view
 from services.portfolio_view import build_portfolio_view
 from services.stock_view import build_stock_investigator_view
 from services.trading_agent_view import build_trading_agent_view, record_trading_agent_decision
-from services.zopedia_view import build_zopedia_workspace, store_uploaded_zopedia_source
+from services.zopedia_view import build_zopedia_workspace, build_zopedia_page_view, store_uploaded_zopedia_source
 
 
 def _auth_enabled() -> bool:
@@ -504,7 +504,7 @@ def market_lenses_view(
 @app.get("/v1/portfolio")
 def portfolio_view(
     response: Response,
-    period: str = "1Y",
+    period: str = "5Y",
     principal: api_auth.AuthPrincipal = Depends(_require_principal),
 ) -> dict[str, Any]:
     context = _require_user_context(principal)
@@ -768,15 +768,33 @@ def get_zopedia_workspace(
     response: Response,
     q: str = "",
     limit: int = 60,
+    folder: str = "",
+    offset: int = 0,
     principal: api_auth.AuthPrincipal = Depends(_require_principal),
 ) -> dict[str, Any]:
     response.headers["Cache-Control"] = "no-store"
     context = _require_user_context(principal)
     _ensure_zopedia_resolve_scope(principal)
     try:
-        return build_zopedia_workspace(query=q, is_admin=context.is_admin, limit=limit)
+        return build_zopedia_workspace(query=q, is_admin=context.is_admin, limit=limit, folder=folder[:300], offset=max(0, min(offset, 100_000)))
     except Exception:
         raise _error("Zopedia workspace is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+@app.get("/v1/zopedia/pages/{page_id:path}")
+def get_zopedia_page(page_id: str, response: Response, principal: api_auth.AuthPrincipal = Depends(_require_principal)) -> dict[str, Any]:
+    response.headers["Cache-Control"] = "no-store"
+    _require_user_context(principal)
+    _ensure_zopedia_resolve_scope(principal)
+    if len(page_id) > 240:
+        raise _error("Invalid page identifier.", status.HTTP_400_BAD_REQUEST)
+    try:
+        page = build_zopedia_page_view(page_id)
+    except Exception:
+        raise _error("Knowledge page is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+    if page is None:
+        raise _error("Knowledge page was not found.", status.HTTP_404_NOT_FOUND)
+    return page
 
 
 @app.post("/v1/zopedia/sources/upload", status_code=status.HTTP_201_CREATED)

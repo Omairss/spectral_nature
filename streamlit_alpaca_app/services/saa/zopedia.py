@@ -1586,7 +1586,7 @@ def search_prepared_zopedia_pages(
     ).head(max(int(limit), 1)).reset_index(drop=True)
 
 
-def _select_page_rows_sql(*, where_sql: str, order_sql: str, limit: int | None = None) -> str:
+def _select_page_rows_sql(*, where_sql: str, order_sql: str, limit: int | None = None, include_total: bool = False) -> str:
     limit_sql = "LIMIT %s" if limit is not None else ""
     return f"""
         SELECT
@@ -1594,7 +1594,7 @@ def _select_page_rows_sql(*, where_sql: str, order_sql: str, limit: int | None =
             source_document_ids_json::text, source_urls_json::text,
             entity_refs_json::text, outgoing_links_json::text,
             status, version, created_at_utc, updated_at_utc, metadata_json::text,
-            0.0 AS ts_rank_score
+            0.0 AS ts_rank_score {', count(*) OVER() AS total_count' if include_total else ''}
         FROM saa_zopedia_pages
         WHERE {where_sql}
         ORDER BY {order_sql}
@@ -1715,7 +1715,7 @@ def search_zopedia_pages(
                 pass
 
 
-def load_zopedia_page(*, page_id: str, conn: Any | None = None) -> dict[str, Any]:
+def load_zopedia_page(*, page_id: str, conn: Any | None = None, include_debug_sources: bool = False) -> dict[str, Any]:
     normalized_page_id = _coerce_text(page_id)
     if not normalized_page_id:
         return {}
@@ -1724,13 +1724,13 @@ def load_zopedia_page(*, page_id: str, conn: Any | None = None) -> dict[str, Any
         conn = _db_connection()
         own_conn = conn is not None
     if conn is None:
-        return {}
+        raise RuntimeError("Zopedia storage is unavailable.")
     try:
         bootstrap_zopedia_storage(conn, commit=own_conn)
         with conn.cursor() as cur:
             cur.execute(
                 _select_page_rows_sql(
-                    where_sql="page_id = %s AND status != 'deleted'",
+                    where_sql=f"page_id = %s AND status != 'deleted' {_zopedia_public_visibility_sql(include_debug_sources=include_debug_sources)}",
                     order_sql="updated_at_utc DESC",
                     limit=None,
                 ),
@@ -1751,6 +1751,79 @@ def load_zopedia_page(*, page_id: str, conn: Any | None = None) -> dict[str, Any
 
 def list_zopedia_pages(*, limit: int = 30, conn: Any | None = None) -> pd.DataFrame:
     return search_zopedia_pages(query="", limit=limit, conn=conn)
+
+
+def browse_zopedia_pages(*, folder_path: str = "", query: str = "", page_types: list[str] | None = None, limit: int = 60, offset: int = 0, conn: Any | None = None) -> pd.DataFrame:
+    """Browse published wiki pages using durable folder membership and indexed search."""
+    own_conn = conn is None
+    conn = conn if conn is not None else _db_connection()
+    if conn is None:
+        raise RuntimeError("Zopedia storage is unavailable.")
+    try:
+        bootstrap_zopedia_storage(conn, commit=own_conn)
+        clauses = ["status != 'deleted'", "1=1 " + _PUBLIC_PAGE_VISIBILITY_SQL]
+        params: list[Any] = []
+        if page_types:
+            clauses.append("page_type = ANY(%s)")
+            params.append([_normalize_page_type(item) for item in page_types])
+        else:
+            clauses.append("page_type <> 'source'")
+        folder = _coerce_text(folder_path).strip("/")
+        if folder:
+            clauses.append("page_id IN (SELECT page_id FROM saa_zopedia_page_folder_memberships WHERE folder_id = %s)")
+            params.append(_folder_id_for_path(folder))
+        text = _coerce_text(query)[:300]
+        if text:
+            clauses.append("(search_tsvector @@ websearch_to_tsquery('english', %s) OR title ILIKE %s OR summary ILIKE %s OR entity_refs_json::text ILIKE %s)")
+            params.extend([text, f"%{text}%", f"%{text}%", f"%{text}%"])
+        order = "updated_at_utc DESC, title ASC, page_id ASC"
+        if text:
+            order = "COALESCE(ts_rank_cd(search_tsvector, websearch_to_tsquery('english', %s)), 0) DESC, " + order
+            params.append(text)
+        sql = _select_page_rows_sql(where_sql=" AND ".join(clauses), order_sql=order, include_total=True)
+        with conn.cursor() as cur:
+            cur.execute(sql + " LIMIT %s OFFSET %s", (*params, max(1, min(int(limit), 100)), max(0, int(offset))))
+            rows = cur.fetchall()
+        frame = _frame_from_zopedia_page_rows(rows)
+        if rows:
+            frame["total_count"] = [int(row[len(ZOPEDIA_PAGE_COLUMNS)]) for row in rows]
+        return frame
+    finally:
+        if own_conn:
+            conn.close()
+
+
+def list_zopedia_page_links(*, page_id: str, conn: Any | None = None) -> pd.DataFrame:
+    """Resolve both link directions from persisted wiki references, including old pages."""
+    own_conn = conn is None
+    conn = conn if conn is not None else _db_connection()
+    if conn is None:
+        raise RuntimeError("Zopedia storage is unavailable.")
+    try:
+        seed = load_zopedia_page(page_id=page_id, conn=conn)
+        if not seed:
+            return pd.DataFrame()
+        targets = list(seed.get("outgoing_links") or [])
+        with conn.cursor() as cur:
+            cur.execute("SELECT target_page_id FROM saa_zopedia_backlinks WHERE source_page_id = %s", (page_id,))
+            targets = list(set(targets) | {str(row[0]) for row in cur.fetchall()})
+        identities = [str(seed.get(key) or "") for key in ("page_id", "slug", "title")]
+        where = f"""status != 'deleted' AND page_id <> %s {_PUBLIC_PAGE_VISIBILITY_SQL} AND (
+            page_id = ANY(%s) OR slug = ANY(%s) OR title = ANY(%s)
+            OR outgoing_links_json ?| %s
+            OR page_id IN (SELECT source_page_id FROM saa_zopedia_backlinks WHERE target_page_id = %s)
+            OR page_id IN (SELECT target_page_id FROM saa_zopedia_backlinks WHERE source_page_id = %s)
+        )"""
+        with conn.cursor() as cur:
+            cur.execute(_select_page_rows_sql(where_sql=where, order_sql="title ASC", limit=100), (page_id, targets, targets, targets, identities, page_id, page_id, 100))
+            rows = cur.fetchall()
+        frame = _frame_from_zopedia_page_rows(rows)
+        if not frame.empty:
+            frame["direction"] = frame.apply(lambda row: "outgoing" if any(str(row.get(key) or "") in targets for key in ("page_id", "slug", "title")) else "backlink", axis=1)
+        return frame
+    finally:
+        if own_conn:
+            conn.close()
 
 
 def list_zopedia_folders(

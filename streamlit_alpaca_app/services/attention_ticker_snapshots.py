@@ -293,12 +293,22 @@ def _fundamental_snapshots_by_symbol(
     out: dict[str, dict[str, Any]] = {symbol: {} for symbol in normalized}
     for symbol, symbol_rows in frame.groupby("ticker", sort=False):
         snapshot: dict[str, Any] = {}
+        trends: dict[str, list[dict[str, Any]]] = {}
         latest_dates: list[pd.Timestamp] = []
         latest_period = ""
         for metric_name, field_name in metric_fields.items():
             rows = symbol_rows[symbol_rows["metric"].astype(str) == metric_name].sort_values("report_date")
             if rows.empty:
                 continue
+            rows = rows.drop_duplicates(subset=["report_date"], keep="last")
+            trends[field_name] = [
+                {
+                    "date": pd.Timestamp(point["report_date"]).date().isoformat(),
+                    "period": _coerce_text(point.get("year_quarter")),
+                    "value": float(point["value"]),
+                }
+                for point in rows.tail(20).to_dict("records")
+            ]
             latest = rows.iloc[-1]
             snapshot[field_name] = float(latest["value"])
             latest_dates.append(pd.Timestamp(latest["report_date"]))
@@ -310,6 +320,7 @@ def _fundamental_snapshots_by_symbol(
         if latest_dates:
             snapshot["fundamentals_report_date"] = max(latest_dates).date().isoformat()
         snapshot["fundamentals_period"] = latest_period
+        snapshot["financial_trends_json"] = _json_dumps(trends)
         out[str(symbol)] = snapshot
     return out
 
@@ -686,6 +697,10 @@ def build_attention_ticker_snapshot_frame(
                 "share_count_metric": _coerce_text(share_metric),
                 "share_count_report_date": _coerce_text(pd.to_datetime(share_report_date, errors="coerce").date().isoformat() if pd.notna(pd.to_datetime(share_report_date, errors="coerce")) else ""),
                 "sparkline_data_uri": _sparkline_data_uri(price_history),
+                "price_trend_json": _json_dumps([
+                    {"date": pd.Timestamp(point["timestamp"]).date().isoformat(), "value": float(point["close"])}
+                    for point in price_history.tail(60).to_dict("records")
+                ]),
                 **fundamentals,
                 "run_id": _coerce_text(run_id),
                 "asof_time_utc": asof_label,

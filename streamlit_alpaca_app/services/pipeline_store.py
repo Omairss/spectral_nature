@@ -129,6 +129,7 @@ SOURCE_DATASETS: dict[str, list[str]] = {
         "attention_hypotheses_1d",
         "knowledge_graph_update_proposals",
         "attention_ticker_snapshots_1d",
+        "daily_market_datapoints_1d",
         "attention_ticker_background_snapshots",
         "attention_ticker_zopedia_enrichments",
         "market_opportunity_feed",

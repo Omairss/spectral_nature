@@ -46,6 +46,7 @@ from services.page_agentic_summary import (
     stock_summary_context,
 )
 from services.pipeline_store import load_latest_dataset_frame, load_recent_dataset_frames
+from services.daily_market_datapoints import build_daily_datapoint_catalog, select_daily_market_datapoints
 
 
 PersistDatasetFn = Callable[[str, pd.DataFrame, Any, Any | None], None]
@@ -4177,6 +4178,14 @@ def build_attention_home_output_frames(
             if str(record.get("symbol") or "").strip()
         }
         artifacts.frames["attention_home_snapshots_1d"] = serialize_attention_home_payload(payload)
+
+    try:
+        catalog = build_daily_datapoint_catalog(snapshots=ticker_snapshot_frame, fred_observations=load_materialized_frame_fn("fred_observations"), fred_summary=load_materialized_frame_fn("fred_summary"), asof=ctx.asof)
+        artifacts.frames["daily_market_datapoints_1d"] = select_daily_market_datapoints(home=payload, catalog=catalog, asof=ctx.asof, run_id=ctx.run_id)
+        payload["daily_datapoints"] = frame_to_records(artifacts.frames["daily_market_datapoints_1d"])
+        artifacts.frames["attention_home_snapshots_1d"] = serialize_attention_home_payload(payload)
+    except Exception as exc:
+        print(f"[warn] attention-home-build daily datapoint selection unavailable: {type(exc).__name__}: {exc}")
 
     if include_page_agentic:
         try:
