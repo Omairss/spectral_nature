@@ -106,7 +106,7 @@ function ZopediaWorkspace() {
     if (!session?.authenticated || !pageId) return;
     const controller = new AbortController();
     const timer = window.setTimeout(() => { setPageLoading(true); setPageError(""); setPage(null);
-      fetch(`/api/zopedia/pages/${encodeURIComponent(pageId)}`, { cache: "no-store", signal: controller.signal })
+      fetch(`/api/zopedia/pages?page_id=${encodeURIComponent(pageId)}`, { cache: "no-store", signal: controller.signal })
         .then(async (response) => { if (!response.ok) throw new Error(await responseError(response, "Knowledge page is unavailable.")); return response.json() as Promise<KnowledgePage>; })
         .then(setPage).catch((reason) => { if (!controller.signal.aborted) setPageError(reason instanceof Error ? reason.message : "Knowledge page is unavailable."); })
         .finally(() => { if (!controller.signal.aborted) setPageLoading(false); });

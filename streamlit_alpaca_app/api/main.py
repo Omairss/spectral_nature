@@ -781,7 +781,7 @@ def get_zopedia_workspace(
         raise _error("Zopedia workspace is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
-@app.get("/v1/zopedia/pages/{page_id:path}")
+@app.get("/v1/zopedia/pages")
 def get_zopedia_page(page_id: str, response: Response, principal: api_auth.AuthPrincipal = Depends(_require_principal)) -> dict[str, Any]:
     response.headers["Cache-Control"] = "no-store"
     _require_user_context(principal)

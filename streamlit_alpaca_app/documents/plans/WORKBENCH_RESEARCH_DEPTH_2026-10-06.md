@@ -40,6 +40,12 @@ pages, page bodies, outgoing links, backlinks, and source references. Source doc
 and synthesized wiki pages remain distinct navigable views. Read endpoints retain
 authentication, public-page visibility rules, bounded payloads, and read-only behavior.
 
+Page identifiers are opaque query values, not URL path segments. A real retained source
+ID contained `/` and failed through deployed encoded-path routing. The canonical BFF/API
+reader therefore accepts `page_id` as a query parameter and forwards the identifier
+unchanged after URL decoding; it must support stored slash/colon identifiers without
+weakening auth or introducing title/slug guessing.
+
 The product browser uses matching indexed search for both wiki pages and source pages,
 not the research retriever's broad lexical fallback. Retained-document search filters
 the corpus before applying its scan limit. Folder navigation shows immediate children
@@ -73,6 +79,14 @@ workbench continues at
   the existing model and Key Vault references, not plaintext credentials. It has no
   research tools or knowledge-write policy. The full `attention-home-next-dev` build
   also embeds the selection for future Home snapshots and replay.
+- Final selector source: `dec79a65`, pipeline image
+  `pipeline-jobs@sha256:94a98d9bc96e13c6e0d8285579925842b16bff16ac72bb2219a86c8477d76019`.
+  Execution `daily-datapoints-next-dev-huk3ner` succeeded at 2026-10-07 01:04 UTC;
+  run `3135124f-1c0b-4c7e-b078-30657863e4de` selected five charts from 110 candidates.
+  Personally reviewed the actual model result: Ciena revenue, Seagate free cash flow,
+  Vistra free cash flow, 10x Genomics free cash flow, and the ten-year Treasury yield.
+  Checked quarterly amounts/signs, consecutive-growth claims, fiscal reporting dates,
+  and the 4.78% → 5.28% Treasury-yield comparison against the supplied observations.
 
 These are manual development jobs, not a new production schedule. To refresh the
 independent daily cards, run the ticker job before the daily-selection job. A changed
