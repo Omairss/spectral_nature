@@ -2,23 +2,29 @@
 
 Date: 2026-10-06 (verification continues October 7 UTC)
 
-Status: the owner authorized proceeding with the frontend replacement on October 7 and
-will resolve Robinhood separately. Cutover is in progress, pending recovered Zopedia/research
-acceptance. Earlier staging-only restrictions below describe historical checkpoints.
+Status: the new frontend is live on all four production domains. Revision
+`sn-streamlit-ui--workbench-1007171849` is healthy and receives 100% of traffic. The owner
+authorized proceeding on October 7 and will resolve Robinhood separately. Final private
+checks on the custom domain await the owner's sign-in; candidate owner-session checks passed.
+Earlier staging-only restrictions below describe historical checkpoints.
 
 Release scope: replace the production frontend while preserving the existing backend,
 authentication, credentials, scheduled jobs, domains, and certificates. Robinhood linkage,
 broker connection-management UI, and trade execution are deferred, not certified as complete.
 Provider failures remain unavailable rather than substituting another account. Shared database
-lock recovery must pass actual knowledge search, linked-page traversal, and grounded research
-before switching the frontend.
+lock recovery passed actual knowledge search, linked-page traversal, and a retained-source
+research workflow before switching the frontend. This is frontend acceptance, not certification
+of exhaustive research coverage or a new agent harness.
 
 Staging exists at `https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io`:
 web revision `sn-next-ui--0000003`, private API revision `sn-api-next--0000002`, and manual
 `sn-research-run`. Web/API source is `6856a1de`; the worker uses the accepted
-development digest. Production Streamlit remains on revision `0000087`; all domain
-bindings match the pre-staging snapshot. Production authentication and Admin/users passed
-owner-session review; portfolio and research acceptance failed for the reasons below.
+development base plus the accepted lock fix. Production now runs the same web image on
+the existing `sn-streamlit-ui` app; the old Streamlit revision `0000087` is inactive and its
+complete template remains captured for rollback. All domain bindings match the pre-staging
+snapshot. Authentication and Admin/users passed candidate owner-session review; production
+Robinhood is explicitly deferred. The historical research failure below was resolved by
+shared lock recovery.
 
 ## Deployment boundary
 
@@ -124,6 +130,10 @@ control/data credentials. Robinhood settings and connections are unchanged.
 `scripts/prepare_workbench_cutover.py` only prepares an immutable ignored release directory.
 Compare its original-properties fingerprint immediately before applying the template-only
 PATCH; verify protected configuration, identities, domain bindings, and HTTPS afterward.
+Use the same version-matched `az resource show` representation as preparation for fingerprints;
+`az rest` omits nullable identity metadata that the generic resource client includes. Compare
+identity lifecycle entries by identity ID, not list order. Read back actual state after any
+verification exception before deciding whether to retry a write.
 The final prepared bundle is `infra/.generated/workbench-production/cutover-20261007-same-port/`.
 The earlier `cutover-20261007-6856a1de/` bundle was not applied; retain it for its lock-rollout records.
 Do not overwrite it or apply a historical domain-transfer procedure.
@@ -433,4 +443,57 @@ and 26 sources. Stored page counts and visible category counts describe differen
 Recurrence prevention backports only accepted schema guards, tracking-connection limits,
 and closing the news-resolution read to the existing immutable pipeline image families.
 It does not upgrade their dependencies or unrelated job behavior. Runtime acceptance and
-the final production revision will be recorded after verification.
+the final production revision are recorded below.
+
+## Production cutover verification
+
+The narrow backports built successfully as `cjr7`, `cjr8`, `cjr9`, `cjra`, `cjrc`, and
+`cjrd`. Each passed a managed read-only probe against the installed SAA/Zopedia schema:
+the bootstrap performed no DDL, page reads worked, and tracking sessions used 5-second
+lock, 120-second statement, and 60-second idle-transaction limits. Probe executions were
+`equities-next-dev-71gk4qi`, `-zbg22hc`, `-k58w8cj`, `-spruiut`, `-vynk0jk`, and `-35pbdif`.
+All six emitted `LOCK_BACKPORT_READONLY_ACCEPTED`; their default job template was unchanged
+by these probes.
+
+Template-only rollout updated 20 existing jobs, including the production and development
+research workers, with immutable base-preserving lock fixes. The four already corrected
+Home/equities templates remain on `9a40f986`; the same accepted three-file overlay was
+also applied to the development daily-datapoint job. Protected configuration, identities,
+native secret references, schedules, resources, commands, and environment values were
+verified unchanged. No job execution was stopped. Robinhood jobs were excluded. Per-job
+original and target templates are retained in `cutover-20261007-6856a1de/lock-rollout.json`
+and `lock-rollout-dev.json`.
+
+The signed-in candidate searched Ciena, opened its internal wiki page, and traversed a
+connected optical-interconnect theme with sources and backlinks. Research run
+`agrun_304443a9458f4cfbb7d1d0a1` dispatched `sn-research-run-3p7t4sw`, which succeeded at
+17:15:34 UTC. Actual journal/output review confirmed internal search and page reads,
+a completed business explanation with retained-source links, and no live web acquisition
+or requested knowledge edits. Its chosen evidence emphasized October 1 and older context;
+it did not exhaust the newer October 6 pages visible in search. Do not describe this smoke
+check as exhaustive research-quality acceptance or introduce a harness rewrite into this
+frontend release.
+
+The approved cutover replaced the frontend template on the existing production app.
+Revision `sn-streamlit-ui--workbench-1007171849` runs web digest `9c3de0f8` on port 8501,
+is healthy, and receives 100% of traffic. DNS, all four domain/certificate bindings, existing
+native secrets, identity assignments, and all other protected app configuration match the
+captured baseline. Streamlit dev remains `0000456`; the public API remains `0000003` at
+digest `6e2cd73a`. The private production adapter remains `sn-api-next--0000002` at digest
+`45e87d1c` with no public ingress and the same production control/data credentials.
+
+All four HTTPS aliases returned 200 for Home and minimal health, 401 for anonymous
+Admin/portfolio/research APIs, and 403 for a hostile-origin login request. CSP, HSTS,
+no-referrer, and content-type protections are present. The actual web process runs as
+UID 1001 with no backend credential environment names. Azure still advertises an identity
+endpoint, but token requests for each of the three retained identities returned 400 with
+no token. All three have runtime lifecycle `None`, preserving platform image-pull/secret
+resolution without granting the Node process their data/control permissions.
+
+At 17:27:46 UTC, the shared database had zero blocked queries and zero transactions idle
+for more than two minutes. The actual production Home renders its five model-selected
+trend charts and inline ticker price/fundamental histories. The owner sign-in handoff is
+open at `https://spectral-nature.com/login?next=%2Fadmin`; final private custom-domain
+acceptance remains pending rather than inferred from candidate cookies. No credentials
+were copied between origins. Rollback restores `cutover-20261007-same-port/rollback.patch.json`
+on the same app; no DNS or certificate rollback is needed.
