@@ -6,6 +6,11 @@ Status: production staging authorized by the owner; live traffic must remain on 
 No domain swap is authorized. Do not confuse an accepted development UI, generated release
 templates, healthy containers, and a verified production candidate.
 
+Release decision: NOT READY TO SWAP. Production chart-selection quality and signed-in
+owner workflows remain open. The Home producer has been restored to its original
+scheduled image; the verified equities promotion is retained. Details below are a staging
+audit trail, not a completion claim.
+
 Staging exists at `https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io`:
 web revision `sn-next-ui--0000001`, private API revision `sn-api-next--0000001`, and manual
 `sn-research-run`. Web/API source is `95f8d697`; the worker uses the accepted
@@ -221,3 +226,30 @@ prefix check. Backslash, control-character, external, scheme, and oversized dest
 fall back to the local research page; ordinary routes/query/fragment remain intact.
 Eight local auth/BFF checks, lint, type checking, and the production build pass. This
 additional web hardening is being prepared for development, then candidate rollout.
+
+## Open release gates
+
+The latest local production-input selection failed its semantic review after bounded
+revision. This is not production acceptance. The improved development-input result
+avoided the negative causal claim, but that does not certify the larger production
+catalog. Do not publish a manually curated replacement, call transport checks a quality
+verdict, or swap traffic. Reviewer issues are included in internal failure diagnostics
+for the next evaluation. The final selection refinement is source-only pending acceptance.
+
+At 07:18 UTC, `attention-home-build` was restored from the original rollback bundle to
+`pipeline-jobs@sha256:dea12fe927000c241a75df12a06a35c442f1381cd6ba2dd7b88ace8c298d589a`.
+Its template and protected configuration were re-read and matched the original receipt.
+The already published data and immutable versions were retained. The verified equities
+job stays on `d12069a7`; do not promote an unaccepted Home producer merely because its
+container or materialization succeeds. Current data-contract checks pass, but that alone
+does not certify the next scheduled legacy Home output for the new consumer.
+
+The remaining owner-session gate covers production Admin/users, portfolio reads, guarded
+broker/account state, and a safe research dispatch. No credentials have been changed or
+copied between development and production origins. The production sign-in tab is open.
+
+Public Daily Brief behavior is preserved from the existing Streamlit public-Home branch
+(`app.py`, public routing before the auth gate), not introduced as an auth bypass. Public
+Home and audio contain the materialized public market view. Private portfolio, research,
+knowledge and administration remain authenticated. The staging candidate has no custom
+domains; live domains and both Streamlit revisions still match the original baseline.

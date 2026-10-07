@@ -115,6 +115,7 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
             "Quarterly financials and slow macro releases are background conditions unless evidence establishes a fresh release. "
             "Respect each observation's actual date; do not describe stale changes as today's move. "
             "Partial causes and plausible business channels are not proven causes. No universal ranking or 'only' claim from this bounded candidate catalog. "
+            "Historical financial performance cannot establish or rule out the cause of today's repricing. Do not infer that a move was not a revenue, earnings, or demand event because a past quarter improved. "
             "Do not infer solvency, financing dependence, or balance-sheet strength from an income or cash-flow series alone. "
             "Check trend descriptions against every supplied observation: endpoint growth does not establish consecutive increases, and a range does not establish a direction. "
             "For seasonal quarterly businesses, compare the same fiscal quarter across years before claiming deterioration or acceleration. "
@@ -156,6 +157,7 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
                 "Check same-period prior-year behavior before accepting a structural trend claim about seasonal quarterly data. "
                 "Reject cherry-picked seasonal peaks, overstated direction/consecutive counts, invented causes, unsupported rankings, "
                 "and stale observations presented as new releases. Evidence of a business channel is not proof of causation. "
+                "Check negative causal claims as carefully as positive ones: old financial growth cannot rule out new revenue, demand, guidance, or earnings information behind today's price move. "
                 "Require a clear connection to the day's decision context, but do not require each background series to have been released today. "
                 "A significance sentence must explain why the quantitative finding matters in that context, not merely list endpoints or describe the chart window. "
                 "Return approved=false with specific actionable issues when revision is needed; otherwise approved=true and no issues. "
@@ -174,7 +176,8 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
             break
         feedback = "\n\nRevise the selection or wording to resolve this semantic review:\n" + json.dumps(verdict.get("issues") or [], ensure_ascii=False)
     else:
-        raise RuntimeError("Daily datapoint selection did not pass its source-backed semantic review.")
+        raise RuntimeError("Daily datapoint selection did not pass its source-backed semantic review: "
+                           + json.dumps(verdict.get("issues") or [], ensure_ascii=False))
     rows = []
     for rank, item in enumerate(selections, 1):
         title = str(item.get("title") or "").strip()
