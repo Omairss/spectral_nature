@@ -21,6 +21,11 @@ with the control-only identity. The web process receives no data/control credent
 cannot obtain its ACR-pull managed identity from the application runtime. Research dispatch
 permission is scoped to the one production research job.
 
+Broker execution is explicitly disabled on the staging candidate. The current production
+UI's execution policy remains unchanged and is recorded in the release manifest; restoring
+it on the replacement requires the separate approved cutover. Do not expose a second
+money-moving UI while staging only read/research behavior.
+
 Both web and API stay warm at one replica. Explicit startup/readiness/liveness probes use
 the minimal `/health` response. The API remains private; the worker has no ingress. Preserve
 HTTP-only host-prefixed cookies, rotation, exact same-host Origin checks, CSRF, nonce CSP,

@@ -180,6 +180,9 @@ def main() -> None:
         "RESEARCH_RUN_JOB_NAME": "sn-research-run", "PIPELINE_RESOURCE_GROUP": group,
         "API_ACCESS_TOKEN_SECRET_NAME": environment(dev_api)["API_ACCESS_TOKEN_SECRET_NAME"]["value"],
         "APP_DISABLE_CACHE": "false", "CODE_VERSION": environment(dev_api)["CODE_VERSION"]["value"],
+        # Staging is for production reads/research, never money movement. Restore
+        # the owner's existing policy only with the separate cutover approval.
+        "ROBINHOOD_MAIN_EXECUTION_ENABLED": "false",
     }.items()})
     for key in ("CONTROL_POSTGRES_CONNECTION_STRING", "ROBINHOOD_MCP_TOKEN_ENCRYPTION_KEY"):
         if not api_environment.get(key, {}).get("secretRef"):
@@ -281,6 +284,8 @@ def main() -> None:
             "existing_production_ui": {"id": old_ui["id"], "revision": old_ui["properties"]["latestReadyRevisionName"],
                                        "image": old_ui["properties"]["template"]["containers"][0]["image"], "domains": old_domains},
             "production_home_schedule": old_home["properties"]["configuration"].get("scheduleTriggerConfig"),
+            "production_broker_execution_policy": broker_env.get("ROBINHOOD_MAIN_EXECUTION_ENABLED", {}).get("value", "false"),
+            "candidate_broker_execution_enabled": False,
             "producer_promotion": "Apply template-only PATCH operations after comparing current configuration/template fingerprints. Do not submit these bundles as ARM templates.",
             "cutover": "Explicit approval required. Preserve existing DNS and certificate bindings until candidate acceptance.",
         },
