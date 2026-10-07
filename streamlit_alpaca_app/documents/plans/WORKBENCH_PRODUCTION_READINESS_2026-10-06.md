@@ -199,6 +199,13 @@ within its exact displayed dates, and Vistra $4.017B versus $4.250B. Background 
 are explicit rather than described as new releases. No hand-authored choices or captions
 were substituted. Managed development execution and production publication remain next.
 
+Managed execution `daily-datapoints-next-dev-he97kh7` succeeded, but personal review
+rejected one interpretation: historical revenue growth cannot establish that a current
+de-rating was not a revenue event. This is a negative causal inference, not a transport
+failure. The shared selection/review instructions are being strengthened for that general
+reasoning error. Source-backed review is useful but its approval alone is not acceptance.
+Do not call the candidate production-ready while this qualitative gate remains open.
+
 Account deployment receipts: development web `0000008`, private API `0000010`;
 production candidate web/API `0000001`. Pinned web digest:
 `sha256:98794b4aacac7734111944a45a0325f03bee0e8d3d5a72bc19f6e4aea18b3f16`;
@@ -208,3 +215,9 @@ with 422 and a safe error, and missing/hostile Origin/CSRF with 403. Production 
 Admin/research access remains rejected. No-referrer is deployed. Existing authenticated
 development session and Investigator plots still work after the update with no console
 warnings/errors. Production owner sign-in remains pending.
+
+Post-login destinations now use parsed same-origin normalization rather than a slash
+prefix check. Backslash, control-character, external, scheme, and oversized destinations
+fall back to the local research page; ordinary routes/query/fragment remain intact.
+Eight local auth/BFF checks, lint, type checking, and the production build pass. This
+additional web hardening is being prepared for development, then candidate rollout.

@@ -1,4 +1,5 @@
 import { LoginForm } from "./login-form";
+import { safeReturnPath } from "@/lib/server/auth";
 
 export default async function LoginPage({
   searchParams,
@@ -7,7 +8,7 @@ export default async function LoginPage({
 }) {
   const params = await searchParams;
   const raw = Array.isArray(params.next) ? params.next[0] : params.next;
-  const destination = raw?.startsWith("/") && !raw.startsWith("//") ? raw : "/zopedia";
+  const destination = safeReturnPath(raw);
   const hasInvite = params.invite_token !== undefined;
   const hasReset = params.reset_token !== undefined;
   const token = hasInvite ? params.invite_token : params.reset_token;

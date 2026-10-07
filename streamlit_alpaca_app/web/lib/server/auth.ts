@@ -11,6 +11,17 @@ export const ACCESS_COOKIE = `${prefix}sn_access`;
 export const REFRESH_COOKIE = `${prefix}sn_refresh`;
 export const CSRF_COOKIE = `${prefix}sn_csrf`;
 
+export function safeReturnPath(raw: unknown, fallback = "/zopedia") {
+  if (typeof raw !== "string" || raw.length > 2048 || !raw.startsWith("/")) return fallback;
+  try {
+    const base = new URL("https://return-path.invalid");
+    const target = new URL(raw, base);
+    return target.origin === base.origin ? `${target.pathname}${target.search}${target.hash}` : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 type TokenPayload = {
   access_token: string;
   refresh_token: string;

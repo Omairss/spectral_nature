@@ -22,6 +22,17 @@ function loadModule(path, overrides = {}, globals = {}) {
   return loaded.exports;
 }
 
+test("post-login return paths remain on the application origin after URL normalization", () => {
+  const auth = loadModule("../lib/server/auth.ts", {
+    "server-only": {}, "next/headers": {}, "next/server": {},
+  });
+  for (const input of ["//evil.example", "/\\evil.example", "/\n/evil.example", "https://evil.example", "javascript:alert(1)", null, "/" + "x".repeat(2048)]) {
+    assert.equal(auth.safeReturnPath(input), "/zopedia");
+  }
+  assert.equal(auth.safeReturnPath("/stock-investigator?ticker=AAPL#income"), "/stock-investigator?ticker=AAPL#income");
+  assert.equal(auth.safeReturnPath("/admin"), "/admin");
+});
+
 test("production aliases retain same-host origin and CSRF enforcement", async () => {
   const token = "test-csrf-token-which-is-long-enough";
   const auth = loadModule("../lib/server/auth.ts", {
