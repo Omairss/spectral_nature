@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 import { Markdown } from "@/components/markdown";
 import { Visualization } from "@/components/visualizations/visualization";
 import { TrendChart } from "@/components/visualizations/trend-chart";
@@ -107,8 +108,15 @@ function TickerSnapshot({ ticker }: { ticker: HomeTickerSnapshot }) {
   );
 }
 
-export default async function HomePage({ searchParams }: { searchParams: Promise<{ date?: string | string[] }> }) {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ date?: string | string[]; invite_token?: string | string[]; reset_token?: string | string[] }> }) {
   const params = await searchParams;
+  // Preserve links already issued by the existing account service.
+  const accountParams = new URLSearchParams();
+  for (const key of ["invite_token", "reset_token"] as const) {
+    const value = params[key];
+    if (value !== undefined) accountParams.set(key, typeof value === "string" && value.length <= 256 ? value : "invalid");
+  }
+  if (accountParams.size) redirect(`/login?${accountParams.toString()}`);
   const targetDate = normalizedDate(params.date);
   const home = await loadHome(targetDate);
   const available = home?.status === "available";

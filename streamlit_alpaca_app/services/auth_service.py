@@ -1402,6 +1402,10 @@ def accept_invite(
         return {"ok": False, "message": password_error}
 
     try:
+        # Reject random/expired tokens before expensive password hashing. The
+        # store rechecks under a row lock when consuming the actual invitation.
+        if not auth_store.get_pending_invite_by_token_hash(token_digest(invite_token)):
+            return {"ok": False, "message": "Invite is invalid or expired."}
         row = auth_store.accept_invite(
             invite_token_hash=token_digest(invite_token),
             first_name=str(first_name or "").strip(),
@@ -1409,8 +1413,10 @@ def accept_invite(
             display_name=str(display_name or "").strip(),
             password_hash=hash_password(password),
         )
-    except Exception as exc:
+    except ValueError as exc:
         return {"ok": False, "message": str(exc)}
+    except Exception:
+        return {"ok": False, "unavailable": True, "message": "Account activation is unavailable."}
 
     context = _context_from_row(row)
     if context is None:
@@ -1452,6 +1458,11 @@ def request_password_reset(
     base_url: str = "",
 ) -> dict[str, Any]:
     generic_message = "If an account exists for that email, reset instructions have been sent."
+    try:
+        if not auth_store.reserve_password_reset_request(email=email, requested_ip=requested_ip):
+            return {"ok": True, "message": generic_message, "email_sent": False}
+    except Exception:
+        return {"ok": False, "unavailable": True, "message": "Account recovery is unavailable."}
     user_row = auth_store.get_active_user_by_email(email)
     if user_row is None:
         record_access_event(
@@ -1575,12 +1586,16 @@ def complete_password_reset(*, reset_token: str, new_password: str) -> dict[str,
         return {"ok": False, "message": password_error}
 
     try:
+        if not auth_store.password_reset_token_valid(token_digest(reset_token)):
+            return {"ok": False, "message": "Reset token is invalid or expired."}
         row = auth_store.reset_password(
             reset_token_hash=token_digest(reset_token),
             password_hash=hash_password(new_password),
         )
-    except Exception as exc:
+    except ValueError as exc:
         return {"ok": False, "message": str(exc)}
+    except Exception:
+        return {"ok": False, "unavailable": True, "message": "Password reset is unavailable."}
 
     context = _context_from_row(row)
     record_access_event(

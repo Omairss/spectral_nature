@@ -128,6 +128,39 @@ def test_login_returns_access_and_refresh_tokens(monkeypatch):
     assert payload["context"]["email"] == "user@example.com"
 
 
+def test_recovery_public_response_never_exposes_token_or_email_diagnostics(monkeypatch):
+    monkeypatch.setattr(api_main, "_auth_enabled", lambda: True)
+    monkeypatch.setattr(api_main.auth_service, "request_password_reset", lambda **_kwargs: {
+        "ok": True, "reset_url": "private-token", "email_message": "SMTP password diagnostic", "email_sent": True,
+    })
+    response = TestClient(api_main.app).post("/v1/auth/password-reset/request", json={"email": "user@example.com"})
+    assert response.json() == {"ok": True, "message": "Reset instructions requested."}
+    assert response.headers["cache-control"] == "no-store"
+
+
+def test_activation_exchanges_the_existing_native_session_without_exposing_context(monkeypatch):
+    monkeypatch.setattr(api_main, "_auth_enabled", lambda: True)
+    monkeypatch.setattr(api_main.auth_service, "accept_invite", lambda **_kwargs: {"ok": True, "session_token": "native-session", "context": _user_context()})
+    def exchange(**kwargs):
+        assert kwargs == {"refresh_token": "native-session", "rotate_refresh_token": False}
+        return {"ok": True, "access_token": "access", "refresh_token": "refresh", "access_token_expires_at": "2026-10-07T09:00:00Z", "refresh_token_expires_at": "2026-11-07T09:00:00Z"}
+    monkeypatch.setattr(api_main.api_auth, "refresh_user_tokens", exchange)
+    response = TestClient(api_main.app).post("/v1/auth/invites/accept", json={"invite_token": "a"*43, "first_name": "A", "last_name": "B", "password": "StrongEnough123"})
+    assert response.status_code == 200
+    assert response.json()["refresh_token"] == "refresh"
+    assert "context" not in response.json()
+
+
+def test_password_reset_completion_drops_private_context_and_preserves_outage_status(monkeypatch):
+    monkeypatch.setattr(api_main, "_auth_enabled", lambda: True)
+    monkeypatch.setattr(api_main.auth_service, "complete_password_reset", lambda **_kwargs: {"ok": True, "context": _user_context()})
+    client = TestClient(api_main.app)
+    body = {"reset_token": "a"*43, "new_password": "StrongEnough123"}
+    assert client.post("/v1/auth/password-reset/complete", json=body).json() == {"ok": True}
+    monkeypatch.setattr(api_main.auth_service, "complete_password_reset", lambda **_kwargs: {"ok": False, "unavailable": True, "message": "Password reset is unavailable."})
+    assert client.post("/v1/auth/password-reset/complete", json=body).status_code == 503
+
+
 def test_public_auth_status_omits_secret_diagnostics(monkeypatch):
     monkeypatch.setattr(
         api_main.auth_service,

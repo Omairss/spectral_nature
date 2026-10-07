@@ -128,3 +128,51 @@ test("shell and route share one session read and failures can be retried", async
   await assert.rejects(unavailable.readAuthenticatedSession(), /Session could not be verified/);
   assert.equal(failedCalls, 2);
 });
+
+test("account actions keep credentials and recovery diagnostics behind the BFF", async () => {
+  const requests = [];
+  const cookies = [];
+  let cleared = 0;
+  const route = loadModule("../app/api/auth/account/[action]/route.ts", {
+    "next/server": {},
+    "@/lib/server/auth": {
+      validateMutation: async () => null,
+      readJsonBody: async () => ({ email: "user@example.com", role: "admin", invite_token: "private-invite", password: "private-password" }),
+      setAuthCookies: async (tokens) => { cookies.push(tokens); },
+      clearAuthCookies: async () => { cleared++; },
+    },
+    "@/lib/server/backend": {
+      backendFetch: async (path, init) => {
+        requests.push({ path, body: JSON.parse(init.body) });
+        return Response.json({ ok: true, access_token: "private-access", refresh_token: "private-refresh",
+          reset_url: "private-reset", matched_user: true, delivery: { smtp_password: "private-smtp" } });
+      },
+      backendError: async () => "Account request is invalid.",
+    },
+    "@/lib/server/http": { noStoreJson: Response.json },
+  });
+  for (const action of ["recover", "invite", "reset"]) {
+    const response = await route.POST({}, { params: Promise.resolve({ action }) });
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { ok: true });
+  }
+  assert.deepEqual(requests[0].body, { email: "user@example.com" });
+  assert.equal(Object.hasOwn(requests[1].body, "role"), false);
+  assert.equal(cookies[0].refresh_token, "private-refresh");
+  assert.equal(cleared, 1);
+  assert.equal((await route.POST({}, { params: Promise.resolve({ action: "unknown" }) })).status, 400);
+  assert.equal(requests.length, 3);
+});
+
+test("account action rejects missing origin/CSRF before reading credentials or calling auth", async () => {
+  const route = loadModule("../app/api/auth/account/[action]/route.ts", {
+    "next/server": {},
+    "@/lib/server/auth": {
+      validateMutation: async () => Response.json({}, { status: 403 }),
+      readJsonBody: async () => assert.fail("read rejected credentials"),
+    },
+    "@/lib/server/backend": { backendFetch: async () => assert.fail("called rejected auth action") },
+    "@/lib/server/http": { noStoreJson: Response.json },
+  });
+  assert.equal((await route.POST({}, { params: Promise.resolve({ action: "reset" }) })).status, 403);
+});

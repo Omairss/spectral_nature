@@ -309,6 +309,7 @@ def test_complete_password_reset_does_not_create_login_session(monkeypatch):
         "can_view_full_portfolio": False,
     }
 
+    monkeypatch.setattr(auth_service.auth_store, "password_reset_token_valid", lambda _token: True)
     monkeypatch.setattr(auth_service.auth_store, "reset_password", lambda **_kwargs: user_row)
     monkeypatch.setattr(auth_service.auth_store, "record_access_event", lambda **_kwargs: {"ok": True})
     monkeypatch.setattr(
@@ -322,6 +323,30 @@ def test_complete_password_reset_does_not_create_login_session(monkeypatch):
     assert result["ok"] is True
     assert result["message"] == "Password reset complete. Please log in with your new password."
     assert "session_token" not in result
+
+
+def test_account_tokens_are_checked_before_password_hashing(monkeypatch):
+    monkeypatch.setattr(auth_service.auth_store, "get_pending_invite_by_token_hash", lambda _token: None)
+    monkeypatch.setattr(auth_service.auth_store, "password_reset_token_valid", lambda _token: False)
+    monkeypatch.setattr(auth_service, "hash_password", lambda _password: (_ for _ in ()).throw(AssertionError("invalid token must not hash")))
+    assert not auth_service.accept_invite(invite_token="invalid", first_name="A", last_name="B", display_name="", password="StrongEnough123")["ok"]
+    assert not auth_service.complete_password_reset(reset_token="invalid", new_password="StrongEnough123")["ok"]
+
+
+def test_account_token_store_failure_is_unavailable_not_a_public_diagnostic(monkeypatch):
+    def unavailable(_token):
+        raise RuntimeError("private database diagnostic")
+    monkeypatch.setattr(auth_service.auth_store, "password_reset_token_valid", unavailable)
+    result = auth_service.complete_password_reset(reset_token="token", new_password="StrongEnough123")
+    assert result == {"ok": False, "unavailable": True, "message": "Password reset is unavailable."}
+
+
+def test_throttled_password_reset_does_not_lookup_accounts_or_send_mail(monkeypatch):
+    monkeypatch.setattr(auth_service.auth_store, "reserve_password_reset_request", lambda **_kwargs: False)
+    monkeypatch.setattr(auth_service.auth_store, "get_active_user_by_email", lambda _email: (_ for _ in ()).throw(AssertionError("throttled request must stop")))
+    result = auth_service.request_password_reset(email="private@example.com", requested_ip="source")
+    assert result["ok"] is True
+    assert "reset_url" not in result
 
 
 def test_authenticate_user_rejects_active_user_without_membership(monkeypatch):

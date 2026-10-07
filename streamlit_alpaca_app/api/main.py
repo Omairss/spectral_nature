@@ -371,6 +371,19 @@ class AdminPasswordResetRequest(BaseModel):
     email: str = Field(min_length=3, max_length=320)
 
 
+class AccountActivationRequest(BaseModel):
+    invite_token: str = Field(min_length=32, max_length=256)
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str = Field(min_length=1, max_length=100)
+    display_name: str = Field(default="", max_length=200)
+    password: str = Field(min_length=1, max_length=1024)
+
+
+class PasswordResetRequest(BaseModel):
+    reset_token: str = Field(min_length=32, max_length=256)
+    new_password: str = Field(min_length=1, max_length=1024)
+
+
 class ResearchRunResultResponse(BaseModel):
     status: str
     answer_markdown: str
@@ -635,6 +648,62 @@ def login(payload: LoginRequest, request: Request) -> dict[str, Any]:
         "scopes": list(result.get("scopes") or []),
         "context": context.to_dict() if isinstance(context, auth_service.UserContext) else None,
     }
+
+
+@app.post("/v1/auth/invites/accept")
+def activate_account(payload: AccountActivationRequest, request: Request, response: Response) -> dict[str, Any]:
+    _require_auth_backend()
+    response.headers["Cache-Control"] = "no-store"
+    try:
+        result = auth_service.accept_invite(
+            **payload.model_dump(), user_agent=request.headers.get("user-agent", ""),
+            ip_address=request.client.host if request.client else "",
+        )
+        if not result.get("ok"):
+            raise _error(str(result.get("message") or "Account activation failed."),
+                         503 if result.get("unavailable") else 400)
+        # Issue the normal API envelope for the newly created native session.
+        tokens = api_auth.refresh_user_tokens(refresh_token=result["session_token"], rotate_refresh_token=False)
+        if not tokens.get("ok"):
+            raise _error("Account created. Please sign in.", 503)
+        return {key: tokens[key] for key in ("ok", "access_token", "refresh_token", "access_token_expires_at", "refresh_token_expires_at")}
+    except HTTPException:
+        raise
+    except Exception:
+        raise _error("Account activation is unavailable.", 503)
+
+
+@app.post("/v1/auth/password-reset/request")
+def request_password_reset(payload: AdminPasswordResetRequest, request: Request, response: Response) -> dict[str, Any]:
+    _require_auth_backend()
+    response.headers["Cache-Control"] = "no-store"
+    try:
+        result = auth_service.request_password_reset(email=payload.email,
+            requested_ip=request.client.host if request.client else "")
+        if not result.get("ok"):
+            raise _error("Account recovery is unavailable.", 503)
+        # Never expose matched-user, SMTP diagnostics, or the generated reset URL.
+        return {"ok": True, "message": "Reset instructions requested."}
+    except HTTPException:
+        raise
+    except Exception:
+        raise _error("Account recovery is unavailable.", 503)
+
+
+@app.post("/v1/auth/password-reset/complete")
+def complete_password_reset(payload: PasswordResetRequest, response: Response) -> dict[str, Any]:
+    _require_auth_backend()
+    response.headers["Cache-Control"] = "no-store"
+    try:
+        result = auth_service.complete_password_reset(**payload.model_dump())
+        if not result.get("ok"):
+            raise _error(str(result.get("message") or "Password reset failed."),
+                         503 if result.get("unavailable") else 400)
+        return {"ok": True}
+    except HTTPException:
+        raise
+    except Exception:
+        raise _error("Password reset is unavailable.", 503)
 
 
 @app.post("/v1/auth/refresh")

@@ -182,6 +182,26 @@ class _FakeConnection:
         self.closed = True
 
 
+def test_password_reset_reservation_locks_counts_and_inserts_in_one_transaction(monkeypatch):
+    cursor = _SequencedCursor([{}, {}, {"rows": [(2, 19)]}, {}])
+    connection = _FakeConnection(cursor)
+    monkeypatch.setattr(auth_store, "_db_connect", lambda: connection)
+    assert auth_store.reserve_password_reset_request(email="User@Example.com", requested_ip="source")
+    assert all("pg_advisory_xact_lock" in call[0] for call in cursor.executed[:2])
+    assert "INSERT INTO" in cursor.executed[-1][0]
+    assert cursor.executed[-1][1][1] == "user@example.com"
+    assert connection.closed
+
+
+def test_password_reset_reservation_rejects_recipient_or_source_limit(monkeypatch):
+    for counts in ((3, 0), (0, 20)):
+        cursor = _SequencedCursor([{}, {}, {"rows": [counts]}])
+        connection = _FakeConnection(cursor)
+        monkeypatch.setattr(auth_store, "_db_connect", lambda: connection)
+        assert not auth_store.reserve_password_reset_request(email="user@example.com", requested_ip="source")
+        assert not any("INSERT INTO" in call[0] for call in cursor.executed)
+
+
 def test_list_users_aliases_users_table_and_merges_session_stats(monkeypatch):
     fake_cursor = _FakeCursor()
     fake_conn = _FakeConnection(fake_cursor)

@@ -150,3 +150,34 @@ The production Home refresh is running as `attention-home-build-ltpmk4j`. Accoun
 inspection also found that Next can issue invitation/reset links but does not consume
 the native root-query links. Those screens and the existing auth service's API access are
 required before cutover; do not describe sign-in alone as account lifecycle parity.
+
+## Account lifecycle completion
+
+Next now routes existing root-query invitation/reset links to dedicated account forms;
+forgot-password uses the same native auth service. No alternate users, hashes, roles,
+memberships, email provider, signing secret, or password policy is introduced. Thin API
+endpoints expose the existing operations; the BFF allowlists input and returns only public
+status, retaining issued credentials in HTTP-only cookies. It never returns generated
+reset URLs, matched-account state, validation input, or delivery diagnostics publicly.
+Email links continue using the existing production base URL; staging does not alter it.
+
+Token consumption rechecks validity under a row lock. Invalid tokens are rejected before
+password hashing. Password reset preserves the native revocation of all user sessions.
+Recovery requests reserve a short transaction in the existing control access-event log:
+at most three per normalized recipient and twenty per observed source per fifteen minutes.
+The private API sees the BFF source, so that source limit also bounds the BFF cohort; it
+does not trust a caller-supplied forwarding header. No new schema or database is needed.
+Global no-referrer prevents query tokens leaking in same-origin referrers.
+
+Local review verified the activation layout, reset link routing, recovery entry/back
+navigation, and invalid-link state without creating accounts or changing credentials.
+The 67 native auth/API checks and seven BFF/session security checks pass. These verify
+mechanics, not live email delivery or a completed real-user credential change. Actual
+credential entry/confirmation remains an owner handoff, not an automated browser action.
+
+Pipeline image `d12069a7` built successfully with digest
+`sha256:60075ee767052753140c8a3a50be9fc13d7b93b3217284186c9c600d3e6a67b2`.
+The complete producer is being exercised as manual `equities-next-dev-vaqgz72` at the same
+one CPU/two GiB limit in the development namespace. Production's existing producer remains
+on its rollback digest until that complete execution succeeds; no new production schedule
+has been introduced.

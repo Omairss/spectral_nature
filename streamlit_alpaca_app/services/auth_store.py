@@ -1164,7 +1164,7 @@ def insert_invite(
 def get_pending_invite_by_token_hash(invite_token_hash: str) -> dict[str, Any] | None:
     conn = _db_connect()
     if conn is None:
-        return None
+        raise AuthStoreUnavailable("Authentication store is unavailable.")
     schema = _schema_name()
     now = _now_utc()
     try:
@@ -1208,7 +1208,7 @@ def accept_invite(
                     SELECT id, email, role, portfolio_id, proposed_share_fraction, status, expires_at
                     FROM {schema}.user_invites
                     WHERE invite_token_hash = %s
-                    LIMIT 1
+                    LIMIT 1 FOR UPDATE
                     """,
                     (invite_token_hash,),
                 )
@@ -1298,6 +1298,58 @@ def accept_invite(
         conn.close()
 
 
+def reserve_password_reset_request(*, email: str, requested_ip: str = "") -> bool:
+    """Reserve a bounded recovery attempt atomically in the existing control log."""
+    conn = _db_connect()
+    if conn is None:
+        raise AuthStoreUnavailable("Authentication store is unavailable.")
+    schema = _schema_name()
+    normalized_email = str(email or "").strip().lower()
+    source = str(requested_ip or "unknown").strip()[:128]
+    now = _now_utc()
+    try:
+        with conn:
+            with conn.cursor() as cursor:
+                # Locks span only this short reservation, never SMTP/provider work.
+                for key in (f"reset-email:{normalized_email}", f"reset-source:{source}"):
+                    cursor.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))", (key,))
+                cursor.execute(
+                    f"""SELECT COUNT(*) FILTER (WHERE lower(email) = %s),
+                               COUNT(*) FILTER (WHERE ip_address = %s)
+                        FROM {schema}.access_events
+                        WHERE event_type = 'password_reset_attempt' AND created_at >= %s""",
+                    (normalized_email, source, now - timedelta(minutes=15)),
+                )
+                recipient_count, source_count = cursor.fetchone()
+                if recipient_count >= 3 or source_count >= 20:
+                    return False
+                cursor.execute(
+                    f"""INSERT INTO {schema}.access_events
+                        (id, email, event_type, event_category, ip_address, detail_json, created_at)
+                        VALUES (%s, %s, 'password_reset_attempt', 'security', %s, '{{}}'::jsonb, %s)""",
+                    (uuid.uuid4(), normalized_email, source, now),
+                )
+                return True
+    finally:
+        conn.close()
+
+
+def password_reset_token_valid(reset_token_hash: str) -> bool:
+    conn = _db_connect()
+    if conn is None:
+        raise AuthStoreUnavailable("Authentication store is unavailable.")
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""SELECT 1 FROM {_schema_name()}.password_reset_tokens
+                    WHERE reset_token_hash = %s AND status = 'pending' AND expires_at > %s LIMIT 1""",
+                (reset_token_hash, _now_utc()),
+            )
+            return cursor.fetchone() is not None
+    finally:
+        conn.close()
+
+
 def issue_password_reset(
     *,
     user_id: str,
@@ -1379,7 +1431,7 @@ def reset_password(
                     SELECT id, user_id, status, expires_at
                     FROM {schema}.password_reset_tokens
                     WHERE reset_token_hash = %s
-                    LIMIT 1
+                    LIMIT 1 FOR UPDATE
                     """,
                     (reset_token_hash,),
                 )
@@ -2621,9 +2673,11 @@ __all__ = [
     "open_auth_store_connection",
     "record_access_event",
     "record_failed_login",
+    "reserve_password_reset_request",
     "revoke_agent_api_key",
     "set_app_setting",
     "reset_password",
+    "password_reset_token_valid",
     "revoke_session",
     "revoke_user_sessions",
     "update_pending_invite",
