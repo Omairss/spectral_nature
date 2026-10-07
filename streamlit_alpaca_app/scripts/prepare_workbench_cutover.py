@@ -56,6 +56,16 @@ def main() -> int:
         raise ValueError('The candidate is not wired to the accepted private production API.')
     if env_by_name['APP_COOKIE_SECURE']['value'] != 'true':
         raise ValueError('Secure cookies are required.')
+    # Next's standalone server honors PORT. Keep both old and new revisions on
+    # the existing ingress port so warming the replacement does not reroute
+    # traffic to a port on which the still-live Streamlit revision is not listening.
+    port = old_config['ingress']['targetPort']
+    if not isinstance(port, int) or not 1024 <= port <= 65535:
+        raise ValueError('Review the existing ingress port before cutover.')
+    env.append({'name': 'PORT', 'value': str(port)})
+    for probe in template['containers'][0].get('probes', []):
+        if 'httpGet' in probe:
+            probe['httpGet']['port'] = port
     origins = env_by_name['APP_PUBLIC_ORIGINS']['value'].split(',')
     for host in [old_config['ingress']['fqdn'], *(d['name'] for d in domains)]:
         origin = 'https://' + host
@@ -70,7 +80,7 @@ def main() -> int:
         identities.append('system')
     identity_settings = [{'identity': identity, 'lifecycle': 'None'} for identity in identities]
     patch = {'properties': {'template': template, 'configuration': {
-        'ingress': {'targetPort': new['configuration']['ingress']['targetPort']},
+        'ingress': {'targetPort': port},
         'identitySettings': identity_settings,
     }}}
     rollback = {'properties': {
@@ -96,7 +106,7 @@ def main() -> int:
         'original_revision': old['latestRevisionName'],
         'original_image': pinned_image(live),
         'web_image': pinned_image(candidate), 'private_api_image': pinned_image(api),
-        'domains': domains, 'dns_change': False, 'credentials_changed': False,
+        'domains': domains, 'dns_change': False, 'port_change': False, 'credentials_changed': False,
         'broker_changes': False,
         'patch_sha256': hashlib.sha256(json.dumps(patch, sort_keys=True).encode()).hexdigest(),
     }

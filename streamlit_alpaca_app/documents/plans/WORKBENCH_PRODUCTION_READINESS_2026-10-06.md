@@ -112,8 +112,9 @@ entries remain. Do not force npm's suggested framework downgrade.
 ## Cutover and rollback
 
 The approved October 7 cutover uses the existing `sn-streamlit-ui` Container App rather
-than transferring domains to `sn-next-ui`. Replace only its frontend template, ingress
-target port, and runtime identity lifecycle. This retains its generated hostname, all
+than transferring domains to `sn-next-ui`. Replace only its frontend template and runtime
+identity lifecycle. Next listens on the existing ingress port through `PORT=8501`, so both
+old and new revisions use the same port while the replacement warms. This retains its generated hostname, all
 four domain/certificate bindings, and existing DNS, including the direct www CNAMEs.
 The old Streamlit template, ingress port, and identity lifecycle are captured for rollback.
 The web process receives only non-secret frontend settings; all retained managed identities
@@ -123,7 +124,8 @@ control/data credentials. Robinhood settings and connections are unchanged.
 `scripts/prepare_workbench_cutover.py` only prepares an immutable ignored release directory.
 Compare its original-properties fingerprint immediately before applying the template-only
 PATCH; verify protected configuration, identities, domain bindings, and HTTPS afterward.
-The prepared bundle is `infra/.generated/workbench-production/cutover-20261007-6856a1de/`.
+The final prepared bundle is `infra/.generated/workbench-production/cutover-20261007-same-port/`.
+The earlier `cutover-20261007-6856a1de/` bundle was not applied; retain it for its lock-rollout records.
 Do not overwrite it or apply a historical domain-transfer procedure.
 
 Current domains: `spectral-nature.com`, `www.spectral-nature.com`, `torres-cap.com`, and
@@ -133,12 +135,9 @@ directly to the old Streamlit generated hostname. Managed certificate renewal re
 each www CNAME to point directly to the destination app, not an intermediate alias.
 See [Azure managed-certificate requirements](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates).
 
-No DNS or domain bindings change during staging. Before an approved swap, capture current
-DNS TTL/records, validate domain ownership on the destination, and prepare the exact
-certificate/domain transfer and www DNS changes together. Verify HTTPS and same-host
-login/mutations on all four aliases after transfer. Keep Streamlit running for rollback.
-Restore original domain/certificate bindings and www CNAMEs if acceptance fails; restoring
-the old app alone does not restore DNS routing.
+No DNS or domain binding changes are needed for this cutover. Verify HTTPS and same-host
+login/mutations after replacing the frontend. Rollback restores the captured Streamlit
+template and managed-identity lifecycle on the same app; domains and DNS stay untouched.
 
 Producer rollback restores original templates and pinned images, not previously written
 data. New partition metadata and optional Home fields are backward compatible with old
