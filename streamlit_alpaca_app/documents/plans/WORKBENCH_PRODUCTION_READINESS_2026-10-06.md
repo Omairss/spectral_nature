@@ -253,3 +253,20 @@ Public Daily Brief behavior is preserved from the existing Streamlit public-Home
 Home and audio contain the materialized public market view. Private portfolio, research,
 knowledge and administration remain authenticated. The staging candidate has no custom
 domains; live domains and both Streamlit revisions still match the original baseline.
+
+The revision-loop audit found that feedback omitted the rejected draft. Revision now
+receives both draft and declared critique, preserving supported findings rather than
+restarting selection. The next local production-input run converged: review caught a
+neighboring-series yield and an overstated Ciena growth count, and revision corrected them.
+Personal acceptance checked the final five choices: Ciena revenue, Seagate cash flow,
+Constellation price, ten-year yield and 10x revenue. Constellation's September pre-jump
+range is $254.13–$299.23 versus the $300.40 close; Seagate's $1.118B cash flow is the high
+of the exact supplied history; quarter-matched 10x revenue and Treasury endpoints match
+the source. Managed verification remains required before re-promoting the Home job.
+
+Redirect hardening source `5f7a2665` is deployed: development web `0000009`, production
+candidate web `0000002`, pinned digest
+`sha256:9390474c34a5311255df95e89333272fa8ea52186f8e15a0df1631a434df94e7`.
+Both revisions are healthy. Actual deployed server-rendered login props normalize a
+backslash-host destination to `/zopedia`, while retaining the legitimate Investigator
+query and fragment. Anonymous production portfolio/Admin/research requests return 401.

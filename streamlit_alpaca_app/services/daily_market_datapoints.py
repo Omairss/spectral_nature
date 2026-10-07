@@ -174,7 +174,14 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
             raise RuntimeError("AQL/Zopedia could not review the daily datapoint selection.")
         if verdict.get("approved") is True and not verdict.get("issues"):
             break
-        feedback = "\n\nRevise the selection or wording to resolve this semantic review:\n" + json.dumps(verdict.get("issues") or [], ensure_ascii=False)
+        print(f"[info] daily datapoint semantic review attempt={attempt + 1} issues="
+              + json.dumps(verdict.get("issues") or [], ensure_ascii=False), flush=True)
+        feedback = (
+            "\n\nRevise this exact prior draft against its review. Preserve supported choices and comparisons; "
+            "correct the rejected interpretations without introducing unrelated claims. Replace a chart only if "
+            "it cannot support a useful decision-relevant finding. Do not restart the selection from scratch.\n"
+            + json.dumps({"previous_draft": selections, "review": verdict}, ensure_ascii=False)
+        )
     else:
         raise RuntimeError("Daily datapoint selection did not pass its source-backed semantic review: "
                            + json.dumps(verdict.get("issues") or [], ensure_ascii=False))
