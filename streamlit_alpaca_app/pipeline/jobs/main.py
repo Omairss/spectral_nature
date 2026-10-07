@@ -630,7 +630,9 @@ def _prepare_frame_for_parquet(frame: pd.DataFrame) -> pd.DataFrame:
     """Normalize mixed object columns before Arrow infers the wrong type."""
     if not isinstance(frame, pd.DataFrame) or frame.empty:
         return frame.copy() if isinstance(frame, pd.DataFrame) else pd.DataFrame()
-    prepared = frame.copy()
+    # Column replacement below does not mutate shared arrays. Avoid duplicating
+    # every numeric history column just to normalize a few object columns.
+    prepared = frame.copy(deep=False)
     for column in prepared.columns:
         series = prepared[column]
         if not pd.api.types.is_object_dtype(series.dtype):
@@ -665,19 +667,21 @@ _SYMBOL_PARTITIONED_DATASETS = {"price_history", "technical_signal_history"}
 def _upload_symbol_partitions(dataset_name: str, frame: pd.DataFrame, ctx: JobContext) -> dict[str, object]:
     if dataset_name not in _SYMBOL_PARTITIONED_DATASETS or frame.empty or "symbol" not in frame.columns:
         return {}
-    partitioned = frame.copy()
-    normalized_symbols = partitioned["symbol"].astype(str).str.upper().str.strip()
-    partitioned = partitioned[normalized_symbols.ne("")].copy()
-    if partitioned.empty:
+    normalized_symbols = frame["symbol"].fillna("").astype(str).str.upper().str.strip()
+    bucket_labels = normalized_symbols.where(normalized_symbols.ne("")).map(symbol_partition_bucket, na_action="ignore")
+    # Group row positions, not the full table. DataFrame.groupby retains a
+    # sorted copy of every column while yielding groups; that is prohibitive
+    # alongside the global technical history in the scheduled worker.
+    bucket_positions = bucket_labels.groupby(bucket_labels, sort=True).indices
+    if not bucket_positions:
         return {}
-    partitioned["symbol"] = normalized_symbols.loc[partitioned.index]
-    partitioned["_symbol_bucket"] = partitioned["symbol"].map(symbol_partition_bucket)
     asof_slug = ctx.asof.strftime("%Y-%m-%dT%H-%M-%SZ")
     dt_slug = ctx.asof.strftime("%Y-%m-%d")
     paths: dict[str, str] = {}
     row_counts: dict[str, int] = {}
-    for bucket, bucket_frame in partitioned.groupby("_symbol_bucket", sort=True):
-        clean_frame = bucket_frame.drop(columns=["_symbol_bucket"]).reset_index(drop=True)
+    for bucket, positions in bucket_positions.items():
+        clean_frame = frame.iloc[positions].reset_index(drop=True)
+        clean_frame["symbol"] = normalized_symbols.iloc[positions].to_numpy()
         path = dataset_blob_path(
             f"datasets/{dataset_name}/dt={dt_slug}/asof={asof_slug}/"
             f"universe={ctx.universe_version}/partition={SYMBOL_HASH_PARTITION_STRATEGY}/"
@@ -730,7 +734,7 @@ def _upload_manifest(
 
 
 def _persist_dataset(dataset_name: str, frame: pd.DataFrame, ctx: JobContext, conn: Any | None) -> None:
-    prepared_frame = frame.copy() if isinstance(frame, pd.DataFrame) else pd.DataFrame()
+    prepared_frame = frame.copy(deep=False) if isinstance(frame, pd.DataFrame) else pd.DataFrame()
     if dataset_name == "attention_source_documents" and not prepared_frame.empty:
         try:
             prepared_frame = persist_retained_source_documents(
@@ -1887,8 +1891,12 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
                     technical_latest_rows.append(latest_summary)
 
             technical_history = pd.concat(technical_history_parts, ignore_index=True) if technical_history_parts else pd.DataFrame()
+            # Concatenation owns the full history now. Do not retain a second
+            # full history as per-symbol frames throughout serialization.
+            technical_history_parts.clear()
             technical_latest = pd.DataFrame(technical_latest_rows)
             _persist_dataset("technical_signal_history", technical_history, ctx, conn)
+            del technical_history
             _persist_dataset("technical_signals_latest", technical_latest, ctx, conn)
         else:
             print("[warn] signals module unavailable; skipping technical derivatives preload")

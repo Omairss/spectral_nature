@@ -31,6 +31,7 @@ from pipeline.jobs.main import (
     _commit_zopedia_memory_pages,
     _db_mark_job_start,
     _persist_dataset,
+    _prepare_frame_for_parquet,
     _resolve_equity_symbols,
     _upload_frame,
     _upload_manifest,
@@ -132,6 +133,28 @@ def test_symbol_partition_uploads_publish_a_bounded_manifest_index(monkeypatch):
     assert set(partitioning["paths"].values()) == set(uploaded)
     persisted = pd.concat([pd.read_parquet(BytesIO(payload)) for payload in uploaded.values()], ignore_index=True)
     assert sorted(persisted["symbol"].tolist()) == ["AAPL", "AAPL", "MSFT"]
+
+
+def test_symbol_partitioning_preserves_positions_with_duplicate_indexes(monkeypatch):
+    uploaded = []
+    monkeypatch.setattr("pipeline.jobs.main._upload_bytes", lambda _path, payload, _type: uploaded.append(payload))
+    ctx = JobContext(name="equities-intraday-preload", run_id="12345678-review",
+                     asof=datetime(2026, 10, 7, tzinfo=timezone.utc), universe_version="review")
+    frame = pd.DataFrame({"symbol": [" aapl ", "MSFT", "aapl", "", None], "close": [1., 2., 3., 4., 5.]}, index=[0, 0, 1, 1, 1])
+    original = frame.copy(deep=True)
+    partitioning = _upload_symbol_partitions("price_history", frame, ctx)
+    persisted = pd.concat([pd.read_parquet(BytesIO(payload)) for payload in uploaded], ignore_index=True)
+    assert sorted(zip(persisted.symbol, persisted.close)) == [("AAPL", 1.), ("AAPL", 3.), ("MSFT", 2.)]
+    assert sum(partitioning["row_counts"].values()) == 3
+    pd.testing.assert_frame_equal(frame, original)
+
+
+def test_parquet_normalization_shares_numeric_storage_without_mutating_source():
+    frame = pd.DataFrame({"close": [1., 2.], "details": [{"source": "market"}, "plain"]})
+    normalized = _prepare_frame_for_parquet(frame)
+    assert np.shares_memory(frame["close"].to_numpy(), normalized["close"].to_numpy())
+    assert isinstance(frame.at[0, "details"], dict)
+    assert json.loads(normalized.at[0, "details"]) == {"source": "market"}
 
 
 def test_uploads_are_isolated_in_configured_dataset_namespace(monkeypatch):

@@ -6,6 +6,13 @@ Status: production staging authorized by the owner; live traffic must remain on 
 No domain swap is authorized. Do not confuse an accepted development UI, generated release
 templates, healthy containers, and a verified production candidate.
 
+Staging exists at `https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io`:
+web revision `sn-next-ui--naqb7s0`, private API revision `sn-api-next--77ejayy`, and manual
+`sn-research-run`. Web image source is `c14f0b22`; the staged API/worker use the accepted
+development digests. Production Streamlit remains on revision `0000087`; all domain
+bindings match the pre-staging snapshot. The candidate needs the owner's sign-in for
+production session/portfolio/research acceptance.
+
 ## Deployment boundary
 
 Keep `sn-streamlit-ui` and `sn-streamlit-ui-dev` unchanged. Stage the accepted images as
@@ -114,3 +121,32 @@ Producer rollback restores original templates and pinned images, not previously 
 data. New partition metadata and optional Home fields are backward compatible with old
 readers. Record original manifests before refresh if a data-pointer rollback is needed;
 never delete new dataset versions as part of traffic rollback.
+
+## Staging findings and recovery
+
+The original producer rollback bundle is
+`infra/.generated/workbench-production/release-c14f0b22-readonly/rollback-producers.patch.json`.
+Keep it even when preparing subsequent app releases. Original Home/ticker version suffix:
+`20261006T202028Z__b548d917`; original price/technical-history/latest suffix:
+`20261006T203529Z__9835a55c`. Their immutable manifests remain available.
+
+`equities-intraday-preload-9hhes79` published the price history with 64 partitions, then both
+attempts exited with code 137 during technical-history processing. The job was restored
+to its original image, pinned as
+`pipeline-jobs@sha256:dea12fe927000c241a75df12a06a35c442f1381cd6ba2dd7b88ace8c298d589a`.
+Its configuration, schedule, native secrets, and resource limits did not change.
+
+The source-level memory fix releases per-symbol frames after concatenation, uses shallow
+column-safe Parquet normalization, and groups partition row positions rather than making
+and sorting another full table. It releases the global technical table after publication.
+On the actual 1,471,130-row production technical artifact, local serialization peak RSS
+fell from 1,695.2 MB to 923.4 MB. All 64 partition counts sum to the full row count and the
+input symbol column remains unchanged. The review captured uploads locally: no cloud or
+database writes. Five focused serialization/partition checks pass, including duplicate
+indexes and source-object preservation. The complete producer still needs a successful
+managed execution before promotion is accepted.
+
+The production Home refresh is running as `attention-home-build-ltpmk4j`. Account-flow
+inspection also found that Next can issue invitation/reset links but does not consume
+the native root-query links. Those screens and the existing auth service's API access are
+required before cutover; do not describe sign-in alone as account lifecycle parity.
