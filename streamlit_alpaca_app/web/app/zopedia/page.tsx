@@ -58,6 +58,7 @@ function ZopediaWorkspace() {
   const [pageError, setPageError] = useState("");
   const workspaceRequest = useRef(0);
   const reader = useRef<HTMLElement>(null);
+  const [workspaceError, setWorkspaceError] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -76,14 +77,15 @@ function ZopediaWorkspace() {
     await Promise.resolve();
     const requestId = ++workspaceRequest.current;
     setLoading(true);
-    setError("");
+    setWorkspace(null);
+    setWorkspaceError("");
     try {
       const workspaceResponse = await fetch(`/api/zopedia/workspace?q=${encodeURIComponent(nextSearch)}&folder=${encodeURIComponent(nextFolder)}&offset=${nextOffset}&limit=60`, { cache: "no-store", credentials: "same-origin" });
       if (!workspaceResponse.ok) throw new Error(await responseError(workspaceResponse, "Zopedia workspace is unavailable."));
       const result = (await workspaceResponse.json()) as Workspace;
       if (requestId === workspaceRequest.current) setWorkspace(result);
     } catch (reason) {
-      if (requestId === workspaceRequest.current) setError(reason instanceof Error ? reason.message : "Zopedia workspace is unavailable.");
+      if (requestId === workspaceRequest.current) setWorkspaceError(reason instanceof Error ? reason.message : "Zopedia workspace is unavailable.");
     } finally { if (requestId === workspaceRequest.current) setLoading(false); }
   }, []);
 
@@ -188,11 +190,12 @@ function ZopediaWorkspace() {
         ...(searchQuery ? [{ key: "search", label: "Search results" }] : []),
       ]} label="Zopedia sections" onChange={setTab} />
       {sessionError || error ? <p className="subtle-error" role="alert">{sessionError || error}</p> : null}
+      {workspaceError ? <div role="alert" className="subtle-error">{workspaceError} <button className="text-button" onClick={() => void load(searchQuery, folder, offset)} type="button">Retry</button></div> : null}
       {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
 
       {tab === "search" ? <section className="zopedia-results" aria-busy={loading}>
         <header className="panel-header"><h2>Results for “{searchQuery}”</h2><button type="button" className="text-button" onClick={() => navigate({ q: "", tab: "knowledge", offset: 0 })}>Clear</button></header>
-        {loading ? <p className="loading-label">Searching…</p> : <>
+        {loading ? <p className="loading-label">Searching…</p> : workspace ? <>
           <h3>Knowledge pages · {workspace?.counts.pages || 0}</h3>
           <div className="knowledge-search-results">{workspace?.pages.map((item) => <button key={item.page_id} type="button" onClick={() => navigate({ tab: "knowledge", page: item.page_id })}><span>{item.page_type.replaceAll("_", " ")}</span><strong>{item.title}</strong><p>{item.summary}</p></button>)}</div>
           <h3>Sources · {(workspace?.documents.length || 0) + (workspace?.source_pages.length || 0)}</h3>
@@ -200,14 +203,14 @@ function ZopediaWorkspace() {
           {filteredThreads.length ? <><h3>Threads · {filteredThreads.length}</h3><div className="thread-list">{filteredThreads.map((thread) => <Link key={thread.run_id} href={`/zopedia/runs/${encodeURIComponent(thread.run_id)}`}>{thread.query}</Link>)}</div></> : null}
           {!workspace?.pages.length && !workspace?.documents.length && !workspace?.source_pages.length && !filteredThreads.length ? <p className="search-empty">No results for “{searchQuery}”.</p> : null}
           {workspace?.has_more ? <button className="quiet-button" onClick={() => navigate({ offset: offset + 60 })} type="button">More pages</button> : null}
-        </>}
+        </> : null}
       </section> : null}
 
       {tab === "knowledge" ? <section className={`wiki-browser${pageId ? " has-reader" : ""}`}>
         <aside className="wiki-folders" aria-label="Knowledge folders"><button className={!folder ? "active" : ""} onClick={() => navigate({ folder: "", q: "", page: "", offset: 0 })} type="button"><Icon name="book" />All knowledge</button>{folder ? <button onClick={() => navigate({ folder: folder.split("/").slice(0, -1).join("/") === "wiki" ? "" : folder.split("/").slice(0, -1).join("/"), page: "", offset: 0 })} type="button">← Parent folder</button> : null}{workspace?.folders.filter((item) => item.path !== "wiki" && !item.path.startsWith("wiki/sources")).map((item) => <button key={item.folder_id} title={item.path} onClick={() => navigate({ folder: item.path, q: "", page: "", offset: 0 })} type="button"><Icon name="book" /><span>{item.name}</span></button>)}</aside>
-        <div className="wiki-files" aria-busy={loading}><header><strong>{folder ? workspace?.folder_name || folder : "Knowledge"}</strong><span>{workspace?.counts.pages || 0} pages</span></header>
+        <div className="wiki-files" aria-busy={loading}><header><strong>{folder ? workspace?.folder_name || folder : "Knowledge"}</strong>{workspace ? <span>{workspace.counts.pages} pages</span> : null}</header>
           {loading ? <p className="loading-label">Loading pages…</p> : workspace?.pages.map((item) => <button className={pageId === item.page_id ? "active" : ""} key={item.page_id} onClick={() => navigate({ page: item.page_id })} type="button"><Icon name="book" /><span><strong>{item.title}</strong><small>{item.page_type.replaceAll("_", " ")} · {dateTime(item.updated_at)}</small>{!pageId && item.summary ? <p>{item.summary}</p> : null}</span></button>)}
-          {!loading && !workspace?.pages.length ? <p className="search-empty">No pages in this folder.</p> : null}
+          {!loading && workspace && !workspace.pages.length ? <p className="search-empty">No pages in this folder.</p> : null}
           <footer>{offset > 0 ? <button className="text-button" onClick={() => navigate({ offset: Math.max(0, offset - 60) })} type="button">Previous</button> : null}{workspace?.has_more ? <button className="text-button" onClick={() => navigate({ offset: offset + 60 })} type="button">Next</button> : null}</footer>
         </div>
         {pageId ? <article className="wiki-reader" ref={reader} aria-busy={pageLoading}>{pageLoading ? <p className="loading-label">Opening page…</p> : pageError ? <p role="alert" className="subtle-error">{pageError}</p> : page ? <>

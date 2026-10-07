@@ -71,10 +71,10 @@ A route is not migrated until all of these are true:
 - Options and Trading Agent: deployed with expiry/contract ranking, IV and scenario surfaces, Greek tradeoffs, market backdrop, candidates, thesis/context, research actions, and decision history. Broker connection, order review, and execution retain their existing guarded service boundaries and are not broadened by this frontend release.
 - Admin: deployed as a role-gated control-plane workspace with real users and invitations, password-reset issuance, usage/security, LLM, API-key, system-health, freshness, job, and history surfaces.
 - Visualization artifacts: Plotly currently renders the migrated real-data chart set behind a typed, renderer-neutral artifact boundary. Plotly is an adapter rather than the platform contract.
-- Overall frontend feature parity: the current read, analysis, research, decision, and administration workflows are represented in the isolated development workbench. Streamlit remains available as an independent comparison and fallback while parity is evaluated in use.
+- Overall frontend feature parity is not certified. Development represents many read, analysis, research, decision, and administration workflows, but production owner-session review exposed unavailable knowledge/research and an unsafe cross-broker fallback. Broker connection management and old-UI guarded order review/execution are not implemented in the replacement; they remain explicit parity gaps, not implied acceptance through shared service code. Streamlit remains the live fallback.
 - Agentic notebook/code/sandbox harness: parked until frontend parity, as requested.
 - Advanced renderer integrations beyond Plotly: the typed artifact boundary is ready, but the future graph/WebGL/3D renderer portfolio is not part of this parity release.
-- Development deployment: live only on `sn-next-ui-dev`, `sn-api-next-dev`, and `sn-research-run-dev`. Neither Streamlit environment nor any production application was updated.
+- Isolated development remains on `sn-next-ui-dev`, `sn-api-next-dev`, and `sn-research-run-dev`. An approved separate production candidate now exists; neither Streamlit environment nor live domains were changed.
 
 ## Acceptance review
 
@@ -112,9 +112,10 @@ with duplicate schedules. Both completed successfully; their data-contract audit
 The first production five-chart selection failed personal semantic review despite passing
 transport checks. Shared source-backed review and draft-preserving revision now pass
 managed development/production selection and personal review (`5ff5c5ea`). The existing
-Home producer has been promoted to that image and a complete refresh is running; its
-embedded replay selection remains to be checked. Production owner-session workflow checks
-also remain pending. Web `5f7a2665` additionally normalizes parsed same-origin login return
-paths. The authoritative
+Home producer has been promoted to that image and its complete refresh succeeded. Latest
+Home and retained replay render their own embedded selections. Production owner-session
+Admin/users passed, but knowledge/research and correct-provider portfolio reads failed.
+Local source fixes are recorded separately from deployment acceptance. Web `5f7a2665`
+additionally normalizes parsed same-origin login return paths. The authoritative
 release state and rollback boundary are in
 [production readiness](../../plans/WORKBENCH_PRODUCTION_READINESS_2026-10-06.md).

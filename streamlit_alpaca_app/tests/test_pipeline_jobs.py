@@ -50,6 +50,21 @@ from pipeline.jobs.main import (
 from services.pipeline_store import SOURCE_DATASETS, SOURCE_JOB_MAP
 
 
+def test_news_resolution_releases_its_wiki_read_connection(monkeypatch):
+    from pipeline.jobs import main
+
+    monkeypatch.setattr(main, "_load_latest_materialized_frame", lambda _: pd.DataFrame())
+    calls = []
+
+    def read_pages(**kwargs):
+        calls.append(kwargs)
+        return pd.DataFrame([{"page_id": "page"}])
+
+    monkeypatch.setattr(main, "list_zopedia_pages", read_pages)
+    assert len(main._zopedia_pages_for_news_resolution(conn=object())) == 1
+    assert "conn" not in calls[0]
+
+
 def test_upload_frame_persists_empty_frames(monkeypatch):
     uploaded: list[tuple[str, int, str]] = []
 

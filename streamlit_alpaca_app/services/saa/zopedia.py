@@ -1145,36 +1145,33 @@ def _sync_primary_folder_memberships(conn: Any, page_records: list[tuple[Any, ..
 def _zopedia_storage_ready(conn: Any) -> bool:
     """Check the complete runtime schema without taking DDL locks."""
 
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT
-                    NOT EXISTS (
-                        SELECT 1
-                        FROM unnest(%s::text[]) AS required(relation_name)
-                        WHERE to_regclass(required.relation_name) IS NULL
-                    )
-                    AND EXISTS (
-                        SELECT 1
-                        FROM information_schema.columns
-                        WHERE table_schema = current_schema()
-                          AND table_name = 'saa_zopedia_pages'
-                          AND column_name = 'source_urls_json'
-                    )
-                    AND EXISTS (
-                        SELECT 1
-                        FROM information_schema.columns
-                        WHERE table_schema = current_schema()
-                          AND table_name = 'saa_zopedia_pages'
-                          AND column_name = 'search_tsvector'
-                    )
-                """,
-                (list(_ZOPEDIA_REQUIRED_RELATIONS),),
-            )
-            row = cur.fetchone()
-    except Exception:
-        return False
+    # A failed catalog read must propagate, not trigger DDL in an aborted
+    # transaction. Resolve columns on the actual search-path relation.
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT
+                NOT EXISTS (
+                    SELECT 1
+                    FROM unnest(%s::text[]) AS required(relation_name)
+                    WHERE to_regclass(required.relation_name) IS NULL
+                )
+                AND EXISTS (
+                    SELECT 1
+                    FROM pg_attribute
+                    WHERE attrelid = to_regclass('saa_zopedia_pages')
+                      AND attname = 'source_urls_json' AND NOT attisdropped
+                )
+                AND EXISTS (
+                    SELECT 1
+                    FROM pg_attribute
+                    WHERE attrelid = to_regclass('saa_zopedia_pages')
+                      AND attname = 'search_tsvector' AND NOT attisdropped
+                )
+            """,
+            (list(_ZOPEDIA_REQUIRED_RELATIONS),),
+        )
+        row = cur.fetchone()
     return bool(row and row[0])
 
 

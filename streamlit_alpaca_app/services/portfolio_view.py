@@ -112,15 +112,21 @@ def build_portfolio_view(
     selected_period = str(period or "5Y").strip().upper()
     if selected_period not in PERIODS:
         raise ValueError("Portfolio period is invalid.")
-    resolved_service = service or QueryService.from_environment()
-    snapshot: dict[str, Any] | None = None
-    try:
+    # Provider selection is an authorization/data contract, not a fallback chain.
+    # A linked account with missing credentials or a pending snapshot must never
+    # be replaced by a different broker's (potentially paper) portfolio.
+    data_status = robinhood_main.portfolio_data_status(
+        user_id=context.user_id,
+        portfolio_id=context.portfolio_id,
+    )
+    snapshot = None
+    if data_status.get("state") != "unlinked":
         snapshot = robinhood_main.portfolio_snapshot(
             user_id=context.user_id,
             portfolio_id=context.portfolio_id,
         )
-    except robinhood_main.RobinhoodMainError:
-        snapshot = None
+        if snapshot is None:
+            raise robinhood_main.RobinhoodMainError("Linked portfolio data is unavailable.")
 
     if snapshot is not None:
         details = dict(snapshot.get("details") or {})
@@ -169,6 +175,7 @@ def build_portfolio_view(
             "as_of": str(snapshot.get("source_updated_at") or ""),
         }
 
+    resolved_service = service or QueryService.from_environment()
     account_resolved = resolved_service.data_access.resolve_account(force_refresh=False)
     positions_resolved = resolved_service.data_access.resolve_positions(force_refresh=False)
     timeseries_resolved = resolved_service.data_access.resolve_portfolio_timeseries(selected_period, force_refresh=False)

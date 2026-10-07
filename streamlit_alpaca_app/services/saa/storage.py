@@ -328,6 +328,45 @@ def _db_connection() -> Any | None:
 
 
 def bootstrap_saa_storage(conn: Any) -> None:
+    from .zopedia import _zopedia_storage_ready
+
+    # Existing producers and interactive readers share these relations. Running
+    # ALTER ... IF NOT EXISTS on every job start still takes exclusive locks.
+    required_relations = (
+        "saa_documents", "idx_saa_documents_published_at", "idx_saa_documents_bundle_subject",
+        "idx_saa_documents_source_provider", "idx_saa_documents_url_host", "idx_saa_documents_primary_date",
+        "idx_saa_documents_ticker_key", "idx_saa_documents_event_key", "saa_evidence_chunks",
+        "idx_saa_chunks_published_at", "idx_saa_chunks_bundle_subject", "idx_saa_chunks_run_id",
+        "idx_saa_chunks_document", "idx_saa_chunks_provider", "idx_saa_chunks_research_scope",
+        "idx_saa_chunks_ticker_key", "idx_saa_chunks_event_key", "idx_saa_chunks_search_tsvector",
+    )
+    migrated_columns = (
+        ("saa_documents", "display_excerpt"), ("saa_documents", "search_text"),
+        ("saa_documents", "mentioned_tickers_key"), ("saa_documents", "mentioned_commodities_key"),
+        ("saa_documents", "event_tags_key"), ("saa_documents", "mentioned_dates_key"),
+        ("saa_evidence_chunks", "embedding_model"), ("saa_evidence_chunks", "embedding_vector_json"),
+        ("saa_evidence_chunks", "search_tsvector"),
+    )
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT NOT EXISTS (
+                SELECT 1 FROM unnest(%s::text[]) AS required(relation_name)
+                WHERE to_regclass(required.relation_name) IS NULL
+            ) AND NOT EXISTS (
+                SELECT 1 FROM unnest(%s::text[], %s::text[]) AS required(relation_name, column_name)
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM pg_attribute
+                    WHERE attrelid = to_regclass(required.relation_name)
+                      AND attname = required.column_name AND NOT attisdropped
+                )
+            )
+            """,
+            (list(required_relations), [table for table, _ in migrated_columns], [column for _, column in migrated_columns]),
+        )
+        ready = cur.fetchone()
+    if ready and ready[0] and _zopedia_storage_ready(conn):
+        return
     with conn.cursor() as cur:
         cur.execute(
             """
@@ -533,12 +572,9 @@ def bootstrap_saa_storage(conn: Any) -> None:
             ON saa_evidence_chunks USING GIN (search_tsvector)
             """
         )
-        try:
-            from .zopedia import bootstrap_zopedia_storage
+        from .zopedia import bootstrap_zopedia_storage
 
-            bootstrap_zopedia_storage(conn, commit=False)
-        except Exception:
-            pass
+        bootstrap_zopedia_storage(conn, commit=False)
     conn.commit()
 
 

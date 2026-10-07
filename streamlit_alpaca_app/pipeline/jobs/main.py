@@ -220,7 +220,12 @@ def _db_connection() -> Any | None:
         if psycopg is None:
             print("[warn] psycopg unavailable; continuing without db sink")
             return None
-        return psycopg.connect(conn_str, connect_timeout=postgres_connect_timeout_seconds())
+        return psycopg.connect(
+            conn_str,
+            connect_timeout=postgres_connect_timeout_seconds(),
+            application_name=f"spectral_pipeline:{(os.getenv('PIPELINE_JOB_NAME') or 'unknown')[:45]}",
+            options="-c lock_timeout=5000 -c statement_timeout=120000 -c idle_in_transaction_session_timeout=60000",
+        )
 
     timeout = _postgres_startup_timeout_seconds()
     print(f"[info] postgres tracking startup timeout={timeout}s", flush=True)
@@ -2242,7 +2247,10 @@ def _zopedia_pages_for_news_resolution(conn: Any | None = None) -> pd.DataFrame:
         parts.append(previous_drafts)
     if conn is not None:
         try:
-            pages = list_zopedia_pages(limit=_parse_int_env("ZOPEDIA_NEWS_BUSINESS_PAGE_LIMIT", 500, minimum=1), conn=conn)
+            # Materialize and close the read connection before the caller runs
+            # external research/LLM work. The job's long-lived tracking connection
+            # must not retain table locks across that work.
+            pages = list_zopedia_pages(limit=_parse_int_env("ZOPEDIA_NEWS_BUSINESS_PAGE_LIMIT", 500, minimum=1))
         except Exception as exc:
             print(f"[warn] news business resolution could not load Zopedia pages: {type(exc).__name__}: {exc}")
             pages = pd.DataFrame()

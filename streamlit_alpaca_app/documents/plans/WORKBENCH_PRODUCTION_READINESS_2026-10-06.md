@@ -6,18 +6,19 @@ Status: production staging authorized by the owner; live traffic must remain on 
 No domain swap is authorized. Do not confuse an accepted development UI, generated release
 templates, healthy containers, and a verified production candidate.
 
-Release decision: NOT READY TO SWAP. Managed chart selection has passed personal review,
-but the complete refreshed Home/replay output and signed-in production owner workflows
-remain open. The Home producer is now on accepted selection source `5ff5c5ea`; the verified
-equities promotion is retained. Details below are a staging audit trail, not a completion
-claim.
+Release decision: NOT READY TO SWAP. The complete Home refresh succeeded and the owner
+signed in. Actual private-path review found two blockers: Zopedia reads/research fail
+behind shared database locks, and a missing production Robinhood connection was silently
+replaced by Alpaca data. Source fixes are under verification; neither container health
+nor a completed research worker clears these gates. Details below distinguish current
+findings from earlier staging checkpoints.
 
 Staging exists at `https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io`:
 web revision `sn-next-ui--0000002`, private API revision `sn-api-next--0000001`, and manual
 `sn-research-run`. Web source is `5f7a2665`, API source is `95f8d697`; the worker uses the accepted
 development digest. Production Streamlit remains on revision `0000087`; all domain
-bindings match the pre-staging snapshot. The candidate needs the owner's sign-in for
-production session/portfolio/research acceptance.
+bindings match the pre-staging snapshot. Production authentication and Admin/users passed
+owner-session review; portfolio and research acceptance failed for the reasons below.
 
 ## Deployment boundary
 
@@ -47,7 +48,7 @@ for mutations, but one alias cannot mutate another alias's host-local session.
 
 ## Existing refresh pipeline
 
-The production pipeline already runs. Only these two producers need the accepted image:
+The production pipeline already runs. These two producers needed the new frontend read contract:
 
 | Existing job | Existing UTC schedule | New read contract |
 | --- | --- | --- |
@@ -273,7 +274,7 @@ Both revisions are healthy. Actual deployed server-rendered login props normaliz
 backslash-host destination to `/zopedia`, while retaining the legitimate Investigator
 query and fragment. Anonymous production portfolio/Admin/research requests return 401.
 
-## Latest managed verification — 07:39 UTC
+## Managed selection checkpoint — 07:39 UTC (historical)
 
 Selection image source `5ff5c5ea`, pinned as
 `pipeline-jobs@sha256:42743fcdfbbbaa039c88796043bc6195603f5e0060fa29f3781c945a9f9449d9`,
@@ -315,3 +316,46 @@ email delivery, and credential changes were not performed. The owner must sign i
 new candidate origin for Admin/users, portfolio/account reads, private knowledge traversal,
 and one safe read-only research run. Development cookies were not copied. Live traffic
 and all domain bindings remain on Streamlit; no swap is authorized.
+
+## Owner-session findings — October 7, 16:30 UTC
+
+The owner signed in directly to the candidate. Admin displayed 12 actual users. The full
+Home execution `attention-home-build-rim6fga` succeeded at 08:06:11 UTC. Subsequent existing
+schedules published a 14:20 UTC Home artifact, 81 ticker snapshots (37 with all three
+financial histories), and 64 partitions for each of 1,466,598 price and 1,465,039 technical
+rows. The latest Home and its five charts rendered after normal cache revalidation;
+the October 7 replay also rendered its retained 07:36 UTC snapshot and embedded charts.
+The replay was not rewritten to match a newer standalone selection.
+
+Zopedia workspace returned 503. A normal owner research request, `agrun_9093fcffaa2c44168abb5445`,
+dispatched worker `sn-research-run-aqnkaea` and completed, but retrieval failed with a
+page-table lock timeout and supplied no retained evidence. This is failed research
+acceptance, not a successful answer. Its policy remained `none`; no knowledge edit or
+broker action was requested.
+
+Read-only database inspection established that every required Zopedia relation and both
+migrated columns exist; readiness is true. An unnamed legacy session retained a page
+SELECT transaction for over 14 minutes. Older sessions queued `ALTER TABLE ... ADD COLUMN
+IF NOT EXISTS` on Zopedia/documents, blocking later readers. Existing scheduled jobs still
+use September images. The shared source fix skips complete SAA schemas without DDL,
+resolves Zopedia columns against the actual relation, propagates catalog failures, gives
+pipeline sessions an identifying name and bounded lock/statement/idle-transaction limits,
+and closes the news-resolution wiki read before external/model work. A broad existing-job
+rollout and clearing the confirmed stuck transaction require the newly requested approval;
+neither has been performed at this checkpoint.
+
+Portfolio selected 5Y but displayed a $1,000 Alpaca account. The control store has a linked
+Robinhood portfolio, development/local connections, and a development snapshot, but no
+production connection or snapshot. The API caught a connection/authorization failure and
+fell through to another broker. The source fix permits Alpaca only when the shared service
+explicitly reports an unlinked portfolio; missing credentials, storage, pending refresh,
+and failed snapshots fail closed. Both Portfolio and Performance consume that contract.
+No development credentials or snapshot were copied into production. Production broker
+linking requires the owner's normal credential/verification flow. The replacement still
+needs a secure connection-management surface before full old-UI parity can be asserted.
+
+Zopedia source UI now treats workspace failure separately from successful empty results,
+clears stale search/folder data, and offers retry instead of claiming zero pages. Focused
+technical checks passed (13), existing API/auth/SAA/wiki checks passed (55), and web lint
+and type checks passed. These are local source checks, not deployment or qualitative
+research acceptance. Live Streamlit, domains, public API, and broker policy remain unchanged.

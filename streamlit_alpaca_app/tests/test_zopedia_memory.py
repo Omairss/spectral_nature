@@ -96,6 +96,25 @@ def test_zopedia_bootstrap_avoids_ddl_when_runtime_schema_is_ready():
     assert conn.commit_count == 0
 
 
+def test_saa_bootstrap_avoids_ddl_when_shared_runtime_schema_is_ready():
+    from services.saa.storage import bootstrap_saa_storage
+
+    conn = _ReadySchemaConnection()
+    bootstrap_saa_storage(conn)
+    assert len(conn.queries) == 2
+    assert all("CREATE TABLE" not in query and "ALTER TABLE" not in query for query in conn.queries)
+    assert conn.commit_count == 0
+
+
+def test_catalog_failure_cannot_trigger_zopedia_migration():
+    class UnavailableConnection:
+        def cursor(self):
+            raise RuntimeError("Catalog unavailable")
+
+    with pytest.raises(RuntimeError, match="Catalog unavailable"):
+        zopedia_module.bootstrap_zopedia_storage(UnavailableConnection())
+
+
 def test_zopedia_pages_are_searchable_without_database():
     frame, records = prepare_zopedia_pages(
         [
