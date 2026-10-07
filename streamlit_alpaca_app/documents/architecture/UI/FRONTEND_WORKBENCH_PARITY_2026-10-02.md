@@ -115,7 +115,10 @@ managed development/production selection and personal review (`5ff5c5ea`). The e
 Home producer has been promoted to that image and its complete refresh succeeded. Latest
 Home and retained replay render their own embedded selections. Production owner-session
 Admin/users passed, but knowledge/research and correct-provider portfolio reads failed.
-Local source fixes are recorded separately from deployment acceptance. Web `5f7a2665`
-additionally normalizes parsed same-origin login return paths. The authoritative
+Corrective source `6856a1de` is staged on dev and the separate production candidate: real
+dev holdings still load, unavailable production brokerage no longer falls back to another
+provider, and Zopedia outages no longer claim an empty wiki. Shared legacy lock recovery,
+production broker linking, and connection/order-management UI parity remain open. Web also
+normalizes parsed same-origin login return paths. The authoritative
 release state and rollback boundary are in
 [production readiness](../../plans/WORKBENCH_PRODUCTION_READINESS_2026-10-06.md).

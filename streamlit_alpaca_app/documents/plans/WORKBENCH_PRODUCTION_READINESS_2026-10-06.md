@@ -9,13 +9,14 @@ templates, healthy containers, and a verified production candidate.
 Release decision: NOT READY TO SWAP. The complete Home refresh succeeded and the owner
 signed in. Actual private-path review found two blockers: Zopedia reads/research fail
 behind shared database locks, and a missing production Robinhood connection was silently
-replaced by Alpaca data. Source fixes are under verification; neither container health
+replaced by Alpaca data. Source fixes are staged, but shared-lock recovery and correct-provider
+acceptance remain open; neither container health
 nor a completed research worker clears these gates. Details below distinguish current
 findings from earlier staging checkpoints.
 
 Staging exists at `https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io`:
-web revision `sn-next-ui--0000002`, private API revision `sn-api-next--0000001`, and manual
-`sn-research-run`. Web source is `5f7a2665`, API source is `95f8d697`; the worker uses the accepted
+web revision `sn-next-ui--0000003`, private API revision `sn-api-next--0000002`, and manual
+`sn-research-run`. Web/API source is `6856a1de`; the worker uses the accepted
 development digest. Production Streamlit remains on revision `0000087`; all domain
 bindings match the pre-staging snapshot. Production authentication and Admin/users passed
 owner-session review; portfolio and research acceptance failed for the reasons below.
@@ -359,3 +360,43 @@ clears stale search/folder data, and offers retry instead of claiming zero pages
 technical checks passed (13), existing API/auth/SAA/wiki checks passed (55), and web lint
 and type checks passed. These are local source checks, not deployment or qualitative
 research acceptance. Live Streamlit, domains, public API, and broker policy remain unchanged.
+
+## Staged corrective release — October 7, 16:39 UTC
+
+Source `6856a1de` is committed. Clean, minimal Git-archive contexts excluded unrelated
+native work and all local credentials. ACR builds `cjr3`, `cjr4`, and `cjr5` succeeded:
+
+| Component | Pinned digest | Deployment |
+| --- | --- | --- |
+| Web | `sha256:9c3de0f897e9c6b56d459ac925dca8045f46b91626cbeac081c8da92a8d66d98` | dev `0000010`, candidate `0000003` |
+| API | `sha256:45e87d1cd5895d853d4a094ed16405a024b5b15fa9d1ae90f812acfb5bb9c4a5` | dev `0000011`, candidate `0000002` |
+| Pipeline | `sha256:9a40f9862a84c6cd045a750d4522abdd05921e2c26eb57583866f235637d0bbc` | existing scoped Home/equities jobs only |
+
+Both web/API environments report healthy revisions. The dev owner portfolio still loads
+its real linked holdings with 5Y selected. The production candidate now returns unavailable
+rather than substituting Alpaca. The original production Streamlit also uses
+`APP_TRACK=production`; this is not a candidate-induced broker-environment mismatch.
+Actual candidate Investigator review loaded all five CIEN plots without tabs. Broad
+Economy displayed multiple charts, raw/smoothed choices, and a real correlation matrix.
+Candidate private portfolio/Admin/research routes still reject anonymous requests with 401.
+
+One-execution dev override `equities-next-dev-yd27cgo` succeeded at 16:36:33 UTC. It ran the
+new shared SAA bootstrap under `SET TRANSACTION READ ONLY` and logged
+`SAA_SCHEMA_READY_WITHOUT_DDL`. The default template/configuration were unchanged by that
+probe. This verifies the complete existing schema takes the non-DDL path; it does not
+clear pre-existing blocking sessions or certify research quality.
+
+After that probe, template-only PATCH promoted `equities-next-dev`,
+`attention-home-next-dev`, and the already-approved production `equities-intraday-preload`
+and `attention-home-build` to the pinned pipeline image. Fresh reads verified identities,
+configuration/secrets, schedules, resources, commands, and all environment values except
+the intended `CODE_VERSION`. ARM omits an empty `ephemeralStorage` default on PATCH; only
+that empty/default field was normalized for template comparison. No execution was stopped.
+The original immutable rollback bundle remains intact. No other production job was changed.
+
+The newly staged Zopedia UI visibly reports unavailable with Retry and no false page count
+or empty-folder claim. Shared legacy locks still block the workspace. Wider job rollout
+and the specific stuck-transaction cleanup await owner approval. Broker connection-management
+and guarded order-review/execution UI remain explicit parity gaps; do not promote a
+read-only candidate as a full replacement. Streamlit prod `0000087`, Streamlit dev `0000456`,
+public API `0000003`, and all four live domain bindings were re-read unchanged.
