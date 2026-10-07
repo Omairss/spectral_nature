@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type { Session } from "@/lib/types";
 import { secureMutation } from "@/lib/client/api";
+import { readAuthenticatedSession } from "@/lib/client/session";
 import { AgentRail } from "./agent-rail";
 import { Icon, SignalMark } from "./icons";
 import { ShellNav } from "./shell-nav";
@@ -31,10 +32,9 @@ export function WorkbenchShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let active = true;
-    fetch("/api/auth/session", { cache: "no-store" })
-      .then(async (response) => (response.ok ? response.json() : { authenticated: false }))
+    readAuthenticatedSession()
       .then((payload: Session) => { if (active) setSession(payload); })
-      .catch(() => { if (active) setSession({ authenticated: false }); });
+      .catch(() => { /* Keep the last verified identity during an auth-store outage. */ });
     return () => { active = false; };
   }, [pathname]);
 

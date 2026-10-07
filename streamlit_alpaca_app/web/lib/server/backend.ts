@@ -56,13 +56,12 @@ export async function authorizedBackendFetch(path: string, options: BackendOptio
     body: JSON.stringify({ refresh_token: refreshToken, rotate_refresh_token: true }),
   });
   if (!refreshed.ok) {
-    await clearAuthCookies();
-    return response;
+    if (refreshed.status === 401 || refreshed.status === 403) await clearAuthCookies();
+    return refreshed;
   }
   const payload = (await refreshed.json()) as RefreshPayload;
   if (!payload.access_token || !payload.refresh_token) {
-    await clearAuthCookies();
-    return response;
+    return Response.json({ error: "Session could not be verified." }, { status: 502 });
   }
   await setAuthCookies({
     access_token: payload.access_token,

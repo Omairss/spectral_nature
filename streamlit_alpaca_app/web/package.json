@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:auth": "node --test tests/auth-boundary.test.mjs"
   },
   "dependencies": {
     "next": "16.3.8",

@@ -6,6 +6,7 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { Icon } from "@/components/icons";
 import { Visualization } from "@/components/visualizations/visualization";
 import { responseError, secureMutation } from "@/lib/client/api";
+import { readAuthenticatedSession } from "@/lib/client/session";
 import type {
   DatasetArtifact,
   Session,
@@ -197,13 +198,15 @@ function StockInvestigatorWorkspace() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/auth/session", { cache: "no-store" })
-      .then(async (response) => response.json())
+    let active = true;
+    readAuthenticatedSession()
       .then((payload: Session) => {
+        if (!active) return;
         setSession(payload);
         if (!payload.authenticated) router.replace("/login?next=/stock-investigator");
       })
-      .catch(() => setError("Session could not be verified."));
+      .catch(() => { if (active) setError("Session could not be verified."); });
+    return () => { active = false; };
   }, [router]);
 
   useEffect(() => {
@@ -231,7 +234,7 @@ function StockInvestigatorWorkspace() {
   }
 
   if (!session?.authenticated) {
-    return <div className="page-shell"><p className="loading-label">Checking session…</p></div>;
+    return <div className="page-shell">{error ? <p className="subtle-error" role="alert">{error}</p> : <p className="loading-label">Checking session…</p>}</div>;
   }
 
   return (

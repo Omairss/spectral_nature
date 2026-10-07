@@ -2,9 +2,10 @@
 
 Date: 2026-10-06
 
-Status: implemented and deployed to the alternative development stack. Final
-owner-authenticated review of the latest layout and slash-containing source-page route
-is waiting for the owner to sign in again; earlier live acceptance checks are recorded below.
+Status: implemented and deployed to the alternative development stack. Owner-authenticated
+review of the five-column layout and slash-containing source-page route passed on
+October 7 UTC. Production preparation is tracked in
+`WORKBENCH_PRODUCTION_READINESS_2026-10-06.md`; live traffic remains on Streamlit.
 
 ## Daily Brief
 
@@ -106,12 +107,17 @@ the entity page's backlink. There are 1,285 non-source wiki pages at review time
 Missing financial series are not fabricated; provider coverage and reporting dates
 remain visible in the charts.
 
-The final rollout's browser reload redirected to sign-in. Do not describe the newest
-layout or opaque-ID ingress fix as owner-session verified until login is restored and
-the source article and five-column chart row are inspected. The new canonical query
-route returns 401 anonymously, and the same slash-containing identifier round-tripped
-successfully through the local API/BFF transport review. No authentication bypass or
-credential change was introduced for this work.
+After the owner signed in, the deployed reader opened the actual retained Kalkine
+ConocoPhillips LNG article through its slash-containing `source/...` identifier, including
+its body, connected pages, and source link. The five daily charts were inspected in one
+aligned desktop row. A later reload after access-token expiry preserved the owner session.
+Anonymous requests still return 401. No authentication bypass or credential change was
+introduced for this work.
+
+The subsequent read-contract audit also found unpartitioned development `price_history`.
+The existing manual namespace refresh job was extended to include that dataset, retaining
+the production-read/development-write boundary. Execution
+`technical-history-next-dev-vtl8w1g` succeeded on October 7 at 05:58 UTC.
 
 Security checks: the API ingress remains private; an unauthenticated wiki-page BFF request
 returns 401; same-origin CSP, HSTS, no-store, and frame protections remain intact.

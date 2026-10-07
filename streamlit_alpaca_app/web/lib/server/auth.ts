@@ -74,10 +74,16 @@ function safeEqual(left: string, right: string) {
 }
 
 export async function validateMutation(request: NextRequest): Promise<NextResponse | null> {
-  const configuredOrigin = process.env.APP_PUBLIC_ORIGIN?.trim();
-  const expectedOrigin = configuredOrigin || request.nextUrl.origin;
+  const configuredOrigins = (process.env.APP_PUBLIC_ORIGINS || process.env.APP_PUBLIC_ORIGIN || "")
+    .split(",").map((value) => value.trim()).filter(Boolean);
+  const allowedOrigins = configuredOrigins.length ? configuredOrigins : [request.nextUrl.origin];
   const origin = request.headers.get("origin") || "";
-  if (!origin || origin !== expectedOrigin) {
+  // Multiple production hostnames are allowed, but one alias cannot mutate a
+  // session on another. Host-prefixed cookies and CSRF remain origin-local.
+  const requestHost = request.headers.get("host") || request.nextUrl.host;
+  let originMatchesHost = false;
+  try { originMatchesHost = new URL(origin).host === requestHost; } catch { /* Reject malformed origins. */ }
+  if (!origin || !allowedOrigins.includes(origin) || !originMatchesHost) {
     return NextResponse.json({ error: "Request origin rejected." }, { status: 403 });
   }
   const store = await cookies();
