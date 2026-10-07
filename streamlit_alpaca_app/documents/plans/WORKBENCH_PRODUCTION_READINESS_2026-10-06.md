@@ -6,14 +6,15 @@ Status: production staging authorized by the owner; live traffic must remain on 
 No domain swap is authorized. Do not confuse an accepted development UI, generated release
 templates, healthy containers, and a verified production candidate.
 
-Release decision: NOT READY TO SWAP. Production chart-selection quality and signed-in
-owner workflows remain open. The Home producer has been restored to its original
-scheduled image; the verified equities promotion is retained. Details below are a staging
-audit trail, not a completion claim.
+Release decision: NOT READY TO SWAP. Managed chart selection has passed personal review,
+but the complete refreshed Home/replay output and signed-in production owner workflows
+remain open. The Home producer is now on accepted selection source `5ff5c5ea`; the verified
+equities promotion is retained. Details below are a staging audit trail, not a completion
+claim.
 
 Staging exists at `https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io`:
-web revision `sn-next-ui--0000001`, private API revision `sn-api-next--0000001`, and manual
-`sn-research-run`. Web/API source is `95f8d697`; the worker uses the accepted
+web revision `sn-next-ui--0000002`, private API revision `sn-api-next--0000001`, and manual
+`sn-research-run`. Web source is `5f7a2665`, API source is `95f8d697`; the worker uses the accepted
 development digest. Production Streamlit remains on revision `0000087`; all domain
 bindings match the pre-staging snapshot. The candidate needs the owner's sign-in for
 production session/portfolio/research acceptance.
@@ -58,11 +59,12 @@ but ticker rows lacked financial histories, the daily-datapoint artifact was abs
 the 1.47-million-row price and technical histories had no symbol partitions. Freshness
 alone therefore did not prove compatibility with the new consumer.
 
-Use template-only JSON Merge PATCH for these existing jobs, preserving configuration,
+Use template-only PATCH with `Content-Type: application/json` for these existing jobs, preserving configuration,
 native secrets, identity, schedules, retry/timeout budgets, and commands. Full ARM PUT of
 an existing job cannot preserve a write-only native secret by copying its GET response;
 `listSecrets(self)` introduces an ARM circular dependency. Do not deploy the all-jobs
-pipeline script for this scoped promotion.
+pipeline script for this scoped promotion. The jobs API rejects the otherwise customary
+`application/merge-patch+json` media type; a rejected request does not update the template.
 
 `scripts/prepare_workbench_release.py` reads live configuration and emits a new immutable,
 ignored release directory. It has no deployment option. The directory contains:
@@ -227,14 +229,14 @@ fall back to the local research page; ordinary routes/query/fragment remain inta
 Eight local auth/BFF checks, lint, type checking, and the production build pass. This
 additional web hardening is being prepared for development, then candidate rollout.
 
-## Open release gates
+## Selection audit and remaining release gates
 
-The latest local production-input selection failed its semantic review after bounded
-revision. This is not production acceptance. The improved development-input result
+Before the revision-context correction, a local production-input selection failed its
+semantic review after bounded revision. That was not production acceptance. The development-input result
 avoided the negative causal claim, but that does not certify the larger production
 catalog. Do not publish a manually curated replacement, call transport checks a quality
 verdict, or swap traffic. Reviewer issues are included in internal failure diagnostics
-for the next evaluation. The final selection refinement is source-only pending acceptance.
+for the next evaluation. At that checkpoint, the refinement was source-only pending acceptance.
 
 At 07:18 UTC, `attention-home-build` was restored from the original rollback bundle to
 `pipeline-jobs@sha256:dea12fe927000c241a75df12a06a35c442f1381cd6ba2dd7b88ace8c298d589a`.
@@ -270,3 +272,46 @@ candidate web `0000002`, pinned digest
 Both revisions are healthy. Actual deployed server-rendered login props normalize a
 backslash-host destination to `/zopedia`, while retaining the legitimate Investigator
 query and fragment. Anonymous production portfolio/Admin/research requests return 401.
+
+## Latest managed verification — 07:39 UTC
+
+Selection image source `5ff5c5ea`, pinned as
+`pipeline-jobs@sha256:42743fcdfbbbaa039c88796043bc6195603f5e0060fa29f3781c945a9f9449d9`,
+passed managed execution in both namespaces:
+
+- `daily-datapoints-next-dev-p4b76d0` succeeded at 07:29:54 UTC.
+- `attention-home-build-y58i6sk` succeeded at 07:32:09 UTC with a one-execution override
+  selecting `daily-market-datapoints-build` and the explicit production namespace. The
+  scheduled Home template was unchanged during this isolated verification.
+
+The actual production result selected Ciena revenue, Seagate revenue, Twist free cash
+flow, Argan revenue, and effective Fed funds. Personal review compared each caption with
+the complete selected series and Home context: Ciena $1.427042B versus $1.072260B (33%
+year over year); Seagate $3.629B versus $2.444B (48%); Twist -$8.648M with persistent
+negative cash flow; Argan $383.976M versus $237.743M (62%); and September Fed funds 3.75%
+versus August 3.63% after the preceding pause. The financial comparisons name their actual
+fiscal periods rather than inventing a current release. The charts add optical demand,
+storage divergence, life-science cash use, power infrastructure growth, and rate context.
+No manually selected replacement or caption was published. The deployed public candidate
+renders these five charts together and retains inline ticker price and financial histories.
+
+After that acceptance, `attention-home-next-dev` and the existing production
+`attention-home-build` templates were promoted to the same pinned image. Fresh ARM reads
+confirmed the intended templates and unchanged protected configuration, identities,
+resources, schedules, and secrets. The complete production refresh
+`attention-home-build-rim6fga` started at 07:36:21 UTC and is still running at this receipt.
+Its Home-embedded selection and retained replay must be checked after completion; the
+standalone latest selection does not repair an older immutable replay snapshot.
+
+The data-contract audit passes in both namespaces. Production has five matching charts,
+71 ticker snapshots with 39 containing all three financial histories, and 64 symbol
+partitions for each of the 1,472,688 price and 1,471,130 technical-history rows. These
+checks do not replace the pending signed-in production review.
+
+A recovery request for a generated nonexistent `@invalid.example` recipient completed
+against the production control store and returned only the generic success DTO; it did
+not create or change an account or reveal a reset link/delivery state. Real activation,
+email delivery, and credential changes were not performed. The owner must sign in to the
+new candidate origin for Admin/users, portfolio/account reads, private knowledge traversal,
+and one safe read-only research run. Development cookies were not copied. Live traffic
+and all domain bindings remain on Streamlit; no swap is authorized.

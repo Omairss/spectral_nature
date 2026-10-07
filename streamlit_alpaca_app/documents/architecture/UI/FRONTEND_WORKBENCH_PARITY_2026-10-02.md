@@ -110,7 +110,11 @@ handoff. Do not infer production account acceptance from those rejection checks 
 The existing production Home and equities jobs were promoted and exercised, not replaced
 with duplicate schedules. Both completed successfully; their data-contract audit passes.
 The first production five-chart selection failed personal semantic review despite passing
-transport checks. Source-backed model review/revision is being added before accepting its
-captions. Production owner-session workflow checks remain pending. The authoritative
+transport checks. Shared source-backed review and draft-preserving revision now pass
+managed development/production selection and personal review (`5ff5c5ea`). The existing
+Home producer has been promoted to that image and a complete refresh is running; its
+embedded replay selection remains to be checked. Production owner-session workflow checks
+also remain pending. Web `5f7a2665` additionally normalizes parsed same-origin login return
+paths. The authoritative
 release state and rollback boundary are in
 [production readiness](../../plans/WORKBENCH_PRODUCTION_READINESS_2026-10-06.md).
