@@ -7,9 +7,9 @@ No domain swap is authorized. Do not confuse an accepted development UI, generat
 templates, healthy containers, and a verified production candidate.
 
 Staging exists at `https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io`:
-web revision `sn-next-ui--naqb7s0`, private API revision `sn-api-next--77ejayy`, and manual
-`sn-research-run`. Web image source is `c14f0b22`; the staged API/worker use the accepted
-development digests. Production Streamlit remains on revision `0000087`; all domain
+web revision `sn-next-ui--0000001`, private API revision `sn-api-next--0000001`, and manual
+`sn-research-run`. Web/API source is `95f8d697`; the worker uses the accepted
+development digest. Production Streamlit remains on revision `0000087`; all domain
 bindings match the pre-staging snapshot. The candidate needs the owner's sign-in for
 production session/portfolio/research acceptance.
 
@@ -146,7 +146,7 @@ database writes. Five focused serialization/partition checks pass, including dup
 indexes and source-object preservation. The complete producer still needs a successful
 managed execution before promotion is accepted.
 
-The production Home refresh is running as `attention-home-build-ltpmk4j`. Account-flow
+The production Home refresh succeeded as `attention-home-build-ltpmk4j` at 06:53:38 UTC. Account-flow
 inspection also found that Next can issue invitation/reset links but does not consume
 the native root-query links. Those screens and the existing auth service's API access are
 required before cutover; do not describe sign-in alone as account lifecycle parity.
@@ -177,7 +177,34 @@ credential entry/confirmation remains an owner handoff, not an automated browser
 
 Pipeline image `d12069a7` built successfully with digest
 `sha256:60075ee767052753140c8a3a50be9fc13d7b93b3217284186c9c600d3e6a67b2`.
-The complete producer is being exercised as manual `equities-next-dev-vaqgz72` at the same
-one CPU/two GiB limit in the development namespace. Production's existing producer remains
-on its rollback digest until that complete execution succeeds; no new production schedule
-has been introduced.
+The complete producer succeeded as manual `equities-next-dev-vaqgz72` at 06:51:51 UTC with
+the same one CPU/two GiB limit in development. Only then was the existing production
+producer promoted. `equities-intraday-preload-43erzcz` succeeded at 06:57:49 UTC. Protected
+configuration, identities, schedules, resource limits and native secrets match the original
+fingerprint. No new production schedule has been introduced.
+
+The production data-contract audit now passes: both histories have 64 partitions,
+Home/ticker/daily identities agree, and 39 of the 71 ticker snapshots contain all three
+financial trends. This does not accept the initial model captions: personal review found
+a cross-season revenue-collapse claim contradicted by same-quarter prior-year behavior
+and a credit-spread caption borrowing another chart's start date. The shared selector now
+uses AQL/Zopedia semantic review and bounded revision over the exact selected histories
+and daily evidence, failing closed if review cannot accept the result. Local qualitative
+evaluation completed on the production inputs. The accepted local result selected Ciena
+revenue, Seagate free cash flow, 10x Genomics revenue, the ten-year Treasury yield, and
+Vistra revenue. Personal review checked actual fiscal-quarter comparisons, all cited
+endpoints, and the relevant Home evidence/watch fields: Ciena +33% year over year,
+Seagate $1.118B versus $425M, 10x $151.0M versus $172.9M, ten-year yield 4.78% to 5.28%
+within its exact displayed dates, and Vistra $4.017B versus $4.250B. Background periods
+are explicit rather than described as new releases. No hand-authored choices or captions
+were substituted. Managed development execution and production publication remain next.
+
+Account deployment receipts: development web `0000008`, private API `0000010`;
+production candidate web/API `0000001`. Pinned web digest:
+`sha256:98794b4aacac7734111944a45a0325f03bee0e8d3d5a72bc19f6e4aea18b3f16`;
+API digest: `sha256:59cffe43e1d45002d60eb2253c5c6783dd5f7d79564cff1d6219f8a85b1bb7e3`.
+Both deployed BFFs reject invalid activation/reset tokens with 400, invalid recovery input
+with 422 and a safe error, and missing/hostile Origin/CSRF with 403. Production anonymous
+Admin/research access remains rejected. No-referrer is deployed. Existing authenticated
+development session and Investigator plots still work after the update with no console
+warnings/errors. Production owner sign-in remains pending.

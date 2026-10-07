@@ -92,3 +92,25 @@ The rebuilt workbench was rendered at `1512x982` and `390x844` against live deve
 - Local lint, type checking, Python compilation, and the 28-route production build passed. The production dependency audit reported zero vulnerabilities.
 
 This is completion of the requested feature-parity development release, not completion of the longer-term renderer portfolio or agentic sandbox.
+
+## Production staging review — 2026-10-07 UTC
+
+The statements above describe the October 2 development baseline, not production
+acceptance. Owner-authorized staging now exists independently at `sn-next-ui` with private
+`sn-api-next` and manual `sn-research-run`. Streamlit apps, production domains, and live
+traffic remain unchanged. Broker execution is disabled on the candidate.
+
+Production review found that issuing invitation/reset links in Admin did not prove those
+links could be consumed by Next. Source `95f8d697` adds the native root-query link routes,
+activation, password recovery, and reset completion against the existing account service.
+It is deployed to development and the production candidate. Invalid-token and validation
+responses were verified through both deployed BFFs; real credential changes are an owner
+handoff. Do not infer production account acceptance from those rejection checks alone.
+
+The existing production Home and equities jobs were promoted and exercised, not replaced
+with duplicate schedules. Both completed successfully; their data-contract audit passes.
+The first production five-chart selection failed personal semantic review despite passing
+transport checks. Source-backed model review/revision is being added before accepting its
+captions. Production owner-session workflow checks remain pending. The authoritative
+release state and rollback boundary are in
+[production readiness](../../plans/WORKBENCH_PRODUCTION_READINESS_2026-10-06.md).

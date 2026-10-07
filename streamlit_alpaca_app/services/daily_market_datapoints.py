@@ -102,8 +102,7 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
         context[section] = [{key: str(item[key])[:1200] if isinstance(item.get(key), str) else item[key] for key in evidence_fields if key in item} for item in (home.get(section) or [])[:16] if isinstance(item, dict)]
     if isinstance(context.get("homepage_summary"), dict):
         context["homepage_summary"] = {key: value for key, value in context["homepage_summary"].items() if key in {"summary_text", "answer_markdown", "headline"}}
-    result = run_aql_zopedia_structured_agent(
-        query=(
+    selection_query = (
             f"As of {pd.Timestamp(asof).isoformat()}, choose the FIVE most crucial datapoints for today's informed investor daily brief. "
             "Rank by decision relevance to the session's evidence, not absolute price, popularity, or largest percentage move alone. "
             "Choose the five CHARTS that best explain what matters, not another top-movers leaderboard. "
@@ -118,23 +117,64 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
             "Partial causes and plausible business channels are not proven causes. No universal ranking or 'only' claim from this bounded candidate catalog. "
             "Do not infer solvency, financing dependence, or balance-sheet strength from an income or cash-flow series alone. "
             "Check trend descriptions against every supplied observation: endpoint growth does not establish consecutive increases, and a range does not establish a direction. "
+            "For seasonal quarterly businesses, compare the same fiscal quarter across years before claiming deterioration or acceleration. "
+            "A sequential fall from a seasonal peak is not evidence of a structural collapse; consider the complete history and do not cherry-pick the comparator. "
             "The observations and chart_range are exactly the full displayed history. State explicit reporting periods or dates when discussing a subset of that history. "
             "Return a concise descriptive title (at most 65 characters) and one specific sentence of significance (at most 180 characters) for each. "
+            "Significance connects a concrete chart finding to a documented decision in today's brief; it is not a chart-window inventory or a recap of endpoints alone. "
+            "Dates and ranges are already visible in the chart. Include only the comparison periods needed to understand the insight, not metadata about what is displayed. "
             "Titles describe the insight without repeating the price or latest value already shown by the chart. "
             "No generic market commentary, process language, disclaimer, or evidence-gap filler. "
             "The application will render the exact referenced time series, units, dates and current values.\n\n"
             f"Daily brief evidence:\n{json.dumps(context, ensure_ascii=False, default=str)}\n\n"
-            f"Candidate catalog:\n{json.dumps(candidates, ensure_ascii=False, default=str)}"
-        ),
-        schema_name="daily_market_datapoints", schema=schema, task="daily_market_datapoints",
-        surface="attention_home.daily_datapoints", max_tool_calls=0, persist_findings=False, write_policy="none",
+            f"Candidate catalog:\n{json.dumps(candidates, ensure_ascii=False, default=str)}\n\n"
+            "Before submitting, verify every cited date/value is actually present in its selected chart. "
+            "Use period-matched financial comparisons, distinguish background from a new release, and avoid unsupported causes."
     )
-    if result.get("status") != "completed":
-        raise RuntimeError("AQL/Zopedia could not complete the daily datapoint selection.")
-    selections = (result.get("payload") or {}).get("datapoints") or []
-    ids = [str(item.get("id") or "") for item in selections if isinstance(item, dict)]
-    if len(ids) != 5 or len(set(ids)) != 5 or any(key not in catalog for key in ids):
-        raise ValueError("Daily datapoints must reference five distinct catalog entries.")
+    review_schema = {"type": "object", "additionalProperties": False, "properties": {
+        "approved": {"type": "boolean"}, "issues": {"type": "array", "items": {"type": "string"}},
+    }, "required": ["approved", "issues"]}
+    feedback = ""
+    for attempt in range(2):
+        result = run_aql_zopedia_structured_agent(
+            query=selection_query + feedback,
+            schema_name="daily_market_datapoints", schema=schema, task="daily_market_datapoints",
+            surface="attention_home.daily_datapoints", max_tool_calls=0, persist_findings=False, write_policy="none",
+        )
+        if result.get("status") != "completed":
+            raise RuntimeError("AQL/Zopedia could not complete the daily datapoint selection.")
+        selections = (result.get("payload") or {}).get("datapoints") or []
+        ids = [str(item.get("id") or "") for item in selections if isinstance(item, dict)]
+        if len(ids) != 5 or len(set(ids)) != 5 or any(key not in catalog for key in ids):
+            raise ValueError("Daily datapoints must reference five distinct catalog entries.")
+        review = run_aql_zopedia_structured_agent(
+            query=(
+                "Review this five-chart investor brief against its exact supplied data and session evidence. "
+                "Approve only if the chosen charts add complementary decision value and their titles and significance are accurate. "
+                "Read the complete selected histories: verify each date, endpoint, percentage, sequence and reporting period. "
+                "Every cited dated value must be inside that chart's displayed observations, not a neighboring series. "
+                "Check same-period prior-year behavior before accepting a structural trend claim about seasonal quarterly data. "
+                "Reject cherry-picked seasonal peaks, overstated direction/consecutive counts, invented causes, unsupported rankings, "
+                "and stale observations presented as new releases. Evidence of a business channel is not proof of causation. "
+                "Require a clear connection to the day's decision context, but do not require each background series to have been released today. "
+                "A significance sentence must explain why the quantitative finding matters in that context, not merely list endpoints or describe the chart window. "
+                "Return approved=false with specific actionable issues when revision is needed; otherwise approved=true and no issues. "
+                "Judge meaning, not preferred wording. Do not manufacture objections.\n\n"
+                f"As of: {pd.Timestamp(asof).isoformat()}\nDaily evidence: {json.dumps(context, ensure_ascii=False, default=str)}\n"
+                f"Draft: {json.dumps(selections, ensure_ascii=False)}\n"
+                f"Exact selected charts: {json.dumps([catalog[key] for key in ids], ensure_ascii=False, default=str)}"
+            ),
+            schema_name="daily_market_datapoints_review", schema=review_schema, task="daily_market_datapoints_review",
+            surface="attention_home.daily_datapoints.review", max_tool_calls=0, persist_findings=False, write_policy="none",
+        )
+        verdict = review.get("payload") or {}
+        if review.get("status") != "completed":
+            raise RuntimeError("AQL/Zopedia could not review the daily datapoint selection.")
+        if verdict.get("approved") is True and not verdict.get("issues"):
+            break
+        feedback = "\n\nRevise the selection or wording to resolve this semantic review:\n" + json.dumps(verdict.get("issues") or [], ensure_ascii=False)
+    else:
+        raise RuntimeError("Daily datapoint selection did not pass its source-backed semantic review.")
     rows = []
     for rank, item in enumerate(selections, 1):
         title = str(item.get("title") or "").strip()
