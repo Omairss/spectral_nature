@@ -27,6 +27,11 @@ These are contract checks, not claims about LLM output quality; model behavior w
 not changed. Development release is scoped to the isolated Next.js API's existing
 image plus `data_access/layer.py`.
 
+Development release completed: `sn-api-next-dev--0000012`. Health, public Home,
+and retained-bundle refresh passed on the running revision; the unavailable path
+also returned correctly without live research. The dataset contained 79 retained
+bundles. Exact image and rollback are recorded in `infra/UI_DEPLOYMENT_STATUS.md`.
+
 ## Intent
 
 This cleanup is not a frontend rewrite and not a cosmetic file split. The goal is to make the intended architecture mechanically true:

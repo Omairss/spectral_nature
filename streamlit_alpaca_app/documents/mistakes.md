@@ -453,3 +453,9 @@ Distilled from 41 past incidents (archived in `past_mistakes.md`). These are the
 ## Shared read-layer cleanup — 2026-10-07
 
 - A read-only default left the DAL able to launch model/search work when an environment flag or refresh path changed. Deleted that runtime and its scoring/fallback tree at source. During validation, the lightweight QA environment lacked FastAPI/Streamlit; use the repository runtime environment for downstream checks.
+
+- Azure deployment probes need the CLI's actual process contract: run ACR builds
+  from the minimal context directory, and use a direct PTY for `containerapp exec`.
+  Its command argument split did not preserve quoted Python code; an interactive
+  Python session provided the successful live check. A cluster success message
+  alone did not prove the first probe ran.

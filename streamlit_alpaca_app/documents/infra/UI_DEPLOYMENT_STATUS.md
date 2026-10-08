@@ -53,3 +53,22 @@ Last updated (UTC): 2026-10-07 17:38
   production session was separately verified with one controlled two-account
   read and no login challenge.
 - Custom-domain health must be checked on the exact hostname users open, including DNS, `/_stcore/health`, and a browser WebSocket session. Azure custom-domain binding alone is not enough proof.
+
+## Shared read-layer cleanup — 2026-10-07
+
+- Source: `9b96e693`; checkpoint including the native app: `35ea4cb6`.
+- Isolated development API: `sn-api-next-dev--0000012`, healthy, latest ready,
+  with 100% traffic on the latest revision.
+- Image: `snpipelineacr03130136.azurecr.io/api-next-dev@sha256:2a75475ae3ab04e35e8624042a04a6d66a5364059ad214a57013a8afa0dafc46`.
+- ACR run `cjrf` used a 25.874 KiB context and overlaid only
+  `data_access/layer.py` on revision 11's pinned image. API and DAL imports passed
+  inside the image build. The web image, Streamlit images, broker jobs, and
+  production were not changed by this release.
+- Local validation: 81 DAL/QueryService, API, and presentation checks passed.
+- Running-revision verification: `/health` returned 200; the public development
+  `/api/home` returned 200 with `status=available`. The retained bundle dataset
+  had 79 rows; a retained bundle loaded as `materialized` with `force_refresh=True`.
+  A missing ticker returned `unavailable`; the deleted symbol research runtime
+  was absent from the live DAL.
+- Rollback: update only this development API's image to its previous digest,
+  `sha256:45e87d1cd5895d853d4a094ed16405a024b5b15fa9d1ae90f812acfb5bb9c4a5`.
