@@ -61,7 +61,7 @@
 		D87CF3385DFC370A19C932AB /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
 		DDA1A1DB53CF88856B84992A /* SpectralNatureMVPApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectralNatureMVPApp.swift; sourceTree = "<group>"; };
 		F459B557FCEBDC9603D31F67 /* MarkdownView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownView.swift; sourceTree = "<group>"; };
-		FE01A86747AE93200E6AF383 /* SpectralNature.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SpectralNature.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FE01A86747AE93200E6AF383 /* SpectralNature.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpectralNature.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -324,6 +324,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 44J3R74SJ9;
 				INFOPLIST_FILE = SpectralNatureMVP/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -463,6 +464,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 44J3R74SJ9;
 				INFOPLIST_FILE = SpectralNatureMVP/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
