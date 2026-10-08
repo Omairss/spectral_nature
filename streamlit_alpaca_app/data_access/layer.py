@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
 import json
 import os
 import re
@@ -24,7 +23,6 @@ from compute.portfolio import (
 from compute.treasury_yields import build_treasury_yield_facts_1d, build_treasury_yield_observations, build_treasury_yield_summary
 from data_access.contracts import DataProvenance, ResolvedPayload
 from services.alpaca_api import AlpacaAPI, AlpacaAPIError
-from services.attention_agentic import build_bottom_up_attention_artifacts, search_symbol_news_payload
 from services.attention_materialized import (
     deserialize_attention_home_payload,
     deserialize_attention_research_bundle_frame,
@@ -32,12 +30,6 @@ from services.attention_materialized import (
     deserialize_attention_ticker_snapshot_frame,
 )
 from services.company_baseline import deserialize_company_baseline_frame
-from services.attention_home_1d import (
-    build_attention_entity_master,
-    resolve_macro_anchor_symbols,
-    build_attention_home_1d,
-    shortlist_attention_symbols_1d,
-)
 from services.company import load_asset_metadata, load_recent_news
 from services.common.company_identity import clean_company_display_name
 from services.config import AppConfig, load_config
@@ -51,9 +43,7 @@ from services.data_cache import (
     cached_scalar_dict,
     dataset_scope,
 )
-from services.edgar import EdgarClient
 from services.fred import load_fred_api_key, load_fred_dashboard
-from services.llm import load_embedding_client, load_llm_client
 from services.aql.evidence_index import parse_json_list
 from services.market import load_price_history, scan_commodity_regimes, scan_correlation_phase_shifts, scan_daily_movers, scan_event_significance, scan_momentum_profiles
 from services.options import analyze_option_candidates, load_option_chain, load_option_surface, select_option_surface_window
@@ -357,50 +347,6 @@ def _ensure_company_background_text(
     if existing and not _is_template_company_background(existing):
         return existing
     return ""
-
-
-def _bundle_web_signal_score(bundle: dict[str, Any] | None) -> int:
-    payload = bundle if isinstance(bundle, dict) else {}
-    if not payload:
-        return 0
-
-    recent_headlines = _bundle_recent_headlines(payload, limit=12)
-    web_item_count = 0
-    provider_count = 0
-    providers: set[str] = set()
-    for field in ("evidence", "background_context"):
-        for item in list(payload.get(field) or []):
-            candidate = item if isinstance(item, dict) else {}
-            if not _is_relevant_bundle_news_item(candidate):
-                continue
-            source_kind = _coerce_text(candidate.get("source_kind")).lower()
-            provider = _provider_display_label(candidate.get("search_provider") or candidate.get("origin_provider"))
-            source = _coerce_text(candidate.get("source")).lower()
-            if source_kind not in {"news", "search"} and not provider:
-                continue
-            web_item_count += 1
-            if provider:
-                providers.add(provider.lower())
-            elif "tavily" in source:
-                providers.add("tavily")
-            elif "serpapi" in source or "serp api" in source:
-                providers.add("serpapi")
-    provider_count = len(providers)
-
-    same_day_count = max(int(payload.get("same_day_evidence_count") or 0), 0)
-    important_count = max(int(payload.get("important_news_count") or 0), 0)
-    return (
-        same_day_count * 100
-        + important_count * 20
-        + len(recent_headlines) * 10
-        + web_item_count * 3
-        + provider_count
-    )
-
-
-def _precomputed_symbol_bundles_only() -> bool:
-    raw = str(os.getenv("ATTENTION_SYMBOL_BUNDLE_PRECOMPUTED_ONLY") or "true").strip().lower()
-    return raw not in {"0", "false", "no", "off"}
 
 
 def _overlay_background_payload_from_bundle(
@@ -1002,25 +948,6 @@ class DataAccessLayer:
                 return list(dict.fromkeys(values))[:1500]
         return []
 
-    def _resolve_web_search_news(self, ticker: str, *, company_name: str = "", force_refresh: bool = False) -> dict[str, Any]:
-        target = str(ticker or "").upper().strip()
-        if not target:
-            return {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
-
-        cache_scope = f"{pd.Timestamp.utcnow().date().isoformat()}__{target}__{company_name.strip().lower()}"
-        return cached_news_payload(
-            "web_search_news",
-            cache_scope,
-            lambda: search_symbol_news_payload(
-                target,
-                company_name=company_name,
-                max_results=8,
-                llm_client=load_llm_client(),
-            ),
-            force_refresh=force_refresh,
-            version=5,
-        )
-
     def _resolve_materialized_asset_metadata(self, ticker: str, *, force_refresh: bool = False) -> ResolvedPayload | None:
         target = str(ticker or "").upper().strip()
         if not target:
@@ -1186,379 +1113,6 @@ class DataAccessLayer:
             mode=background.provenance.mode,
             datasets=background.provenance.datasets,
             details={**background.provenance.details, "ticker": target, "days": days, "limit": limit},
-        )
-
-    def _resolve_attention_edgar_filings(
-        self,
-        symbols: list[str],
-        *,
-        force_refresh: bool = False,
-    ) -> pd.DataFrame:
-        normalized = [
-            str(symbol or "").upper().strip()
-            for symbol in symbols
-            if str(symbol or "").strip()
-        ]
-        normalized = list(dict.fromkeys(normalized))
-        if not normalized:
-            return pd.DataFrame()
-
-        cache_scope = f"{pd.Timestamp.utcnow().date().isoformat()}__{'-'.join(normalized[:12])}"
-        return cached_frame(
-            "attention_research_edgar",
-            cache_scope,
-            lambda: EdgarClient().load_recent_filings(
-                normalized,
-                days=180,
-                max_filings_per_symbol=4,
-                fetch_document_text=True,
-                max_document_fetches_per_symbol=2,
-            ),
-            force_refresh=force_refresh,
-            version=1,
-        )
-
-    def _combine_mover_frames(self, *frames: pd.DataFrame, macro_anchor_symbols: list[str] | None = None) -> pd.DataFrame:
-        non_empty = [frame.copy() for frame in frames if isinstance(frame, pd.DataFrame) and not frame.empty]
-        if not non_empty:
-            return pd.DataFrame()
-        out = pd.concat(non_empty, ignore_index=True, sort=False)
-        if "symbol" in out.columns:
-            out["symbol"] = out["symbol"].astype(str).str.upper().str.strip()
-        for column in ["change_pct", "close", "prev_close", "volume", "dollar_volume"]:
-            if column in out.columns:
-                out[column] = pd.to_numeric(out[column], errors="coerce")
-        if "dollar_volume" not in out.columns and {"close", "volume"}.issubset(set(out.columns)):
-            out["dollar_volume"] = pd.to_numeric(out["close"], errors="coerce") * pd.to_numeric(out["volume"], errors="coerce")
-        if "symbol" in out.columns:
-            anchors = {str(symbol).upper().strip() for symbol in list(macro_anchor_symbols or []) if str(symbol).strip()}
-            out["_priority"] = out["symbol"].isin(anchors).astype(int)
-            out["_abs_move"] = pd.to_numeric(out.get("change_pct"), errors="coerce").abs()
-            out = out.sort_values(
-                ["_priority", "_abs_move", "dollar_volume", "symbol"],
-                ascending=[False, False, False, True],
-                na_position="last",
-            )
-            out = out.drop_duplicates(subset=["symbol"], keep="first").reset_index(drop=True)
-            out = out.drop(columns=["_priority", "_abs_move"], errors="ignore")
-        return out
-
-    def _resolve_symbol_agentic_bundle(self, symbol: str, *, force_refresh: bool) -> dict[str, Any]:
-        target = str(symbol or "").upper().strip()
-        if not target or self.materialized_only or self.cfg is None:
-            return {}
-        cache_scope = f"{pd.Timestamp.utcnow().date().isoformat()}__{target}"
-
-        def _fetch() -> dict[str, Any]:
-            company_name = ""
-            universe_materialized = self._try_pipeline_frame("universe_snapshot", force_refresh=force_refresh)
-            if universe_materialized is not None:
-                frame, _ = universe_materialized
-                if isinstance(frame, pd.DataFrame) and not frame.empty and "symbol" in frame.columns:
-                    scoped = frame.copy()
-                    scoped["symbol"] = scoped["symbol"].astype(str).str.upper().str.strip()
-                    match = scoped[scoped["symbol"] == target].head(1)
-                    if not match.empty:
-                        for column in ("security_name", "company_name", "name"):
-                            candidate = _coerce_text(match.iloc[0].get(column))
-                            if candidate:
-                                company_name = candidate
-                                break
-
-            news_payload = self._resolve_web_search_news(
-                target,
-                company_name=company_name,
-                force_refresh=force_refresh,
-            )
-            if not isinstance(news_payload, dict):
-                news_payload = {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
-
-            try:
-                context_payload = self.resolve_attention_context(
-                    target,
-                    force_refresh=force_refresh,
-                ).payload
-            except Exception:
-                context_payload = {}
-
-            try:
-                movers = self.resolve_daily_movers(
-                    symbols=[target],
-                    force_refresh=force_refresh,
-                ).payload
-            except Exception:
-                movers = pd.DataFrame()
-            if not isinstance(movers, pd.DataFrame):
-                movers = pd.DataFrame()
-
-            if not movers.empty and "symbol" in movers.columns:
-                movers = movers.copy()
-                movers["symbol"] = movers["symbol"].astype(str).str.upper().str.strip()
-                movers = movers[movers["symbol"] == target].head(1).reset_index(drop=True)
-            if movers.empty:
-                movers = pd.DataFrame(
-                    [
-                        {
-                            "symbol": target,
-                            "change_pct": 0.1,
-                            "close": pd.NA,
-                            "prev_close": pd.NA,
-                            "volume": pd.NA,
-                            "dollar_volume": pd.NA,
-                        }
-                    ]
-                )
-            for column in ["change_pct", "close", "prev_close", "volume", "dollar_volume"]:
-                movers[column] = pd.to_numeric(movers.get(column), errors="coerce")
-            if pd.isna(movers.iloc[0].get("change_pct")):
-                close = pd.to_numeric(movers.iloc[0].get("close"), errors="coerce")
-                prev_close = pd.to_numeric(movers.iloc[0].get("prev_close"), errors="coerce")
-                if pd.notna(close) and pd.notna(prev_close) and float(prev_close) != 0.0:
-                    movers.at[0, "change_pct"] = (float(close) - float(prev_close)) / float(prev_close) * 100.0
-                else:
-                    movers.at[0, "change_pct"] = 0.1
-            if pd.isna(movers.iloc[0].get("dollar_volume")):
-                close = pd.to_numeric(movers.iloc[0].get("close"), errors="coerce")
-                volume = pd.to_numeric(movers.iloc[0].get("volume"), errors="coerce")
-                if pd.notna(close) and pd.notna(volume):
-                    movers.at[0, "dollar_volume"] = float(close) * float(volume)
-
-            bars_by_symbol: dict[str, pd.DataFrame] = {}
-            try:
-                bars_by_symbol = _make_api(self.cfg).get_stock_bars(
-                    [target],
-                    start=datetime.now(timezone.utc) - pd.Timedelta(days=120),
-                    end=datetime.now(timezone.utc),
-                    timeframe="1Day",
-                    feed="iex",
-                )
-            except Exception:
-                bars_by_symbol = {}
-
-            filings_frame = self._resolve_attention_edgar_filings([target], force_refresh=force_refresh)
-            fred_summary_frame = pd.DataFrame()
-            yield_curve_facts_frame = pd.DataFrame()
-            if pipeline_store_configured():
-                try:
-                    fred_summary_frame, _ = self._pipeline_frame("fred_summary")
-                except Exception:
-                    fred_summary_frame = pd.DataFrame()
-                try:
-                    yield_curve_facts_frame, _ = self._pipeline_frame("yield_curve_facts_1d")
-                except Exception:
-                    yield_curve_facts_frame = pd.DataFrame()
-
-            attention_rows = pd.DataFrame(
-                [
-                    {
-                        "entity_id": target,
-                        "attention_score": 1.0,
-                        "severity_score": 1.0,
-                        "observed_value": float(pd.to_numeric(movers.iloc[0].get("change_pct"), errors="coerce") or 0.1),
-                    }
-                ]
-            )
-            artifacts = build_bottom_up_attention_artifacts(
-                movers,
-                attention_rows=attention_rows,
-                bars_by_symbol=bars_by_symbol,
-                news_payloads={target: news_payload if isinstance(news_payload, dict) else {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}},
-                context_payloads={target: context_payload if isinstance(context_payload, dict) else {}},
-                entity_master=build_attention_entity_master([target]),
-                holdings=[],
-                generated_at_utc=pd.Timestamp.utcnow(),
-                filings_frame=filings_frame,
-                fred_summary_frame=fred_summary_frame,
-                yield_curve_facts_frame=yield_curve_facts_frame,
-                llm_client=load_llm_client(),
-                embedding_client=load_embedding_client(),
-                top_events_limit=1,
-                must_read_limit=1,
-                unresolved_limit=1,
-                research_limit=1,
-                load_search_clients=True,
-            )
-            bundle = dict((artifacts.bundle_map or {}).get(f"symbol::{target}") or {})
-            return bundle
-
-        return cached_scalar_dict(
-            "attention_symbol_agentic_bundle",
-            cache_scope,
-            _fetch,
-            force_refresh=force_refresh,
-            version=5,
-        )
-
-    def _resolve_live_attention_artifacts(self, *, force_refresh: bool) -> dict[str, Any]:
-        if self.materialized_only:
-            return {}
-        cache_scope = (
-            f"{_alpaca_cache_scope(self.cfg)}__{pd.Timestamp.utcnow().date().isoformat()}"
-            if self.cfg is not None
-            else f"missing-config__{pd.Timestamp.utcnow().date().isoformat()}"
-        )
-
-        def _fetch() -> dict[str, Any]:
-            empty_payload = {
-                "top_events": [],
-                "must_read_movers": [],
-                "unresolved_large_moves": [],
-                "generated_at_utc": pd.Timestamp.utcnow().isoformat(),
-                "coverage_summary": {
-                    "candidate_count": 0,
-                    "event_count": 0,
-                    "must_read_count": 0,
-                    "unresolved_count": 0,
-                    "today_only": True,
-                },
-                "taxonomy_horizon_trends": [],
-                "event_candidates_1d": [],
-                "event_impacts_1d": [],
-                "entity_master": [],
-                "homepage_graph": {},
-                "run_id": "",
-            }
-            if self.cfg is None:
-                return {"home_payload": empty_payload, "bundle_map": {}, "run_id": ""}
-
-            equity_universe = self._attention_home_equity_universe(force_refresh=force_refresh)
-            macro_anchor_symbols = resolve_macro_anchor_symbols(equity_universe) if equity_universe else []
-            holdings: list[str] = []
-            try:
-                positions = self.resolve_positions(force_refresh=force_refresh).payload
-                if isinstance(positions, pd.DataFrame) and not positions.empty and "symbol" in positions.columns:
-                    holdings = [
-                        str(value).upper().strip()
-                        for value in positions["symbol"].dropna().astype(str).tolist()
-                        if str(value).strip()
-                    ]
-            except Exception:
-                holdings = []
-
-            equity_movers = self.resolve_daily_movers(symbols=equity_universe, force_refresh=force_refresh).payload
-            macro_movers = self.resolve_daily_movers(symbols=macro_anchor_symbols, force_refresh=force_refresh).payload if macro_anchor_symbols else pd.DataFrame()
-            movers = self._combine_mover_frames(equity_movers, macro_movers, macro_anchor_symbols=macro_anchor_symbols)
-
-            attention_parts: list[pd.DataFrame] = []
-            trend_horizons = list(normalize_horizons(["1d", "1w", "1mo", "3mo", "1yr"]))
-            for dataset_name in ("attention_feed", "commodity_attention_feed"):
-                try:
-                    resolved = self.resolve_attention_feed(
-                        dataset_name=dataset_name,
-                        limit=80,
-                        horizons=trend_horizons,
-                        statuses=["active", "cooling"],
-                        sensitivity="aggressive",
-                        force_refresh=force_refresh,
-                    ).payload
-                except Exception:
-                    resolved = pd.DataFrame()
-                if isinstance(resolved, pd.DataFrame) and not resolved.empty:
-                    attention_parts.append(resolved)
-            attention_rows = pd.concat(attention_parts, ignore_index=True, sort=False) if attention_parts else pd.DataFrame()
-
-            shortlist = shortlist_attention_symbols_1d(
-                movers,
-                holdings=holdings,
-                attention_rows=attention_rows,
-                max_count=100,
-            )
-            entity_master = build_attention_entity_master(shortlist)
-
-            bars_by_symbol: dict[str, pd.DataFrame] = {}
-            if shortlist:
-                try:
-                    bars_by_symbol = _make_api(self.cfg).get_stock_bars(
-                        shortlist,
-                        start=datetime.now(timezone.utc) - pd.Timedelta(days=120),
-                        end=datetime.now(timezone.utc),
-                        timeframe="1Day",
-                        feed="iex",
-                    )
-                except Exception:
-                    bars_by_symbol = {}
-
-            research_symbols = shortlist[:40]
-            news_payloads: dict[str, dict[str, Any]] = {}
-            context_payloads: dict[str, dict[str, Any]] = {}
-            for symbol in research_symbols:
-                try:
-                    news_payloads[symbol] = self.resolve_recent_news(
-                        symbol,
-                        days=3,
-                        limit=8,
-                        force_refresh=force_refresh,
-                    ).payload
-                except Exception:
-                    news_payloads[symbol] = {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
-                try:
-                    context_payloads[symbol] = self.resolve_attention_context(
-                        symbol,
-                        force_refresh=force_refresh,
-                    ).payload
-                except Exception:
-                    context_payloads[symbol] = {}
-
-            filings_frame = self._resolve_attention_edgar_filings(shortlist[:60], force_refresh=force_refresh)
-            fred_summary_frame = pd.DataFrame()
-            yield_curve_facts_frame = pd.DataFrame()
-            topology_universe_frame = pd.DataFrame()
-            if pipeline_store_configured():
-                try:
-                    fred_summary_frame, _ = self._pipeline_frame("fred_summary")
-                except Exception:
-                    fred_summary_frame = pd.DataFrame()
-                try:
-                    yield_curve_facts_frame, _ = self._pipeline_frame("yield_curve_facts_1d")
-                except Exception:
-                    yield_curve_facts_frame = pd.DataFrame()
-                try:
-                    topology_universe_frame, _ = self._pipeline_frame("entity_taxonomy_labels")
-                except Exception:
-                    topology_universe_frame = pd.DataFrame()
-
-            artifacts = build_bottom_up_attention_artifacts(
-                movers,
-                attention_rows=attention_rows,
-                bars_by_symbol=bars_by_symbol,
-                news_payloads=news_payloads,
-                context_payloads=context_payloads,
-                entity_master=entity_master,
-                topology_universe_frame=topology_universe_frame,
-                holdings=holdings,
-                generated_at_utc=pd.Timestamp.utcnow(),
-                filings_frame=filings_frame,
-                fred_summary_frame=fred_summary_frame,
-                yield_curve_facts_frame=yield_curve_facts_frame,
-                llm_client=load_llm_client(),
-                embedding_client=load_embedding_client(),
-                top_events_limit=5,
-                must_read_limit=10,
-                unresolved_limit=5,
-                load_search_clients=True,
-            )
-            payload = dict(artifacts.home_payload or {})
-            coverage = dict(payload.get("coverage_summary") or {})
-            coverage.update(
-                {
-                    "equity_universe_count": len(equity_universe),
-                    "macro_anchor_target_count": len(macro_anchor_symbols),
-                    "research_symbol_count": len(research_symbols),
-                }
-            )
-            payload["coverage_summary"] = coverage
-            return {
-                "home_payload": payload,
-                "bundle_map": dict(artifacts.bundle_map or {}),
-                "run_id": _coerce_text(payload.get("run_id")),
-            }
-
-        return cached_scalar_dict(
-            "attention_agentic_live",
-            cache_scope,
-            _fetch,
-            force_refresh=force_refresh,
-            version=1,
         )
 
     def resolve_account(self, *, force_refresh: bool = False) -> ResolvedPayload:
@@ -2571,36 +2125,6 @@ class DataAccessLayer:
         if background_materialized is not None:
             return background_materialized
 
-        if not self.materialized_only:
-            identity = self._company_identity_from_materialized(ticker)
-            company_name = _coerce_text(identity.get("name"))
-            if not company_name:
-                try:
-                    metadata = self.resolve_asset_metadata(ticker, force_refresh=force_refresh)
-                    payload = metadata.payload if metadata is not None else {}
-                    if isinstance(payload, dict):
-                        company_name = _coerce_text(payload.get("name") or payload.get("company_name") or payload.get("security_name"))
-                except Exception:
-                    company_name = ""
-            web_payload = self._resolve_web_search_news(ticker, company_name=company_name, force_refresh=force_refresh)
-            web_articles = web_payload.get("articles") if isinstance(web_payload, dict) else None
-            if isinstance(web_articles, pd.DataFrame):
-                web_articles = _filter_recent_news_articles(
-                    web_articles,
-                    days=days,
-                    details={"dataset_name": "web_search_news"},
-                    include_undated=False,
-                ).head(limit).reset_index(drop=True)
-                if not web_articles.empty:
-                    resolved_payload = dict(web_payload)
-                    resolved_payload["articles"] = web_articles
-                    return self._resolved(
-                        resolved_payload,
-                        mode="on_demand",
-                        datasets=("web_search_news",),
-                        details={"ticker": ticker.upper(), "days": days, "limit": limit, "source": "web_search_news"},
-                    )
-
         materialized_only = self._materialized_only_result(
             {"articles": pd.DataFrame(), "fallback_summary": None, "source": "pipeline"},
             datasets=("news_articles",),
@@ -2612,7 +2136,7 @@ class DataAccessLayer:
             return self._resolved(
                 {"articles": pd.DataFrame(), "fallback_summary": None, "source": None},
                 mode="on_demand",
-                datasets=("recent_news", "web_search_news"),
+                datasets=("recent_news",),
                 details={"ticker": ticker.upper(), "days": days, "limit": limit, "empty_reason": "no_recent_news_and_no_alpaca_config"},
             )
         payload = cached_news_payload(
@@ -3143,13 +2667,14 @@ class DataAccessLayer:
         )
 
     def resolve_attention_research_bundle(self, bundle_id: str, *, force_refresh: bool = False) -> ResolvedPayload:
+        """Read retained research; refresh never authorizes acquisition or synthesis."""
         normalized_bundle_id = str(bundle_id or "").strip()
         materialized_payload: dict[str, Any] = {}
         materialized_dataset_name = ""
         materialized_details: dict[str, Any] = {"bundle_id": normalized_bundle_id}
         materialized = self._first_materialized_frame(
             ATTENTION_BUNDLE_SNAPSHOT_DATASETS,
-            force_refresh=force_refresh,
+            force_refresh=False,
         )
         if materialized is not None:
             dataset_name, frame, details = materialized
@@ -3163,75 +2688,21 @@ class DataAccessLayer:
                 materialized_dataset_name = dataset_name
                 materialized_details = {**details, "bundle_id": normalized_bundle_id}
 
-        materialized_only = self._materialized_only_result({}, datasets=ATTENTION_BUNDLE_SNAPSHOT_DATASETS, details={"bundle_id": normalized_bundle_id})
-        if materialized_only is not None:
-            if materialized_payload:
-                return self._resolved(
-                    materialized_payload,
-                    mode="materialized",
-                    datasets=(materialized_dataset_name or ATTENTION_BUNDLE_SNAPSHOT_DATASETS[0],),
-                    details=materialized_details,
-                )
-            return materialized_only
-
-        if normalized_bundle_id.lower().startswith("symbol::"):
-            symbol = normalized_bundle_id.split("::", 1)[1].upper().strip()
-            if _precomputed_symbol_bundles_only():
-                if materialized_payload:
-                    return self._resolved(
-                        materialized_payload,
-                        mode="materialized",
-                        datasets=(materialized_dataset_name or ATTENTION_BUNDLE_SNAPSHOT_DATASETS[0],),
-                        details={**materialized_details, "precomputed_only": True},
-                    )
-                return self._resolved(
-                    {},
-                    mode="materialized",
-                    datasets=ATTENTION_BUNDLE_SNAPSHOT_DATASETS,
-                    details={"bundle_id": normalized_bundle_id, "precomputed_only": True},
-                )
-
-            materialized_signal_score = _bundle_web_signal_score(materialized_payload)
-            should_try_direct = force_refresh or materialized_signal_score <= 0
-            if should_try_direct:
-                direct_payload = self._resolve_symbol_agentic_bundle(symbol, force_refresh=force_refresh)
-                if direct_payload:
-                    direct_signal_score = _bundle_web_signal_score(direct_payload)
-                    if force_refresh or not materialized_payload or direct_signal_score > materialized_signal_score:
-                        return self._resolved(
-                            direct_payload,
-                            mode="on_demand",
-                            datasets=(
-                                "attention_web_search_news",
-                                "attention_search_requests",
-                                "attention_search_results",
-                                "attention_source_documents",
-                                "attention_evidence_chunks",
-                                "attention_claims",
-                            ),
-                            details={"bundle_id": normalized_bundle_id, "run_id": _coerce_text(direct_payload.get("run_id"))},
-                        )
-            if materialized_payload:
-                return self._resolved(
-                    materialized_payload,
-                    mode="materialized",
-                    datasets=(materialized_dataset_name or ATTENTION_BUNDLE_SNAPSHOT_DATASETS[0],),
-                    details=materialized_details,
-                )
-
         if materialized_payload:
             return self._resolved(
                 materialized_payload,
                 mode="materialized",
-                datasets=(materialized_dataset_name or ATTENTION_BUNDLE_SNAPSHOT_DATASETS[0],),
+                datasets=(materialized_dataset_name,),
                 details=materialized_details,
             )
         return self._resolved(
             {},
-            mode="materialized",
+            mode="unavailable",
             datasets=ATTENTION_BUNDLE_SNAPSHOT_DATASETS,
             details={
                 "bundle_id": normalized_bundle_id,
+                "empty_reason": "materialized_research_unavailable",
+                "required_job": "attention-home-build",
                 "warning": "attention_research_bundle_materialized_snapshot_unavailable",
             },
         )

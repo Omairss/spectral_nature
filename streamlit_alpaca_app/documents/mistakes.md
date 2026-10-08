@@ -449,3 +449,7 @@ Distilled from 41 past incidents (archived in `past_mistakes.md`). These are the
 - The first full-universe heatmap eagerly constructed roughly 6,000 cells and recalculated its extent for each cell, leaving the simulator unresponsive at 100% CPU. Profiling identified SwiftUI layout work. The shared renderer now computes its scale once and virtualizes rows inside a bounded viewport; it preserves the entire universe. The full 999-symbol screen and searchable 3D inspection then responded normally.
 - Initial portfolio overview reused raw benchmark prices alongside portfolio dollars, visually flattening the benchmarks. Personal review caught the unit mismatch. Value and indexed performance now use separate shared chart configurations.
 - Native knowledge folder requests originally sent folder ID instead of the server's folder-path parameter. Corrected the request boundary and verified navigation into an actual nested folder and between connected pages.
+
+## Shared read-layer cleanup — 2026-10-07
+
+- A read-only default left the DAL able to launch model/search work when an environment flag or refresh path changed. Deleted that runtime and its scoring/fallback tree at source. During validation, the lightweight QA environment lacked FastAPI/Streamlit; use the repository runtime environment for downstream checks.

@@ -520,3 +520,7 @@ Distilled from 40 past learnings (archived in `past_learnings.md`). These are pr
 - Folder navigation uses the service's folder path, while connected knowledge navigation uses page identity. Verify both against real nested folders and connected pages; an opaque identifier is not interchangeable with a route parameter.
 - Portfolio dollars and benchmark prices are different units. Show portfolio value alone on a value chart and compare normalized histories on the performance chart. Missing monthly boundaries and numeric surface inputs remain missing, never zero-filled.
 - An existing Keychain session enabled live private read acceptance without transferring credentials. Record mutation and credential-lifecycle acceptance separately; successful builds and private reads do not prove those actions.
+
+## Shared read-layer cleanup — 2026-10-07
+
+- Remove duplicate research runtimes rather than hiding them behind default-on environment switches. The shared DAL now reads retained research in all modes; ordinary raw market-provider reads remain a separate supported contract.

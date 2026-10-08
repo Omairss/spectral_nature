@@ -2,6 +2,31 @@
 
 Status: in progress. Grounded in `documents/architecture/overall/GLOBAL_OPTIMIZATION_AUDIT_2026-09-21.md`, the 2026-09-21 static probes, and the 2026-10-02 Next.js vertical-slice deployment.
 
+## 2026-10-07 implementation update
+
+Checkpoint `35ea4cb6` preserves all pending work, including the native iPhone app.
+The first implementation increment removes the duplicate research runtime from
+`data_access/layer.py`: 536 deleted lines, including all three raw model-client
+loads, both embedding-client loads, and the direct agentic/search imports.
+Research bundle reads now use retained artifacts regardless of runtime mode or
+legacy environment flags; missing artifacts return an unavailable contract naming
+`attention-home-build`. Refresh re-reads retained bundles rather than bypassing
+storage. Raw Alpaca news reads remain supported; hidden web search is retired.
+
+This advances Phase 1, but does not claim all phase exit criteria: remaining
+service imports and transitive ownership need a complete graph audit. Phase 0's
+metric script is still absent, so the score below is a historical baseline, not
+current debt. See [ACTIVE_MAP](../architecture/ACTIVE_MAP.md) for current owners
+and explicitly unfinished simplifications. No frontend rewrite or broker change
+is included.
+
+Validation: 81 focused DAL/QueryService, API, and presentation checks pass in the
+repository runtime environment. The checks cover both DAL modes, refresh reads,
+legacy flag settings, unavailable research, and unchanged API/presentation paths.
+These are contract checks, not claims about LLM output quality; model behavior was
+not changed. Development release is scoped to the isolated Next.js API's existing
+image plus `data_access/layer.py`.
+
 ## Intent
 
 This cleanup is not a frontend rewrite and not a cosmetic file split. The goal is to make the intended architecture mechanically true:

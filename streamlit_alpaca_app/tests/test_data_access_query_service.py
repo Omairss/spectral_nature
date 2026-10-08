@@ -372,7 +372,6 @@ def test_data_access_layer_materialized_only_does_not_fallback_for_attention_hom
 
     monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
     monkeypatch.setattr(layer_module, "load_latest_dataset_frame", lambda dataset_name: (pd.DataFrame(), None))
-    monkeypatch.setattr(DataAccessLayer, "_resolve_live_attention_artifacts", lambda self, force_refresh: (_ for _ in ()).throw(AssertionError("live attention build should not run")))
 
     resolved = DataAccessLayer(materialized_only=True).resolve_attention_home_1d()
 
@@ -824,11 +823,6 @@ def test_resolve_attention_home_1d_fails_closed_for_bad_materialized_payload(mon
         "_pipeline_frame",
         lambda self, dataset_name: (materialized_home.copy(), {"dataset_name": dataset_name}),
     )
-    monkeypatch.setattr(
-        DataAccessLayer,
-        "_resolve_live_attention_artifacts",
-        lambda self, force_refresh: (_ for _ in ()).throw(AssertionError("Home render must not live-build attention")),
-    )
 
     resolved = DataAccessLayer().resolve_attention_home_1d()
 
@@ -867,20 +861,15 @@ def test_resolve_attention_research_bundle_fails_closed_for_stat_dump_materializ
         "_pipeline_frame",
         lambda self, dataset_name: (materialized_bundle.copy(), {"dataset_name": dataset_name}),
     )
-    monkeypatch.setattr(
-        DataAccessLayer,
-        "_resolve_live_attention_artifacts",
-        lambda self, force_refresh: (_ for _ in ()).throw(AssertionError("bundle render must not live-build attention")),
-    )
 
     resolved = DataAccessLayer().resolve_attention_research_bundle(bundle_id, force_refresh=True)
 
-    assert resolved.provenance.mode == "materialized"
+    assert resolved.provenance.mode == "unavailable"
     assert resolved.payload == {}
     assert resolved.provenance.details["warning"] == "attention_research_bundle_materialized_snapshot_unavailable"
 
 
-def test_resolve_attention_research_bundle_symbol_prefers_on_demand_when_materialized_has_no_web_signal(monkeypatch):
+def test_resolve_attention_research_bundle_symbol_retains_snapshot_even_when_legacy_live_flag_enabled(monkeypatch):
     monkeypatch.setenv("ATTENTION_SYMBOL_BUNDLE_PRECOMPUTED_ONLY", "false")
 
     bundle_id = "symbol::BMY"
@@ -912,46 +901,18 @@ def test_resolve_attention_research_bundle_symbol_prefers_on_demand_when_materia
             }
         ]
     )
-    direct_payload = {
-        "bundle_id": bundle_id,
-        "bundle_type": "symbol",
-        "headline": "Bristol Myers drawdown tied to trial headline mix",
-        "what_changed_text": "BMY sold off after mixed clinical updates.",
-        "why_now_text": "Coverage focused on read-through risk to near-term estimates.",
-        "source_summary": "Yahoo Finance and Reuters",
-        "important_news_count": 1,
-        "same_day_evidence_count": 1,
-        "evidence": [
-            {
-                "headline": "Why Bristol-Myers Squibb (BMY) Stock Is Up Today",
-                "summary": "Web coverage discussed trial context and positioning.",
-                "source": "Yahoo Finance",
-                "source_kind": "search",
-                "search_provider": "serpapi",
-                "is_important": True,
-            }
-        ],
-        "background_context": [],
-        "run_id": "live-run",
-    }
-
     monkeypatch.setattr(DataAccessLayer, "_should_try_pipeline", lambda self, force_refresh: True)
     monkeypatch.setattr(
         DataAccessLayer,
         "_pipeline_frame",
         lambda self, dataset_name: (materialized_bundle.copy(), {"dataset_name": dataset_name}),
     )
-    monkeypatch.setattr(
-        DataAccessLayer,
-        "_resolve_symbol_agentic_bundle",
-        lambda self, symbol, force_refresh: direct_payload,
-    )
 
     resolved = DataAccessLayer().resolve_attention_research_bundle(bundle_id, force_refresh=True)
 
-    assert resolved.provenance.mode == "on_demand"
-    assert resolved.payload["headline"].startswith("Bristol Myers drawdown")
-    assert "attention_search_results" in resolved.provenance.datasets
+    assert resolved.provenance.mode == "materialized"
+    assert resolved.payload == materialized_bundle_payload
+    assert resolved.provenance.datasets == ("attention_bundle_snapshots",)
 
 
 def test_resolve_attention_research_bundle_symbol_precomputed_only_skips_on_demand(monkeypatch):
@@ -993,20 +954,16 @@ def test_resolve_attention_research_bundle_symbol_precomputed_only_skips_on_dema
         "_pipeline_frame",
         lambda self, dataset_name: (materialized_bundle.copy(), {"dataset_name": dataset_name}),
     )
-    monkeypatch.setattr(
-        DataAccessLayer,
-        "_resolve_symbol_agentic_bundle",
-        lambda self, symbol, force_refresh: (_ for _ in ()).throw(AssertionError("on-demand symbol bundle should be disabled in precomputed mode")),
-    )
 
     resolved = DataAccessLayer().resolve_attention_research_bundle(bundle_id, force_refresh=True)
 
     assert resolved.provenance.mode == "materialized"
-    assert resolved.provenance.details.get("precomputed_only") is True
     assert resolved.payload["headline"] == "BMY retained snapshot"
 
 
-def test_resolve_attention_research_bundle_symbol_keeps_materialized_when_web_signal_exists(monkeypatch):
+@pytest.mark.parametrize("refresh", [False, True])
+@pytest.mark.parametrize("materialized_only", [False, True])
+def test_resolve_attention_research_bundle_retains_artifact_on_refresh(monkeypatch, refresh, materialized_only):
     bundle_id = "symbol::BMY"
     materialized_bundle_payload = {
         "bundle_id": bundle_id,
@@ -1038,19 +995,14 @@ def test_resolve_attention_research_bundle_symbol_keeps_materialized_when_web_si
         ]
     )
 
-    monkeypatch.setattr(DataAccessLayer, "_should_try_pipeline", lambda self, force_refresh: True)
+    monkeypatch.setattr(DataAccessLayer, "_should_try_pipeline", lambda self, force_refresh: not force_refresh)
     monkeypatch.setattr(
         DataAccessLayer,
         "_pipeline_frame",
         lambda self, dataset_name: (materialized_bundle.copy(), {"dataset_name": dataset_name}),
     )
-    monkeypatch.setattr(
-        DataAccessLayer,
-        "_resolve_symbol_agentic_bundle",
-        lambda self, symbol, force_refresh: (_ for _ in ()).throw(AssertionError("on-demand symbol bundle should not run")),
-    )
 
-    resolved = DataAccessLayer().resolve_attention_research_bundle(bundle_id)
+    resolved = DataAccessLayer(materialized_only=materialized_only).resolve_attention_research_bundle(bundle_id, force_refresh=refresh)
 
     assert resolved.provenance.mode == "materialized"
     assert resolved.payload["headline"].startswith("BMY rebounds")
@@ -1556,62 +1508,29 @@ def test_data_access_layer_recent_news_falls_back_to_attention_web_search_news(m
     assert resolved.payload["source"] == "serpapi+SerpApi"
 
 
-def test_data_access_layer_recent_news_uses_materialized_identity_for_web_refresh(monkeypatch):
-    import data_access.layer as layer_module
+@pytest.mark.parametrize("materialized_only", [False, True])
+def test_research_reads_do_not_construct_model_or_search_clients(monkeypatch, materialized_only):
+    import services.llm as llm
+    import services.attention_agentic as attention
+    import data_access.layer as layer
 
-    company_baselines = pd.DataFrame(
-        {
-            "symbol": ["APLD"],
-            "company_name": ["Applied Digital Corporation"],
-        }
-    )
-    metadata = SimpleNamespace(
-        dataset_name="company_baselines",
-        dataset_version_id="company_baselines__20260528T120000Z__abcd1234",
-        blob_path="datasets/company_baselines/example.parquet",
-        asof_time_utc="2026-05-28T12:00:00Z",
-        ingested_at_utc="2026-05-28T12:05:00Z",
-        row_count=1,
-    )
-    captured: dict[str, object] = {}
+    def forbidden(*args, **kwargs):
+        raise AssertionError("Read path attempted live research")
 
-    def _load(dataset_name: str):
-        if dataset_name == "company_baselines":
-            return company_baselines.copy(), metadata
-        return pd.DataFrame(), None
-
-    def _cached_news_payload(_namespace, _scope, factory, **_kwargs):
-        return factory()
-
-    def _search_symbol_news_payload(symbol, *, company_name="", **_kwargs):
-        captured["symbol"] = symbol
-        captured["company_name"] = company_name
-        return {
-            "articles": pd.DataFrame(
-                {
-                    "headline": ["Applied Digital secures AI data-center coverage"],
-                    "summary": ["Coverage discussed Applied Digital's AI data-center demand."],
-                    "description": ["Coverage discussed Applied Digital's AI data-center demand."],
-                    "source": ["ExampleWire"],
-                    "published_at": [pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=1)],
-                    "url": ["https://example.com/apld-2026-05-27"],
-                }
-            ),
-            "fallback_summary": None,
-            "source": "serpapi",
-        }
-
-    monkeypatch.setattr(layer_module, "pipeline_store_configured", lambda: True)
-    monkeypatch.setattr(layer_module, "load_latest_dataset_frame", _load)
-    monkeypatch.setattr(layer_module, "cached_news_payload", _cached_news_payload)
-    monkeypatch.setattr(layer_module, "search_symbol_news_payload", _search_symbol_news_payload)
-    monkeypatch.setattr(layer_module, "load_llm_client", lambda: None)
-
-    resolved = DataAccessLayer(cfg=None).resolve_recent_news("APLD", days=7, limit=5, force_refresh=True)
-
-    assert captured == {"symbol": "APLD", "company_name": "Applied Digital Corporation"}
-    assert resolved.provenance.datasets == ("web_search_news",)
-    assert resolved.payload["articles"]["headline"].tolist() == ["Applied Digital secures AI data-center coverage"]
+    monkeypatch.setattr(llm, "load_llm_client", forbidden)
+    monkeypatch.setattr(llm, "load_embedding_client", forbidden)
+    monkeypatch.setattr(attention, "search_symbol_news_payload", forbidden)
+    monkeypatch.setattr(attention, "build_bottom_up_attention_artifacts", forbidden)
+    monkeypatch.setattr(layer, "pipeline_store_configured", lambda: False)
+    monkeypatch.setenv("ATTENTION_SYMBOL_BUNDLE_PRECOMPUTED_ONLY", "false")
+    dal = DataAccessLayer(materialized_only=materialized_only)
+    for refresh in (False, True):
+        news = dal.resolve_recent_news("APLD", force_refresh=refresh)
+        assert news.payload["articles"].empty
+        bundle = dal.resolve_attention_research_bundle("symbol::APLD", force_refresh=refresh)
+        assert bundle.payload == {}
+        assert bundle.provenance.mode == "unavailable"
+        assert bundle.provenance.details["required_job"] == "attention-home-build"
 
 
 def test_data_access_layer_recent_news_ignores_summary_only_current_feed_rows(monkeypatch):

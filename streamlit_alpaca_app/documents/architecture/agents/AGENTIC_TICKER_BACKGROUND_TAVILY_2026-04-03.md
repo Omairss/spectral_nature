@@ -1,3 +1,7 @@
+> Superseded 2026-10-07: the DAL live research fallback and its environment switch
+> have been removed. Research reads always use retained artifacts. See
+> [the active map](../ACTIVE_MAP.md). The implementation notes below are historical.
+
 # Agentic Ticker Background (Tavily-Backed) - 2026-04-03
 
 ## Goal
