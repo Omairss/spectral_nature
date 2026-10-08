@@ -14,6 +14,11 @@ streamlit_alpaca_app/web/node_modules/
 streamlit_alpaca_app/web/*.tsbuildinfo
 streamlit_alpaca_app/web/playwright-report/
 streamlit_alpaca_app/web/test-results/
+streamlit_alpaca_app/ios_app/**/DerivedData/
+streamlit_alpaca_app/ios_app/**/xcuserdata/
+streamlit_alpaca_app/ios_app/**/*.xcuserstate
+streamlit_alpaca_app/ios_app/**/*.ipa
+streamlit_alpaca_app/ios_app/**/*.xcarchive/
 
 .ssh/*
 data/*

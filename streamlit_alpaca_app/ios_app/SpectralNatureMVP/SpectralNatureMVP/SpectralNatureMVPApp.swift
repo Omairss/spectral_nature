@@ -1,14 +1,13 @@
 import SwiftUI
 
 @main
-struct SpectralNatureMVPApp: App {
-    @StateObject private var session = AppSession()
+struct SpectralNatureApp: App {
+  @StateObject private var session = AppSession()
 
-    var body: some Scene {
-        WindowGroup {
-            RootView()
-                .environmentObject(session)
-        }
+  var body: some Scene {
+    WindowGroup {
+      RootView()
+        .environmentObject(session)
     }
+  }
 }
-

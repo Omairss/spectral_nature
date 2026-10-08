@@ -1,2 +1,3 @@
-API_BASE_URL = http://127.0.0.1:8080
-
+// The native client uses the existing isolated development gateway.
+// A local gateway may be selected with SN_SERVER_URL in the Debug scheme environment.
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG

@@ -441,10 +441,10 @@ The owner approved a development deployment after local inspection.
   history callers to pass the signed-in user identity. The image build asserted
   exactly three replacements, compiled the patched module, and the running
   container reports the user-context boundary intact.
-- The dedicated `robinhood-main-sync-dev` Container Apps job runs every 15
-  minutes with parallelism one, retry limit zero, a 40-minute ceiling, and
+- The dedicated `robinhood-main-sync-dev` Container Apps job runs hourly with
+  parallelism one, retry limit zero, a 40-minute ceiling, and
   worker image digest
-  `sha256:f01c926321846e3ff7975d07cadd9231eed4c47b2f1ec142068302c62b189fd4`.
+  `sha256:088ad172b57b32bf4c325a646d5eef89d1a9cdd57641c2fcc1774a4aa9a0fb74`.
   The image owns its exact sync command and shares the UI's development-only
   encryption and control-database secrets.
 - A separate one-time migration image created the control-plane tables. The
@@ -492,12 +492,43 @@ file.
 Production received its own encryption key rather than the development key,
 and main-account execution is enabled behind the existing admin, review-ticket,
 and live revalidation boundaries. The production-only
-`robinhood-main-sync-prod` job runs every 15 minutes with one replica, one item
+`robinhood-main-sync-prod` job runs hourly with one replica, one item
 per execution, no platform retries, and a 40-minute ceiling. Its image digest is
-`sha256:cb476de492ffd31f29b15c41ca396433f33df782a798f62d5d6a63fe214cd9ef`.
+`sha256:979b06ffd1a82919488ab38ac873f26d6720380ba40d56d6f1afb4561f1f4f75`.
 The first empty-queue probe completed with zero enqueued and zero processed work,
 so no Robinhood request occurred during worker verification.
 
-The development connection and financial cache were not copied into production.
-Production remains unlinked until its administrator connects that environment;
-the first production refresh will then be consumed by the production worker.
+The initial production rollout intentionally left production unlinked. The
+explicitly approved ownership cutover on 2026-10-07 supersedes that initial
+state; the current state is recorded below.
+
+## Connection and Prefetch Audit — 2026-10-07
+
+The development scheduler was parked before credential movement. The existing
+session was decrypted only in memory, re-encrypted with the production key,
+and inserted as a production-scoped connection. One current snapshot, 219,849
+series points, and 64 resource rows were copied to production in the same
+controlled handoff, after which the portfolio link moved to the production
+connection. No password login or device challenge occurred.
+
+One controlled production `accounts` read returned both expected accounts.
+Only after that read succeeded were all three development credential columns
+cleared and the development connection marked disconnected. Production now has
+one active connection; development has zero token-bearing connection rows.
+
+Production runs `robinhood-main-sync-prod` hourly at `0 * * * *` with one
+replica, one item, no platform retries, and the production secret identity.
+Development is parked at `0 0 1 1 *`. Both jobs use environment-neutral worker
+digest
+`sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3`;
+`APP_TRACK` selects the environment. Freshness now uses cadence buckets and
+blocks a second request in the same bucket, avoiding the every-other-hour skip
+caused by comparing an exact one-hour interval to refresh completion time.
+
+Post-deployment no-work executions succeeded in both environments without a
+Robinhood call. The current production bucket is correctly fresh and the next
+hour bucket resolves exactly one due portfolio. An exact-value security audit
+found no connection token, token ciphertext, or encryption key in the current
+workspace, any Git revision, Azure resource definitions, 14 days of centralized
+logs, recent live logs, or 24 database tables outside the encrypted credential
+columns.

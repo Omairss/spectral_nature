@@ -1,52 +1,102 @@
 import SwiftUI
 
 struct RootView: View {
-    @EnvironmentObject private var session: AppSession
-
-    var body: some View {
-        Group {
-            switch session.mode {
-            case .unauthenticated:
-                LoginView()
-            case .authenticated, .guest:
-                MainTabView()
-            }
-        }
-        .task {
-            await session.refreshAuthStatus()
-        }
+  @EnvironmentObject private var session: AppSession
+  @Environment(\.scenePhase) private var scenePhase
+  var body: some View {
+    TabView {
+      NavigationStack { HomeView() }
+        .tabItem { Label("Brief", systemImage: "waveform.path") }
+      NavigationStack { AccessGate { MarketsView() } }
+        .tabItem { Label("Markets", systemImage: "chart.xyaxis.line") }
+      NavigationStack { AccessGate { ResearchView() } }
+        .tabItem { Label("Research", systemImage: "bubble.left.and.text.bubble.right") }
+      NavigationStack { AccessGate { PortfolioView() } }
+        .tabItem { Label("Portfolio", systemImage: "chart.pie") }
+      NavigationStack { WorkspaceList() }
+        .tabItem { Label("Explore", systemImage: "square.grid.2x2") }
     }
+    .id(session.revision)
+    .tint(Theme.teal)
+    .preferredColorScheme(.dark)
+    .sheet(isPresented: $session.showingLogin) {
+      NavigationStack { LoginView() }.preferredColorScheme(.dark).tint(Theme.teal)
+    }
+    .task { await session.restore() }
+    .onChange(of: scenePhase) { _, phase in
+      if phase == .active { Task { await session.restore() } }
+    }
+    .onReceive(NotificationCenter.default.publisher(for: APIClient.sessionExpired)) { _ in
+      session.handleSessionExpiry()
+    }
+    .onOpenURL { session.openAccountLink($0) }
+    .alert(
+      "Account link",
+      isPresented: Binding(
+        get: { !session.accountLinkError.isEmpty },
+        set: { if !$0 { session.accountLinkError = "" } })
+    ) {
+      Button("Close", role: .cancel) { session.accountLinkError = "" }
+    } message: {
+      Text(session.accountLinkError)
+    }
+  }
 }
 
-private struct MainTabView: View {
-    @EnvironmentObject private var session: AppSession
-
-    var body: some View {
-        TabView {
-            HomeView()
-                .tabItem {
-                    Label("Home", systemImage: "house")
-                }
-
-            PortfolioView()
-                .tabItem {
-                    Label("Portfolio", systemImage: "chart.line.uptrend.xyaxis")
-                }
-
-            TickerView()
-                .tabItem {
-                    Label("Ticker", systemImage: "magnifyingglass")
-                }
+private struct WorkspaceList: View {
+  @EnvironmentObject private var session: AppSession
+  var body: some View {
+    List {
+      Section {
+        NavigationLink {
+          AccessGate { MacroView() }
+        } label: {
+          Label("Broad Economy", systemImage: "globe.americas")
         }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Sign Out") {
-                    Task {
-                        await session.signOut()
-                    }
-                }
-            }
+        NavigationLink {
+          AccessGate { InvestigatorSearch() }
+        } label: {
+          Label("Stock Investigator", systemImage: "magnifyingglass")
         }
+        NavigationLink {
+          AccessGate { OptionsView() }
+        } label: {
+          Label("Option Strategizer", systemImage: "point.3.connected.trianglepath.dotted")
+        }
+        if session.context?.isAdmin == true {
+          NavigationLink {
+            TradingView()
+          } label: {
+            Label("Trading Agent", systemImage: "arrow.triangle.branch")
+          }
+          NavigationLink {
+            AdminView()
+          } label: {
+            Label("Admin", systemImage: "slider.horizontal.3")
+          }
+        }
+      }
+      Section {
+        if let context = session.context {
+          VStack(alignment: .leading, spacing: 6) {
+            Text(context.displayName).font(.headline)
+            Text(context.email).font(.caption).foregroundStyle(.secondary)
+          }
+          Button("Sign out", role: .destructive) { Task { await session.signOut() } }
+        } else {
+          Button("Sign in") { session.showingLogin = true }
+        }
+        if !session.error.isEmpty {
+          Failure(message: session.error, retry: { Task { await session.restore() } })
+        }
+      }
+      Section {
+        Text("TORRES CAPITAL").font(.system(size: 10, weight: .medium)).tracking(3).foregroundStyle(
+          .secondary)
+      }
     }
+    .scrollContentBackground(.hidden)
+    .navigationTitle("Explore")
+    .workbench()
+  }
 }
-

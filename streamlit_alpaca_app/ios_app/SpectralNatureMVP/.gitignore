@@ -2,5 +2,6 @@ DerivedData/
 build/
 .build/
 *.xcodeproj/
+!SpectralNature.xcodeproj/
+.xcodegen-smoke/
 *.xcworkspace/
-

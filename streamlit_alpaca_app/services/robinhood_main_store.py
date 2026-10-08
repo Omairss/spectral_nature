@@ -731,10 +731,17 @@ def enqueue_due_refreshes(
                       AND c.status = 'connected'
                       AND (
                           snapshot.source_updated_at IS NULL
-                          OR snapshot.source_updated_at <= %s
+                          OR snapshot.source_updated_at < %s
+                      )
+                      AND NOT EXISTS (
+                          SELECT 1
+                          FROM {schema}.robinhood_main_refresh_requests AS recent
+                          WHERE recent.portfolio_id = p.id
+                            AND recent.environment = c.environment
+                            AND recent.requested_at >= %s
                       )
                     """,
-                    (environment, due_before),
+                    (environment, due_before, due_before),
                 )
                 linked = [_row_dict(cursor, row) for row in cursor.fetchall()]
     finally:

@@ -1,101 +1,121 @@
-import Foundation
 import Combine
+import Foundation
 
 @MainActor
 final class AppSession: ObservableObject {
-    enum Mode {
-        case unauthenticated
-        case authenticated
-        case guest
+  @Published var context: UserContext?
+  @Published var restoring = true
+  @Published var showingLogin = false
+  @Published var error = ""
+  @Published var revision = UUID()
+  @Published var accountLink: AccountLink?
+  @Published var accountLinkError = ""
+  let api = APIClient()
+  private var generation = 0
+  private var changingSession = false
+  var authenticated: Bool { context != nil }
+
+  func restore() async {
+    guard !changingSession else { return }
+    generation += 1
+    let request = generation
+    do {
+      let response: SessionResponse = try await api.get("/api/auth/session")
+      guard request == generation, !Task.isCancelled else { return }
+      if context != nil && !response.authenticated { revision = UUID() }
+      context = response.authenticated ? response.context : nil
+      error = ""
+    } catch {
+      if request == generation && !Task.isCancelled { self.error = error.localizedDescription }
     }
+    if request == generation { restoring = false }
+  }
 
-    @Published var baseURLText: String
-    @Published var mode: Mode
-    @Published var accessToken: String?
-    @Published var refreshToken: String?
-    @Published var userContext: [String: JSONValue]?
-    @Published var authStatus: AuthStatusResponse?
-    @Published var errorMessage: String = ""
-
-    private let defaults = UserDefaults.standard
-    private let baseURLDefaultsKey = "sn.api.base_url"
-    private let accessTokenStore = KeychainTokenStore(
-        service: "com.torrescapital.spectralnaturemvp",
-        account: "access_token"
-    )
-    private let refreshTokenStore = KeychainTokenStore(
-        service: "com.torrescapital.spectralnaturemvp",
-        account: "refresh_token"
-    )
-
-    init() {
-        let storedBaseURL = defaults.string(forKey: baseURLDefaultsKey) ?? AppEnvironment.defaultBaseURL
-        baseURLText = storedBaseURL
-        accessToken = accessTokenStore.readToken()
-        refreshToken = refreshTokenStore.readToken()
-        mode = (accessToken?.isEmpty == false) ? .authenticated : .unauthenticated
+  func signIn(email: String, password: String) async -> Bool {
+    guard !changingSession else { return false }
+    changingSession = true
+    defer {
+      changingSession = false
+      restoring = false
     }
-
-    var resolvedBaseURL: URL {
-        if let url = URL(string: baseURLText), url.scheme != nil {
-            return url
-        }
-        return URL(string: AppEnvironment.fallbackBaseURL)!
+    generation += 1
+    let request = generation
+    do {
+      let response: SessionResponse = try await api.post(
+        "/api/auth/login",
+        body: [
+          "email": .string(email.trimmingCharacters(in: .whitespacesAndNewlines)),
+          "password": .string(password),
+        ])
+      guard response.authenticated, let context = response.context else {
+        throw APIError.invalidResponse
+      }
+      guard request == generation, !Task.isCancelled else { return false }
+      self.context = context
+      error = ""
+      revision = UUID()
+      showingLogin = false
+      restoring = false
+      return true
+    } catch {
+      if request == generation { self.error = error.localizedDescription }
+      return false
     }
+  }
 
-    var apiClient: APIClient {
-        APIClient(baseURL: resolvedBaseURL, bearerToken: accessToken)
-    }
+  func signOut() async {
+    guard !changingSession else { return }
+    changingSession = true
+    defer { changingSession = false }
+    generation += 1
+    do {
+      let _: JSONValue = try await api.post("/api/auth/logout")
+    } catch { /* Always clear this device, including when offline. */  }
+    await api.clearSession()
+    expire()
+  }
 
-    func setBaseURL(_ value: String) {
-        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        baseURLText = trimmed
-        defaults.set(trimmed, forKey: baseURLDefaultsKey)
-        errorMessage = ""
-    }
+  func expire() {
+    generation += 1
+    context = nil
+    restoring = false
+    revision = UUID()
+  }
 
-    func refreshAuthStatus() async {
-        do {
-            let status = try await apiClient.authStatus()
-            authStatus = status
-            errorMessage = ""
-        } catch {
-            errorMessage = "Auth status check failed: \(error.localizedDescription)"
-        }
-    }
+  func handleSessionExpiry() {
+    // A queued read can finish while a new login is replacing the old session.
+    // The credential operation's response owns that transition.
+    guard !changingSession else { return }
+    expire()
+  }
 
-    func signIn(email: String, password: String) async {
-        do {
-            let response = try await apiClient.login(email: email, password: password)
-            accessToken = response.accessToken
-            refreshToken = response.refreshToken
-            accessTokenStore.saveToken(response.accessToken)
-            refreshTokenStore.saveToken(response.refreshToken)
-            userContext = response.context
-            mode = .authenticated
-            errorMessage = ""
-        } catch {
-            errorMessage = "Sign in failed: \(error.localizedDescription)"
-        }
-    }
+  func openAccountLink(_ url: URL) {
+    do {
+      accountLink = try AccountLink(url: url)
+      error = ""
+      showingLogin = true
+    } catch { accountLinkError = error.localizedDescription }
+  }
 
-    func continueAsGuest() {
-        userContext = nil
-        if mode == .unauthenticated {
-            mode = .guest
-        }
-        errorMessage = ""
+  func activate(body: Record) async throws {
+    guard !changingSession else { throw CancellationError() }
+    changingSession = true
+    defer {
+      changingSession = false
+      restoring = false
     }
-
-    func signOut() async {
-        if accessToken != nil {
-            _ = try? await apiClient.logout(refreshToken: refreshToken ?? "")
-        }
-        accessToken = nil
-        refreshToken = nil
-        userContext = nil
-        accessTokenStore.clearToken()
-        refreshTokenStore.clearToken()
-        mode = .unauthenticated
+    generation += 1
+    let request = generation
+    let _: JSONValue = try await api.post("/api/auth/account/invite", body: body)
+    let response: SessionResponse = try await api.get("/api/auth/session")
+    guard response.authenticated, let context = response.context else {
+      throw APIError.invalidResponse
     }
+    guard request == generation, !Task.isCancelled else { throw CancellationError() }
+    self.context = context
+    revision = UUID()
+    accountLink = nil
+    showingLogin = false
+    restoring = false
+  }
 }

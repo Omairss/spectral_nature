@@ -1,0 +1,502 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		027724874F8541B4D20B0881 /* MacroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0121BA7F532AFCD98703B2 /* MacroView.swift */; };
+		2057566DB4B05C6090593AAA /* MarkdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F459B557FCEBDC9603D31F67 /* MarkdownView.swift */; };
+		2F1690BA8878D03056A92037 /* AdminView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4856459186FF12F76245C4A /* AdminView.swift */; };
+		40ADDDAAF4FFEF09FAD5DD69 /* KeychainTokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58E405A554D2F0A372817FB3 /* KeychainTokenStore.swift */; };
+		468BE42640D7151B549EFD1B /* AccountLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C917D49192C0BF38F023FD /* AccountLink.swift */; };
+		5763E5C132E15A95FBD8FFF2 /* APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D87CF3385DFC370A19C932AB /* APIModels.swift */; };
+		596AE6A94A031BBCF70DDD05 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BB10F57DFD2BEAAB56B5995 /* RootView.swift */; };
+		5AF6EA3D0F58F555F73819D6 /* AnalysisCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DA297768AAF8D0AFFAA13C0 /* AnalysisCharts.swift */; };
+		5AFA2AE89A2D1CC97A1CC19C /* TradingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563CC2F59DF10BBCF66A854D /* TradingView.swift */; };
+		5D0FA526AF4036CD013DE090 /* ResearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0706E7FB5DE0D9D9947AF009 /* ResearchView.swift */; };
+		5ED4498A14E725763F70DBE8 /* AttentionGraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD34389ADD57087731F92368 /* AttentionGraphView.swift */; };
+		7C376E70B6A9368469D2177C /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50491DE12839485DD267BA8F /* JSONValue.swift */; };
+		A7D421750FB470041A603016 /* SpectralNatureMVPApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA1A1DB53CF88856B84992A /* SpectralNatureMVPApp.swift */; };
+		BA2E0316C449E68F9584B29D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0750DE6F878E62D82A05D29C /* Assets.xcassets */; };
+		BD9B9E951CC890EBBD713FFE /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 775D22D4E59C76302E719B0D /* APIClient.swift */; };
+		C1A83B00C443891328B1FDB0 /* AppSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE66E17774E3F4C4E0F6DFF /* AppSession.swift */; };
+		C2CAB2FD490C81B23D76D6B6 /* WorkbenchDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7437D2DC501E95AFD12C27B0 /* WorkbenchDesign.swift */; };
+		D700B935AA800BFA59092E27 /* MarketsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80798BB851C3AD780310D788 /* MarketsView.swift */; };
+		E43B922A499718856397C262 /* PortfolioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C755A62778C968F730746C88 /* PortfolioView.swift */; };
+		E911AAE89D2D16EC846765D7 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989AF5756E900CF3AB692196 /* LoginView.swift */; };
+		EE7172B0CBF0E46655A0ABB2 /* InvestigatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B576B1A916D47EADBAB1D97 /* InvestigatorView.swift */; };
+		F4CF2AA16BDA3A1B9B99BA72 /* OptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2299F976495EC6946E075085 /* OptionsView.swift */; };
+		F4DA5389A1B9484655031CC5 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF8811EF2F6F996CB208EDDA /* AppEnvironment.swift */; };
+		FB83CF08CB8EE14457FBCDE0 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62E1CA4AAAFE061A8384D888 /* HomeView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0706E7FB5DE0D9D9947AF009 /* ResearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResearchView.swift; sourceTree = "<group>"; };
+		0750DE6F878E62D82A05D29C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		129353F0664061BE74DAADE8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		1A0121BA7F532AFCD98703B2 /* MacroView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroView.swift; sourceTree = "<group>"; };
+		2299F976495EC6946E075085 /* OptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsView.swift; sourceTree = "<group>"; };
+		3B3573162E59ABF03802AC1D /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		3BB10F57DFD2BEAAB56B5995 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		4B576B1A916D47EADBAB1D97 /* InvestigatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvestigatorView.swift; sourceTree = "<group>"; };
+		50491DE12839485DD267BA8F /* JSONValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONValue.swift; sourceTree = "<group>"; };
+		563CC2F59DF10BBCF66A854D /* TradingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingView.swift; sourceTree = "<group>"; };
+		58E405A554D2F0A372817FB3 /* KeychainTokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainTokenStore.swift; sourceTree = "<group>"; };
+		62E1CA4AAAFE061A8384D888 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		7437D2DC501E95AFD12C27B0 /* WorkbenchDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkbenchDesign.swift; sourceTree = "<group>"; };
+		775D22D4E59C76302E719B0D /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		80798BB851C3AD780310D788 /* MarketsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketsView.swift; sourceTree = "<group>"; };
+		84C917D49192C0BF38F023FD /* AccountLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountLink.swift; sourceTree = "<group>"; };
+		8EE66E17774E3F4C4E0F6DFF /* AppSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSession.swift; sourceTree = "<group>"; };
+		989AF5756E900CF3AB692196 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		9DA297768AAF8D0AFFAA13C0 /* AnalysisCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisCharts.swift; sourceTree = "<group>"; };
+		A4856459186FF12F76245C4A /* AdminView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminView.swift; sourceTree = "<group>"; };
+		AD34389ADD57087731F92368 /* AttentionGraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttentionGraphView.swift; sourceTree = "<group>"; };
+		C755A62778C968F730746C88 /* PortfolioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioView.swift; sourceTree = "<group>"; };
+		CF8811EF2F6F996CB208EDDA /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+		D005471F0B14B5705DC5542E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
+		D87CF3385DFC370A19C932AB /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
+		DDA1A1DB53CF88856B84992A /* SpectralNatureMVPApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectralNatureMVPApp.swift; sourceTree = "<group>"; };
+		F459B557FCEBDC9603D31F67 /* MarkdownView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownView.swift; sourceTree = "<group>"; };
+		FE01A86747AE93200E6AF383 /* SpectralNature.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SpectralNature.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		1776AE8D8CAF5A17733D4A5B /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				3B3573162E59ABF03802AC1D /* Debug.xcconfig */,
+				D005471F0B14B5705DC5542E /* Release.xcconfig */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		25A3FAA416CB39A77F33E40C /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				84C917D49192C0BF38F023FD /* AccountLink.swift */,
+				989AF5756E900CF3AB692196 /* LoginView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		57298BD5B824D425C2F26D06 /* Workspaces */ = {
+			isa = PBXGroup;
+			children = (
+				A4856459186FF12F76245C4A /* AdminView.swift */,
+				AD34389ADD57087731F92368 /* AttentionGraphView.swift */,
+				4B576B1A916D47EADBAB1D97 /* InvestigatorView.swift */,
+				1A0121BA7F532AFCD98703B2 /* MacroView.swift */,
+				2299F976495EC6946E075085 /* OptionsView.swift */,
+				563CC2F59DF10BBCF66A854D /* TradingView.swift */,
+			);
+			path = Workspaces;
+			sourceTree = "<group>";
+		};
+		6474B53F0BB979FA1D3A46D1 /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				9DA297768AAF8D0AFFAA13C0 /* AnalysisCharts.swift */,
+				F459B557FCEBDC9603D31F67 /* MarkdownView.swift */,
+				7437D2DC501E95AFD12C27B0 /* WorkbenchDesign.swift */,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
+		76688557FC1DCACADF315634 /* Portfolio */ = {
+			isa = PBXGroup;
+			children = (
+				C755A62778C968F730746C88 /* PortfolioView.swift */,
+			);
+			path = Portfolio;
+			sourceTree = "<group>";
+		};
+		7C49F1003F122752568BF073 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FE01A86747AE93200E6AF383 /* SpectralNature.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		84686B0A0C5830CE636A89B4 /* SpectralNatureMVP */ = {
+			isa = PBXGroup;
+			children = (
+				0750DE6F878E62D82A05D29C /* Assets.xcassets */,
+				129353F0664061BE74DAADE8 /* Info.plist */,
+				DDA1A1DB53CF88856B84992A /* SpectralNatureMVPApp.swift */,
+				E058FC1ED43F96A19E715D1B /* App */,
+				C7FB6A8BF0511F13504F13B0 /* Core */,
+				6474B53F0BB979FA1D3A46D1 /* Design */,
+				9A49E28C01E5471359F7CAFB /* Features */,
+				C63B422F6C75BA1BA4068307 /* Networking */,
+			);
+			path = SpectralNatureMVP;
+			sourceTree = "<group>";
+		};
+		93E1B52D5805E6CE992CFA7A /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				62E1CA4AAAFE061A8384D888 /* HomeView.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		9758C18BA7047DCF79F2CF0F = {
+			isa = PBXGroup;
+			children = (
+				1776AE8D8CAF5A17733D4A5B /* Config */,
+				84686B0A0C5830CE636A89B4 /* SpectralNatureMVP */,
+				7C49F1003F122752568BF073 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		9A49E28C01E5471359F7CAFB /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				25A3FAA416CB39A77F33E40C /* Auth */,
+				93E1B52D5805E6CE992CFA7A /* Home */,
+				F31DFE6E15B76985EB69A505 /* Markets */,
+				76688557FC1DCACADF315634 /* Portfolio */,
+				C8325C5DB4865AD3602F1FE2 /* Research */,
+				57298BD5B824D425C2F26D06 /* Workspaces */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		C63B422F6C75BA1BA4068307 /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				775D22D4E59C76302E719B0D /* APIClient.swift */,
+				D87CF3385DFC370A19C932AB /* APIModels.swift */,
+				50491DE12839485DD267BA8F /* JSONValue.swift */,
+			);
+			path = Networking;
+			sourceTree = "<group>";
+		};
+		C7FB6A8BF0511F13504F13B0 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				FD934D4A9A7AD4E51D565961 /* Security */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		C8325C5DB4865AD3602F1FE2 /* Research */ = {
+			isa = PBXGroup;
+			children = (
+				0706E7FB5DE0D9D9947AF009 /* ResearchView.swift */,
+			);
+			path = Research;
+			sourceTree = "<group>";
+		};
+		E058FC1ED43F96A19E715D1B /* App */ = {
+			isa = PBXGroup;
+			children = (
+				CF8811EF2F6F996CB208EDDA /* AppEnvironment.swift */,
+				8EE66E17774E3F4C4E0F6DFF /* AppSession.swift */,
+				3BB10F57DFD2BEAAB56B5995 /* RootView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		F31DFE6E15B76985EB69A505 /* Markets */ = {
+			isa = PBXGroup;
+			children = (
+				80798BB851C3AD780310D788 /* MarketsView.swift */,
+			);
+			path = Markets;
+			sourceTree = "<group>";
+		};
+		FD934D4A9A7AD4E51D565961 /* Security */ = {
+			isa = PBXGroup;
+			children = (
+				58E405A554D2F0A372817FB3 /* KeychainTokenStore.swift */,
+			);
+			path = Security;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B8262B7C591256BB381B7BC0 /* SpectralNature */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 05FD1E1C7106B3E3EB303AA2 /* Build configuration list for PBXNativeTarget "SpectralNature" */;
+			buildPhases = (
+				FA756376508CD433AC183BE5 /* Sources */,
+				FD8EE5D8E1741553DFB8EA64 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SpectralNature;
+			packageProductDependencies = (
+			);
+			productName = SpectralNature;
+			productReference = FE01A86747AE93200E6AF383 /* SpectralNature.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		17242FCA12EB41628E2897AD /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					B8262B7C591256BB381B7BC0 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = A90C6A99D9D953D596E5C1A2 /* Build configuration list for PBXProject "SpectralNature" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 9758C18BA7047DCF79F2CF0F;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 7C49F1003F122752568BF073 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B8262B7C591256BB381B7BC0 /* SpectralNature */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FD8EE5D8E1741553DFB8EA64 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BA2E0316C449E68F9584B29D /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FA756376508CD433AC183BE5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BD9B9E951CC890EBBD713FFE /* APIClient.swift in Sources */,
+				5763E5C132E15A95FBD8FFF2 /* APIModels.swift in Sources */,
+				468BE42640D7151B549EFD1B /* AccountLink.swift in Sources */,
+				2F1690BA8878D03056A92037 /* AdminView.swift in Sources */,
+				5AF6EA3D0F58F555F73819D6 /* AnalysisCharts.swift in Sources */,
+				F4DA5389A1B9484655031CC5 /* AppEnvironment.swift in Sources */,
+				C1A83B00C443891328B1FDB0 /* AppSession.swift in Sources */,
+				5ED4498A14E725763F70DBE8 /* AttentionGraphView.swift in Sources */,
+				FB83CF08CB8EE14457FBCDE0 /* HomeView.swift in Sources */,
+				EE7172B0CBF0E46655A0ABB2 /* InvestigatorView.swift in Sources */,
+				7C376E70B6A9368469D2177C /* JSONValue.swift in Sources */,
+				40ADDDAAF4FFEF09FAD5DD69 /* KeychainTokenStore.swift in Sources */,
+				E911AAE89D2D16EC846765D7 /* LoginView.swift in Sources */,
+				027724874F8541B4D20B0881 /* MacroView.swift in Sources */,
+				2057566DB4B05C6090593AAA /* MarkdownView.swift in Sources */,
+				D700B935AA800BFA59092E27 /* MarketsView.swift in Sources */,
+				F4CF2AA16BDA3A1B9B99BA72 /* OptionsView.swift in Sources */,
+				E43B922A499718856397C262 /* PortfolioView.swift in Sources */,
+				5D0FA526AF4036CD013DE090 /* ResearchView.swift in Sources */,
+				596AE6A94A031BBCF70DDD05 /* RootView.swift in Sources */,
+				A7D421750FB470041A603016 /* SpectralNatureMVPApp.swift in Sources */,
+				5AFA2AE89A2D1CC97A1CC19C /* TradingView.swift in Sources */,
+				C2CAB2FD490C81B23D76D6B6 /* WorkbenchDesign.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		5FC9E161CADC93859CC56DDD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = SpectralNatureMVP/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.torrescapital.spectralnature;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		620AF33F57ECEB3A8336BDCC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3B3573162E59ABF03802AC1D /* Debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		7EEAE293305BC2E3433FB6D1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D005471F0B14B5705DC5542E /* Release.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		C6665B2421AC2C79F9BC1944 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = SpectralNatureMVP/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.torrescapital.spectralnature;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		05FD1E1C7106B3E3EB303AA2 /* Build configuration list for PBXNativeTarget "SpectralNature" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5FC9E161CADC93859CC56DDD /* Debug */,
+				C6665B2421AC2C79F9BC1944 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A90C6A99D9D953D596E5C1A2 /* Build configuration list for PBXProject "SpectralNature" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				620AF33F57ECEB3A8336BDCC /* Debug */,
+				7EEAE293305BC2E3433FB6D1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 17242FCA12EB41628E2897AD /* Project object */;
+}

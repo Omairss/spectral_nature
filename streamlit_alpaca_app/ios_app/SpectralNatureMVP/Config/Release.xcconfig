@@ -1,2 +1,2 @@
-API_BASE_URL = https://api.example.com
-
+// Release intentionally uses the same development service until production is approved.
+SWIFT_COMPILATION_MODE = wholemodule

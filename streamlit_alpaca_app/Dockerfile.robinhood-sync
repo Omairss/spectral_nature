@@ -1,0 +1,15 @@
+ARG BASE_IMAGE=snpipelineacr03130136.azurecr.io/robinhood-main-sync@sha256:979b06ffd1a82919488ab38ac873f26d6720380ba40d56d6f1afb4561f1f4f75
+FROM ${BASE_IMAGE}
+
+WORKDIR /app
+
+COPY services/robinhood_main_store.py /app/services/robinhood_main_store.py
+COPY services/robinhood_main_sync.py /app/services/robinhood_main_sync.py
+
+RUN python -m py_compile \
+      /app/services/robinhood_main_store.py \
+      /app/services/robinhood_main_sync.py \
+    && python -c "from datetime import datetime, timezone; from services import robinhood_main_sync; assert robinhood_main_sync.schedule_bucket_start(datetime(2026, 10, 7, 14, 0, 39, tzinfo=timezone.utc)) == datetime(2026, 10, 7, 14, 0, tzinfo=timezone.utc)"
+
+ENTRYPOINT []
+CMD ["python", "/app/scripts/sync_robinhood_main.py", "--schedule-due", "--limit", "1"]

@@ -16,6 +16,7 @@ This module owns:
 ## Current Code
 
 - `web/` — deployed Next.js App Router development client and same-origin BFF
+- `ios_app/SpectralNatureMVP/` — native SwiftUI iPhone workbench using the same development BFF and FastAPI contracts; [implementation and acceptance](../../plans/NATIVE_IPHONE_WORKBENCH_2026-10-06.md)
 - `api/main.py` — typed browser-facing API boundary
 - `services/home_view.py` — safe materialized Home view model
 - `services/agents/research_runs.py` — durable user-owned research-run contract
@@ -30,6 +31,7 @@ This module owns:
 - [Advanced Visualization Architecture — 2026-10-02](./ADVANCED_VISUALIZATION_ARCHITECTURE_2026-10-02.md): renderer-neutral artifacts, the focused renderer portfolio, agent-to-sandbox flow, linked interaction, performance, and browser security boundaries.
 - [Next.js + Agent Harness Vertical Slice — 2026-10-02](../../plans/NEXT_AGENT_HARNESS_VERTICAL_SLICE_2026-10-02.md): the typed FastAPI, durable Zopedia run, secure BFF, and real Home proof are implemented and deployed in a separate development stack.
 - Streamlit remains active. Route migration is incremental, and an existing route is retired only after its Next.js replacement is proven with real product data and user workflows.
+- The requested native iPhone surface shares service, identity, and artifact contracts with the web workbench. Navigation and charts use SwiftUI and Swift Charts; SceneKit renders numeric 3D points and surfaces. Shared native renderers preserve units, selections, missing values, and full-universe scrolling. Account activation/recovery use the existing BFF identity routes. There is no embedded website or independent research engine.
 
 ## Target Contract
 

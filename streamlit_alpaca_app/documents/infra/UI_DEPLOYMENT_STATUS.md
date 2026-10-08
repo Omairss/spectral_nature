@@ -1,6 +1,6 @@
 # UI Deployment Status Tracker
 
-Last updated (UTC): 2026-10-06 21:40
+Last updated (UTC): 2026-10-07 17:38
 
 ## Environment Mapping
 
@@ -42,10 +42,14 @@ Last updated (UTC): 2026-10-06 21:40
   lookback, renders balanced best/worst tails with their returns, and exposes
   one-to-five groups per side without coupling the ranking universe to the
   equal-weight comparison selection.
-- Production has a distinct Robinhood encryption secret and the scheduled
-  `robinhood-main-sync-prod` worker at digest
-  `sha256:cb476de492ffd31f29b15c41ca396433f33df782a798f62d5d6a63fe214cd9ef`.
-  The worker runs every 15 minutes with parallelism one, retry limit zero, and
-  a 40-minute timeout. Its empty-queue verification completed without a broker
-  call.
+- Production owns the only active Robinhood connection and uses its distinct
+  encryption secret. `robinhood-main-sync-prod` runs hourly at `0 * * * *`
+  with parallelism one, retry limit zero, and a 40-minute timeout.
+- Development ingestion is parked at `0 0 1 1 *`; its connection is
+  disconnected and its credential columns are empty. Both jobs run the same
+  environment-neutral worker digest
+  `sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3`.
+  Safe post-deployment executions enqueued and processed zero work; the
+  production session was separately verified with one controlled two-account
+  read and no login challenge.
 - Custom-domain health must be checked on the exact hostname users open, including DNS, `/_stcore/health`, and a browser WebSocket session. Azure custom-domain binding alone is not enough proof.

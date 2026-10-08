@@ -157,9 +157,9 @@ Normal cadence:
 
 | Resource | Target cadence | Reason |
 | --- | --- | --- |
-| Current holdings and live summaries | 15 minutes during market/extended hours; 2 hours otherwise | Useful portfolio freshness without using Robinhood as a quote stream |
+| Current holdings and live summaries | 1 hour during market/extended hours; 2 hours otherwise | Useful portfolio freshness without using Robinhood as a quote stream |
 | Full portfolio performance curve | Every 20 hours | Local samples fill intraday continuity; long history rarely changes |
-| Option/futures current state | 15 minutes while relevant markets are active; 2 hours otherwise | Position risk changes, but remains bounded by the core sync |
+| Option/futures current state | 1 hour while relevant markets are active; 2 hours otherwise | Position risk changes, but remains bounded by the core sync |
 | User lists and membership | Daily | User-edited membership can change more often |
 | Curated list/screener metadata and membership | Weekly | Broad provider catalogs are low-frequency metadata |
 | Five-year bounded-union symbol history | Every six days | One batched overlap captures corrections and the newest bars without treating Robinhood as a market-data feed |
@@ -243,7 +243,8 @@ contracts.
 - [x] No real order is submitted.
 - [x] Development deployment occurred only after explicit user approval and
   excluded unrelated working-tree changes.
-- [ ] Production deployment requires separate explicit user approval.
+- [x] Production promotion and connection ownership cutover received explicit
+  user approval on 2026-10-07.
 
 The accepted local snapshot contains two masked accounts, 31 normalized
 holdings across equities, options, and futures, a combined portfolio curve from
@@ -257,9 +258,9 @@ worker and contains no Robinhood transport construction.
 Development runs UI revision `sn-streamlit-ui-dev--0000454` and the dedicated
 scheduled job `robinhood-main-sync-dev`. The job owns all provider reads, runs
 with parallelism one and no platform-level retry, and shares the UI's
-development encryption identity. Its 15-minute trigger calls the internal
-freshness scheduler; it does not imply every resource is fetched every 15
-minutes.
+development encryption identity. Its hourly trigger calls the internal
+freshness scheduler; it does not imply every resource is fetched on every
+wake.
 
 Schema bootstrap ran as a one-time migration execution. The recurring image is
 restored to the non-DDL sync command. The first recurring execution completed
@@ -274,3 +275,30 @@ a `TypeError` even though process health stayed green. Revision 454 binds the
 signed-in identity into account, position, and portfolio-history reads. The
 service remains fail-closed on active membership; the compatibility repair did
 not make `user_id` optional or weaken authorization.
+
+## Production Ownership Cutover — 2026-10-07
+
+Robinhood ingestion now has one active owner. The development scheduler is
+parked, the existing session was decrypted only in process and re-encrypted
+under the production-only key, and the production portfolio reference now
+points to that production connection. The development credential columns were
+cleared after one production account-enumeration read returned the same two
+accounts without a password login or device challenge.
+
+The last-good cache moved with the connection so production did not perform a
+cold backfill: one current snapshot, 219,849 series points, and 64 independently
+refreshed resources were copied into the production environment. The
+development cache remains environment-scoped historical data, but it has no
+active connection or scheduler.
+
+The production worker runs hourly at `0 * * * *`; development is parked at
+`0 0 1 1 *`. Both use image digest
+`sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3`.
+Freshness is evaluated against cadence buckets rather than refresh-completion
+age, and a refresh request already created in the current bucket blocks a
+duplicate. This preserves hourly scheduling despite normal worker latency.
+
+An exact-value audit found no access, refresh, device, ciphertext, or encryption
+key material in the working tree, any Git revision, Azure resource definitions,
+14 days of centralized container logs, recent live logs, or database fields
+outside the designated encrypted credential columns.

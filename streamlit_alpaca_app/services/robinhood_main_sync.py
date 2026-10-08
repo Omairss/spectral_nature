@@ -15,7 +15,25 @@ def _now_utc() -> datetime:
 def scheduled_interval(now: datetime | None = None) -> timedelta:
     current = (now or _now_utc()).astimezone(ZoneInfo("America/New_York"))
     extended_session = current.weekday() < 5 and 8 <= current.hour < 20
-    return timedelta(minutes=15 if extended_session else 120)
+    return timedelta(hours=1 if extended_session else 2)
+
+
+def schedule_bucket_start(now: datetime | None = None) -> datetime:
+    """Return the current cadence boundary in UTC.
+
+    Snapshot timestamps are written after a refresh finishes. Comparing them to
+    ``now - cadence`` therefore skips the next scheduled run by the duration of
+    the previous refresh. A cadence bucket represents the scheduler invocation
+    instead, so normal execution latency cannot turn an hourly schedule into an
+    every-other-hour schedule.
+    """
+    current = now or _now_utc()
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    interval_seconds = int(scheduled_interval(current).total_seconds())
+    bucket_epoch = int(current.timestamp()) // interval_seconds * interval_seconds
+    return datetime.fromtimestamp(bucket_epoch, tz=timezone.utc)
 
 
 def enqueue_due(*, environment: str | None = None, now: datetime | None = None) -> int:
@@ -23,7 +41,7 @@ def enqueue_due(*, environment: str | None = None, now: datetime | None = None) 
     target_environment = environment or robinhood_main.environment_name()
     return robinhood_main_store.enqueue_due_refreshes(
         environment=target_environment,
-        due_before=current - scheduled_interval(current),
+        due_before=schedule_bucket_start(current),
         reason="scheduled",
     )
 
@@ -67,4 +85,4 @@ def run_pending(*, environment: str | None = None, limit: int = 1) -> list[dict[
     return results
 
 
-__all__ = ["enqueue_due", "run_next", "run_pending", "scheduled_interval"]
+__all__ = ["enqueue_due", "run_next", "run_pending", "schedule_bucket_start", "scheduled_interval"]

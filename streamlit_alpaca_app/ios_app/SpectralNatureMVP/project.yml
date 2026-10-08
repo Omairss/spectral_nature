@@ -1,4 +1,4 @@
-name: SpectralNatureMVP
+name: SpectralNature
 options:
   minimumXcodeGenVersion: 2.38.0
 configs:
@@ -9,21 +9,46 @@ configFiles:
   Release: Config/Release.xcconfig
 settings:
   base:
-    SWIFT_VERSION: 5.10
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
 targets:
-  SpectralNatureMVP:
+  SpectralNature:
     type: application
     platform: iOS
     deploymentTarget: "17.0"
     sources:
       - path: SpectralNatureMVP
     info:
+      path: SpectralNatureMVP/Info.plist
       properties:
         CFBundleDisplayName: Spectral Nature
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}
-        SNApiBaseURL: $(API_BASE_URL)
+        ITSAppUsesNonExemptEncryption: false
+        CFBundleURLTypes:
+          - CFBundleURLName: com.torrescapital.spectralnature.account
+            CFBundleURLSchemes:
+              - spectralnature
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.torrescapital.spectralnaturemvp
+        PRODUCT_BUNDLE_IDENTIFIER: com.torrescapital.spectralnature
         CODE_SIGN_STYLE: Automatic
-
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+schemes:
+  SpectralNature:
+    build:
+      targets:
+        SpectralNature: all
+    run:
+      config: Debug
+    archive:
+      config: Release
