@@ -273,3 +273,5 @@ The setup script writes local-only outputs to `infra/.generated/email_delivery.l
 - Live data loaders now persist CSV caches under `streamlit_alpaca_app/cache/data/`.
 - Cache staleness is controlled by `streamlit_alpaca_app/cache/cache_policy.json`.
 - Use the sidebar `Update Cached Data` button to force a refresh before the configured stale window.
+
+The [Home restoration record](plans/HOME_RELEASE_RECOVERY_2026-10-16.md) tracks the exact accepted October 14 image, development restoration and production approval boundary.

@@ -1,21 +1,25 @@
-# Home release recovery
+# Restore the last accepted Home release
 
-The October 16 reliability release selected an obsolete application baseline. Its Home generator lost the accepted full-source editor, overview, actual semantic review and lossless prose projection. Archiving those source copies prevents reuse but does not repair a deployed generator or replace its published artifact.
+## Owner direction
 
-## Scope and acceptance
+Restore the previously working functionality. Do not redesign the editor, invent a new quality process or release the held reasoning/cost work. The last accepted Home worker is the October 14 release, not the obsolete Home baseline accidentally included in the October 16 reliability release.
 
-Use canonical Git source and preserve the database lifecycle repair. Keep the stopped Trading and reasoning/cost work recoverable; this task does not accept their broader behavior. Remove implicit model upgrades from default shared routing: absent explicit saved routes, execution must use the configured deployment model. Evaluate Home with the existing cheap model, retained original sources and the complete final publication, through the shared AQL/Zopedia editor. Read the resulting briefing personally for useful business explanation, chronological accuracy, grouping, breadth and plain language. Do not use phrase bans, rewrite the output by hand or substitute deterministic prose tests.
+## Confirmed regression
 
-After local acceptance, release the Home worker to development from one recorded committed Git revision. Verify the actual development materialized artifact and public read path. Preserve worker environment, schedules and database changes. Production requires explicit owner permission after presenting the concrete reviewed result. No production change is authorized by the source-retirement work.
+The October 16 reliability build started with an older Admin/API source copy and copied 157 files across consumers. That replaced the newer accepted Home builder and restored the sentence-cutting attention cleaner. File hashes verified the selected source copy; they did not establish preservation of accepted Home behavior. Source retirement prevents reuse of those loose copies but does not itself replace a runtime or a published artifact.
 
-## Current state
+The accepted Home image remains available in ACR: `snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff`, created October 14 at 18:56 UTC, tag `20261014-r1-3`. Its Home builder and lossless text handling were verified during the regression investigation. Restore that immutable image as an explicit rollback target; do not reconstruct an application tree from archives or introduce new editorial behavior.
 
-Source retirement is complete. Home release recovery is in progress. The canonical Home builder already contains the intended editorial contract; the deployed obsolete image does not. The current Git checkpoint also contains unaccepted broader research work, so its provenance alone is not qualitative acceptance. Default routing is being reconciled before the controlled Home evaluation. No corrected Home artifact or new Home deployment has yet been accepted in this recovery.
+## Scope correction
 
-## Integration findings
+I ran the canonical Home builder through the current checkpoint's unaccepted shared research engine, then began changing editorial inputs and review instructions after rejecting the result. That was scope drift: it was not a replay of the previously accepted release. The unrequested Home changes were reverted before further inference. The new model-routing changes were also reverted to preserve the stopped work exactly. No image was built or deployed from that experiment. Its three paid Flash calls, complete output, review and frozen evidence remain private under `~/Library/Application Support/SpectralNature/home-recovery-20261016/`; they do not establish the quality of the accepted October 14 image.
 
-- Development currently serves the database-lifecycle API and Home worker images. The existing API's reviewed-story projection is already verbatim: its narrative-beat function matches canonical source except inference-stage annotations outside that projection. The development public response retains multi-sentence fields. No API or frontend release is needed to deliver a corrected, reviewed Home artifact.
-- The two database-owned definitions that differed from the retained repair were reconciled by inspection. Home's wrapper retains cancellation ownership while adding a non-positive-budget error and equivalent context propagation; the main command map additionally contains the paused Trading tracking entry. No database implementation needs to be redone or rolled back.
-- The frozen replay uses the October 16 20:50 UTC Home snapshot, its 96 retained bundles, 13 enrichment rows, 250 retained event-news source records and the separately retained 50-item news intake. Original timestamps remain unchanged. No live source acquisition or durable knowledge write is requested. Private inputs and complete outputs are under `~/Library/Application Support/SpectralNature/home-recovery-20261016/`.
-- The first synthesis used the existing requested `deepseek-reasoner` deployment and reported `deepseek-flash`. It completed in 215.6 seconds with 152,785 prompt tokens and 41,448 completion tokens (29,628 reasoning). Its reviewer is still running. This is not evidence of a complete-workload cost reduction or accepted quality.
-- Default-route contract probes make no provider calls and establish preservation of the configured transport and gateway effort. An explicit frozen routing policy still takes effect. Image builds now record the source revision through the standard Dockerfiles and build entrypoints.
+## Runtime boundary
+
+Development may restore the exact accepted Home image, preserving the rest of the job template. Keep all other database-repair and Trading services unchanged. The stopped tasks' complete work remains retained; no research needs to be redone because of this restoration. The Home worker's database lifecycle patch can be reconciled later in Git without replacing its accepted Home behavior. Production restoration and regeneration require explicit owner permission. A job-image restoration and replacement of the already-published bad Home artifact are separate operations; report each accurately.
+
+## Development restoration — complete
+
+`attention-home-next-dev` now uses the exact accepted October 14 digest above; Azure provisioning reports `Succeeded`. Compared the complete job definitions: only the container image changed. Environment, resources, command/arguments, job configuration, manual trigger and identity are identical. The prior database-lifecycle image and complete job definition remain in the private rollback receipt. Its Home-specific lifecycle changes remain retained for the stopped database task; no other database or Trading service was changed.
+
+The development public Home endpoint returned HTTP 200 in 1.12 seconds. Its existing October 14 publication and complete story fields are unchanged. No new research job was started and no generated experimental output was published. The exact image restoration is complete in development; this does not claim a fresh publication. Production remains unchanged. Explicit approval to restore the same image in production and regenerate Home has been requested under the owner's production rule.
