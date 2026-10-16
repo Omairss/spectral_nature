@@ -3,6 +3,7 @@
 Compact operating rules distilled from [learnings.md](./learnings.md) and [mistakes.md](./mistakes.md). Source links point to the active notes.
 
 Core Principles.
+**Keep the repository tidy.** Cleanup may precede a task when justified. Archive superseded material first, retain it for 30 days, then automatically discard expired archives during routine cleanup. Keep canonical plans and current indices clear.
 **Cheap open-source models are non-negotiable.** Improve the complete prediction system around them: harness, research loops, information retrieval, relevance/ranking, projections, forecasting, strategy, bet sizing and optionality. Mark cheaper eligible models with better evidence separately; hold the model fixed when measuring system improvements. Apply the model constraint to offline teachers and graders too. See the [prediction-machine scope](research/frontier-agentic-research/PREDICTION_MACHINE_SCOPE_2026-10-16.md).
 **DO NOT** Overfixate on deterministic code.
 **DO NOT** attempt to create a durable artifact quickly.

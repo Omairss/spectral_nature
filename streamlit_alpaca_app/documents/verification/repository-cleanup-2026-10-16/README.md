@@ -9,6 +9,7 @@ The owner approved committing and pushing **all pending repository changes**. Th
 - Both checkpoints have source tree `5db96509d238163affc0e3441c0b6fb1d7e58184`.
 - Existing remote base: `01c53d1300b8dcd8bfb603c261750b475ba6e499`, unchanged and an ancestor of the cleaned checkpoint.
 - Original unpublished history remains on local branch `archive/pre-october-repo-cleanup-20261016`. Keep that archive local because it contains generated dependencies and oversized caches.
+- Under the owner's updated archive-first policy, retain the local original-history archive for 30 days; discard it during routine cleanup once it expires on **November 15, 2026**.
 - [Commit mapping](commit-map.txt) preserves the correspondence between all 32 original and cleaned unpublished commits. Cleanup used upstream `git-filter-repo` v2.47.0, restricted to the unpublished range and the two paths `streamlit_alpaca_app/web/node_modules/` and `streamlit_alpaca_app/web/.next/`. Author/committer metadata and commit messages were verified unchanged.
 
 ## Cleanup and checks

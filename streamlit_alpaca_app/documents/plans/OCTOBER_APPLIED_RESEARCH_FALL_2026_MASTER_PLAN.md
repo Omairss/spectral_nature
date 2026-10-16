@@ -139,3 +139,5 @@ The owner explicitly requested committing and pushing **all pending repository c
 - Publication checks: Python source parsing, JSON parsing, shell syntax, source-whitespace checks, credential-pattern review and master-plan link/table checks. Retained raw build logs keep their original whitespace. These establish the integrity of the checkpoint; qualitative model acceptance remains in the research work queue.
 
 Resume from the pushed `master` checkpoint, inspect any newer working-tree changes, and record the exact source/configuration baseline before starting an experiment. The published October 15–16 diagnostics remain development evidence rather than an untouched evaluation set.
+
+**Cleanup policy updated October 16:** archive superseded material before removal; retain archives for 30 days and discard expired archives during routine cleanup. The local original-history archive reaches 30 days on **November 15, 2026**. Current source, canonical plans and retained research evidence remain active material.

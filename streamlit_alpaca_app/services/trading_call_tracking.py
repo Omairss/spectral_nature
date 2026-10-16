@@ -82,13 +82,14 @@ def initialize_tracking() -> int:
         raise TrackingUnavailable('Call tracking is unavailable.')
     try:
         ensure_schema(connection)
+        retained = 0
         with connection.cursor(row_factory=dict_row) as cursor:
             cursor.execute("SELECT to_regclass('trading_agent_actions') AS actions")
             if cursor.fetchone()['actions'] is None:
                 connection.commit()
                 return 0
             cursor.execute('''SELECT DISTINCT ON (requested_by,candidate_id)
-                action_id,candidate_id,requested_by,created_at_utc,candidate_payload
+                action_id,candidate_id,requested_by,created_at_utc,candidate_payload,horizon_key,ticker
                 FROM trading_agent_actions a WHERE dataset_namespace=%s
                 AND action IN ('place_requested','approved') AND execution_mode IN ('log_only','paper_tracking')
                 AND coalesce(requested_by,'')<>''
@@ -103,12 +104,15 @@ def initialize_tracking() -> int:
                 if isinstance(candidate, str):
                     candidate = json.loads(candidate)
                 candidate = {**candidate, 'candidate_id': row['candidate_id']}
+                candidate['horizon_key'] = candidate.get('horizon_key') or row['horizon_key']
+                candidate['ticker'] = candidate.get('ticker') or row['ticker']
                 if candidate.get('horizon_key') not in HORIZON_DAYS:
                     continue
                 record_approval(cursor, candidate=candidate, owner_id=row['requested_by'], action_id=row['action_id'],
                                 approved_at=row['created_at_utc'], namespace=store.dataset_namespace(), source='retained_log_approval')
+                retained += max(cursor.rowcount, 0)
         connection.commit()
-        return len(rows)
+        return retained
     finally:
         connection.close()
 

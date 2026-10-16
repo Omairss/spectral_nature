@@ -2,6 +2,8 @@
 
 ## Frontier research evaluation — 2026-10-16
 
+- The owner updated cleanup policy: archive superseded material before removal, retain it for 30 days, and discard expired archives during routine cleanup. The October 16 original-history archive reaches 30 days on November 15, 2026.
+
 - Whole-repository publication needs an explicit scope decision when several agents share a dirty checkout. The owner chose all pending work for this checkpoint. Ignore temporary release copies/private diagnostics, retain useful evidence, and keep checkpoint publication separate from each workstream's acceptance status.
 
 - The accepted applied-research agenda has one canonical [October Applied Research Fall 2026 Master plan](plans/OCTOBER_APPLIED_RESEARCH_FALL_2026_MASTER_PLAN.md). Preserve the full four-column comparison, link supporting research/evidence, and update its next-agent queue as work progresses.
